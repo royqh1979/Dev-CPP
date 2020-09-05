@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 824
-  Top = 324
+  Left = 243
+  Top = 504
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++'
   ClientHeight = 680
-  ClientWidth = 1000
+  ClientWidth = 999
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -27,15 +27,15 @@ object MainForm: TMainForm
   TextHeight = 13
   object SplitterLeft: TSplitter
     Left = 193
-    Top = 72
-    Height = 402
+    Top = 56
+    Height = 418
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
     Top = 474
-    Width = 1000
+    Width = 999
     Height = 3
     Cursor = crVSplit
     Align = alBottom
@@ -45,7 +45,7 @@ object MainForm: TMainForm
   object MessageControl: TPageControl
     Left = 0
     Top = 477
-    Width = 1000
+    Width = 999
     Height = 183
     ActivePage = DebugSheet
     Align = alBottom
@@ -60,7 +60,7 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 992
+        Width = 991
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -104,7 +104,7 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 992
+        Width = 991
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -149,7 +149,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 156
-        Height = 155
+        Height = 154
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
@@ -174,18 +174,18 @@ object MainForm: TMainForm
         end
         object chkShortenPaths: TCheckBox
           Left = 4
-          Top = 130
+          Top = 69
           Width = 144
           Height = 17
           Action = actShortenCompPaths
-          Anchors = [akLeft, akBottom]
+          Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
         end
       end
       object CompResGroupBox: TPanel
         Left = 156
         Top = 0
-        Width = 836
+        Width = 835
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -193,7 +193,7 @@ object MainForm: TMainForm
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 836
+          Width = 835
           Height = 154
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -216,13 +216,13 @@ object MainForm: TMainForm
       object DebugSendPanel: TPanel
         Left = 589
         Top = 0
-        Width = 403
+        Width = 402
         Height = 155
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
-          403
+          402
           155)
         object lblSendCommandGdb: TLabel
           Left = 4
@@ -234,7 +234,7 @@ object MainForm: TMainForm
         object edGdbCommand: TComboBox
           Left = 136
           Top = 3
-          Width = 263
+          Width = 262
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           ItemHeight = 13
@@ -244,8 +244,8 @@ object MainForm: TMainForm
         object DebugOutput: TMemo
           Left = 4
           Top = 30
-          Width = 396
-          Height = 119
+          Width = 395
+          Height = 118
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -410,7 +410,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 100
           Width = 578
-          Height = 49
+          Height = 47
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
@@ -448,12 +448,15 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 992
+        Width = 991
         Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
         Columns = <
+          item
+            Width = 15
+          end
           item
             Caption = 'Line'
             Width = 40
@@ -483,6 +486,7 @@ object MainForm: TMainForm
         OnDblClick = FindOutputDblClick
         OnDeletion = FindOutputDeletion
         OnKeyDown = FindOutputKeyDown
+        OnSelectItem = FindOutputSelectItem
       end
     end
     object CloseSheet: TTabSheet
@@ -492,8 +496,8 @@ object MainForm: TMainForm
   end
   object ToolbarDock: TControlBar
     Left = 0
-    Top = 16
-    Width = 1000
+    Top = 0
+    Width = 999
     Height = 56
     Align = alTop
     AutoDock = False
@@ -622,7 +626,7 @@ object MainForm: TMainForm
         ImageIndex = 49
         Style = tbsSeparator
       end
-      object ToolButton4: TToolButton
+      object StopBtn: TToolButton
         Left = 131
         Top = 0
         Action = actStopExecute
@@ -883,7 +887,7 @@ object MainForm: TMainForm
   object Statusbar: TStatusBar
     Left = 0
     Top = 660
-    Width = 1000
+    Width = 999
     Height = 20
     Panels = <
       item
@@ -898,44 +902,6 @@ object MainForm: TMainForm
     ParentFont = True
     UseSystemFont = False
   end
-  object FullScreenPanel: TPanel
-    Left = 0
-    Top = 0
-    Width = 1000
-    Height = 16
-    Align = alTop
-    BevelOuter = bvNone
-    Caption = 
-      'Dev-C++ Fullscreen. Press F10 to toggle this bar, F11 to toggle ' +
-      'Toolbars or F12 to toggle Fullscreen.'
-    TabOrder = 5
-    Visible = False
-    DesignSize = (
-      1000
-      16)
-    object btnFullScrRevert: TSpeedButton
-      Left = 983
-      Top = 0
-      Width = 16
-      Height = 16
-      Anchors = [akTop, akRight]
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Courier New'
-      Font.Style = [fsBold]
-      Glyph.Data = {
-        C6000000424DC60000000000000076000000280000000A0000000A0000000100
-        0400000000005000000000000000000000001000000010000000000000000000
-        80000080000000808000800000008000800080800000C0C0C000808080000000
-        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDD77
-        7777D00DDDD00D777777D000DD000D777777DD000000DD777777DDD0000DDD77
-        7777DDD0000DDD777777DD000000DD777777D000DD000D777777D00DDDD00D77
-        7777DDDDDDDDDD777777}
-      ParentFont = False
-      OnClick = btnFullScrRevertClick
-    end
-  end
   object FileMonitor: TdevFileMonitor
     Left = 112
     Top = 152
@@ -945,9 +911,9 @@ object MainForm: TMainForm
   end
   object LeftPageControl: TPageControl
     Left = 0
-    Top = 72
+    Top = 56
     Width = 193
-    Height = 402
+    Height = 418
     ActivePage = LeftProjectSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
@@ -960,7 +926,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 374
+        Height = 390
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -995,7 +961,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 374
+        Height = 390
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -1021,6 +987,7 @@ object MainForm: TMainForm
         ItemImages.InheritedVariableProtected = 9
         ItemImages.InheritedVariablePublic = 11
         ShowInheritedMembers = False
+        TabVisible = False
       end
     end
     object LeftDebugSheet: TTabSheet
@@ -1030,7 +997,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 374
+        Height = 390
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -1050,18 +1017,18 @@ object MainForm: TMainForm
   end
   object PageControlPanel: TPanel
     Left = 196
-    Top = 72
-    Width = 804
-    Height = 402
+    Top = 56
+    Width = 803
+    Height = 418
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 6
+    TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 804
+      Left = 803
       Top = 0
       Width = 0
-      Height = 402
+      Height = 418
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1069,8 +1036,8 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 804
-      Height = 402
+      Width = 803
+      Height = 418
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1084,10 +1051,10 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 804
+      Left = 803
       Top = 0
       Width = 0
-      Height = 402
+      Height = 418
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1127,7 +1094,7 @@ object MainForm: TMainForm
         object N5: TMenuItem
           Caption = '-'
         end
-        object Class1: TMenuItem
+        object NewClassItem: TMenuItem
           Action = actNewClass
         end
       end
@@ -1303,6 +1270,9 @@ object MainForm: TMainForm
       end
       object ToggleComment1: TMenuItem
         Action = actToggleComment
+      end
+      object actCommentInlineSel1: TMenuItem
+        Action = actToggleCommentInline
       end
       object N27: TMenuItem
         Caption = '-'
@@ -1557,6 +1527,7 @@ object MainForm: TMainForm
       end
       object Abortcompilation2: TMenuItem
         Action = actGotoBreakPoint
+        ShortCut = 113
       end
       object oggleBreakpoint1: TMenuItem
         Action = actBreakPoint
@@ -1597,15 +1568,27 @@ object MainForm: TMainForm
       object N24: TMenuItem
         Caption = '-'
       end
-      object CheckforupdatesItem: TMenuItem
-        Action = actPackageCheck
-      end
       object PackageManagerItem: TMenuItem
         Action = actPackageManager
+        Caption = 'Package Manager'
+      end
+    end
+    object FormatMenu: TMenuItem
+      Caption = 'AStyle'
+      GroupIndex = 9
+      object FormatCurrentFile1: TMenuItem
+        Action = actFormatCurrentFile
+      end
+      object N46: TMenuItem
+        Caption = '-'
+      end
+      object actFormatOptions1: TMenuItem
+        Action = actFormatOptions
       end
     end
     object WindowMenu: TMenuItem
       Caption = '&Window'
+      GroupIndex = 9
       OnClick = actWindowMenuExecute
       object CloseAllItem: TMenuItem
         Action = actCloseAll
@@ -1647,6 +1630,9 @@ object MainForm: TMainForm
       object AboutDevCppItem: TMenuItem
         Tag = 18
         Action = actAbout
+      end
+      object DonateItem: TMenuItem
+        Action = actDonate
       end
     end
   end
@@ -1880,7 +1866,6 @@ object MainForm: TMainForm
       Category = 'File'
       Caption = 'Save &As'
       ImageIndex = 7
-      ShortCut = 49235
       OnExecute = actSaveAsExecute
       OnUpdate = actSaveAsUpdate
     end
@@ -1923,7 +1908,6 @@ object MainForm: TMainForm
       Category = 'File'
       Caption = 'Close Project'
       ImageIndex = 11
-      ShortCut = 49239
       OnExecute = actCloseProjectExecute
       OnUpdate = actUpdateProject
     end
@@ -2121,7 +2105,7 @@ object MainForm: TMainForm
       Category = 'Project'
       Caption = '&Options...'
       ImageIndex = 27
-      ShortCut = 32848
+      ShortCut = 16456
       OnExecute = actProjectOptionsExecute
       OnUpdate = actUpdateProject
     end
@@ -2129,7 +2113,7 @@ object MainForm: TMainForm
       Category = 'Project'
       Caption = 'Edit &Makefile'
       OnExecute = actProjectMakeFileExecute
-      OnUpdate = actUpdateProject
+      OnUpdate = actUpdateMakeFile
     end
     object actProjectSource: TAction
       Tag = 6
@@ -2225,7 +2209,7 @@ object MainForm: TMainForm
       AutoCheck = True
       Caption = '&Full screen mode'
       ImageIndex = 38
-      ShortCut = 32891
+      ShortCut = 16506
       OnExecute = actFullScreenExecute
     end
     object actNext: TAction
@@ -2263,6 +2247,7 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'Project'
       Caption = 'Re&name file'
+      ShortCut = 113
       OnExecute = actUnitRenameExecute
       OnUpdate = actUpdateProject
     end
@@ -2287,8 +2272,9 @@ object MainForm: TMainForm
       OnUpdate = actUpdateProject
     end
     object actShowBars: TAction
+      Category = 'View'
       Caption = 'Show Toolbars'
-      ShortCut = 32890
+      ShortCut = 16507
       OnExecute = actShowBarsExecute
     end
     object actBreakPoint: TAction
@@ -2378,6 +2364,13 @@ object MainForm: TMainForm
       OnExecute = actToggleCommentExecute
       OnUpdate = actUpdateEmptyEditor
     end
+    object actToggleCommentInline: TAction
+      Category = 'Edit'
+      Caption = 'Toggle Inline Comment'
+      ShortCut = 16570
+      OnExecute = actToggleCommentInlineExecute
+      OnUpdate = actToggleCommentInlineUpdate
+    end
     object actIndent: TAction
       Category = 'Edit'
       Caption = 'Indent'
@@ -2400,17 +2393,17 @@ object MainForm: TMainForm
       OnExecute = actGotoFunctionExecute
       OnUpdate = actUpdateEmptyEditor
     end
-    object actBrowserGotoDecl: TAction
+    object actBrowserGotoDeclaration: TAction
       Category = 'ClassBrowser'
       Caption = 'Goto declaration'
-      OnExecute = actBrowserGotoDeclExecute
-      OnUpdate = actBrowserGotoDeclUpdate
+      OnExecute = actBrowserGotoDeclarationExecute
+      OnUpdate = actBrowserGotoDeclarationUpdate
     end
-    object actBrowserGotoImpl: TAction
+    object actBrowserGotoDefinition: TAction
       Category = 'ClassBrowser'
-      Caption = 'Goto implementation'
-      OnExecute = actBrowserGotoImplExecute
-      OnUpdate = actBrowserGotoImplUpdate
+      Caption = 'Goto definition'
+      OnExecute = actBrowserGotoDefinitionExecute
+      OnUpdate = actBrowserGotoDefinitionUpdate
     end
     object actBrowserNewClass: TAction
       Category = 'ClassBrowser'
@@ -2422,12 +2415,14 @@ object MainForm: TMainForm
     object actBrowserNewMember: TAction
       Category = 'ClassBrowser'
       Caption = 'New member function'
+      ImageIndex = 52
       OnExecute = actBrowserNewMemberExecute
       OnUpdate = actBrowserNewMemberUpdate
     end
     object actBrowserNewVar: TAction
       Category = 'ClassBrowser'
       Caption = 'New variable'
+      ImageIndex = 53
       OnExecute = actBrowserNewVarExecute
       OnUpdate = actBrowserNewVarUpdate
     end
@@ -2454,6 +2449,7 @@ object MainForm: TMainForm
       Category = 'Execute'
       Caption = '&Syntax Check Current File'
       ImageIndex = 49
+      ShortCut = 16504
       OnExecute = actSyntaxCheckFileExecute
       OnUpdate = actCompileUpdate
     end
@@ -2473,20 +2469,14 @@ object MainForm: TMainForm
     object actBrowserAddFolder: TAction
       Category = 'ClassBrowser'
       Caption = 'Add folder'
-      OnExecute = actBrowserAddFolderExecute
-      OnUpdate = actBrowserAddFolderUpdate
     end
     object actBrowserRemoveFolder: TAction
       Category = 'ClassBrowser'
       Caption = 'Remove folder'
-      OnExecute = actBrowserRemoveFolderExecute
-      OnUpdate = actBrowserAddFolderUpdate
     end
     object actBrowserRenameFolder: TAction
       Category = 'ClassBrowser'
       Caption = 'Rename folder'
-      OnExecute = actBrowserRenameFolderExecute
-      OnUpdate = actBrowserAddFolderUpdate
     end
     object actCloseAllButThis: TAction
       Category = 'File'
@@ -2601,12 +2591,6 @@ object MainForm: TMainForm
       Caption = 'Goto Implementation'
       OnExecute = actGotoImplDeclEditorExecute
     end
-    object actHideFSBar: TAction
-      Category = 'Window'
-      Caption = 'Hide fullscreen bar'
-      ShortCut = 32889
-      OnExecute = actHideFSBarExecute
-    end
     object actCollapse: TAction
       Category = 'Edit'
       Caption = 'Collapse All'
@@ -2659,36 +2643,43 @@ object MainForm: TMainForm
       OnUpdate = actUpdateDebuggerRunning
     end
     object actMsgCut: TAction
+      Category = 'Messages'
       Caption = 'Cut'
       ShortCut = 16472
       OnExecute = actMsgCutExecute
     end
     object actMsgCopy: TAction
+      Category = 'Messages'
       Caption = 'Copy'
       ShortCut = 16451
       OnExecute = actMsgCopyExecute
     end
     object actMsgCopyAll: TAction
+      Category = 'Messages'
       Caption = 'Copy All'
       ShortCut = 24643
       OnExecute = actMsgCopyAllExecute
     end
     object actMsgPaste: TAction
+      Category = 'Messages'
       Caption = 'Paste'
       ShortCut = 16470
       OnExecute = actMsgPasteExecute
     end
     object actMsgSelAll: TAction
+      Category = 'Messages'
       Caption = 'Select All'
       ShortCut = 16449
       OnExecute = actMsgSelAllExecute
     end
     object actMsgSaveAll: TAction
+      Category = 'Messages'
       Caption = 'Save All'
       ShortCut = 16467
       OnExecute = actMsgSaveAllExecute
     end
     object actMsgClear: TAction
+      Category = 'Messages'
       Caption = 'Clear'
       OnExecute = actMsgClearExecute
     end
@@ -2745,7 +2736,6 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = '&Check for Packages'
       ImageIndex = 41
-      OnExecute = actUpdateCheckExecute
     end
     object actPackageManager: TAction
       Category = 'Tools'
@@ -2755,8 +2745,9 @@ object MainForm: TMainForm
     end
     object actHelp: TAction
       Category = 'Help'
-      Caption = 'actHelp'
+      Caption = 'Help'
       ImageIndex = 46
+      ShortCut = 112
       OnExecute = actHelpExecute
     end
     object actShortenCompPaths: TAction
@@ -2775,6 +2766,7 @@ object MainForm: TMainForm
       Category = 'File'
       Caption = 'Open Containing Folder'
       ImageIndex = 0
+      ShortCut = 16450
       OnExecute = actOpenFolderExecute
       OnUpdate = actUpdatePageCount
     end
@@ -2783,6 +2775,30 @@ object MainForm: TMainForm
       Caption = 'Goto Breakpoint'
       OnExecute = actGotoBreakPointExecute
       OnUpdate = actUpdateDebuggerRunning
+    end
+    object actFormatCurrentFile: TAction
+      Category = 'AStyle'
+      Caption = 'Format Current File'
+      ShortCut = 24641
+      OnExecute = actFormatCurrentFileExecute
+      OnUpdate = actUpdateEmptyEditor
+    end
+    object actFormatOptions: TAction
+      Category = 'AStyle'
+      Caption = 'Formatting Options'
+      OnExecute = actFormatOptionsExecute
+    end
+    object actRunTests: TAction
+      Category = 'Tests'
+      Caption = 'Run Tests'
+      Enabled = False
+      ShortCut = 16497
+      OnExecute = actRunTestsExecute
+    end
+    object actDonate: TAction
+      Caption = 'Donate :)'
+      ImageIndex = 41
+      OnExecute = actDonateExecute
     end
   end
   object MessagePopup: TPopupMenu
@@ -2820,7 +2836,6 @@ object MainForm: TMainForm
     end
   end
   object CppParser: TCppParser
-    BaseIndex = 0
     Enabled = True
     OnTotalProgress = CppParserTotalProgress
     ParseLocalHeaders = False
@@ -2856,10 +2871,10 @@ object MainForm: TMainForm
     Left = 56
     Top = 100
     object mnuBrowserGotoDecl: TMenuItem
-      Action = actBrowserGotoDecl
+      Action = actBrowserGotoDeclaration
     end
     object mnuBrowserGotoImpl: TMenuItem
-      Action = actBrowserGotoImpl
+      Action = actBrowserGotoDefinition
       Default = True
     end
     object mnuBrowserSep1: TMenuItem
@@ -2875,18 +2890,6 @@ object MainForm: TMainForm
       Action = actBrowserNewVar
     end
     object N31: TMenuItem
-      Caption = '-'
-    end
-    object mnuBrowserAddFolder: TMenuItem
-      Action = actBrowserAddFolder
-    end
-    object mnuBrowserRemoveFolder: TMenuItem
-      Action = actBrowserRemoveFolder
-    end
-    object mnuBrowserRenameFolder: TMenuItem
-      Action = actBrowserRenameFolder
-    end
-    object mnuBrowserSep3: TMenuItem
       Caption = '-'
     end
     object mnuBrowserViewMode: TMenuItem
