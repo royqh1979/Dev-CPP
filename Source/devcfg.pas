@@ -1357,10 +1357,17 @@ begin
   sl.Add('ISO C99=c99');
   sl.Add('ISO C++=c++98');
   sl.Add('ISO C++11=c++11');
+  sl.Add('ISO C++14=c++14');
+  sl.Add('ISO C++17=c++17');
+  sl.Add('ISO C++20=c++2a');
   sl.Add('GNU C90=gnu90');
   sl.Add('GNU C99=gnu99');
   sl.Add('GNU C++=gnu++98');
   sl.Add('GNU C++11=gnu++11');
+  sl.Add('GNU C++14=gnu++14');
+  sl.Add('GNU C++17=gnu++17');
+  sl.Add('GNU C++20=gnu++20');
+
   AddOption(ID_COPT_STD, ID_COPT_GRP_CODEGEN, True, True, False, 0, '-std=', sl);
 
   // Warnings
