@@ -1,0 +1,17 @@
+[Template]
+ver=1
+Name=C语言 - 图形程序
+Icon=CL_Graphics.ico
+Description=《C语言程序设计》课图形程序项目
+Category=C语言程序设计
+[Unit0]
+CppName=main.cpp
+Cpp=CL_Graphics_cpp.txt
+[Project]
+UnitCount=1
+Type=0
+IsCpp=1
+linker=-lpthread -ldebughelper -lgraphics -lgdi32 -limm32 -lmsimg32 -lole32 -loleaut32 -lwinmm -luuid -mwindows --static_@@__@@_
+Name=《C语言程序设计》课图形程序项目
+
+

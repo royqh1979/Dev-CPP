@@ -1,0 +1,15 @@
+[Template]
+ver=1
+Name=C语言 - 普通程序
+Icon=CL_Console.ico
+Description=《C语言程序设计》课普通C程序项目
+Category=C语言程序设计
+[Unit0]
+CName=main.c
+[Project]
+UnitCount=1
+Type=1
+IsCpp=0
+Compiler=-std=c99_@@__@@_
+linker=-static-libstdc++ -static-libgcc --static_@@__@@_
+Name=《C语言程序设计》课普通C程序项目

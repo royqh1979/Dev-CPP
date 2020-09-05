@@ -1,0 +1,44 @@
+#include <SDL2/SDL.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main( int argc, char* args[] ) { 
+	SDL_Window *pWindow;
+	SDL_Event e;
+	if (SDL_Init(SDL_INIT_VIDEO)!=0) {
+		printf("SDL Init Error: %s\n",SDL_GetError());
+  		exit(-1);
+	}
+
+	pWindow = SDL_CreateWindow("SDL2 Window", 100, 100, 640, 480, 0); 
+  
+	if(pWindow==NULL)  {   
+    	printf("Could not create window: %s\n", SDL_GetError());
+  		exit(-1);
+	}
+	
+	while(1)
+	{
+		int isQuit=0;
+		//Handle events on queue
+		while( SDL_PollEvent( &e ) != 0 )
+		{
+			//User requests quit
+			if( e.type == SDL_QUIT )
+			{
+				isQuit=1;
+			}
+		}
+		
+		if (isQuit) {
+			break;
+		}
+
+		//Update the surface
+		SDL_UpdateWindowSurface( pWindow );
+	}
+ 
+	SDL_DestroyWindow(pWindow);    
+	SDL_Quit(); 
+	return 0;   
+}

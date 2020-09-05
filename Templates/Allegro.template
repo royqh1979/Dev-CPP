@@ -1,0 +1,21 @@
+[Template]
+ver=1
+Name=Allegro
+Icon=Allegro.ico
+Description=Allegro project.
+Category=Multimedia
+[Unit0]
+CppName=main.cpp
+Cpp=Allegro_main.cpp.txt
+[Project]
+UnitCount=1
+Type=0
+IsCpp=1
+Compiler=
+CppCompiler=
+Linker=-lalleg44.dll_@@__@@_
+CompilerSettings=0000000000100010000000000
+CompilerSet=0
+IncludeVersionInfo=0
+SupportXPThemes=0
+Icon=Allegro.project.ico

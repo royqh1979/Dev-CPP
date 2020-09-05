@@ -1,0 +1,16 @@
+[Template]
+ver=1
+Name=cgi Applications
+Icon=Misc_CGIC.ico
+Description=CGIC Based cgi Applications
+Category=Misc
+[Unit0]
+CName=main.c
+C=Misc_CGIC_c.txt
+[Project]
+UnitCount=1
+Type=1
+IsCpp=0
+Compiler=-std=c99_@@__@@_
+linker=-static-libstdc++ -static-libgcc -lcgic --static_@@__@@_
+Name=CGIC Based cgi Applications

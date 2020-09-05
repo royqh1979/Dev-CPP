@@ -1,0 +1,14 @@
+[Template]
+ver=1
+Name=SDL
+Description=SDL Game Programming
+Icon=SDL.ico
+Category=Multimedia
+[Unit0]
+CppName=main.cpp
+Cpp=SDL_main.c.txt
+[Project]
+UnitCount=1
+Type=0
+IsCpp=1
+Linker=-lmingw32 -lSDL2main -lSDL2  -mwindows  -Wl,--no-undefined -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -static-libgcc _@@__@@_

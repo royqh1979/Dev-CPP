@@ -1,0 +1,15 @@
+[Template]
+ver=1
+Name=C语言 - 海龟画图
+Icon=CL_Turtle.ico
+Description=海龟画图程序项目
+Category=C语言程序设计
+[Unit0]
+CppName=main.cpp
+Cpp=CL_Turtle_cpp.txt
+[Project]
+UnitCount=1
+Type=0
+IsCpp=1
+linker=-lpthread -lturtle -lgraphics -ldebughelper -lgdi32  -limm32 -lmsimg32 -lole32 -loleaut32 -lwinmm -luuid -mwindows --static_@@__@@_
+Name=海龟画图程序项目
