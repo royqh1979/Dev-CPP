@@ -92,6 +92,7 @@ Ver=1
 5026=Compilers
 5027=Search Again Backwards
 
+
 6001=&New File
 6002=&Add To Project...
 6003=&Remove From Project...
@@ -120,6 +121,7 @@ Ver=1
 7016=Delete &Profiling Information
 7017=&Syntax Check Current File
 
+
 8001=&Full Screen Mode
 8002=&Back to Normal
 8003=&Next
@@ -128,6 +130,7 @@ Ver=1
 8006=%s version %s full screen. Press Alt+F10 to toggle this bar, Alt+F11 to toggle Toolbars or Alt+F12 to toggle Fullscreen.
 8007=Close All E&xcept This
 8008=&List...
+8009=Press %s to toggle fullscreen or %s to toggle toolbars
 
 
 9001=&About Dev-C++...
@@ -135,6 +138,9 @@ Ver=1
 9003=C&ustomize Help Menu...
 9004=&Help on Dev-C++
 9005=Package Manager...
+9006=Donate :)
+9007=Tip Of The Day...
+
 
 10001=&Debug
 10002=&Toggle Breakpoint
@@ -159,6 +165,8 @@ Ver=1
 10021=Next instruction
 10022=Into instruction
 10023=Skip function
+10024=Goto Breakpoint
+
 
 11001=Remove File
 11002=Rename File...
@@ -172,7 +180,7 @@ Ver=1
 12003=New Class
 12004=New Function
 12005=New Variable
-12006=View Mode...
+12006=View Mode
 12007=All Files
 12008=Current File
 12009=Add Folder...
@@ -183,6 +191,9 @@ Ver=1
 12014=Project Files
 12015=Show Inherited Members
 12016=Open with...
+12017=Open Containing Folder...
+12018=Close All Except This
+12019=Add TODO Item...
 
 
 13001=Compiler
@@ -214,6 +225,7 @@ Ver=1
 16007=Total errors:
 16008=Size of output:
 16009=Total warnings:
+
 
 17001=Watched Variables
 17002=Backtrace
@@ -267,7 +279,7 @@ Ver=1
 22011=Move Selection Up
 22012=Move Selection Down
 22013=Move To Other View
-
+22014=Toggle Inline Comment
 
 23001=Editor Options
 23002=General
@@ -434,12 +446,18 @@ Ver=1
 34001=Configure Shortcuts
 34002=Click on an item and press the shortcut you desire!
 34003=Tip: press "Escape" to clear a shortcut...
-34004=Menu Entry
+34004=Action
 34005=Shortcut Assigned
 34006=Cancel
 34007=OK
 34008=This shortcut is already used by '%s'.<CR><CR>Remove?
 34009=Button/Misc.
+34010=This shortcut is already used by the action '%s'.<CR><CR>Clear that action and apply the shortcut to '%s'?
+34011=Click on an item and press the shortcut you desire. Press Esc or Delete to clear the shortcut. Please avoid the use of Ctrl+Alt for shortcuts if you need to use the AltGr key.
+34012=Are you sure you want to reset all action shortcuts?
+34013=Are you sure you want to reset the shortcut of action '%s'?
+34014=Reset All
+34015=Reset Selected
 
 
 35001=Returns default directory
@@ -450,9 +468,9 @@ Ver=1
 35006=Returns the projects "name"
 35007=Returns the filename of the current source file
 35008=Returns the path of current source file
-35009=Returns a space seperated list of source files from the current project
+35009=Returns a space separated list of source files from the current project
 35010=Returns the word at the cursor in the active editor
-35011=Returns dev-c++ version
+35011=Returns Dev-C++ version
 
 
 36001=About Dev-C++ :)
@@ -464,7 +482,7 @@ Ver=1
 36007=Dev-C++ discussion forums:
 36008=Dev-C++ users mailing list:
 36009=Authors e-mail:
-36010=http://www.bloodshed.net
+36010=http://www.bloodshed.net1212
 36011=http://www.mingw.org
 36012=http://www.bloodshed.net/forum
 36013=http://www.bloodshed.net/devcpp-ml.html
@@ -472,6 +490,14 @@ Ver=1
 36015=&Check for updates
 36016=Post-4.9.9.2 Development:
 36017=http://orwelldevcpp.blogspot.com
+36018=> 4.9.9.2
+36019=Repository:
+36020=Subreddit:
+36021=Compilers
+36022=TDM-GCC Compiler Website:
+36023=<= 4.9.9.2 (old stuff)
+36024=Please support Dev-C++ by making a donation:
+36025=Blog:
 
 
 37001=Edit code insert entry
@@ -747,7 +773,7 @@ Ver=1
 55030=Compiler log autosave:
 55031=C compiler:
 55032=Customize (applies to this project only):
-55033=Are you sure you want to discard your customizations?
+55033=Are you sure you want to discard customizations made to this set in your project?
 55034=C++ compiler:
 55035=Linker:
 
@@ -853,13 +879,14 @@ Ver=1
 60018=Are you sure you want to remove this folder?
 60019=Enter the new folder name:
 60020=The file %s is marked as read-only. Do you want to mark it as read-write? If no, the file will not be saved...
-60021=An error occured. The file %s was not marked as read-write and it was not saved...
+60021=An error occurred. The file %s was not marked as read-write and it was not saved...
 60022=An Access Violation (Segmentation Fault) raised in your program.
 60023=Source file is more recent than executable.<CR><CR>Recompile?
 60024=Please select the application you want to attach to:
 60025=Could not find corresponding source file
 60026=Could not find corresponding header file
-
+60027=The compiler settings format of Dev-C++ has changed.<CR><CR>Please update your settings at Project >> Project Options >> Compiler and save your project.
+60028=The compiler set you have selected for this project, no longer exists.<CR>It will be substituted by the global compiler set.
 
 61001=Cannot open file %s
 61002=Cannot save file %s
@@ -875,8 +902,8 @@ Ver=1
 61012=Template file %s wasn't found, Skipping.
 61013=No template assigned.
 61014=File %s is not found.
-61015=No Host Application was provided. You can set it in Execute menu, Parameters.
-61016=Host Application not found! You can change it in Execute menu, Parameters.
+61015=No host application was provided. You can set it in Execute > Parameters.
+61016=Host application not found! You can change it in Execute > Parameters.
 61017=Project is not compiled.<CR><CR>Compile now?
 61018=Source file is not compiled.<CR><CR>Compile now?
 61019=%s has changed. Reload from disk?
@@ -921,6 +948,8 @@ Ver=1
 62032=Deleted profiling data file "%s"
 62033=Could not find profiling file "%s"
 62034=Could not find information for expression "%s"
+62035=Parsing file %d of %d: "%s"
+62036=Done parsing %d files in %g seconds (%.2f files per second)
 
 
 63001=&OK
@@ -955,7 +984,7 @@ Ver=1
 64005=Registers:
 
 
-65001=Tip of the day
+65001=Tip Of The Day
 65002=Did you know...
 65003=...there are no tips to display?
 65004=Don't display tips at startup
@@ -987,7 +1016,7 @@ Ver=1
 66021=Dev-C++ was unable to set or check file associations.<CR><CR>This is known to be caused by using UAC in combination with a standard user account.<CR><CR>Please disable UAC or run Dev-C++ as an administrator if you want to change file associations. Relevant options can be found at Tools >> Environment Options >> File Associations.
 66022=UI font:
 66023=Dev-C++ was unable to load the code completion cache, which is corrupted or part of outdated settings files located at:<CR><CR>%s<CR><CR>Do you wish to backup and reset options? If so, please restart Dev-C++. Backups will be stored here:<CR><CR>%s
-66024=An error occured while trying to load the printer setup dialog.<CR><CR>You probably have no printer installed yet.
+66024=An error occurred while trying to load the printer setup dialog.<CR><CR>You probably have no printer installed yet.
 66025=Multiline tabs must be enabled when using vertical tabs.<CR><CR>Reverting to Top Tabs.
 
 
@@ -1097,7 +1126,7 @@ Ver=1
 72028=Sync product with file version
 72029=Default to C++ when creating new files
 72030=Reset to compiler set values?
-72031=Dev-C++ was unable to read executable version information options.<CR><CR>A common cause for this error is Data Execution Prevention (DEP).<CR><CR>Please add devcpp.exe to the whitelist of DEP at Control Panel >> System >> Advaned System Settings >> Advanced >> Performance >> DEP and try again.
+72031=Dev-C++ was unable to read executable version information options.<CR><CR>A common cause for this error is Data Execution Prevention (DEP).<CR><CR>Please add devcpp.exe to the whitelist of DEP at Control Panel >> System >> Advanced System Settings >> Advanced >> Performance >> DEP and try again.
 72032=Files:
 
 73001=Strip executable (-s)
@@ -1194,8 +1223,31 @@ Ver=1
 78026=Processing header file...
 78027=No binary directory provided in compiler set "%s". Aborted compilation.
 78028=Nothing to compile. Aborted compilation.
-78029=Cleaing project...
+78029=Cleaning project...
 78030=Cleaning file...
 78031=Deleted output file %s
 78032=No output files to delete.
 78033=Processing unknown file type...
+
+
+79001=Format Current File
+79002=Formatting Options...
+79003=Formatting Options
+79004=Cannot find AStyle executable. Please make sure AStyle is located at Dev-Cpp\AStyle\AStyle.exe.
+79005=Options
+79006=Bracket style:
+79007=Indent style:
+79008=Tab width:
+79009=Indent the following kinds of code:
+79010=Classes
+79011=Switches
+79012=Cases
+79013=Namespaces
+79014=Labels
+79015=Preprocessor
+79016=Final command (add customizations here):
+79017=Preview:
+79018=Could not find AStyle
+79019=Powered by %s
+79020=Max. line length:
+79021=// Could not find the AStyle output file:<CR>// %s
