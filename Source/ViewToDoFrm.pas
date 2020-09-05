@@ -22,14 +22,8 @@ unit ViewToDoFrm;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, Menus;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, Variants, Classes, QGraphics, QControls, QForms,
-QDialogs, QStdCtrls, QComCtrls, QMenus;
-{$ENDIF}
 
 type
   PToDoRec = ^TToDoRec;
@@ -171,7 +165,7 @@ begin
       e := MainForm.EditorList.Editors[i];
       if Assigned(e) then begin
         if e.FileName = Filename then
-          sl.Assign(e.Text.UnCollapsedLines)
+          sl.Assign(e.Text.Lines)
         else if FileExists(Filename) then
           sl.LoadFromFile(Filename);
       end;
@@ -297,27 +291,17 @@ end;
 
 procedure TViewToDoForm.LoadText;
 begin
-
   // Set interface font
   Font.Name := devData.InterfaceFont;
   Font.Size := devData.InterfaceFontSize;
 
   Caption := Lang[ID_VIEWTODO_MENUITEM];
 
-{$IFDEF WIN32}
   lv.Column[0].Caption := Lang[ID_VIEWTODO_DONE];
   lv.Column[1].Caption := Lang[ID_ADDTODO_PRIORITY];
   lv.Column[2].Caption := Lang[ID_ADDTODO_DESCRIPTION];
   lv.Column[3].Caption := Lang[ID_VIEWTODO_FILENAME];
   lv.Column[4].Caption := Lang[ID_ADDTODO_USER];
-{$ENDIF}
-{$IFDEF LINUX}
-  lv.Columns[0].Caption := Lang[ID_VIEWTODO_DONE];
-  lv.Columns[1].Caption := Lang[ID_ADDTODO_PRIORITY];
-  lv.Columns[2].Caption := Lang[ID_ADDTODO_DESCRIPTION];
-  lv.Columns[3].Caption := Lang[ID_VIEWTODO_FILENAME];
-  lv.Columns[4].Caption := Lang[ID_ADDTODO_USER];
-{$ENDIF}
 
   chkNoDone.Caption := Lang[ID_VIEWTODO_NOSHOWDONE];
   btnClose.Caption := Lang[ID_BTN_CLOSE];
@@ -349,13 +333,13 @@ begin
   if Assigned(e) then begin
     PToDoRec(Item.Data)^.IsDone := Item.Checked;
     if Item.Checked then begin
-      e.Text.UnCollapsedLines[PToDoRec(Item.Data)^.Line] :=
-        StringReplace(e.Text.UnCollapsedLines[PToDoRec(Item.Data)^.Line], 'TODO', 'DONE', []);
+      e.Text.Lines[PToDoRec(Item.Data)^.Line] :=
+        StringReplace(e.Text.Lines[PToDoRec(Item.Data)^.Line], 'TODO', 'DONE', []);
       if chkNoDone.Checked then
         BuildList;
     end else
-      e.Text.UnCollapsedLines[PToDoRec(Item.Data)^.Line] :=
-        StringReplace(e.Text.UnCollapsedLines[PToDoRec(Item.Data)^.Line], 'DONE', 'TODO', []);
+      e.Text.Lines[PToDoRec(Item.Data)^.Line] :=
+        StringReplace(e.Text.Lines[PToDoRec(Item.Data)^.Line], 'DONE', 'TODO', []);
     e.Text.Modified := True;
     lv.Refresh;
   end;
@@ -397,7 +381,7 @@ begin
 
   e := MainForm.EditorList.GetEditorFromFilename(PToDoRec(lv.Selected.Data)^.Filename);
   if Assigned(e) then begin
-    e.SetCaretPos(PToDoRec(lv.Selected.Data)^.Line + 1, 1);
+    e.SetCaretPosAndActivate(PToDoRec(lv.Selected.Data)^.Line + 1, 1);
     Close;
   end;
 end;

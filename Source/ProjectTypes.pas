@@ -22,12 +22,7 @@ unit ProjectTypes;
 interface
 
 uses
-{$IFDEF WIN32}
   Classes, editor, ComCtrls, Windows;
-{$ENDIF}
-{$IFDEF LINUX}
-Classes, editor, QComCtrls;
-{$ENDIF}
 
 const
   dptGUI = 0;
@@ -173,9 +168,9 @@ begin
   ObjectOutput := '';
   HostApplication := '';
   SupportXPThemes := False;
-  CompilerSet := devCompilerSets.CurrentIndex;
+  CompilerSet := devCompilerSets.DefaultSetIndex;
   if (CompilerSet < devCompilerSets.Count) and (CompilerSet >= 0) then
-    CompilerOptions := devCompilerSets[CompilerSet].OptionString
+    CompilerOptions := devCompilerSets[CompilerSet].INIOptions
   else
     CompilerOptions := '';
   VersionInfo := TProjVersionInfo.Create;

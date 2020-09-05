@@ -22,14 +22,8 @@ unit CPUFrm;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Variants, Classes, Math, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, SynEdit, SynEditTypes, ClipBrd, StrUtils, ComCtrls, ExtCtrls, Menus;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, Variants, Classes, QGraphics, QControls, QForms,
-QDialogs, QStdCtrls, QButtons, QSynEdit;
-{$ENDIF}
 
 type
   TCPUForm = class(TForm)
@@ -181,13 +175,16 @@ begin
   edFunc.Text := fAssembler.Strings[0];
 
   CodeList.BeginUpdate;
-  CodeList.Clear;
-  for I := 1 to fAssembler.Count - 1 do begin
-    CodeList.Lines.Add(fAssembler.Strings[i]);
-    if StartsStr('=>', fAssembler.Strings[i]) then
-      activeline := i + 1;
+  try
+    CodeList.Clear;
+    for I := 1 to fAssembler.Count - 1 do begin
+      CodeList.Lines.Add(fAssembler.Strings[i]);
+      if StartsStr('=>', fAssembler.Strings[i]) then
+        activeline := i + 1;
+    end;
+  finally
+    CodeList.EndUpdate;
   end;
-  CodeList.EndUpdate;
 
   // Free list for reuse
   fAssembler.Clear;
@@ -222,8 +219,7 @@ begin
   LoadText;
 
   // Make it look a bit like a regular editor
-  CodeList.Font.Assign(devEditor.Font);
-  CodeList.Highlighter := dmMain.GetHighlighter('main.cpp'); // use C++ highlighting
+  devEditor.AssignEditor(CodeList,'main.cpp');
 
   RadioATT.Checked := devData.UseATTSyntax;
   RadioIntel.Checked := not devData.UseATTSyntax;
@@ -329,8 +325,7 @@ begin
   if Assigned(sel) then begin
     e := MainForm.EditorList.GetEditorFromFileName(sel.SubItems[0]);
     if Assigned(e) then begin
-      e.SetCaretPos(StrToIntDef(sel.SubItems[1], 1), 1);
-      e.Activate;
+      e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
     end;
   end;
 end;

@@ -21,13 +21,8 @@ unit devExec;
 
 interface
 
-uses 
-{$IFDEF WIN32}
+uses
   Windows, Classes, Forms, devcfg, utils;
-{$ENDIF}
-{$IFDEF LINUX}
-  Classes;
-{$ENDIF}
 
 type
   TExecThread = class(TThread)
@@ -56,14 +51,15 @@ type
     fIsRunning: boolean;
     fOnTermEvent: TNotifyEvent;
     procedure TerminateEvent(Sender: TObject);
+    constructor Create;
   public
-    class function devExecutor: TdevExecutor;
+    destructor Destroy; override;
     procedure Reset;
-    procedure ExecuteAndWatch(sFileName, sParams, sPath: AnsiString; bVisible: boolean; iTimeOut: Cardinal; OnTermEvent: TNotifyEvent);
+    procedure ExecuteAndWatch(sFileName, sParams, sPath: AnsiString; bVisible: boolean; iTimeOut: Cardinal; OnTermEvent:
+      TNotifyEvent);
   published
     property Running: boolean read fIsRunning;
   end;
-
 
 function devExecutor: TdevExecutor;
 
@@ -81,9 +77,6 @@ begin
 end;
 
 procedure TExecThread.ExecAndWait;
-// Author    : Francis Parlant.
-// Update    : Bill Rinko-Gay
-// Adaptation: Yiannis Mandravellos
 var
   StartupInfo: TStartupInfo;
   ProcessInfo: TProcessInformation;
@@ -97,8 +90,8 @@ begin
     else
       wShowWindow := SW_HIDE;
   end;
-  if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + fParams), nil, nil, False,
-    NORMAL_PRIORITY_CLASS, nil, PAnsiChar(fPath),
+  if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + fParams), nil, nil, False, NORMAL_PRIORITY_CLASS, nil,
+    PAnsiChar(fPath),
     StartupInfo, ProcessInfo) then begin
     fProcess := ProcessInfo.hProcess;
     WaitForSingleObject(ProcessInfo.hProcess, fTimeOut);
@@ -108,24 +101,26 @@ begin
 end;
 
 var
-  fDevExecutor: TdevExecutor;
+  fDevExecutorSingleton: TdevExecutor;
 
 function devExecutor: TdevExecutor;
 begin
-  if not Assigned(fDevExecutor) and not Application.Terminated then begin
-    try
-      fDevExecutor := TdevExecutor.Create;
-    finally
-    end;
-  end;
-  Result := fDevExecutor;
+  if not Assigned(fDevExecutorSingleton) and not Application.Terminated then
+    fDevExecutorSingleton := TdevExecutor.Create;
+  Result := fDevExecutorSingleton;
 end;
 
 { TdevExecutor }
 
-class function TdevExecutor.devExecutor: TdevExecutor;
+constructor TdevExecutor.Create;
 begin
-  Result := devExec.devExecutor;
+  inherited;
+end;
+
+destructor TdevExecutor.Destroy;
+begin
+  fDevExecutorSingleton := nil;
+  inherited;
 end;
 
 procedure TdevExecutor.ExecuteAndWatch(sFileName, sParams, sPath: AnsiString;
@@ -148,9 +143,9 @@ end;
 
 procedure TdevExecutor.Reset;
 begin
-	if Assigned(fExec) then
-		TerminateProcess(fExec.Process, 0);
-	fIsRunning := False;
+  if Assigned(fExec) then
+    TerminateProcess(fExec.Process, 0);
+  fIsRunning := False;
 end;
 
 procedure TdevExecutor.TerminateEvent(Sender: TObject);

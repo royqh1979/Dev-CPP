@@ -22,14 +22,8 @@ unit EditorList;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, SysUtils, Dialogs, StdCtrls, Controls, ComCtrls, Forms, Editor, ExtCtrls,
   devrun, version, project, utils, ProjectTypes, Classes, Graphics, Math, Messages;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, QDialogs, QStdCtrls, QComCtrls, QForms,
-devrun, version, project, utils, prjtypes, Classes, QGraphics;
-{$ENDIF}
 
 type
   TLayoutShowType = (lstNone, lstLeft, lstRight, lstBoth);
@@ -74,6 +68,7 @@ type
     property PageCount: integer read GetPageCount;
     property Editors[Index: integer]: TEditor read GetForEachEditor; default;
     property FocusedPageControl: TPageControl read GetFocusedPageControl;
+    property Layout: TLayoutShowType read fLayout;
   end;
 
 implementation
@@ -114,12 +109,12 @@ begin
         Result := fRightPageControl
       end;
     lstBoth: begin
-        // Check if left is focused, otherwise assume right one is focused
-        ActivePage := fLeftPageControl.ActivePage;
+        // Check if right is focused, otherwise assume left one is focused
+        ActivePage := fRightPageControl.ActivePage;
         if TEditor(ActivePage.Tag).Text.Focused then
-          Result := fLeftPageControl
+          Result := fRightPageControl
         else
-          Result := fRightPageControl;
+          Result := fLeftPageControl; // no focus -> left one
       end;
     lstNone: begin
         Result := nil;
@@ -251,6 +246,7 @@ function TEditorList.GetPreviousEditor(Editor: TEditor): TEditor;
 var
   I: integer;
   EditorPageControl: TPageControl;
+  PrevNaturalPage: TTabSheet;
   e: TEditor;
 begin
   result := nil;
@@ -266,7 +262,7 @@ begin
 
       // Find the first tab in the history list that is still open
       for I := Editor.PreviousEditors.Count - 1 downto 0 do begin
-        e := GetEditorFromTag(integer(Editor.PreviousEditors[i]));
+        e := GetEditorFromTag(Integer(Editor.PreviousEditors[i]));
         if Assigned(e) then begin
           Result := e;
           Exit;
@@ -275,16 +271,13 @@ begin
 
       // All history items are gone or this was the first tab to open which has no history
       // Select the editor that would appear naturally when closing this one
-      if EditorPageControl.PageCount > 1 then begin // we need more than only our own tab sheet
-        if ActivePageIndex = EditorPageControl.PageCount - 1 then
-          // we are the last editor, next one will be second to last editor
-          Result := GetEditor(ActivePageIndex - 1, EditorPageControl)
-        else // otherwise, select the next one
-          Result := GetEditor(ActivePageIndex + 1, EditorPageControl);
+      PrevNaturalPage := FindNextPage(Editor.TabSheet, False, True);
+      if Assigned(PrevNaturalPage) and (PrevNaturalPage <> Editor.TabSheet) then begin
+        Result := GetEditor(PrevNaturalPage.TabIndex, EditorPageControl);
         Exit;
       end;
 
-      // Otherwise, select the current editor in the other page control
+      // All editors in the current page control are gone. Try the other page control
       if fLayout = lstBoth then begin
         if EditorPageControl = LeftPageControl then begin
           Result := GetEditor(-1, RightPageControl);
@@ -308,7 +301,7 @@ begin
   try
     FreeAndNil(Editor);
 
-    // Update layout
+    // Force layout update when creating, destroying or moving editors
     UpdateLayout;
   finally
     EndUpdate; // redraw once
@@ -345,16 +338,16 @@ begin
     if Editor.InProject and Assigned(MainForm.Project) then begin
       projindex := MainForm.Project.Units.IndexOf(Editor);
       if projindex <> -1 then
-        MainForm.Project.CloseUnit(projindex);
+        MainForm.Project.CloseUnit(projindex); // calls ForceCloseEditor
     end else begin
       dmMain.AddtoHistory(Editor.FileName);
       FreeAndNil(Editor);
+
+      // Force layout update when creating, destroying or moving editors
+      UpdateLayout;
     end;
 
-    // Force layout update when creating, destroying or moving editors
-    UpdateLayout;
-
-    // Show new editor after forcing an layout update
+    // Show new editor after forcing a layout update
     if Assigned(PrevEditor) then
       PrevEditor.Activate;
   finally

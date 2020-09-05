@@ -17,22 +17,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$WARN UNIT_PLATFORM OFF}
 unit CompOptionsFrm;
 
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Buttons, StdCtrls, Inifiles, ExtCtrls, ComCtrls, Spin, Math,
   CompOptionsFrame, CompOptionsList;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, Classes, QGraphics, QControls, QForms, QDialogs,
-QButtons, QStdCtrls, Inifiles, QExtCtrls, QComCtrls,
-CompOptionsFrame;
-{$ENDIF}
 
 type
   TCompOptForm = class(TForm)
@@ -127,12 +119,7 @@ type
 implementation
 
 uses
-{$IFDEF WIN32}
   ShellAPI, Main, FileCtrl, version, devcfg, utils, MultiLangSupport, DataFrm;
-{$ENDIF}
-{$IFDEF LINUX}
-Xlib, Main, version, devcfg, utils, MultiLangSupport, datamod;
-{$ENDIF}
 
 {$R *.dfm}
 
@@ -148,7 +135,7 @@ begin
   // Update names and current selection
   for I := 0 to cmbCompilerSetComp.Items.Count - 1 do
     devCompilerSets[i].Name := cmbCompilerSetComp.Items[i];
-  devCompilerSets.CurrentIndex := cmbCompilerSetComp.ItemIndex;
+  devCompilerSets.DefaultSetIndex := cmbCompilerSetComp.ItemIndex;
 
   // Save the current set to disk
   SaveSet(cmbCompilerSetComp.ItemIndex);
@@ -160,7 +147,7 @@ end;
 procedure TCompOptForm.LoadSet(Index: integer);
 begin
   // Load the new set from disk or clear
-  devCompilerSets.CurrentIndex := index;
+  devCompilerSets.DefaultSetIndex := index;
   if index = -1 then begin // erase all
     fBinDirCopy.Clear;
     fCDirCopy.Clear;
@@ -176,9 +163,6 @@ begin
     MakeEdit.Text := '';
     WindresEdit.Text := '';
     GprofEdit.Text := '';
-
-    // TODO: disable controls?
-    // Tried that. Enabled = False looks weird on page controls though
   end else begin
 
     // Apply the new set to the UI
@@ -357,17 +341,10 @@ begin
   btnDelInval.Enabled := lstDirs.Items.Count > 0;
 end;
 
-procedure TCompOptForm.edEntryKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TCompOptForm.edEntryKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-{$IFDEF WIN32}
-  if key = vk_return then
+  if key = VK_RETURN then
     ButtonClick(btnAdd);
-{$ENDIF}
-{$IFDEF LINUX}
-  if key = XK_RETURN then
-    ButtonClick(btnAdd);
-{$ENDIF}
 end;
 
 procedure TCompOptForm.FormCreate(Sender: TObject);
@@ -383,18 +360,24 @@ begin
   fCppDirCopy := TStringList.Create;
 
   // fill compiler lists
-  for I := 0 to devCompilerSets.Count - 1 do
-    cmbCompilerSetComp.Items.Add(devCompilerSets[i].Name);
+  cmbCompilerSetComp.Items.BeginUpdate;
+  try
+    // Populate
+    for I := 0 to devCompilerSets.Count - 1 do
+      cmbCompilerSetComp.Items.Add(devCompilerSets[i].Name);
 
-  fOldIndex := -1;
-  if devCompilerSets.CurrentIndex < cmbCompilerSetComp.Items.Count then
-    cmbCompilerSetComp.ItemIndex := devCompilerSets.CurrentIndex
-  else if cmbCompilerSetComp.Items.Count > 0 then
-    cmbCompilerSetComp.ItemIndex := 0;
+    // Set current index
+    fOldIndex := -1;
+    if devCompilerSets.DefaultSetIndex < cmbCompilerSetComp.Items.Count then
+      cmbCompilerSetComp.ItemIndex := devCompilerSets.DefaultSetIndex
+    else if cmbCompilerSetComp.Items.Count > 0 then
+      cmbCompilerSetComp.ItemIndex := 0;
+  finally
+    cmbCompilerSetComp.Items.EndUpdate; // paint once
+  end;
+
+  // Load the current set
   cmbCompilerSetCompChange(nil);
-
-  cbCompAddClick(cbCompAdd);
-  cbLinkerAddClick(cbLinkerAdd);
 end;
 
 procedure TCompOptForm.LoadText;
@@ -413,10 +396,10 @@ begin
 
   // Directories, subtabs
   DirTabs.Tabs.Clear;
-  DirTabs.Tabs.Append(Lang[ID_COPT_BIN]);
-  DirTabs.Tabs.Append(Lang[ID_COPT_LIB]);
-  DirTabs.Tabs.Append(Lang[ID_COPT_INCC]);
-  DirTabs.Tabs.Append(Lang[ID_COPT_INCCPP]);
+  DirTabs.Tabs.Add(Lang[ID_COPT_BIN]);
+  DirTabs.Tabs.Add(Lang[ID_COPT_LIB]);
+  DirTabs.Tabs.Add(Lang[ID_COPT_INCC]);
+  DirTabs.Tabs.Add(Lang[ID_COPT_INCCPP]);
 
   // Buttons for all tabs
   btnReplace.Caption := Lang[ID_BTN_REPLACE];
@@ -464,24 +447,24 @@ begin
     Exit;
 
   with TOpenDialog.Create(Self) do try
-      Filter := FLT_ALLFILES;
+    Filter := FLT_ALLFILES;
 
-      // Start in the bin folder
-      if fBinDirCopy.Count > 0 then
-        InitialDir := fBinDirCopy[0]
-      else if devCompilerSets[cmbCompilerSetComp.ItemIndex].BinDir.Count > 0 then
-        InitialDir := devCompilerSets[cmbCompilerSetComp.ItemIndex].BinDir[0];
+    // Start in the bin folder
+    if fBinDirCopy.Count > 0 then
+      InitialDir := fBinDirCopy[0]
+    else if devCompilerSets[cmbCompilerSetComp.ItemIndex].BinDir.Count > 0 then
+      InitialDir := devCompilerSets[cmbCompilerSetComp.ItemIndex].BinDir[0];
 
-      // Select the current filename by default...
-      if Obj.Text <> '' then
-        FileName := IncludeTrailingPathDelimiter(InitialDir) + Obj.Text;
+    // Select the current filename by default...
+    if Obj.Text <> '' then
+      FileName := IncludeTrailingPathDelimiter(InitialDir) + Obj.Text;
 
-      // When accepted, replace
-      if Execute then
-        Obj.Text := ExtractFileName(FileName);
-    finally
-      Free;
-    end;
+    // When accepted, replace
+    if Execute then
+      Obj.Text := ExtractFileName(FileName);
+  finally
+    Free;
+  end;
 end;
 
 procedure TCompOptForm.cmbCompilerSetCompChange(Sender: TObject);
@@ -630,7 +613,7 @@ var
 begin
   dlgresult := MessageDlg(
     Format(Lang[ID_COPT_ADDCOMPILERS], [devDirs.Exec + 'MinGW32', devDirs.Exec + 'MinGW64']), mtConfirmation, [mbYes,
-      mbNo, mbCancel], 0);
+    mbNo, mbCancel], 0);
 
   if dlgresult = mrCancel then
     Exit;

@@ -22,14 +22,8 @@ unit Utils;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Classes, Sysutils, Dateutils, Forms, ShellAPI, Dialogs, SynEdit, SynEditHighlighter,
-  Menus, Registry, Controls, ComCtrls;
-{$ENDIF}
-{$IFDEF LINUX}
-Classes, Sysutils, QForms, QDialogs, QSynEditHighlighter,
-QMenus, Types;
-{$ENDIF}
+  Menus, Registry, Controls, ComCtrls, Messages;
 
 type
   { File ID types }
@@ -63,8 +57,6 @@ function GetShortName(const FileName: AnsiString): AnsiString;
 function FormatList(const sl: TStrings; formatstr: AnsiString): AnsiString;
 function IncludeQuoteIfSpaces(const s: AnsiString): AnsiString;
 function IncludeQuoteIfNeeded(const s: AnsiString): AnsiString;
-
-procedure LoadFilefromResource(const FileName: AnsiString; ms: TMemoryStream);
 
 function ValidateFile(const FileName: AnsiString; const WorkPath: AnsiString; const CheckDirs: boolean = FALSE):
   AnsiString;
@@ -165,12 +157,7 @@ function FastIndexOf(List: TStringlist; const S: AnsiString): integer; overload;
 implementation
 
 uses
-{$IFDEF WIN32}
   devcfg, version, Graphics, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX;
-{$ENDIF}
-{$IFDEF LINUX}
-devcfg, version, QGraphics, StrUtils, MultiLangSupport, main, editor;
-{$ENDIF}
 
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
 var
@@ -502,7 +489,7 @@ var
   si: TStartupInfo;
   pi: TProcessInformation;
   nRead: DWORD;
-  aBuf: array[0..1024] of char;
+  aBuf: array[0..8192] of char;
   sa: TSecurityAttributes;
   hOutputReadTmp, hOutputRead, hOutputWrite, hInputWriteTmp, hInputRead,
     hInputWrite, hErrorWrite: THandle;
@@ -615,7 +602,7 @@ begin
       TerminateProcess(pi.hProcess, 1);
       Break;
     end;
-    if (not ReadFile(hOutputRead, aBuf, SizeOf(aBuf)-1, nRead, nil)) or (nRead = 0) then begin
+    if (not ReadFile(hOutputRead, aBuf, SizeOf(aBuf) - 1, nRead, nil)) or (nRead = 0) then begin
       if GetLastError = ERROR_BROKEN_PIPE then
         Break; // pipe done - normal exit path
     end;
@@ -706,33 +693,6 @@ begin
       result := devDirs.Templates + fName;
   end else
     result := '';
-end;
-
-procedure LoadFilefromResource(const FileName: AnsiString; ms: TMemoryStream);
-var
-  HResInfo: HRSRC;
-  hRes: THandle;
-  Buffer: PAnsiChar;
-  aName, Ext: AnsiString;
-begin
-  Ext := ExtractFileExt(FileName);
-  Ext := copy(ext, 2, length(ext));
-  aName := ChangeFileExt(ExtractFileName(FileName), '');
-  HResInfo := FindResource(HInstance, PAnsiChar(aName), PAnsiChar(Ext));
-  hres := LoadResource(HInstance, HResInfo);
-  if HRes = 0 then begin
-    MessageBox(Application.MainForm.Handle,
-      PAnsiChar(Format(Lang[ID_ERR_RESOURCE], [FileName, aName, Ext])),
-      PAnsiChar(Lang[ID_ERROR]), MB_OK or MB_ICONERROR);
-    exit;
-  end;
-
-  Buffer := LockResource(HRes);
-  ms.clear;
-  ms.WriteBuffer(Buffer[0], SizeofResource(HInstance, HResInfo));
-  ms.Seek(0, 0);
-  UnlockResource(HRes);
-  FreeResource(HRes);
 end;
 
 function GetShortName(const FileName: AnsiString): AnsiString;
@@ -1256,8 +1216,8 @@ var
 begin
   // Shorten compiler paths
   Result := Input;
-  if devData.ShortenCompPaths and Assigned(devCompilerSets.CurrentSet) then begin
-    with devCompilerSets.CurrentSet do begin
+  if devData.ShortenCompPaths and Assigned(devCompilerSets.CompilationSet) then begin
+    with devCompilerSets.CompilationSet do begin
       for I := 0 to BinDir.Count - 1 do
         Result := StringReplace(Result, BinDir[i], '%BinDir' + IntToStr(i) + '%', [rfReplaceAll]);
       for I := 0 to CppDir.Count - 1 do

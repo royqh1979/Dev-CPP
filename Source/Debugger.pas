@@ -22,14 +22,8 @@ unit Debugger;
 interface
 
 uses
-{$IFDEF WIN32}
   Sysutils, Windows, Messages, Forms, Classes, Controls,
   debugreader, version, editor, ComCtrls, Dialogs, MultiLangSupport;
-{$ENDIF}
-{$IFDEF LINUX}
-Sysutils, Classes, QDialogs, QControls,
-debugreader, version, editor, QComCtrls;
-{$ENDIF}
 
 type
 
@@ -155,14 +149,14 @@ begin
   si.wShowWindow := SW_HIDE;
 
   // Use the GDB provided in the project if needed
-  CompilerSet := devCompilerSets.CurrentSet;
+  CompilerSet := devCompilerSets.CompilationSet;
 
   // Assume it's present in the first bin dir
   if CompilerSet.BinDir.Count > 0 then begin
     GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
     GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
     if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
-      MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB],[GDBFile,SysErrorMessage(GetLastError)]), mtError,
+      MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
         [mbOK], 0);
       Executing := false;
       Exit;
@@ -238,7 +232,6 @@ begin
     if not WriteFile(fInputwrite, P^, strlen(P), nBytesWrote, nil) then
       MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
 
-
     if ViewInUI then
       if (not CommandChanged) or (MainForm.edGdbCommand.Text = '') then begin
         // Convert command to C string
@@ -249,7 +242,7 @@ begin
 
         CommandChanged := false;
       end;
-    //MainForm.DebugOutput.Lines.Add(P);
+
     FreeMem(P);
   end;
 end;

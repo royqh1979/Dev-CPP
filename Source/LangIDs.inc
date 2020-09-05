@@ -96,6 +96,7 @@ const
   ID_ITEM_MOVESELUP                     = 22011;
   ID_ITEM_MOVESELDOWN                   = 22012;
   ID_ITEM_SWAPEDITOR                    = 22013;
+  ID_ITEM_TOGGLECOMMENTINLINE           = 22014;
 
   // search menu
   ID_ITEM_FIND                          = 5001;
@@ -171,6 +172,7 @@ const
   ID_FULLSCREEN_MSG                     = 8006;
   ID_ITEM_CLOSEALLBUTTHIS               = 8007;
   ID_ITEM_LIST                          = 8008;
+  ID_FULLSCREEN_MSGNEW                  = 8009;
 
   // help menu
   ID_ITEM_ABOUT                         = 9001;
@@ -178,7 +180,9 @@ const
   ID_ITEM_CUSTOM                        = 9003;
   ID_ITEM_HELPDEVCPP                    = 9004;
   ID_ITEM_PACKMAN                       = 9005;
-
+  ID_ITEM_DONATE                        = 9006;
+  ID_ITEM_TIP                           = 9007;
+  
   //debug menu
   ID_ITEM_DEBUG                         = 10001;
   ID_ITEM_TOGGLEBREAK                   = 10002;
@@ -207,7 +211,8 @@ const
   ID_ITEM_NEXTINS                       = 10021;
   ID_ITEM_STEPINS                       = 10022;
   ID_ITEM_SKIPFUNCTION                  = 10023;
- 
+  ID_ITEM_GOTOBREAKPOINT                = 10024;
+  
   // unit popup
   ID_POP_REMOVE                         = 11001;
   ID_POP_RENAME                         = 11002;
@@ -232,6 +237,9 @@ const
   ID_POP_VIEWPROJECT                    = 12014;
   ID_POP_SHOWINHERITED                  = 12015;
   ID_POP_OPENWITH                       = 12016;
+  ID_POP_OPENCONTAINING                 = 12017;
+  ID_POP_CLOSEALLBUTTHIS                = 12018;
+  ID_POP_ADDTODOITEM                    = 12019;
 
   // message control
   ID_SHEET_COMP                         = 13001;
@@ -491,6 +499,12 @@ const
   ID_SC_OK                              = 34007;
   ID_SC_REPLACEHINT                     = 34008;
   ID_SC_BUTTON                          = 34009;
+  ID_SC_NEWREPLACEHINT                  = 34010;
+  ID_SC_NEWTIP                          = 34011;
+  ID_SC_CONFIRMALL                      = 34012;
+  ID_SC_CONFIRMONE                      = 34013;
+  ID_SC_RESETALL                        = 34014;
+  ID_SC_RESETCURRENT                    = 34015;
 
   // Tool edit form macros
   ID_ET_MACROS                          = 35001;
@@ -513,7 +527,15 @@ const
   ID_AB_UPDATE                          = 36015;
   ID_AB_LBLBLOG                         = 36016;
   ID_AB_BLOG                            = 36017;
-
+  ID_AB_POST4992                        = 36018;
+  ID_AB_REPOSITORY                      = 36019;
+  ID_AB_SUBREDDIT                       = 36020;
+  ID_AB_COMPILERS                       = 36021;
+  ID_AB_TDMGCC                          = 36022;
+  ID_AB_PRE4992                         = 36023;
+  ID_AB_DONATE                          = 36024;
+  ID_AB_BLOGNAME                        = 36025;
+  
   // Code Inserts Edit
   ID_CIE_EDCAPTION                      = 37001;
   ID_CIE_ADDCAPTION                     = 37002;
@@ -923,6 +945,8 @@ const
   ID_MSG_ATTACH                         = 60024;
   ID_MSG_CORRESPONDINGSOURCE            = 60025;
   ID_MSG_CORRESPONDINGHEADER            = 60026;
+  ID_MSG_PLEASEUPDATEPROJECT            = 60027;
+  ID_MSG_COMPILERNOTFOUND               = 60028;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;
@@ -984,6 +1008,8 @@ const
   ID_DELETEDPROFDATA                    = 62032;
   ID_COULDNOTFINDPROFDATA               = 62033;
   ID_INFONOTFOUND                       = 62034;
+  ID_PARSINGFILECOUNT                   = 62035;
+  ID_DONEPARSINGINCOUNT                 = 62036;
 
   ID_BTN_OK                             = 63001;
   ID_BTN_CANCEL                         = 63002;
@@ -1256,3 +1282,25 @@ const
   ID_LOG_CLEANEDFILE                    = 78031;
   ID_LOG_NOCLEANFILE                    = 78032;
   ID_LOG_PROCESSINGUNKNOWN              = 78033;
+
+  ID_FORMATTER_FORMATCURFILE            = 79001;
+  ID_FORMATTER_MENU                     = 79002;
+  ID_FORMATTER_WINDOW                   = 79003;
+  ID_FORMATTER_NOTVALID                 = 79004;
+  ID_FORMATTER_OPTIONS                  = 79005;
+  ID_FORMATTER_BRACKET                  = 79006;
+  ID_FORMATTER_INDENT                   = 79007;
+  ID_FORMATTER_TABWIDTH                 = 79008;
+  ID_FORMATTER_INDENTPARTS              = 79009;
+  ID_FORMATTER_CLASSES                  = 79010;
+  ID_FORMATTER_SWITCHES                 = 79011;
+  ID_FORMATTER_CASES                    = 79012;
+  ID_FORMATTER_NAMESPACE                = 79013;
+  ID_FORMATTER_LABELS                   = 79014;
+  ID_FORMATTER_PREPROC                  = 79015;
+  ID_FORMATTER_COMMAND                  = 79016;
+  ID_FORMATTER_PREVIEW                  = 79017;
+  ID_FORMATTER_POWEREDBYFAIL            = 79018;
+  ID_FORMATTER_POWEREDBY                = 79019;
+  ID_FORMATTER_MAXLINELENGTH            = 79020;
+  ID_FORMATTER_LOADERROR                = 79021;

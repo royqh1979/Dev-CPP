@@ -17,22 +17,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$WARN UNIT_PLATFORM OFF}
 unit EnviroFrm;
 
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Spin, ExtCtrls, ExtDlgs, Buttons,
   CheckLst, Grids, ValEdit, ComCtrls;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, Variants, Classes, QGraphics, QControls, QForms,
-QDialogs, QStdCtrls, QComCtrls, QExtCtrls, QButtons,
-QCheckLst, QGrids;
-{$ENDIF}
 
 type
   TEnviroForm = class(TForm)
@@ -54,7 +46,6 @@ type
     rgbAutoOpen: TRadioGroup;
     gbDebugger: TGroupBox;
     cbWatchHint: TCheckBox;
-    cbNoSplashScreen: TCheckBox;
     gbProgress: TGroupBox;
     cbShowProgress: TCheckBox;
     cbAutoCloseProgress: TCheckBox;
@@ -115,12 +106,7 @@ type
 implementation
 
 uses
-{$IFDEF WIN32}
   ShellAPI, Filectrl, devcfg, MultiLangSupport, version, DataFrm, utils, FileAssocs, ImageTheme, main;
-{$ENDIF}
-{$IFDEF LINUX}
-Xlib, devcfg, MultiLangSupport, version, datamod, utils, FileAssocs, ImageTheme;
-{$ENDIF}
 
 {$R *.dfm}
 
@@ -190,7 +176,6 @@ begin
     Language := s;
     ThemeChange := cboTheme.Text <> devData.Theme;
     Theme := cboTheme.Text;
-    NoSplashScreen := cbNoSplashScreen.Checked;
     ShowProgress := cbShowProgress.Checked;
     AutoCloseProgress := cbAutoCloseProgress.Checked;
     WatchHint := cbWatchHint.Checked;
@@ -251,7 +236,6 @@ begin
   cbMultiLineTab.Caption := Lang[ID_ENV_MULTILINETABS];
   cbBackups.Caption := Lang[ID_ENV_BACKUPS];
   cbMinOnRun.Caption := Lang[ID_ENV_MINONRUN];
-  cbNoSplashScreen.Caption := Lang[ID_ENV_NOSPLASH];
   cbPauseConsole.Caption := Lang[ID_ENV_PAUSECONSOLE];
   cbCheckAssocs.Caption := Lang[ID_ENV_CHECKASSOCS];
 
@@ -318,7 +302,6 @@ begin
     cbMinOnRun.Checked := MinOnRun;
     cbShowBars.Checked := ShowBars;
     cbMultiLineTab.Checked := MultiLineTab;
-    cbNoSplashScreen.Checked := NoSplashScreen;
     cbPauseConsole.Checked := ConsolePause;
     cbCheckAssocs.Checked := CheckAssocs;
     cbWatchHint.Checked := WatchHint;
@@ -331,13 +314,16 @@ begin
 
     // List the languages
     cboLang.Items.BeginUpdate;
-    cboLang.Clear;
-    for I := 0 to Lang.Langs.Count - 1 do begin
-      sel := cboLang.Items.Add(Lang.Langs.ValueFromIndex[I]);
-      if SameText(Lang.CurrentLanguage, cboLang.Items[I]) then
-        cboLang.ItemIndex := sel;
+    try
+      cboLang.Clear;
+      for I := 0 to Lang.Langs.Count - 1 do begin
+        sel := cboLang.Items.Add(Lang.Langs.ValueFromIndex[I]);
+        if SameText(Lang.CurrentLanguage, cboLang.Items[I]) then
+          cboLang.ItemIndex := sel;
+      end;
+    finally
+      cboLang.Items.EndUpdate;
     end;
-    cboLang.Items.EndUpdate;
 
     // List the themes
     cboTheme.Items.Clear;
@@ -393,12 +379,12 @@ begin
   end;
 
   with TOpenDialog.Create(Self) do try
-      Filter := FLT_ALLFILES;
-      if Execute then
-        vleExternal.Cells[1, vleExternal.Row] := Filename;
-    finally
-      Free;
-    end;
+    Filter := FLT_ALLFILES;
+    if Execute then
+      vleExternal.Cells[1, vleExternal.Row] := Filename;
+  finally
+    Free;
+  end;
 end;
 
 procedure TEnviroForm.vleExternalValidate(Sender: TObject; ACol,

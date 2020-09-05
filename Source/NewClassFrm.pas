@@ -22,14 +22,8 @@ unit NewClassFrm;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, Variants, Classes, QGraphics, QControls, QForms,
-QDialogs, QStdCtrls, QButtons;
-{$ENDIF}
+  Dialogs, StdCtrls, Buttons, CBUtils, StatementList;
 
 type
   TNewClassForm = class(TForm)
@@ -86,7 +80,7 @@ end;
 
 procedure TNewClassForm.FormShow(Sender: TObject);
 var
-  sl: TStrings;
+  sl: TStringList;
 begin
   LoadText;
 
@@ -107,7 +101,7 @@ begin
     (PStatement(MainForm.ClassBrowser.Selected.Data)^._Kind = skClass) then begin
 
     // If we are spawned from the class browser, set inheritcance to selected class
-    cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._ScopeCmd);
+    cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._Command);
     if cmbClass.ItemIndex <> -1 then
       chkInherit.Checked := True;
   end else begin
@@ -128,8 +122,8 @@ end;
 procedure TNewClassForm.txtNameChange(Sender: TObject);
 begin
   if txtName.Text <> '' then begin
-    txtCppFile.Text := MainForm.Project.Directory + LowerCase(txtName.Text) + '.cpp';
-    txtHFile.Text := MainForm.Project.Directory + LowerCase(txtName.Text) + '.h';
+    txtCppFile.Text := MainForm.Project.Directory + txtName.Text + '.cpp';
+    txtHFile.Text := MainForm.Project.Directory + txtName.Text + '.h';
 
     // Make sure one can actually see what is going on
     txtCppFile.SelStart := Length(txtCppFile.Text) - 1;
@@ -151,35 +145,36 @@ end;
 procedure TNewClassForm.btnBrowseCppClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do try
-      if Sender = btnBrowseCpp then begin
-        FileName := ExtractFileName(txtCppFile.Text);
-        InitialDir := ExtractFilePath(txtCppFile.Text);
-        Filter := FLT_CPPS;
-        DefaultExt := 'cpp';
-      end else begin
-        FileName := ExtractFileName(txtHFile.Text);
-        InitialDir := ExtractFilePath(txtHFile.Text);
-        Filter := FLT_HEADS;
-        DefaultExt := 'h';
-      end;
-      if Execute then begin
-        if Sender = btnBrowseCpp then
-          txtCppFile.Text := FileName
-        else
-          txtHFile.Text := FileName;
-      end;
-    finally
-      Free;
+    if Sender = btnBrowseCpp then begin
+      FileName := ExtractFileName(txtCppFile.Text);
+      InitialDir := ExtractFilePath(txtCppFile.Text);
+      Filter := FLT_CPPS;
+      DefaultExt := 'cpp';
+    end else begin
+      FileName := ExtractFileName(txtHFile.Text);
+      InitialDir := ExtractFilePath(txtHFile.Text);
+      Filter := FLT_HEADS;
+      DefaultExt := 'h';
     end;
+    if Execute then begin
+      if Sender = btnBrowseCpp then
+        txtCppFile.Text := FileName
+      else
+        txtHFile.Text := FileName;
+    end;
+  finally
+    Free;
+  end;
 end;
 
 procedure TNewClassForm.btnCreateClick(Sender: TObject);
 var
+  Node: PStatementNode;
+  Statement, InheritStatement: PStatement;
   idx: integer;
   e, headere: TEditor;
   hfName: AnsiString;
   hFile: integer;
-  st: PStatement;
 begin
   // HEADER FILE IMPLEMENTATION
   if chkAddToProject.Checked then begin
@@ -210,55 +205,60 @@ begin
   hfName := StringReplace(hfName, ' ', '_', [rfReplaceAll]);
 
   e.Text.Lines.BeginUpdate;
+  try
+    // Add header guard
+    e.Text.Lines.Add('#ifndef ' + hfName);
+    e.Text.Lines.Add('#define ' + hfName);
+    e.Text.Lines.Add('');
 
-  // Add header guard
-  e.Text.Lines.Add('#ifndef ' + hfName);
-  e.Text.Lines.Add('#define ' + hfName);
-  e.Text.Lines.Add('');
+    // Add inherited piece ": public foo"
+    if chkInherit.Checked and (txtIncFile.Text <> '') then begin
 
-  // Add inherited piece ": public foo"
-  if chkInherit.Checked and (txtIncFile.Text <> '') then begin
+      InheritStatement := nil;
 
-    // Find class we inherit from
-    st := nil;
-    for idx := 0 to MainForm.CppParser.Statements.Count - 1 do begin
-      st := MainForm.CppParser.Statements[idx];
-      if (st^._Kind = skClass) and (st^._ScopelessCmd = cmbClass.Text) and
-        (MainForm.Project.Units.Indexof(MainForm.CppParser.GetDeclarationFileName(st)) <> -1) then
-        Break;
-      st := nil;
+      // Find class we inherit from
+      Node := MainForm.CppParser.Statements.FirstNode;
+      while Assigned(Node) do begin
+        Statement := Node^.Data;
+        if (Statement^._Kind = skClass) and (Statement^._Command = cmbClass.Text) and
+          (MainForm.Project.Units.Indexof(Statement^._DefinitionFileName) <> -1) then begin
+          InheritStatement := Statement;
+          break;
+        end;
+        Node := Node^.NextNode;
+      end;
+
+      if Assigned(InheritStatement) then
+        e.Text.Lines.Add('#include "' + txtIncFile.Text + '"')
+      else
+        e.Text.Lines.Add('#include <' + txtIncFile.Text + '>');
+      e.Text.Lines.Add('');
     end;
 
-    if Assigned(st) then
-      e.Text.Lines.Add('#include "' + txtIncFile.Text + '"')
+    // Include inheritance or not, assume it's valid code
+    if chkInherit.Checked and (cmbClass.Text <> '') then
+      e.Text.Lines.Add('class ' + txtName.Text + ' : ' + cmbScope.Text + ' ' + cmbClass.Text)
     else
-      e.Text.Lines.Add('#include <' + txtIncFile.Text + '>');
+      e.Text.Lines.Add('class ' + txtName.Text);
+
+    e.Text.Lines.Add('{');
+    e.Text.Lines.Add(#9'public:');
+
+    // Create one optional constructor with args
+    if chkConstruct.Checked then
+      e.Text.Lines.Add(#9#9 + txtName.Text + '(' + txtArgs.Text + ');');
+
+    // Create one optional destructor
+    if chkDestruct.Checked then
+      e.Text.Lines.Add(#9#9'~' + txtName.Text + '();');
+
+    e.Text.Lines.Add(#9'protected:');
+    e.Text.Lines.Add('};');
     e.Text.Lines.Add('');
+    e.Text.Lines.Add('#endif');
+  finally
+    e.Text.Lines.EndUpdate;
   end;
-
-  // Include inheritance or not, assume it's valid code
-  if chkInherit.Checked and (cmbClass.Text <> '') then
-    e.Text.Lines.Add('class ' + txtName.Text + ' : ' + cmbScope.Text + ' ' + cmbClass.Text)
-  else
-    e.Text.Lines.Add('class ' + txtName.Text);
-
-  e.Text.Lines.Add('{');
-  e.Text.Lines.Add(#9'public:');
-
-  // Create one optional constructor with args
-  if chkConstruct.Checked then
-    e.Text.Lines.Add(#9#9 + txtName.Text + '(' + txtArgs.Text + ');');
-
-  // Create one optional destructor
-  if chkDestruct.Checked then
-    e.Text.Lines.Add(#9#9'~' + txtName.Text + '();');
-
-  e.Text.Lines.Add(#9'protected:');
-  e.Text.Lines.Add('};');
-  e.Text.Lines.Add('');
-  e.Text.Lines.Add('#endif');
-  e.Text.Lines.EndUpdate;
-
   e.Text.Modified := True;
   headere := e; // keep pointer so we can activate
 
@@ -317,7 +317,7 @@ begin
   if cmbClass.Items.IndexOf(cmbClass.Text) <> -1 then begin
     st := PStatement(cmbClass.Items.Objects[cmbClass.Items.IndexOf(cmbClass.Text)]);
     if Assigned(st) then
-      txtIncFile.Text := ExtractFileName(MainForm.CppParser.GetDeclarationFileName(st))
+      txtIncFile.Text := ExtractFileName(st^._DefinitionFileName)
     else
       txtIncFile.Text := LowerCase(cmbClass.Text) + '.h';
   end else begin

@@ -32,13 +32,12 @@ const
 
   // exe properties
   DEVCPP = 'Dev-C++';
-  DEVCPP_VERSION = '5.8.3';
+  DEVCPP_VERSION = '5.11';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
 
   // config file names
-  DEV_COMPLETION_CACHE = 'cache.ccc';
   DEV_DEFAULTCODE_FILE = 'defaultcode.ini';
   DEV_SHORTCUTS_FILE = 'shortcuts.ini';
   DEV_CLASSFOLDERS_FILE = 'classfolders.ini';

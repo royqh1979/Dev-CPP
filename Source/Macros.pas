@@ -29,12 +29,7 @@ function ParseMacros(Str: AnsiString): AnsiString;
 implementation
 
 uses
-{$IFDEF WIN32}
   Main, editor, Dialogs, Utils, Classes;
-{$ENDIF}
-{$IFDEF LINUX}
-Main, editor, QDialogs, Utils, Classes;
-{$ENDIF}
 
 procedure Replace(var Str: AnsiString; Old, New: AnsiString);
 begin
@@ -56,16 +51,18 @@ begin
   Replace(Result, '<DATETIME>', DateTimeToStr(Now));
 
   // Only provide the first cpp dir
-  if Assigned(devCompilerSets.CurrentSet) and (devCompilerSets.CurrentSet.CppDir.Count > 0) then
-    Replace(Result, '<INCLUDE>', devCompilerSets.CurrentSet.CppDir[0])
-  else
-    Replace(Result, '<INCLUDE>', '');
+  with devCompilerSets.CompilationSet do begin
+    if Assigned(devCompilerSets.CompilationSet) and (CppDir.Count > 0) then
+      Replace(Result, '<INCLUDE>', CppDir[0])
+    else
+      Replace(Result, '<INCLUDE>', '');
 
-  // Only provide the first lib dir
-  if Assigned(devCompilerSets.CurrentSet) and (devCompilerSets.CurrentSet.LibDir.Count > 0) then
-    Replace(Result, '<LIB>', devCompilerSets.CurrentSet.LibDir[0])
-  else
-    Replace(Result, '<LIB>', '');
+    // Only provide the first lib dir
+    if Assigned(devCompilerSets.CompilationSet) and (LibDir.Count > 0) then
+      Replace(Result, '<LIB>', LibDir[0])
+    else
+      Replace(Result, '<LIB>', '');
+  end;
 
   // Project-dependent macros
   if Assigned(MainForm.Project) then begin

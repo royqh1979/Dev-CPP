@@ -22,14 +22,8 @@ unit NewVarFrm;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, Variants, Classes, QGraphics, QControls, QForms,
-QDialogs, QStdCtrls, QExtCtrls;
-{$ENDIF}
+  Dialogs, StdCtrls, ExtCtrls, CBUtils, StatementList;
 
 type
   TNewVarForm = class(TForm)
@@ -82,7 +76,7 @@ end;
 
 procedure TNewVarForm.FormShow(Sender: TObject);
 var
-  sl: TStrings;
+  sl: TStringList;
 begin
   LoadText;
 
@@ -99,7 +93,7 @@ begin
   chkReadFuncClick(nil);
   chkWriteFuncClick(nil);
 
-  cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._ScopeCmd);
+  cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._Command);
 
   txtType.SetFocus;
 end;
@@ -155,7 +149,7 @@ begin
   end;
 
   // We need a CPP file if we want to define getters or setters it over there
-  MainForm.CppParser.GetSourcePair(MainForm.CppParser.GetDeclarationFileName(st), CppFname, fName);
+  MainForm.CppParser.GetSourcePair(st^._DefinitionFileName, CppFname, fName);
   if (not chkInlineR.Checked or not chkInlineW.Checked) and not FileExists(CppFname) then begin
     MessageDlg(Lang[ID_NEWVAR_MSG_NOIMPL], mtError, [mbOk], 0);
     Exit;
@@ -174,7 +168,7 @@ begin
   else
     VarScope := scsNone; // shut up compiler
   end;
-  Line := MainForm.CppParser.SuggestMemberInsertionLine(st^._ID, VarScope, AddScopeStr);
+  Line := MainForm.CppParser.SuggestMemberInsertionLine(st, VarScope, AddScopeStr);
   if Line = -1 then begin
     MessageDlg(Lang[ID_NEWVAR_MSG_NOLINE], mtError, [mbOk], 0);
     Exit;
@@ -182,7 +176,7 @@ begin
 
   // Ask CppParser for insertion line suggestion of getter/setter
   if chkReadFunc.Checked or chkWriteFunc.Checked then begin
-    GetSetLine := MainForm.CppParser.SuggestMemberInsertionLine(st^._ID, scsPublic, GetSetAddScopeStr);
+    GetSetLine := MainForm.CppParser.SuggestMemberInsertionLine(st, scsPublic, GetSetAddScopeStr);
     if Line = -1 then begin
       MessageDlg(Lang[ID_NEWVAR_MSG_NOLINE], mtError, [mbOk], 0);
       Exit;
@@ -231,7 +225,6 @@ begin
     end;
 
     // Mark modified and we're done
-    e.SetCaretPos(Line + 1, 1);
     e.Text.Modified := True;
   finally
     e.Text.EndUpdate;
@@ -239,7 +232,7 @@ begin
 
   // Only mess with the CPP file if we need to
   if not ((chkInlineR.Enabled and not chkInlineR.Checked) or (chkInlineW.Enabled and not chkInlineW.Checked)) then begin
-    e.Activate; // activate it if we're not modifying the source file
+    e.SetCaretPosAndActivate(Line + 1, 1); // activate it if we're not modifying the source file
     Exit;
   end;
 
@@ -269,8 +262,7 @@ begin
       e.Text.Lines.Add('}');
     end;
 
-    e.SetCaretPos(e.Text.Lines.Count - 1, 1);
-    e.Activate;
+    e.SetCaretPosAndActivate(e.Text.Lines.Count - 1, 1);
     e.Text.Modified := True;
   finally
     e.Text.Lines.EndUpdate;
