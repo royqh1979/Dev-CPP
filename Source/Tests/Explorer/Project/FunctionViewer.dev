@@ -1,6 +1,6 @@
 [Project]
-FileName=KeywordHighlighter.dev
-Name=KeywordHighlighter
+FileName=FunctionViewer.dev
+Name=FunctionViewer
 Type=1
 Ver=2
 ObjFiles=
@@ -19,7 +19,7 @@ ObjectOutput=
 LogOutput=
 LogOutputEnabled=0
 OverrideOutput=0
-OverrideOutputName=KeywordHighlighter.exe
+OverrideOutputName=FunctionViewer.exe
 HostApplication=
 UseCustomMakefile=0
 CustomMakefile=
@@ -27,8 +27,8 @@ CommandLine=
 Folders=
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=3
-CompilerSettings=00000001g0111000000001001
+CompilerSet=0
+CompilerSettings=0000000000000000000000000
 UnitCount=1
 
 [VersionInfo]
@@ -53,7 +53,7 @@ SyncProduct=1
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=KeywordHighlighter
+Folder=
 Compile=1
 Link=1
 Priority=1000

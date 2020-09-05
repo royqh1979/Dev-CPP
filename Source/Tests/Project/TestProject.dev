@@ -1,6 +1,6 @@
 [Project]
-FileName=KeywordHighlighter.dev
-Name=KeywordHighlighter
+FileName=TestProject.dev
+Name=TestProject
 Type=1
 Ver=2
 ObjFiles=
@@ -19,16 +19,16 @@ ObjectOutput=
 LogOutput=
 LogOutputEnabled=0
 OverrideOutput=0
-OverrideOutputName=KeywordHighlighter.exe
+OverrideOutputName=
 HostApplication=
 UseCustomMakefile=0
 CustomMakefile=
 CommandLine=
-Folders=
+Folders=A1,A1/B,A1/B/C,A1/B/C/D,E,E/F,E/F/G,E/F/G/H
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=3
-CompilerSettings=00000001g0111000000001001
+CompilerSet=0
+CompilerSettings=0000000000000000000000000
 UnitCount=1
 
 [VersionInfo]
@@ -39,21 +39,21 @@ Build=0
 LanguageID=1033
 CharsetID=1252
 CompanyName=
-FileVersion=1.0.0.0
+FileVersion=
 FileDescription=Developed using the Dev-C++ IDE
 InternalName=
 LegalCopyright=
 LegalTrademarks=
 OriginalFilename=
 ProductName=
-ProductVersion=1.0.0.0
+ProductVersion=
 AutoIncBuildNr=0
 SyncProduct=1
 
 [Unit1]
 FileName=main.cpp
 CompileCpp=1
-Folder=KeywordHighlighter
+Folder=
 Compile=1
 Link=1
 Priority=1000
