@@ -1,9 +1,9 @@
 object CompOptForm: TCompOptForm
-  Left = 1053
-  Top = 848
+  Left = 429
+  Top = 152
   BorderStyle = bsDialog
   Caption = 'Compiler options'
-  ClientHeight = 512
+  ClientHeight = 513
   ClientWidth = 484
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,12 +19,12 @@ object CompOptForm: TCompOptForm
   OnShow = InterfaceSave
   DesignSize = (
     484
-    512)
+    513)
   PixelsPerInch = 96
   TextHeight = 15
   object btnOk: TBitBtn
     Left = 210
-    Top = 480
+    Top = 481
     Width = 85
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -54,7 +54,7 @@ object CompOptForm: TCompOptForm
   end
   object btnCancel: TBitBtn
     Left = 300
-    Top = 480
+    Top = 481
     Width = 85
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -84,7 +84,7 @@ object CompOptForm: TCompOptForm
   end
   object btnHelp: TBitBtn
     Left = 390
-    Top = 480
+    Top = 481
     Width = 85
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -429,7 +429,7 @@ object CompOptForm: TCompOptForm
       object lblProgramsText: TLabel
         Left = 24
         Top = 16
-        Width = 399
+        Width = 398
         Height = 30
         Caption = 
           'You may want to change the programs filenames that are used in D' +

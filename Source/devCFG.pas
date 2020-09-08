@@ -2151,6 +2151,10 @@ begin
         Name := BaseName + ' 32-bit Debug';
         if FindOption('-g3', option, index) then
           SetOption(option, '1');
+        if FindOption('-Wall', option, index) then
+          SetOption(option, '1');
+        if FindOption('-Wextra', option, index) then
+          SetOption(option, '1');
       end;
 
       // Profiling profile
@@ -2159,6 +2163,8 @@ begin
         if FindOption('-pg', option, index) then
           SetOption(option, '1');
       end;
+      // Set Debug profile as the default
+      fDefaultIndex := 2
     end;
   end;
 
@@ -2178,6 +2184,12 @@ begin
         Name := BaseName + ' 32-bit Debug';
         if FindOption('-g3', option, index) then
           SetOption(option, '1');
+        if FindOption('-Wall', option, index) then
+          SetOption(option, '1');
+        if FindOption('-Wextra', option, index) then
+          SetOption(option, '1');          
+        if FindOption('-Werror', option, index) then
+          SetOption(option, '1');
       end;
 
       // Profiling profile
@@ -2186,6 +2198,7 @@ begin
         if FindOption('-pg', option, index) then
           SetOption(option, '1');
       end;
+
     end;
   end;
 end;

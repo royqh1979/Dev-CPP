@@ -1,0 +1,35 @@
+# Project: InitConfig
+# Makefile created by Dev-C++ 5.11
+
+# This Makefile is written for syntax check!
+# Regenerate it if you want to use this Makefile to build.
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+RES      = InitConfig_private.res
+OBJ      = main.o $(RES)
+LINKOBJ  = main.o $(RES)
+LIBS     = -L"D:/Program Files/Dev-Cpp/MinGW32/lib" -L"D:/Program Files/Dev-Cpp/MinGW32/mingw32/lib" -static-libstdc++ -static-libgcc -mwindows -static-libstdc++ -static-libgcc
+INCS     = -I"D:/Program Files/Dev-Cpp/MinGW32/include" -I"D:/Program Files/Dev-Cpp/MinGW32/lib/gcc/mingw32/9.2.0/include"
+CXXINCS  = -I"D:/Program Files/Dev-Cpp/MinGW32/include" -I"D:/Program Files/Dev-Cpp/MinGW32/lib/gcc/mingw32/9.2.0/include" -I"D:/Program Files/Dev-Cpp/MinGW32/lib/gcc/mingw32/9.2.0/include/c++"
+BIN      = InitConfig.exe
+CXXFLAGS = $(CXXINCS) -fsyntax-only
+CFLAGS   = $(INCS) -fsyntax-only
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom $(OBJ) $(BIN)
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+
+main.o: main.c
+	$(CC) -c main.c $(CFLAGS)
+
+InitConfig_private.res:
+	$(WINDRES) -i InitConfig_private.rc --input-format=rc -o nul -O coff 
+

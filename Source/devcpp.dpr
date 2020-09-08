@@ -86,7 +86,8 @@ uses
   ProcessListFrm in 'ProcessListFrm.pas' {ProcessListForm},
   PackmanExitCodesU in 'Tools\Packman\PackmanExitCodesU.pas',
   ImageTheme in 'ImageTheme.pas',
-  Instances in 'Instances.pas';
+  Instances in 'Instances.pas',
+  RenameFrm in 'RenameFrm.pas' {RenameForm};
 
 {$R *.res}
 
@@ -147,6 +148,7 @@ begin
   Application.Initialize;
   Application.Title := 'Dev-C++';
   Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TRenameForm, RenameForm);
   Application.Run;
 end.
 

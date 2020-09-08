@@ -630,10 +630,10 @@ begin
   for I := 0 to devCompilerSets.Count - 1 do
     cmbCompilerSetComp.Items.Add(devCompilerSets[i].Name);
 
-  // Set a default selection
+  // Set a default selection  (the Debug profile, index starts from 0)
   fOldIndex := -1;
   if cmbCompilerSetComp.Items.Count > 0 then
-    cmbCompilerSetComp.ItemIndex := 0
+    cmbCompilerSetComp.ItemIndex := 1
   else
     cmbCompilerSetComp.ItemIndex := -1;
 

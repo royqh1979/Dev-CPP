@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 243
-  Top = 504
+  Left = 192
+  Top = 514
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -149,7 +149,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 156
-        Height = 154
+        Height = 155
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
@@ -1573,6 +1573,15 @@ object MainForm: TMainForm
         Caption = 'Package Manager'
       end
     end
+    object Refactor1: TMenuItem
+      Caption = 'Refactor'
+      GroupIndex = 9
+      object Rename1: TMenuItem
+        Action = actRename
+        ShortCut = 24693
+        OnClick = Rename1Click
+      end
+    end
     object FormatMenu: TMenuItem
       Caption = 'AStyle'
       GroupIndex = 9
@@ -2799,6 +2808,10 @@ object MainForm: TMainForm
       Caption = 'Donate :)'
       ImageIndex = 41
       OnExecute = actDonateExecute
+    end
+    object actRename: TAction
+      Category = 'Refactor'
+      Caption = 'Rename'
     end
   end
   object MessagePopup: TPopupMenu

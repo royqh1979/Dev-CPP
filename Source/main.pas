@@ -532,6 +532,9 @@ type
     actRunTests: TAction;
     DonateItem: TMenuItem;
     actDonate: TAction;
+    actRename: TAction;
+    Refactor1: TMenuItem;
+    Rename1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -790,6 +793,7 @@ type
     procedure actRunTestsExecute(Sender: TObject);
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
     procedure actDonateExecute(Sender: TObject);
+    procedure Rename1Click(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -6643,6 +6647,23 @@ begin
   ShellExecute(GetDesktopWindow(), 'open',
     PAnsiChar('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7FD675DNV8KKJ'), nil, nil,
     SW_SHOWNORMAL);
+end;
+
+procedure TMainForm.Rename1Click(Sender: TObject);
+  e: TEditor;
+  s: ansiString;
+begin
+    e := fEditorList.GetEditor;
+    if Assigned(e) then begin
+      s := e.Text.WordAtCursor;
+      e.Text
+
+      devFormatter.FormatMemory(e, devFormatter.FullCommand);
+
+      // Attempt to not scroll view
+      e.Text.TopLine := OldTopLine;
+      e.Text.CaretXY := OldCaretXY;
+    end;
 end;
 
 end.

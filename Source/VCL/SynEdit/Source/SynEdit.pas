@@ -451,6 +451,7 @@ type
     function GetSelTabLine: Boolean;
     function GetSelText: string;
     function SynGetText: string;
+    function GetWordOffsetAtCursor: Integer;
     function GetWordAtCursor: string;
     function GetWordAtMouse: string;
     procedure GutterChanged(Sender: TObject);
@@ -820,6 +821,7 @@ type
     property StateFlags: TSynStateFlags read fStateFlags write fStateFlags;
     property Text: string read SynGetText write SynSetText;
     property TopLine: Integer read fTopLine write SetTopLine;
+    property WordOffsetAtCursor: Integer read GetWordOffsetAtCursor;
     property WordAtCursor: string read GetWordAtCursor;
     property WordAtMouse: string read GetWordAtMouse;
     property UndoList: TSynEditUndoList read fUndoList;
@@ -1703,6 +1705,34 @@ end;
 function TCustomSynEdit.SynGetText: string;
 begin
   Result := Lines.Text;
+end;
+
+function TCustomSynEdit.GetWordOffsetAtCursor: Integer;
+var
+  Line: string;
+  Len: Integer;
+  i,total: Integer;
+  XY: TBufferCoord;
+begin
+  XY := CaretXY;
+  Result := -1;
+  if (XY.Line >= 1) and (XY.Line <= Lines.Count) then begin
+    Line := Lines[XY.Line - 1];
+    Len := Length(Line);
+    if Len = 0 then
+      Exit;
+
+    if (XY.Char >= 1) and (XY.Char <= Len + 1) and (Line[Min(Len, XY.Char)] in IdentChars) then begin
+      while (XY.Char > 1) and (Line[XY.Char - 1] in IdentChars) do
+        Dec(XY.Char);
+      total :=0;
+      for  i:=0 to XY.Line-2 do
+        begin
+          total := total + Length(Line[i]);
+        end;
+      Result := total + XY.Char
+    end;
+  end;
 end;
 
 function TCustomSynEdit.GetWordAtCursor: string;
