@@ -11,6 +11,7 @@ type
     btnOk: TBitBtn;
     btnCancel: TBitBtn;
     Label1: TLabel;
+    Edit1: TEdit;
   private
     { Private declarations }
   public
@@ -23,5 +24,6 @@ var
 implementation
 
 {$R *.dfm}
+
 
 end.

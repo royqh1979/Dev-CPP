@@ -30,7 +30,8 @@ uses
   debugger, ClassBrowser, CodeCompletion, CppParser, CppTokenizer, SyncObjs,
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
-  CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm;
+  CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
+  RenameFrm;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -534,7 +535,7 @@ type
     actDonate: TAction;
     actRename: TAction;
     Refactor1: TMenuItem;
-    Rename1: TMenuItem;
+    Rename: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -793,7 +794,7 @@ type
     procedure actRunTestsExecute(Sender: TObject);
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
     procedure actDonateExecute(Sender: TObject);
-    procedure Rename1Click(Sender: TObject);
+    procedure actRenameExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -6649,21 +6650,35 @@ begin
     SW_SHOWNORMAL);
 end;
 
-procedure TMainForm.Rename1Click(Sender: TObject);
-  e: TEditor;
-  s: ansiString;
+procedure TMainForm.actRenameExecute(Sender: TObject);
+var
+  Editor : TEditor;
+  word: ansiString;
+  offset: Integer;
 begin
-    e := fEditorList.GetEditor;
-    if Assigned(e) then begin
-      s := e.Text.WordAtCursor;
-      e.Text
+  if not devRefactorer.ValidateRename then
+    Exit;
 
-      devFormatter.FormatMemory(e, devFormatter.FullCommand);
-
-      // Attempt to not scroll view
-      e.Text.TopLine := OldTopLine;
-      e.Text.CaretXY := OldCaretXY;
+  Editor := fEditorList.GetEditor;
+  if Assigned(Editor) then begin
+    word := Editor.Text.WordAtCursor;
+    offset := Editor.Text.WordOffsetAtCursor;
+    // MessageBox(Application.Handle,PAnsiChar(Concat(word,IntToStr(offset))),     PChar( 'Look'), MB_OK);
+    if offset = -1 then begin
+      Exit;
     end;
+
+    with TRenameForm.Create(Self) do try
+      txtVarName.Text := word;
+      if ShowModal = mrOK then begin
+        word := txtVarName.Text;
+
+      devRefactorer.renameSymbol(Editor,offset,word);
+    end;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 end.

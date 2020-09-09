@@ -1728,9 +1728,9 @@ begin
       total :=0;
       for  i:=0 to XY.Line-2 do
         begin
-          total := total + Length(Line[i]);
+          total := total + Length(Lines[i])+2;
         end;
-      Result := total + XY.Char
+      Result := total + XY.Char -1;
     end;
   end;
 end;

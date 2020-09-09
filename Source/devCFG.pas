@@ -223,6 +223,23 @@ type
     property ShowInheritedMembers: boolean read fShowInheritedMembers write fShowInheritedMembers;
   end;
 
+  // Options for refactor
+  TdevRefactorer = class(TPersistent)
+  private
+    fRefactorerDir: AnsiString;
+    fRenameFile: AnsiString;
+  public
+    constructor Create;
+    procedure SettoDefaults;
+    procedure SaveSettings;
+    procedure LoadSettings;
+    function RenameSymbol(Editor: TEditor;offset: Integer; word: AnsiString):AnsiString;
+    function ValidateRename: Boolean; // check if clang-rename.exe can be found
+  published
+    property RefactorerDir: AnsiString read fRefactorerDir write fRefactorerDir;
+    property RenameFile: AnsiString read fRenameFile write fRenameFile;
+  end;
+
   // Options for AStyle
   TdevFormatter = class(TPersistent)
   private
@@ -719,6 +736,7 @@ var
   devClassBrowsing: TdevClassBrowsing = nil;
   devExternalPrograms: TdevExternalPrograms = nil;
   devFormatter: TdevFormatter = nil;
+  devRefactorer: TdevRefactorer = nil;
 
 implementation
 
@@ -786,6 +804,10 @@ begin
 
   if not Assigned(devFormatter) then
     devFormatter := TdevFormatter.Create;
+
+  if not Assigned(devRefactorer) then
+    devRefactorer := TdevRefactorer.Create;
+
 end;
 
 procedure SaveOptions;
@@ -810,6 +832,7 @@ begin
   FreeAndNil(devClassBrowsing);
   FreeAndNil(devExternalPrograms);
   FreeAndNil(devFormatter);
+  FreeAndNil(devRefactorer);
 end;
 
 procedure RemoveOptionsDir(const Directory: AnsiString);
@@ -2549,6 +2572,75 @@ begin
   fShowFilter := 2; // sfCurrent
   fShowInheritedMembers := False;
 end;
+
+{ TdevRefactorer }
+
+constructor TdevRefactorer.Create;
+begin
+  inherited Create;
+  SettoDefaults;
+  LoadSettings;
+end;
+
+procedure TdevRefactorer.LoadSettings;
+begin
+  devData.ReadObject('Refactorer', Self);
+end;
+
+procedure TdevRefactorer.SaveSettings;
+begin
+  devData.WriteObject('Refactorer', Self);
+end;
+
+procedure TdevRefactorer.SettoDefaults;
+begin
+  fRefactorerDir := 'Tools\';
+  fRenameFile := 'clang-rename.exe';
+end;
+
+function TdevRefactorer.ValidateRename: Boolean;
+begin
+  Result := False;
+
+  // Check if clang-rename.exe is where it should be
+  if not DirectoryExists(devDirs.Exec + fRefactorerDir) then
+    Exit;
+  if not FileExists(devDirs.Exec + fRefactorerDir + fRenameFile) then
+    Exit;
+
+  Result := True;
+end;
+
+function TdevRefactorer.renameSymbol(Editor: TEditor; offset: Integer; word: AnsiString):AnsiString;
+var
+  DummyEditor : TSynEdit;
+  ErrorOutput : AnsiString;
+  TempDir, RenameFileName: String;
+begin
+      TempDir := GetEnvironmentVariable('TEMP');
+      RenameFileName := 'devcpp-rename-temp.cpp';
+      Editor.Text.Lines.SaveToFile(TempDir + PathDelim + RenameFileName);
+      ErrorOutput:=RunAndGetOutput(devDirs.Exec + RefactorerDir+RenameFile
+        +' -i --offset='+IntToStr(offset)+' --new-name='+word+' '
+        +RenameFileName, TempDir, nil, nil, False);
+
+      DummyEditor := TSynEdit.Create(nil);
+      try
+        // Use replace selection trick to preserve undo list
+        DummyEditor.Lines.LoadFromFile(TempDir + PathDelim + RenameFileName);
+
+        // Use replace all functionality
+        Editor.Text.BeginUpdate;
+        try
+          Editor.Text.SelectAll;
+          Editor.Text.SelText := DummyEditor.Lines.Text; // do NOT use Lines.LoadFromFile which is not undo-able
+        finally
+          Editor.Text.EndUpdate; // repaint once
+        end;
+      finally
+        DummyEditor.Free;
+      end;
+ end;
 
 { TdevFormatter }
 

@@ -1,3 +1,77 @@
+Version 5.12 - 9 September 2020
+- Upgraded the default compiler to GCC 9.2.0
+- Add Rename Symbol function (In Refactor menu, using clang-rename)
+- Use the Debug profile as the default compiler profile
+-  ¡°-Wall¡± and ¡°-Wextra" options are set by default in the Debug profile
+
+Version 5.11 - 27 April 2015
+
+- Fixed crash related to double clicking on a compiler error when a selection was made.
+- Upgraded the default compiler to TDM-GCC 4.9.2.
+- Improved startup speed.
+- Fixed Abort Compilation button not working anymore.
+- Fixed crash in TCppParser.CheckForTypedefStruct.
+- Fixed crash in TCppParser.HandleEnum.
+- Fixed some typos in the English translation (thanks to Hiro5).
+- Updated the Catalan translation (thanks to Hiro5).
+- Updated the Czech translation (thanks to tringi).
+- Fixed some hickups in the build process of Dev-C++ itself.
+
+Version 5.10 - 11 March 2015
+
+- Improved startup speed.
+- Removed splash window.
+- Temporarily removed the web update window.
+- Rewrote the LangCheck tool that can be used to validate translation files.
+- Improved indent guides painting and positioning.
+- Removed full screen information bar.
+- Added GUI option for maximum line length option to AStyle > Formatter Options.
+- Fixed parameter mismatch in Chinese translation.
+- Fixed memory leak in Edit > Unindent.
+- Improved behaviour of Edit > Toggle Comment.
+- Improved opening speed of Tools > Compiler Options.
+
+Version 5.9.2 - 1 Februari 2015
+
+- Changed Format Current File shortcut from Shift+F to Shift+Ctrl+A.
+- Removed/Changed all default Alt+(Key) shortcuts because they interfere with Alt menu navigation.
+- Assigned some new default shortcuts like Ctrl+B (Open Containing Folder) and F2 (Rename File).
+- Fixed Show Makefile being executable when no compiler set is configured.
+
+Version 5.9.1 - 31 Januari 2015
+
+- Updated Tools >> Edit Shortcuts.
+- Removed Ctrl+Alt combination in default shortcuts to ensure that the AltGr button keeps functioning:
+http://blogs.msdn.com/b/oldnewthing/archive/2004/03/29/101121.aspx
+
+- Fixed formatter options command line not showing up after first launch.
+- Added source LaTeX of testing document DevTest.pdf.
+- Widened the Menu >> Search >> Find window in order to accomodate longer translations.
+- Fixed a crash when launching for the first time with no compilers available.
+- Added last selection arrow to Find Results.
+- Fixed out of bounds error in TCppParser.HandleMethod.
+
+Version 5.9.0 - 5 Januari 2015
+
+- Added AStyle integration.
+- Remodeled Help >> About window.
+- When looking up a piece of code by Ctrl+Clicking the destination line is centered.
+- Removed caching from Tools >> Editor Options.
+- Widened the exception window.
+- Removed caching from the first-time configuration window.
+- Improved parsing progress messages in the status bar.
+- Improved performance of the classes list toolbar.
+- Improved function declaration/definition switching.
+- Significantly improved performance when selecting text.
+- Fixed parser error when parsing C-style cast of string constant.
+- Huge rewrite of code folding implementation.
+- Major improvements in typing responsiveness.
+- Major reduction in flickering during typing.
+- Around 40-50% reduction in memory usage per open file.
+- Fixed devcppPortable not passing files with spaces in names to devcpp correctly.
+- Improved performance when opening multiple files from explorer using Dev-C++.
+- Code completion does not show up anymore for periods typed as part of numbers.
+
 Version 5.8.3 - 10 November 2014
 
 - Slightly decreased flicker during editor opening.
