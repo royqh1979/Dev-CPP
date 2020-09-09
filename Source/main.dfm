@@ -1,11 +1,11 @@
 object MainForm: TMainForm
-  Left = 192
-  Top = 514
+  Left = 10
+  Top = 280
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++'
-  ClientHeight = 680
+  ClientHeight = 676
   ClientWidth = 999
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -28,13 +28,13 @@ object MainForm: TMainForm
   object SplitterLeft: TSplitter
     Left = 193
     Top = 56
-    Height = 418
+    Height = 414
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 474
+    Top = 470
     Width = 999
     Height = 3
     Cursor = crVSplit
@@ -44,7 +44,7 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 477
+    Top = 473
     Width = 999
     Height = 183
     ActivePage = DebugSheet
@@ -61,7 +61,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 991
-        Height = 155
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -105,7 +105,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 991
-        Height = 155
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -149,13 +149,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 156
-        Height = 155
+        Height = 154
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           156
-          155)
+          154)
         object btnAbortCompilation: TSpeedButton
           Left = 4
           Top = 4
@@ -186,7 +186,7 @@ object MainForm: TMainForm
         Left = 156
         Top = 0
         Width = 835
-        Height = 155
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -217,13 +217,13 @@ object MainForm: TMainForm
         Left = 589
         Top = 0
         Width = 402
-        Height = 155
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           402
-          155)
+          154)
         object lblSendCommandGdb: TLabel
           Left = 4
           Top = 7
@@ -245,7 +245,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 30
           Width = 395
-          Height = 118
+          Height = 117
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -256,7 +256,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 589
-        Height = 155
+        Height = 154
         Align = alLeft
         BevelOuter = bvNone
         BiDiMode = bdLeftToRight
@@ -264,7 +264,7 @@ object MainForm: TMainForm
         TabOrder = 1
         DesignSize = (
           589
-          155)
+          154)
         object DDebugBtn: TSpeedButton
           Left = 4
           Top = 8
@@ -410,7 +410,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 100
           Width = 578
-          Height = 47
+          Height = 46
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
@@ -449,7 +449,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 991
-        Height = 155
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -886,7 +886,7 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 660
+    Top = 656
     Width = 999
     Height = 20
     Panels = <
@@ -913,7 +913,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 56
     Width = 193
-    Height = 418
+    Height = 414
     ActivePage = LeftProjectSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
@@ -926,7 +926,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 390
+        Height = 385
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -961,7 +961,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 390
+        Height = 385
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -997,7 +997,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 390
+        Height = 385
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -1019,7 +1019,7 @@ object MainForm: TMainForm
     Left = 196
     Top = 56
     Width = 803
-    Height = 418
+    Height = 414
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
@@ -1028,7 +1028,7 @@ object MainForm: TMainForm
       Left = 803
       Top = 0
       Width = 0
-      Height = 418
+      Height = 414
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1037,7 +1037,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 803
-      Height = 418
+      Height = 414
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1054,7 +1054,7 @@ object MainForm: TMainForm
       Left = 803
       Top = 0
       Width = 0
-      Height = 418
+      Height = 414
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1576,10 +1576,8 @@ object MainForm: TMainForm
     object Refactor1: TMenuItem
       Caption = 'Refactor'
       GroupIndex = 9
-      object Rename1: TMenuItem
+      object Rename: TMenuItem
         Action = actRename
-        ShortCut = 24693
-        OnClick = Rename1Click
       end
     end
     object FormatMenu: TMenuItem
@@ -2812,6 +2810,9 @@ object MainForm: TMainForm
     object actRename: TAction
       Category = 'Refactor'
       Caption = 'Rename'
+      ShortCut = 24693
+      OnExecute = actRenameExecute
+      OnUpdate = actUpdateEmptyEditor
     end
   end
   object MessagePopup: TPopupMenu

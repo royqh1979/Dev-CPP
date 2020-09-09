@@ -2612,23 +2612,53 @@ begin
   Result := True;
 end;
 
-function TdevRefactorer.renameSymbol(Editor: TEditor; offset: Integer; word: AnsiString):AnsiString;
+function TdevRefactorer.renameSymbol(Editor: TEditor; offset: Integer;
+  word: AnsiString):AnsiString;
+resourcestring
+  cAppendStr = '%s -I"%s"';
 var
   DummyEditor : TSynEdit;
-  ErrorOutput : AnsiString;
-  TempDir, RenameFileName: String;
+  ErrorOutput : ansiString;
+  FileName, TempDir, RenameFileName: String;
+  IncludesParams : ansiString;
+  Cmd: ansiString;
 begin
       TempDir := GetEnvironmentVariable('TEMP');
-      RenameFileName := 'devcpp-rename-temp.cpp';
-      Editor.Text.Lines.SaveToFile(TempDir + PathDelim + RenameFileName);
-      ErrorOutput:=RunAndGetOutput(devDirs.Exec + RefactorerDir+RenameFile
-        +' -i --offset='+IntToStr(offset)+' --new-name='+word+' '
-        +RenameFileName, TempDir, nil, nil, False);
+      Filename := ExtractFileName(Editor.FileName);
+
+      case GetFileTyp(FileName) of
+        utcSrc,utcHead: begin
+          RenameFileName := TempDir + PathDelim + 'devcpp-rename-temp.c';
+          IncludesParams := FormatList(devCompilerSets.CompilationSet.CDir, cAppendStr);
+        end;
+        utCppSrc, utcppHead: begin
+          RenameFileName := TempDir + PathDelim + 'devcpp-rename-temp.cpp';
+          IncludesParams := FormatList(devCompilerSets.CompilationSet.CppDir, cAppendStr);
+          end;
+        else
+          Exit;
+      end;
+
+//      if (Target = ctProject) and assigned(Project) then
+//        for i := 0 to pred(Project.Options.Includes.Count) do
+//          if DirectoryExists(Project.Options.Includes[i]) then begin
+//            IncludesParams := format(cAppendStr, [IncludesParams, Project.Options.Includes[i]]);
+//          end;
+
+      Editor.Text.Lines.SaveToFile(RenameFileName);
+      Cmd := devDirs.Exec + RefactorerDir+RenameFile
+        +' -i --offset='+IntToStr(offset)+' --new-name='+word+' "'
+        +RenameFileName+'" -- '+IncludesParams;
+      ErrorOutput:= RunAndGetOutput(Cmd, TempDir, nil, nil, False);
+
+      //MessageBox(Application.Handle,PAnsiChar(Cmd),     PChar( 'Look'), MB_OK);
+
+      //MessageBox(Application.Handle,PAnsiChar(ErrorOutput),     PChar( 'Look'), MB_OK);
 
       DummyEditor := TSynEdit.Create(nil);
       try
         // Use replace selection trick to preserve undo list
-        DummyEditor.Lines.LoadFromFile(TempDir + PathDelim + RenameFileName);
+        DummyEditor.Lines.LoadFromFile(RenameFileName);
 
         // Use replace all functionality
         Editor.Text.BeginUpdate;
@@ -2641,7 +2671,8 @@ begin
       finally
         DummyEditor.Free;
       end;
-      DeleteFile( TempDir + PathDelim + RenameFileName);
+      DeleteFile(RenameFileName);
+      Result := Cmd + #13#10 + ErrorOutput;
  end;
 
 { TdevFormatter }
@@ -2761,7 +2792,7 @@ begin
     DummyEditor.Free;
   end;
   DeleteFile(FileName);
-  DeleteFile(FileName + ".orig");
+  DeleteFile(FileName + '.orig');
 end;
 
 function TdevFormatter.FormatFile(const FileName, OverrideCommand: AnsiString): AnsiString;

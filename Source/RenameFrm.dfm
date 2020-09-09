@@ -1,10 +1,10 @@
 object RenameForm: TRenameForm
-  Left = 188
-  Top = 366
+  Left = 224
+  Top = 365
   BorderStyle = bsDialog
   Caption = 'Rename...'
-  ClientHeight = 175
-  ClientWidth = 415
+  ClientHeight = 88
+  ClientWidth = 431
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,20 +13,20 @@ object RenameForm: TRenameForm
   Font.Style = []
   OldCreateOrder = False
   DesignSize = (
-    415
-    175)
+    431
+    88)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 16
     Top = 8
-    Width = 45
+    Width = 56
     Height = 13
-    Caption = 'Old name'
+    Caption = 'New Name:'
   end
   object btnOk: TBitBtn
     Left = 218
-    Top = 142
+    Top = 55
     Width = 85
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -55,7 +55,7 @@ object RenameForm: TRenameForm
   end
   object btnCancel: TBitBtn
     Left = 308
-    Top = 142
+    Top = 55
     Width = 85
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -81,5 +81,12 @@ object RenameForm: TRenameForm
       3333333333333333333888330000333333333333333333333333333333333333
       0000}
     NumGlyphs = 2
+  end
+  object Edit1: TEdit
+    Left = 104
+    Top = 0
+    Width = 305
+    Height = 21
+    TabOrder = 2
   end
 end

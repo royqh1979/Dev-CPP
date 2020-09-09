@@ -6670,8 +6670,6 @@ begin
       Exit;
     end;
 
-
-
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
       if ShowModal <> mrOK then
@@ -6682,7 +6680,7 @@ begin
       OldTopLine := Editor.Text.TopLine;
       OldCaretXY := Editor.Text.CaretXY;
 
-      devRefactorer.renameSymbol(Editor,offset,word);
+      devRefactorer.renameSymbol(Editor,offset,word,GetCompileTarget,fProject);
 
       // Attempt to not scroll view
       Editor.Text.TopLine := OldTopLine;

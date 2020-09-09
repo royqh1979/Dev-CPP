@@ -9452,7 +9452,13 @@ begin
     if Len = 0 then
       Exit;
 
-    if (XY.Char >= 1) and (XY.Char <= Len + 1) and (Line[Min(Len, XY.Char)] in IdentChars) then begin
+    if (XY.Char < 1) or (XY.Char >= Len + 1) then
+      Exit;
+
+    if  (XY.Char>1) and (Not (Line[XY.Char-1] in IdentChars)) and (Line[XY.Char-2] in IdentChars) then
+      dec(XY.Char);
+
+    if Line[XY.Char] in IdentChars then begin
       Stop := XY.Char;
       while (Stop <= Len) and (Line[Stop] in IdentChars) do
         Inc(Stop);
