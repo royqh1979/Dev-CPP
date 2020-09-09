@@ -56,13 +56,13 @@ type
     lblSubredditURL: TLabel;
     lblRepository: TLabel;
     lblRepositoryURL: TLabel;
-    lblTDM: TLabel;
-    lblTDMURL: TLabel;
     lblPost4992: TLabel;
     lblCompilers: TLabel;
     lblPre4992: TLabel;
     bvCompilers: TBevel;
     imgDonate: TImage;
+    Label1: TLabel;
+    Label2: TLabel;
     procedure URLLabelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAuthorsClick(Sender: TObject);
@@ -98,7 +98,7 @@ begin
   lblBlog.Caption := Lang[ID_AB_BLOGNAME];
   lblCompilers.Caption := Lang[ID_AB_COMPILERS];
   lblMinGW.Caption := Lang[ID_AB_LBLMINGWSITE];
-  lblTDM.Caption := Lang[ID_AB_TDMGCC];
+  //lblTDM.Caption := Lang[ID_AB_TDMGCC];
   lblPre4992.Caption := Lang[ID_AB_PRE4992];
   lblBlood.Caption := Lang[ID_AB_LBLBLOODSITE];
   lblDiscussion.Caption := Lang[ID_AB_LBLFORUM];
@@ -135,6 +135,7 @@ procedure TAboutForm.btnAuthorsClick(Sender: TObject);
 const
   MessageText =
     'Authors:'#13#10#13#10 +
+    '- Post-5.11 development: Roy Qu(royqh1979@gmail.com)'#13#10 +
     '- Post-4.9.9.2 development: Johan Mes'#13#10 +
     '- Development: Colin Laplace, Mike Berg, Hongli Lai, Yiannis Mandravellos'#13#10 +
     '- Contributors: Peter Schraut, Marek Januszewski, Anonymous'#13#10 +

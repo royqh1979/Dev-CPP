@@ -820,6 +820,7 @@ begin
   devClassBrowsing.SaveSettings;
   devExternalPrograms.SaveSettings;
   devFormatter.SaveSettings;
+  devRefactorer.SaveSettings;
 end;
 
 procedure DestroyOptions;
@@ -2640,6 +2641,7 @@ begin
       finally
         DummyEditor.Free;
       end;
+      DeleteFile( TempDir + PathDelim + RenameFileName);
  end;
 
 { TdevFormatter }
@@ -2733,9 +2735,11 @@ function TdevFormatter.FormatMemory(Editor: TEditor; const OverrideCommand: Ansi
 var
   FileName: AnsiString;
   DummyEditor: TSynEdit;
+  TempDir: AnsiString;
 begin
+  TempDir := GetEnvironmentVariable('TEMP');
   // Store file backup in AStyle dir and format that file
-  FileName := devDirs.Exec + fAStyleDir + ExtractFileName(Editor.FileName);
+  FileName := TempDir + PathDelim+ 'astyle-temp.cpp';
   Editor.Text.Lines.SaveToFile(FileName);
   FormatFile(FileName, OverrideCommand);
 
@@ -2756,15 +2760,19 @@ begin
   finally
     DummyEditor.Free;
   end;
+  DeleteFile(FileName);
+  DeleteFile(FileName + ".orig");
 end;
 
 function TdevFormatter.FormatFile(const FileName, OverrideCommand: AnsiString): AnsiString;
 var
   RunCommand, WorkingDir: AnsiString;
+  TempDir: AnsiString;
 begin
+  TempDir := GetEnvironmentVariable('TEMP');
   WorkingDir := devDirs.Exec + fAStyleDir;
   RunCommand := fAStyleFile + ' ' + OverrideCommand + ' "' + FileName + '"';
-  Result := RunAndGetOutput(WorkingDir + RunCommand, WorkingDir, nil, nil, False);
+  Result := RunAndGetOutput(WorkingDir + RunCommand, tempDir, nil, nil, False);
 end;
 
 function TdevFormatter.GetVersion: AnsiString;

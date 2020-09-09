@@ -6655,6 +6655,8 @@ var
   Editor : TEditor;
   word: ansiString;
   offset: Integer;
+  OldCaretXY: TBufferCoord;
+  OldTopLine: integer;  
 begin
   if not devRefactorer.ValidateRename then
     Exit;
@@ -6668,13 +6670,23 @@ begin
       Exit;
     end;
 
+
+
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
-      if ShowModal = mrOK then begin
-        word := txtVarName.Text;
+      if ShowModal <> mrOK then
+        Exit;
+
+      word := txtVarName.Text;
+
+      OldTopLine := Editor.Text.TopLine;
+      OldCaretXY := Editor.Text.CaretXY;
 
       devRefactorer.renameSymbol(Editor,offset,word);
-    end;
+
+      // Attempt to not scroll view
+      Editor.Text.TopLine := OldTopLine;
+      Editor.Text.CaretXY := OldCaretXY;
     finally
       Free;
     end;
