@@ -76,7 +76,7 @@ type
     procedure HandleLangPanel;
     procedure HandleEditPanel;
     procedure UpdateLangList(List: TStrings);
-    procedure LoadText; // call after selecting a language of course
+    procedure LoadText;
   end;
 
 implementation

@@ -770,9 +770,9 @@ begin
         end;
       end;
 
-      // Pick the 'release' build
+      // Pick the 'debug' build
       if (devCompilerSets.DefaultSetIndex = -1) and (devCompilerSets.Count > 0) then
-        devCompilerSets.DefaultSetIndex := 0;
+        devCompilerSets.DefaultSetIndex := 1;
 
     end else begin // TDM-GCC x86, MinGW32, ???
       for I := 0 to devCompilerSets.Count - 1 do begin
@@ -783,9 +783,9 @@ begin
         end;
       end;
 
-      // Again, pick the 'release' build
+      // Again, pick the 'debug' build
       if (devCompilerSets.DefaultSetIndex = -1) and (devCompilerSets.Count > 0) then
-        devCompilerSets.DefaultSetIndex := 0; // pick any
+        devCompilerSets.DefaultSetIndex := 1; // pick any
     end;
     devCompilerSets.SaveSets; // save everything to disk
   end;
