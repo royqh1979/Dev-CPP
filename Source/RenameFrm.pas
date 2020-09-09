@@ -11,7 +11,7 @@ type
     btnOk: TBitBtn;
     btnCancel: TBitBtn;
     Label1: TLabel;
-    Edit1: TEdit;
+    txtVarName: TEdit;
   private
     { Private declarations }
   public

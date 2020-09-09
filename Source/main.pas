@@ -6656,7 +6656,8 @@ var
   word: ansiString;
   offset: Integer;
   OldCaretXY: TBufferCoord;
-  OldTopLine: integer;  
+  OldTopLine: integer;
+  Output: ansiString;
 begin
   if not devRefactorer.ValidateRename then
     Exit;
@@ -6680,7 +6681,8 @@ begin
       OldTopLine := Editor.Text.TopLine;
       OldCaretXY := Editor.Text.CaretXY;
 
-      devRefactorer.renameSymbol(Editor,offset,word,GetCompileTarget,fProject);
+      Output:=devRefactorer.renameSymbol(Editor,offset,word);
+      LogEntryProc(Output);
 
       // Attempt to not scroll view
       Editor.Text.TopLine := OldTopLine;

@@ -82,7 +82,7 @@ object RenameForm: TRenameForm
       0000}
     NumGlyphs = 2
   end
-  object Edit1: TEdit
+  object txtVarName: TEdit
     Left = 104
     Top = 0
     Width = 305

@@ -1,6 +1,6 @@
 object NewProjectForm: TNewProjectForm
-  Left = 583
-  Top = 484
+  Left = 300
+  Top = 342
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'New Project'
