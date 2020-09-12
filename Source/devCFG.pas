@@ -2619,27 +2619,27 @@ resourcestring
 var
   DummyEditor : TSynEdit;
   ErrorOutput : ansiString;
-  FileName, TempDir, RenameFileName: String;
+  FileName, WorkDir, RenameFileName: String;
   IncludesParams : ansiString;
   Cmd: ansiString;
 begin
-      TempDir := GetEnvironmentVariable('TEMP');
+      WorkDir := ExtractFileDir(Editor.FileName);
       Filename := ExtractFileName(Editor.FileName);
 
       case GetFileTyp(FileName) of
         utcSrc,utcHead: begin
-          RenameFileName := TempDir + PathDelim + 'devcpp-rename-temp.c';
+          RenameFileName := WorkDir  + '~devcpp-rename-temp.c';
           IncludesParams := FormatList(devCompilerSets.CompilationSet.CDir, cAppendStr);
         end;
         utCppSrc, utcppHead: begin
-          RenameFileName := TempDir + PathDelim + 'devcpp-rename-temp.cpp';
+          RenameFileName := WorkDir  + '~devcpp-rename-temp.cpp';
           IncludesParams := FormatList(devCompilerSets.CompilationSet.CppDir, cAppendStr);
           end;
         else
           Exit;
       end;
 
-      IncludesParams := IncludesParams + ' -I "'+ExtractFileDir(Editor.FileName)+'" ';
+//      IncludesParams := IncludesParams + ' -I"'+ExtractFileDir(Editor.FileName)+'" ';
 
 //      if (Target = ctProject) and assigned(Project) then
 //        for i := 0 to pred(Project.Options.Includes.Count) do
@@ -2651,7 +2651,7 @@ begin
       Cmd := devDirs.Exec + RefactorerDir+RenameFile
         +' -i --offset='+IntToStr(offset)+' --new-name='+word+' "'
         +RenameFileName+'" -- '+IncludesParams;
-      ErrorOutput:= RunAndGetOutput(Cmd, TempDir, nil, nil, False);
+      ErrorOutput:= RunAndGetOutput(Cmd, WorkDir, nil, nil, False);
 
       //MessageBox(Application.Handle,PAnsiChar(Cmd),     PChar( 'Look'), MB_OK);
 
