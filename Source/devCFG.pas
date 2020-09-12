@@ -2639,7 +2639,7 @@ begin
           Exit;
       end;
 
-      IncludesParams := IncludeParams + ' -I "'+ExtractFileDir(Editor.FileName)+'" ';
+      IncludesParams := IncludesParams + ' -I "'+ExtractFileDir(Editor.FileName)+'" ';
 
 //      if (Target = ctProject) and assigned(Project) then
 //        for i := 0 to pred(Project.Options.Includes.Count) do

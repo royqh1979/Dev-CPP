@@ -1711,7 +1711,7 @@ function TCustomSynEdit.GetWordOffsetAtCursor: Integer;
 var
   Line: string;
   Len: Integer;
-  i,total: Integer;
+  i,total,Start: Integer;
   XY: TBufferCoord;
 begin
   XY := CaretXY;
@@ -1721,10 +1721,16 @@ begin
     Len := Length(Line);
     if Len = 0 then
       Exit;
+    if (XY.Char < 1) or (XY.Char > Len) then
+      Exit;
 
-    if (XY.Char >= 1) and (XY.Char <= Len + 1) and (Line[Min(Len, XY.Char)] in IdentChars) then begin
-      while (XY.Char > 1) and (Line[XY.Char - 1] in IdentChars) do
-        Dec(XY.Char);
+    Start := XY.Char;
+    if  (Start> 1) and not (Line[Start] in IdentChars) then
+      Dec(Start);
+
+    if Line[Start] in IdentChars then begin
+      while (Start > 1) and (Line[Start - 1] in IdentChars) do
+        Dec(Start);
       total :=0;
       for  i:=0 to XY.Line-2 do
         begin
@@ -9443,7 +9449,7 @@ end;
 function TCustomSynEdit.GetWordAtRowCol(XY: TBufferCoord): string;
 var
   Line: string;
-  Len, Stop: Integer;
+  Len, Stop, Start: Integer;
 begin
   Result := '';
   if (XY.Line >= 1) and (XY.Line <= Lines.Count) then begin
@@ -9452,20 +9458,21 @@ begin
     if Len = 0 then
       Exit;
 
-    if (XY.Char < 1) or (XY.Char >= Len + 1) then
+    if (XY.Char < 1) or (XY.Char > Len) then
       Exit;
 
-    if  (XY.Char>1) and (Not (Line[XY.Char-1] in IdentChars)) and (Line[XY.Char-2] in IdentChars) then
-      dec(XY.Char);
+    Start := XY.Char;
+    if  (Start> 1) and not (Line[Start] in IdentChars) then
+      Dec(Start);
 
-    if Line[XY.Char] in IdentChars then begin
-      Stop := XY.Char;
+    if Line[Start] in IdentChars then begin
+      Stop := Start;
       while (Stop <= Len) and (Line[Stop] in IdentChars) do
         Inc(Stop);
-      while (XY.Char > 1) and (Line[XY.Char - 1] in IdentChars) do
-        Dec(XY.Char);
-      if Stop > XY.Char then
-        Result := Copy(Line, XY.Char, Stop - XY.Char);
+      while (Start >= 1) and (Line[Start - 1] in IdentChars) do
+        Dec(Start);
+      if Stop > Start then
+        Result := Copy(Line, Start, Stop - Start);
     end;
   end;
 end;
