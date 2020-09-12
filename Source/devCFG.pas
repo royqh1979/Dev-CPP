@@ -2639,6 +2639,8 @@ begin
           Exit;
       end;
 
+      IncludesParams := IncludeParams + ' -I "'+ExtractFileDir(Editor.FileName)+'" ';
+
 //      if (Target = ctProject) and assigned(Project) then
 //        for i := 0 to pred(Project.Options.Includes.Count) do
 //          if DirectoryExists(Project.Options.Includes[i]) then begin
