@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 10
-  Top = 280
+  Left = 371
+  Top = 175
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -61,7 +61,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 991
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -105,7 +105,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 991
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -149,13 +149,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 156
-        Height = 154
+        Height = 155
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           156
-          154)
+          155)
         object btnAbortCompilation: TSpeedButton
           Left = 4
           Top = 4
@@ -186,7 +186,7 @@ object MainForm: TMainForm
         Left = 156
         Top = 0
         Width = 835
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -217,13 +217,13 @@ object MainForm: TMainForm
         Left = 589
         Top = 0
         Width = 402
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           402
-          154)
+          155)
         object lblSendCommandGdb: TLabel
           Left = 4
           Top = 7
@@ -256,7 +256,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 589
-        Height = 154
+        Height = 155
         Align = alLeft
         BevelOuter = bvNone
         BiDiMode = bdLeftToRight
@@ -264,7 +264,7 @@ object MainForm: TMainForm
         TabOrder = 1
         DesignSize = (
           589
-          154)
+          155)
         object DDebugBtn: TSpeedButton
           Left = 4
           Top = 8
@@ -449,7 +449,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 991
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -926,7 +926,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 385
+        Height = 386
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -961,7 +961,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 385
+        Height = 386
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -997,7 +997,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 385
+        Height = 386
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone

@@ -33,7 +33,7 @@ object RenameForm: TRenameForm
     Caption = '&OK'
     Default = True
     ModalResult = 1
-    TabOrder = 0
+    TabOrder = 1
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100
       0400000000006801000000000000000000001000000000000000000000000000
@@ -62,7 +62,7 @@ object RenameForm: TRenameForm
     Cancel = True
     Caption = '&Cancel'
     ModalResult = 2
-    TabOrder = 1
+    TabOrder = 2
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100
       0400000000006801000000000000000000001000000000000000000000000000
@@ -83,10 +83,10 @@ object RenameForm: TRenameForm
     NumGlyphs = 2
   end
   object txtVarName: TEdit
-    Left = 104
-    Top = 0
-    Width = 305
+    Left = 80
+    Top = 8
+    Width = 329
     Height = 21
-    TabOrder = 2
+    TabOrder = 0
   end
 end

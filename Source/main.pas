@@ -6673,6 +6673,7 @@ begin
 
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
+      txtVarName.SelectAll;
       if ShowModal <> mrOK then
         Exit;
 
