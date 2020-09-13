@@ -6687,7 +6687,7 @@ begin
       with TRefactorer.Create(devRefactorer) do try
         if not IsValidIdentifier(newword) then begin
           MessageBeep($F);
-          MessageDlg('"'+newword+'" is not a valid identifier!', MtInformation, [MbOK], 0);
+          MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
         end
         else begin
           Output:=RenameSymbol(Editor,offset,newword);
@@ -6697,7 +6697,7 @@ begin
           LogEntryProc(ErrorMsg);
           if ErrorMsg <> '' then begin
             MessageBeep($F);
-            MessageDlg(ErrorMsg, MtInformation, [MbOK], 0);
+            MessageDlg(ErrorMsg, mtError, [MbOK], 0);
           end;
         end;
 
