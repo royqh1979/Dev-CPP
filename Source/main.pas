@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm;
+  RenameFrm, Refactorer;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -6653,15 +6653,14 @@ end;
 procedure TMainForm.actRenameExecute(Sender: TObject);
 var
   Editor : TEditor;
-  word: ansiString;
+  word,newword: ansiString;
   offset: Integer;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
-  Output: ansiString;
+  Output,ErrorMsg: ansiString;
 begin
   if not devRefactorer.ValidateRename then
     Exit;
-
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
     word := Editor.Text.WordAtCursor;
@@ -6677,13 +6676,34 @@ begin
       if ShowModal <> mrOK then
         Exit;
 
-      word := txtVarName.Text;
+      newword := txtVarName.Text;
+
+      if word = newword then
+        Exit;
 
       OldTopLine := Editor.Text.TopLine;
       OldCaretXY := Editor.Text.CaretXY;
 
-      Output:=devRefactorer.renameSymbol(Editor,offset,word);
-      LogEntryProc(Output);
+      with TRefactorer.Create(devRefactorer) do try
+        if not IsValidIdentifier(newword) then begin
+          MessageBeep($F);
+          MessageDlg('"'+newword+'" is not a valid identifier!', MtInformation, [MbOK], 0);
+        end
+        else begin
+          Output:=RenameSymbol(Editor,offset,newword);
+          LogEntryProc(Output);
+          ErrorMsg := ParseErrorMessage(Output);
+          LogEntryProc('------');
+          LogEntryProc(ErrorMsg);
+          if ErrorMsg <> '' then begin
+            MessageBeep($F);
+            MessageDlg(ErrorMsg, MtInformation, [MbOK], 0);
+          end;
+        end;
+
+      finally
+        Free;
+      end;
 
       // Attempt to not scroll view
       Editor.Text.TopLine := OldTopLine;
