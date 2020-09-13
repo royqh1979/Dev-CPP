@@ -3132,7 +3132,7 @@ begin
   fDebugger.SendCommand('set', 'width 0'); // don't wrap output, very annoying
   fDebugger.SendCommand('set', 'new-console on');
   fDebugger.SendCommand('set', 'confirm off');
-  fDebugger.SendCommand('cd', ExtractFileDir(filepath)); // restore working directory
+  fDebugger.SendCommand('cd', ExcludeTrailingPathDelimiter(ExtractFileDir(filepath))); // restore working directory
   case GetCompileTarget of
     ctNone:
       Exit;
@@ -6693,8 +6693,8 @@ begin
           Output:=RenameSymbol(Editor,offset,newword);
           LogEntryProc(Output);
           ErrorMsg := ParseErrorMessage(Output);
-          LogEntryProc('------');
-          LogEntryProc(ErrorMsg);
+//          LogEntryProc('------');
+//          LogEntryProc(ErrorMsg);
           if ErrorMsg <> '' then begin
             MessageBeep($F);
             MessageDlg(ErrorMsg, mtError, [MbOK], 0);
