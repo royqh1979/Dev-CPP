@@ -87,7 +87,8 @@ uses
   PackmanExitCodesU in 'Tools\Packman\PackmanExitCodesU.pas',
   ImageTheme in 'ImageTheme.pas',
   Instances in 'Instances.pas',
-  RenameFrm in 'RenameFrm.pas' {RenameForm};
+  RenameFrm in 'RenameFrm.pas' {RenameForm},
+  Refactorer in 'Refactorer.pas';
 
 {$R *.res}
 
