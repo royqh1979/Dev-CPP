@@ -368,8 +368,9 @@ begin
       end;
       DoLogEntry(cmdline);
       objStr := RunAndGetOutput(cmdline, ExtractFileDir(MakeFile), nil, nil, False);
-
-
+      DoLogEntry(cmdline);
+      DoLogEntry(objStr);
+      DoLogEntry('---------------');
 
       if fProject.Options.ObjectOutput <> '' then begin
         ObjFileName := IncludeTrailingPathDelimiter(fProject.Options.ObjectOutput) +
@@ -386,12 +387,6 @@ begin
       end;
 
       Write(F,ObjStr);
-//      // Get obj filename (e.g. obj/main.o)
-//      if fProject.Options.ObjectOutput <> '' then begin
-//      end else
-
-//      // objectfile: sourcefile
-//      Writeln(F, GenMakePath2(ObjFileName) + ': ' + GenMakePath2(ShortFileName));
 
       // Write custom build command
       if fProject.Units[i].OverrideBuildCmd and (fProject.Units[i].BuildCmd <> '') then begin
