@@ -1,3 +1,6 @@
+Version 5.12.3 19 September 2020
+ - fix rename errors
+
 Version 5.12 - 9 September 2020
 - Upgraded the default compiler to GCC 9.2.0
 - Add Rename Symbol function (In Refactor menu, using clang-rename)
