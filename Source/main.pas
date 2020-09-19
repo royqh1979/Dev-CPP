@@ -6690,10 +6690,10 @@ begin
           MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
         end
         else begin
-          Output:=RenameSymbol(Editor,offset,newword);
+          Output:=RenameSymbol(Editor,offset,newword,GetCompileTarget,fProject);
           LogEntryProc(Output);
+          LogEntryProc('------');
           ErrorMsg := ParseErrorMessage(Output);
-//          LogEntryProc('------');
 //          LogEntryProc(ErrorMsg);
           if ErrorMsg <> '' then begin
             MessageBeep($F);

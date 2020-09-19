@@ -335,9 +335,11 @@ begin
 end;
 
 procedure TCompiler.WriteMakeObjFilesRules(var F: TextFile);
+resourcestring
+  cSyntaxCmdLine = '%s "%s" %s';
 var
   i: integer;
-  FileName, ShortFileName, ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: AnsiString;
+  cmdline,FileName, ShortFileName, objStr,ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: AnsiString;
 begin
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
@@ -358,16 +360,38 @@ begin
     if GetFileTyp(ShortFileName) in [utcSrc, utcppSrc] then begin
       Writeln(F);
 
-      // Get obj filename (e.g. obj/main.o)
+      //roy
+      if GetFileTyp(ShortFileName) = utcSrc then begin
+        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gccName, ShortFileName, '-MM'])
+      end else begin
+        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gppName, ShortFileName, '-MM'])
+      end;
+      DoLogEntry(cmdline);
+      objStr := RunAndGetOutput(cmdline, ExtractFileDir(MakeFile), nil, nil, False);
+
+
+
       if fProject.Options.ObjectOutput <> '' then begin
         ObjFileName := IncludeTrailingPathDelimiter(fProject.Options.ObjectOutput) +
           ExtractFileName(fProject.Units[i].FileName);
         ObjFileName := GenMakePath1(ExtractRelativePath(fProject.FileName, ChangeFileExt(ObjFileName, OBJ_EXT)));
-      end else
+        if ExtractFileDir(objFileName)<>'' then begin
+          objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(objFileName))) + objStr;
+        end;
+      end else begin
+        if shortFileName <> FileName then begin
+          objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(shortFileName))) + objStr;
+        end;
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
+      end;
 
-      // objectfile: sourcefile
-      Writeln(F, GenMakePath2(ObjFileName) + ': ' + GenMakePath2(ShortFileName));
+      Write(F,ObjStr);
+//      // Get obj filename (e.g. obj/main.o)
+//      if fProject.Options.ObjectOutput <> '' then begin
+//      end else
+
+//      // objectfile: sourcefile
+//      Writeln(F, GenMakePath2(ObjFileName) + ': ' + GenMakePath2(ShortFileName));
 
       // Write custom build command
       if fProject.Units[i].OverrideBuildCmd and (fProject.Units[i].BuildCmd <> '') then begin
