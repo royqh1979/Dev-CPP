@@ -1,3 +1,6 @@
+Version 5.12.4
+ - fix: project won't rebuild when only header file is changed. Use gcc -MM to generate Makefile targets (and get header dependencies)
+
 Version 5.12.3 19 September 2020
  - fix rename errors
 
