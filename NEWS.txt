@@ -1,5 +1,8 @@
 Version 5.12.4
  - fix: project won't rebuild when only header file is changed. Use gcc -MM to generate Makefile targets (and get header dependencies)
+ - fix: crash at close when debugging
+- change: show gdb command in debug log window
+- add two options for debug( option dialog is yet to do) : ShowComandLog (show gdb command in debug window)/ ShowAnnotation (show gdb annotations in debug log window)
 
 Version 5.12.3 19 September 2020
  - fix rename errors
