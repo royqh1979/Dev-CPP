@@ -217,6 +217,7 @@ procedure TDebugger.SendCommand(const Command, Params: AnsiString; ViewInUI: boo
 var
   P: PAnsiChar;
   nBytesWrote: DWORD;
+  result: boolean;
 begin
   if Executing then begin
 
@@ -229,12 +230,15 @@ begin
       StrPCopy(P, command + #10);
     end;
 
-    if not WriteFile(fInputwrite, P^, strlen(P), nBytesWrote, nil) then
+    result := WriteFile(fInputwrite, P^, strlen(P), nBytesWrote, nil);
+    FreeMem(P);
+
+    if not result then
       MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
 
     if ViewInUI then
+
       if (not CommandChanged) or (MainForm.edGdbCommand.Text = '') then begin
-        // Convert command to C string
         if Length(params) > 0 then
           MainForm.edGdbCommand.Text := Command + ' ' + params
         else
@@ -243,8 +247,9 @@ begin
         CommandChanged := false;
       end;
 
-    FreeMem(P);
-  end;
+      if devDebugger.ShowCommandLog then
+        MainForm.DebugOutput.Lines.Add('== '+Command + ' ' + params+' ==');
+    end;
 end;
 
 function TDebugger.GetBreakPointFile: AnsiString;

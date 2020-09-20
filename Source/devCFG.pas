@@ -223,6 +223,21 @@ type
     property ShowInheritedMembers: boolean read fShowInheritedMembers write fShowInheritedMembers;
   end;
 
+  //Options for Debugger
+  TdevDebugger = class(TPersistent)
+  private
+    fShowCommandLog: boolean;
+    fShowAnnotations: boolean;
+  public
+    constructor Create;
+    procedure SettoDefaults;
+    procedure SaveSettings;
+    procedure LoadSettings;
+  published
+    property ShowCommandLog: boolean read fShowCommandLog write fShowCommandLog;
+    property ShowAnnotations: boolean read fShowAnnotations write fShowAnnotations;
+  end;
+
   // Options for refactor
   TdevRefactorer = class(TPersistent)
   private
@@ -736,6 +751,7 @@ var
   devExternalPrograms: TdevExternalPrograms = nil;
   devFormatter: TdevFormatter = nil;
   devRefactorer: TdevRefactorer = nil;
+  devDebugger: TdevDebugger = nil;
 
 implementation
 
@@ -807,6 +823,9 @@ begin
   if not Assigned(devRefactorer) then
     devRefactorer := TdevRefactorer.Create;
 
+  if not Assigned(devDebugger) then
+    devDebugger := TdevDebugger.Create;
+
 end;
 
 procedure SaveOptions;
@@ -820,6 +839,7 @@ begin
   devExternalPrograms.SaveSettings;
   devFormatter.SaveSettings;
   devRefactorer.SaveSettings;
+  devDebugger.SaveSettings;
 end;
 
 procedure DestroyOptions;
@@ -833,6 +853,7 @@ begin
   FreeAndNil(devExternalPrograms);
   FreeAndNil(devFormatter);
   FreeAndNil(devRefactorer);
+  FreeAndNil(devDebugger);
 end;
 
 procedure RemoveOptionsDir(const Directory: AnsiString);
@@ -2571,6 +2592,30 @@ procedure TdevClassBrowsing.SettoDefaults;
 begin
   fShowFilter := 2; // sfCurrent
   fShowInheritedMembers := False;
+end;
+
+{ TDevDebugger }
+constructor TdevDebugger.Create;
+begin
+  inherited Create;
+  SettoDefaults;
+  LoadSettings;
+end;
+
+procedure TdevDebugger.LoadSettings;
+begin
+  devData.ReadObject('Debugger', Self);
+end;
+
+procedure TdevDebugger.SaveSettings;
+begin
+  devData.WriteObject('Debugger', Self);
+end;
+
+procedure TdevDebugger.SettoDefaults;
+begin
+  fShowCommandLog := True;
+  fShowAnnotations := False;
 end;
 
 { TdevRefactorer }

@@ -182,9 +182,19 @@ begin
   if doevalready and Assigned(MainForm.Debugger.OnEvalReady) then
     MainForm.Debugger.OnEvalReady(fEvalValue);
 
-  // Delete unimportant stuff to reduce clutter
-  fOutput := StringReplace(fOutput, #26, '->', [rfReplaceAll]);
-  MainForm.DebugOutput.Lines.Add(fOutput);
+  if ContainsStr(fOutput, #26#26) then begin
+    if devDebugger.ShowAnnotations then begin
+      // Delete unimportant stuff to reduce clutter
+      fOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
+      MainForm.DebugOutput.Lines.Add('-------');
+      MainForm.DebugOutput.Lines.Add(fOutput);
+      MainForm.DebugOutput.Lines.Add('-------');
+    end;
+  end else begin
+    MainForm.DebugOutput.Lines.Add('-------');
+    MainForm.DebugOutput.Lines.Add(fOutput);
+    MainForm.DebugOutput.Lines.Add('-------');
+  end;
 
   // Some part of the CPU form has been updated
   if Assigned(CPUForm) and not doreceivedsignal then begin
