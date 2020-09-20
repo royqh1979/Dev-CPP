@@ -160,6 +160,10 @@ var
   SignalDialog: TForm;
   SignalCheck: TCheckBox;
   spawnedcpuform: boolean;
+  strList : TStringList;
+  i: integer;
+  strOutput: string;
+  postStart: boolean;
 begin
   spawnedcpuform := false;
 
@@ -182,18 +186,31 @@ begin
   if doevalready and Assigned(MainForm.Debugger.OnEvalReady) then
     MainForm.Debugger.OnEvalReady(fEvalValue);
 
-  if ContainsStr(fOutput, #26#26) then begin
-    if devDebugger.ShowAnnotations then begin
-      // Delete unimportant stuff to reduce clutter
-      fOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
-      MainForm.DebugOutput.Lines.Add('-------');
-      MainForm.DebugOutput.Lines.Add(fOutput);
-      MainForm.DebugOutput.Lines.Add('-------');
-    end;
+  if devDebugger.ShowAnnotations then begin
+    strOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
+    MainForm.DebugOutput.Lines.Add(strOutput);
   end else begin
-    MainForm.DebugOutput.Lines.Add('-------');
-    MainForm.DebugOutput.Lines.Add(fOutput);
-    MainForm.DebugOutput.Lines.Add('-------');
+    strList := TStringList.Create;
+    postStart := False;
+    try
+      strList.Text := fOutput;
+      for i:=0 to strList.Count-1 do
+      begin
+        strOutput:=strList[i];
+        if ContainsStr(strOutput, #26#26'pre-prompt') then begin
+          postStart := False;
+        end;
+        if  postStart then begin
+          strOutput := StringReplace(strOutput, #26, '>', [rfReplaceAll]);
+          MainForm.DebugOutput.Lines.Add(strOutput);
+        end;
+        if ContainsStr(strOutput, #26#26'post-prompt') then begin
+          postStart := True;
+        end;
+      end;
+    finally
+      strList.Free;
+    end;
   end;
 
   // Some part of the CPU form has been updated

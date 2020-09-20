@@ -937,6 +937,12 @@ begin
     Exit;
   end;
 
+  // Stop Debugger executing
+  if fDebugger.Executing then
+    fDebugger.Stop
+  else if devExecutor.Running then
+    devExecutor.Reset;
+
   // Try to close all editors. If some are left open, stop quitting
   actCloseAllExecute(Self);
   if fEditorList.PageCount > 0 then begin
