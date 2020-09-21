@@ -1,3 +1,9 @@
+Version 5.12.5
+ - fix: Start Debug button is still enable while debuging; 
+ - add: two new options for debug in environment option dialog; 
+ - change: notify user before start the Debugger if execution file is old than the source file
+ - change: better gdb output format
+
 Version 5.12.4
  - fix: project won't rebuild when only header file is changed. Use gcc -MM to generate Makefile targets (and get header dependencies)
  - fix: crash at close when debugging
