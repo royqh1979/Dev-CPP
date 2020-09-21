@@ -4703,7 +4703,7 @@ begin
         EvaluateInput.SelLength := 0;
         Key := #0;
 
-        fDebugger.SendCommand(edGDBCommand.Text, '');
+        fDebugger.SendCommand(edGDBCommand.Text, '',true);
 
         if edGDBCommand.Items.IndexOf(edGDBCommand.Text) = -1 then
           edGDBCommand.AddItem(edGDBCommand.Text, nil);

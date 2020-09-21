@@ -280,6 +280,10 @@ const
   ID_DEB_SENDGDBCOMMAND                 = 17004;
   ID_DEB_SEND                           = 17005;
   ID_DEB_EVALUATE                       = 17006;
+  
+  ID_DEB_SHOWCOMMAND					= 17007;
+  ID_DEB_FULLANNOATION					= 17008;
+  
 
   // specials toolbar
   ID_TB_NEW                             = 18001;
@@ -1074,6 +1078,7 @@ const
   ID_ENV_CACHEFAIL                      = 66023;
   ID_ENV_PRINTERFAIL                    = 66024;
   ID_ENV_MULTILINETABERROR              = 66025;
+  
 
   // Execute menu
   ID_ITEM_EXECPARAMS                    = 67001;

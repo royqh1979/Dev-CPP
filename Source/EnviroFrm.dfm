@@ -1,6 +1,6 @@
 object EnviroForm: TEnviroForm
-  Left = 835
-  Top = 465
+  Left = 619
+  Top = 245
   BorderStyle = bsDialog
   Caption = 'Environment Options'
   ClientHeight = 462
@@ -194,9 +194,9 @@ object EnviroForm: TEnviroForm
       end
       object gbDebugger: TGroupBox
         Left = 15
-        Top = 240
+        Top = 200
         Width = 215
-        Height = 53
+        Height = 93
         Caption = 'Debug Variable Browser'
         TabOrder = 7
         object cbWatchHint: TCheckBox
@@ -206,6 +206,22 @@ object EnviroForm: TEnviroForm
           Height = 17
           Caption = 'Watch variable under mouse'
           TabOrder = 0
+        end
+        object cbShowDbgCmd: TCheckBox
+          Left = 14
+          Top = 46
+          Width = 195
+          Height = 17
+          Caption = 'Display Debug Commands'
+          TabOrder = 1
+        end
+        object cbShowDbgFullAnnotation: TCheckBox
+          Left = 14
+          Top = 70
+          Width = 195
+          Height = 17
+          Caption = 'Show Full GDB Annotations'
+          TabOrder = 2
         end
       end
       object gbProgress: TGroupBox
@@ -628,7 +644,7 @@ object EnviroForm: TEnviroForm
       object lblExternal: TLabel
         Left = 8
         Top = 8
-        Width = 165
+        Width = 166
         Height = 15
         Caption = 'External programs associations:'
       end
@@ -679,7 +695,7 @@ object EnviroForm: TEnviroForm
       object lblAssocFileTypes: TLabel
         Left = 8
         Top = 8
-        Width = 55
+        Width = 53
         Height = 15
         Caption = 'File Types:'
       end

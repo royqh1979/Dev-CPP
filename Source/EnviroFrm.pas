@@ -86,6 +86,8 @@ type
     edOptionsDir: TEdit;
     lblOptionsDir: TLabel;
     btnResetDev: TButton;
+    cbShowDbgCmd: TCheckBox;
+    cbShowDbgFullAnnotation: TCheckBox;
     procedure BrowseClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -183,6 +185,9 @@ begin
     InterfaceFontSize := StrToIntDef(cbUIfontsize.Text, 9);
   end;
 
+  devDebugger.ShowCommandLog := cbShowDbgCmd.Checked;
+  devDebugger.ShowAnnotations := cbShowDbgFullAnnotation.Checked;
+  
   MainForm.Font.Name := devData.InterfaceFont;
   MainForm.Font.Size := devData.InterfaceFontSize;
 
@@ -245,6 +250,8 @@ begin
 
   cbWatchHint.Caption := Lang[ID_ENV_WATCHHINT];
   gbDebugger.Caption := Lang[ID_ENV_DEBUGGER];
+  cbShowDbgCmd.Caption := Lang[ID_DEB_SHOWCOMMAND];
+  cbShowDbgFullAnnotation.Caption := Lang[ID_DEB_FULLANNOATION];
 
   rgbAutoOpen.Caption := Lang[ID_ENV_AUTOOPEN];
   rgbAutoOpen.Items[0] := Lang[ID_ENV_AUTOALL];
@@ -295,6 +302,8 @@ var
 begin
   LoadText;
 
+  cbShowDbgCmd.Checked := devDebugger.ShowCommandLog;
+  cbShowDbgFullAnnotation.Checked := devDebugger.ShowAnnotations;
   with devData do begin
     // General, left column
     cbDefCpp.Checked := defCpp;

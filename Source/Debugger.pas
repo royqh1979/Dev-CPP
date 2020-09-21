@@ -236,8 +236,7 @@ begin
     if not result then
       MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
 
-    if ViewInUI then
-
+    if ViewInUI then begin
       if (not CommandChanged) or (MainForm.edGdbCommand.Text = '') then begin
         if Length(params) > 0 then
           MainForm.edGdbCommand.Text := Command + ' ' + params
@@ -246,10 +245,12 @@ begin
 
         CommandChanged := false;
       end;
-
-      if devDebugger.ShowCommandLog then
-        MainForm.DebugOutput.Lines.Add('== '+Command + ' ' + params+' ==');
     end;
+    if devDebugger.ShowCommandLog then begin
+      MainForm.DebugOutput.Lines.Add('(gdb)'+Command + ' ' + params);
+      MainForm.DebugOutput.Lines.Add('');
+    end;
+  end;
 end;
 
 function TDebugger.GetBreakPointFile: AnsiString;

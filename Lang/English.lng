@@ -233,6 +233,8 @@ Ver=1
 17004=Send command to GDB:
 17005=Send
 17006=Evaluate:
+17007=Display Debug Commands
+17008=Show All gdb Annotations
 
 
 18001=New

@@ -1,4 +1,4 @@
-{
+ {
     This file is part of Dev-C++
     Copyright (c) 2004 Bloodshed Software
 
@@ -161,9 +161,10 @@ var
   SignalCheck: TCheckBox;
   spawnedcpuform: boolean;
   strList : TStringList;
+  outStrList : TStringList;
   i: integer;
   strOutput: string;
-  postStart: boolean;
+  notPrompt: boolean;
 begin
   spawnedcpuform := false;
 
@@ -191,25 +192,43 @@ begin
     MainForm.DebugOutput.Lines.Add(strOutput);
   end else begin
     strList := TStringList.Create;
-    postStart := False;
+    outStrList := TStringList.Create;
     try
       strList.Text := fOutput;
+      notPrompt := True;
       for i:=0 to strList.Count-1 do
       begin
         strOutput:=strList[i];
-        if ContainsStr(strOutput, #26#26'pre-prompt') then begin
-          postStart := False;
+        if StartsStr(#26#26'pre-prompt',strOutput) then begin
+          notPrompt := False;
         end;
-        if  postStart then begin
-          strOutput := StringReplace(strOutput, #26, '>', [rfReplaceAll]);
-          MainForm.DebugOutput.Lines.Add(strOutput);
+        if  notPrompt then begin
+          if StartsStr(#26#26,strOutput) then begin
+            if SameStr(#26#26'error',strOutput) then begin
+              outStrList.Add(#26#26);
+              outStrList.Add('Error: ');
+            end;
+            outStrList.Add(#26#26);
+          end;
+          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then
+            outStrList.Add(strOutput);
         end;
-        if ContainsStr(strOutput, #26#26'post-prompt') then begin
-          postStart := True;
+        if StartsStr(#26#26'prompt', strOutput) then begin
+          notPrompt := True;
         end;
-      end;
+      end;  
+
+      // remove consecutive ^Z^Z annotations
+      while ContainsStr(outStrList.Text,#13#10#26#26#13#10#26#26) do
+        outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10#26#26,#13#10#26#26,[]);
+      // remove newline formed by ^Z^Z annotations
+      outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10,'',[rfReplaceAll]);
+      outStrList.Text := StringReplace(outStrList.Text,#26#26,'',[rfReplaceAll]);
+
+      MainForm.DebugOutput.Lines.Add(outStrList.Text);
     finally
       strList.Free;
+      outStrList.Free;
     end;
   end;
 
