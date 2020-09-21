@@ -671,7 +671,7 @@ type
     procedure lvBacktraceMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure actRunUpdate(Sender: TObject);
     procedure actCompileRunUpdate(Sender: TObject);
-    procedure actCompileUpdate(Sender: TObject);
+    procedure actDebugExecuteUpdate(Sender: TObject);
     procedure FileMonitorNotifyChange(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: string);
     procedure actFilePropertiesExecute(Sender: TObject);
     procedure actViewToDoListExecute(Sender: TObject);
@@ -3008,7 +3008,11 @@ var
   i: integer;
   filepath: AnsiString;
   DebugEnabled, StripEnabled: boolean;
+  fad1,fad2: TWin32FileAttributeData;
+  ft1,ft2: TSystemTime;
 begin
+  if fCompiler.Compiling then
+    Exit;
   case GetCompileTarget of
     ctProject: begin
         // Check if we enabled proper options
@@ -3032,9 +3036,10 @@ begin
         if not FileExists(fProject.Executable) then begin
           if MessageDlg(Lang[ID_ERR_PROJECTNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
             actCompileExecute(nil);
+            Exit;
           end;
-          exit;
         end;
+
 
         // Did we choose a host application for our DLL?
         if fProject.Options.typ = dptDyn then begin
@@ -3087,6 +3092,11 @@ begin
 
         e := fEditorList.GetEditor;
         if Assigned(e) then begin
+          // Did we save?
+          if e.Text.Modified then begin // if file is modified
+            if not e.Save then // save it first
+              Exit;
+          end;
 
           // Did we compile?
           if not FileExists(ChangeFileExt(e.FileName, EXE_EXT)) then begin
@@ -3095,12 +3105,21 @@ begin
               actCompileExecute(nil);
             end;
             Exit;
+          end else begin
+            if not GetFileAttributesEx(PChar(FileName), GetFileExInfoStandard, @fad1) then
+              RaiseLastOSError;
+            if not GetFileAttributesEx(PChar(ChangeFileExt(e.FileName, EXE_EXT)), GetFileExInfoStandard, @fad2) then
+              RaiseLastOSError;
+            if not FileTimeToSystemTime(fad1.ftLastWriteTime, ft1) then
+              RaiseLastOSError;
+            if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
+              RaiseLastOSError;
+            if CompareDate(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2))>=0 then
+              if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+                MainForm.actCompileExecute(nil);
+                Exit;
+              end;
           end;
-
-          // Did we save?
-          if e.Text.Modified then // if file is modified
-            if not e.Save then // save it first
-              Exit;
 
           PrepareDebugger;
 
@@ -3194,10 +3213,10 @@ begin
   TCustomAction(Sender).Enabled := Assigned(fProject) or (fEditorList.PageCount > 0);
 end;
 
-procedure TMainForm.actCompileUpdate(Sender: TObject);
+procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
 begin
   TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-    Assigned(devCompilerSets.CompilationSet);
+    Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
 end;
 
 procedure TMainForm.actUpdateProject(Sender: TObject);
@@ -4703,7 +4722,7 @@ begin
         EvaluateInput.SelLength := 0;
         Key := #0;
 
-        fDebugger.SendCommand(edGDBCommand.Text, '',true);
+        fDebugger.SendCommand(edGDBCommand.Text, '');
 
         if edGDBCommand.Items.IndexOf(edGDBCommand.Text) = -1 then
           edGDBCommand.AddItem(edGDBCommand.Text, nil);

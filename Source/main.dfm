@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 371
-  Top = 175
+  Left = 265
+  Top = 39
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++'
-  ClientHeight = 676
-  ClientWidth = 999
+  ClientHeight = 562
+  ClientWidth = 866
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -28,14 +28,14 @@ object MainForm: TMainForm
   object SplitterLeft: TSplitter
     Left = 193
     Top = 56
-    Height = 414
+    Height = 300
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 470
-    Width = 999
+    Top = 356
+    Width = 866
     Height = 3
     Cursor = crVSplit
     Align = alBottom
@@ -44,8 +44,8 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 473
-    Width = 999
+    Top = 359
+    Width = 866
     Height = 183
     ActivePage = DebugSheet
     Align = alBottom
@@ -60,7 +60,7 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 991
+        Width = 858
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -104,7 +104,7 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 991
+        Width = 858
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -185,7 +185,7 @@ object MainForm: TMainForm
       object CompResGroupBox: TPanel
         Left = 156
         Top = 0
-        Width = 835
+        Width = 702
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -193,7 +193,7 @@ object MainForm: TMainForm
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 835
+          Width = 702
           Height = 154
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -216,13 +216,13 @@ object MainForm: TMainForm
       object DebugSendPanel: TPanel
         Left = 589
         Top = 0
-        Width = 402
+        Width = 269
         Height = 155
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
-          402
+          269
           155)
         object lblSendCommandGdb: TLabel
           Left = 4
@@ -234,7 +234,7 @@ object MainForm: TMainForm
         object edGdbCommand: TComboBox
           Left = 136
           Top = 3
-          Width = 262
+          Width = 129
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           ItemHeight = 13
@@ -244,8 +244,8 @@ object MainForm: TMainForm
         object DebugOutput: TMemo
           Left = 4
           Top = 30
-          Width = 395
-          Height = 117
+          Width = 262
+          Height = 114
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -410,7 +410,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 100
           Width = 578
-          Height = 46
+          Height = 43
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
@@ -448,7 +448,7 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 991
+        Width = 858
         Height = 155
         Align = alClient
         BevelOuter = bvNone
@@ -497,7 +497,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 999
+    Width = 866
     Height = 56
     Align = alTop
     AutoDock = False
@@ -853,7 +853,7 @@ object MainForm: TMainForm
     object tbCompilers: TToolBar
       Left = 686
       Top = 2
-      Width = 250
+      Width = 178
       Height = 24
       Caption = 'tbCompilers'
       EdgeBorders = []
@@ -886,8 +886,8 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 656
-    Width = 999
+    Top = 542
+    Width = 866
     Height = 20
     Panels = <
       item
@@ -913,8 +913,8 @@ object MainForm: TMainForm
     Left = 0
     Top = 56
     Width = 193
-    Height = 414
-    ActivePage = LeftProjectSheet
+    Height = 300
+    ActivePage = LeftDebugSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     TabOrder = 1
@@ -926,7 +926,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 386
+        Height = 272
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -961,7 +961,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 386
+        Height = 272
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -997,7 +997,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 386
+        Height = 272
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -1018,17 +1018,17 @@ object MainForm: TMainForm
   object PageControlPanel: TPanel
     Left = 196
     Top = 56
-    Width = 803
-    Height = 414
+    Width = 670
+    Height = 300
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 803
+      Left = 670
       Top = 0
       Width = 0
-      Height = 414
+      Height = 300
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1036,8 +1036,8 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 803
-      Height = 414
+      Width = 670
+      Height = 300
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1051,10 +1051,10 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 803
+      Left = 670
       Top = 0
       Width = 0
-      Height = 414
+      Height = 300
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -2136,7 +2136,7 @@ object MainForm: TMainForm
       ImageIndex = 28
       ShortCut = 120
       OnExecute = actCompileExecute
-      OnUpdate = actCompileUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actRun: TAction
       Tag = 2
@@ -2163,7 +2163,7 @@ object MainForm: TMainForm
       ImageIndex = 30
       ShortCut = 123
       OnExecute = actRebuildExecute
-      OnUpdate = actCompileUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actClean: TAction
       Tag = 5
@@ -2171,7 +2171,7 @@ object MainForm: TMainForm
       Caption = 'C&lean'
       ImageIndex = 5
       OnExecute = actCleanExecute
-      OnUpdate = actCompileUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actDebug: TAction
       Tag = 6
@@ -2180,7 +2180,7 @@ object MainForm: TMainForm
       ImageIndex = 32
       ShortCut = 116
       OnExecute = actDebugExecute
-      OnUpdate = actCompileUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actCompOptions: TAction
       Tag = 1
@@ -2342,7 +2342,7 @@ object MainForm: TMainForm
       Caption = '&Syntax Check'
       ImageIndex = 49
       OnExecute = actSyntaxCheckExecute
-      OnUpdate = actCompileUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actConfigdevShortcuts: TAction
       Category = 'Tools'
@@ -2458,7 +2458,7 @@ object MainForm: TMainForm
       ImageIndex = 49
       ShortCut = 16504
       OnExecute = actSyntaxCheckFileExecute
-      OnUpdate = actCompileUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actProfile: TAction
       Category = 'Execute'
@@ -2816,8 +2816,8 @@ object MainForm: TMainForm
     end
   end
   object MessagePopup: TPopupMenu
-    Left = 203
-    Top = 371
+    Left = 227
+    Top = 291
     object actMsgCut1: TMenuItem
       Action = actMsgCut
     end
