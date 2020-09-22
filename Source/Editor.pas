@@ -85,6 +85,7 @@ type
     fParenthCompleteState: TSymbolCompleteState;
     fArrayCompleteState: TSymbolCompleteState;
     fBraceCompleteState: TSymbolCompleteState;
+    fUseUTF8: boolean;
     //fSingleQuoteCompleteState: TSymbolCompleteState;
     //fDoubleQuoteCompleteState: TSymbolCompleteState;
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
@@ -136,6 +137,8 @@ type
     procedure UpdateCaption(const NewCaption: AnsiString);
     procedure InsertDefaultText;
     procedure ToggleBreakPoint(Line: integer);
+    procedure LoadFile(FileName:String);
+    procedure SaveFile(FileName:String);
     function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
     procedure IndentSelection;
     procedure UnindentSelection;
@@ -151,6 +154,7 @@ type
     property FunctionTip: TCodeToolTip read fFunctionTip;
     property CompletionBox: TCodeCompletion read fCompletionBox;
     property PageControl: TPageControl read GetPageControl write SetPageControl;
+    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
   end;
 
 implementation
@@ -274,19 +278,21 @@ begin
 
   // Create an editor and set static options
   fText := TSynEdit.Create(fTabSheet);
+  fUseUTF8 := devEditor.UseUTF8ByDefault;
 
   // Load the file using Lines
   if not NewFile and FileExists(FileName) then begin
-    fText.Lines.LoadFromFile(FileName);
+    LoadFile(FileName);
     fNew := False;
 
     // Save main.cpp as main.123456789.cpp
     if devData.Backups then begin
       s := '.' + IntToStr(DateTimeToUnix(Now)) + ExtractFileExt(FileName);
-      fText.Lines.SaveToFile(ChangeFileExt(FileName, s));
+      SaveFile(ChangeFileExt(FileName, s));
     end;
-  end else
+  end else begin
     fNew := True;
+  end;
 
   // Set constant options
   fText.Parent := fTabSheet;
@@ -474,7 +480,10 @@ begin
     try
       for I := 0 to pred(aFiles.Count) do begin
         sl.LoadFromFile(aFiles[I]);
-        fText.SelText := sl.Text;
+        if devEditor.UseUTF8ByDefault then
+          fText.SelText := UTF8ToAnsi(sl.Text)
+        else
+          fText.SelText := sl.Text;
       end;
     finally
       sl.Free;
@@ -1791,7 +1800,7 @@ begin
 
       // Save contents directly
       try
-        fText.Lines.SaveToFile(fFileName);
+        SaveFile(fFileName);
         fText.Modified := false;
       except
         MessageDlg(Format(Lang[ID_ERR_SAVEFILE], [fFileName]), mtError, [mbOk], 0);
@@ -1860,7 +1869,7 @@ begin
 
   // Try to save to disk
   try
-    fText.Lines.SaveToFile(SaveFileName);
+    SaveFile(SaveFileName);
     fText.Modified := False;
     fNew := False;
   except
@@ -1894,6 +1903,37 @@ begin
   // Set new file name
   FileName := SaveFileName;
 end;
+  procedure TEditor.LoadFile(FileName:String);
+  var
+    tmpList: TStringList;
+  begin
+    tmpList := TStringList.Create;
+    try
+      tmpList.LoadFromFile(FileName);
+      if UseUTF8 then
+        Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
+      else
+        Text.Lines.Text := tmpList.Text;
+    finally
+      tmpList.Free;
+    end;
+  end;
+
+  procedure TEditor.SaveFile(FileName:String);
+  var
+    tmpList: TStringList;
+  begin
+    tmpList := TStringList.Create;
+    try
+      if UseUTF8 then
+        tmpList.Text := AnsiToUTF8(Text.Lines.Text)
+      else
+        tmpList.Text := Text.Lines.Text;
+      tmpList.SaveToFile(FileName);
+    finally
+      tmpList.Free;
+    end;
+  end;
 
 end.
 

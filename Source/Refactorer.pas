@@ -30,8 +30,8 @@ type
   public
     function IsValidIdentifier(word:String):boolean;
     constructor Create(config:TdevRefactorer);
-    function RenameSymbol(Editor: TEditor; offset: Integer;
-  word: AnsiString; Target: TTarget; Project:TProject):AnsiString;
+    function RenameSymbol(Editor: TEditor;
+      word: AnsiString; Target: TTarget; Project:TProject):AnsiString;
     function ParseErrorMessage(msg:AnsiString):AnsiString;
   end;
 
@@ -63,23 +63,44 @@ begin
 
   for i:=1 to Len do
   begin
-    if not (word[i] in ValidIdentifierChars) then
+    if not (word[i] in ValidIdentifierChars) and (ord(word[i])<128) then
       Exit;
   end;
   Result:=True;
 end;
 
-function TRefactorer.RenameSymbol(Editor: TEditor; offset: Integer;
+function CalculateWordStartInUtf8(Editor:TEditor):integer;
+var
+  pos : TBufferCoord;
+  i:integer;
+  utf8Str: String;
+  offset : integer;
+  substr : String;
+begin
+  pos := Editor.Text.WordStart;
+  offset :=0;
+  for i:=0 to pos.Line-2 do begin
+    utf8Str := AnsiToUTF8(Editor.Text.Lines[i]);
+    offset := offset + length(utf8str) + 2;
+  end;
+  substr := copy(Editor.Text.Lines[pos.Line-1],1,pos.Char-1);
+  utf8str := AnsiToUTF8(substr);
+  offset := offset + length(utf8str)+1;
+  Result := offset;
+end;
+
+function TRefactorer.RenameSymbol(Editor: TEditor;
   word: AnsiString; Target: TTarget; Project:TProject):AnsiString;
 resourcestring
   cAppendStr = '%s -I"%s"';
 var
-  DummyEditor : TSynEdit;
+  strList:TStringList;
   ErrorOutput : ansiString;
   FileName, WorkDir, RenameFileName: String;
   IncludesParams : ansiString;
   Cmd: ansiString;
   i: Integer;
+  offset: Integer;
 begin
   Result :='';
   WorkDir := IncludeTrailingPathDelimiter(ExtractFileDir(Editor.FileName));
@@ -106,11 +127,23 @@ begin
         IncludesParams := format(cAppendStr, [IncludesParams, Project.Options.Includes[i]]);
       end;
 
-  Editor.Text.Lines.SaveToFile(RenameFileName);
+  Editor.SaveFile(RenameFileName);
   try
+    if Editor.UseUTF8 then begin
+      offset := CalculateWordStartInUtf8(Editor);
+    end else begin
+      offset := Editor.Text.WordOffsetAtCursor;
+    end;
+
     Cmd := devDirs.Exec + fConfig.RefactorerDir+fConfig.RenameFile
-      +' -i --offset='+IntToStr(offset)+' --new-name='+word+' "'
-      +RenameFileName+'" -- '+IncludesParams+' -D__GNUC__';
+      +' -i --offset='+IntToStr(offset)+' --new-name="<__dev_cpp__rename__>"  "'
+      +RenameFileName+'" -- '+IncludesParams+' -Wno-everything -target i686-pc-windows-gnu';
+
+    if Editor.UseUTF8 then
+      Cmd := Cmd + ' -finput-charset=utf-8'
+    else
+      Cmd := Cmd + ' -finput-charset='+GetSystemCharsetName;
+
     ErrorOutput:= RunAndGetOutput(Cmd, WorkDir, nil, nil, False);
 
     Result := Cmd + #13#10 + ErrorOutput;
@@ -120,20 +153,22 @@ begin
     //MessageBox(Application.Handle,PAnsiChar(Cmd),     PChar( 'Look'), MB_OK);
     //MessageBox(Application.Handle,PAnsiChar(ErrorOutput),     PChar( 'Look'), MB_OK);
 
-    DummyEditor := TSynEdit.Create(nil);
+    StrList := TStringList.Create;
     try
       // Use replace selection trick to preserve undo list
-      DummyEditor.Lines.LoadFromFile(RenameFileName);
+      StrList.LoadFromFile(RenameFileName);
+      if Editor.UseUTF8 then
+        StrList.Text := UTF8ToAnsi(StrList.Text);
       // Use replace all functionality
       Editor.Text.BeginUpdate;
       try
         Editor.Text.SelectAll;
-        Editor.Text.SelText := DummyEditor.Lines.Text; // do NOT use Lines.LoadFromFile which is not undo-able
+        Editor.Text.SelText := StringReplace(StrList.Text,'<__dev_cpp__rename__>',word,[rfReplaceAll]); // do NOT use Lines.LoadFromFile which is not undo-able
       finally
         Editor.Text.EndUpdate; // repaint once
       end;
     finally
-      DummyEditor.Free;
+      StrList.Free;
     end;
   finally
     DeleteFile(RenameFileName);

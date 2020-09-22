@@ -154,6 +154,7 @@ type
     cbDeleteCompleted: TCheckBox;
     cbSingleQuotes: TCheckBox;
     cbDoubleQuotes: TCheckBox;
+    cbUseUTF8AsDefault: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -233,6 +234,7 @@ begin
   LoadText;
 
   with devEditor do begin
+
     // Make editors look similar to main ones
     CppEdit.Font.Assign(Font);
     CodeIns.Font.Assign(devEditor.Font);
@@ -243,6 +245,7 @@ begin
     CodeIns.Gutter.Font.Assign(Gutterfont);
     seDefault.Gutter.Font.Assign(Gutterfont);
 
+    cbUseUTF8AsDefault.Checked := UseUTF8ByDefault;
     // General
     cbGutterAuto.Checked := GutterAuto;
     cbGutterVis.Checked := GutterVis;
@@ -500,6 +503,7 @@ begin
   Font.Name := devData.InterfaceFont;
   Font.Size := devData.InterfaceFontSize;
 
+  cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
   btnOk.Caption := Lang[ID_BTN_OK];
   btnCancel.Caption := Lang[ID_BTN_CANCEL];
   btnHelp.Caption := Lang[ID_BTN_HELP];
@@ -651,6 +655,7 @@ var
   a, idx: integer;
 begin
   with devEditor do begin
+    UseUTF8ByDefault :=  cbUseUTF8AsDefault.Checked;
     AutoIndent := cbAutoIndent.Checked;
     AddIndent := cbAddIndent.Checked;
     InsertMode := cbInsertMode.Checked;

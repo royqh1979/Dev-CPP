@@ -7233,7 +7233,7 @@ begin
   if (CY >= 1) and (CY <= Lines.Count) then begin
     Line := Lines[CY - 1];
 
-    PrepareIdentChars(IdentChars, WhiteChars);
+    prepareIdentChars(IdentChars,WhiteChars);
 
     LineLen := Length(Line);
     if CX >= LineLen then begin
@@ -7293,7 +7293,7 @@ begin
     Line := Lines[CY - 1];
     CX := Min(CX, Length(Line) + 1);
 
-    PrepareIdentChars(IdentChars, WhiteChars);
+    prepareIdentChars(IdentChars,WhiteChars);
 
     if CX > 1 then begin // only find previous char, if not already on start of line
       // if previous char isn't a "whitespace" search for the last IdentChar
@@ -7317,7 +7317,7 @@ begin
   if (CY >= 1) and (CY <= Lines.Count) then begin
     Line := Lines[CY - 1];
 
-    PrepareIdentChars(IdentChars, WhiteChars);
+    prepareIdentChars(IdentChars,WhiteChars);
 
     CX := StrScanForCharInSet(Line, CX, WhiteChars);
     // if no "whitespace" is found just position at the end of the line
@@ -7341,7 +7341,7 @@ begin
     Line := Lines[CY - 1];
     CX := Min(CX, Length(Line) + 1);
 
-    PrepareIdentChars(IdentChars, WhiteChars);
+    prepareIdentChars(IdentChars,WhiteChars);
 
     if CX <= 1 then begin
       // find last IdentChar in the previous line

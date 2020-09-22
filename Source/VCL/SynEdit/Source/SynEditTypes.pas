@@ -45,7 +45,7 @@ interface
 
 const
   TSynSpecialChars = ['À'..'Ö', 'Ø'..'ö', 'ø'..'ÿ'];
-  TSynValidStringChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z'] + TSynSpecialChars;
+  TSynValidStringChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z',#128..#255] + TSynSpecialChars;
   TSynWordBreakChars = ['.', ',', ';', ':', '"', '''', '!', '?', '[', ']', '(',
                         ')', '{', '}', '^', '-', '=', '+', '-', '*', '/', '\',
                         '|'];

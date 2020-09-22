@@ -1,6 +1,6 @@
 object WindowListForm: TWindowListForm
-  Left = 549
-  Top = 446
+  Left = 126
+  Top = 129
   Width = 616
   Height = 438
   BorderIcons = [biSystemMenu, biMaximize]
@@ -20,7 +20,7 @@ object WindowListForm: TWindowListForm
   TextHeight = 13
   object Panel: TPanel
     Left = 0
-    Top = 365
+    Top = 364
     Width = 600
     Height = 35
     Align = alBottom

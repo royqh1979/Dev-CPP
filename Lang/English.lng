@@ -282,6 +282,7 @@ Ver=1
 22012=Move Selection Down
 22013=Move To Other View
 22014=Toggle Inline Comment
+22015=Use UTF-8 File encoding
 
 23001=Editor Options
 23002=General
@@ -339,6 +340,7 @@ Ver=1
 26028=Auto indent
 26029=Add indent to {} and :
 26030=Tabs
+26031=Use UTF-8 As the Default file encoding
 
 27001=Show hidden line characters
 27002=Show mouseover hints
@@ -914,6 +916,7 @@ Ver=1
 61022=Error launching<CR><CR>%s<CR><CR>%s
 61023=Error launching debugger: no executable directory provided
 61024=Error writing to GDB
+61025=Source file has unsaved modifications. Save it before continue?
 
 
 62001=Untitled

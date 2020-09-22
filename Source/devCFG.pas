@@ -414,6 +414,8 @@ type
     fDoubleQuoteComplete: boolean;
     fCompleteSymbols: boolean;
     fDeleteSymbolPairs: boolean;
+
+    fUseUTF8ByDefault : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -487,6 +489,7 @@ type
     property DoubleQuoteComplete: boolean read fDoubleQuoteComplete write fDoubleQuoteComplete;
     property CompleteSymbols: boolean read fCompleteSymbols write fCompleteSymbols;
     property DeleteSymbolPairs: boolean read fDeleteSymbolPairs write fDeleteSymbolPairs;
+    property UseUTF8ByDefault: boolean read fUseUTF8ByDefault write fUseUTF8ByDefault;
   end;
 
   TWindowState = class(TPersistent)
@@ -2419,6 +2422,8 @@ begin
   fSingleQuoteComplete := TRUE;
   fDoubleQuoteComplete := TRUE;
   fDeleteSymbolPairs := TRUE;
+
+  fUseUTF8ByDefault := False;
 end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);

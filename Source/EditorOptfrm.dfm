@@ -1,6 +1,6 @@
 object EditorOptForm: TEditorOptForm
-  Left = 879
-  Top = 375
+  Left = 710
+  Top = 204
   BorderStyle = bsDialog
   Caption = 'Editor Options'
   ClientHeight = 492
@@ -84,7 +84,7 @@ object EditorOptForm: TEditorOptForm
         Left = 9
         Top = 3
         Width = 456
-        Height = 190
+        Height = 214
         Caption = '  Editor Options  '
         TabOrder = 0
         object cbFunctionHint: TCheckBox
@@ -215,6 +215,14 @@ object EditorOptForm: TEditorOptForm
           Caption = 'Show Special Line Chars'
           TabOrder = 6
         end
+        object cbUseUTF8AsDefault: TCheckBox
+          Left = 8
+          Top = 190
+          Width = 209
+          Height = 17
+          Caption = 'Use UTF-8 As the default charset'
+          TabOrder = 16
+        end
       end
       object grpCaret: TGroupBox
         Left = 9
@@ -318,7 +326,7 @@ object EditorOptForm: TEditorOptForm
         object lblTabSize: TLabel
           Left = 176
           Top = 32
-          Width = 46
+          Width = 44
           Height = 15
           Caption = 'Tab Size:'
         end
@@ -1116,7 +1124,7 @@ object EditorOptForm: TEditorOptForm
         object lblTimeStampExample: TLabel
           Left = 24
           Top = 296
-          Width = 47
+          Width = 48
           Height = 15
           Caption = 'Example:'
         end

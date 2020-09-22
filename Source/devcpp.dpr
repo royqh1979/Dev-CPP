@@ -88,7 +88,8 @@ uses
   ImageTheme in 'ImageTheme.pas',
   Instances in 'Instances.pas',
   RenameFrm in 'RenameFrm.pas' {RenameForm},
-  Refactorer in 'Refactorer.pas';
+  Refactorer in 'Refactorer.pas',
+  CodePage in 'CodePage.pas';
 
 {$R *.res}
 

@@ -1645,7 +1645,7 @@ begin
             // if file isn't found blindly inserts text of unit
             s2 := ValidateFile(s, devDirs.Templates);
             if s2 <> '' then begin
-              Editor.Text.Lines.LoadFromFile(s2);
+              Editor.LoadFile(s2);
             end else if s <> '' then begin
               s := StringReplace(s, '#13#10', #13#10, [rfReplaceAll]);
               Editor.InsertString(s, FALSE);
@@ -1671,7 +1671,7 @@ begin
           s := aTemplate.OldData.CText;
         s := ValidateFile(s, ExpandFileto(devDirs.Templates, devDirs.Exec));
         if s <> '' then begin
-          Editor.Text.Lines.LoadFromFile(s);
+          Editor.LoadFile(s);
           Editor.Text.Modified := TRUE;
         end;
         Editor.Activate;

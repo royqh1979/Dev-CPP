@@ -154,10 +154,16 @@ function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: T
 function FastIndexOf(List: TStrings; const S: AnsiString): integer; overload;
 function FastIndexOf(List: TStringlist; const S: AnsiString): integer; overload;
 
+// Convert local encoding string to/from utf8 string 
+function UTF8ToAnsi(s:String):String;
+function AnsiToUTF8(s:String):String;
+
+function GetSystemCharsetName():String;
+
 implementation
 
 uses
-  devcfg, version, Graphics, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX;
+  devcfg, version, Graphics, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage;
 
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
 var
@@ -1229,6 +1235,82 @@ begin
     end;
     Result := StringReplace(Result, devDirs.Exec, '%Dev-Cpp%\', [rfReplaceAll]);
   end;
+end;
+
+function AnsiToUnicode(s:AnsiString):WideString;
+var
+  lpWC : PWideChar;
+  len:integer;
+begin
+  len := (Length(s)+1)*4;
+  lpWC := AllocMem(len);
+  MultibyteToWideChar(CP_ACP,MB_PRECOMPOSED,PChar(s),Length(s),
+    lpWC,len);
+  Result :=lpWC;
+  FreeMem(lpWC);
+end;
+
+function UTF8ToUnicode(s:AnsiString):WideString;
+var
+  lpWC : PWideChar;
+  len:integer;
+begin
+  len := (Length(s)+1)*4;
+  lpWC := AllocMem(len);
+  MultibyteToWideChar(CP_UTF8,MB_PRECOMPOSED,PChar(s),Length(s),
+    lpWC,len);
+  Result :=lpWC;
+  FreeMem(lpWC);
+end;
+
+function UnicodeToUTF8(s:WideString):AnsiString;
+var
+  lpC : PChar;
+  len:integer;
+begin
+  len := (Length(s)+1)*4;
+  lpC := AllocMem(len);
+  WideCharToMultibyte(CP_UTF8,WC_COMPOSITECHECK,PWideChar(s),Length(s),
+    lpC,len,nil,nil);
+  Result :=lpC;
+  FreeMem(lpC);
+end;
+
+function UnicodeToAnsi(s:WideString):AnsiString;
+var
+  lpC : PChar;
+  len:integer;
+begin
+  len := (Length(s)+1)*4;
+  lpC := AllocMem(len);
+  WideCharToMultibyte(CP_ACP,WC_COMPOSITECHECK,PWideChar(s),Length(s),
+    lpC,len,nil,nil);
+  Result :=lpC;
+  FreeMem(lpC);
+end;
+
+function AnsiToUTF8(s:String):String;
+var
+  ws: WideString;
+begin
+  ws := AnsiToUnicode(s);
+  Result:= UnicodeToUTF8(ws);
+end;
+
+function UTF8ToAnsi(s:String):String;
+var
+  ws: WideString;
+begin
+  ws := UTF8ToUnicode(s);
+  Result:= UnicodeToAnsi(ws);
+end;
+
+function GetSystemCharsetName():String;
+var
+  acp: cardinal;
+begin
+  acp := GetACP();
+  Result := GetCodePage(acp).Name;
 end;
 
 end.

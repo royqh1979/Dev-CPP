@@ -224,7 +224,6 @@ begin
       // remove newline formed by ^Z^Z annotations
       outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10,'',[rfReplaceAll]);
       outStrList.Text := StringReplace(outStrList.Text,#26#26,'',[rfReplaceAll]);
-
       MainForm.DebugOutput.Lines.Add(outStrList.Text);
     finally
       strList.Free;

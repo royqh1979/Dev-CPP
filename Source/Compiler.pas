@@ -54,6 +54,7 @@ type
     fStartTime: cardinal;
     fShowOutputInfo: boolean;
     fCompilerSet: TdevCompilerSet;
+    fUseUTF8: boolean;
     procedure DoLogEntry(const msg: AnsiString);
     procedure DoOutput(const s1, s2, s3, s4: AnsiString);
     procedure DoResOutput(const s1, s2, s3, s4: AnsiString);
@@ -70,7 +71,7 @@ type
     procedure Run;
     procedure Clean;
     procedure RebuildAll;
-    property Compiling: Boolean read GetCompiling;
+    property Compiling:boolean read GetCompiling;
     property Project: TProject read fProject write fProject;
     property OnLogEntry: TLogEntryEvent read fOnLogEntry write fOnLogEntry;
     property OnOutput: TOutputEvent read fOnOutput write fOnOutput;
@@ -85,6 +86,7 @@ type
     property Target: TTarget read fTarget write fTarget;
     property WarningCount: integer read fWarnCount;
     property ErrorCount: integer read fErrCount;
+    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     procedure AbortThread;
   protected
     fCompileParams: AnsiString;
@@ -641,6 +643,13 @@ begin
         GetCompileParams;
         GetLibrariesParams;
         GetIncludesParams;
+
+        if UseUTF8 then begin
+          fCompileParams := fCompileParams + ' -finput-charset=utf-8 --exec-charset='
+            +GetSystemCharsetName();
+          fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 --exec-charset='
+            +GetSystemCharsetName();
+        end;
 
         // Determine command line to execute
         case GetFileTyp(fSourceFile) of

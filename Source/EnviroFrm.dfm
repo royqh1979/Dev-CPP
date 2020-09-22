@@ -1,6 +1,6 @@
 object EnviroForm: TEnviroForm
-  Left = 619
-  Top = 245
+  Left = 535
+  Top = 111
   BorderStyle = bsDialog
   Caption = 'Environment Options'
   ClientHeight = 462
@@ -196,31 +196,31 @@ object EnviroForm: TEnviroForm
         Left = 15
         Top = 200
         Width = 215
-        Height = 93
+        Height = 97
         Caption = 'Debug Variable Browser'
         TabOrder = 7
         object cbWatchHint: TCheckBox
-          Left = 14
-          Top = 22
+          Left = 16
+          Top = 24
           Width = 195
           Height = 17
           Caption = 'Watch variable under mouse'
           TabOrder = 0
         end
         object cbShowDbgCmd: TCheckBox
-          Left = 14
-          Top = 46
+          Left = 16
+          Top = 50
           Width = 195
           Height = 17
           Caption = 'Display Debug Commands'
           TabOrder = 1
         end
         object cbShowDbgFullAnnotation: TCheckBox
-          Left = 14
-          Top = 70
+          Left = 16
+          Top = 72
           Width = 195
           Height = 17
-          Caption = 'Show Full GDB Annotations'
+          Caption = 'Show All gdb Annotations'
           TabOrder = 2
         end
       end

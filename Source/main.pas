@@ -536,6 +536,9 @@ type
     actRename: TAction;
     Refactor1: TMenuItem;
     Rename: TMenuItem;
+    UseUTF8Encoding: TMenuItem;
+    N47: TMenuItem;
+    actUseUTF8: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -795,6 +798,8 @@ type
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
     procedure actDonateExecute(Sender: TObject);
     procedure actRenameExecute(Sender: TObject);
+    procedure actUseUTF8Execute(Sender: TObject);
+    procedure actUseUTF8Update(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1146,6 +1151,9 @@ begin
   actCopy.Caption := Lang[ID_ITEM_COPY];
   actPaste.Caption := Lang[ID_ITEM_PASTE];
   actSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
+
+
+  actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
 
   // Insert submenu
   actInsert.Caption := Lang[ID_TB_INSERT];
@@ -2839,6 +2847,7 @@ begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not e.Save then
           Exit;
+        fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
       end;
     ctProject: begin
@@ -3106,7 +3115,7 @@ begin
             end;
             Exit;
           end else begin
-            if not GetFileAttributesEx(PChar(FileName), GetFileExInfoStandard, @fad1) then
+            if not GetFileAttributesEx(PChar(e.FileName), GetFileExInfoStandard, @fad1) then
               RaiseLastOSError;
             if not GetFileAttributesEx(PChar(ChangeFileExt(e.FileName, EXE_EXT)), GetFileExInfoStandard, @fad2) then
               RaiseLastOSError;
@@ -4022,13 +4031,13 @@ begin
           end;
         1: begin // append UNIX timestamp (backup copy, don't update class browser)
             NewFileName := ChangeFileExt(e.FileName, '.' + IntToStr(DateTimeToUnix(Now)) + ExtractFileExt(e.FileName));
-            e.Text.Lines.SaveToFile(NewFileName);
+            e.SaveFile(NewFileName);
             SetStatusbarMessage(Format(Lang[ID_AUTOSAVEDFILEAS], [e.FileName, NewFileName]));
           end;
         2: begin // append formatted timestamp (backup copy, don't update class browser)
             NewFileName := ChangeFileExt(e.FileName, '.' + FormatDateTime('yyyy mm dd hh mm ss', Now) +
               ExtractFileExt(e.FileName));
-            e.Text.Lines.SaveToFile(NewFileName);
+            e.SaveFile(NewFileName);
             SetStatusbarMessage(Format(Lang[ID_AUTOSAVEDFILEAS], [e.FileName, NewFileName]));
           end;
       end;
@@ -4539,7 +4548,7 @@ begin
             e := fEditorList.GetEditorFromFileName(Filename);
             if Assigned(e) then begin
               p := e.Text.CaretXY;
-              e.Text.Lines.LoadFromFile(Filename);
+              e.LoadFile(Filename);
               if (p.Line <= e.Text.Lines.Count) then
                 e.Text.CaretXY := p;
             end;
@@ -6679,7 +6688,6 @@ procedure TMainForm.actRenameExecute(Sender: TObject);
 var
   Editor : TEditor;
   word,newword: ansiString;
-  offset: Integer;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
   Output,ErrorMsg: ansiString;
@@ -6689,9 +6697,8 @@ begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
     word := Editor.Text.WordAtCursor;
-    offset := Editor.Text.WordOffsetAtCursor;
     // MessageBox(Application.Handle,PAnsiChar(Concat(word,IntToStr(offset))),     PChar( 'Look'), MB_OK);
-    if offset = -1 then begin
+    if Word = '' then begin
       Exit;
     end;
 
@@ -6715,7 +6722,7 @@ begin
           MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
         end
         else begin
-          Output:=RenameSymbol(Editor,offset,newword,GetCompileTarget,fProject);
+          Output:=RenameSymbol(Editor,newword,GetCompileTarget,fProject);
           LogEntryProc(Output);
           LogEntryProc('------');
           ErrorMsg := ParseErrorMessage(Output);
@@ -6736,6 +6743,39 @@ begin
     finally
       Free;
     end;
+  end;
+end;
+
+procedure TMainForm.actUseUTF8Execute(Sender: TObject);
+var
+  e:TEditor;
+  choice: integer;
+begin
+  e:=fEditorList.GetEditor;
+  if assigned(e) then begin
+    if e.Text.Modified then begin
+      choice := MessageDlg(Lang[ID_ERR_FILEMODIFIED], mtConfirmation, [mbYes, mbNo, mbAbort], 0) ;
+      if choice = mrYes then
+        e.SaveFile(e.FileName)
+      else if choice = mrAbort then
+          Exit;
+    end;
+    e.UseUTF8 := not e.UseUTF8;
+    actUseUTF8.Checked := e.UseUTF8;
+    e.LoadFile(e.FileName);
+
+  end;
+end;
+
+procedure TMainForm.actUseUTF8Update(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=fEditorList.GetEditor;
+  if not assigned(e) then
+    actUseUTF8.Enabled := False
+  else begin
+    actUseUTF8.Checked := e.UseUTF8;
   end;
 end;
 

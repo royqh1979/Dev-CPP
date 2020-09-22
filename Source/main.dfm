@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 265
-  Top = 39
+  Left = 258
+  Top = 104
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1237,6 +1237,12 @@ object MainForm: TMainForm
         Action = actSelectAll
       end
       object N23: TMenuItem
+        Caption = '-'
+      end
+      object UseUTF8Encoding: TMenuItem
+        Caption = 'Use UTF-8 Encoding'
+      end
+      object N47: TMenuItem
         Caption = '-'
       end
       object InsertItem: TMenuItem
@@ -2813,6 +2819,12 @@ object MainForm: TMainForm
       ShortCut = 24693
       OnExecute = actRenameExecute
       OnUpdate = actUpdateEmptyEditor
+    end
+    object actUseUTF8: TAction
+      Category = 'Edit'
+      Caption = 'Use UTF8 Encoding'
+      OnExecute = actUseUTF8Execute
+      OnUpdate = actUseUTF8Update
     end
   end
   object MessagePopup: TPopupMenu
