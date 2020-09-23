@@ -172,7 +172,9 @@ begin
       fCppDirCopy.Assign(CppDir);
       fLibDirCopy.Assign(LibDir);
       Commands.Lines.Text := CompOpts;
+      Commands.Enabled := AddtoComp;
       Linker.Lines.Text := LinkOpts;
+      Linker.Enabled := AddtoLink;
       cbCompAdd.Checked := AddtoComp;
       cbLinkerAdd.Checked := AddtoLink;
       GccEdit.Text := gccName;
@@ -181,6 +183,7 @@ begin
       MakeEdit.Text := makeName;
       WindresEdit.Text := windresName;
       GprofEdit.Text := gprofName;
+
     end;
   end;
 
