@@ -1,9 +1,17 @@
-Version 5.12.5-alpha1
+Version 5.13-alpha2
+  - change: display current file's encoding  in statusbar
+  - fix: status bar message too long to display
+  - change: back to mingw.org gcc 9.2 to save disk space
+  - better format of gdb output
+  - fix: crash when try to debug using release compiler set
+
+Version 5.13-alpha1
  - fix: Start Debug button is still enable while debuging; 
  - add: two new options for debug in environment option dialog; 
  - change: notify user before start the Debugger if execution file is old than the source file
  - change: better gdb output format
  - add: support utf-8 encoding file (project support not done)
+ - change: upgrade gcc to MinGW-W64-i686 version 10.2 (for utf-8 support)
 
 Version 5.12.4
  - fix: project won't rebuild when only header file is changed. Use gcc -MM to generate Makefile targets (and get header dependencies)
