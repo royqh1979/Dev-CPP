@@ -245,7 +245,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 30
           Width = 397
-          Height = 111
+          Height = 110
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -356,45 +356,75 @@ object MainForm: TMainForm
           Height = 13
           Caption = 'Evaluate:'
         end
-        object NextLineBtn: TButton
+        object StepOverBtn: TSpeedButton
           Left = 236
           Top = 7
           Width = 112
           Height = 25
           Action = actStepOver
-          TabOrder = 0
         end
-        object ContinueBtn: TButton
+        object ContinueBtn: TSpeedButton
           Left = 120
           Top = 7
           Width = 112
           Height = 25
           Action = actContinue
-          TabOrder = 1
         end
-        object StepIntoBtn: TButton
+        object StepIntoBtn: TSpeedButton
           Left = 352
           Top = 7
           Width = 112
           Height = 25
           Action = actStepInto
-          TabOrder = 2
         end
-        object AddWatchBtn: TButton
+        object AddWatchBtn: TSpeedButton
           Left = 236
           Top = 38
           Width = 112
           Height = 25
           Action = actAddWatch
-          TabOrder = 4
+          Glyph.Data = {
+            36040000424D3604000000000000360000002800000010000000100000000100
+            2000000000000004000000000000000000000000000000000000000000002929
+            2900292929002929290029292900292929002929290029292900292929002929
+            29002929290000000000FF00FF00FF00FF00FF00FF00FF00FF0000000000D6D6
+            D600BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBD
+            BD009494940029292900FF00FF0000000000000000000000000000000000F7F7
+            F700D6D6D600D6D6D600D6D6D600D6D6D600CECECE00CECECE00CECECE00CECE
+            CE00BDBDBD002929290000000000006BA500006BA5000000000000000000F7F7
+            F700D6D6D6006363630063636300D6D6D60063636300CECECE0063636300CECE
+            CE00BDBDBD0000000000006BA5006BCEFF00006BA5000000000000000000F7F7
+            F700DEDEDE00D6D6D600D6D6D600D6D6D6000808080008080800080808000808
+            080008080800006BA5006BCEFF00006BA50000000000FF00FF0000000000F7F7
+            F700DEDEDE006363630063636300080808008C8C8C00E7CE9400E7CE8C00DEC6
+            84006B6B6B006BCEFF00006BA50000000000FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE00DEDEDE00080808008C8C8C00E7DEAD00EFDEB500E7DEAD00E7D6
+            9400EFD68C006B6B6B0008080800FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE006363630008080800EFDEAD00EFE7C600EFEFD600EFE7C600E7DE
+            AD00EFD69400B59C520008080800FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE00DEDEDE0008080800EFDEB500EFEFD600F7F7EF00F7EFD600EFDE
+            B500EFDE9C00B59C520008080800FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE006363630008080800EFDEAD00EFE7C600EFEFD600EFE7C600E7DE
+            AD00EFD69C00B59C520008080800FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE00DEDEDE00080808008C8C8C00EFDEAD00EFE7B500E7DEAD00E7D6
+            9400EFD68C008C8C8C0008080800FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE0063636300DEDEDE006B6B6B008C8C8C00E7D69400E7D69400DEC6
+            84008C8C8C0008080800FF00FF00FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE00DEDEDE00DEDEDE00DEDEDE000808080008080800080808000808
+            08000808080029292900FF00FF00FF00FF00FF00FF00FF00FF0000000000F7F7
+            F700DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDE
+            DE00BDBDBD0029292900FF00FF00FF00FF00FF00FF00FF00FF0000000000FFFF
+            FF00F7F7F700F7F7F700F7F7F700F7F7F700F7F7F700F7F7F700F7F7F700F7F7
+            F700DEDEDE0029292900FF00FF00FF00FF00FF00FF00FF00FF006B6B6B002929
+            2900292929002929290029292900292929002929290029292900000000000000
+            00000000000000000000FF00FF00FF00FF00FF00FF00FF00FF00}
         end
-        object ViewCPUBtn: TButton
+        object ViewCPUBtn: TSpeedButton
           Left = 120
           Top = 38
           Width = 112
           Height = 25
           Action = actViewCPU
-          TabOrder = 3
         end
         object EvaluateInput: TComboBox
           Left = 64
@@ -403,18 +433,18 @@ object MainForm: TMainForm
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           ItemHeight = 13
-          TabOrder = 5
+          TabOrder = 0
           OnKeyPress = EvaluateInputKeyPress
         end
         object EvalOutput: TMemo
           Left = 4
           Top = 100
           Width = 578
-          Height = 40
+          Height = 39
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
-          TabOrder = 6
+          TabOrder = 1
         end
         object StepOutBtn: TButton
           Left = 468
@@ -422,7 +452,7 @@ object MainForm: TMainForm
           Width = 112
           Height = 25
           Action = actStepOut
-          TabOrder = 7
+          TabOrder = 2
         end
         object CallStackBtn: TButton
           Left = 468
@@ -430,7 +460,7 @@ object MainForm: TMainForm
           Width = 112
           Height = 25
           Action = actCallStack
-          TabOrder = 8
+          TabOrder = 3
         end
         object RunToCursorBtn: TButton
           Left = 352
@@ -438,7 +468,7 @@ object MainForm: TMainForm
           Width = 112
           Height = 25
           Action = actRunToCursor
-          TabOrder = 9
+          TabOrder = 4
         end
       end
     end
@@ -929,7 +959,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 272
+        Height = 271
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -964,7 +994,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 272
+        Height = 271
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -1000,7 +1030,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 272
+        Height = 271
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone

@@ -373,7 +373,7 @@ type
     ProjectView: TTreeView;
     LeftClassSheet: TTabSheet;
     ClassBrowser: TClassBrowser;
-    AddWatchBtn: TButton;
+    AddWatchBtn: TSpeedButton;
     FloatingPojectManagerItem: TMenuItem;
     actSaveProjectAs: TAction;
     SaveprojectasItem: TMenuItem;
@@ -386,7 +386,7 @@ type
     ToolClassesItem: TMenuItem;
     LeftDebugSheet: TTabSheet;
     DebugView: TTreeView;
-    ContinueBtn: TButton;
+    ContinueBtn: TSpeedButton;
     DebugStartPanel: TPanel;
     DDebugBtn: TSpeedButton;
     StopExecBtn: TSpeedButton;
@@ -422,13 +422,13 @@ type
     actGoto: TAction;
     TEXItem: TMenuItem;
     actExportTex: TAction;
-    NextLineBtn: TButton;
-    StepIntoBtn: TButton;
+    StepOverBtn: TSpeedButton;
+    StepIntoBtn: TSpeedButton;
     lblSendCommandGdb: TLabel;
     edGdbCommand: TComboBox;
     DebugOutput: TMemo;
     DebugSendPanel: TPanel;
-    ViewCPUBtn: TButton;
+    ViewCPUBtn: TSpeedButton;
     EvaluateInput: TComboBox;
     lblEvaluate: TLabel;
     EvalOutput: TMemo;
