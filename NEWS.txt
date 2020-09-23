@@ -4,6 +4,7 @@ Version 5.13-alpha2
   - change: back to mingw.org gcc 9.2 to save disk space
   - better format of gdb output
   - fix: crash when try to debug using release compiler set
+  - add: notify user while profiling when sourcefile is newer than profiling date
 
 Version 5.13-alpha1
  - fix: Start Debug button is still enable while debuging; 
