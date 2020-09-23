@@ -3015,14 +3015,28 @@ begin
   fDebugger.DeleteWatchVars(false);
 end;
 
+function CompareFileModifyTime(FileName1:AnsiString; FileName2:AnsiString):TValueRelationShip;
+var
+  fad1,fad2: TWin32FileAttributeData;
+  ft1,ft2: TSystemTime;
+begin
+  if not GetFileAttributesEx(PChar(FileName1), GetFileExInfoStandard, @fad1) then
+    RaiseLastOSError;
+  if not GetFileAttributesEx(PChar(FileName2), GetFileExInfoStandard, @fad2) then
+    RaiseLastOSError;
+  if not FileTimeToSystemTime(fad1.ftLastWriteTime, ft1) then
+    RaiseLastOSError;
+  if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
+    RaiseLastOSError;
+  Result := CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2));
+end;
+
 procedure TMainForm.actDebugExecute(Sender: TObject);
 var
   e: TEditor;
   i: integer;
   filepath: AnsiString;
   DebugEnabled, StripEnabled: boolean;
-  fad1,fad2: TWin32FileAttributeData;
-  ft1,ft2: TSystemTime;
 begin
   if fCompiler.Compiling then
     Exit;
@@ -3119,15 +3133,7 @@ begin
             end;
             Exit;
           end else begin
-            if not GetFileAttributesEx(PChar(e.FileName), GetFileExInfoStandard, @fad1) then
-              RaiseLastOSError;
-            if not GetFileAttributesEx(PChar(ChangeFileExt(e.FileName, EXE_EXT)), GetFileExInfoStandard, @fad2) then
-              RaiseLastOSError;
-            if not FileTimeToSystemTime(fad1.ftLastWriteTime, ft1) then
-              RaiseLastOSError;
-            if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
-              RaiseLastOSError;
-            if CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2))>=0 then
+            if CompareFileModifyTime(e.FileName,ChangeFileExt(e.FileName, EXE_EXT))>=0 then
               if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
                 MainForm.actCompileExecute(nil);
                 Exit;
@@ -4450,7 +4456,18 @@ begin
           actRebuildExecute(nil);
           Exit;
         end;
-      end;
+
+        path := ExtractFilePath(fProject.Executable) + GPROF_CHECKFILE;
+
+        //Gather data by running our project...
+        fRunEndAction := reaProfile;
+        if not FileExists(path) then begin
+          fRunEndAction := reaProfile;
+          actRunExecute(nil);
+        end else begin // If the data is there, open up the form
+          RunEndProc;
+        end;
+     end;
     ctFile: begin
         // Check if we enabled proper options
         with devCompilerSets.CompilationSet do begin
@@ -4471,35 +4488,50 @@ begin
           // Save changes to compiler set
           devCompilerSets.SaveSet(devCompilerSets.CompilationSetIndex);
 
-          fCompSuccessAction := csaProfile;
-          actRebuildExecute(nil);
+          fRunEndAction := reaProfile;
+          actCompRunExecute(nil);
           Exit;
         end;
-      end;
-  end;
 
-  // If we're done setting up options, check if there's profiling data already
-  path := '';
-  case GetCompileTarget of
-    ctProject: begin
-        path := ExtractFilePath(fProject.Executable) + GPROF_CHECKFILE;
-      end;
-    ctFile: begin
         e := fEditorList.GetEditor;
         if Assigned(e) then
-          path := ExtractFilePath(ChangeFileExt(e.FileName, EXE_EXT)) + GPROF_CHECKFILE;
+          path := ExtractFilePath(ChangeFileExt(e.FileName, EXE_EXT)) + GPROF_CHECKFILE
+        else
+          Exit;
+
+        // Did we save?
+        if e.Text.Modified then begin // if file is modified
+          if not e.Save then // save it first
+            Exit;
+        end;
+
+        if not FileExists(path) then begin
+          fRunEndAction := reaProfile;
+          actRunExecute(nil);
+          Exit;
+        end;
+
+        // source file is newer than execute file
+        if CompareFileModifyTime(e.FileName,ChangeFileExt(e.FileName, EXE_EXT))>=0 then
+         if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+          fRunEndAction := reaProfile;
+          actCompRunExecute(nil);
+          Exit;
+         end;
+
+        if CompareFileModifyTime(e.FileName,path)>=0 then
+         if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+          fRunEndAction := reaProfile;
+          actCompRunExecute(nil);
+          Exit;
+         end;
+
+        fRunEndAction := reaProfile;
+        RunEndProc;
       end;
     ctNone: Exit;
-  end;
+   end;
 
-  //Gather data by running our project...
-  fRunEndAction := reaProfile;
-  if not FileExists(path) then begin
-    fRunEndAction := reaProfile;
-    actRunExecute(nil);
-  end else begin // If the data is there, open up the form
-    RunEndProc;
-  end;
 end;
 
 procedure TMainForm.actCloseAllButThisExecute(Sender: TObject);

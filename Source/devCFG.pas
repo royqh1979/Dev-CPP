@@ -1412,6 +1412,7 @@ begin
   sl.Add('SSE4.1=sse4.1');
   sl.Add('SSE4.2=sse4.2');
   sl.Add('AVX=avx');
+  sl.Add('AVX2=avx2');
   sl.Add('FMA4=fma4');
   sl.Add('XOP=xop');
   sl.Add('AES=aes');
@@ -1473,10 +1474,10 @@ begin
 
   // Linker
   AddOption(ID_COPT_OBJC, ID_COPT_LINKERTAB, False, False, True, 0, '-lobjc', nil);
-  AddOption(ID_COPT_DEBUG, ID_COPT_LINKERTAB, True, True, True, 0, '-g3', nil);
   AddOption(ID_COPT_NOLIBS, ID_COPT_LINKERTAB, True, True, True, 0, '-nostdlib', nil);
   AddOption(ID_COPT_WIN32, ID_COPT_LINKERTAB, True, True, True, 0, '-mwindows', nil);
   AddOption(ID_COPT_STRIP, ID_COPT_LINKERTAB, False, False, True, 0, '-s', nil);
+  AddOption(ID_COPT_DEBUG, ID_COPT_GRP_CODEGEN, True, True, True, 0, '-g3', nil);
 
   // Output
   AddOption(ID_COPT_MEM, ID_COPT_GRP_OUTPUT, True, True, False, 0, '-fverbose-asm', nil);
