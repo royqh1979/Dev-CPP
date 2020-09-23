@@ -257,7 +257,7 @@ begin
         loopfilename := AnsiString(cmbFiles.Items.Objects[I]);
         if not SameStr('.dev', ExtractFileExt(loopfilename)) then begin
           try
-            fEdit.Lines.LoadFromFile(loopfilename);
+            // fEdit.Lines.LoadFromFile(loopfilename);
             CalculateFile(loopfilename);
           except
           end;

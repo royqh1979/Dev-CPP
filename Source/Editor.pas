@@ -600,11 +600,11 @@ begin
     with MainForm.Statusbar do begin
       // Set readonly / insert / overwrite
       if fText.ReadOnly then
-        Panels[1].Text := Lang[ID_READONLY]
+        Panels[2].Text := Lang[ID_READONLY]
       else if fText.InsertMode then
-        Panels[1].Text := Lang[ID_INSERT]
+        Panels[2].Text := Lang[ID_INSERT]
       else
-        Panels[1].Text := Lang[ID_OVERWRITE];
+        Panels[2].Text := Lang[ID_OVERWRITE];
     end;
   end;
 end;

@@ -898,6 +898,9 @@ object MainForm: TMainForm
       end
       item
         Width = 80
+      end
+      item
+        Width = 80
       end>
     ParentFont = True
     UseSystemFont = False
@@ -1240,7 +1243,7 @@ object MainForm: TMainForm
         Caption = '-'
       end
       object UseUTF8Encoding: TMenuItem
-        Caption = 'Use UTF-8 Encoding'
+        Action = actUseUTF8
       end
       object N47: TMenuItem
         Caption = '-'

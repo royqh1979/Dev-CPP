@@ -1236,7 +1236,9 @@ begin
     else if ContainsStr(fType, 'tdm') then
       fName := 'TDM-GCC ' + fVersion
     else if ContainsStr(fType, 'GCC') then
-      fName := 'MinGW GCC ' + fVersion;
+      fName := 'MinGW GCC ' + fVersion
+    else
+      fName := 'MinGW GCC' + fVersion;
   end;
 
   // Obtain compiler target

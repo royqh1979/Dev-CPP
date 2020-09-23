@@ -848,6 +848,7 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
+    procedure UpdateFileEncodingStatusPanel;
   public
     procedure ScanActiveProject;
     procedure UpdateCompilerList;
@@ -1376,6 +1377,7 @@ begin
       Statusbar.Panels[0].Text := '';
       Statusbar.Panels[1].Text := '';
       StatusBar.Panels[2].Text := '';
+      StatusBar.Panels[3].Text := '';
     finally
       StatusBar.Panels.EndUpdate; // redraw once
     end;
@@ -1384,7 +1386,7 @@ end;
 
 procedure TMainForm.SetStatusbarMessage(const msg: AnsiString);
 begin
-  Statusbar.Panels[2].Text := msg;
+  Statusbar.Panels[3].Text := msg;
 end;
 
 procedure TMainForm.ToggleBookmarkClick(Sender: TObject);
@@ -1537,6 +1539,7 @@ begin
 
   // Open the file in an editor
   e := fEditorList.NewEditor(FileName, False, False);
+  UpdateFileEncodingStatusPanel;
   if Assigned(fProject) then begin
     if (not SameFileName(fProject.FileName, FileName)) and (fProject.GetUnitFromString(FileName) = -1) then
       dmMain.RemoveFromHistory(FileName);
@@ -1920,6 +1923,7 @@ begin
   NewEditor := fEditorList.NewEditor('', False, True);
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
+  UpdateFileEncodingStatusPanel;
 end;
 
 procedure TMainForm.actNewProjectExecute(Sender: TObject);
@@ -3123,7 +3127,7 @@ begin
               RaiseLastOSError;
             if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
               RaiseLastOSError;
-            if CompareDate(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2))>=0 then
+            if CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2))>=0 then
               if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
                 MainForm.actCompileExecute(nil);
                 Exit;
@@ -4529,6 +4533,19 @@ begin
       Cursor := crHandPoint
     else
       Cursor := crDefault;
+  end;
+end;
+
+procedure TMainForm.UpdateFileEncodingStatusPanel;
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    if e.UseUTF8 then
+      Statusbar.Panels[1].Text := 'UTF-8'
+    else
+      Statusbar.Panels[1].Text := GetSystemCharsetName;
   end;
 end;
 
@@ -6761,9 +6778,8 @@ begin
           Exit;
     end;
     e.UseUTF8 := not e.UseUTF8;
-    actUseUTF8.Checked := e.UseUTF8;
     e.LoadFile(e.FileName);
-
+    UpdateFileEncodingStatusPanel;
   end;
 end;
 
@@ -6772,9 +6788,10 @@ var
   e:TEditor;
 begin
   e:=fEditorList.GetEditor;
-  if not assigned(e) then
-    actUseUTF8.Enabled := False
-  else begin
+  if not assigned(e) then begin
+    actUseUTF8.Enabled := False;
+  end else begin
+    actUseUTF8.Enabled := True;
     actUseUTF8.Checked := e.UseUTF8;
   end;
 end;

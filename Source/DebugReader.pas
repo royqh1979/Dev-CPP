@@ -210,7 +210,8 @@ begin
             end;
             outStrList.Add(#26#26);
           end;
-          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then
+//          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then
+          if (not StartsStr(#26#26, strOutput)) then
             outStrList.Add(strOutput);
         end;
         if StartsStr(#26#26'prompt', strOutput) then begin
