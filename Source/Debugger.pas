@@ -44,6 +44,7 @@ type
     fWatchVarList: TList;
     fOnEvalReady: TEvalReadyEvent;
     fReader: TDebugReader;
+    fUseUTF8: boolean;
     function GetBreakPointFile: AnsiString;
   public
     constructor Create;
@@ -79,6 +80,7 @@ type
     property OnEvalReady: TEvalReadyEvent read fOnEvalReady write fOnEvalReady;
     property Reader: TDebugReader read fReader write fReader;
     property BreakPointFile: AnsiString read GetBreakPointFile;
+    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
   end;
 
 implementation
@@ -173,6 +175,7 @@ begin
   Reader.BreakpointList := BreakPointList;
   Reader.WatchVarList := WatchVarList;
   Reader.DebugView := DebugView;
+  Reader.UseUTF8 := UseUTF8;
   Reader.Resume;
 
   MainForm.UpdateAppTitle;

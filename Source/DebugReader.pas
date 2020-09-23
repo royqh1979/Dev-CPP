@@ -87,6 +87,7 @@ type
     fOutput: AnsiString;
     fEvalValue: AnsiString;
     fSignal: AnsiString;
+    fUseUTF8: boolean;
 
     // attempt to cut down on Synchronize calls
     dobacktraceready: boolean;
@@ -146,6 +147,7 @@ type
     property WatchVarList: TList read fWatchVarList write fWatchVarList;
     property DebugView: TTreeView read fDebugView write fDebugView;
     property BreakPointFile: AnsiString read fBreakPointFile;
+    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
   end;
 
 implementation
@@ -212,7 +214,10 @@ begin
           end;
 //          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then
           if (not StartsStr(#26#26, strOutput)) then
-            outStrList.Add(strOutput);
+            if UseUTF8 then
+              outStrList.Add(UTF8ToAnsi(strOutput))
+            else
+              outStrList.Add(strOutput);
         end;
         if StartsStr(#26#26'prompt', strOutput) then begin
           notPrompt := True;

@@ -256,8 +256,8 @@ type
     DebugSheet: TTabSheet;
     actAddWatch: TAction;
     actEditWatch: TAction;
-    actNextLine: TAction;
     actStepOver: TAction;
+    actContinue: TAction;
     actWatchItem: TAction;
     actRemoveWatch: TAction;
     actStopExecute: TAction;
@@ -321,7 +321,7 @@ type
     CloseAll1: TMenuItem;
     Closeallexceptthis1: TMenuItem;
     CloseAll2: TMenuItem;
-    actStepLine: TAction;
+    actStepInto: TAction;
     DebugPopup: TPopupMenu;
     AddwatchPop: TMenuItem;
     RemoveWatchPop: TMenuItem;
@@ -386,7 +386,7 @@ type
     ToolClassesItem: TMenuItem;
     LeftDebugSheet: TTabSheet;
     DebugView: TTreeView;
-    StepOverBtn: TButton;
+    ContinueBtn: TButton;
     DebugStartPanel: TPanel;
     DDebugBtn: TSpeedButton;
     StopExecBtn: TSpeedButton;
@@ -423,7 +423,7 @@ type
     TEXItem: TMenuItem;
     actExportTex: TAction;
     NextLineBtn: TButton;
-    IntoLineBtn: TButton;
+    StepIntoBtn: TButton;
     lblSendCommandGdb: TLabel;
     edGdbCommand: TComboBox;
     DebugOutput: TMemo;
@@ -432,12 +432,12 @@ type
     EvaluateInput: TComboBox;
     lblEvaluate: TLabel;
     EvalOutput: TMemo;
-    SkipFuncBtn: TButton;
-    actSkipFunction: TAction;
-    IntoInsBtn: TButton;
-    actNextIns: TAction;
-    NextInsBtn: TButton;
-    actStepIns: TAction;
+    StepOutBtn: TButton;
+    actStepOut: TAction;
+    CallStackBtn: TButton;
+    actRunToCursor: TAction;
+    RunToCursorBtn: TButton;
+    actCallStack: TAction;
     MsgPasteItem: TMenuItem;
     actMsgCopy: TAction;
     actMsgCopyAll: TAction;
@@ -620,9 +620,9 @@ type
     procedure FormContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure actAddWatchExecute(Sender: TObject);
     procedure ProjectViewClick(Sender: TObject);
-    procedure actNextLineExecute(Sender: TObject);
-    procedure actRemoveWatchExecute(Sender: TObject);
     procedure actStepOverExecute(Sender: TObject);
+    procedure actRemoveWatchExecute(Sender: TObject);
+    procedure actContinueExecute(Sender: TObject);
     procedure actStopExecuteExecute(Sender: TObject);
     procedure actUndoUpdate(Sender: TObject);
     procedure actRedoUpdate(Sender: TObject);
@@ -668,7 +668,7 @@ type
     procedure actBrowserViewCurrentExecute(Sender: TObject);
     procedure actProfileExecute(Sender: TObject);
     procedure actCloseAllButThisExecute(Sender: TObject);
-    procedure actStepLineExecute(Sender: TObject);
+    procedure actStepIntoExecute(Sender: TObject);
     procedure lvBacktraceCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var
       DefaultDraw: Boolean);
     procedure lvBacktraceMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -744,9 +744,9 @@ type
     procedure actBreakPointExecute(Sender: TObject);
     procedure EvaluateInputKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
-    procedure actSkipFunctionExecute(Sender: TObject);
-    procedure actNextInsExecute(Sender: TObject);
-    procedure actStepInsExecute(Sender: TObject);
+    procedure actStepOutExecute(Sender: TObject);
+    procedure actRunToCursorExecute(Sender: TObject);
+    procedure actCallStackExecute(Sender: TObject);
     procedure actMsgPasteExecute(Sender: TObject);
     procedure actUpdateDebuggerRunningCPU(Sender: TObject);
     procedure actUpdateEmptyEditorFindForm(Sender: TObject);
@@ -1267,16 +1267,17 @@ begin
   actEditWatch.Caption := Lang[ID_ITEM_WATCHEDIT];
   actModifyWatch.Caption := Lang[ID_ITEM_MODIFYVALUE];
   actRemoveWatch.Caption := Lang[ID_ITEM_WATCHREMOVE];
-  actNextLine.Caption := Lang[ID_ITEM_STEPNEXT];
-  actStepLine.Caption := Lang[ID_ITEM_STEPINTO];
+  actContinue.Caption := Lang[ID_ITEM_CONTINUE];
   actStepOver.Caption := Lang[ID_ITEM_STEPOVER];
+  actStepInto.Caption := Lang[ID_ITEM_STEPINTO];
+  actStepOut.Caption := Lang[ID_ITEM_STEPOUT];
+  actRunToCursor.Caption := Lang[ID_ITEM_RUNTOCURSOR];
+  actCallStack.Caption := Lang[ID_ITEM_CALLSTACK];
+
   actWatchItem.Caption := Lang[ID_ITEM_WATCHITEMS];
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
   ClearallWatchPop.Caption := Lang[ID_ITEM_CLEARALL];
-  actNextIns.Caption := Lang[ID_ITEM_NEXTINS];
-  actStepIns.Caption := Lang[ID_ITEM_STEPINS];
-  actSkipFunction.Caption := Lang[ID_ITEM_SKIPFUNCTION];
 
   // Project/Unit/Folder popup
   actUnitRemove.Caption := Lang[ID_POP_REMOVE];
@@ -3142,6 +3143,8 @@ begin
 
           PrepareDebugger;
 
+          fDebugger.UseUTF8 := e.UseUTF8;
+
           filepath := ChangeFileExt(e.FileName, EXE_EXT);
 
           fDebugger.Start;
@@ -3177,13 +3180,24 @@ begin
   fDebugger.SendCommand('set', 'new-console on');
   fDebugger.SendCommand('set', 'confirm off');
   fDebugger.SendCommand('cd', ExcludeTrailingPathDelimiter(ExtractFileDir(filepath))); // restore working directory
-  case GetCompileTarget of
-    ctNone:
-      Exit;
-    ctFile:
-      fDebugger.SendCommand('run', fCompiler.RunParams);
-    ctProject:
-      fDebugger.SendCommand('run', fProject.Options.CmdLineArgs);
+  if fDebugger.BreakPointList.Count=0 then begin
+    case GetCompileTarget of
+      ctNone:
+        Exit;
+      ctFile:
+        fDebugger.SendCommand('start', fCompiler.RunParams);
+      ctProject:
+        fDebugger.SendCommand('start', fProject.Options.CmdLineArgs);
+    end;
+  end else begin
+    case GetCompileTarget of
+      ctNone:
+        Exit;
+      ctFile:
+        fDebugger.SendCommand('run', fCompiler.RunParams);
+      ctProject:
+        fDebugger.SendCommand('run', fProject.Options.CmdLineArgs);
+    end;
   end;
 end;
 
@@ -3653,14 +3667,14 @@ begin
   end;
 end;
 
-procedure TMainForm.actNextLineExecute(Sender: TObject);
+procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('next', '', true);
   end;
 end;
 
-procedure TMainForm.actStepLineExecute(Sender: TObject);
+procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('step', '', true);
@@ -3706,7 +3720,7 @@ begin
   Application.BringToFront;
 end;
 
-procedure TMainForm.actStepOverExecute(Sender: TObject);
+procedure TMainForm.actContinueExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
@@ -5869,6 +5883,7 @@ begin
 
   // Create a debugger
   fDebugger := TDebugger.Create;
+  fDebugger.UseUTF8 := devEditor.UseUTF8ByDefault;
   with fDebugger do begin
     DebugView := Self.DebugView;
   end;
@@ -6132,24 +6147,30 @@ begin
     actShowTips.Execute;
 end;
 
-procedure TMainForm.actSkipFunctionExecute(Sender: TObject);
+procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('finish', '', true);
   end;
 end;
 
-procedure TMainForm.actNextInsExecute(Sender: TObject);
+procedure TMainForm.actRunToCursorExecute(Sender: TObject);
+var
+  e:TEditor;
 begin
   if fDebugger.Executing then begin
-    fDebugger.SendCommand('nexti', '', true);
+    e:=fEditorList.GetEditor;
+    if assigned(e) then begin
+      fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY), true);
+      fDebugger.SendCommand('continue', '', true);
+    end;
   end;
 end;
 
-procedure TMainForm.actStepInsExecute(Sender: TObject);
+procedure TMainForm.actCallStackExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
-    fDebugger.SendCommand('stepi', '', true);
+    fDebugger.SendCommand('bt', '', true);
   end;
 end;
 

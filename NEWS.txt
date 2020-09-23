@@ -5,6 +5,7 @@ Version 5.13-alpha2
   - better format of gdb output
   - fix: crash when try to debug using release compiler set
   - add: notify user while profiling when sourcefile is newer than profiling date
+  - fix: register info parsing error in cpu window(debug)
 
 Version 5.13-alpha1
  - fix: Start Debug button is still enable while debuging; 

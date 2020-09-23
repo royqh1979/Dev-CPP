@@ -144,14 +144,14 @@ Ver=1
 
 10001=&Debug
 10002=&Toggle Breakpoint
-10003=&Next line
+10003=&Step Over
 10004=&Continue
 10005=&Add watch
 10006=&Watch Variables
 10007=Stop Execution
 10008=&Edit watch
 10009=&Remove watch
-10010=&Into function
+10010=Step &Into
 10011=Run to &Cursor
 10012=&View CPU window
 10013=A&ttach to process...
@@ -164,8 +164,9 @@ Ver=1
 10020=Edit Resource file
 10021=Next instruction
 10022=Into instruction
-10023=Skip function
+10023=Step &Over
 10024=Goto Breakpoint
+10025=Call Stack
 
 
 11001=Remove File

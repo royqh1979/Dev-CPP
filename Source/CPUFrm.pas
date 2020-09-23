@@ -203,7 +203,6 @@ begin
   for I := 0 to fRegisters.Count - 1 do begin
     item := RegisterListbox.Items.Add;
     item.Caption := UpperCase(PRegister(fRegisters.Items[I])^.name);
-    item.SubItems.Add(PRegister(fRegisters.Items[I])^.name);
     item.SubItems.Add(PRegister(fRegisters.Items[I])^.valuehex);
     item.SubItems.Add(PRegister(fRegisters.Items[I])^.valuedec);
   end;

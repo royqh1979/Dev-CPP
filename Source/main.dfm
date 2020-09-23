@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 258
-  Top = 104
+  Left = 555
+  Top = 127
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++'
   ClientHeight = 562
-  ClientWidth = 866
+  ClientWidth = 1001
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -35,7 +35,7 @@ object MainForm: TMainForm
   object SplitterBottom: TSplitter
     Left = 0
     Top = 356
-    Width = 866
+    Width = 1001
     Height = 3
     Cursor = crVSplit
     Align = alBottom
@@ -45,7 +45,7 @@ object MainForm: TMainForm
   object MessageControl: TPageControl
     Left = 0
     Top = 359
-    Width = 866
+    Width = 1001
     Height = 183
     ActivePage = DebugSheet
     Align = alBottom
@@ -60,8 +60,8 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 858
-        Height = 155
+        Width = 993
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -104,8 +104,8 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 858
-        Height = 155
+        Width = 993
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -149,13 +149,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 156
-        Height = 155
+        Height = 154
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           156
-          155)
+          154)
         object btnAbortCompilation: TSpeedButton
           Left = 4
           Top = 4
@@ -185,8 +185,8 @@ object MainForm: TMainForm
       object CompResGroupBox: TPanel
         Left = 156
         Top = 0
-        Width = 702
-        Height = 155
+        Width = 837
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -216,14 +216,14 @@ object MainForm: TMainForm
       object DebugSendPanel: TPanel
         Left = 589
         Top = 0
-        Width = 269
-        Height = 155
+        Width = 404
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
-          269
-          155)
+          404
+          154)
         object lblSendCommandGdb: TLabel
           Left = 4
           Top = 7
@@ -234,7 +234,7 @@ object MainForm: TMainForm
         object edGdbCommand: TComboBox
           Left = 136
           Top = 3
-          Width = 129
+          Width = 264
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           ItemHeight = 13
@@ -244,8 +244,8 @@ object MainForm: TMainForm
         object DebugOutput: TMemo
           Left = 4
           Top = 30
-          Width = 262
-          Height = 114
+          Width = 397
+          Height = 111
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -256,7 +256,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 589
-        Height = 155
+        Height = 154
         Align = alLeft
         BevelOuter = bvNone
         BiDiMode = bdLeftToRight
@@ -264,10 +264,10 @@ object MainForm: TMainForm
         TabOrder = 1
         DesignSize = (
           589
-          155)
+          154)
         object DDebugBtn: TSpeedButton
           Left = 4
-          Top = 8
+          Top = 7
           Width = 112
           Height = 25
           Action = actDebug
@@ -358,31 +358,31 @@ object MainForm: TMainForm
         end
         object NextLineBtn: TButton
           Left = 236
-          Top = 8
-          Width = 112
-          Height = 25
-          Action = actNextLine
-          TabOrder = 0
-        end
-        object StepOverBtn: TButton
-          Left = 352
-          Top = 8
+          Top = 7
           Width = 112
           Height = 25
           Action = actStepOver
-          TabOrder = 1
+          TabOrder = 0
         end
-        object IntoLineBtn: TButton
-          Left = 236
-          Top = 38
+        object ContinueBtn: TButton
+          Left = 120
+          Top = 7
           Width = 112
           Height = 25
-          Action = actStepLine
+          Action = actContinue
+          TabOrder = 1
+        end
+        object StepIntoBtn: TButton
+          Left = 352
+          Top = 7
+          Width = 112
+          Height = 25
+          Action = actStepInto
           TabOrder = 2
         end
         object AddWatchBtn: TButton
-          Left = 120
-          Top = 8
+          Left = 236
+          Top = 38
           Width = 112
           Height = 25
           Action = actAddWatch
@@ -410,34 +410,34 @@ object MainForm: TMainForm
           Left = 4
           Top = 100
           Width = 578
-          Height = 43
+          Height = 40
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
           TabOrder = 6
         end
-        object SkipFuncBtn: TButton
+        object StepOutBtn: TButton
+          Left = 468
+          Top = 7
+          Width = 112
+          Height = 25
+          Action = actStepOut
+          TabOrder = 7
+        end
+        object CallStackBtn: TButton
+          Left = 468
+          Top = 38
+          Width = 112
+          Height = 25
+          Action = actCallStack
+          TabOrder = 8
+        end
+        object RunToCursorBtn: TButton
           Left = 352
           Top = 38
           Width = 112
           Height = 25
-          Action = actSkipFunction
-          TabOrder = 7
-        end
-        object IntoInsBtn: TButton
-          Left = 468
-          Top = 38
-          Width = 112
-          Height = 25
-          Action = actStepIns
-          TabOrder = 8
-        end
-        object NextInsBtn: TButton
-          Left = 468
-          Top = 8
-          Width = 112
-          Height = 25
-          Action = actNextIns
+          Action = actRunToCursor
           TabOrder = 9
         end
       end
@@ -448,8 +448,8 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 858
-        Height = 155
+        Width = 993
+        Height = 154
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -497,7 +497,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 866
+    Width = 1001
     Height = 56
     Align = alTop
     AutoDock = False
@@ -851,9 +851,9 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 686
+      Left = 687
       Top = 2
-      Width = 178
+      Width = 255
       Height = 24
       Caption = 'tbCompilers'
       EdgeBorders = []
@@ -887,7 +887,7 @@ object MainForm: TMainForm
   object Statusbar: TStatusBar
     Left = 0
     Top = 542
-    Width = 866
+    Width = 1001
     Height = 20
     Panels = <
       item
@@ -1021,14 +1021,14 @@ object MainForm: TMainForm
   object PageControlPanel: TPanel
     Left = 196
     Top = 56
-    Width = 670
+    Width = 805
     Height = 300
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 670
+      Left = 805
       Top = 0
       Width = 0
       Height = 300
@@ -1039,7 +1039,7 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 670
+      Width = 805
       Height = 300
       Align = alClient
       HotTrack = True
@@ -1054,7 +1054,7 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 670
+      Left = 805
       Top = 0
       Width = 0
       Height = 300
@@ -2312,11 +2312,10 @@ object MainForm: TMainForm
       Caption = '&Edit watch'
       ImageIndex = 36
     end
-    object actStepOver: TAction
+    object actContinue: TAction
       Category = 'Debug'
       Caption = '&Continue'
-      ImageIndex = 14
-      OnExecute = actStepOverExecute
+      OnExecute = actContinueExecute
       OnUpdate = actUpdateDebuggerRunning
     end
     object actWatchItem: TAction
@@ -2575,19 +2574,18 @@ object MainForm: TMainForm
       OnExecute = actModifyWatchExecute
       OnUpdate = actModifyWatchUpdate
     end
-    object actNextLine: TAction
+    object actStepOver: TAction
       Category = 'Debug'
-      Caption = '&Next line'
-      ImageIndex = 18
+      Caption = 'Step &Over'
       ShortCut = 118
-      OnExecute = actNextLineExecute
+      OnExecute = actStepOverExecute
       OnUpdate = actUpdateDebuggerRunning
     end
-    object actStepLine: TAction
+    object actStepInto: TAction
       Category = 'Debug'
-      Caption = 'Into line'
+      Caption = 'Step Into'
       ShortCut = 119
-      OnExecute = actStepLineExecute
+      OnExecute = actStepIntoExecute
       OnUpdate = actUpdateDebuggerRunning
     end
     object actDeleteProfile: TAction
@@ -2640,22 +2638,22 @@ object MainForm: TMainForm
       OnExecute = actGotoExecute
       OnUpdate = actUpdatePageCount
     end
-    object actNextIns: TAction
+    object actRunToCursor: TAction
       Category = 'Debug'
-      Caption = 'Next instruction'
-      OnExecute = actNextInsExecute
+      Caption = '&Run to Cursor'
+      OnExecute = actRunToCursorExecute
       OnUpdate = actUpdateDebuggerRunning
     end
-    object actStepIns: TAction
+    object actCallStack: TAction
       Category = 'Debug'
-      Caption = 'Into instruction'
-      OnExecute = actStepInsExecute
+      Caption = 'Call Stack'
+      OnExecute = actCallStackExecute
       OnUpdate = actUpdateDebuggerRunning
     end
-    object actSkipFunction: TAction
+    object actStepOut: TAction
       Category = 'Debug'
-      Caption = 'Skip function'
-      OnExecute = actSkipFunctionExecute
+      Caption = 'Step O&ut'
+      OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
     end
     object actMsgCut: TAction
