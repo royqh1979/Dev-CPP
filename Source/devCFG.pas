@@ -142,6 +142,7 @@ type
     property AddtoLink: boolean read fLinkAdd write fLinkAdd;
     property CompOpts: AnsiString read fCompOpt write fCompOpt;
     property LinkOpts: AnsiString read fLinkOpt write fLinkOpt;
+
   end;
 
   // compiler-set configuration
@@ -1549,7 +1550,7 @@ var
   OptionIndex: integer;
 begin
   if FindOption(Option, OptionStruct, OptionIndex) then
-    SetOption(Option, Value);
+    SetOption(OptionStruct, Value);
 end;
 
 procedure TdevCompilerSet.SetOption(Option: PCompilerOption; Value: char);
@@ -2171,8 +2172,9 @@ begin
       // Debug profile
       with AddSet(BaseSet) do begin
         Name := BaseName + ' 64-bit Debug';
-        if FindOption('-g3', option, index) then
+        if FindOption('-g3', option, index) then  begin
           SetOption(option, '1');
+        end;
       end;
 
       // Profiling profile
