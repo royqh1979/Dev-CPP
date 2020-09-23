@@ -800,6 +800,7 @@ begin
   repeat
     reg := new(PRegister);
 
+    reg^.valuehex := s;
     // Cut name from 1 to first space
     x := Pos(' ', s);
     reg^.name := Copy(s, 1, x - 1);
@@ -810,6 +811,8 @@ begin
 
     // Cut hex value from 1 to first tab
     x := Pos(#9, s);
+    if x=0 then
+      x:=Pos(' ',s);
     reg^.valuehex := Copy(s, 1, x - 1);
     Delete(s, 1, x); // delete tab too
     s := TrimLeft(s);
