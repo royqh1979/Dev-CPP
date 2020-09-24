@@ -7009,8 +7009,9 @@ begin
 
             // Remove TabWidth of indent of the current line when typing a }
             if AChar in ['}'] then begin
+              temp := Copy(Lines[CaretY-1],1,CaretX-1);
               // and the first nonblank char is this new }
-              if TrimLeft(Lines[CaretY - 1]) = '' then begin
+              if TrimLeft(temp) = '' then begin
                 MatchBracketPos := GetPreviousLeftBracket(CaretX, CaretY);
                 if (MatchBracketPos.Line > 0) then begin
                   i := 1;
@@ -7019,8 +7020,10 @@ begin
                       break;
                     inc(i);
                   end;
-                  Lines[CaretY - 1] := Copy(Lines[MatchBracketPos.Line-1], 1, i-1);
-                  InternalCaretXY := BufferCoord(length(Lines[CaretY - 1])+1, CaretY);
+                  temp := Copy(Lines[MatchBracketPos.Line-1], 1, i-1)
+                    + Copy(Lines[CaretY - 1],CaretX,MaxInt);
+                  Lines[CaretY - 1] := temp;
+                  InternalCaretXY := BufferCoord(i, CaretY);
                 end;
               end;
             end;

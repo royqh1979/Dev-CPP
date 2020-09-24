@@ -918,7 +918,7 @@ var
           DoubleQuote: Result := NotQuote;
           DoubleQuoteEscape: Result := DoubleQuote;
         end;
-      if Line[i] = '''' then
+      else if Line[i] = '''' then
         Case Result of
           NotQuote: Result := SingleQuote;
           SingleQuote: Result := NotQuote;
@@ -926,7 +926,7 @@ var
           DoubleQuote: Result := DoubleQuote;
           DoubleQuoteEscape: Result := DoubleQuote;
         end;
-      if Line[i] = '\' then
+      else if Line[i] = '\' then
         Case Result of
           NotQuote: Result := NotQuote;
           SingleQuote: Result := SingleQuoteEscape;
@@ -934,6 +934,15 @@ var
           DoubleQuote: Result := DoubleQuoteEscape;
           DoubleQuoteEscape: Result := DoubleQuote;
         end;
+      else begin
+        Case Result of
+          NotQuote: Result := NotQuote;
+          SingleQuote: Result := SingleQuote;
+          SingleQuoteEscape: Result := SingleQuote;
+          DoubleQuote: Result := DoubleQuote;
+          DoubleQuoteEscape: Result := DoubleQuote;
+        end;
+      end;
     end;
   end;
 
