@@ -4,21 +4,26 @@ Redesign Debug UI:
 3. modify variable value ? (set var=value)
 4. create/delete watch point? (watch [location] condition)
 
-better Debug btn icons
+better Debug btn icons ? (like visual basic 6?)
 
 Editor:
- correctly indent when input closing braces
+	
 
 Project:
-1. Project UTF8 option
-2. Each file's UTF8 option in project data
-3. Makefile UTF8 support
-  add "-finput-charset=UTF-8 -exec-charset=xxx" to compile options
+1. Project UTF8 option £¨done£©
+2. Each file's UTF8 option in project data (how to connect editor to project unit?)
+3. Makefile UTF8 support 
+  add "-finput-charset=UTF-8 -exec-charset=xxx" to compile options (done)
   add "--codepage=65001" to windres option 
-5. Debug
+5. Debug 
 6. Profiling
 
 
-ResEdit integration
+ResEdit integration?
+
+
+done:
+Editor:
+ correctly indent when input closing braces
 
 

@@ -1,7 +1,5 @@
 package SynEdit_D7;
 
-{ $Id: SynEdit_D7.dpk,v 1.4 2004/04/22 21:01:21 markonjezic Exp $ }
-
 {$R *.res}
 {$R '..\Source\SynEditReg.dcr'}
 {$ALIGN 8}

@@ -63,7 +63,7 @@ var
     else
       StartCount := 0;
     for I := 1 to Count do begin
-      MainForm.EditorList.NewEditor('', False, True, PageControl);
+      MainForm.EditorList.NewEditor('',True, False, True, PageControl);
       if Assigned(PageControl) then
         // make sure property PageCount is correct
         Assert(PageControl.PageCount = StartCount + I);

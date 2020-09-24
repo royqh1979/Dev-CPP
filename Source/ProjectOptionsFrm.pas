@@ -137,6 +137,9 @@ type
     OptionsLink: TLabel;
     chkDefCpp: TCheckBox;
     lblCompilerHint: TLabel;
+    CheckBox1: TCheckBox;
+    cbUseUTF8: TCheckBox;
+    cbUnitUseUTF8: TCheckBox;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);
@@ -176,6 +179,7 @@ type
     procedure chkLogOutputClick(Sender: TObject);
     procedure OptionsLinkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure cbUnitUseUTF8Click(Sender: TObject);
   private
     procedure UpdateDirButtons;
     procedure UpdateMakButtons;
@@ -344,6 +348,7 @@ begin
     useGPP := chkDefCpp.Checked;
     Icon := fProjectCopy.Options.Icon;
     typ := lstType.ItemIndex;
+    UseUTF8 := cbUseUTF8.Checked ;
 
     // Files tab
 
@@ -450,6 +455,7 @@ begin
     lblPrjOutputFname.Caption := fProjectCopy.Executable;
     chkSupportXP.Checked := SupportXPThemes;
     chkDefCpp.Checked := useGPP;
+    cbUseUTF8.Checked := UseUTF8;
 
     // Load icon if possible
     IconTmp := GetRealPath(fProjectCopy.Options.Icon, fProjectCopy.Directory);
@@ -592,6 +598,9 @@ begin
   lvFiles.Images := MainForm.ProjectView.Images;
   lvFiles.Items.Assign(MainForm.ProjectView.Items);
   lvFiles.Items[0].Expand(False);
+
+  //Can't safely find unit's editor, so we disallow change a unit's encoding in this option dialog
+  cbUnitUseUTF8.Enabled := False;
 end;
 
 procedure TProjectOptionsFrm.LoadText;
@@ -626,6 +635,7 @@ begin
   chkDefCpp.Caption := Lang[ID_POPT_DEFCPP];
   dlgPic.Title := Lang[ID_POPT_OPENICO];
   dlgOpen.Title := Lang[ID_POPT_OPENOBJ];
+  cbUseUTF8.Caption := Lang[ID_POPT_UTF8];
 
   // Populate project type list
   lstType.Clear;
@@ -641,6 +651,7 @@ begin
   chkCompileCpp.Caption := Lang[ID_POPT_UNITUSEGPP];
   chkOverrideBuildCmd.Caption := Lang[ID_POPT_OVERRIDEBUILDCMD];
   chkLink.Caption := Lang[ID_POPT_LINKUNIT];
+  cbUnitUseUTF8.Caption := Lang[ID_POPT_UNITUTF8];
 
   // Compiler tab
   lblCompilerSet.Caption := Lang[ID_POPT_COMP];
@@ -873,6 +884,7 @@ begin
     chkLink.Checked := fProjectCopy.Units[idx].Link;
     spnPriority.Enabled := chkCompile.Checked and chkCompile.Enabled;
     spnPriority.Value := fProjectCopy.Units[idx].Priority;
+    cbUnitUseUTF8.Checked := fProjectCopy.Units[idx].UseUTF8;
     chkOverrideBuildCmd.Enabled := chkCompile.Checked and (lvFiles.SelectionCount = 1) and not (filetype in [utcHead,
       utcppHead, utResSrc]);
     txtOverrideBuildCmd.Enabled := chkOverrideBuildCmd.Enabled and chkOverrideBuildCmd.Checked;
@@ -1176,6 +1188,32 @@ begin
   CompOptionsFrame1.vle.Strings.Clear;
 
   Action := caFree;
+end;
+
+procedure TProjectOptionsFrm.cbUnitUseUTF8Click(Sender: TObject);
+  procedure DoNode(Node: TTreeNode);
+  var
+    I: integer;
+    idx: integer;
+  begin
+    for I := 0 to Node.Count - 1 do begin
+      idx := Integer(Node[I].Data);
+      if idx <> -1 then begin // unit
+        fProjectCopy.Units[idx].Compile := chkCompile.Checked;
+        fProjectCopy.Units[idx].CompileCpp := chkCompileCpp.Checked;
+      end else if Node[I].HasChildren then
+        DoNode(Node[I]);
+    end;
+  end;
+var
+  I: integer;
+  idx: integer;
+begin
+  for I := 0 to lvFiles.SelectionCount - 1 do begin
+    idx := Integer(lvFiles.Selections[I].Data);
+    if idx <> -1 then begin // unit
+      fProjectCopy.Units[idx].UseUTF8 := cbUnitUseUTF8.Checked;    end;
+  end;
 end;
 
 end.

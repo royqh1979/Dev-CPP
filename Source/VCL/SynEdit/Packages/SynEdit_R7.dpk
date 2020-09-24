@@ -1,7 +1,5 @@
 package SynEdit_R7;
 
-{ $Id: SynEdit_R7.dpk,v 1.4 2004/06/13 17:14:18 maelh Exp $ }
-
 {$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}

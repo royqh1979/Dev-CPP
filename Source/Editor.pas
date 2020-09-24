@@ -110,7 +110,7 @@ type
     function GetPageControl: TPageControl;
     procedure SetPageControl(Value: TPageControl);
   public
-    constructor Create(const Filename: AnsiString; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+    constructor Create(const Filename: AnsiString;OpenUseUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
@@ -237,7 +237,7 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; OpenUseUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
 var
   s: AnsiString;
   I: integer;
@@ -269,7 +269,8 @@ begin
 
   // Create an editor and set static options
   fText := TSynEdit.Create(fTabSheet);
-  fUseUTF8 := devEditor.UseUTF8ByDefault;
+
+  fUseUTF8 := OpenUseUTF8;
 
   // Load the file using Lines
   if not NewFile and FileExists(FileName) then begin
@@ -917,7 +918,7 @@ var
           SingleQuoteEscape: Result := SingleQuote;
           DoubleQuote: Result := NotQuote;
           DoubleQuoteEscape: Result := DoubleQuote;
-        end;
+        end
       else if Line[i] = '''' then
         Case Result of
           NotQuote: Result := SingleQuote;
@@ -925,7 +926,7 @@ var
           SingleQuoteEscape: Result := SingleQuote;
           DoubleQuote: Result := DoubleQuote;
           DoubleQuoteEscape: Result := DoubleQuote;
-        end;
+        end
       else if Line[i] = '\' then
         Case Result of
           NotQuote: Result := NotQuote;
@@ -933,7 +934,7 @@ var
           SingleQuoteEscape: Result := SingleQuote;
           DoubleQuote: Result := DoubleQuoteEscape;
           DoubleQuoteEscape: Result := DoubleQuote;
-        end;
+        end
       else begin
         Case Result of
           NotQuote: Result := NotQuote;

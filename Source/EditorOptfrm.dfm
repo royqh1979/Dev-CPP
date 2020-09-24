@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 485
     Height = 455
-    ActivePage = tabGeneral
+    ActivePage = tabCBCompletion
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -929,7 +929,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 477
         Height = 425
-        ActivePage = tabCodeCompletion
+        ActivePage = tabSymbolCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet
@@ -1015,7 +1015,7 @@ object EditorOptForm: TEditorOptForm
             Left = 16
             Top = 40
             Width = 273
-            Height = 201
+            Height = 169
             Caption = 'Specific completion options'
             TabOrder = 1
             object cbParenth: TCheckBox
@@ -1034,45 +1034,37 @@ object EditorOptForm: TEditorOptForm
               Caption = 'Complete braces '#39'{}'#39
               TabOrder = 0
             end
-            object cbInclude: TCheckBox
-              Left = 16
-              Top = 72
-              Width = 240
-              Height = 17
-              Caption = 'Complete includes '#39'<>'#39
-              TabOrder = 2
-            end
             object cbComments: TCheckBox
-              Left = 16
-              Top = 120
-              Width = 240
-              Height = 17
-              Caption = 'Complete multiline comments '#39'/**/'#39
-              TabOrder = 4
-            end
-            object cbArray: TCheckBox
               Left = 16
               Top = 96
               Width = 240
               Height = 17
-              Caption = 'Complete square braces '#39'[]'#39
+              Caption = 'Complete multiline comments '#39'/**/'#39
               TabOrder = 3
             end
+            object cbArray: TCheckBox
+              Left = 16
+              Top = 72
+              Width = 240
+              Height = 17
+              Caption = 'Complete square braces '#39'[]'#39
+              TabOrder = 2
+            end
             object cbSingleQuotes: TCheckBox
+              Left = 16
+              Top = 120
+              Width = 240
+              Height = 17
+              Caption = 'Complete single quotes '#39#39#39#39
+              TabOrder = 4
+            end
+            object cbDoubleQuotes: TCheckBox
               Left = 16
               Top = 144
               Width = 240
               Height = 17
-              Caption = 'Complete single quotes '#39#39#39#39
-              TabOrder = 5
-            end
-            object cbDoubleQuotes: TCheckBox
-              Left = 16
-              Top = 168
-              Width = 240
-              Height = 17
               Caption = 'Complete double quotes '#39'""'#39
-              TabOrder = 6
+              TabOrder = 5
             end
           end
           object cbSymbolComplete: TCheckBox
@@ -1086,7 +1078,7 @@ object EditorOptForm: TEditorOptForm
           end
           object cbDeleteCompleted: TCheckBox
             Left = 8
-            Top = 256
+            Top = 216
             Width = 449
             Height = 17
             Caption = 'Delete completed symbols as pairs'
@@ -1199,8 +1191,8 @@ object EditorOptForm: TEditorOptForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 300
-    Top = 460
+    Left = -60
+    Top = 476
     Width = 85
     Height = 25
     Anchors = [akRight, akBottom]

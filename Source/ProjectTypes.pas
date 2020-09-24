@@ -66,6 +66,7 @@ type
   public
     typ: TProjType;
     Ver: integer;
+    UseUTF8: boolean;
     Objfiles: TStrings;
     CompilerCmd: AnsiString;
     CppCompilerCmd: AnsiString;
@@ -168,6 +169,7 @@ begin
   ObjectOutput := '';
   HostApplication := '';
   SupportXPThemes := False;
+  UseUTF8:= devEditor.UseUTF8ByDefault;
   CompilerSet := devCompilerSets.DefaultSetIndex;
   if (CompilerSet < devCompilerSets.Count) and (CompilerSet >= 0) then
     CompilerOptions := devCompilerSets[CompilerSet].INIOptions

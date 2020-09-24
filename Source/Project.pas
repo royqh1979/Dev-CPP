@@ -60,6 +60,7 @@ type
     fBuildCmd: AnsiString;
     fLink: boolean;
     fPriority: integer;
+    fUseUTF8 : boolean;
     function GetModified: boolean;
     procedure SetModified(value: boolean);
     function Save: boolean;
@@ -79,6 +80,7 @@ type
     property BuildCmd: AnsiString read fBuildCmd write fBuildCmd;
     property Link: boolean read fLink write fLink;
     property Priority: integer read fPriority write fPriority;
+    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     procedure Assign(Source: TProjUnit);
   end;
 
@@ -1281,7 +1283,7 @@ begin
     if FileName <> '' then begin
       try
         SetCurrentDir(Directory);
-        fEditor := MainForm.EditorList.NewEditor(ExpandFileName(FileName), true, false);
+        fEditor := MainForm.EditorList.NewEditor(ExpandFileName(FileName), UseUTF8, true, false);
         LoadUnitLayout(fEditor, index);
         Result := fEditor;
       except
@@ -1537,6 +1539,7 @@ begin
 
     // Tell the sender what the result was
     Result := ShowModal;
+
     if Result = mrOk then begin
 
       // Save new settings to RAM
@@ -1588,7 +1591,7 @@ begin
         fIniFile := TMemIniFile.Create(aFileName);
       NewUnit(FALSE, nil);
       with fUnits[fUnits.Count - 1] do begin
-        Editor := MainForm.EditorList.NewEditor(FileName, True, True);
+        Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].UseUTF8, True, True);
         Editor.InsertDefaultText;
         Editor.Activate;
       end;
@@ -1631,7 +1634,7 @@ begin
 
         // Create an editor
         with fUnits[fUnits.Count - 1] do begin
-          Editor := MainForm.EditorList.NewEditor(FileName, True, True);
+          Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].UseUTF8,True, True);
           try
             // Set filename depending on C/C++ choice
             if (Length(aTemplate.Units[I].CppName) > 0) and (aTemplate.Options.useGPP) then begin
@@ -1641,7 +1644,6 @@ begin
               Editor.FileName := aTemplate.Units[I].CName;
               fUnits[fUnits.Count - 1].FileName := aTemplate.Units[I].CName;
             end;
-
             // if file isn't found blindly inserts text of unit
             s2 := ValidateFile(s, devDirs.Templates);
             if s2 <> '' then begin
@@ -1664,7 +1666,7 @@ begin
     end else begin
       NewUnit(FALSE, nil);
       with fUnits[fUnits.Count - 1] do begin
-        Editor := MainForm.EditorList.NewEditor(FileName, TRUE, True);
+        Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].UseUTF8, TRUE, True);
         if fOptions.useGPP then
           s := aTemplate.OldData.CppText
         else

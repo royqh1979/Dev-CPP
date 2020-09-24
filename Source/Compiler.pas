@@ -342,6 +342,7 @@ resourcestring
 var
   i: integer;
   cmdline,FileName, ShortFileName, objStr,ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: AnsiString;
+  encodingStr: AnsiString;
 begin
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
@@ -382,7 +383,7 @@ begin
           objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(objFileName))) + objStr;
         end;
       end else begin
-        if shortFileName <> FileName then begin
+        if shortFileName <> ExtractFileName(FileName) then begin
           objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(shortFileName))) + objStr;
         end;
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
@@ -398,16 +399,21 @@ begin
 
         // Or roll our own
       end else begin
+        if fProject.Units[i].UseUTF8 then
+          encodingStr := ' -finput-charset=utf-8 -fexec-charset='+GetSystemCharsetName+ ' '
+        else
+          encodingStr := '';
+
         if fCheckSyntax then begin
           if fProject.Units[i].CompileCpp then
-            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' $(CXXFLAGS)')
+            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' $(CXXFLAGS) '+encodingStr)
           else
-            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' $(CFLAGS)');
+            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' $(CFLAGS) '+encodingStr);
         end else begin
           if fProject.Units[i].CompileCpp then
-            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CXXFLAGS)')
+            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CXXFLAGS) ' + encodingStr)
           else
-            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CFLAGS)');
+            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CFLAGS) ' + encodingStr);
         end;
       end;
     end;

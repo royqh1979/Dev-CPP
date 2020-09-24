@@ -781,6 +781,8 @@ Ver=1
 55033=Are you sure you want to discard customizations made to this set in your project?
 55034=C++ compiler:
 55035=Linker:
+55036=Use UTF-8 As the default project file encoding.
+55037=Use UTF-8 Encoding
 
 56001=Name:
 56002=Description:

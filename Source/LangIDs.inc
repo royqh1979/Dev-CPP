@@ -97,6 +97,7 @@ const
   ID_ITEM_MOVESELDOWN                   = 22012;
   ID_ITEM_SWAPEDITOR                    = 22013;
   ID_ITEM_TOGGLECOMMENTINLINE           = 22014;
+  ID_ITEM_UTF8 = 22015;
 
   // search menu
   ID_ITEM_FIND                          = 5001;
@@ -186,8 +187,8 @@ const
   //debug menu
   ID_ITEM_DEBUG                         = 10001;
   ID_ITEM_TOGGLEBREAK                   = 10002;
-  ID_ITEM_STEPNEXT                      = 10003;
-  ID_ITEM_STEPOVER                      = 10004;
+  ID_ITEM_STEPOVER                      = 10003;
+  ID_ITEM_CONTINUE                      = 10004;
   ID_ITEM_WATCHADD                      = 10005;
   ID_ITEM_WATCHITEMS                    = 10006;
   ID_ITEM_STOPEXECUTION                 = 10007;
@@ -199,7 +200,7 @@ const
   ID_ITEM_ATTACHPROCESS                 = 10013;
   ID_ITEM_MODIFYVALUE                   = 10014;
   ID_ITEM_CLEARALL                      = 10015;
-
+   
   // context menus
  
   // project popup
@@ -210,9 +211,10 @@ const
   ID_POP_EDITRES                        = 10020;
   ID_ITEM_NEXTINS                       = 10021;
   ID_ITEM_STEPINS                       = 10022;
-  ID_ITEM_SKIPFUNCTION                  = 10023;
+  ID_ITEM_STEPOUT                  = 10023;
   ID_ITEM_GOTOBREAKPOINT                = 10024;
-  
+  ID_ITEM_CALLSTACK          = 10025;
+
   // unit popup
   ID_POP_REMOVE                         = 11001;
   ID_POP_RENAME                         = 11002;
@@ -375,6 +377,7 @@ const
   ID_EOPT_AUTOINDENT2                   = 26028;
   ID_EOPT_ADDINDENT                     = 26029;
   ID_EOPT_TABS                          = 26030;
+  ID_EOPT_UTF8                          = 26031;
   
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;
@@ -836,6 +839,9 @@ const
   ID_POPT_DISCARDCUSTOM                 = 55033;
   ID_POPT_CPPCOMP                       = 55034;
   ID_POPT_LINKER                        = 55035;
+
+  ID_POPT_UTF8                          = 55036;
+  ID_POPT_UNITUTF8                       = 55037;
   
   // New template form
   ID_NEWTPL_NAME                        = 56001;
@@ -977,6 +983,7 @@ const
   ID_ERR_ERRORLAUNCHINGGDB              = 61022;
   ID_ERR_GDBNOUTFOUND                   = 61023;
   ID_ERR_WRITEGDB                       = 61024;
+  ID_ERR_FILEMODIFIED               = 61025;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;

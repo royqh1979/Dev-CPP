@@ -589,7 +589,6 @@ type
     procedure actProjectAddExecute(Sender: TObject);
     procedure actProjectRemoveExecute(Sender: TObject);
     procedure actProjectOptionsExecute(Sender: TObject);
-    procedure actProjectSourceExecute(Sender: TObject);
     procedure actFindExecute(Sender: TObject);
     procedure actFindAllExecute(Sender: TObject);
     procedure actReplaceExecute(Sender: TObject);
@@ -855,7 +854,7 @@ type
     function GetCompileTarget: TTarget;
     procedure UpdateAppTitle;
     procedure OpenCloseMessageSheet(Open: boolean);
-    procedure OpenFile(const FileName: AnsiString);
+    procedure OpenFile(const FileName: AnsiString;OpenUseUTF8:boolean);
     procedure OpenFileList(List: TStringList);
     procedure OpenProject(const s: AnsiString);
     procedure GotoBreakpoint(const FileName: AnsiString; Line: integer);
@@ -1457,7 +1456,7 @@ begin
     if GetFileTyp(s) = utPrj then
       OpenProject(s)
     else
-      OpenFile(s);
+      OpenFile(s, devEditor.UseUTF8ByDefault);
   end else
     MessageDlg(Format(Lang[ID_ERR_RENAMEDDELETED], [s]), mtInformation, [mbOK], 0);
 end;
@@ -1520,7 +1519,7 @@ begin
   end;
 end;
 
-procedure TMainForm.OpenFile(const FileName: AnsiString);
+procedure TMainForm.OpenFile(const FileName: AnsiString; OpenUseUTF8: boolean);
 var
   e: TEditor;
 begin
@@ -1539,7 +1538,7 @@ begin
   end;
 
   // Open the file in an editor
-  e := fEditorList.NewEditor(FileName, False, False);
+  e := fEditorList.NewEditor(FileName,OpenUseUTF8, False, False);
   UpdateFileEncodingStatusPanel;
   if Assigned(fProject) then begin
     if (not SameFileName(fProject.FileName, FileName)) and (fProject.GetUnitFromString(FileName) = -1) then
@@ -1575,7 +1574,7 @@ begin
     fEditorList.BeginUpdate;
     try
       for I := 0 to List.Count - 1 do
-        OpenFile(List[I]); // open all files
+        OpenFile(List[I], devEditor.UseUTF8ByDefault); // open all files
     finally
       fEditorList.EndUpdate;
     end;
@@ -1921,7 +1920,7 @@ begin
     end;
   end;
 
-  NewEditor := fEditorList.NewEditor('', False, True);
+  NewEditor := fEditorList.NewEditor('',devEditor.UseUTF8ByDefault, False, True);
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
   UpdateFileEncodingStatusPanel;
@@ -2643,6 +2642,9 @@ begin
 end;
 
 procedure TMainForm.actProjectOptionsExecute(Sender: TObject);
+var
+  i,t: integer;
+  e: TEditor;
 begin
   if Assigned(fProject) then begin
     if fProject.ShowOptions = mrOk then begin
@@ -2650,12 +2652,6 @@ begin
       UpdateCompilerList;
     end;
   end;
-end;
-
-procedure TMainForm.actProjectSourceExecute(Sender: TObject);
-begin
-  if assigned(fProject) then
-    OpenFile(fProject.FileName);
 end;
 
 procedure TMainForm.actFindExecute(Sender: TObject);
@@ -3354,7 +3350,7 @@ begin
   fCompiler.BuildMakeFile;
 
   // Show the results
-  OpenFile(fCompiler.MakeFile);
+  OpenFile(fCompiler.MakeFile,devEditor.UseUTF8ByDefault);
 end;
 
 procedure TMainForm.actMsgCutExecute(Sender: TObject);
@@ -4882,7 +4878,7 @@ begin
           if n > 0 then
             Delete(filename, n, maxint);
           try
-            OpenFile(filename);
+            OpenFile(filename, devEditor.UseUTF8ByDefault);
           except
           end;
         end;
@@ -6819,7 +6815,7 @@ end;
 procedure TMainForm.actUseUTF8Execute(Sender: TObject);
 var
   e:TEditor;
-  choice: integer;
+  choice,i: integer;
 begin
   e:=fEditorList.GetEditor;
   if assigned(e) then begin
@@ -6832,6 +6828,14 @@ begin
     end;
     e.UseUTF8 := not e.UseUTF8;
     e.LoadFile(e.FileName);
+    if e.InProject and Assigned(fProject) then
+      for i:=0 to fProject.Units.Count-1 do begin
+        DoLogEntry(e.FileName);
+        if e.FileName = fProject.Units[i].FileName then begin
+          fProject.Units[i].UseUTF8 := e.UseUTF8;
+          break;
+        end;
+      end;
     UpdateFileEncodingStatusPanel;
   end;
 end;

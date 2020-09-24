@@ -1,10 +1,10 @@
 object ProjectOptionsFrm: TProjectOptionsFrm
-  Left = 820
-  Top = 561
+  Left = 626
+  Top = 293
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Project Options'
-  ClientHeight = 382
+  ClientHeight = 395
   ClientWidth = 534
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
   TextHeight = 15
   object btnOk: TBitBtn
     Left = 260
-    Top = 350
+    Top = 366
     Width = 85
     Height = 25
     Caption = '&OK'
@@ -49,7 +49,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
   end
   object btnCancel: TBitBtn
     Left = 350
-    Top = 350
+    Top = 366
     Width = 85
     Height = 25
     Caption = '&Cancel'
@@ -59,7 +59,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
   end
   object btnHelp: TBitBtn
     Left = 440
-    Top = 350
+    Top = 366
     Width = 85
     Height = 25
     TabOrder = 2
@@ -70,7 +70,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Left = 0
     Top = 0
     Width = 534
-    Height = 342
+    Height = 361
     ActivePage = tabGeneral
     TabOrder = 3
     object tabGeneral: TTabSheet
@@ -129,7 +129,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
       end
       object grpIcon: TGroupBox
         Left = 12
-        Top = 166
+        Top = 190
         Width = 245
         Height = 138
         Caption = '  Icon:  '
@@ -265,7 +265,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
       end
       object grpType: TGroupBox
         Left = 272
-        Top = 166
+        Top = 190
         Width = 245
         Height = 138
         Caption = '  Type:  '
@@ -312,6 +312,14 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           'his name'
         TabOrder = 2
       end
+      object cbUseUTF8: TCheckBox
+        Left = 8
+        Top = 156
+        Width = 281
+        Height = 17
+        Caption = 'Use UTF8 As the project'#39's default file encoding'
+        TabOrder = 3
+      end
     end
     object tabFiles: TTabSheet
       Caption = 'Files'
@@ -355,7 +363,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         end
         object chkCompileCpp: TCheckBox
           Left = 8
-          Top = 80
+          Top = 84
           Width = 217
           Height = 17
           Caption = 'Compile unit as C++'
@@ -365,7 +373,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         end
         object chkOverrideBuildCmd: TCheckBox
           Left = 8
-          Top = 100
+          Top = 124
           Width = 217
           Height = 17
           Caption = 'Override build command'
@@ -375,9 +383,9 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         end
         object txtOverrideBuildCmd: TMemo
           Left = 8
-          Top = 122
+          Top = 144
           Width = 281
-          Height = 167
+          Height = 145
           Enabled = False
           ScrollBars = ssBoth
           TabOrder = 3
@@ -386,7 +394,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         end
         object chkLink: TCheckBox
           Left = 8
-          Top = 62
+          Top = 64
           Width = 217
           Height = 17
           Caption = 'Include in linking process'
@@ -405,6 +413,16 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           TabOrder = 5
           Value = 0
           OnChange = spnPriorityChange
+        end
+        object cbUnitUseUTF8: TCheckBox
+          Left = 8
+          Top = 104
+          Width = 217
+          Height = 17
+          Caption = 'Use UTF-8 Encoding'
+          Enabled = False
+          TabOrder = 6
+          OnClick = cbUnitUseUTF8Click
         end
       end
     end
@@ -480,7 +498,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Width = 495
         Height = 23
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 15
         TabOrder = 1
         OnChange = cmbCompilerChange
       end
@@ -589,7 +607,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Left = 0
         Top = 0
         Width = 526
-        Height = 312
+        Height = 331
         Align = alClient
         TabOrder = 0
         Tabs.Strings = (
@@ -910,7 +928,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
       object lblExeOutput: TLabel
         Left = 10
         Top = 24
-        Width = 148
+        Width = 149
         Height = 15
         Caption = '&Executable output directory:'
         FocusControl = edExeOutput
@@ -1379,7 +1397,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 209
           Height = 23
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 15
           Sorted = True
           TabOrder = 4
         end
@@ -1401,6 +1419,16 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           OnClick = SetFileVersion
         end
       end
+      object CheckBox1: TCheckBox
+        Left = 8
+        Top = 44
+        Width = 217
+        Height = 17
+        Caption = 'Include in compilation process'
+        Enabled = False
+        TabOrder = 2
+        OnClick = chkCompileClick
+      end
     end
   end
   object dlgOpen: TOpenDialog
@@ -1410,24 +1438,24 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Options = [ofHideReadOnly, ofAllowMultiSelect]
     Title = 'Open object file'
     Left = 38
-    Top = 342
+    Top = 358
   end
   object dlgPic: TOpenPictureDialog
     DefaultExt = 'ico'
     Filter = 'Icons (*.ico)|*.ico'
     Title = 'Open icon'
     Left = 3
-    Top = 342
+    Top = 358
   end
   object dlgMakeInclude: TOpenDialog
     Filter = 'Makefile Addons (*.mak)|*.mak|All Files (*.*)|*.*'
     Left = 72
-    Top = 344
+    Top = 360
   end
   object dlgCustomMake: TOpenDialog
     Filter = 'All Files (*.*)|*.*'
     FilterIndex = 0
     Left = 108
-    Top = 344
+    Top = 360
   end
 end

@@ -1,11 +1,11 @@
 object MainForm: TMainForm
-  Left = 555
-  Top = 127
+  Left = 229
+  Top = 23
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++'
-  ClientHeight = 562
+  ClientHeight = 545
   ClientWidth = 1001
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -28,13 +28,13 @@ object MainForm: TMainForm
   object SplitterLeft: TSplitter
     Left = 193
     Top = 56
-    Height = 300
+    Height = 283
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 356
+    Top = 339
     Width = 1001
     Height = 3
     Cursor = crVSplit
@@ -44,7 +44,7 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 359
+    Top = 342
     Width = 1001
     Height = 183
     ActivePage = DebugSheet
@@ -61,7 +61,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 993
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -105,7 +105,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 993
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -149,13 +149,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 156
-        Height = 154
+        Height = 155
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           156
-          154)
+          155)
         object btnAbortCompilation: TSpeedButton
           Left = 4
           Top = 4
@@ -186,7 +186,7 @@ object MainForm: TMainForm
         Left = 156
         Top = 0
         Width = 837
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -217,13 +217,13 @@ object MainForm: TMainForm
         Left = 589
         Top = 0
         Width = 404
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           404
-          154)
+          155)
         object lblSendCommandGdb: TLabel
           Left = 4
           Top = 7
@@ -245,7 +245,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 30
           Width = 397
-          Height = 110
+          Height = 109
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -256,7 +256,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 589
-        Height = 154
+        Height = 155
         Align = alLeft
         BevelOuter = bvNone
         BiDiMode = bdLeftToRight
@@ -264,7 +264,7 @@ object MainForm: TMainForm
         TabOrder = 1
         DesignSize = (
           589
-          154)
+          155)
         object DDebugBtn: TSpeedButton
           Left = 4
           Top = 7
@@ -440,7 +440,7 @@ object MainForm: TMainForm
           Left = 4
           Top = 100
           Width = 578
-          Height = 39
+          Height = 38
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
@@ -479,7 +479,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 993
-        Height = 154
+        Height = 155
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -916,7 +916,7 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 542
+    Top = 525
     Width = 1001
     Height = 20
     Panels = <
@@ -946,7 +946,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 56
     Width = 193
-    Height = 300
+    Height = 283
     ActivePage = LeftDebugSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
@@ -959,7 +959,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 271
+        Height = 255
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -994,7 +994,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 271
+        Height = 255
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -1030,7 +1030,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 185
-        Height = 271
+        Height = 255
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -1052,7 +1052,7 @@ object MainForm: TMainForm
     Left = 196
     Top = 56
     Width = 805
-    Height = 300
+    Height = 283
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
@@ -1061,7 +1061,7 @@ object MainForm: TMainForm
       Left = 805
       Top = 0
       Width = 0
-      Height = 300
+      Height = 283
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1070,7 +1070,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 805
-      Height = 300
+      Height = 283
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1087,7 +1087,7 @@ object MainForm: TMainForm
       Left = 805
       Top = 0
       Width = 0
-      Height = 300
+      Height = 283
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -2165,7 +2165,6 @@ object MainForm: TMainForm
       Tag = 6
       Category = 'Project'
       Caption = 'Source'
-      OnExecute = actProjectSourceExecute
       OnUpdate = actUpdateProject
     end
     object actCompile: TAction
