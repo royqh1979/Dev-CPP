@@ -146,7 +146,6 @@ type
     grpSpecific: TGroupBox;
     cbParenth: TCheckBox;
     cbBraces: TCheckBox;
-    cbInclude: TCheckBox;
     cbComments: TCheckBox;
     cbArray: TCheckBox;
     cbSymbolComplete: TCheckBox;
@@ -390,7 +389,7 @@ begin
     cbArray.Checked := ArrayComplete;
     cbBraces.Checked := BraceComplete;
     cbComments.Checked := CommentComplete;
-    cbInclude.Checked := IncludeComplete;
+    //cbInclude.Checked := IncludeComplete;
     cbParenth.Checked := ParentheseComplete;
     cbSingleQuotes.Checked := SingleQuoteComplete;
     cbDoubleQuotes.Checked := DoubleQuoteComplete;
@@ -623,7 +622,6 @@ begin
   grpSpecific.Caption := Lang[ID_EOPT_SYMBOLGROUP];
   cbBraces.Caption := Lang[ID_EOPT_SYMBOLBRACES];
   cbParenth.Caption := Lang[ID_EOPT_SYMBOLPARENT];
-  cbInclude.Caption := Lang[ID_EOPT_SYMBOLINCLUDE];
   cbArray.Caption := Lang[ID_EOPT_SYMBOLSQUARE];
   cbComments.Caption := Lang[ID_EOPT_SYMBOLCOMMENT];
   cbSingleQuotes.Caption := Lang[ID_EOPT_SYMBOLSINGLEQUOTE];
@@ -709,7 +707,7 @@ begin
     ArrayComplete := cbArray.Checked;
     BraceComplete := cbBraces.Checked;
     CommentComplete := cbComments.Checked;
-    IncludeComplete := cbInclude.Checked;
+    //IncludeComplete := cbInclude.Checked;
     ParentheseComplete := cbParenth.Checked;
     SingleQuoteComplete := cbSingleQuotes.Checked;
     DoubleQuoteComplete := cbDoubleQuotes.Checked;
@@ -1400,7 +1398,6 @@ begin
   cbArray.Enabled := cbSymbolComplete.Checked;
   cbBraces.Enabled := cbSymbolComplete.Checked;
   cbComments.Enabled := cbSymbolComplete.Checked;
-  cbInclude.Enabled := cbSymbolComplete.Checked;
   cbParenth.Enabled := cbSymbolComplete.Checked;
   cbSingleQuotes.Enabled := cbSymbolComplete.Checked;
   cbDoubleQuotes.Enabled := cbSymbolComplete.Checked;

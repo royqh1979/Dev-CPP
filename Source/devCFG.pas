@@ -2398,7 +2398,7 @@ begin
 
   // Display
   fFont.name := 'Consolas';
-  fFont.Size := 10;
+  fFont.Size := 12;
 
   // Display #2
   fShowGutter := TRUE;
@@ -2418,15 +2418,15 @@ begin
   fAutoSaveMode := 0;
 
   // Symbol completion
-  fCompleteSymbols := TRUE;
-  fBraceComplete := TRUE;
-  fParentheseComplete := TRUE;
-  fIncludeComplete := TRUE;
-  fArrayComplete := TRUE;
-  fCommentComplete := FALSE;
-  fSingleQuoteComplete := TRUE;
-  fDoubleQuoteComplete := TRUE;
-  fDeleteSymbolPairs := TRUE;
+  fCompleteSymbols := False;
+  fBraceComplete := False;
+  fParentheseComplete := False;
+  fIncludeComplete := False;
+  fArrayComplete := False;
+  fCommentComplete := False;
+  fSingleQuoteComplete := False;
+  fDoubleQuoteComplete := False;
+  fDeleteSymbolPairs := False;
 
   fUseUTF8ByDefault := False;
 end;

@@ -414,6 +414,7 @@ type
     procedure ReScan;
     procedure ScanForFoldRanges(TopFoldRanges: TSynEditFoldRanges; LinesToScan: TStrings);
     function GetLineIndent(const Line: AnsiString): Integer;
+    function GetPreviousLeftBracket(x:Integer; y: Integer): TBufferCoord;
     procedure SetUseCodeFolding(value: boolean);
     procedure BookMarkOptionsChanged(Sender: TObject);
     procedure ComputeCaret(X, Y: Integer);
@@ -6309,6 +6310,7 @@ var
   BeginIndex: integer;
   EndIndex: integer;
   StartOfBlock: TBufferCoord;
+  CurrentBracketPos, MatchBracketPos: TBufferCoord;
   bChangeScroll: boolean;
   moveBkm: boolean;
   WP: TBufferCoord;
@@ -6326,6 +6328,7 @@ var
   Attr: TSynHighlighterAttributes;
   StartPos: Integer;
   EndPos: Integer;
+  tempStr : AnsiString;
 begin
   IncPaintLock;
   try
@@ -6818,16 +6821,30 @@ begin
             if Len > 0 then begin
               if Len >= CaretX then begin
                 if CaretX > 1 then begin
-                  Temp := Copy(LineText, 1, CaretX - 1);
+                  Temp := TrimRight(Copy(LineText, 1, CaretX - 1));
                   SpaceCount1 := LeftSpacesEx(Temp, true);
                   Delete(Temp2, 1, CaretX - 1);
-                  Lines.Insert(CaretY, GetLeftSpacing(SpaceCount1, true) + Temp2);
-                  ProperSetLine(CaretY - 1, Temp);
+                  Lines[CaretY-1] := Temp;
+                  Lines.Insert(CaretY, GetLeftSpacing(SpaceCount1, true));
+                  if (eoAddIndent in Options) and GetHighlighterAttriAtRowCol(BufferCoord(Length(Temp), CaretY),
+                    Temp, Attr) then begin // only add indent to source files
+                    if Attr <> Highlighter.CommentAttribute then begin // and outside of comments
+                      if Temp[Length(Temp)] in ['{', ':'] then begin // add more indent for these too
+                        if not (eoTabsToSpaces in Options) then begin
+                          Lines[CaretY] := Lines[CaretY] + TSynTabChar;
+                        end else begin
+                          Lines[CaretY] := Lines[CaretY] + StringOfChar(' ', TabWidth);
+                        end;
+                      end;
+                    end;
+                  end;
+                  SpaceCount1 := Length(Lines[CaretY]);
+                  Lines[CaretY] := Lines[CaretY] + Temp2;
                   fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, Temp2,
                     smNormal);
                   if Command = ecLineBreak then
                     InternalCaretXY := BufferCoord(
-                      Length(GetLeftSpacing(SpaceCount1, true)) + 1,
+                      SpaceCount1+1,
                       CaretY + 1);
                 end else begin
                   Lines.Insert(CaretY - 1, '');
@@ -6992,25 +7009,19 @@ begin
 
             // Remove TabWidth of indent of the current line when typing a }
             if AChar in ['}'] then begin
-
               // and the first nonblank char is this new }
               if TrimLeft(Lines[CaretY - 1]) = '' then begin
-
-                i := CaretX - 1;
-                SpaceCount1 := 0; // buffer character count
-                SpaceCount2 := 0; // display character count
-                while (i > 0) and (i <= Length(Lines[CaretY - 1])) and (SpaceCount2 < TabWidth) do begin
-                  if Lines[CaretY - 1][i] = #9 then begin
-                    Inc(SpaceCount1);
-                    Inc(SpaceCount2, TabWidth);
-                  end else if Lines[CaretY - 1][i] = #32 then begin
-                    Inc(SpaceCount1);
-                    Inc(SpaceCount2);
+                MatchBracketPos := GetPreviousLeftBracket(CaretX, CaretY);
+                if (MatchBracketPos.Line > 0) then begin
+                  i := 1;
+                  while (i<=Length(Lines[MatchBracketPos.Line-1])) do begin
+                    if  not (Lines[MatchBracketPos.Line-1][i] in [#9,#32]) then
+                      break;
+                    inc(i);
                   end;
-                  Dec(i);
+                  Lines[CaretY - 1] := Copy(Lines[MatchBracketPos.Line-1], 1, i-1);
+                  InternalCaretXY := BufferCoord(length(Lines[CaretY - 1])+1, CaretY);
                 end;
-                Lines[CaretY - 1] := Copy(Lines[CaretY - 1], 1, i);
-                InternalCaretXY := BufferCoord(CaretX - SpaceCount1, CaretY);
               end;
             end;
           end;
@@ -9111,6 +9122,64 @@ end;
 function TCustomSynEdit.GetMatchingBracket: TBufferCoord;
 begin
   Result := GetMatchingBracketEx(CaretXY);
+end;
+
+
+function TCustomSynEdit.GetPreviousLeftBracket(x:Integer; y: Integer): TBufferCoord;
+var
+  Line: string;
+  PosX, PosY: integer;
+  Test: char;
+  NumBrackets: integer;
+  vDummy: string;
+  attr: TSynHighlighterAttributes;
+  p: TBufferCoord;
+  isCommentOrStringOrChar: boolean;
+begin
+  Result.Char := 0;
+  Result.Line := 0;
+  // get char at caret
+  PosX := x-1;
+  PosY := y;
+  if PosX<1 then
+    dec(PosY);
+  if PosY<1 then
+    Exit;
+  Line := Lines[PosY - 1];
+  if (PosX > Length(Line)) or (PosX<1) then
+    PosX := Length(Line);
+  numBrackets := 1;
+  while True do begin
+    Test := Line[PosX];
+    p.Char := PosX;
+    p.Line := PosY;
+    if Test in ['{','}'] then begin
+      if GetHighlighterAttriAtRowCol(p, vDummy, attr) then
+        isCommentOrStringOrChar :=
+           (attr = Highlighter.StringAttribute) or (attr = Highlighter.CommentAttribute) or (attr.Name
+                    =
+                    'Character')
+      else
+        isCommentOrStringOrChar := false;
+      if (Test = '{') and (not isCommentOrStringOrChar) then
+        dec(NumBrackets)
+      else if (Test = '}') and (not isCommentOrStringOrChar) then
+        inc(NumBrackets);
+      if NumBrackets = 0 then begin
+        // matching bracket found, set caret and bail out
+        Result := p;
+        exit;
+      end;
+    end;
+    dec(PosX);
+    if PosX<1 then begin
+      dec(PosY);
+      if PosY<1 then
+        Exit;
+      Line := Lines[PosY - 1];
+      PosX := Length(Line);
+    end;
+  end;
 end;
 
 function TCustomSynEdit.GetMatchingBracketEx(

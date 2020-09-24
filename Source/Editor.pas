@@ -54,13 +54,6 @@ type
     hprNone // mouseover not allowed
     );
 
-  // Define what we want to skip
-  TSymbolCompleteState = (
-    scsSkipped, // skipped over completed symbol
-    scsInserted, // opening symbol has been inserted
-    scsFinished // keystroke that triggered insertion has completed
-    );
-
   TEditor = class(TObject)
   private
     fInProject: boolean;
@@ -82,9 +75,7 @@ type
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
     fFunctionTip: TCodeToolTip;
-    fParenthCompleteState: TSymbolCompleteState;
-    fArrayCompleteState: TSymbolCompleteState;
-    fBraceCompleteState: TSymbolCompleteState;
+
     fUseUTF8: boolean;
     //fSingleQuoteCompleteState: TSymbolCompleteState;
     //fDoubleQuoteCompleteState: TSymbolCompleteState;
@@ -566,13 +557,6 @@ begin
   if scSelection in Changes then begin
     MainForm.SetStatusbarLineCol;
 
-    // Finish symbol completion
-    if fParenthCompleteState = scsInserted then
-      fParenthCompleteState := scsFinished;
-    if fArrayCompleteState = scsInserted then
-      fArrayCompleteState := scsFinished;
-    if fBraceCompleteState = scsInserted then
-      fBraceCompleteState := scsFinished;
 
     // Update the function tip
     fFunctionTip.ForceHide := false;
@@ -909,39 +893,86 @@ begin
 end;
 
 procedure TEditor.HandleSymbolCompletion(var Key: Char);
+Type
+  TQuoteStates = (NotQuote, SingleQuote, SingleQuoteEscape, DoubleQuote, DoubleQuoteEscape);
 var
   Attr: TSynHighlighterAttributes;
   Token: AnsiString;
   HighlightPos: TBufferCoord;
+  status : TQuoteStates;
+
+  function GetQuoteState:TQuoteStates;
+  var
+    Line: AnsiString;
+    posX,i : Integer;
+  begin
+    Result := NotQuote;
+    Line := Text.Lines[fText.CaretY-1];
+    posX :=fText.CaretX-1;
+    for i:=1 to posX do begin
+      if Line[i] = '"' then
+        Case Result of
+          NotQuote: Result := DoubleQuote;
+          SingleQuote: Result := SingleQuote;
+          SingleQuoteEscape: Result := SingleQuote;
+          DoubleQuote: Result := NotQuote;
+          DoubleQuoteEscape: Result := DoubleQuote;
+        end;
+      if Line[i] = '''' then
+        Case Result of
+          NotQuote: Result := SingleQuote;
+          SingleQuote: Result := NotQuote;
+          SingleQuoteEscape: Result := SingleQuote;
+          DoubleQuote: Result := DoubleQuote;
+          DoubleQuoteEscape: Result := DoubleQuote;
+        end;
+      if Line[i] = '\' then
+        Case Result of
+          NotQuote: Result := NotQuote;
+          SingleQuote: Result := SingleQuoteEscape;
+          SingleQuoteEscape: Result := SingleQuote;
+          DoubleQuote: Result := DoubleQuoteEscape;
+          DoubleQuoteEscape: Result := DoubleQuote;
+        end;
+    end;
+  end;
 
   procedure HandleParentheseCompletion;
   begin
     InsertString(')', false);
     if FunctionTipAllowed then
       fFunctionTip.Activated := true;
-    fParenthCompleteState := scsInserted;
   end;
 
   procedure HandleParentheseSkip;
+  var
+    pos : TBufferCoord;
   begin
-    if fParenthCompleteState = scsFinished then begin
+    if fText.Lines[fText.CaretY-1][fText.CaretX]<> ')' then
+      Exit;
+    pos:=Text.GetMatchingBracket;
+    if pos.Line <> 0 then begin
       fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
-      fParenthCompleteState := scsSkipped;
       Key := #0; // remove key press
     end;
+    if FunctionTipAllowed then
+      fFunctionTip.Activated := false;
   end;
 
   procedure HandleArrayCompletion;
   begin
     InsertString(']', false);
-    fArrayCompleteState := scsInserted;
   end;
 
   procedure HandleArraySkip;
+  var
+    pos : TBufferCoord;
   begin
-    if fArrayCompleteState = scsFinished then begin
+    if fText.Lines[fText.CaretY-1][fText.CaretX]<> ']' then
+      Exit;
+    pos:=Text.GetMatchingBracket;
+    if pos.Line <> 0 then begin
       fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
-      fArrayCompleteState := scsSkipped;
       Key := #0; // remove key press
     end;
   end;
@@ -953,106 +984,75 @@ var
   end;
 
   procedure HandleBraceCompletion;
-  var
-    LineBeforeCaret, Indent, MoreIndent: AnsiString;
-    IndentCount, TabCount: integer;
   begin
-    // Determine what word is before us
-    LineBeforeCaret := Trim(Copy(fText.LineText, 1, fText.CaretX - 1));
-
-    // Determine current indent
-    IndentCount := fText.LeftSpacesEx(fText.LineText, True);
-
-    // Get indentation string
-    if eoTabsToSpaces in fText.Options then
-      Indent := System.StringOfChar(#32, IndentCount)
-    else begin
-      // Use tabs as much as possible, add remaining indent using spaces
-      TabCount := IndentCount div fText.TabWidth;
-      Indent := System.StringOfChar(#9, TabCount) + System.StringOfChar(#32, IndentCount - fText.TabWidth * TabCount);
-    end;
-
-    // For case, do the following:
-    //{ + enter + indent + tab + break; + enter + }
-    if StartsStr('case', LineBeforeCaret) or
-      StartsStr('default', LineBeforeCaret) then begin
-
-      // Get extra indentation string
-      if eoTabsToSpaces in fText.Options then
-        MoreIndent := System.StringOfChar(#32, IndentCount + fText.TabWidth)
-      else
-        MoreIndent := System.StringOfChar(#9, (IndentCount + fText.TabWidth) div fText.TabWidth);
-
-      InsertString('{' + #13#10 + MoreIndent + 'break;' + #13#10 + Indent + '}', false);
-      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY);
-      Key := #0; // cancel original key insertion
-
-      // For other valid block starts, do the following:
-      // { + enter + indent + }
-    end else if EndsStr(')', LineBeforeCaret) or
-      SameStr('', LineBeforeCaret) or
-      EndsStr('else', LineBeforeCaret) or
-      EndsStr('try', LineBeforeCaret) or
-      EndsStr('catch', LineBeforeCaret) or
-      StartsStr('namespace', LineBeforeCaret) or
-      EndsStr('do', LineBeforeCaret) then begin
-
-      InsertString('{' + #13#10 + Indent + '}', false);
-      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY);
-      Key := #0; // cancel original key insertion
-
-      // For structs and derivatives, do the following:
-      // { + enter + indent + }; <-- SAME EXCEPT FOR THE SEMICOLON
-    end else if
-      StartsStr('struct', LineBeforeCaret) or
-      StartsStr('union', LineBeforeCaret) or
-      StartsStr('class', LineBeforeCaret) or
-      StartsStr('enum', LineBeforeCaret) or
-      StartsStr('typedef ', LineBeforeCaret) then begin
-
-      InsertString('{' + #13#10 + Indent + '};', false);
-      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY);
-      Key := #0; // cancel original key insertion
-    end else begin
-      InsertString('}', false);
-      fBraceCompleteState := scsInserted;
-    end;
+    InsertString('}', false);
   end;
 
   procedure HandleBraceSkip;
+  var
+    pos : TBufferCoord;
+    temp : AnsiString;
   begin
-    if fBraceCompleteState = scsFinished then begin
-      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
-      fBraceCompleteState := scsSkipped;
-      Key := #0; // remove key press
-    end;
-  end;
+    if fText.Lines[fText.CaretY-1][fText.CaretX]<> '}' then
+      Exit;
+    pos:=Text.GetMatchingBracket;
+    if pos.Line <> 0 then begin
 
-  procedure HandleLocalIncludeCompletion;
-  begin
-    if StartsStr('#include', fText.LineText) then begin
-      InsertString('"', false);
-      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
-      Key := #0;
+      // prevent lots of repaints
+      fText.BeginUpdate;
+      try
+        temp := fText.Lines[fText.CaretY-1];
+        Delete(temp,fText.CaretX,1);
+        fText.Lines[fText.CaretY-1] := Temp;
+      // prevent lots of repaints
+      finally
+        fText.EndUpdate;
+      end;
+//      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
+//      Key := #0; // remove key press
     end;
-  end;
-
-  procedure HandleGlobalIncludeCompletion;
-  begin
-    if StartsStr('#include', fText.LineText) then
-      InsertString('>', false);
   end;
 
   procedure HandleSingleQuoteCompletion;
+  var
+    status:TQuoteStates;
+    ch: AnsiChar;
   begin
-    InsertString('''', false);
-    //fSingleQuoteCompleteState := scsTyped;
+    status := GetQuoteState;
+    ch := fText.Lines[fText.CaretY-1][fText.CaretX];
+    if ch = '''' then begin
+      if (status = SingleQuote) then begin
+        fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
+        Key := #0; // remove key press
+      end;
+    end else begin
+      if (status = NotQuote) then begin
+        if (ch in Text.Highlighter.WordBreakChars) or
+          (ch in [#9,#32,#0]) then
+          InsertString('''', false);
+      end;
+    end;
   end;
 
   procedure HandleDoubleQuoteCompletion;
+  var
+    status:TQuoteStates;
+    ch: AnsiChar;
   begin
-    InsertString('"', false);
-    //fDoubleQuoteCompleteState := scsTyped;
+    status := GetQuoteState;
+    ch := fText.Lines[fText.CaretY-1][fText.CaretX];
+    if ch = '"' then begin
+      if (status = DoubleQuote) then begin
+        fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
+        Key := #0; // remove key press
+      end;
+    end else begin
+      if (status = NotQuote) then begin
+        if (ch in Text.Highlighter.WordBreakChars) or
+          (ch in [#9,#32,#0]) then
+          InsertString('"', false);
+      end;
+    end;
   end;
 
 begin
@@ -1065,11 +1065,14 @@ begin
     Dec(HighlightPos.Line);
   HighlightPos.Char := Length(fText.Lines[HighlightPos.Line - 1]);
 
-  // Check if that line is highlighted as string or character or comment
+  // Check if that line is highlighted as  comment
   if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, Attr) then
-    if (Attr = fText.Highlighter.StringAttribute) or (Attr = fText.Highlighter.CommentAttribute) or SameStr(Attr.Name,
-      'Character') then
+    if (Attr = fText.Highlighter.CommentAttribute) then
       Exit;
+// Check if that line is highlighted as string or character or comment
+//    if (Attr = fText.Highlighter.StringAttribute) or (Attr = fText.Highlighter.CommentAttribute) or SameStr(Attr.Name,
+//      'Character') then
+//      Exit;
 
   case Key of
     '(': begin
@@ -1089,7 +1092,8 @@ begin
           HandleArraySkip;
       end;
     '*': begin
-        if devEditor.CommentComplete then
+        status := GetQuoteState;
+        if devEditor.CommentComplete  and (status = NotQuote) then
           HandleMultilineCommentCompletion;
       end;
     '{': begin
@@ -1100,26 +1104,16 @@ begin
         if devEditor.BraceComplete then
           HandleBraceSkip;
       end;
-    '<': begin
-        if devEditor.IncludeComplete then // include <>
-          HandleGlobalIncludeCompletion;
-      end;
     '''': begin
         if devEditor.SingleQuoteComplete then // characters
           HandleSingleQuoteCompletion;
       end;
     '"': begin
-        if devEditor.IncludeComplete then // include ""
-          HandleLocalIncludeCompletion;
         if devEditor.DoubleQuoteComplete then // strings
           HandleDoubleQuoteCompletion;
       end;
-  else begin
-      fParenthCompleteState := scsSkipped;
-      fArrayCompleteState := scsSkipped;
-      fBraceCompleteState := scsSkipped;
-      //fSingleQuoteCompleteState := scsSkipped;
-      //fDoubleQuoteCompleteState := scsSkipped;
+    else begin
+
     end;
   end;
 end;

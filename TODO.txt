@@ -1,0 +1,24 @@
+Redesign Debug UI:
+1. display Local variables (info locals)/ global variables (info variables)/ parameters(info args)
+2. display call stack (bt full)
+3. modify variable value ? (set var=value)
+4. create/delete watch point? (watch [location] condition)
+
+better Debug btn icons
+
+Editor:
+ correctly indent when input closing braces
+
+Project:
+1. Project UTF8 option
+2. Each file's UTF8 option in project data
+3. Makefile UTF8 support
+  add "-finput-charset=UTF-8 -exec-charset=xxx" to compile options
+  add "--codepage=65001" to windres option 
+5. Debug
+6. Profiling
+
+
+ResEdit integration
+
+
