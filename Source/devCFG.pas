@@ -483,7 +483,7 @@ type
     // Brace completion
     property BraceComplete: boolean read fBraceComplete write fBraceComplete;
     property ParentheseComplete: boolean read fParentheseComplete write fParentheseComplete;
-    property IncludeComplete: boolean read fIncludeComplete write fIncludeComplete;
+//    property IncludeComplete: boolean read fIncludeComplete write fIncludeComplete;
     property CommentComplete: boolean read fCommentComplete write fCommentComplete;
     property ArrayComplete: boolean read fArrayComplete write fArrayComplete;
     property SingleQuoteComplete: boolean read fSingleQuoteComplete write fSingleQuoteComplete;
@@ -2418,15 +2418,15 @@ begin
   fAutoSaveMode := 0;
 
   // Symbol completion
-  fCompleteSymbols := False;
-  fBraceComplete := False;
-  fParentheseComplete := False;
-  fIncludeComplete := False;
-  fArrayComplete := False;
-  fCommentComplete := False;
-  fSingleQuoteComplete := False;
-  fDoubleQuoteComplete := False;
-  fDeleteSymbolPairs := False;
+  fCompleteSymbols := True;
+  fBraceComplete := True;
+  fParentheseComplete := True;
+  fIncludeComplete := True;
+  fArrayComplete := True;
+  fCommentComplete := True;
+  fSingleQuoteComplete := True;
+  fDoubleQuoteComplete := True;
+  fDeleteSymbolPairs := True;
 
   fUseUTF8ByDefault := False;
 end;
