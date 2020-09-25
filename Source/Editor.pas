@@ -902,12 +902,31 @@ var
   HighlightPos: TBufferCoord;
   status : TQuoteStates;
 
+  function GetCurrentChar:AnsiChar;
+  begin
+    if Length(fText.LineText)<fText.CaretX then
+      Result := #0
+    else
+      Result :=fText.LineText[fText.CaretX];
+  end;
+
   function GetQuoteState:TQuoteStates;
   var
     Line: AnsiString;
     posX,i : Integer;
+    HighlightPos : TBufferCoord;
   begin
     Result := NotQuote;
+    if (fText.CaretY>1) then begin
+      HighlightPos := BufferCoord(Length(fText.Lines[Text.CaretY-2]), fText.CaretY-1);
+      if (HighlightPos.Char >= 1)
+        and (fText.Lines[HighlightPos.Line-1][HighlightPos.Char] = '\')
+        and (fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, Attr)) then begin
+        if (Attr = fText.Highlighter.StringAttribute) then
+          Result := DoubleQuote;
+      end;
+    end;
+
     Line := Text.Lines[fText.CaretY-1];
     posX :=fText.CaretX-1;
     for i:=1 to posX do begin
@@ -958,7 +977,7 @@ var
   var
     pos : TBufferCoord;
   begin
-    if fText.Lines[fText.CaretY-1][fText.CaretX]<> ')' then
+    if GetCurrentChar <> ')' then
       Exit;
     pos:=Text.GetMatchingBracket;
     if pos.Line <> 0 then begin
@@ -978,7 +997,7 @@ var
   var
     pos : TBufferCoord;
   begin
-    if fText.Lines[fText.CaretY-1][fText.CaretX]<> ']' then
+    if GetCurrentChar <> ']' then
       Exit;
     pos:=Text.GetMatchingBracket;
     if pos.Line <> 0 then begin
@@ -1003,7 +1022,7 @@ var
     pos : TBufferCoord;
     temp : AnsiString;
   begin
-    if fText.Lines[fText.CaretY-1][fText.CaretX]<> '}' then
+    if GetCurrentChar<> '}' then
       Exit;
     pos:=Text.GetMatchingBracket;
     if pos.Line <> 0 then begin
@@ -1029,7 +1048,7 @@ var
     ch: AnsiChar;
   begin
     status := GetQuoteState;
-    ch := fText.Lines[fText.CaretY-1][fText.CaretX];
+    ch := GetCurrentChar;
     if ch = '''' then begin
       if (status = SingleQuote) then begin
         fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
@@ -1050,7 +1069,7 @@ var
     ch: AnsiChar;
   begin
     status := GetQuoteState;
-    ch := fText.Lines[fText.CaretY-1][fText.CaretX];
+    ch := GetCurrentChar;
     if ch = '"' then begin
       if (status = DoubleQuote) then begin
         fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
@@ -1069,16 +1088,21 @@ begin
   if not devEditor.CompleteSymbols or fText.SelAvail then
     Exit;
 
-  // Find the end of the first nonblank line above us
-  HighlightPos := BufferCoord(fText.CaretX - 1, fText.CaretY);
+  //todo: better methods to detect current caret type
+  HighlightPos := BufferCoord(fText.CaretX-1, fText.CaretY);
   while (HighlightPos.Line > 0) and (Length(fText.Lines[HighlightPos.Line - 1]) = 0) do
     Dec(HighlightPos.Line);
   HighlightPos.Char := Length(fText.Lines[HighlightPos.Line - 1]);
 
   // Check if that line is highlighted as  comment
-  if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, Attr) then
+  if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, Attr) then begin
     if (Attr = fText.Highlighter.CommentAttribute) then
       Exit;
+    if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
+      'Character')) and not (key in ['''','"']) then
+      Exit;
+  end;
+
 // Check if that line is highlighted as string or character or comment
 //    if (Attr = fText.Highlighter.StringAttribute) or (Attr = fText.Highlighter.CommentAttribute) or SameStr(Attr.Name,
 //      'Character') then
@@ -1122,9 +1146,6 @@ begin
         if devEditor.DoubleQuoteComplete then // strings
           HandleDoubleQuoteCompletion;
       end;
-    else begin
-
-    end;
   end;
 end;
 

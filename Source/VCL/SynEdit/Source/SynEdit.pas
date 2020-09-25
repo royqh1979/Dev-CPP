@@ -9333,7 +9333,7 @@ begin
       while not Highlighter.GetEol do begin
         Start := Highlighter.GetTokenPos + 1;
         Token := Highlighter.GetToken;
-        if (PosX >= Start) and (PosX < Start + Length(Token)) then begin
+        if ((PosX >= Start) and (PosX < Start + Length(Token))) then begin
           Attri := Highlighter.GetTokenAttribute;
           TokenType := Highlighter.GetTokenKind;
           Result := TRUE;

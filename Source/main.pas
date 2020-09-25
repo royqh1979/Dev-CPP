@@ -2642,9 +2642,6 @@ begin
 end;
 
 procedure TMainForm.actProjectOptionsExecute(Sender: TObject);
-var
-  i,t: integer;
-  e: TEditor;
 begin
   if Assigned(fProject) then begin
     if fProject.ShowOptions = mrOk then begin
@@ -6829,8 +6826,9 @@ begin
     e.UseUTF8 := not e.UseUTF8;
     e.LoadFile(e.FileName);
     if e.InProject and Assigned(fProject) then
+      //todo: find correspoding project unit
       for i:=0 to fProject.Units.Count-1 do begin
-        DoLogEntry(e.FileName);
+        // DoLogEntry(e.FileName);
         if e.FileName = fProject.Units[i].FileName then begin
           fProject.Units[i].UseUTF8 := e.UseUTF8;
           break;

@@ -81,8 +81,20 @@ type
     xtkSquareOpen, xtkStar, xtkSubtract, xtkSubtractAssign, xtkXor,
     xtkXorAssign);
 
+  {
+    rsUnknow: all other characters don't need highlight
+    rsDirective: C/CPP precompile directives like #include <iostream>
+    rsDirectiveComment: ANSI-Style Comment embedded in Directive
+    rsMultiLineDirective:  C/CPP precompile directives breaked to multiple lines
+    rsAnsiC: ANSI-Style c comment like /* xxx */
+    rsCppComment: cpp style comment like //xxx
+    rsString: string like "xxx"
+    rsMultiLineString: a string on multiline    like
+        "xxxxx \
+        xxxxx"
+  }
   TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
-    rsAsmBlock, rsDirective, rsDirectiveComment, rsString34, rsString39,
+    rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
     rsMultiLineString, rsMultiLineDirective, rsCppComment);
 
   TProcTableProc = procedure of object;
@@ -917,7 +929,7 @@ begin
             fRange := rsAsm
           else if fRange = rsAnsiCAsmBlock then
             fRange := rsAsmBlock
-          else if (fRange = rsDirectiveComment) and
+          else if (fRange = rsDirectiveComment)  and
             not (fLine[Run] in [#0, #13, #10]) then
               fRange := rsMultiLineDirective
           else
@@ -1517,36 +1529,12 @@ begin
           fRange := rsAnsiCAsm
         else if fRange = rsAsmBlock then
           fRange := rsAnsiCAsmBlock
-        else if fRange <> rsDirectiveComment then
-          fRange := rsAnsiC;
+        else if fRange = rsDirective then
+          fRange := rsDirectiveComment
+        else
+          fRange:=rsAnsiC;
         inc(Run, 2);
-        while fLine[Run] <> #0 do
-          case fLine[Run] of
-            '*':
-              if fLine[Run + 1] = '/' then
-              begin
-                inc(Run, 2);
-                if fRange = rsDirectiveComment then
-                  fRange := rsMultiLineDirective
-                else if fRange = rsAnsiCAsm then
-                  fRange := rsAsm
-                else
-                  begin
-                  if fRange = rsAnsiCAsmBlock then
-                    fRange := rsAsmBlock
-                  else
-                    fRange := rsUnKnown;
-                  end;
-                break;
-              end else inc(Run);
-            #10, #13:
-              begin
-                if fRange = rsDirectiveComment then
-                  fRange := rsAnsiC;
-                break;
-              end;
-          else inc(Run);
-          end;
+        AnsiCProc;
       end;
     '=':                               {divide assign}
       begin
@@ -1604,6 +1592,7 @@ end;
 procedure TSynCppSyn.StringProc;
 begin
   fTokenID := tkString;
+  fRange := rsString;
   repeat
     if fLine[Run] = '\' then begin
       case fLine[Run + 1] of
