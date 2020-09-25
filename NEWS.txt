@@ -2,6 +2,7 @@ Version 5.13-alpha3
   - fix: disable/enable custom link/compiler options text with the checkbox in the compiler options dialog
   - fix: redo auto complete symboles: {} () [] "" '' , auto overwrite right matching symbols. (like jetbrains IDE). User Experience is much better.
   - fix: input a '}' will remove all indent whitespaces;
+  - change: shorten auto complete suggestion text (MinGW gcc's function type is too long to display)
   
 
 Version 5.13-alpha2
