@@ -122,15 +122,17 @@ begin
       end;
     end;
     Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
-    Offset := Offset + Canvas.TextWidth('preprocessor '); // worst case width + spacing
+    Offset := Offset +
+      Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing
     if not (odSelected in State) then
       Canvas.Font.Color := clWindowText;
 
     // Draw data type string, like 'int', hide for defines/others that don't have this property
-    if Length(statement^._Type) > 0 then begin
-      Canvas.TextOut(Offset, Rect.Top, statement^._Type);
-      Offset := Offset + Canvas.TextWidth(statement^._Type + ' ');
-    end;
+// MinGW gcc's type info is too long , so we don't print it
+//    if Length(statement^._Type) > 0 then begin
+//      Canvas.TextOut(Offset, Rect.Top, statement^._Type);
+//      Offset := Offset + Canvas.TextWidth(statement^._Type + ' ');
+//    end;
 
     // draw statement name, like 'foo'
     Canvas.Font.Style := [fsBold];

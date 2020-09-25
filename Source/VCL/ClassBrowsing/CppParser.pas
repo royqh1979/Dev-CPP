@@ -257,15 +257,24 @@ end;
 function TCppParser.StatementKindStr(Value: TStatementKind): AnsiString;
 begin
   case Value of
-    skPreprocessor: Result := 'preprocessor';
-    skVariable: Result := 'variable';
-    skConstructor: Result := 'constructor';
-    skDestructor: Result := 'destructor';
-    skFunction: Result := 'function';
-    skClass: Result := 'class';
-    skTypedef: Result := 'typedef';
-    skEnum: Result := 'enum';
-    skUnknown: Result := 'unknown';
+//    skPreprocessor: Result := 'preprocessor';
+//    skVariable: Result := 'variable';
+//    skConstructor: Result := 'constructor';
+//    skDestructor: Result := 'destructor';
+//    skFunction: Result := 'function';
+//    skClass: Result := 'class';
+//    skTypedef: Result := 'typedef';
+//    skEnum: Result := 'enum';
+//    skUnknown: Result := 'unknown';
+    skPreprocessor: Result := 'P';
+    skVariable: Result := 'V';
+    skConstructor: Result := 'Ct';
+    skDestructor: Result := 'Dt';
+    skFunction: Result := 'F';
+    skClass: Result := 'C';
+    skTypedef: Result := 'T';
+    skEnum: Result := 'E';
+    skUnknown: Result := 'U';
   end;
 end;
 
