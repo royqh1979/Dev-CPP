@@ -899,8 +899,9 @@ Type
 var
   Attr: TSynHighlighterAttributes;
   Token: AnsiString;
-  HighlightPos: TBufferCoord;
   status : TQuoteStates;
+  tokenFinished: boolean;
+  HighlightPos : TBufferCoord;
 
   function GetCurrentChar:AnsiChar;
   begin
@@ -914,17 +915,12 @@ var
   var
     Line: AnsiString;
     posX,i : Integer;
-    HighlightPos : TBufferCoord;
+//    HighlightPos : TBufferCoord;
   begin
     Result := NotQuote;
     if (fText.CaretY>1) then begin
-      HighlightPos := BufferCoord(Length(fText.Lines[Text.CaretY-2]), fText.CaretY-1);
-      if (HighlightPos.Char >= 1)
-        and (fText.Lines[HighlightPos.Line-1][HighlightPos.Char] = '\')
-        and (fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, Attr)) then begin
-        if (Attr = fText.Highlighter.StringAttribute) then
+      if fText.HighLighter.GetIsLastLineStringNotFinish(fText.Lines.Ranges[fText.CaretY - 2]) then
           Result := DoubleQuote;
-      end;
     end;
 
     Line := Text.Lines[fText.CaretY-1];
@@ -1089,18 +1085,25 @@ begin
     Exit;
 
   //todo: better methods to detect current caret type
-  HighlightPos := BufferCoord(fText.CaretX-1, fText.CaretY);
-  while (HighlightPos.Line > 0) and (Length(fText.Lines[HighlightPos.Line - 1]) = 0) do
-    Dec(HighlightPos.Line);
-  HighlightPos.Char := Length(fText.Lines[HighlightPos.Line - 1]);
+  if fText.CaretX <= 1 then begin
+    if fText.CaretY>1 then begin
+      if fText.HighLighter.GetIsLastLineCommentNotFinish(fText.Lines.Ranges[fText.CaretY - 2]) then
+        Exit;
+      if fText.HighLighter.GetIsLastLineStringNotFinish(fText.Lines.Ranges[fText.CaretY - 2])
+        and not (Key in ['"',''''])then
+        Exit;
+    end;
+  end else begin
+    HighlightPos := BufferCoord(fText.CaretX-1, fText.CaretY);
 
-  // Check if that line is highlighted as  comment
-  if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, Attr) then begin
-    if (Attr = fText.Highlighter.CommentAttribute) then
-      Exit;
-    if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
-      'Character')) and not (key in ['''','"']) then
-      Exit;
+    // Check if that line is highlighted as  comment
+    if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished,Attr) then begin
+      if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
+        Exit;
+      if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
+        'Character') and not tokenFinished) and not (key in ['''','"']) then
+        Exit;
+    end;
   end;
 
 // Check if that line is highlighted as string or character or comment

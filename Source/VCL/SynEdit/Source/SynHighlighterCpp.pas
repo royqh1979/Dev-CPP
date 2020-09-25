@@ -251,6 +251,9 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function GetTokenPos: Integer; override;
+    function GetTokenFinished: boolean; override;
+    function GetIsLastLineCommentNotFinish(value:Pointer):boolean; override;
+    function GetIsLastLineStringNotFinish(value:Pointer):boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -1608,8 +1611,10 @@ begin
     end;
     inc(Run);
   until fLine[Run] in [#0, #10, #13, #34];
-  if FLine[Run] = #34 then
+  if FLine[Run] = #34 then begin
     inc(Run);
+    fRange := rsUnknown;
+  end;
 end;
 
 procedure TSynCppSyn.StringEndProc;
@@ -1745,6 +1750,19 @@ begin
   SetString(Result, (FLine + fTokenPos), Len);
 end;
 
+function TSynCppSyn.GetTokenFinished: boolean;
+begin
+  case fTokenId of
+    tkComment:
+      Result := not (fRange  in [rsAnsiC, rsAnsiCAsm,
+        rsAnsiCAsmBlock, rsDirectiveComment,rsCppComment]);
+    tkString:
+      Result := (fRange <> rsMultiLineString);
+  else
+    Result := False;
+  end;
+end;
+
 function TSynCppSyn.GetTokenID: TtkTokenKind;
 begin
   Result := fTokenId;
@@ -1798,6 +1816,23 @@ end;
 procedure TSynCppSyn.SetRange(Value: Pointer);
 begin
   fRange := TRangeState(Value);
+end;
+
+function TSynCppSyn.GetIsLastLineCommentNotFinish(Value:Pointer):boolean;
+var
+  range: TRangeState;
+begin
+  range := TRangeState(Value);
+  Result:= (range in [rsAnsiC, rsAnsiCAsm, 
+    rsAnsiCAsmBlock, rsDirectiveComment, rsCppComment]);
+end;
+
+function TSynCppSyn.GetIsLastLineStringNotFinish(Value:Pointer):boolean;
+var
+  range: TRangeState;
+begin
+  range := TRangeState(Value);
+  Result:= (range in [rsStringMultiLine]);
 end;
 
 procedure TSynCppSyn.EnumUserSettings(settings: TStrings);

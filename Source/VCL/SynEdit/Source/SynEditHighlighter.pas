@@ -157,6 +157,9 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure EndUpdate;
+    function GetTokenFinished: boolean; virtual;
+    function GetIsLastLineCommentNotFinish(value:Pointer):boolean; virtual;
+    function GetIsLastLineStringNotFinish(value:Pointer):boolean; virtual;
     function GetEol: Boolean; virtual; abstract;
     function GetRange: Pointer; virtual;
     function GetToken: String; virtual; abstract;
@@ -874,6 +877,24 @@ end;
 function TSynCustomHighlighter.GetRange: pointer;
 begin
   Result := nil;
+end;
+
+{note: Implementation subclass should override this }
+function TSynCustomHighlighter.GetTokenFinished: boolean;
+begin
+  Result:=False;
+end;
+
+{note: Implementation subclass should override this }
+function TSynCustomHighlighter.GetIsLastLineCommentNotFinish(value:Pointer):boolean;
+begin
+  Result:=False;
+end;
+
+{note: Implementation subclass should override this }
+function TSynCustomHighlighter.GetIsLastLineStringNotFinish(value:Pointer):boolean;
+begin
+  Result:=False;
 end;
 
 function TSynCustomHighlighter.GetSampleSource: string;

@@ -680,7 +680,10 @@ type
       Data: pointer); virtual;
     function GetBookMark(BookMark: integer; var X, Y: integer): boolean;
     function GetHighlighterAttriAtRowCol(const XY: TBufferCoord; var Token: string;
-      var Attri: TSynHighlighterAttributes): boolean;
+      var Attri: TSynHighlighterAttributes): boolean; overload;
+    function GetHighlighterAttriAtRowCol(const XY: TBufferCoord; var Token: string;
+      var tokenFinished: boolean; var Attri: TSynHighlighterAttributes): boolean; overload;
+
     function GetHighlighterAttriAtRowColEx(const XY: TBufferCoord; var Token: string;
       var TokenType, Start: Integer;
       var Attri: TSynHighlighterAttributes): boolean;
@@ -9305,6 +9308,8 @@ begin
   end;
 end;
 
+
+
 function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
   var Token: string; var Attri: TSynHighlighterAttributes): boolean;
 var
@@ -9344,6 +9349,46 @@ begin
   end;
   Token := '';
   Attri := nil;
+  Result := FALSE;
+end;
+
+
+function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
+  var Token: string; var TokenFinished: boolean;
+  var Attri: TSynHighlighterAttributes): boolean;
+var
+  PosX, PosY, endPos, Start: integer;
+  Line: string;
+begin
+  PosY := XY.Line - 1;
+  if Assigned(Highlighter) and (PosY >= 0) and (PosY < Lines.Count) then begin
+    Line := Lines[PosY];
+    if PosY = 0 then
+      Highlighter.ResetRange
+    else
+      Highlighter.SetRange(Lines.Ranges[PosY - 1]);
+    Highlighter.SetLine(Line, PosY);
+    PosX := XY.Char;
+    if (PosX > 0) and (PosX <= Length(Line)) then
+      while not Highlighter.GetEol do begin
+        Start := Highlighter.GetTokenPos + 1;
+        Token := Highlighter.GetToken;
+        endPos := Start + Length(Token)-1;
+        if ((PosX >= Start) and (PosX <= endPos)) then begin
+          Attri := Highlighter.GetTokenAttribute;
+          if PosX = endPos-1 then
+            TokenFinished := Highlighter.GetTokenFinished
+          else
+            TokenFinished := False;
+          Result := TRUE;
+          exit;
+        end;
+        Highlighter.Next;
+      end;
+  end;
+  Token := '';
+  Attri := nil;
+  TokenFinished := False;
   Result := FALSE;
 end;
 
