@@ -7,7 +7,7 @@ Redesign Debug UI:
 better Debug btn icons ? (like visual basic 6?)
 
 Editor:
-	
+	auto complete symbles such as () in strings? 
 
 Project:
 1. Project UTF8 option £¨done£©

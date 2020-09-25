@@ -1832,7 +1832,7 @@ var
   range: TRangeState;
 begin
   range := TRangeState(Value);
-  Result:= (range in [rsStringMultiLine]);
+  Result:= (range in [rsMultiLineString]);
 end;
 
 procedure TSynCppSyn.EnumUserSettings(settings: TStrings);

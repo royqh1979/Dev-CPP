@@ -1,6 +1,6 @@
 Version 5.13-alpha3
   - fix: disable/enable custom link/compiler options text with the checkbox in the compiler options dialog
-  - fix: correctly auto complete {} () [] "" ''
+  - fix: redo auto complete symboles: {} () [] "" '' , auto overwrite right matching symbols. (like jetbrains IDE). User Experience is much better.
   - fix: input a '}' will remove all indent whitespaces;
   
 
