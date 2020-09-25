@@ -154,6 +154,7 @@ type
     cbSingleQuotes: TCheckBox;
     cbDoubleQuotes: TCheckBox;
     cbUseUTF8AsDefault: TCheckBox;
+    cbUseAltSlash: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -381,6 +382,7 @@ begin
   tbCompletionDelay.Position := devCodeCompletion.Delay;
   cpCompletionBackground.Selected := devCodeCompletion.BackColor;
   chkEnableCompletionClick(nil);
+  cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
 
   // Symbol Completion
   with devEditor do begin
@@ -795,6 +797,7 @@ begin
     BackColor := cpCompletionBackground.Selected;
     ParseLocalHeaders := chkCBParseLocalH.Checked;
     ParseGlobalHeaders := chkCBParseGlobalH.Checked;
+    UseAltSlash := cbUseAltSlash.Checked;
   end;
 
   // Only create the timer if autosaving is enabled

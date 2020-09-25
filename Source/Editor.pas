@@ -147,7 +147,7 @@ type
     property PageControl: TPageControl read GetPageControl write SetPageControl;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
   end;
-
+  
 implementation
 
 uses

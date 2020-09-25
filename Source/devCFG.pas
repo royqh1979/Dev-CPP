@@ -193,6 +193,7 @@ type
     fEnabled: boolean;
     fParseLocalHeaders: boolean;
     fParseGlobalHeaders: boolean;
+    fUseAltSlash : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -207,6 +208,7 @@ type
     property Enabled: boolean read fEnabled write fEnabled;
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
+    property UseAltSlash: boolean read fUseAltSlash write fUseAltSlash;
   end;
 
   // class-browsing view style
@@ -2577,6 +2579,7 @@ begin
   fEnabled := True;
   fParseLocalHeaders := True;
   fParseGlobalHeaders := True;
+  fUseAltSlash := False;
 end;
 
 { TdevClassBrowsing }

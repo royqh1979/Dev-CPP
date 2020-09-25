@@ -929,7 +929,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 477
         Height = 425
-        ActivePage = tabSymbolCompletion
+        ActivePage = tabCodeCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet
@@ -1006,6 +1006,15 @@ object EditorOptForm: TEditorOptForm
             TabOrder = 3
             TickMarks = tmBoth
             OnChange = tbCompletionDelayChange
+          end
+          object cbUseAltSlash: TCheckBox
+            Left = 8
+            Top = 176
+            Width = 457
+            Height = 17
+            Caption = 'Use Alt+/ instead of Ctrl+Space'
+            TabOrder = 4
+            OnClick = chkEnableCompletionClick
           end
         end
         object tabSymbolCompletion: TTabSheet

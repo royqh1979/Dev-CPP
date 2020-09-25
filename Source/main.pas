@@ -2405,7 +2405,9 @@ procedure TMainForm.actEditorOptionsExecute(Sender: TObject);
 var
   I: integer;
   e1, e2: TEditor;
+  oldCodeCompletion : boolean;
 begin
+  oldCodeCompletion := devCodeCompletion.Enabled;
   with TEditorOptForm.Create(nil) do try
     if ShowModal = mrOk then begin
 
@@ -2429,7 +2431,8 @@ begin
       // Only do a lengthy reparse if completion options have changed
       if taCompletion in AccessedTabs then begin
         UpdateClassBrowsing;
-        ScanActiveProject;
+        if not oldCodeCompletion and devCodeCompletion.Enabled then
+          ScanActiveProject;
       end;
     end;
   finally
@@ -3858,6 +3861,13 @@ begin
   CppParser.OnStartParsing := CppParserStartParsing;
   CppParser.OnEndParsing := CppParserEndParsing;
   CppParser.OnTotalProgress := CppParserTotalProgress;
+
+  //actCodeCompletionAlt.Enabled := devCodeCompletion.UseAltSlash;
+  //actCodeCompletion.Enabled := not devCodeCompletion.UseAltSlash;
+  if devCodeCompletion.UseAltSlash then
+    actCodeCompletion.ShortCut := 32959 { TextToShortcut('Alt+/') is 32879, which / is the one on the numpad}
+  else
+    actCodeCompletion.ShortCut := TextToShortCut('Ctrl+Space');
 
   // Set options depending on the current compiler set
   // TODO: do this every time OnCompilerSetChanged
