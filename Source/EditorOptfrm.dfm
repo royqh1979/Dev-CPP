@@ -1191,8 +1191,8 @@ object EditorOptForm: TEditorOptForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = -60
-    Top = 476
+    Left = 300
+    Top = 460
     Width = 85
     Height = 25
     Anchors = [akRight, akBottom]
