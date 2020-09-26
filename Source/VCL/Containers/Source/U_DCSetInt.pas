@@ -27,12 +27,12 @@ uses U_DCExceptions;
 
 function TDCSetInt.Add(AKey : integer) : boolean;
 begin
-  result:=IntAdd(AKey, nil);
+  result:=IntPut(AKey, nil);
 end;
 
 function TDCSetInt.Exists(AKey : integer) : boolean;
 begin
-  result:=(IntFind(AKey) <> nil);
+  result:=(IntGet(AKey) <> nil);
 end;
 
 procedure TDCSetInt.Remove(AKey : integer; ARaiseIfNotFound : boolean);

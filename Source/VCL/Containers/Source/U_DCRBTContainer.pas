@@ -24,23 +24,24 @@ type
     FTree : TDCTree;
     FManager : TDCManagerBase;
 
-    function IntAdd(AHashedKey : integer; AValue : integer) : boolean; overload;
-    function IntAdd(AHashedKey : integer; const AValue : string) : boolean; overload;
-    function IntAdd(AHashedKey : integer; AValue : TObject) : boolean; overload;
-
+    function IntPut(AHashedKey : integer; AValue : integer) : boolean; overload;
+    function IntPut(AHashedKey : integer; const AValue : string) : boolean; overload;
+    function IntPut(AHashedKey : integer; const AValue : TObject) : boolean; overload;
+{
     procedure IntReplaceValue(AKVPtr : PDCTreeKeyValue; AValue : integer); overload;
     procedure IntReplaceValue(AKVPtr : PDCTreeKeyValue; const AValue : string); overload;
     procedure IntReplaceValue(AKVPtr : PDCTreeKeyValue; AValue : TObject); overload;
+}
 
     function IntRemove(AHashedKey : integer; var VValue : TObject) : boolean; overload;
     function IntRemove(AHashedKey : integer) : boolean; overload;
-    function IntFind(AHashedKey : integer) : PDCTreeKeyValue;
+    function IntGet(AHashedKey : integer) : PDCTreeKeyValue;
   public
     property Count : integer read GetCount;
     property IsEmpty : boolean read CheckIsEmpty;
     property Items[AIndex : integer] : PDCTreeKeyValue read GetItem; default;
 
-    constructor Create(AManager : TDCManagerBase = nil; AHash : TDCHashBase = nil);
+    constructor Create(AManager : TDCManagerBase = nil);
     destructor Destroy; override;
 
     procedure Clear(AFreeObjects : boolean = false);
@@ -49,10 +50,20 @@ type
     procedure ShowTree(AStrings : TStrings);
   end;
 
+  TDCRBTStringContainer = class(TDCRBTContainer)
+  private
+    fOwnHash: boolean;
+  protected
+    FHash: TDCHashBase;
+  public
+    constructor Create(AManager : TDCManagerBase = nil; AHash:TDCHashBase = nil); 
+    destructor Destroy; override;
+  end;
+
 implementation
 
 uses RBTreeTypes, U_DCValueInteger, U_DCValueObject, U_DCValueString,
-  SysUtils, U_DCValue,U_DCManagerList;
+  SysUtils, U_DCValue,U_DCManagerList ,U_DCHashBJL3;
 
 { TDCRBTContainer }
 
@@ -118,26 +129,59 @@ begin
   result:=FManager.IndexOf(AKVPtr);
 end;
 
-function TDCRBTContainer.IntAdd(AHashedKey, AValue: integer) : boolean;
+function TDCRBTContainer.IntPut(AHashedKey, AValue: integer) : boolean;
+var
+  node : TRBNodeP;
+  ptr: PDCTreeKeyValue;
 begin
-  result:=(FTree.Add(FManager.CreateObject(AHashedKey, AValue)) <> nil);
-  if not result then
-    FManager.DeleteObject(FManager[FManager.Count - 1]);
+  node:= FTree.Find(AHashedKey);
+  if Assigned(node) then begin
+    ptr:=PDCTreeKeyValue(node^.k);
+    FreeExistingValueObject(ptr);
+    ptr^.Value:=TDCValueInteger.Create(AValue);
+    Result:=True;
+  end else begin
+    result:=(FTree.Add(FManager.CreateObject(AHashedKey, AValue)) <> nil);
+    if not result then
+      FManager.DeleteObject(FManager[FManager.Count - 1]);
+  end;
 end;
 
-function TDCRBTContainer.IntAdd(AHashedKey: integer;
+function TDCRBTContainer.IntPut(AHashedKey: integer;
   const AValue: string) : boolean;
+var
+  node : TRBNodeP;
+  ptr: PDCTreeKeyValue;
 begin
-  result:=(FTree.Add(FManager.CreateObject(AHashedKey, AValue)) <> nil);
-  if not result then
-    FManager.DeleteObject(FManager[FManager.Count - 1]);
+  node:= FTree.Find(AHashedKey);
+  if Assigned(node) then begin
+    ptr:=PDCTreeKeyValue(node^.k);
+    FreeExistingValueObject(ptr);
+    ptr^.Value:=TDCValueString.Create(AValue);
+    Result:=True;
+  end else begin
+    result:=(FTree.Add(FManager.CreateObject(AHashedKey, AValue)) <> nil);
+    if not result then
+      FManager.DeleteObject(FManager[FManager.Count - 1]);
+  end;
 end;
 
-function TDCRBTContainer.IntAdd(AHashedKey: integer; AValue: TObject) : boolean;
+function TDCRBTContainer.IntPut(AHashedKey: integer; const AValue: TObject) : boolean;
+var
+  node : TRBNodeP;
+  ptr: PDCTreeKeyValue;
 begin
-  result:=(FTree.Add(FManager.CreateObject(AHashedKey, AValue)) <> nil);
-  if not result then
-    FManager.DeleteObject(FManager[FManager.Count - 1]);
+  node:= FTree.Find(AHashedKey);
+  if Assigned(node) then begin
+    ptr:=PDCTreeKeyValue(node^.k);
+    FreeExistingValueObject(ptr);
+    ptr^.Value:=TDCValueObject.Create(AValue);
+    Result:=True;
+  end else begin
+    result:=(FTree.Add(FManager.CreateObject(AHashedKey, AValue)) <> nil);
+    if not result then
+      FManager.DeleteObject(FManager[FManager.Count - 1]);
+  end;
 end;
 
 procedure TDCRBTContainer.FreeExistingValueObject(AKVPtr: PDCTreeKeyValue);
@@ -145,7 +189,7 @@ begin
   if AKVPtr^.Value <> nil then
     FreeAndNil(AKVPtr^.Value);
 end;
-
+{
 procedure TDCRBTContainer.IntReplaceValue(AKVPtr: PDCTreeKeyValue;
   AValue: integer);
 begin
@@ -167,6 +211,7 @@ begin
   if AValue <> nil then
     AKVPtr^.Value:=TDCValueObject.Create(AValue);
 end;
+}
 
 function TDCRBTContainer.IntRemove(AHashedKey: integer; var VValue : TObject): boolean;
 var
@@ -192,7 +237,7 @@ begin
   result:=IntRemove(AHashedKey, o);
 end;
 
-function TDCRBTContainer.IntFind(AHashedKey: integer): PDCTreeKeyValue;
+function TDCRBTContainer.IntGet(AHashedKey: integer): PDCTreeKeyValue;
 var
   node : TRBNodeP;
 begin
@@ -205,6 +250,25 @@ end;
 procedure TDCRBTContainer.ShowTree(AStrings: TStrings);
 begin
   FTree.ShowTree(AStrings);
+end;
+{TDCRBTStringContainer}
+constructor TDCRBTStringContainer.Create(AManager : TDCManagerBase; AHash: TDCHashBase);
+begin
+  inherited Create(AManager);
+  if Assigned(AHash) then begin
+    FHash:=AHash;
+    fOwnHash:=False;
+  end else begin
+    FHash:= TDCHashBJL3.Create;
+    fOwnHash:=True;
+  end;
+end;
+
+destructor TDCRBTStringContainer.Destroy;
+begin
+  if fOwnHash then
+    FHash.Free;
+  inherited;
 end;
 
 end.

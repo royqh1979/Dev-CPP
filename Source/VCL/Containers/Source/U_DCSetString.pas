@@ -9,7 +9,7 @@ type
   {
     Set with string key.
   }
-  TDCSetString = class(TDCRBTContainer)
+  TDCSetString = class(TDCRBTStringContainer)
   public
     function Add(const AKey : string) : boolean;
 
@@ -26,12 +26,12 @@ uses U_DCExceptions;
 
 function TDCSetString.Add(const AKey : string) : boolean;
 begin
-  result:=IntAdd(FHash.Hash(AKey), nil);
+  result:=IntPut(FHash.Hash(AKey), nil);
 end;
 
 function TDCSetString.Exists(const AKey : string) : boolean;
 begin
-  result:=(IntFind(FHash.Hash(AKey)) <> nil);
+  result:=(IntGet(FHash.Hash(AKey)) <> nil);
 end;
 
 procedure TDCSetString.Remove(const AKey : string; ARaiseIfNotFound : boolean);

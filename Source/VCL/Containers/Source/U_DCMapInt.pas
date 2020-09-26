@@ -13,69 +13,152 @@ type
   TDCMapInt = class(TDCRBTContainer)
   private
     function FindKeyRaiseIfNotExisting(const AKey : integer) : PDCTreeKeyValue;
+    function _GetInt(AKey : integer) : integer;
+    function _GetString(AKey : integer) : string;
+    function _GetObject(AKey : integer) : TObject;
   public
-    function Add(AKey : integer; AValue : integer) : boolean; overload;
-    function Add(AKey : integer; const AValue : string) : boolean; overload;
-    function Add(AKey : integer; AValue : TObject) : boolean; overload;
+    function Put(AKey : integer; AValue : integer) : boolean; overload;
+    function Put(AKey : integer; const AValue : string) : boolean; overload;
+    function Put(AKey : integer; const AValue : TObject) : boolean; overload;
 
-    procedure ReplaceValue(AKey : integer; AValue : integer); overload;
-    procedure ReplaceValue(AKey : integer; const AValue : string); overload;
-    procedure ReplaceValue(AKey : integer; AValue : TObject); overload;
+    Procedure PutInt(AKey : integer; AValue : integer);
+    Procedure PutString(AKey : integer; const AValue : string);
+    Procedure PutObject(AKey : integer; const AValue : TObject);
 
-    function Find(AKey : integer) : PDCTreeKeyValue;
+
+    function GetInt(AKey : integer; defaultValue: integer) : integer;
+    function GetString(AKey : integer; defaultValue: string) : string;
+    function GetObject(AKey : integer; defaultValue: TObject=nil) : TObject;
+
+    function Get(AKey : integer) : PDCTreeKeyValue;
 
     procedure Remove(AKey : integer; ARaiseIfNotFound : boolean = false); overload;
     procedure Remove(AKey : integer; var VValue : TObject; ARaiseIfNotFound : boolean = false); overload;
+
+    property Strings[index: integer]: AnsiString read _GetString write PutString;
+    property Int[index: integer]: integer read _GetInt write PutInt;
+    property Objects[index: integer]: TObject read _GetObject write PutObject;
+
   end;
 
 implementation
 
 uses
-  U_DCExceptions;
+  U_DCExceptions, SysUtils;
 
 { TDCMapInt }
 
 function TDCMapInt.FindKeyRaiseIfNotExisting(
   const AKey: integer): PDCTreeKeyValue;
 begin
-  result:=Find(AKey);
+  result:=Get(AKey);
   if result = nil then
     raise EDCKeyNotFound.Create(AKey);
 end;
 
-function TDCMapInt.Add(AKey, AValue: integer) : boolean;
+function TDCMapInt.Put(AKey : integer; AValue : integer) : boolean;
 begin
-  result:=IntAdd(AKey, AValue);
+  Result:=IntPut(AKey,AValue);
 end;
 
-function TDCMapInt.Add(AKey: integer; const AValue: string) : boolean;
+function TDCMapInt.Put(AKey : integer; const AValue : string) : boolean;
 begin
-  result:=IntAdd(AKey, AValue);
+  Result:=IntPut(AKey,AValue);
 end;
 
-function TDCMapInt.Add(AKey: integer; AValue: TObject) : boolean;
+function TDCMapInt.Put(AKey : integer; const AValue : TObject) : boolean;
 begin
- result:=IntAdd(AKey, AValue);
+  Result:=IntPut(AKey,AValue);
 end;
 
-procedure TDCMapInt.ReplaceValue(AKey, AValue: integer);
+
+Procedure TDCMapInt.PutInt(AKey : integer; AValue : integer);
 begin
-  IntReplaceValue(FindKeyRaiseIfNotExisting(AKey), AValue);
+  if not IntPut(AKey,AValue) then
+    Exception.Create('Put Value Failed!');
 end;
 
-procedure TDCMapInt.ReplaceValue(AKey: integer; AValue: TObject);
+Procedure TDCMapInt.PutString(AKey : integer; const AValue : string);
 begin
-  IntReplaceValue(FindKeyRaiseIfNotExisting(AKey), AValue);
+  if not IntPut(AKey,AValue) then
+    Exception.Create('Put Value Failed!');
 end;
 
-procedure TDCMapInt.ReplaceValue(AKey: integer; const AValue: string);
+Procedure TDCMapInt.PutObject(AKey : integer; const AValue : TObject);
 begin
-  IntReplaceValue(FindKeyRaiseIfNotExisting(AKey), AValue);
-end;   
+  if not IntPut(AKey,AValue) then
+    Exception.Create('Put Value Failed!');
+end;
 
-function TDCMapInt.Find(AKey: integer): PDCTreeKeyValue;
+function TDCMapInt._GetInt(AKey : integer) : integer;
+var
+  ptr:PDCTreeKeyValue;
 begin
-  result:=IntFind(AKey);
+  ptr := IntGet(AKey);
+  if Assigned(ptr) then
+    Result:= ptr^.Value.AsInteger
+  else
+    raise EDCKeyNotFound.Create(AKey);
+end;
+
+function TDCMapInt._GetString(AKey : integer) : string;
+var
+  ptr:PDCTreeKeyValue;
+begin
+  ptr := IntGet(AKey);
+  if Assigned(ptr) then
+    Result:= ptr^.Value.AsString
+  else
+    raise EDCKeyNotFound.Create(AKey)
+end;
+
+function TDCMapInt._GetObject(AKey : integer) : TObject;
+var
+  ptr:PDCTreeKeyValue;
+begin
+  ptr := IntGet(AKey);
+  if Assigned(ptr) then
+    Result:= ptr^.Value.AsObject
+  else
+    raise EDCKeyNotFound.Create(AKey)
+end;
+
+function TDCMapInt.GetInt(AKey : integer; DefaultValue:integer) : integer;
+var
+  ptr:PDCTreeKeyValue;
+begin
+  ptr := IntGet(AKey);
+  if Assigned(ptr) then
+    Result:= ptr^.Value.AsInteger
+  else
+    Result:=DefaultValue;
+end;
+
+function TDCMapInt.GetString(AKey : integer; DefaultValue:string) : string;
+var
+  ptr:PDCTreeKeyValue;
+begin
+  ptr := IntGet(AKey);
+  if Assigned(ptr) then
+    Result:= ptr^.Value.AsString
+  else
+    Result:=DefaultValue;
+end;
+
+function TDCMapInt.GetObject(AKey : integer;DefaultValue:TObject) : TObject;
+var
+  ptr:PDCTreeKeyValue;
+begin
+  ptr := IntGet(AKey);
+  if Assigned(ptr) then
+    Result:= ptr^.Value.AsObject
+  else
+    Result:=DefaultValue;
+end;
+
+function TDCMapInt.Get(AKey: integer): PDCTreeKeyValue;
+begin
+  Result:=IntGet(AKey);
 end;
 
 procedure TDCMapInt.Remove(AKey: integer; ARaiseIfNotFound : boolean);
