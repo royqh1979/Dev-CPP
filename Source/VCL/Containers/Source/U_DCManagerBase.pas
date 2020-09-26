@@ -6,6 +6,7 @@ uses
   Classes, U_DCTreeKeyValue;
 
 type
+
   {
     Base class for managers of object stored in RBTree
   }
