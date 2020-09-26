@@ -3,9 +3,10 @@
 The main executable devcpp.exe can be built using the following steps:
 
 	1) Compile and install the following package(s):
-		Source\VCL\DevCpp.dpk
+		Source\VCL\DevCpp\DevCpp.dpk
 		Source\VCL\SynEdit\Packages\SynEdit_<Delphi Version>.dpk
 		Source\VCL\ClassBrowsing\ClassBrowsing.dpk
+        Source\VCL\Containers\Containers.dpk
 
 	2) Compile resources by running the following script(s):
 		Source\CompileResources.bat
@@ -89,7 +90,8 @@ Misc.
 -----
 F1			Help
 Alt+F4		Close
-Ctrl+Space	Open Code Completion
+Ctrl+Space	Open Code Completion  (depends on the option)
+Alt+/        Open Code Completion  (depends on the option)
 
 Executing/Debugging
 -------------------

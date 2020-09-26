@@ -23,17 +23,13 @@ package Containers;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Containers'}
+{$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
   rtl;
 
 contains
-  BJL3 in 'BJL\bjl3.pas',
-  BTypes in 'BJL\btypes.pas',
-  rbtree in 'RBTree\RBTree.pas',
-  RBTreeTraverse in 'RBTree\RBTreeTraverse.pas',
-  RBTreeTypes in 'RBTree\RBTreeTypes.pas',
   U_DCExceptions in 'Source\U_DCExceptions.pas',
   U_DCHashBase in 'Source\U_DCHashBase.pas',
   U_DCHashBJL3 in 'Source\U_DCHashBJL3.pas',
@@ -50,6 +46,12 @@ contains
   U_DCValue in 'Source\U_DCValue.pas',
   U_DCValueInteger in 'Source\U_DCValueInteger.pas',
   U_DCValueObject in 'Source\U_DCValueObject.pas',
-  U_DCValueString in 'Source\U_DCValueString.pas';
+  U_DCValueString in 'Source\U_DCValueString.pas',
+  BJL3 in 'Source\bjl3.pas',
+  BTypes in 'Source\btypes.pas',
+  rbtree in 'Source\RBTree.pas',
+  RBTreeTraverse in 'Source\RBTreeTraverse.pas',
+  RBTreeTypes in 'Source\RBTreeTypes.pas',
+  DCContainers in 'Source\DCContainers.pas';
 
 end.

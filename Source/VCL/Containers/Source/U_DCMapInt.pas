@@ -35,8 +35,8 @@ type
     procedure Remove(AKey : integer; ARaiseIfNotFound : boolean = false); overload;
     procedure Remove(AKey : integer; var VValue : TObject; ARaiseIfNotFound : boolean = false); overload;
 
-    property Strings[index: integer]: AnsiString read _GetString write PutString;
-    property Int[index: integer]: integer read _GetInt write PutInt;
+    property Strings[index: integer]: string read _GetString write PutString;
+    property Ints[index: integer]: integer read _GetInt write PutInt;
     property Objects[index: integer]: TObject read _GetObject write PutObject;
 
   end;

@@ -36,7 +36,7 @@ type
     procedure Remove(const AKey : string; var VValue : TObject; ARaiseIfNotFound : boolean = false); overload;
 
     property Strings[const index: string]: string read _GetString write PutString;
-    property Int[const index: string]: integer read _GetInt write PutInt;
+    property Ints[const index: string]: integer read _GetInt write PutInt;
     property Objects[const index: string]: TObject read _GetObject write PutObject;
   end;
 
