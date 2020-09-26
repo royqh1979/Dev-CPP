@@ -66,7 +66,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Search(const Phrase, Filename: AnsiString);
+    function Search(const Phrase, Filename: AnsiString; AutoHideOnSingleResult:boolean):boolean;
     procedure Hide;
     function SelectedStatement: PStatement;
     property CurrentStatement: PStatement read fCurrentStatement write fCurrentStatement;
@@ -316,10 +316,11 @@ begin
   fIncludedFiles.Clear; // is recreated anyway on reshow, so save some memory when hiding
 end;
 
-procedure TCodeCompletion.Search(const Phrase, Filename: AnsiString);
+function TCodeCompletion.Search(const Phrase, Filename: AnsiString;AutoHideOnSingleResult:boolean):boolean;
 var
   I: integer;
 begin
+  Result:=False;
   if fEnabled then begin
 
     Screen.Cursor := crHourglass;
@@ -338,6 +339,7 @@ begin
     // filter fFullCompletionStatementList to fCompletionStatementList
     FilterList(Copy(Phrase, I, MaxInt));
 
+
     if fCompletionStatementList.Count > 0 then begin
       CodeComplForm.lbCompletion.Items.BeginUpdate;
       try
@@ -350,11 +352,16 @@ begin
         CodeComplForm.lbCompletion.Items.EndUpdate;
       end;
 
+      // if only one suggestion, don't show the frame
+      if (fCompletionStatementList.Count =1) and AutoHideOnSingleResult then begin
+        Result:=True;
+        CodeComplForm.Hide;
+        Exit;
+      end;
       CodeComplForm.Show;
       CodeComplForm.lbCompletion.SetFocus;
       if CodeComplForm.lbCompletion.Items.Count > 0 then
         CodeComplForm.lbCompletion.ItemIndex := 0;
-
       fHideDelay := 0;
     end else if fHideDelay = 0 then begin
       CodeComplForm.lbCompletion.Items.Clear;

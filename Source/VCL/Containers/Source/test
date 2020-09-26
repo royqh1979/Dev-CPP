@@ -1,0 +1,25 @@
+ 驱动器 E 中的卷是 Workspace
+ 卷的序列号是 DC94-585C
+
+ e:\workspace\contributes\Dev-CPP\Source\VCL\Containers\Source 的目录
+
+2020/09/26  14:50                57 Containers.pas
+2020/09/26  11:05               984 U_DCExceptions.pas
+2020/09/26  11:05               310 U_DCHashBase.pas
+2020/09/26  11:15               644 U_DCHashBJL3.pas
+2020/09/26  11:05             1,121 U_DCManagerBase.pas
+2020/09/26  11:37             2,805 U_DCManagerList.pas
+2020/09/26  14:32             4,658 U_DCMapInt.pas
+2020/09/26  14:32             5,013 U_DCMapString.pas
+2020/09/26  14:08             7,292 U_DCRBTContainer.pas
+2020/09/26  14:25               860 U_DCSetInt.pas
+2020/09/26  14:25               881 U_DCSetString.pas
+2020/09/26  11:05             2,279 U_DCTree.pas
+2020/09/26  11:05             1,249 U_DCTreeKeyValue.pas
+2020/09/26  11:05             1,561 U_DCTreeVisualization.pas
+2020/09/26  11:05               490 U_DCValue.pas
+2020/09/26  11:05               839 U_DCValueInteger.pas
+2020/09/26  11:05               854 U_DCValueObject.pas
+2020/09/26  11:05               862 U_DCValueString.pas
+              18 个文件         32,759 字节
+               0 个目录 90,101,989,376 可用字节

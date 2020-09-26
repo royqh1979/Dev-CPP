@@ -24,7 +24,7 @@ interface
 uses
 {$IFDEF WIN32}
   Windows, Classes, Graphics, Forms, StdCtrls, Controls,
-  CodeCompletion, CppParser, CBUtils;
+  CodeCompletion, CppParser, CBUtils,Messages;
 {$ENDIF}
 {$IFDEF LINUX}
 Xlib, SysUtils, Classes, QGraphics, QForms, QStdCtrls, QControls,
@@ -39,9 +39,12 @@ type
     procedure lbCompletionDblClick(Sender: TObject);
     procedure lbCompletionDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure lbCompletionKeyPress(Sender: TObject; var Key: Char);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     fOwner: TCodeCompletion;
+    FOldWndProc: TWndMethod;
+    procedure lbCompletionWindowProc(var Message: TMessage);
   public
     constructor Create(AOwner: TComponent); override;
     procedure CreateParams(var Params: TCreateParams); override;
@@ -151,6 +154,28 @@ procedure TCodeComplForm.lbCompletionKeyPress(Sender: TObject; var Key: Char);
 begin
   if Assigned(fOwner.OnKeyPress) then
     fOwner.OnKeyPress(self, Key);
+end;
+
+procedure TCodeComplForm.FormCreate(Sender: TObject);
+begin
+  FOldWndProc:= lbCompletion.WindowProc;
+  lbCompletion.WindowProc:= lbCompletionWindowProc;
+end;
+
+procedure TCodeComplForm.lbCompletionWindowProc(var Message: TMessage);
+var
+  ch:Char;
+begin
+  if Message.Msg = CN_KEYDOWN then
+    if TWMKey(Message).CharCode = VK_TAB then begin
+      ch := #9;
+      lbCompletionKeyPress(lbCompletion, ch);
+      Exit;
+   end;
+  if Assigned(FOldWndProc) then
+    FOldWndProc(Message);
+  if Message.Msg = WM_GETDLGCODE then
+    Message.Result:= Message.Result or DLGC_WANTTAB;
 end;
 
 end.

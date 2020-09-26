@@ -16,6 +16,7 @@ object CodeComplForm: TCodeComplForm
   FormStyle = fsStayOnTop
   KeyPreview = True
   OldCreateOrder = False
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96

@@ -40,6 +40,7 @@ contains
   devMonitorThread in 'devFileMonitor\devMonitorThread.pas',
   devMonitorTypes in 'devFileMonitor\devMonitorTypes.pas',
   devShortcuts in 'devShortcuts\devShortcuts.pas',
-  devShortcutsEditorForm in 'devShortcuts\devShortcutsEditorForm.pas' {frmdevShortcutsEditor};
+  devShortcutsEditorForm in 'devShortcuts\devShortcutsEditorForm.pas' {frmShortcutsEditor};
+
 end.
 

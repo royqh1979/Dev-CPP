@@ -45,7 +45,10 @@ interface
 
 const
   TSynSpecialChars = ['À'..'Ö', 'Ø'..'ö', 'ø'..'ÿ'];
+{  // utf8 identifier support
   TSynValidStringChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z',#128..#255] + TSynSpecialChars;
+}
+  TSynValidStringChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z'] + TSynSpecialChars;
   TSynWordBreakChars = ['.', ',', ';', ':', '"', '''', '!', '?', '[', ']', '(',
                         ')', '{', '}', '^', '-', '=', '+', '-', '*', '/', '\',
                         '|'];

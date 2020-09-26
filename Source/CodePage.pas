@@ -171,7 +171,7 @@ function GetCodePage(id:integer):CodePageInfo;
 
 implementation
 
-function GetCodePage(id:integer):CodePageInfo;
+function GetCodePage(id:integer):CodePageInfo; overload;
 const
   NoneResult:CodePageInfo = (CodePage: 0; Name: 'none');
 var
@@ -180,6 +180,21 @@ begin
   Result := NoneResult;
   for i:=0 to Length(CodePages)-1 do begin
     if CodePages[i].CodePage = id then begin
+      Result := CodePages[i];
+      Exit;
+    end;
+  end;
+end;
+
+function GetCodePage(const name:string):CodePageInfo; overload;
+const
+  NoneResult:CodePageInfo = (CodePage: 0; Name: 'none');
+var
+  i:integer;
+begin
+  Result := NoneResult;
+  for i:=0 to Length(CodePages)-1 do begin
+    if CodePages[i].Name = name then begin
       Result := CodePages[i];
       Exit;
     end;

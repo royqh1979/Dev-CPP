@@ -877,13 +877,13 @@ begin
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName);
+      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName,False);
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName);
+      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
-    end else if (Key in [Char(VK_RETURN), '(']) then begin // Ending chars, don't insert
+    end else if (Key in [Char(VK_RETURN), #9]) then begin // Ending chars, don't insert
       CompletionInsert('');
       fCompletionBox.Hide;
     end else begin
@@ -1335,7 +1335,8 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
 
   // Filter the whole statement list
-  fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName);
+  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName, True) then
+    CompletionInsert(''); // if only have one suggestion, just use it 
 end;
 
 procedure TEditor.DestroyCompletion;
