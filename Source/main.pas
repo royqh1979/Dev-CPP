@@ -852,6 +852,7 @@ type
     procedure ScanActiveProject;
     procedure UpdateCompilerList;
     function GetCompileTarget: TTarget;
+    procedure UpdateProjectEditorsEncoding;
     procedure UpdateAppTitle;
     procedure OpenCloseMessageSheet(Open: boolean);
     procedure OpenFile(const FileName: AnsiString;OpenUseUTF8:boolean);
@@ -2644,12 +2645,28 @@ begin
   end;
 end;
 
+procedure TMainForm.UpdateProjectEditorsEncoding;
+var
+  i:integer;
+  e:TEditor;
+begin
+  for i:=0 to fProject.Units.Count-1 do begin
+    e := fProject.Units.Items[i].Editor;
+    if Assigned(e) and (e.UseUTF8<>fProject.Units.Items[i].UseUTF8) then begin
+      e.UseUTF8 := fProject.Units.Items[i].UseUTF8;
+      e.LoadFile(e.FileName);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.actProjectOptionsExecute(Sender: TObject);
 begin
   if Assigned(fProject) then begin
     if fProject.ShowOptions = mrOk then begin
       UpdateAppTitle;
       UpdateCompilerList;
+      UpdateProjectEditorsEncoding;
     end;
   end;
 end;
@@ -6835,15 +6852,15 @@ begin
     end;
     e.UseUTF8 := not e.UseUTF8;
     e.LoadFile(e.FileName);
-    if e.InProject and Assigned(fProject) then
-      //todo: find correspoding project unit
+    if e.InProject and Assigned(fProject) then begin
       for i:=0 to fProject.Units.Count-1 do begin
-        // DoLogEntry(e.FileName);
-        if e.FileName = fProject.Units[i].FileName then begin
+        if e = fProject.Units[i].Editor then begin
           fProject.Units[i].UseUTF8 := e.UseUTF8;
+          fProject.Modified:=True;
           break;
         end;
       end;
+    end;
     UpdateFileEncodingStatusPanel;
   end;
 end;

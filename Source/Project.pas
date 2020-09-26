@@ -925,6 +925,8 @@ begin
       finifile.WriteInteger('Unit' + IntToStr(idx + 1), 'Priority', Priority);
       finifile.WriteBool('Unit' + IntToStr(idx + 1), 'OverrideBuildCmd', OverrideBuildCmd);
       finifile.WriteString('Unit' + IntToStr(idx + 1), 'BuildCmd', BuildCmd);
+      finifile.WriteBool('Unit' + IntToStr(idx + 1), 'UseUTF8', UseUTF8);
+
     end;
   end;
   finifile.WriteInteger('Project', 'UnitCount', Count);
@@ -1029,6 +1031,7 @@ begin
         Priority := finifile.ReadInteger('Unit' + IntToStr(i + 1), 'Priority', 1000);
         OverrideBuildCmd := finifile.ReadBool('Unit' + IntToStr(i + 1), 'OverrideBuildCmd', False);
         BuildCmd := finifile.ReadString('Unit' + IntToStr(i + 1), 'BuildCmd', '');
+        UseUTF8 := finifile.ReadBool('Unit' + IntToStr(i + 1), 'UseUTF8', self.fOptions.UseUTF8);
 
         Editor := nil;
         New := FALSE;

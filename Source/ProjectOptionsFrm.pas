@@ -599,8 +599,6 @@ begin
   lvFiles.Items.Assign(MainForm.ProjectView.Items);
   lvFiles.Items[0].Expand(False);
 
-  //Can't safely find unit's editor, so we disallow change a unit's encoding in this option dialog
-  cbUnitUseUTF8.Enabled := False;
 end;
 
 procedure TProjectOptionsFrm.LoadText;
@@ -850,6 +848,7 @@ begin
     chkCompile.Enabled := False;
     chkCompileCpp.Enabled := False;
     chkLink.Enabled := False;
+    cbUnitUseUTF8.Enabled:= False;
     chkOverrideBuildCmd.Enabled := False;
     txtOverrideBuildCmd.Enabled := False;
     spnPriority.Enabled := False;
@@ -862,6 +861,7 @@ begin
   chkLink.OnClick := nil;
   chkOverrideBuildCmd.OnClick := nil;
   txtOverrideBuildCmd.OnChange := nil;
+  cbUnitUseUTF8.OnClick := nil;
   spnPriority.OnChange := nil;
 
   idx := Integer(Node.Data);
@@ -884,6 +884,7 @@ begin
     chkLink.Checked := fProjectCopy.Units[idx].Link;
     spnPriority.Enabled := chkCompile.Checked and chkCompile.Enabled;
     spnPriority.Value := fProjectCopy.Units[idx].Priority;
+    cbUnitUseUTF8.Enabled := True;
     cbUnitUseUTF8.Checked := fProjectCopy.Units[idx].UseUTF8;
     chkOverrideBuildCmd.Enabled := chkCompile.Checked and (lvFiles.SelectionCount = 1) and not (filetype in [utcHead,
       utcppHead, utResSrc]);
@@ -894,6 +895,7 @@ begin
     chkLink.Enabled := False;
     chkOverrideBuildCmd.Enabled := False;
     txtOverrideBuildCmd.Enabled := False;
+    cbUnitUseUTF8.Enabled:=False;
     spnPriority.Enabled := False;
   end;
 
@@ -904,6 +906,7 @@ begin
   chkOverrideBuildCmd.OnClick := chkCompileClick;
   txtOverrideBuildCmd.OnChange := txtOverrideBuildCmdChange;
   spnPriority.OnChange := spnPriorityChange;
+  cbUnitUseUTF8.OnClick := cbUnitUseUTF8Click;
 end;
 
 procedure TProjectOptionsFrm.chkCompileClick(Sender: TObject);

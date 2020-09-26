@@ -11,7 +11,7 @@ Editor:
 
 Project:
 1. Project UTF8 option £¨done£©
-2. Each file's UTF8 option in project data (how to connect editor to project unit?)
+2. Each file's UTF8 option in project data (done)
 3. Makefile UTF8 support 
   add "-finput-charset=UTF-8 -exec-charset=xxx" to compile options (done)
   add "--codepage=65001" to windres option 

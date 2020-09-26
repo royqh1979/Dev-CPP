@@ -1,10 +1,10 @@
 object ProjectOptionsFrm: TProjectOptionsFrm
-  Left = 626
-  Top = 293
+  Left = 792
+  Top = 261
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Project Options'
-  ClientHeight = 395
+  ClientHeight = 394
   ClientWidth = 534
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -71,7 +71,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Top = 0
     Width = 534
     Height = 361
-    ActivePage = tabGeneral
+    ActivePage = tabFiles
     TabOrder = 3
     object tabGeneral: TTabSheet
       Caption = 'General'

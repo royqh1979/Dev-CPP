@@ -297,6 +297,7 @@ begin
   Writeln(F, 'CXXINCS  = ' + StringReplace(fCppIncludesParams, '\', '/', [rfReplaceAll]));
   Writeln(F, 'BIN      = ' + GenMakePath1(ExtractRelativePath(Makefile, fProject.Executable)));
   Writeln(F, 'CXXFLAGS = $(CXXINCS) ' + fCppCompileParams);
+  Writeln(F, 'ENCODINGS = -finput-charset=utf-8 -fexec-charset='+GetSystemCharsetName);
   Writeln(F, 'CFLAGS   = $(INCS) ' + fCompileParams);
   Writeln(F, 'RM       = ' + CLEAN_PROGRAM + ' -f'); // TODO: use del or rm?
 
@@ -400,7 +401,7 @@ begin
         // Or roll our own
       end else begin
         if fProject.Units[i].UseUTF8 then
-          encodingStr := ' -finput-charset=utf-8 -fexec-charset='+GetSystemCharsetName+ ' '
+          encodingStr := ' $(ENCODINGS) '
         else
           encodingStr := '';
 

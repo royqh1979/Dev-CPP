@@ -1,3 +1,6 @@
+Version 5.13-beta1
+  - add: project UTF-8 support ( save/load utf8 option for project files, compile utf8 files)
+
 Version 5.13-alpha3
   - fix: disable/enable custom link/compiler options text with the checkbox in the compiler options dialog
   - fix: redo auto complete symboles: {} () [] "" '' , auto overwrite right matching symbols. (like jetbrains IDE). User Experience is much better.
