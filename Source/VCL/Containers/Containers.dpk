@@ -1,0 +1,55 @@
+package Containers;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Containers'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl;
+
+contains
+  BJL3 in 'BJL\bjl3.pas',
+  BTypes in 'BJL\btypes.pas',
+  rbtree in 'RBTree\RBTree.pas',
+  RBTreeTraverse in 'RBTree\RBTreeTraverse.pas',
+  RBTreeTypes in 'RBTree\RBTreeTypes.pas',
+  U_DCExceptions in 'Source\U_DCExceptions.pas',
+  U_DCHashBase in 'Source\U_DCHashBase.pas',
+  U_DCHashBJL3 in 'Source\U_DCHashBJL3.pas',
+  U_DCManagerBase in 'Source\U_DCManagerBase.pas',
+  U_DCManagerList in 'Source\U_DCManagerList.pas',
+  U_DCMapInt in 'Source\U_DCMapInt.pas',
+  U_DCMapString in 'Source\U_DCMapString.pas',
+  U_DCRBTContainer in 'Source\U_DCRBTContainer.pas',
+  U_DCSetInt in 'Source\U_DCSetInt.pas',
+  U_DCSetString in 'Source\U_DCSetString.pas',
+  U_DCTree in 'Source\U_DCTree.pas',
+  U_DCTreeKeyValue in 'Source\U_DCTreeKeyValue.pas',
+  U_DCTreeVisualization in 'Source\U_DCTreeVisualization.pas',
+  U_DCValue in 'Source\U_DCValue.pas',
+  U_DCValueInteger in 'Source\U_DCValueInteger.pas',
+  U_DCValueObject in 'Source\U_DCValueObject.pas',
+  U_DCValueString in 'Source\U_DCValueString.pas';
+
+end.

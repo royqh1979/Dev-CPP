@@ -1,0 +1,64 @@
+{
+  Red-black tree class, based on the STL tree implementation of
+  gcc-3.4.4 (/libstdc++-v3/include/bits/stl_tree.h and
+  /libstdc++-v3/src/tree.cc) of which the insertion and deletion
+  algorithms are based on those in Cormen, Leiserson and Rivest,
+  Introduction to Algorithms (MIT Press, 1990).
+
+  This unit should work ok with Borland Delphi and Free Pascal (I used
+  fpc-2.0.0 with the -Sd commandline switch).
+
+  USAGE
+  The TRBTree class behaves somewhat like a TList: it stores pointers
+  and uses the same comparison function as TList.Sort (TListSortCompare).
+  Functions Clear, Add, Delete, First and Last are equivalent,
+  except that First and Last return a TRBNodeP instead of its key so they
+  can be used for comparisons in loops. All values occur only once in the
+  tree: when the same value is added twice, the second one is not stored.
+
+  To be able to manage the tree, the Create constructor has a argument
+  specifying the comparison function that should be used.
+
+  The function Find can be used to find a value that was put in the tree,
+  it searches for the given pointer using the comparison function given
+  at time of object creation. It returns a TRBNodeP.
+
+  The functions RBInc and RBDec can be used to "walk" through the tree:
+  given a TRBNodeP x, RBInc returns the TRBNodeP with the smallest key that
+  is larger than x, RBDec returns the TRBNodeP with the largest key that is
+  smaller than x. RBInc(tree.Last) and RBDec(tree.First) are not defined.
+
+  EXAMPLE
+  An example for usage of this unit can be found at
+  http://www.vanwal.nl/rbtree/example.dpr
+
+  COMPLEXITY
+  Create, First and Last are done in constant time.
+  Find, Add, Delete, RBInc and RBDec take O(log n) time, where n is the
+  number of items in the tree.
+  Destroy and Clear take O(n) time.
+
+
+  AUTHOR
+  Written (or "translated" ;-)) by Freek van Walderveen, November 2005.
+  Includes bug fixes by Jani Mátyás, July 2008.
+
+  LICENCE
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
+  See http://www.gnu.org/copyleft/gpl.html
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  As a special exception, you may use this file as part of a free software
+  library without restriction.  Specifically, if you compile
+  this file and link it with other files to produce an executable, this
+  file does not by itself cause the resulting executable to be covered by
+  the GNU General Public License.  This exception does not however
+  invalidate any other reasons why the executable file might be covered by
+  the GNU General Public License.
+}
