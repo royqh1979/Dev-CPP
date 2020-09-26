@@ -52,7 +52,6 @@ contains
   rbtree in 'Source\RBTree.pas',
   RBTreeTraverse in 'Source\RBTreeTraverse.pas',
   RBTreeTypes in 'Source\RBTreeTypes.pas',
-  DCContainers in 'Source\DCContainers.pas',
-  U_DCHashStrings in 'Source\U_DCHashStrings.pas';
+  DCContainers in 'Source\DCContainers.pas';
 
 end.
