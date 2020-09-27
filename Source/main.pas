@@ -533,8 +533,8 @@ type
     actRunTests: TAction;
     DonateItem: TMenuItem;
     actDonate: TAction;
-    actRename: TAction;
-    Refactor1: TMenuItem;
+    actRenameSymbol: TAction;
+    RefactorMenu: TMenuItem;
     Rename: TMenuItem;
     UseUTF8Encoding: TMenuItem;
     N47: TMenuItem;
@@ -796,7 +796,7 @@ type
     procedure actRunTestsExecute(Sender: TObject);
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
     procedure actDonateExecute(Sender: TObject);
-    procedure actRenameExecute(Sender: TObject);
+    procedure actRenameSymbolExecute(Sender: TObject);
     procedure actUseUTF8Execute(Sender: TObject);
     procedure actUseUTF8Update(Sender: TObject);
   private
@@ -1098,6 +1098,7 @@ begin
   ToolsMenu.Caption := Lang[ID_MNU_TOOLS];
   WindowMenu.Caption := Lang[ID_MNU_WINDOW];
   HelpMenu.Caption := Lang[ID_MNU_HELP];
+  RefactorMenu.Caption := Lang[ID_MNU_REFACTOR];
 
   // File menu
   mnuNew.Caption := Lang[ID_SUB_NEW];
@@ -1261,6 +1262,9 @@ begin
   actAbout.Caption := Lang[ID_ITEM_ABOUT];
   actShowTips.Caption := Lang[ID_ITEM_TIP];
   actDonate.Caption := Lang[ID_ITEM_DONATE];
+
+  //Refactor menu
+  actRenameSymbol.Caption := Lang[ID_ITEM_RENAMESYMBOL];
 
   // Debugging buttons
   actAddWatch.Caption := Lang[ID_ITEM_WATCHADD];
@@ -6774,7 +6778,7 @@ begin
     SW_SHOWNORMAL);
 end;
 
-procedure TMainForm.actRenameExecute(Sender: TObject);
+procedure TMainForm.actRenameSymbolExecute(Sender: TObject);
 var
   Editor : TEditor;
   word,newword: ansiString;

@@ -1612,11 +1612,11 @@ object MainForm: TMainForm
         Caption = 'Package Manager'
       end
     end
-    object Refactor1: TMenuItem
+    object RefactorMenu: TMenuItem
       Caption = 'Refactor'
       GroupIndex = 9
       object Rename: TMenuItem
-        Action = actRename
+        Action = actRenameSymbol
       end
     end
     object FormatMenu: TMenuItem
@@ -2843,11 +2843,11 @@ object MainForm: TMainForm
       ImageIndex = 41
       OnExecute = actDonateExecute
     end
-    object actRename: TAction
+    object actRenameSymbol: TAction
       Category = 'Refactor'
-      Caption = 'Rename'
+      Caption = 'Rename Symbol'
       ShortCut = 24693
-      OnExecute = actRenameExecute
+      OnExecute = actRenameSymbolExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actUseUTF8: TAction

@@ -2,7 +2,7 @@ object RenameForm: TRenameForm
   Left = 224
   Top = 365
   BorderStyle = bsDialog
-  Caption = 'Rename...'
+  Caption = 'Rename Symbol'
   ClientHeight = 88
   ClientWidth = 431
   Color = clBtnFace
@@ -12,12 +12,13 @@ object RenameForm: TRenameForm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   DesignSize = (
     431
     88)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object lbNewName: TLabel
     Left = 16
     Top = 8
     Width = 56

@@ -11,6 +11,7 @@ Ver=1
 8=&Window
 9=&Help
 10=&Debug
+11=Refa&ctor
 
 
 1001=&New
@@ -140,6 +141,8 @@ Ver=1
 9005=Package Manager...
 9006=Donate :)
 9007=Tip Of The Day...
+
+9101=Rename Symbol
 
 
 10001=&Debug
@@ -342,6 +345,7 @@ Ver=1
 26029=Add indent to {} and :
 26030=Tabs
 26031=Use UTF-8 As the Default file encoding
+26032=Use Alt+/ instead of Ctrl+Space
 
 27001=Show hidden line characters
 27002=Show mouseover hints
@@ -1259,3 +1263,6 @@ Ver=1
 79019=Powered by %s
 79020=Max. line length:
 79021=// Could not find the AStyle output file:<CR>// %s
+
+80000=Rename Symbol
+80001=New Name

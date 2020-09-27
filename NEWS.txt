@@ -1,3 +1,7 @@
+Version 5.13-beta2
+  - fix: graphics.h & libturtle project templates
+  - fix: multi language support for rename symbol
+
 Version 5.13-beta1
   - add: project UTF-8 support ( save/load utf8 option for project files, compile utf8 files)
 

@@ -10,8 +10,9 @@ type
   TRenameForm = class(TForm)
     btnOk: TBitBtn;
     btnCancel: TBitBtn;
-    Label1: TLabel;
+    lbNewName: TLabel;
     txtVarName: TEdit;
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -23,7 +24,18 @@ var
 
 implementation
 
+
+uses devCFG,MultiLangSupport,;
 {$R *.dfm}
 
+
+procedure TRenameForm.FormCreate(Sender: TObject);
+begin
+  Font.Name := devData.InterfaceFont;
+  Font.Size := devData.InterfaceFontSize;
+  
+  Caption := Lang[ID_RNSYM];
+  lbNewName.Caption := Lang[ID_RNSYM_NEWNAME];
+end;
 
 end.
