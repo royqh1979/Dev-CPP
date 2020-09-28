@@ -1,5 +1,5 @@
 --- gdb-9.2-new/gdb/windows-nat.c	2020-07-11 20:13:30.000000000 +0800
-+++ gdb-9.2/gdb/windows-nat.c	2020-09-28 20:21:06.515524700 +0800
++++ gdb-9.2/gdb/windows-nat.c	2020-09-29 07:13:24.027344100 +0800
 @@ -2736,20 +2736,20 @@
  	si.hStdInput = (HANDLE) _get_osfhandle (fd_inp);
        else if (tty != INVALID_HANDLE_VALUE)
@@ -7,7 +7,7 @@
 -      else
 -	si.hStdInput = GetStdHandle (STD_INPUT_HANDLE);
 +      else 
-+	si.hStdInput = (HANDLE)0;
++	si.hStdInput = NULL;
        if (fd_out >= 0)
  	si.hStdOutput = (HANDLE) _get_osfhandle (fd_out);
        else if (tty != INVALID_HANDLE_VALUE)
