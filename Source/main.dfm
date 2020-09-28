@@ -4,7 +4,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
-  Caption = 'Dev-C++'
+  Caption = 'Dev-C++ 2020'
   ClientHeight = 671
   ClientWidth = 1232
   Color = clBtnFace
@@ -60,8 +60,8 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 1222
-        Height = 191
+        Width = 1224
+        Height = 194
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -104,8 +104,8 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 1222
-        Height = 191
+        Width = 1224
+        Height = 194
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -149,7 +149,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 191
+        Height = 194
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
@@ -478,8 +478,8 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 1222
-        Height = 191
+        Width = 1224
+        Height = 194
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone

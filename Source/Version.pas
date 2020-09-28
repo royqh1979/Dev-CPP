@@ -31,7 +31,7 @@ const
 {$ENDIF}
 
   // exe properties
-  DEVCPP = 'Dev-C++';
+  DEVCPP = 'Dev-C++ 2020';
   DEVCPP_VERSION = '5.13-beta1';
 
   // delimiters

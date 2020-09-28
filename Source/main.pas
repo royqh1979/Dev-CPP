@@ -945,7 +945,7 @@ begin
 
   // Stop Debugger executing
   if fDebugger.Executing then
-    fDebugger.Stop
+    fDebugger.Stop;
   // stop Exectuting file
   if devExecutor.Running then
     devExecutor.Reset;
