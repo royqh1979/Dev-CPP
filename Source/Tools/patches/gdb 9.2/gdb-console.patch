@@ -1,36 +1,27 @@
 --- gdb-9.2-new/gdb/windows-nat.c	2020-07-11 20:13:30.000000000 +0800
-+++ gdb-9.2/gdb/windows-nat.c	2020-09-28 19:58:42.028924500 +0800
-@@ -2736,22 +2736,27 @@
++++ gdb-9.2/gdb/windows-nat.c	2020-09-28 20:21:06.515524700 +0800
+@@ -2736,20 +2736,20 @@
  	si.hStdInput = (HANDLE) _get_osfhandle (fd_inp);
        else if (tty != INVALID_HANDLE_VALUE)
  	si.hStdInput = tty;
 -      else
 -	si.hStdInput = GetStdHandle (STD_INPUT_HANDLE);
-+      else {
-+		si.hStdInput = (HANDLE)0;
-+	  }
++      else 
++	si.hStdInput = (HANDLE)0;
        if (fd_out >= 0)
  	si.hStdOutput = (HANDLE) _get_osfhandle (fd_out);
        else if (tty != INVALID_HANDLE_VALUE)
  	si.hStdOutput = tty;
--      else
+       else
 -	si.hStdOutput = GetStdHandle (STD_OUTPUT_HANDLE);
-+      else {
-+		si.hStdOutput = NULL;
-+	  }
++	si.hStdOutput = NULL;
        if (fd_err >= 0)
  	si.hStdError = (HANDLE) _get_osfhandle (fd_err);
        else if (tty != INVALID_HANDLE_VALUE)
  	si.hStdError = tty;
--      else
+       else
 -	si.hStdError = GetStdHandle (STD_ERROR_HANDLE);
-+      else {
-+		si.hStdError = NULL;
-+	  }
++	si.hStdError = NULL;
        si.dwFlags |= STARTF_USESTDHANDLES;
      }
-+	
-+  warning(_("redirect : %d %d %d"), si.hStdInput, si.hStdOutput, si.hStdError);
  
-   toexec = exec_file;
-   /* Build the command line, a space-separated list of tokens where

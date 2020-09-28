@@ -820,9 +820,6 @@ begin
             FileToRun := FileToRun;
           end;
 
-          if fUseInputFile then
-            Parameters := Parameters + ' < "' +fInputFile+ '"';
-
           if devData.MinOnRun then
             Application.Minimize;
           devExecutor.ExecuteAndWatch(FileToRun, Parameters, ExtractFilePath(fSourceFile),
@@ -848,8 +845,7 @@ begin
           else begin // execute DLL's host application
             if devData.MinOnRun then
               Application.Minimize;
-            if fUseInputFile then
-              Parameters := Parameters + ' < "' +fInputFile+ '"';
+
             devExecutor.ExecuteAndWatch(fProject.Options.HostApplication, fProject.Options.CmdLineArgs,
               ExtractFileDir(fProject.Options.HostApplication), True,
               UseInputFile,InputFile, INFINITE, RunTerminate);
@@ -866,8 +862,6 @@ begin
 
           if devData.MinOnRun then
             Application.Minimize;
-          if fUseInputFile then
-            Parameters := Parameters + ' < "' +fInputFile+ '"';
           devExecutor.ExecuteAndWatch(FileToRun, Parameters, ExtractFileDir(fProject.Executable),
             True, UseInputFile,InputFile,INFINITE, RunTerminate);
           MainForm.UpdateAppTitle;

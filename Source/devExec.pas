@@ -96,6 +96,7 @@ var
   StartupInfo: TStartupInfo;
   ProcessInfo: TProcessInformation;
   sa: TSecurityAttributes;
+  params: String;
 begin
   FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
   with StartupInfo do begin
@@ -123,11 +124,15 @@ begin
     }
     StartupInfo.dwFlags := StartupInfo.dwFlags or STARTF_USESTDHANDLES;
     StartupInfo.hStdInput := InputRead;
-    StartupInfo.hStdOutput := GetStdHandle(STD_OUTPUT_HANDLE);
-    StartupInfo.hStdError := GetStdHandle(STD_ERROR_HANDLE);
+    StartupInfo.hStdOutput := 0;
+    StartupInfo.hStdError := 0;
   end;
 
-  if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + fParams), nil, nil, True,
+  if RedirectInput then
+    params := '1 '+fParams;
+  else
+    params := '0 '+fParams;
+  if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + params), nil, nil, True,
     NORMAL_PRIORITY_CLASS , nil,
     PAnsiChar(fPath), StartupInfo, ProcessInfo) then begin
     fProcess := ProcessInfo.hProcess;

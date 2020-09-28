@@ -21,8 +21,23 @@ LONGLONG GetClockFrequency() {
 	return dummy.QuadPart;
 }
 
-void PauseExit(int exitcode) {
+void PauseExit(int exitcode, bool reInp) {
+    HANDLE hInp=NULL;
+    if (reInp) {
+        SECURITY_ATTRIBUTES sa;
+        sa.nLength = sizeof(sa);
+        sa.lpSecurityDescriptor = NULL;
+        sa.bInheritHandle = TRUE;
+		
+        HANDLE hInp = CreateFile("CONIN$", GENERIC_WRITE | GENERIC_READ, 
+            FILE_SHARE_READ , &sa, OPEN_EXISTING, /*FILE_ATTRIBUTE_NORMAL*/0, NULL);
+            //si.hStdInput = hInp;
+        SetStdHandle(STD_INPUT_HANDLE,hInp);
+    }
 	system("pause");
+    if (reInp) {
+        CloseHandle(hInp);
+    }
 	exit(exitcode);
 }
 
@@ -44,9 +59,10 @@ string GetErrorMessage() {
 	return result;
 }
 
-string GetCommand(int argc,char** argv) {
+string GetCommand(int argc,char** argv,bool &reInp) {
 	string result;
-	for(int i = 1;i < argc;i++) {
+	reInp = (strcmp(argv[1],"0")!=0) ;
+	for(int i = 2;i < argc;i++) {
 		// Quote the first argument in case the path name contains spaces
 //		if(i == 1) {
 //			result += string("\"") + string(argv[i]) + string("\"");
@@ -63,13 +79,13 @@ string GetCommand(int argc,char** argv) {
 	if(result.length() > MAX_COMMAND_LENGTH) {
 		printf("\n--------------------------------");
 		printf("\nError: Length of command line string is over %d characters\n",MAX_COMMAND_LENGTH);
-		PauseExit(EXIT_FAILURE);
+		PauseExit(EXIT_FAILURE,reInp);
 	}
 	
 	return result;
 }
 
-DWORD ExecuteCommand(string& command) {
+DWORD ExecuteCommand(string& command,bool reInp) {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	memset(&si,0,sizeof(si));
@@ -80,7 +96,7 @@ DWORD ExecuteCommand(string& command) {
 		printf("\n--------------------------------");
 		printf("\nFailed to execute \"%s\":",command.c_str());
 		printf("\nError %lu: %s\n",GetLastError(),GetErrorMessage().c_str());
-		PauseExit(EXIT_FAILURE);
+		PauseExit(EXIT_FAILURE,reInp);
 	}
 	WaitForSingleObject(pi.hProcess, INFINITE); // Wait for it to finish
 	
@@ -92,23 +108,25 @@ DWORD ExecuteCommand(string& command) {
 int main(int argc, char** argv) {
 	
 	// First make sure we aren't going to read nonexistent arrays
-	if(argc < 2) {
+	if(argc < 3) {
 		printf("\n--------------------------------");
-		printf("\nUsage: ConsolePauser.exe <filename> <parameters>\n");
-		PauseExit(EXIT_SUCCESS);
+		printf("\nUsage: ConsolePauser.exe <0|1> <filename> <parameters>\n");
+		printf("\n 1 means the STDIN is redirected by Dev-CPP;0 means not\n");
+		PauseExit(EXIT_SUCCESS,false);
 	}
 	
 	// Make us look like the paused program
-	SetConsoleTitle(argv[1]);
+	SetConsoleTitle(argv[2]);
 	
+	bool reInp;
 	// Then build the to-run application command
-	string command = GetCommand(argc,argv);
-	
+	string command = GetCommand(argc,argv,reInp);
+
 	// Save starting timestamp
 	LONGLONG starttime = GetClockTick();
 	
 	// Then execute said command
-	DWORD returnvalue = ExecuteCommand(command);
+	DWORD returnvalue = ExecuteCommand(command,reInp);
 	
 	// Get ending timestamp
 	LONGLONG endtime = GetClockTick();
@@ -117,5 +135,5 @@ int main(int argc, char** argv) {
 	// Done? Print return value of executed program
 	printf("\n--------------------------------");
 	printf("\nProcess exited after %.4g seconds with return value %lu\n",seconds,returnvalue);
-	PauseExit(EXIT_SUCCESS);
+	PauseExit(returnvalue,reInp);
 }
