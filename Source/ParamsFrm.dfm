@@ -1,49 +1,132 @@
 object ParamsForm: TParamsForm
-  Left = 581
-  Top = 259
+  Left = 267
+  Top = 252
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Parameters'
-  ClientHeight = 170
-  ClientWidth = 297
+  ClientHeight = 373
+  ClientWidth = 452
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -12
+  Font.Height = -15
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 15
-  object grpParameters: TGroupBox
-    Left = 8
-    Top = 8
-    Width = 281
-    Height = 56
-    Caption = 'Parameters to pass to your program :'
+  PixelsPerInch = 120
+  TextHeight = 20
+  object OkBtn: TBitBtn
+    Left = 235
+    Top = 333
+    Width = 100
+    Height = 34
     TabOrder = 0
+    Kind = bkOK
+  end
+  object CancelBtn: TBitBtn
+    Left = 339
+    Top = 333
+    Width = 100
+    Height = 34
+    TabOrder = 1
+    Kind = bkCancel
+  end
+  object cbUseInputFile: TCheckBox
+    Left = 11
+    Top = 131
+    Width = 257
+    Height = 22
+    Caption = 'Use the Following File as Input'
+    TabOrder = 2
+    OnClick = cbUseInputFileClick
+  end
+  object cbUseParams: TCheckBox
+    Left = 11
+    Top = 11
+    Width = 428
+    Height = 22
+    Caption = 'Execute with the Following Parameter:'
+    TabOrder = 3
+    OnClick = cbUseParamsClick
+  end
+  object grpInputFile: TGroupBox
+    Left = 11
+    Top = 153
+    Width = 428
+    Height = 75
+    Caption = 'Host Application :'
+    TabOrder = 4
+    object btnChooseInputFile: TSpeedButton
+      Left = 384
+      Top = 28
+      Width = 29
+      Height = 29
+      Glyph.Data = {
+        36030000424D3603000000000000360000002800000010000000100000000100
+        18000000000000030000120B0000120B00000000000000000000BFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+        00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+        BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+        00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+        00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+        BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+        00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000000000
+        000000000000000000000000000000000000000000000000000000BFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBF00000000AEFF0096DB0096DB0096DB0096DB0096DB00
+        96DB0096DB0082BE000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+        00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF00AEFF00AEFF00AEFF00
+        AEFF00AEFF0096DB000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+        00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF5DCCFF5DCCFF5DCCFF5D
+        CCFF5DCCFF00AEFF000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF686868BDEBFF
+        5DCCFF5DCCFF000000000000000000000000000000000000BFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBFBFBFBF000000000000000000BFBFBFBFBFBFBFBFBFBF
+        BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+      OnClick = btnChooseInputFileClick
+    end
+    object txtInputFile: TEdit
+      Left = 11
+      Top = 29
+      Width = 364
+      Height = 23
+      TabOrder = 0
+    end
+  end
+  object grpParameters: TGroupBox
+    Left = 11
+    Top = 45
+    Width = 428
+    Height = 76
+    Caption = 'Parameters to pass to your program :'
+    TabOrder = 5
     object ParamEdit: TEdit
-      Left = 8
-      Top = 22
-      Width = 264
+      Left = 11
+      Top = 29
+      Width = 406
       Height = 23
       TabOrder = 0
     end
   end
   object grpHost: TGroupBox
-    Left = 8
-    Top = 72
-    Width = 281
-    Height = 56
+    Left = 11
+    Top = 249
+    Width = 428
+    Height = 75
     Caption = 'Host Application :'
-    TabOrder = 1
+    TabOrder = 6
     object LoadBtn: TSpeedButton
-      Left = 248
-      Top = 21
-      Width = 22
-      Height = 22
+      Left = 384
+      Top = 28
+      Width = 29
+      Height = 29
       Glyph.Data = {
         36030000424D3603000000000000360000002800000010000000100000000100
         18000000000000030000120B0000120B00000000000000000000BFBFBFBFBFBF
@@ -74,27 +157,11 @@ object ParamsForm: TParamsForm
       OnClick = LoadBtnClick
     end
     object HostEdit: TEdit
-      Left = 8
-      Top = 22
-      Width = 234
+      Left = 11
+      Top = 29
+      Width = 364
       Height = 23
       TabOrder = 0
     end
-  end
-  object OkBtn: TBitBtn
-    Left = 136
-    Top = 138
-    Width = 75
-    Height = 25
-    TabOrder = 2
-    Kind = bkOK
-  end
-  object CancelBtn: TBitBtn
-    Left = 214
-    Top = 138
-    Width = 75
-    Height = 25
-    TabOrder = 3
-    Kind = bkCancel
   end
 end

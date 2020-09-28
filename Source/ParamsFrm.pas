@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons;
+  Dialogs, StdCtrls, Buttons, ComCtrls;
 
 type
   TParamsForm = class(TForm)
@@ -34,8 +34,16 @@ type
     LoadBtn: TSpeedButton;
     OkBtn: TBitBtn;
     CancelBtn: TBitBtn;
+    cbUseParams: TCheckBox;
+    cbUseInputFile: TCheckBox;
+    grpInputFile: TGroupBox;
+    btnChooseInputFile: TSpeedButton;
+    txtInputFile: TEdit;
     procedure LoadBtnClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure btnChooseInputFileClick(Sender: TObject);
+    procedure cbUseParamsClick(Sender: TObject);
+    procedure cbUseInputFileClick(Sender: TObject);
   private
     procedure LoadText;
     { Private declarations }
@@ -47,7 +55,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, devcfg;
+  MultiLangSupport, devcfg, utils,version;
 
 {$R *.dfm}
 
@@ -67,6 +75,7 @@ end;
 procedure TParamsForm.LoadBtnClick(Sender: TObject);
 begin
 	with TOpenDialog.Create(self) do try
+    Filter := BuildFilter([FLT_EXECUTABLES]);
 		if Execute then
 			HostEdit.Text := FileName;
 	finally
@@ -80,9 +89,40 @@ begin
 	LoadBtn.Enabled := false;
 end;
 
+
+
 procedure TParamsForm.FormCreate(Sender: TObject);
 begin
 	LoadText;
+  ParamEdit.Enabled := cbUseParams.Checked;
+  txtInputFile.Enabled := cbUseInputFile.Checked;
+  btnChooseInputFile.Enabled := cbUseInputFile.Checked;
+end;
+
+procedure TParamsForm.btnChooseInputFileClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(Self) do try
+//    Filter := BuildFilter([FLT_PROJECTS, FLT_CS, FLT_CPPS, FLT_RES, FLT_HEADS]);
+//    Title := Lang[ID_NV_OPENFILE];
+//    Options := Options + [ofAllowMultiSelect];
+    Filter := BuildFilter([FLT_TEXTS,FLT_ALLFILES]);
+    // Open all provided files
+    if Execute then
+      txtInputFile.Text := FileName;
+  finally
+    Free;
+  end;
+end;
+
+procedure TParamsForm.cbUseParamsClick(Sender: TObject);
+begin
+  ParamEdit.Enabled := cbUseParams.Checked;
+end;
+
+procedure TParamsForm.cbUseInputFileClick(Sender: TObject);
+begin
+  txtInputFile.Enabled := cbUseInputFile.Checked;
+  btnChooseInputFile.Enabled := cbUseInputFile.Checked;
 end;
 
 end.

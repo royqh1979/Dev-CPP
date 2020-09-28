@@ -99,6 +99,7 @@ const
   CLEAN_PROGRAM = 'rm.exe'; // cannot use del, it doesn't have a quiet mode
 
   // File dialog filters
+  FLT_EXECUTABLES = 'Executable files (*.exe)|*.exe';
   FLT_ALLFILES = 'All files (*.*)|*.*|';
   FLT_TEXTS = 'Text files (*.txt)|*.txt';
   FLT_LIBRARIES = 'Libraries (*.lib;*.a)|*.lib;*.a';

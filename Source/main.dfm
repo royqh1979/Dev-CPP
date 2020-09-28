@@ -1,16 +1,16 @@
 object MainForm: TMainForm
-  Left = 310
-  Top = 73
+  Left = 649
+  Top = 47
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++'
-  ClientHeight = 545
-  ClientWidth = 1001
+  ClientHeight = 671
+  ClientWidth = 1232
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu
@@ -23,20 +23,20 @@ object MainForm: TMainForm
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object SplitterLeft: TSplitter
-    Left = 193
+    Left = 238
     Top = 56
-    Height = 283
+    Height = 361
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 339
-    Width = 1001
-    Height = 3
+    Top = 417
+    Width = 1232
+    Height = 4
     Cursor = crVSplit
     Align = alBottom
     ResizeStyle = rsUpdate
@@ -44,9 +44,9 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 342
-    Width = 1001
-    Height = 183
+    Top = 421
+    Width = 1232
+    Height = 225
     ActivePage = DebugSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
@@ -60,23 +60,23 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 993
-        Height = 155
+        Width = 1222
+        Height = 191
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
         Columns = <
           item
             Caption = 'Line'
-            Width = 40
+            Width = 49
           end
           item
             Caption = 'Col'
-            Width = 40
+            Width = 49
           end
           item
             Caption = 'Unit'
-            Width = 320
+            Width = 394
           end
           item
             AutoSize = True
@@ -104,23 +104,23 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 993
-        Height = 155
+        Width = 1222
+        Height = 191
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
         Columns = <
           item
             Caption = 'Line'
-            Width = 40
+            Width = 49
           end
           item
             Caption = 'Col'
-            Width = 40
+            Width = 49
           end
           item
             Caption = 'Unit'
-            Width = 320
+            Width = 394
           end
           item
             AutoSize = True
@@ -148,57 +148,57 @@ object MainForm: TMainForm
       object InfoGroupBox: TPanel
         Left = 0
         Top = 0
-        Width = 156
-        Height = 155
+        Width = 192
+        Height = 191
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
-          156
-          155)
+          192
+          194)
         object btnAbortCompilation: TSpeedButton
-          Left = 4
-          Top = 4
-          Width = 144
-          Height = 30
+          Left = 5
+          Top = 5
+          Width = 177
+          Height = 37
           Action = actAbortCompilation
         end
         object pbCompilation: TProgressBar
-          Left = 4
-          Top = 40
-          Width = 144
-          Height = 24
+          Left = 5
+          Top = 49
+          Width = 177
+          Height = 30
           Anchors = [akLeft, akTop, akRight]
           Step = 1
           TabOrder = 0
         end
         object chkShortenPaths: TCheckBox
-          Left = 4
-          Top = 69
-          Width = 144
-          Height = 17
+          Left = 5
+          Top = 85
+          Width = 177
+          Height = 21
           Action = actShortenCompPaths
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
         end
       end
       object CompResGroupBox: TPanel
-        Left = 156
+        Left = 192
         Top = 0
-        Width = 837
-        Height = 155
+        Width = 1032
+        Height = 194
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 702
-          Height = 154
+          Width = 864
+          Height = 190
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -13
+          Font.Height = -17
           Font.Name = 'Courier New'
           Font.Style = []
           ParentFont = False
@@ -214,38 +214,38 @@ object MainForm: TMainForm
       Caption = 'Debugging'
       ImageIndex = 32
       object DebugSendPanel: TPanel
-        Left = 589
+        Left = 725
         Top = 0
-        Width = 404
-        Height = 155
+        Width = 499
+        Height = 194
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
-          404
-          155)
+          499
+          194)
         object lblSendCommandGdb: TLabel
-          Left = 4
-          Top = 7
-          Width = 115
-          Height = 13
+          Left = 5
+          Top = 9
+          Width = 144
+          Height = 16
           Caption = 'Send command to GDB:'
         end
         object edGdbCommand: TComboBox
-          Left = 136
-          Top = 3
-          Width = 264
-          Height = 21
+          Left = 167
+          Top = 4
+          Width = 325
+          Height = 24
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 13
+          ItemHeight = 16
           TabOrder = 0
           OnKeyPress = edGdbCommandKeyPress
         end
         object DebugOutput: TMemo
-          Left = 4
-          Top = 30
-          Width = 397
-          Height = 108
+          Left = 5
+          Top = 37
+          Width = 489
+          Height = 133
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssVertical
@@ -255,21 +255,21 @@ object MainForm: TMainForm
       object DebugStartPanel: TPanel
         Left = 0
         Top = 0
-        Width = 589
-        Height = 155
+        Width = 725
+        Height = 194
         Align = alLeft
         BevelOuter = bvNone
         BiDiMode = bdLeftToRight
         ParentBiDiMode = False
         TabOrder = 1
         DesignSize = (
-          589
-          155)
+          725
+          194)
         object DDebugBtn: TSpeedButton
-          Left = 4
-          Top = 7
-          Width = 112
-          Height = 25
+          Left = 5
+          Top = 9
+          Width = 138
+          Height = 30
           Action = actDebug
           Glyph.Data = {
             36040000424D3604000000000000360000002800000010000000100000000100
@@ -308,10 +308,10 @@ object MainForm: TMainForm
             FF00FF00FF00FF00FF00FF00FF00FF00FF0000000000FF00FF00}
         end
         object StopExecBtn: TSpeedButton
-          Left = 4
-          Top = 38
-          Width = 112
-          Height = 25
+          Left = 5
+          Top = 47
+          Width = 138
+          Height = 31
           Action = actStopExecute
           Glyph.Data = {
             36040000424D3604000000000000360000002800000010000000100000000100
@@ -350,38 +350,38 @@ object MainForm: TMainForm
             FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00}
         end
         object lblEvaluate: TLabel
-          Left = 4
-          Top = 76
-          Width = 45
-          Height = 13
+          Left = 5
+          Top = 94
+          Width = 56
+          Height = 16
           Caption = 'Evaluate:'
         end
         object StepOverBtn: TSpeedButton
-          Left = 236
-          Top = 7
-          Width = 112
-          Height = 25
+          Left = 290
+          Top = 9
+          Width = 138
+          Height = 30
           Action = actStepOver
         end
         object ContinueBtn: TSpeedButton
-          Left = 120
-          Top = 7
-          Width = 112
-          Height = 25
+          Left = 148
+          Top = 9
+          Width = 138
+          Height = 30
           Action = actContinue
         end
         object StepIntoBtn: TSpeedButton
-          Left = 352
-          Top = 7
-          Width = 112
-          Height = 25
+          Left = 433
+          Top = 9
+          Width = 138
+          Height = 30
           Action = actStepInto
         end
         object AddWatchBtn: TSpeedButton
-          Left = 236
-          Top = 38
-          Width = 112
-          Height = 25
+          Left = 290
+          Top = 47
+          Width = 138
+          Height = 31
           Action = actAddWatch
           Glyph.Data = {
             36040000424D3604000000000000360000002800000010000000100000000100
@@ -420,53 +420,53 @@ object MainForm: TMainForm
             00000000000000000000FF00FF00FF00FF00FF00FF00FF00FF00}
         end
         object ViewCPUBtn: TSpeedButton
-          Left = 120
-          Top = 38
-          Width = 112
-          Height = 25
+          Left = 148
+          Top = 47
+          Width = 138
+          Height = 31
           Action = actViewCPU
         end
         object EvaluateInput: TComboBox
-          Left = 64
-          Top = 72
-          Width = 518
-          Height = 21
+          Left = 79
+          Top = 89
+          Width = 637
+          Height = 24
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 13
+          ItemHeight = 16
           TabOrder = 0
           OnKeyPress = EvaluateInputKeyPress
         end
         object EvalOutput: TMemo
-          Left = 4
-          Top = 100
-          Width = 578
-          Height = 37
+          Left = 5
+          Top = 123
+          Width = 711
+          Height = 46
           Anchors = [akLeft, akTop, akRight, akBottom]
           ReadOnly = True
           ScrollBars = ssBoth
           TabOrder = 1
         end
         object StepOutBtn: TButton
-          Left = 468
-          Top = 7
-          Width = 112
-          Height = 25
+          Left = 576
+          Top = 9
+          Width = 138
+          Height = 30
           Action = actStepOut
           TabOrder = 2
         end
         object CallStackBtn: TButton
-          Left = 468
-          Top = 38
-          Width = 112
-          Height = 25
+          Left = 576
+          Top = 47
+          Width = 138
+          Height = 31
           Action = actCallStack
           TabOrder = 3
         end
         object RunToCursorBtn: TButton
-          Left = 352
-          Top = 38
-          Width = 112
-          Height = 25
+          Left = 433
+          Top = 47
+          Width = 138
+          Height = 31
           Action = actRunToCursor
           TabOrder = 4
         end
@@ -478,26 +478,26 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 993
-        Height = 155
+        Width = 1222
+        Height = 191
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
         Columns = <
           item
-            Width = 15
+            Width = 18
           end
           item
             Caption = 'Line'
-            Width = 40
+            Width = 49
           end
           item
             Caption = 'Col'
-            Width = 40
+            Width = 49
           end
           item
             Caption = 'Unit'
-            Width = 320
+            Width = 394
           end
           item
             AutoSize = True
@@ -527,7 +527,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 1001
+    Width = 1232
     Height = 56
     Align = alTop
     AutoDock = False
@@ -916,9 +916,9 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 525
-    Width = 1001
-    Height = 20
+    Top = 646
+    Width = 1232
+    Height = 25
     Panels = <
       item
         Width = 480
@@ -936,8 +936,8 @@ object MainForm: TMainForm
     UseSystemFont = False
   end
   object FileMonitor: TdevFileMonitor
-    Left = 112
-    Top = 152
+    Left = 138
+    Top = 187
     Width = 0
     Height = 0
     OnNotifyChange = FileMonitorNotifyChange
@@ -945,8 +945,8 @@ object MainForm: TMainForm
   object LeftPageControl: TPageControl
     Left = 0
     Top = 56
-    Width = 193
-    Height = 283
+    Width = 238
+    Height = 361
     ActivePage = LeftDebugSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
@@ -958,8 +958,8 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 185
-        Height = 255
+        Width = 230
+        Height = 330
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -993,8 +993,8 @@ object MainForm: TMainForm
       object ClassBrowser: TClassBrowser
         Left = 0
         Top = 0
-        Width = 185
-        Height = 255
+        Width = 230
+        Height = 330
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -1029,8 +1029,8 @@ object MainForm: TMainForm
       object DebugView: TTreeView
         Left = 0
         Top = 0
-        Width = 185
-        Height = 255
+        Width = 230
+        Height = 330
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -1049,19 +1049,19 @@ object MainForm: TMainForm
     end
   end
   object PageControlPanel: TPanel
-    Left = 196
+    Left = 241
     Top = 56
-    Width = 805
-    Height = 283
+    Width = 991
+    Height = 361
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 805
+      Left = 991
       Top = 0
       Width = 0
-      Height = 283
+      Height = 361
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1069,8 +1069,8 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 805
-      Height = 283
+      Width = 991
+      Height = 361
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1084,10 +1084,10 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 805
+      Left = 991
       Top = 0
       Width = 0
-      Height = 283
+      Height = 361
       Align = alRight
       HotTrack = True
       MultiLine = True

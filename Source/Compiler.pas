@@ -45,7 +45,10 @@ type
     fOnRunEnd: TRunEndEvent;
     fProject: TProject;
     fSourceFile: AnsiString;
+    fUseRunParams: boolean;
     fRunParams: AnsiString;
+    fUseInputFile: boolean;
+    fInputFile: AnsiString;
     fMakefile: AnsiString;
     fTarget: TTarget;
     fErrCount: integer;
@@ -82,6 +85,9 @@ type
     property SourceFile: AnsiString read fSourceFile write fSourceFile;
     property CompilerSet: TdevCompilerSet read fCompilerSet write fCompilerSet;
     property RunParams: AnsiString read fRunParams write fRunParams; // only for nonproject compilations
+    property UseRunParams: boolean read fUseRunParams write fUseRunParams;
+    property UseInputFile: boolean read fUseInputFile write fUseInputFile;
+    property InputFile: AnsiString read fInputFile write fInputFile;
     property MakeFile: AnsiString read GetMakeFile;
     property Target: TTarget read fTarget write fTarget;
     property WarningCount: integer read fWarnCount;
@@ -800,17 +806,27 @@ begin
 
           // Pause programs if they contain a console
           if devData.ConsolePause and ProgramHasConsole(FileToRun) then begin
-            Parameters := '"' + FileToRun + '" ' + fRunParams;
+            if fUseRunParams then
+              Parameters := '"' + FileToRun + '" ' + fRunParams
+            else
+              Parameters := '"' + FileToRun + '"';
+
             FileToRun := devDirs.Exec + 'ConsolePauser.exe';
           end else begin
-            Parameters := fRunParams;
+            if fUseRunParams then
+              Parameters := fRunParams
+            else
+              Parameters := '';
             FileToRun := FileToRun;
           end;
 
+          if fUseInputFile then
+            Parameters := Parameters + ' < "' +fInputFile+ '"';
+
           if devData.MinOnRun then
             Application.Minimize;
-          devExecutor.ExecuteAndWatch(FileToRun, Parameters, ExtractFilePath(fSourceFile), True, INFINITE,
-            RunTerminate);
+          devExecutor.ExecuteAndWatch(FileToRun, Parameters, ExtractFilePath(fSourceFile),
+            True, UseInputFile,InputFile, INFINITE, RunTerminate);
           MainForm.UpdateAppTitle;
         end;
       end;
@@ -832,8 +848,11 @@ begin
           else begin // execute DLL's host application
             if devData.MinOnRun then
               Application.Minimize;
-            devExecutor.ExecuteAndWatch(fProject.Options.HostApplication, fRunParams,
-              ExtractFileDir(fProject.Options.HostApplication), True, INFINITE, RunTerminate);
+            if fUseInputFile then
+              Parameters := Parameters + ' < "' +fInputFile+ '"';
+            devExecutor.ExecuteAndWatch(fProject.Options.HostApplication, fProject.Options.CmdLineArgs,
+              ExtractFileDir(fProject.Options.HostApplication), True,
+              UseInputFile,InputFile, INFINITE, RunTerminate);
             MainForm.UpdateAppTitle;
           end;
         end else begin // execute normally
@@ -841,14 +860,16 @@ begin
             Parameters := '"' + fProject.Executable + '" ' + fProject.Options.CmdLineArgs;
             FileToRun := devDirs.Exec + 'ConsolePauser.exe';
           end else begin
-            Parameters := fRunParams;
+            Parameters := fProject.Options.CmdLineArgs;
             FileToRun := fProject.Executable;
           end;
 
           if devData.MinOnRun then
             Application.Minimize;
-          devExecutor.ExecuteAndWatch(FileToRun, Parameters, ExtractFileDir(fProject.Executable), True, INFINITE,
-            RunTerminate);
+          if fUseInputFile then
+            Parameters := Parameters + ' < "' +fInputFile+ '"';
+          devExecutor.ExecuteAndWatch(FileToRun, Parameters, ExtractFileDir(fProject.Executable),
+            True, UseInputFile,InputFile,INFINITE, RunTerminate);
           MainForm.UpdateAppTitle;
         end;
       end;

@@ -946,7 +946,8 @@ begin
   // Stop Debugger executing
   if fDebugger.Executing then
     fDebugger.Stop
-  else if devExecutor.Running then
+  // stop Exectuting file
+  if devExecutor.Running then
     devExecutor.Reset;
 
   // Try to close all editors. If some are left open, stop quitting
@@ -4864,8 +4865,12 @@ procedure TMainForm.actExecParamsExecute(Sender: TObject);
 begin
   with TParamsForm.Create(self) do try
     case GetCompileTarget of
-      ctNone, ctFile:
+      ctNone, ctFile: begin
         ParamEdit.Text := fCompiler.RunParams;
+        cbUseParams.Checked := fCompiler.UseRunParams;
+        cbUseInputFile.Checked := fCompiler.UseInputFile;
+        txtInputFile.Text := fCompiler.InputFile;
+        end;
       ctProject: begin
           HostEdit.Text := fProject.Options.HostApplication;
           ParamEdit.Text := fProject.Options.CmdLineArgs;
@@ -4873,7 +4878,11 @@ begin
     end;
     if not Assigned(fProject) or (fProject.Options.typ <> dptDyn) then
       DisableHost;
+      
     if (ShowModal = mrOk) then begin
+      fCompiler.UseRunParams := cbUseParams.Checked;
+      fCompiler.UseInputFile := cbUseInputFile.Checked;
+      fCompiler.InputFile := txtInputFile.Text;
       case GetCompileTarget of
         ctNone, ctFile:
           fCompiler.RunParams := ParamEdit.Text;

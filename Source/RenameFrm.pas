@@ -25,7 +25,7 @@ var
 implementation
 
 
-uses devCFG,MultiLangSupport,;
+uses devCFG,MultiLangSupport;
 {$R *.dfm}
 
 
