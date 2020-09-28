@@ -118,10 +118,9 @@ begin
       SetEvent(StartupEvent);
       Exit;
     end;
-    {
+    // child don't use fInputWrite, so don't let child inherit it
     if not SetHandleInformation(fInputwrite, HANDLE_FLAG_INHERIT, 0) then
       Exit;
-    }
     StartupInfo.dwFlags := StartupInfo.dwFlags or STARTF_USESTDHANDLES;
     StartupInfo.hStdInput := InputRead;
     StartupInfo.hStdOutput := 0;
@@ -129,7 +128,7 @@ begin
   end;
 
   if RedirectInput then
-    params := '1 '+fParams;
+    params := '1 '+fParams
   else
     params := '0 '+fParams;
   if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + params), nil, nil, True,
