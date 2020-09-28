@@ -56,7 +56,7 @@ object ParamsForm: TParamsForm
     Top = 153
     Width = 428
     Height = 75
-    Caption = 'Host Application :'
+    Caption = 'Input File:'
     TabOrder = 4
     object btnChooseInputFile: TSpeedButton
       Left = 384

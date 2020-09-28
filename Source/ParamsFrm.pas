@@ -70,6 +70,10 @@ begin
   grpHost.Caption := Lang[ID_PARAM_HOST];
   OkBtn.Caption := Lang[ID_BTN_OK];
   CancelBtn.Caption := Lang[ID_BTN_CANCEL];
+  cbUseInputFile.Caption := Lang[ID_PARAM_REDIRECT_INPUT];
+  grpInputFile.Caption := Lang[ID_PARAM_GRP_INPUTFILE];
+  cbUseParams.Caption := Lang[ID_PARAM_USE_PARAMS];
+
 end;
 
 procedure TParamsForm.LoadBtnClick(Sender: TObject);

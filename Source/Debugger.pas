@@ -135,6 +135,7 @@ begin
   if not SetHandleInformation(fOutputread, HANDLE_FLAG_INHERIT, 0) then
     Exit;
 
+
   // Create the child input pipe.
   if not CreatePipe(fInputread, fInputwrite, @sa, 0) then
     Exit;

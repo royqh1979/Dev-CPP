@@ -445,8 +445,8 @@ begin
     fDefines.AddObject(Name, Pointer(Item)); // sort by name
 end;
 
+//todo: expand macros in the macro define!
 // input should omit the define word
-
 procedure TCppPreprocessor.GetDefineParts(const Input: AnsiString; var Name, Args, Value: AnsiString);
 var
   I, Level, ArgStart: integer;
@@ -487,6 +487,7 @@ begin
   if IsFunction then begin
     // Name has already been found
     Args := Copy(S, ArgStart, I - ArgStart);
+    //todo: expand macro (if already have)
   end else begin
     Name := Trim(Copy(S, 1, I));
     Args := '';

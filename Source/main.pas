@@ -3056,6 +3056,7 @@ var
   i: integer;
   filepath: AnsiString;
   DebugEnabled, StripEnabled: boolean;
+  params: string;
 begin
   if fCompiler.Compiling then
     Exit;
@@ -3203,18 +3204,45 @@ begin
       ctNone:
         Exit;
       ctFile:
-        fDebugger.SendCommand('start', fCompiler.RunParams);
-      ctProject:
-        fDebugger.SendCommand('start', fProject.Options.CmdLineArgs);
+      begin
+        params := '';
+        if fCompiler.UseRunParams then
+          params := params + ' ' + fCompiler.RunParams;
+        if fCompiler.UseInputFile then
+          params := params + ' < "' + fCompiler.InputFile + '"';
+        fDebugger.SendCommand('start', params);
+      end;
+      ctProject:  begin
+        params := '';
+        if fCompiler.UseRunParams then
+          params := params + ' ' + fProject.Options.CmdLineArgs;
+        if fCompiler.UseInputFile then
+          params := params + ' < "' + fCompiler.InputFile + '"';
+
+        fDebugger.SendCommand('start', params);
+      end;
     end;
   end else begin
     case GetCompileTarget of
       ctNone:
         Exit;
-      ctFile:
-        fDebugger.SendCommand('run', fCompiler.RunParams);
-      ctProject:
-        fDebugger.SendCommand('run', fProject.Options.CmdLineArgs);
+      ctFile: begin
+        params := '';
+        if fCompiler.UseRunParams then
+          params := params + ' ' + fCompiler.RunParams;
+        if fCompiler.UseInputFile then
+          params := params + ' < "' + fCompiler.InputFile + '"';
+        fDebugger.SendCommand('run', params);
+      end;
+      ctProject: begin
+        params := '';
+        if fCompiler.UseRunParams then
+          params := params + ' ' + fProject.Options.CmdLineArgs;
+        if fCompiler.UseInputFile then
+          params := params + ' < "' + fCompiler.InputFile + '"';
+
+        fDebugger.SendCommand('run', params);
+      end;
     end;
   end;
 end;
@@ -3902,7 +3930,6 @@ begin
         CppParser.AddIncludePath(CppDir[I]);
       for I := 0 to DefInclude.Count - 1 do // Add default include dirs last, just like gcc does
         CppParser.AddIncludePath(DefInclude[I]); // TODO: retrieve those directories in devcfg
-
       // Set defines
       CppParser.ResetDefines;
       for I := 0 to Defines.Count - 1 do
