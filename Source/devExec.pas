@@ -119,7 +119,7 @@ begin
       Exit;
     end;
     // child don't use fInputWrite, so don't let child inherit it
-    if not SetHandleInformation(fInputwrite, HANDLE_FLAG_INHERIT, 0) then
+    if not SetHandleInformation(InputWrite, HANDLE_FLAG_INHERIT, 0) then
       Exit;
     StartupInfo.dwFlags := StartupInfo.dwFlags or STARTF_USESTDHANDLES;
     StartupInfo.hStdInput := InputRead;

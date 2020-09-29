@@ -767,6 +767,7 @@ begin
       if fOptions.CompilerSet >= devCompilerSets.Count then begin // TODO: change from indices to names
         MessageDlg(Lang[ID_MSG_COMPILERNOTFOUND], mtError, [mbOk], 0);
         fOptions.CompilerSet := devCompilerSets.DefaultSetIndex;
+        Modified := True;
       end;
       fOptions.CompilerOptions := ReadString('Project', 'CompilerSettings', '');
       fOptions.VersionInfo.Major := ReadInteger('VersionInfo', 'Major', 0);

@@ -6637,6 +6637,10 @@ var
   e: TEditor;
   I: integer;
 begin
+  if Assigned(fProject) and fProject.Modified then begin
+    TCustomAction(Sender).Enabled := True;
+    Exit;
+  End;
   for I := 0 to fEditorList.PageCount - 1 do begin
     e := fEditorList[i];
     if Assigned(e) and (e.Text.Modified or (e.FileName = '')) then begin
