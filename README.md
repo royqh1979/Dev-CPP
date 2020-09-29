@@ -1,12 +1,12 @@
-# Dev-CPP
-A fork of https://sourceforge.net/p/orwelldevcpp
+# Dev-CPP 2020
+A fork of Orwell Dev-CPP (https://sourceforge.net/p/orwelldevcpp)
 
 Orwell Dev-CPP has stopped update since 2015, So I forked it. 
 It's intended to be used for eductional purposes.
 
 HighLights of News:
  * Greatly improved "Auto symbol completion" function. Autoskip matched )/}/]/"/', never need to delete it or skip it manually. This makes code input much fluent.
- * Fix auto-indent; When } is inputted, its line will intend to the same as the matching }.
+ * Fix auto-indent; When } is inputted, its line will intend to the same as the matching {.
  * Auto Code Completion fix:
    * In editor option dialog, user can choose to use Alt+/ instead of Ctrl+Space to call Code Completion Action. (In chinese systems, Ctrl-Space is used for switching input methods)
    * If there is only one code completion candidate, it is auto used and the suggestion form will not be displayed. This will speed the input.
@@ -18,5 +18,6 @@ HighLights of News:
  * User can open/edit/save/compile UTF-8 encoding files.
  * rename symbol ( using clang-rename)
  * -Wall -Wextra -Werror is setted by default in the Debug profile, to help beginners learn good coding habits.
+ * redirect STDIN to a data file ( to easy debug) 
  
 And dozens of fixes and changes, see News.txt  
