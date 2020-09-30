@@ -2,7 +2,9 @@ Version 5.13-beta2
   - fix: graphics.h & libturtle project templates
   - fix: multi language support for rename symbol
   - fix: parameters are in effect when run the compiled project program
-  - add: Redirect a data file to STDIO when run the compiled program
+  - fix: When the compiler set setting in an old project is not valid any more, we use the editor's current set instead. But we cant save it (modify flag of the project is not set).
+  - add: Redirect  STDIO to a file when run & debug the compiled program (need a patched gdb)
+  
 
 Version 5.13-beta1
   - add: project UTF-8 support ( save/load utf8 option for project files, compile utf8 files)

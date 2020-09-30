@@ -1106,6 +1106,9 @@ Ver=1
 71001=Parameters
 71002=Parameters to pass to your program:
 71003=Host Application:
+71004=Redirect STDIN to the following file:
+71005=Input File:
+71006=Run with the following parameters
 
 
 72001=Files

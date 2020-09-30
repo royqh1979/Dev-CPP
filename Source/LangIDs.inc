@@ -29,6 +29,7 @@ const
   ID_MNU_WINDOW                         = 8;
   ID_MNU_HELP                           = 9;
   ID_MNU_DEBUG                          = 10;
+  ID_MNU_REFACTOR = 11;
 
   // file menu
   ID_SUB_NEW                            = 1001;
@@ -183,6 +184,9 @@ const
   ID_ITEM_PACKMAN                       = 9005;
   ID_ITEM_DONATE                        = 9006;
   ID_ITEM_TIP                           = 9007;
+
+  // Refactor menu
+  ID_ITEM_RENAMESYMBOL                =9101;
   
   //debug menu
   ID_ITEM_DEBUG                         = 10001;
@@ -378,6 +382,7 @@ const
   ID_EOPT_ADDINDENT                     = 26029;
   ID_EOPT_TABS                          = 26030;
   ID_EOPT_UTF8                          = 26031;
+  ID_EOPT_ALTSLASH                      = 26032;
   
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;
@@ -1162,6 +1167,9 @@ const
   ID_PARAM_CAPTION                      = 71001;
   ID_PARAM_PARAMS                       = 71002;
   ID_PARAM_HOST                         = 71003;
+  ID_PARAM_REDIRECT_INPUT = 71004;
+  ID_PARAM_GRP_INPUTFILE = 71005;
+  ID_PARAM_USE_PARAMS = 71006;
 
   // Project options form (continued)
   ID_POPT_FILESTAB                      = 72001;
@@ -1316,3 +1324,6 @@ const
   ID_FORMATTER_POWEREDBY                = 79019;
   ID_FORMATTER_MAXLINELENGTH            = 79020;
   ID_FORMATTER_LOADERROR                = 79021;
+
+  ID_RNSYM = 80000;
+  ID_RNSYM_NEWNAME = 80001;

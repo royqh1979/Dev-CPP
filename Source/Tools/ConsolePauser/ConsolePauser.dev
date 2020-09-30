@@ -27,8 +27,8 @@ UseCustomMakefile=0
 CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=3
-CompilerSettings=0000000100111000000001001
+CompilerSet=0
+CompilerSettings=0000000000000000000000000
 UnitCount=1
 
 [VersionInfo]
@@ -59,4 +59,5 @@ Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+UseUTF8=1
 
