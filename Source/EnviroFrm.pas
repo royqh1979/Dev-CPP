@@ -190,6 +190,7 @@ begin
   
   MainForm.Font.Name := devData.InterfaceFont;
   MainForm.Font.Size := devData.InterfaceFontSize;
+  MainForm.DebugOutput.Font.Size :=  devData.InterfaceFontSize;
 
   try
 

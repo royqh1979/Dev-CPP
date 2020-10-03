@@ -28,7 +28,6 @@ type
   TPipeInputThread = class(TThread)
   private
     procedure PipeInput;
-    procedure WriteEndLine;
   public
     WriteHandle : THandle;
     InputFile: string;
@@ -83,6 +82,9 @@ implementation
 uses
   main,sysutils,dialogs;
 
+const
+  Pipename:String = '\\.\pipe\devcpp_run';
+
 { TExecThread }
 
 procedure TExecThread.Execute;
@@ -92,6 +94,8 @@ begin
 end;
 
 procedure TExecThread.ExecAndWait;
+const
+  BUFSIZE:integer = 4096;
 var
   StartupInfo: TStartupInfo;
   ProcessInfo: TProcessInformation;
@@ -113,6 +117,7 @@ begin
     sa.lpSecurityDescriptor := nil;
     sa.bInheritHandle := true;
 
+    {
     // Create the child input pipe.
     if not CreatePipe(InputRead, InputWrite, @sa, 0) then begin
       SetEvent(StartupEvent);
@@ -121,10 +126,52 @@ begin
     // child don't use fInputWrite, so don't let child inherit it
     if not SetHandleInformation(InputWrite, HANDLE_FLAG_INHERIT, 0) then
       Exit;
+    }
+    InputWrite := CreateNamedPipe(
+          pAnsiChar(Pipename),             // pipe name
+          PIPE_ACCESS_OUTBOUND,       // read/write access
+          PIPE_TYPE_MESSAGE or       // message type pipe
+          PIPE_READMODE_MESSAGE or   // message-read mode
+          PIPE_WAIT,                // blocking mode
+          PIPE_UNLIMITED_INSTANCES, // max. instances
+          BUFSIZE,                  // output buffer size
+          BUFSIZE,                  // input buffer size
+          0,                        // client time-out
+          nil);                    // default security attribute
+    if InputWrite = INVALID_HANDLE_VALUE then begin
+    {
+      with TStringList.Create do try
+        Add('Create Input Pipe Failed:'+SysErrorMessage(GetLastError));
+        SaveToFile('f:\\log.txt');
+      finally
+        Free;
+      end;
+    }
+      Exit;
+    end;
+    InputRead := CreateFile(
+         PAnsiChar(Pipename),   // pipe name
+         GENERIC_READ,
+         0,              // no sharing
+         @sa,           // default security attributes
+         OPEN_EXISTING,  // opens existing pipe
+         0,              // default attributes
+         0);
+    if InputRead = INVALID_HANDLE_VALUE then begin
+    {
+      with TStringList.Create do try
+        Add('Create File on Input Pipe Failed:'+SysErrorMessage(GetLastError));
+        SaveToFile('f:\\log.txt');
+      finally
+        Free;
+      end;
+    }
+      Exit;
+    end;
     StartupInfo.dwFlags := StartupInfo.dwFlags or STARTF_USESTDHANDLES;
     StartupInfo.hStdInput := InputRead;
-    StartupInfo.hStdOutput := 0;
-    StartupInfo.hStdError := 0;
+    StartupInfo.hStdOutput := 7; // Undocumented Handle of Console Output
+    StartupInfo.hStdError := 11; // Undocumented Handle of Console Error Output
   end;
 
   if RedirectInput then
@@ -137,8 +184,17 @@ begin
     fProcess := ProcessInfo.hProcess;
     SetEvent(StartupEvent);
     WaitForSingleObject(ProcessInfo.hProcess, fTimeOut);
-  end else
+  end else begin
+    {with TStringList.Create do try
+      Add('"' + fFile + '" ' + params);
+      Add('CreateProcess Failed:'+SysErrorMessage(GetLastError));
+      SaveToFile('f:\\log.txt');
+    finally
+      Free;
+    end;
+    }
     SetEvent(StartupEvent);
+  end;
 
   if RedirectInput then
     CloseHandle(InputRead);
@@ -214,18 +270,9 @@ end;
 
 { TPipeInputThread }
 
-procedure TPipeInputThread.WriteEndLine;
-var
-  buffer: array[0..10] of ansichar;
-  bytesWritten : cardinal;
-begin
-  buffer[0]:=#32;
-//  buffer[1]:=#0;
-  WriteFile(WriteHandle,buffer,1,bytesWritten,nil);
-end;
 procedure TPipeInputThread.PipeInput;
 const
-  BufSize = 8196;
+  BufSize = 4096;
 var
   buffer: pAnsichar;
   FileHandle : THandle;
@@ -242,12 +289,12 @@ begin
   GetMem(buffer,BufSize+10);
   try
     while True do begin
+      //TODO: can read nothing in Windows XP in vmware, don't know why
       if not ReadFile(FileHandle,buffer^,BufSize,bytesRead,nil) then begin
         MessageDlg('Read InputFile Failed:'+SysErrorMessage(GetLastError), mtError, [mbOK], 0);
         Exit;
       end;
       if bytesRead = 0 then begin
-        WriteEndLine; // write a '\n' in case of scanf waiting for it;
         Exit;
       end;
       if not WriteFile(WriteHandle,buffer^,bytesRead,bytesWritten,nil) then begin

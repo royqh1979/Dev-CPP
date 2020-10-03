@@ -1089,6 +1089,8 @@ begin
   Font.Name := devData.InterfaceFont;
   Font.Size := devData.InterfaceFontSize;
 
+  debugoutput.Font.Size :=  devData.InterfaceFontSize;
+
   // Menus
   FileMenu.Caption := Lang[ID_MNU_FILE];
   EditMenu.Caption := Lang[ID_MNU_EDIT];
