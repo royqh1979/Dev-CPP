@@ -22,7 +22,7 @@ unit DebugReader;
 interface
 
 uses
-  Sysutils, Classes, Windows, StdCtrls,
+  Sysutils, Classes, Contnrs, Windows, StdCtrls,
   Dialogs, editor, ComCtrls, StrUtils, Forms;
 
 type
@@ -52,6 +52,13 @@ type
     Node: TTreeNode;
   end;
 
+  PGDBCmd = ^ TGDBCmd;
+  TGDBCmd = record
+    Cmd: AnsiString;
+    Params: AnsiString;
+    ViewInUI: boolean;
+  end;
+
   PBreakPoint = ^TBreakPoint;
   TBreakPoint = record
     line: integer;
@@ -74,7 +81,11 @@ type
 
   TDebugReader = class(TThread)
   private
+    fCSQueue: TRTLCriticalSection;
     fPipeRead: THandle;
+    fPipeWrite: THandle;
+    fCmdQueue: TQueue;
+    fCmdRunning : boolean;
     fRegisters: TList;
     fDisassembly: TStringList; // convert to TList with proper data formatting?
     fBacktrace: TList;
@@ -100,6 +111,9 @@ type
     doupdateexecution: boolean;
     doreceivedsignal: boolean;
     doreceivedsfwarning: boolean;
+
+    procedure ClearCmdQueue;
+    procedure RunNextCmd;
 
     // Signal handlers
     procedure HandleValueHistoryValue;
@@ -139,15 +153,20 @@ type
   protected
     procedure Execute; override;
   public
+    constructor Create(autoClean:boolean);
+    destructor Destroy;override;
     property Registers: TList read fRegisters write fRegisters;
     property Disassembly: TStringList read fDisassembly write fDisassembly;
     property Backtrace: TList read fBacktrace write fBacktrace;
     property PipeRead: THandle read fPipeRead write fPipeRead;
+    property PipeWrite: THandle read fPipeWrite write fPipeWrite;
     property BreakPointList: TList read fBreakPointList write fBreakPointList;
     property WatchVarList: TList read fWatchVarList write fWatchVarList;
     property DebugView: TTreeView read fDebugView write fDebugView;
     property BreakPointFile: AnsiString read fBreakPointFile;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
+    property CommandRunning: boolean read fCmdRunning;
+    procedure PostCommand(const Command, Params: AnsiString; ViewInUI: boolean);
   end;
 
 implementation
@@ -156,6 +175,23 @@ uses
   main, devcfg, CPUFrm, multilangsupport, debugger, utils, Controls, Math;
 
 // macro for all the things that need to be done when we are finished parsing the current block
+
+constructor TDebugReader.Create(autoClean:boolean);
+begin
+  inherited;
+  fCmdQueue := TQueue.Create;
+  fCmdRunning := False;
+  InitializeCriticalSection(fCSQueue);
+end;
+
+destructor TDebugReader.Destroy;
+begin
+  ClearCmdQueue;
+  fCmdQueue.Free;
+  DeleteCriticalSection(fCSQueue);
+  inherited;
+end;
+
 
 procedure TDebugReader.SyncFinishedParsing;
 var
@@ -231,6 +267,7 @@ begin
       outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10,'',[rfReplaceAll]);
       outStrList.Text := StringReplace(outStrList.Text,#26#26,'',[rfReplaceAll]);
       MainForm.DebugOutput.Lines.Add(outStrList.Text);
+      MainForm.DebugOutput.Lines.Add('(gdb)');
     finally
       strList.Free;
       outStrList.Free;
@@ -1016,15 +1053,95 @@ begin
     if not Terminated then begin
 
       // Assume fragments don't end nicely with TErrorBegin or TPrompt
-      if GetLastAnnotation(tmp, totalbytesread, 1 + totalbytesread + chunklen) in [TErrorBegin, TPrompt] then begin
+     // if GetLastAnnotation(tmp, totalbytesread, 1 + totalbytesread + chunklen) in [TErrorBegin, TPrompt] then begin
+     if GetLastAnnotation(tmp, totalbytesread, 1 + totalbytesread + chunklen) in [TPrompt] then begin
         fOutput := tmp;
         ProcessDebugOutput;
+        fCmdRunning := False;
+        RunNextCmd;
 
         // Reset storage
         totalbytesread := 0;
       end;
     end;
   end;
+  ClearCmdQueue;
+end;
+procedure TDebugReader.PostCommand(const Command, Params: AnsiString; ViewInUI: boolean);
+var
+  PCmd: PGDBCmd;
+begin
+    EnterCriticalSection(fCSQueue);
+    pCmd:=new(PGDBCmd);
+    pCmd^.Cmd := Command;
+    pCmd^.Params := Params;
+    pCmd^.ViewInUI := ViewInUi;
+    fCmdQueue.Push(pCmd);
+    LeaveCriticalSection(fCSQueue);
+    if not fCmdRunning then begin
+      RunNextCmd;
+    end;
+end;
+
+procedure TDebugReader.RunNextCmd;
+var
+  P: PAnsiChar;
+  nBytesWrote: DWORD;
+  result: boolean;
+  PCmd: PGDBCmd;
+begin
+    EnterCriticalSection(fCSQueue);
+    if fCmdQueue.Count<=00 then begin
+      LeaveCriticalSection(fCSQueue);
+      Exit;
+    end;
+    pCmd := PGDBCmd(fCmdQueue.Pop);
+    LeaveCriticalSection(fCSQueue);
+    // Convert command to C string
+    if Length(pCmd^.params) > 0 then begin
+      GetMem(P, Length(pCmd^.Cmd) + Length(pCmd.Params) + 3);
+      StrPCopy(P, pCmd.Cmd + ' ' + pCmd.Params + #10)
+    end else begin
+      GetMem(P, Length(pCmd.Cmd) + 2);
+      StrPCopy(P, pCmd.Cmd + #10);
+    end;
+
+    result := WriteFile(fPipeWrite, P^, strlen(P), nBytesWrote, nil);
+    FreeMem(P);
+    {
+    if not result then
+      MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
+    }
+
+    if pCmd^.ViewInUI then begin
+      if MainForm.edGdbCommand.Text = '' then begin
+        if Length(pCmd^.params) > 0 then
+          MainForm.edGdbCommand.Text := pCmd^.Cmd + ' ' + pCmd^.params
+        else
+          MainForm.edGdbCommand.Text := pCmd^.Cmd;
+      end;
+    end;
+    if devDebugger.ShowCommandLog then begin
+      if MainForm.DebugOutput.Lines.Count>0 then begin
+        MainForm.DebugOutput.Lines.Delete(MainForm.DebugOutput.Lines.Count-1);
+      end;
+        MainForm.DebugOutput.Lines.Add('(gdb)'+pCmd^.Cmd + ' ' + pCmd^.params);
+        MainForm.DebugOutput.Lines.Add('');
+    end;
+    Dispose(pCmd);
+    fCmdRunning := True;
+end;
+
+procedure TDebugReader.ClearCmdQueue;
+var
+  pCmd : PGDBCmd;
+begin
+  EnterCriticalSection(fCSQueue);
+  while fCmdQueue.Count>0 do begin
+    pCmd := PGDBCmd(fCmdQueue.Pop);
+    Dispose(pCmd);
+  end;
+  LeaveCriticalSection(fCSQueue);
 end;
 
 end.

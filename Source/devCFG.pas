@@ -231,7 +231,7 @@ type
   private
     fShowCommandLog: boolean;
     fShowAnnotations: boolean;
-    fCustomCommandIndex: integer
+    fCustomCommandIndex: integer;
   public
     constructor Create;
     procedure SettoDefaults;

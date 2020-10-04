@@ -60,8 +60,6 @@ type
     procedure CPUSelectAllClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure UpdateInfo;
-    procedure StackTraceSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
   private
     fRegisters: TList;
     fAssembler: TStringList;

@@ -1301,6 +1301,11 @@ begin
   actStepOut.Caption := Lang[ID_ITEM_STEPOUT];
   actRunToCursor.Caption := Lang[ID_ITEM_RUNTOCURSOR];
   actCallStack.Caption := Lang[ID_ITEM_CALLSTACK];
+  actCallStackFull.Caption :=  Lang[ID_ITEM_CALLSTACKFULL];
+  actLocals.Caption := Lang[ID_ITEM_LOCALS];
+  actGlobals.Caption := Lang[ID_ITEM_GLOBALS];
+  actParameters.Caption := Lang[ID_ITEM_ARGS];
+  actCallStackFull.Caption := Lang[ID_ITEM_CALLSTACKFULL];
 
   actWatchItem.Caption := Lang[ID_ITEM_WATCHITEMS];
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
@@ -3342,7 +3347,7 @@ end;
 
 procedure TMainForm.actUpdateDebuggerRunning(Sender: TObject);
 begin
-  TCustomAction(Sender).Enabled := fDebugger.Executing;
+  TCustomAction(Sender).Enabled := fDebugger.Executing and (not fDebugger.Reader.CommandRunning);
 end;
 
 procedure TMainForm.actUpdateDebuggerRunningCPU(Sender: TObject);

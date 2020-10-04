@@ -111,6 +111,8 @@ begin
     Dispose(PBreakPoint(BreakPointList.Items[i]));
   BreakPointList.Free;
 
+  fReader.Free;
+
   inherited;
 end;
 
@@ -172,6 +174,7 @@ begin
   // Create a thread that will read GDB output.
   Reader := TDebugReader.Create(true);
   Reader.PipeRead := fOutputRead;
+  Reader.PipeWrite := fInputWrite;
   Reader.FreeOnTerminate := true;
   Reader.BreakpointList := BreakPointList;
   Reader.WatchVarList := WatchVarList;
@@ -218,43 +221,9 @@ begin
 end;
 
 procedure TDebugger.SendCommand(const Command, Params: AnsiString; ViewInUI: boolean);
-var
-  P: PAnsiChar;
-  nBytesWrote: DWORD;
-  result: boolean;
 begin
-  if Executing then begin
-
-    // Convert command to C string
-    if Length(params) > 0 then begin
-      GetMem(P, Length(command) + Length(params) + 3);
-      StrPCopy(P, command + ' ' + params + #10)
-    end else begin
-      GetMem(P, Length(command) + 2);
-      StrPCopy(P, command + #10);
-    end;
-
-    result := WriteFile(fInputwrite, P^, strlen(P), nBytesWrote, nil);
-    FreeMem(P);
-
-    if not result then
-      MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
-
-    if ViewInUI then begin
-      if (not CommandChanged) or (MainForm.edGdbCommand.Text = '') then begin
-        if Length(params) > 0 then
-          MainForm.edGdbCommand.Text := Command + ' ' + params
-        else
-          MainForm.edGdbCommand.Text := Command;
-
-        CommandChanged := false;
-      end;
-    end;
-    if devDebugger.ShowCommandLog then begin
-      MainForm.DebugOutput.Lines.Add('(gdb)'+Command + ' ' + params);
-      MainForm.DebugOutput.Lines.Add('');
-    end;
-  end;
+  if Executing then
+    fReader.PostCommand(command,params,viewInUI);
 end;
 
 function TDebugger.GetBreakPointFile: AnsiString;
