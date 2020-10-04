@@ -5,8 +5,8 @@ Version 5.13-beta2
   - fix: When the compiler set setting in an old project is not valid any more, we use the editor's current set instead. But we cant save it (modify flag of the project is not set).
   - fix: font size of debug output window is incorrect.
   - add: Redirect  STDIO to a file when run (not working in windows XP)& debug the compiled program (need a patched gdb)
-  - redesign debug pane ( add more commands)
-  - In the CPU windows, click on the functions in the left-bottom list will show the function's disassebly and cpu info
+  - add: redesign debug pane ( add more commands)
+  - add: In the CPU windows, click on the functions in the left-bottom list will show the function's disassebly and cpu info
   
 
 Version 5.13-beta1
