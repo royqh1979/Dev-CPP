@@ -169,7 +169,11 @@ Ver=1
 10022=Into instruction
 10023=Step &Over
 10024=Goto Breakpoint
-10025=Call Stack
+10025=Get Call Stack Info
+10026=Get Locals Info
+10027=Get Globals Info
+10028=Get Func Args Info
+10029=Get Call Stack & Locals Info
 
 
 11001=Remove File

@@ -218,6 +218,11 @@ const
   ID_ITEM_STEPOUT                  = 10023;
   ID_ITEM_GOTOBREAKPOINT                = 10024;
   ID_ITEM_CALLSTACK          = 10025;
+  ID_ITEM_LOCALS         = 10026;
+  ID_ITEM_GLOBALS          = 10027;
+  ID_ITEM_ARGS          = 10028;
+  ID_ITEM_CALLSTACKFULL          = 10029;
+
 
   // unit popup
   ID_POP_REMOVE                         = 11001;
