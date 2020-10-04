@@ -231,6 +231,7 @@ type
   private
     fShowCommandLog: boolean;
     fShowAnnotations: boolean;
+    fCustomCommandIndex: integer
   public
     constructor Create;
     procedure SettoDefaults;
@@ -239,6 +240,7 @@ type
   published
     property ShowCommandLog: boolean read fShowCommandLog write fShowCommandLog;
     property ShowAnnotations: boolean read fShowAnnotations write fShowAnnotations;
+    property CustomCommandIndex: integer read fCustomCommandIndex write fCustomCommandIndex;
   end;
 
   // Options for refactor
@@ -2629,6 +2631,7 @@ procedure TdevDebugger.SettoDefaults;
 begin
   fShowCommandLog := True;
   fShowAnnotations := True;
+  fCustomCommandIndex := 0;
 end;
 
 { TdevRefactorer }

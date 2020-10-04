@@ -59,10 +59,14 @@ type
     procedure StackTraceClick(Sender: TObject);
     procedure CPUSelectAllClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure UpdateInfo;
+    procedure StackTraceSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
   private
     fRegisters: TList;
     fAssembler: TStringList;
     fBacktrace: TList;
+    fStackTraceUpdating: boolean;
 
     procedure LoadText;
   public
@@ -214,20 +218,8 @@ begin
   fRegisters.Clear;
 end;
 
-procedure TCPUForm.FormCreate(Sender: TObject);
+procedure TCPUForm.UpdateInfo;
 begin
-  LoadText;
-
-  // Make it look a bit like a regular editor
-  devEditor.AssignEditor(CodeList,'main.cpp');
-
-  RadioATT.Checked := devData.UseATTSyntax;
-  RadioIntel.Checked := not devData.UseATTSyntax;
-
-  fRegisters := TList.Create;
-  fAssembler := TStringList.Create;
-  fBacktrace := TList.Create;
-
   if MainForm.Debugger.Executing then begin
 
     // Load the registers...
@@ -243,6 +235,24 @@ begin
     MainForm.Debugger.Reader.Backtrace := fBacktrace;
     MainForm.Debugger.SendCommand('backtrace', '');
   end;
+end;
+
+procedure TCPUForm.FormCreate(Sender: TObject);
+begin
+  LoadText;
+
+  // Make it look a bit like a regular editor
+  devEditor.AssignEditor(CodeList,'main.cpp');
+
+  RadioATT.Checked := devData.UseATTSyntax;
+  RadioIntel.Checked := not devData.UseATTSyntax;
+
+  fRegisters := TList.Create;
+  fAssembler := TStringList.Create;
+  fBacktrace := TList.Create;
+  fStackTraceUpdating := False;
+
+  UpdateInfo;
 end;
 
 procedure TCPUForm.gbSyntaxClick(Sender: TObject);
@@ -320,6 +330,7 @@ procedure TCPUForm.StackTraceClick(Sender: TObject);
 var
   sel: TListItem;
   e: TEditor;
+  i: integer;
 begin
   sel := StackTrace.Selected;
   if Assigned(sel) then begin
@@ -327,7 +338,24 @@ begin
     if Assigned(e) then begin
       e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
     end;
+  i := sel.Index;
+  MainForm.Debugger.SendCommand('frame',IntToStr(i),true);
+  //update register info
+  if MainForm.Debugger.Executing then begin
+
+    // Load the registers...
+    MainForm.Debugger.Reader.Registers := fRegisters;
+    MainForm.Debugger.SendCommand('info', 'registers');
+
+    // Set disassembly flavor and load the current function
+    MainForm.Debugger.Reader.Disassembly := fAssembler;
+    if devData.UseATTSyntax then // gbSyntaxClick has NOT been called yet...
+      gbSyntaxClick(nil);
+    MainForm.Debugger.SendCommand('disas','');
+    MainForm.Debugger.SendCommand('backtrace','');
   end;
+  end;
+
 end;
 
 procedure TCPUForm.FormShow(Sender: TObject);

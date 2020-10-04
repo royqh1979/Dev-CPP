@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 649
-  Top = 47
+  Left = 478
+  Top = 178
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -454,20 +454,20 @@ object MainForm: TMainForm
           Action = actStepOut
           TabOrder = 2
         end
-        object CallStackBtn: TButton
-          Left = 576
+        object ChooseCustomCommandBtn: TButton
+          Left = 680
           Top = 47
-          Width = 138
+          Width = 34
           Height = 31
-          Action = actCallStack
+          Action = actChooseCustomCommand
           TabOrder = 3
         end
-        object RunToCursorBtn: TButton
+        object RunCustomCommandBtn: TButton
           Left = 433
           Top = 47
-          Width = 138
+          Width = 248
           Height = 31
-          Action = actRunToCursor
+          Action = actRunCustomCommand
           TabOrder = 4
         end
       end
@@ -2856,9 +2856,43 @@ object MainForm: TMainForm
       OnExecute = actUseUTF8Execute
       OnUpdate = actUseUTF8Update
     end
+    object actCallStackFull: TAction
+      Category = 'Debug'
+      Caption = 'Call Stack Full'
+      OnExecute = actCallStackFullExecute
+      OnUpdate = actUpdateDebuggerRunning
+    end
+    object actLocals: TAction
+      Category = 'Debug'
+      Caption = 'Locals'
+      OnExecute = actLocalsExecute
+      OnUpdate = actUpdateDebuggerRunning
+    end
+    object actGlobals: TAction
+      Category = 'Debug'
+      Caption = 'Globals'
+      OnExecute = actGlobalsExecute
+      OnUpdate = actUpdateDebuggerRunning
+    end
+    object actParameters: TAction
+      Category = 'Debug'
+      Caption = 'Function Parameters'
+      OnExecute = actParametersExecute
+      OnUpdate = actUpdateDebuggerRunning
+    end
+    object actRunCustomCommand: TAction
+      Category = 'Debug'
+      Caption = 'Custom Command'
+    end
+    object actChooseCustomCommand: TAction
+      Category = 'Debug'
+      Caption = '>'
+      OnExecute = actChooseCustomCommandExecute
+      OnUpdate = actUpdateDebuggerRunning
+    end
   end
   object MessagePopup: TPopupMenu
-    Left = 227
+    Left = 339
     Top = 291
     object actMsgCut1: TMenuItem
       Action = actMsgCut
@@ -3030,6 +3064,31 @@ object MainForm: TMainForm
     end
     object Addfile1: TMenuItem
       Action = actProjectAdd
+    end
+  end
+  object CustomDebugPopup: TPopupMenu
+    Left = 329
+    Top = 176
+    object miRuntoCursor: TMenuItem
+      Action = actRunToCursor
+    end
+    object N50: TMenuItem
+      Caption = '-'
+    end
+    object Locals1: TMenuItem
+      Action = actLocals
+    end
+    object FunctionParameters1: TMenuItem
+      Action = actParameters
+    end
+    object Globals1: TMenuItem
+      Action = actGlobals
+    end
+    object miCallStack: TMenuItem
+      Action = actCallStack
+    end
+    object miCallStackFull: TMenuItem
+      Action = actCallStackFull
     end
   end
 end

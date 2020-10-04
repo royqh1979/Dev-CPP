@@ -665,11 +665,17 @@ procedure TDebugReader.HandleFrames;
 var
   s: AnsiString;
   trace: PTrace;
+  num: integer;
 begin
   s := GetNextLine;
 
   // Is this a backtrace dump?
   if Assigned(fBacktrace) and StartsStr('#', s) then begin
+    num := StrToInt(Trim(Copy(s,2,MaxInt)));
+
+    if num < fBacktrace.Count then begin
+      Exit;
+    end;
 
     trace := new(PTrace);
 

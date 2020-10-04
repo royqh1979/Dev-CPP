@@ -24,7 +24,7 @@ unit main;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Windows, Messages, SysUtils, Classes, Contnrs,Graphics, Controls, Forms, Dialogs,
   Menus, StdCtrls, ComCtrls, ToolWin, ExtCtrls, Buttons, utils, SynEditPrint,
   Project, editor, DateUtils, compiler, ActnList, ToolFrm, AppEvnts,
   debugger, ClassBrowser, CodeCompletion, CppParser, CppTokenizer, SyncObjs,
@@ -434,9 +434,9 @@ type
     EvalOutput: TMemo;
     StepOutBtn: TButton;
     actStepOut: TAction;
-    CallStackBtn: TButton;
+    ChooseCustomCommandBtn: TButton;
     actRunToCursor: TAction;
-    RunToCursorBtn: TButton;
+    RunCustomCommandBtn: TButton;
     actCallStack: TAction;
     MsgPasteItem: TMenuItem;
     actMsgCopy: TAction;
@@ -539,6 +539,20 @@ type
     UseUTF8Encoding: TMenuItem;
     N47: TMenuItem;
     actUseUTF8: TAction;
+    actCallStackFull: TAction;
+    actLocals: TAction;
+    actGlobals: TAction;
+    actParameters: TAction;
+    CustomDebugPopup: TPopupMenu;
+    actRunCustomCommand: TAction;
+    actChooseCustomCommand: TAction;
+    miRuntoCursor: TMenuItem;
+    miCallStack: TMenuItem;
+    miCallStackFull: TMenuItem;
+    N50: TMenuItem;
+    Locals1: TMenuItem;
+    Globals1: TMenuItem;
+    FunctionParameters1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -799,6 +813,11 @@ type
     procedure actRenameSymbolExecute(Sender: TObject);
     procedure actUseUTF8Execute(Sender: TObject);
     procedure actUseUTF8Update(Sender: TObject);
+    procedure actChooseCustomCommandExecute(Sender: TObject);
+    procedure actLocalsExecute(Sender: TObject);
+    procedure actParametersExecute(Sender: TObject);
+    procedure actGlobalsExecute(Sender: TObject);
+    procedure actCallStackFullExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -819,6 +838,7 @@ type
     fLogOutputRawData: TStringList;
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
+    fCustomDebugActions: TObjectList;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1006,6 +1026,7 @@ begin
   FreeAndNil(fCompiler);
   FreeAndNil(fDebugger);
   FreeAndNil(dmMain);
+  FreeAndNil(fCustomDebugActions);
   devExecutor.Free; // sets itself to nil
   Lang.Free; // sets itself to nil
   DestroyOptions;
@@ -3719,6 +3740,8 @@ procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('next', '', true);
+    if assigned(CPUForm) then
+      CPUForm.UpdateInfo;
   end;
 end;
 
@@ -3726,6 +3749,8 @@ procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('step', '', true);
+    if assigned(CPUForm) then
+      CPUForm.UpdateInfo;
   end;
 end;
 
@@ -3773,11 +3798,15 @@ begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
     fDebugger.SendCommand('continue', '', true);
+    if assigned(CPUForm) then
+      CPUForm.UpdateInfo;
   end;
 end;
 
 procedure TMainForm.actStopExecuteExecute(Sender: TObject);
 begin
+  if assigned(CPUForm) then
+    CPUForm.Close;
   if fDebugger.Executing then
     fDebugger.Stop
   else if devExecutor.Running then
@@ -5988,6 +6017,20 @@ begin
     Load(ActionList);
   end;
 
+  fCustomDebugActions:=TObjectList.Create;
+  with fCustomDebugActions do begin
+    Add(actRunToCursor);
+    Add(actLocals);
+    Add(actParameters);
+    Add(actGlobals);
+    Add(actCallStack);
+    Add(actCallStackFull);
+  end;
+  if (devDebugger.CustomCommandIndex<0) or
+    (devDebugger.CustomCommandIndex>=fCustomDebugActions.Count) then
+    devDebugger.CustomCommandIndex := 0;
+  RunCustomCommandBtn.Action := TAction(fCustomDebugActions[devDebugger.CustomCommandIndex]);
+
   // Accept file drags
   DragAcceptFiles(Self.Handle, true);
 
@@ -6083,6 +6126,8 @@ begin
 
   // Load bookmarks, captions and hints
   LoadText;
+
+  
 
   // Load the current compiler set
   devCompilerSets.LoadSets;
@@ -6213,6 +6258,8 @@ procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('finish', '', true);
+    if assigned(CPUForm) then
+      CPUForm.UpdateInfo;
   end;
 end;
 
@@ -6225,14 +6272,27 @@ begin
     if assigned(e) then begin
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY), true);
       fDebugger.SendCommand('continue', '', true);
+      if assigned(CPUForm) then
+        CPUForm.UpdateInfo;
     end;
+    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actRunToCursor);
+    RunCustomCommandBtn.Action := actRunToCursor;
+    RunCustomCommandBtn.Update;
   end;
 end;
 
 procedure TMainForm.actCallStackExecute(Sender: TObject);
+var
+  e:TEditor;
 begin
   if fDebugger.Executing then begin
-    fDebugger.SendCommand('bt', '', true);
+    e:=fEditorList.GetEditor;
+    if assigned(e) then begin
+      fDebugger.SendCommand('backtrace', '', true);
+    end;
+    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStack);
+    RunCustomCommandBtn.Action := actCallStack;
+    RunCustomCommandBtn.Update;
   end;
 end;
 
@@ -6921,6 +6981,75 @@ begin
   end else begin
     actUseUTF8.Enabled := True;
     actUseUTF8.Checked := e.UseUTF8;
+  end;
+end;
+
+procedure TMainForm.actChooseCustomCommandExecute(Sender: TObject);
+var
+  p1:TPoint;
+begin
+  p1 := RunCustomCommandBtn.ClientToScreen(Point(0,0));
+  CustomDebugPopup.Popup(p1.x,p1.y);
+end;
+
+
+procedure TMainForm.actLocalsExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  if fDebugger.Executing then begin
+    e:=fEditorList.GetEditor;
+    if assigned(e) then begin
+      fDebugger.SendCommand('info locals', '', true);
+    end;
+    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actLocals);
+    RunCustomCommandBtn.Action := actLocals;
+    RunCustomCommandBtn.Update;
+  end;
+end;
+
+procedure TMainForm.actParametersExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  if fDebugger.Executing then begin
+    e:=fEditorList.GetEditor;
+    if assigned(e) then begin
+      fDebugger.SendCommand('info args', '', true);
+    end;
+    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actParameters);
+    RunCustomCommandBtn.Action := actParameters;
+    RunCustomCommandBtn.Update;
+  end;
+end;
+
+procedure TMainForm.actGlobalsExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  if fDebugger.Executing then begin
+    e:=fEditorList.GetEditor;
+    if assigned(e) then begin
+      fDebugger.SendCommand('info variables', '', true);
+    end;
+    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actGlobals);
+    RunCustomCommandBtn.Action := actGlobals;
+    RunCustomCommandBtn.Update;
+  end;
+end;
+
+procedure TMainForm.actCallStackFullExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  if fDebugger.Executing then begin
+    e:=fEditorList.GetEditor;
+    if assigned(e) then begin
+      fDebugger.SendCommand('backtrace full', '', true);
+    end;
+    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStackFull);
+    RunCustomCommandBtn.Action := actCallStackFull;
+    RunCustomCommandBtn.Update;
   end;
 end;
 
