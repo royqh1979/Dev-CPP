@@ -160,11 +160,16 @@ begin
   if CompilerSet.BinDir.Count > 0 then begin
     GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
     GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
-    if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
-      MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
+    try
+      if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
+       MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
         [mbOK], 0);
-      Executing := false;
-      Exit;
+       Executing := false;
+        Exit;
+    end;
+    CloseHandle(fOutputWrite);
+    CloseHandle(fInputRead);
+    finally
     end;
   end else
     MessageDlg(Lang[ID_ERR_GDBNOUTFOUND], mtError, [mbOK], 0);
@@ -205,12 +210,9 @@ begin
     Reader := nil;
 
     // Free resources
-    if not CloseHandle(fProcessID) then
-      Exit;
-    if not CloseHandle(fOutputwrite) then
-      Exit;
-    if not CloseHandle(fInputread) then
-      Exit;
+    CloseHandle(fProcessID);
+    CloseHandle(fOutputRead);
+    CloseHandle(fInputWrite);
 
     MainForm.RemoveActiveBreakpoints;
 
