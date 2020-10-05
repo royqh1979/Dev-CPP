@@ -1130,12 +1130,16 @@ begin
     }
 
     if pCmd^.ViewInUI or devDebugger.ShowCommandLog then begin
-      if MainForm.DebugOutput.Lines.Count>0 then begin
-        if not devDebugger.ShowAnnotations then
+      if not devDebugger.ShowAnnotations then begin
+        if MainForm.DebugOutput.Lines.Count>0 then begin
           MainForm.DebugOutput.Lines.Delete(MainForm.DebugOutput.Lines.Count-1);
-      end;
+        end;
         MainForm.DebugOutput.Lines.Add('(gdb)'+pCmd^.Cmd + ' ' + pCmd^.params);
         MainForm.DebugOutput.Lines.Add('');
+      end else begin
+        MainForm.DebugOutput.Lines.Add(pCmd^.Cmd + ' ' + pCmd^.params);
+        MainForm.DebugOutput.Lines.Add('');
+      end;
     end;
     fCmdRunning := True;
     fCurrentCmd := pCmd;

@@ -51,7 +51,6 @@ object MainForm: TMainForm
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
-    PopupMenu = MessagePopup
     TabOrder = 2
     OnChange = MessageControlChange
     object CompSheet: TTabSheet
@@ -88,6 +87,7 @@ object MainForm: TMainForm
         ReadOnly = True
         RowSelect = True
         ParentShowHint = False
+        PopupMenu = MessagePopup
         ShowHint = True
         TabOrder = 0
         ViewStyle = vsReport
@@ -132,6 +132,7 @@ object MainForm: TMainForm
         ReadOnly = True
         RowSelect = True
         ParentShowHint = False
+        PopupMenu = MessagePopup
         ShowHint = True
         TabOrder = 0
         ViewStyle = vsReport
@@ -193,8 +194,8 @@ object MainForm: TMainForm
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 864
-          Height = 190
+          Width = 1032
+          Height = 194
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -202,6 +203,7 @@ object MainForm: TMainForm
           Font.Name = 'Courier New'
           Font.Style = []
           ParentFont = False
+          PopupMenu = MessagePopup
           ReadOnly = True
           ScrollBars = ssBoth
           TabOrder = 0
@@ -247,6 +249,7 @@ object MainForm: TMainForm
           Width = 489
           Height = 133
           Anchors = [akLeft, akTop, akRight, akBottom]
+          PopupMenu = DebugOutputPopup
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 1
@@ -508,6 +511,7 @@ object MainForm: TMainForm
         ReadOnly = True
         RowSelect = True
         ParentShowHint = False
+        PopupMenu = MessagePopup
         ShowHint = True
         TabOrder = 0
         ViewStyle = vsReport
@@ -2890,6 +2894,18 @@ object MainForm: TMainForm
       OnExecute = actChooseCustomCommandExecute
       OnUpdate = actUpdateDebuggerRunning
     end
+    object actMsgDisplayGDBCommands: TAction
+      Category = 'Messages'
+      Caption = 'Display GDB Commands'
+      OnExecute = actMsgDisplayGDBCommandsExecute
+      OnUpdate = actMsgDisplayGDBCommandsUpdate
+    end
+    object actMsgDisplayGDBAnnotations: TAction
+      Category = 'Messages'
+      Caption = 'Display GDB Annotations'
+      OnExecute = actMsgDisplayGDBAnnotationsExecute
+      OnUpdate = actMsgDisplayGDBAnnotationsUpdate
+    end
   end
   object MessagePopup: TPopupMenu
     Left = 339
@@ -3089,6 +3105,49 @@ object MainForm: TMainForm
     end
     object miCallStackFull: TMenuItem
       Action = actCallStackFull
+    end
+  end
+  object DebugOutputPopup: TPopupMenu
+    Left = 443
+    Top = 291
+    object MenuItem3: TMenuItem
+      Action = actMsgCut
+    end
+    object MenuItem4: TMenuItem
+      Action = actMsgCopy
+    end
+    object MenuItem5: TMenuItem
+      Action = actMsgCopyAll
+    end
+    object MenuItem6: TMenuItem
+      Action = actMsgPaste
+    end
+    object MenuItem7: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem8: TMenuItem
+      Action = actMsgSelAll
+    end
+    object MenuItem9: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem10: TMenuItem
+      Action = actMsgSaveAll
+    end
+    object MenuItem11: TMenuItem
+      Caption = '-'
+    end
+    object DisplayGDBCommandsBtn: TMenuItem
+      Action = actMsgDisplayGDBCommands
+    end
+    object DisplayGDBAnnotationsBtn: TMenuItem
+      Action = actMsgDisplayGDBAnnotations
+    end
+    object N51: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem12: TMenuItem
+      Action = actMsgClear
     end
   end
 end

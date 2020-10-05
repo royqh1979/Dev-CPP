@@ -112,7 +112,6 @@ type
     N32: TMenuItem;
     HelpMenu: TMenuItem;
     AboutDevCppItem: TMenuItem;
-    MessageControl: TPageControl;
     CompSheet: TTabSheet;
     ResSheet: TTabSheet;
     ResourceOutput: TListView;
@@ -553,6 +552,23 @@ type
     Locals1: TMenuItem;
     Globals1: TMenuItem;
     FunctionParameters1: TMenuItem;
+    DebugOutputPopup: TPopupMenu;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    N51: TMenuItem;
+    DisplayGDBCommandsBtn: TMenuItem;
+    DisplayGDBAnnotationsBtn: TMenuItem;
+    MessageControl: TPageControl;
+    actMsgDisplayGDBCommands: TAction;
+    actMsgDisplayGDBAnnotations: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -818,6 +834,10 @@ type
     procedure actParametersExecute(Sender: TObject);
     procedure actGlobalsExecute(Sender: TObject);
     procedure actCallStackFullExecute(Sender: TObject);
+    procedure actMsgDisplayGDBCommandsExecute(Sender: TObject);
+    procedure actMsgDisplayGDBCommandsUpdate(Sender: TObject);
+    procedure actMsgDisplayGDBAnnotationsUpdate(Sender: TObject);
+    procedure actMsgDisplayGDBAnnotationsExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1169,6 +1189,8 @@ begin
   actMsgSelAll.Caption := Lang[ID_ITEM_SELECTALL];
   actMsgSaveAll.Caption := Lang[ID_ITEM_SAVEALL];
   actMsgClear.Caption := Lang[ID_ITEM_CLEAR];
+  actMsgDisplayGDBCommands.Caption := Lang[ID_DEB_SHOWCOMMAND];
+  actMsgDisplayGDBAnnotations.Caption := Lang[ID_DEB_FULLANNOATION];
 
   // Edit menu
   actUndo.Caption := Lang[ID_ITEM_UNDO];
@@ -7063,6 +7085,26 @@ begin
     RunCustomCommandBtn.Action := actCallStackFull;
     RunCustomCommandBtn.Update;
   end;
+end;
+
+procedure TMainForm.actMsgDisplayGDBCommandsExecute(Sender: TObject);
+begin
+  devDebugger.ShowCommandLog := not devDebugger.ShowCommandLog;
+end;
+
+procedure TMainForm.actMsgDisplayGDBCommandsUpdate(Sender: TObject);
+begin
+  TAction(Sender).Checked:=devDebugger.ShowCommandLog;
+end;
+
+procedure TMainForm.actMsgDisplayGDBAnnotationsUpdate(Sender: TObject);
+begin
+  TAction(Sender).Checked := devDebugger.ShowAnnotations;
+end;
+
+procedure TMainForm.actMsgDisplayGDBAnnotationsExecute(Sender: TObject);
+begin
+  devDebugger.ShowAnnotations := not devDebugger.ShowAnnotations;
 end;
 
 end.
