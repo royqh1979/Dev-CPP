@@ -242,10 +242,12 @@ begin
         end;
         if  notPrompt then begin
           if StartsStr(#26#26,strOutput) then begin
+          {
             if SameStr(#26#26'error',strOutput) then begin
               outStrList.Add(#26#26);
               outStrList.Add('Error: ');
             end;
+          }
             outStrList.Add(#26#26);
           end;
 //          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then

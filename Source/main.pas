@@ -4872,17 +4872,24 @@ begin
 end;
 
 procedure TMainForm.edGdbCommandKeyPress(Sender: TObject; var Key: Char);
+var
+  s:string;
 begin
   if fDebugger.Executing then begin
     if Key = Chr(VK_RETURN) then begin
-      if Length(edGDBCommand.Text) > 0 then begin
+      s:=Trim(edGDBCommand.Text)
+      if Length(s) > 0 then begin
+      
+        //User shouldn't quit the gdb in command line
+        if SameText(s,'quit') then
+          Exit;
 
         // Disable key, but make sure not to remove selected text
         EvaluateInput.SelStart := 0;
         EvaluateInput.SelLength := 0;
         Key := #0;
 
-        fDebugger.SendCommand(edGDBCommand.Text, '');
+        fDebugger.SendCommand(s, '');
 
         if edGDBCommand.Items.IndexOf(edGDBCommand.Text) = -1 then
           edGDBCommand.AddItem(edGDBCommand.Text, nil);
