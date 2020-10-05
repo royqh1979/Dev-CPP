@@ -1,7 +1,7 @@
 # Dev-CPP 2020
 A fork of Orwell Dev-CPP (https://sourceforge.net/p/orwelldevcpp)
 
-Orwell Dev-CPP has stopped update since 2015, So I forked it. 
+Orwell Dev-CPP has stopped update since 2016, So I forked it. 
 It's intended to be used for eductional purposes.
 
 HighLights of News:

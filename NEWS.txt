@@ -1,3 +1,8 @@
+Version 5.13-beta3
+  - fix: English label error for step out button.
+  - fix: not release handles used by gdb subprocess.
+  - fix: Disallow user to input 'quit' command in the output windows to quit gdb.
+
 Version 5.13-beta2
   - fix: graphics.h & libturtle project templates
   - fix: multi language support for rename symbol
@@ -6,7 +11,7 @@ Version 5.13-beta2
   - fix: font size of debug output window is incorrect.
   - add: Redirect  STDIO to a file when run (not working in windows XP)& debug the compiled program (need a patched gdb)
   - add: redesign debug pane ( add more commands)
-  - add: In the CPU windows, click on the functions in the left-bottom list will show the function's disassebly and cpu info
+  - add: In the CPU window, click on the functions in the left-bottom list will show the function's disassebly and cpu info
   
 
 Version 5.13-beta1
