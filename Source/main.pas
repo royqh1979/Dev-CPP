@@ -6322,7 +6322,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('backtrace', '');
+      fDebugger.SendCommand('backtrace', '',true);
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStack);
     RunCustomCommandBtn.Action := actCallStack;
@@ -7034,7 +7034,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('info locals', '');
+      fDebugger.SendCommand('info locals', '',true);
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actLocals);
     RunCustomCommandBtn.Action := actLocals;
@@ -7049,7 +7049,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('info args', '');
+      fDebugger.SendCommand('info args', '',true);
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actParameters);
     RunCustomCommandBtn.Action := actParameters;
@@ -7064,7 +7064,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('info variables', '');
+      fDebugger.SendCommand('info variables', '',true);
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actGlobals);
     RunCustomCommandBtn.Action := actGlobals;
@@ -7079,7 +7079,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('backtrace full', '');
+      fDebugger.SendCommand('backtrace full', '',true);
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStackFull);
     RunCustomCommandBtn.Action := actCallStackFull;

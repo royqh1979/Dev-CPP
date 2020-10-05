@@ -285,6 +285,8 @@ begin
         outStrList.Free;
       end;
     end;
+  end else if not assigned(fCurrentCmd) then begin //this is gdb's first prompt
+    MainForm.DebugOutput.Lines.Add('(gdb)');
   end;
 
   // Some part of the CPU form has been updated
