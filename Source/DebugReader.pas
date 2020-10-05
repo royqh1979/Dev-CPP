@@ -86,6 +86,7 @@ type
     fPipeWrite: THandle;
     fCmdQueue: TQueue;
     fCmdRunning : boolean;
+    fCurrentCmd: PGDBCmd;
     fRegisters: TList;
     fDisassembly: TStringList; // convert to TList with proper data formatting?
     fBacktrace: TList;
@@ -180,7 +181,8 @@ constructor TDebugReader.Create(autoClean:boolean);
 begin
   inherited;
   fCmdQueue := TQueue.Create;
-  fCmdRunning := False;
+  fCmdRunning := True;
+  fCurrentCmd := nil;
   InitializeCriticalSection(fCSQueue);
 end;
 
@@ -188,6 +190,11 @@ destructor TDebugReader.Destroy;
 begin
   ClearCmdQueue;
   fCmdQueue.Free;
+  if assigned(fCurrentCmd) then begin
+    Dispose(fCurrentCmd);
+    fCurrentCmd := nil;
+  end;
+
   DeleteCriticalSection(fCSQueue);
   inherited;
 end;
@@ -225,54 +232,58 @@ begin
   if doevalready and Assigned(MainForm.Debugger.OnEvalReady) then
     MainForm.Debugger.OnEvalReady(fEvalValue);
 
-  if devDebugger.ShowAnnotations then begin
-    strOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
-    MainForm.DebugOutput.Lines.Add(strOutput);
-  end else begin
-    strList := TStringList.Create;
-    outStrList := TStringList.Create;
-    try
-      strList.Text := fOutput;
-      notPrompt := True;
-      for i:=0 to strList.Count-1 do
-      begin
-        strOutput:=strList[i];
-        if StartsStr(#26#26'pre-prompt',strOutput) then begin
-          notPrompt := False;
-        end;
-        if  notPrompt then begin
-          if StartsStr(#26#26,strOutput) then begin
-          {
-            if SameStr(#26#26'error',strOutput) then begin
-              outStrList.Add(#26#26);
-              outStrList.Add('Error: ');
-            end;
-          }
-            outStrList.Add(#26#26);
-          end;
-//          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then
-          if (not StartsStr(#26#26, strOutput)) then
-            if UseUTF8 then
-              outStrList.Add(UTF8ToAnsi(strOutput))
-            else
-              outStrList.Add(strOutput);
-        end;
-        if StartsStr(#26#26'prompt', strOutput) then begin
-          notPrompt := True;
-        end;
-      end;  
+  // show command output
+  if ((assigned(fCurrentCmd) and fCurrentCmd^.ViewInUI) or devDebugger.ShowCommandLog) then begin
 
-      // remove consecutive ^Z^Z annotations
-      while ContainsStr(outStrList.Text,#13#10#26#26#13#10#26#26) do
-        outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10#26#26,#13#10#26#26,[]);
-      // remove newline formed by ^Z^Z annotations
-      outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10,'',[rfReplaceAll]);
-      outStrList.Text := StringReplace(outStrList.Text,#26#26,'',[rfReplaceAll]);
-      MainForm.DebugOutput.Lines.Add(outStrList.Text);
-      MainForm.DebugOutput.Lines.Add('(gdb)');
-    finally
-      strList.Free;
-      outStrList.Free;
+    if devDebugger.ShowAnnotations then begin
+      strOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
+      MainForm.DebugOutput.Lines.Add(strOutput);
+    end else begin
+      strList := TStringList.Create;
+      outStrList := TStringList.Create;
+      try
+        strList.Text := fOutput;
+        notPrompt := True;
+        for i:=0 to strList.Count-1 do
+        begin
+          strOutput:=strList[i];
+          if StartsStr(#26#26'pre-prompt',strOutput) then begin
+            notPrompt := False;
+          end;
+          if  notPrompt then begin
+            if StartsStr(#26#26,strOutput) then begin
+          {
+              if SameStr(#26#26'error',strOutput) then begin
+                outStrList.Add(#26#26);
+                outStrList.Add('Error: ');
+              end;
+          }
+              outStrList.Add(#26#26);
+            end;
+//          if (not StartsStr(#26#26, strOutput)) and (StringReplace(strOutput,' ','',[rfReplaceAll])<>'') then
+            if (not StartsStr(#26#26, strOutput)) then
+              if UseUTF8 then
+                outStrList.Add(UTF8ToAnsi(strOutput))
+              else
+                outStrList.Add(strOutput);
+          end;
+          if StartsStr(#26#26'prompt', strOutput) then begin
+            notPrompt := True;
+          end;
+        end;
+
+        // remove consecutive ^Z^Z annotations
+        while ContainsStr(outStrList.Text,#13#10#26#26#13#10#26#26) do
+          outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10#26#26,#13#10#26#26,[]);
+        // remove newline formed by ^Z^Z annotations
+        outStrList.Text := StringReplace(outStrList.Text,#13#10#26#26#13#10,'',[rfReplaceAll]);
+        outStrList.Text := StringReplace(outStrList.Text,#26#26,'',[rfReplaceAll]);
+        MainForm.DebugOutput.Lines.Add(outStrList.Text);
+        MainForm.DebugOutput.Lines.Add('(gdb)');
+      finally
+        strList.Free;
+        outStrList.Free;
+      end;
     end;
   end;
 
@@ -1036,7 +1047,6 @@ var
 const
   chunklen = 1000; // GDB usually sends 4K blocks, disassembly easily takes up to 20K
 begin
-
   bytesread := 0;
   totalbytesread := 0;
 
@@ -1059,9 +1069,13 @@ begin
      if GetLastAnnotation(tmp, totalbytesread, 1 + totalbytesread + chunklen) in [TPrompt] then begin
         fOutput := tmp;
         ProcessDebugOutput;
+
+        if assigned(fCurrentCmd) then begin
+          Dispose(fCurrentCmd);
+          fCurrentCmd := nil;
+        end;
         fCmdRunning := False;
         RunNextCmd;
-
         // Reset storage
         totalbytesread := 0;
       end;
@@ -1115,23 +1129,16 @@ begin
       MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
     }
 
-    if pCmd^.ViewInUI then begin
-      if MainForm.edGdbCommand.Text = '' then begin
-        if Length(pCmd^.params) > 0 then
-          MainForm.edGdbCommand.Text := pCmd^.Cmd + ' ' + pCmd^.params
-        else
-          MainForm.edGdbCommand.Text := pCmd^.Cmd;
-      end;
-    end;
-    if devDebugger.ShowCommandLog then begin
+    if pCmd^.ViewInUI or devDebugger.ShowCommandLog then begin
       if MainForm.DebugOutput.Lines.Count>0 then begin
-        MainForm.DebugOutput.Lines.Delete(MainForm.DebugOutput.Lines.Count-1);
+        if not devDebugger.ShowAnnotations then
+          MainForm.DebugOutput.Lines.Delete(MainForm.DebugOutput.Lines.Count-1);
       end;
         MainForm.DebugOutput.Lines.Add('(gdb)'+pCmd^.Cmd + ' ' + pCmd^.params);
         MainForm.DebugOutput.Lines.Add('');
     end;
-    Dispose(pCmd);
     fCmdRunning := True;
+    fCurrentCmd := pCmd;
 end;
 
 procedure TDebugReader.ClearCmdQueue;

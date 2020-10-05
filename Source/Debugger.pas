@@ -111,7 +111,8 @@ begin
     Dispose(PBreakPoint(BreakPointList.Items[i]));
   BreakPointList.Free;
 
-  fReader.Free;
+  if assigned(fReader) then
+    fReader.Terminate;
 
   inherited;
 end;
@@ -242,7 +243,7 @@ var
 begin
   // "filename":linenum
   filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
-  SendCommand('break', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line), true);
+  SendCommand('break', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line));
 end;
 
 procedure TDebugger.RemoveBreakPoint(i: integer);
@@ -251,7 +252,7 @@ var
 begin
   // "filename":linenum
   filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
-  SendCommand('clear', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line), true);
+  SendCommand('clear', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line));
 end;
 
 procedure TDebugger.AddBreakPoint(linein: integer; e: TEditor);
@@ -307,12 +308,12 @@ end;
 
 procedure TDebugger.AddWatchVar(i: integer);
 begin
-  SendCommand('display', PWatchVar(WatchVarList.Items[i])^.name, true);
+  SendCommand('display', PWatchVar(WatchVarList.Items[i])^.name);
 end;
 
 procedure TDebugger.RemoveWatchVar(i: integer);
 begin
-  SendCommand('undisplay', IntToStr(PWatchVar(WatchVarList.Items[i])^.gdbindex), true);
+  SendCommand('undisplay', IntToStr(PWatchVar(WatchVarList.Items[i])^.gdbindex));
 end;
 
 procedure TDebugger.AddWatchVar(const namein: AnsiString);

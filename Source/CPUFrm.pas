@@ -27,7 +27,6 @@ uses
 
 type
   TCPUForm = class(TForm)
-    edFunc: TComboBox;
     lblFunc: TLabel;
     CodeList: TSynEdit;
     RegisterListbox: TListView;
@@ -48,8 +47,8 @@ type
     VertSplit: TSplitter;
     HorzSplit: TSplitter;
     LeftPanel: TPanel;
+    edFunc: TEdit;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure edFuncKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure gbSyntaxClick(Sender: TObject);
     procedure CPUCopyClick(Sender: TObject);
@@ -112,24 +111,6 @@ begin
   CPUForm := nil;
 end;
 
-procedure TCPUForm.edFuncKeyPress(Sender: TObject; var Key: Char);
-var
-  propercmd: AnsiString;
-begin
-  if MainForm.Debugger.Executing then begin
-    if Key = Chr(VK_RETURN) then begin
-      Key := #0;
-
-      // Although GDB omits void inside () in its own output, it only accepts C style empty parameter lists for input...
-      propercmd := edFunc.Text;
-      if EndsStr('()', propercmd) then
-        propercmd := ReplaceLastStr(propercmd, '()', '(void)');
-      MainForm.Debugger.SendCommand('disas', propercmd);
-      if (Length(edFunc.Text) > 0) and (edFunc.Items.IndexOf(edFunc.Text) = -1) then
-        edFunc.AddItem(edFunc.Text, nil);
-    end;
-  end;
-end;
 
 procedure TCPUForm.LoadText;
 begin
@@ -254,8 +235,6 @@ begin
 end;
 
 procedure TCPUForm.gbSyntaxClick(Sender: TObject);
-var
-  key: Char;
 begin
   // Set disassembly flavor
   if RadioAtt.Checked then begin
@@ -268,16 +247,13 @@ begin
     devData.UseATTSyntax := false;
   end;
 
-  // load the current function
-  key := Chr(VK_RETURN);
-  edFuncKeyPress(nil, key);
 end;
 
 procedure TCPUForm.CPUCutClick(Sender: TObject);
 begin
   if edFunc.Focused then begin
     ClipBoard.AsText := edFunc.SelText;
-    edFunc.SelText := '';
+    edFunc.Text := '';
   end;
 end;
 
@@ -333,14 +309,14 @@ begin
   sel := StackTrace.Selected;
   if Assigned(sel) then begin
     e := MainForm.EditorList.GetEditorFromFileName(sel.SubItems[0]);
-    if Assigned(e) then begin
-      e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
-    end;
+  if Assigned(e) then begin
+    e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
+  end;
   i := sel.Index;
-  MainForm.Debugger.SendCommand('frame',IntToStr(i),true);
-  //update register info
+  edFunc.Text := sel.Caption;
   if MainForm.Debugger.Executing then begin
-
+    MainForm.Debugger.SendCommand('select-frame',IntToStr(i));
+    //update register info
     // Load the registers...
     MainForm.Debugger.Reader.Registers := fRegisters;
     MainForm.Debugger.SendCommand('info', 'registers');
@@ -350,7 +326,9 @@ begin
     if devData.UseATTSyntax then // gbSyntaxClick has NOT been called yet...
       gbSyntaxClick(nil);
     MainForm.Debugger.SendCommand('disas','');
+    {
     MainForm.Debugger.SendCommand('backtrace','');
+    }
   end;
   end;
 

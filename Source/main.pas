@@ -3744,7 +3744,7 @@ end;
 procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
-    fDebugger.SendCommand('next', '', true);
+    fDebugger.SendCommand('next', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -3753,7 +3753,7 @@ end;
 procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
-    fDebugger.SendCommand('step', '', true);
+    fDebugger.SendCommand('step', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -3802,7 +3802,7 @@ procedure TMainForm.actContinueExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
-    fDebugger.SendCommand('continue', '', true);
+    fDebugger.SendCommand('continue', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -4877,7 +4877,7 @@ var
 begin
   if fDebugger.Executing then begin
     if Key = Chr(VK_RETURN) then begin
-      s:=Trim(edGDBCommand.Text)
+      s:=Trim(edGDBCommand.Text);
       if Length(s) > 0 then begin
       
         //User shouldn't quit the gdb in command line
@@ -4889,7 +4889,7 @@ begin
         EvaluateInput.SelLength := 0;
         Key := #0;
 
-        fDebugger.SendCommand(s, '');
+        fDebugger.SendCommand(s, '',true);
 
         if edGDBCommand.Items.IndexOf(edGDBCommand.Text) = -1 then
           edGDBCommand.AddItem(edGDBCommand.Text, nil);
@@ -5705,7 +5705,7 @@ begin
     value := GetNodeValue(DebugView.Selected);
 
     if InputQuery(Lang[ID_NV_MODIFYVALUE], fullname, value) then
-      fDebugger.SendCommand('set variable', fullname + ' = ' + value, true);
+      fDebugger.SendCommand('set variable', fullname + ' = ' + value);
   end;
 end;
 
@@ -6223,7 +6223,7 @@ begin
         Key := #0;
 
         fDebugger.OnEvalReady := OnInputEvalReady;
-        fDebugger.SendCommand('print', EvaluateInput.Text, true);
+        fDebugger.SendCommand('print', EvaluateInput.Text);
 
         // Tell the user we're updating...
         EvalOutput.Font.Color := clGrayText;
@@ -6269,7 +6269,7 @@ end;
 procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
-    fDebugger.SendCommand('finish', '', true);
+    fDebugger.SendCommand('finish', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -6282,8 +6282,8 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY), true);
-      fDebugger.SendCommand('continue', '', true);
+      fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
+      fDebugger.SendCommand('continue', '');
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
     end;
@@ -6300,7 +6300,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('backtrace', '', true);
+      fDebugger.SendCommand('backtrace', '');
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStack);
     RunCustomCommandBtn.Action := actCallStack;
@@ -7012,7 +7012,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('info locals', '', true);
+      fDebugger.SendCommand('info locals', '');
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actLocals);
     RunCustomCommandBtn.Action := actLocals;
@@ -7027,7 +7027,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('info args', '', true);
+      fDebugger.SendCommand('info args', '');
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actParameters);
     RunCustomCommandBtn.Action := actParameters;
@@ -7042,7 +7042,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('info variables', '', true);
+      fDebugger.SendCommand('info variables', '');
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actGlobals);
     RunCustomCommandBtn.Action := actGlobals;
@@ -7057,7 +7057,7 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
-      fDebugger.SendCommand('backtrace full', '', true);
+      fDebugger.SendCommand('backtrace full', '');
     end;
     devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStackFull);
     RunCustomCommandBtn.Action := actCallStackFull;
