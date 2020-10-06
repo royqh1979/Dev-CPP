@@ -157,7 +157,7 @@ begin
   fShowInheritedMembers := False;
   fControlCanvas := TControlCanvas.Create;
   fControlCanvas.Control := Self;
-  fControlCanvas.Font.Assign(Self.Font);
+  //fControlCanvas.Font.Assign(Self.Font);
   OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
   fIncludedFiles := TStringList.Create;
   fIsIncludedCacheFileName := '';
@@ -496,6 +496,7 @@ begin
 
       // Draw function arguments to the right of the already drawn text
       if st^._Args <> '' then begin
+        fControlCanvas.Font.Assign(self.Font);
         if bInherited then
           fControlCanvas.Font.Color := clGray
         else
