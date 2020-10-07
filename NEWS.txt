@@ -3,6 +3,7 @@ Version 5.13-beta3
   - fix: not release handles used by gdb subprocess.
   - fix: Disallow user to input 'quit' command in the output windows to quit gdb.
   - fix: incorrect font size in the class window
+  - fix: auto completion don't work on variables of type std::string 
   - add 'show gdb commands' and 'show gdb annotations' option btn to debug output window's context menu
   - change: hide debug output of btns
 

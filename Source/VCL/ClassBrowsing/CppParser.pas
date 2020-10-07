@@ -1538,11 +1538,14 @@ begin
       Break;
     end;
 
-    // TODO: why is this needed?
-    if (not SameStr(fTokenizer[fIndex]^.Text, 'struct')) and
-      (not SameStr(fTokenizer[fIndex]^.Text, 'class')) and
-      (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then
-      LastType := LastType + ' ' + fTokenizer[fIndex]^.Text;
+    // Sometime we have macros before struct/class/union/enum/typedef, and will think they are vars mistakely.
+    // so we check here to correct it.
+    if SameStr(fTokenizer[fIndex]^.Text, 'struct') or SameStr(fTokenizer[fIndex]^.Text, 'class')
+      or SameStr(fTokenizer[fIndex]^.Text, 'union') or SameStr(fTokenizer[fIndex]^.Text, 'typedef')
+      or SameStr(fTokenizer[fIndex]^.Text, 'enum') then
+      Exit;
+      
+    LastType := LastType + ' ' + fTokenizer[fIndex]^.Text;
     Inc(fIndex);
   until (fIndex >= fTokenizer.Tokens.Count) or IsFunctionPointer;
   LastType := Trim(LastType);
@@ -1786,6 +1789,7 @@ begin
     Exit;
   end;
 
+  //fPreprocessor.Result.SaveToFile('f:\\result.txt');
   // Tokenize the preprocessed buffer file
   try
     fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
@@ -1986,8 +1990,9 @@ begin
   FName := FileName;
   if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
     Exit;
-  if Assigned(fOnBusy) then
-    fOnBusy(Self);
+  if UpdateView then
+    if Assigned(fOnBusy) then
+      fOnBusy(Self);
 
   // Always invalidate file pairs. If we don't, reparsing the header
   // screws up the information inside the source file
