@@ -157,7 +157,7 @@ begin
   fShowInheritedMembers := False;
   fControlCanvas := TControlCanvas.Create;
   fControlCanvas.Control := Self;
-  fControlCanvas.Font.Assign(Self.Font);
+  //fControlCanvas.Font.Assign(Self.Font);
   OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
   fIncludedFiles := TStringList.Create;
   fIsIncludedCacheFileName := '';
@@ -235,6 +235,7 @@ var
   NewNode: TTreeNode;
   bInherited: boolean;
   InheritanceStatements: TList;
+  i:integer;
 
   procedure AddStatementNode(StatementNode: PStatementNode);
   begin
@@ -266,10 +267,12 @@ begin
     // Walk all the statements
     bInherited := False;
     StatementNode := StartNode;
+    i:=0;
     while Assigned(StatementNode) do begin
       Statement := StatementNode^.Data;
       CurStatementNode := StatementNode; // remember current node
       StatementNode := StatementNode^.NextNode; // step to next node up here BEFORE calls to continue
+      inc(i);
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
         if not _Visible or _Temporary then
@@ -307,6 +310,7 @@ begin
         end;
       end;
     end;
+    inc(i);
   finally
     InheritanceStatements.Free;
   end;
@@ -496,6 +500,7 @@ begin
 
       // Draw function arguments to the right of the already drawn text
       if st^._Args <> '' then begin
+        fControlCanvas.Font.Assign(self.Font);
         if bInherited then
           fControlCanvas.Font.Color := clGray
         else

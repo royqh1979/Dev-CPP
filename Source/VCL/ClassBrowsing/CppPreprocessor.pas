@@ -1007,7 +1007,9 @@ procedure TCppPreprocessor.PreprocessFile(const FileName: AnsiString);
 begin
   Reset;
   OpenInclude(FileName, nil);
+  fResult.SaveToFile('f:\\t1.txt');
   PreprocessBuffer;
+  fResult.SaveToFile('f:\\t2.txt');
   //fResult.SaveToFile('C:\TCppPreprocessorResult' + ExtractFileName(FileName) + '.txt');
 end;
 
