@@ -1538,20 +1538,13 @@ begin
       Break;
     end;
 
-    {
-    //This will make parsing of windows.h very slow
-    // Sometime we have macros before struct/class/union/enum/typedef, and will think they are vars mistakely.
-    // so we check here to correct it.
-    if SameStr(fTokenizer[fIndex]^.Text, 'struct') or SameStr(fTokenizer[fIndex]^.Text, 'class')
-      or SameStr(fTokenizer[fIndex]^.Text, 'union') or SameStr(fTokenizer[fIndex]^.Text, 'typedef')
-      or SameStr(fTokenizer[fIndex]^.Text, 'enum') then
-      Exit;
-    }
 
-    // we've made a mistake, this is a typedef , not a variable.
+    // we've made a mistake, this is a typedef , not a variable definition.
     if SameStr(fTokenizer[fIndex]^.Text, 'typedef') then
       Exit;
 
+    // struct/class/union is part of the type signature
+    // but we dont store it in the type cache, so must trim it to find the type info
     if (not SameStr(fTokenizer[fIndex]^.Text, 'struct')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'class')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then
