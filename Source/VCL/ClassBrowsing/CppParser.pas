@@ -1538,14 +1538,24 @@ begin
       Break;
     end;
 
+    {
+    //This will make parsing of windows.h very slow
     // Sometime we have macros before struct/class/union/enum/typedef, and will think they are vars mistakely.
     // so we check here to correct it.
     if SameStr(fTokenizer[fIndex]^.Text, 'struct') or SameStr(fTokenizer[fIndex]^.Text, 'class')
       or SameStr(fTokenizer[fIndex]^.Text, 'union') or SameStr(fTokenizer[fIndex]^.Text, 'typedef')
       or SameStr(fTokenizer[fIndex]^.Text, 'enum') then
       Exit;
-      
-    LastType := LastType + ' ' + fTokenizer[fIndex]^.Text;
+    }
+
+    // we've made a mistake, this is a typedef , not a variable.
+    if SameStr(fTokenizer[fIndex]^.Text, 'typedef') then
+      Exit;
+
+    if (not SameStr(fTokenizer[fIndex]^.Text, 'struct')) and
+      (not SameStr(fTokenizer[fIndex]^.Text, 'class')) and
+      (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then
+      LastType := LastType + ' ' + fTokenizer[fIndex]^.Text;
     Inc(fIndex);
   until (fIndex >= fTokenizer.Tokens.Count) or IsFunctionPointer;
   LastType := Trim(LastType);
