@@ -1,7 +1,5 @@
 #include <graphics.h>
-#include <time.h>
 #include <math.h>
-#include <stdio.h>
 
 void paintstar(double x, double y, double r, double a)
 {

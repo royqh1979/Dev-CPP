@@ -235,7 +235,6 @@ var
   NewNode: TTreeNode;
   bInherited: boolean;
   InheritanceStatements: TList;
-  i:integer;
 
   procedure AddStatementNode(StatementNode: PStatementNode);
   begin
@@ -267,12 +266,10 @@ begin
     // Walk all the statements
     bInherited := False;
     StatementNode := StartNode;
-    i:=0;
     while Assigned(StatementNode) do begin
       Statement := StatementNode^.Data;
       CurStatementNode := StatementNode; // remember current node
       StatementNode := StatementNode^.NextNode; // step to next node up here BEFORE calls to continue
-      inc(i);
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
         if not _Visible or _Temporary then
@@ -310,7 +307,6 @@ begin
         end;
       end;
     end;
-    inc(i);
   finally
     InheritanceStatements.Free;
   end;
