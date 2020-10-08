@@ -44,6 +44,7 @@ type
     Index: integer; // 0-based for programming convenience
     FileName: AnsiString;
     Buffer: TStringList; // do not concat them all
+    Branches: integer; //branch levels;
   end;
 
   PDefine = ^TDefine;
@@ -190,8 +191,10 @@ var
   I: integer;
 begin
   // Backup old position if we're entering a new file
-  if fIncludes.Count > 0 then
+  if fIncludes.Count > 0 then begin
     PFile(fIncludes[fIncludes.Count - 1])^.Index := fIndex;
+    PFile(fIncludes[fIncludes.Count - 1])^.Branches := fBranchResults.Count;
+  end;
 
   // Add the new file to the includes of the current file
   // Only add items to the include list of the given file if the file hasn't been scanned yet
@@ -208,6 +211,7 @@ begin
   FileItem^.Index := 0; // 0-based line counter
   FileItem^.FileName := FileName;
   FileItem^.Buffer := TStringList.Create;
+  FileItem^.Branches := 0;
 
   // Don't parse stuff we have already parsed
   if Assigned(Stream) or (FastIndexOf(fScannedFiles, FileName) = -1) then begin
@@ -238,6 +242,11 @@ begin
   end;
   fIncludes.Add(FileItem);
 
+  //Convert Unix EOL to Windows EOL
+  if not ContainsStr(FileItem^.Buffer.Text,#13#10) then begin
+    StringReplace(FileItem^.Buffer.Text,#10,#13#10,[rfReplaceAll]);
+  end;
+  
   // Process it
   fIndex := FileItem^.Index;
   fFileName := FileItem^.FileName;
@@ -270,6 +279,9 @@ begin
       fIndex := Includes[fIncludes.Count - 1]^.Index;
       fFileName := Includes[fIncludes.Count - 1]^.FileName;
       fBuffer := Includes[fIncludes.Count - 1]^.Buffer;
+      while (fBranchResults.Count > Includes[fIncludes.Count - 1]^.Branches) do begin
+        fBranchResults.Delete(fBranchResults.Count-1);
+      end;
       // Point to previous buffer and start past the include we walked into
 
       // Start augmenting previous include list again
@@ -882,7 +894,14 @@ var
     Result := StrToIntDef(EvaluateExpression(Line), -1) > 0; // perform the remaining int arithmetic
   end;
 begin
+
   if StartsStr('ifdef', Line) then begin
+    // if a branch that is not at our level is false, current branch is false too;
+    for I := 0 to fBranchResults.Count - 2 do
+      if fBranchResults[i] = 0 then begin
+        SetCurrentBranch(false);
+        Exit;
+      end;
     if not GetCurrentBranch then // we are already inside an if that is NOT being taken
       SetCurrentBranch(false) // so don't take this one either
     else begin
@@ -890,6 +909,12 @@ begin
       SetCurrentBranch(Assigned(GetDefine(Name,Dummy)));
     end;
   end else if StartsStr('ifndef', Line) then begin
+    // if a branch that is not at our level is false, current branch is false too;
+    for I := 0 to fBranchResults.Count - 2 do
+      if fBranchResults[i] = 0 then begin
+        SetCurrentBranch(false);
+        Exit;
+      end;
     if not GetCurrentBranch then // we are already inside an if that is NOT being taken
       SetCurrentBranch(false) // so don't take this one either
     else begin
@@ -897,6 +922,12 @@ begin
       SetCurrentBranch(not Assigned(GetDefine(Name,Dummy)));
     end;
   end else if StartsStr('if', Line) then begin
+    // if a branch that is not at our level is false, current branch is false too;
+    for I := 0 to fBranchResults.Count - 2 do
+      if fBranchResults[i] = 0 then begin
+        SetCurrentBranch(false);
+        Exit;
+      end;
     if not GetCurrentBranch then // we are already inside an if that is NOT being taken
       SetCurrentBranch(false) // so don't take this one either
     else begin
@@ -904,23 +935,26 @@ begin
       SetCurrentBranch(EvaluateIf(IfLine));
     end;
   end else if StartsStr('else', Line) then begin
-    // if a branch that is not at our level is false, ignore (that means we're skipping)
+    // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then // ignore it too
+      if fBranchResults[i] = 0 then begin
+        RemoveCurrentBranch;
+        SetCurrentBranch(false);
         Exit;
-
-    // otherwise, process it
+      end;
     OldResult := GetCurrentBranch; // take either if or else
     RemoveCurrentBranch;
     SetCurrentBranch(not OldResult);
   end else if StartsStr('elif', Line) then begin
-    // if a branch that is not at our level is false, ignore
+    // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then // ignore it too
+      if fBranchResults[i] = 0 then begin
+        RemoveCurrentBranch;
+        SetCurrentBranch(false);
         Exit;
-
+      end;  
     OldResult := GetCurrentBranch; // take either if or else
-    RemoveCurrentBranch;
+    RemoveCurrentBranch;        
     if OldResult then begin // don't take this one, previous if has been taken
       SetCurrentBranch(false);
     end else begin // previous ifs failed. try this one
@@ -1007,9 +1041,10 @@ procedure TCppPreprocessor.PreprocessFile(const FileName: AnsiString);
 begin
   Reset;
   OpenInclude(FileName, nil);
-  fResult.SaveToFile('f:\\t1.txt');
+//  fBuffer.SaveToFile('f:\\buffer.txt');
   PreprocessBuffer;
-  fResult.SaveToFile('f:\\t2.txt');
+//  fBuffer.SaveToFile('f:\\buffer.txt');
+//  fResult.SaveToFile('f:\\log.txt');
   //fResult.SaveToFile('C:\TCppPreprocessorResult' + ExtractFileName(FileName) + '.txt');
 end;
 
