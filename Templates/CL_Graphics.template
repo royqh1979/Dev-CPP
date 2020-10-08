@@ -11,6 +11,6 @@ Cpp=CL_Graphics_cpp.txt
 UnitCount=1
 Type=0
 IsCpp=1
-linker=-lpthread -lgraphics -lgdi32 -limm32 -lmsimg32 -lole32 -loleaut32 -lwinmm -luuid -mwindows --static_@@__@@_
+linker=-lpthread -lm -lgraphics -lgdiplus -lgdi32 -limm32 -lmsimg32 -lole32 -loleaut32 -lwinmm -luuid -mwindows --static_@@__@@_
 
 
