@@ -1932,6 +1932,7 @@ begin
   // Set new file name
   FileName := SaveFileName;
 end;
+
   procedure TEditor.LoadFile(FileName:String);
   var
     tmpList: TStringList;
@@ -1941,7 +1942,10 @@ end;
       tmpList.LoadFromFile(FileName);
       if UseUTF8 then
         Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
-      else
+      else if IsUTF8Encoding(tmpList.Text) then begin
+        Text.Lines.Text := UTF8ToAnsi(tmpList.Text);
+        UseUTF8 := True;
+      end else
         Text.Lines.Text := tmpList.Text;
     finally
       tmpList.Free;

@@ -2581,7 +2581,10 @@ begin
   fEnabled := True;
   fParseLocalHeaders := True;
   fParseGlobalHeaders := True;
-  fUseAltSlash := False;
+  if GetACP = 936 then begin //Chinese user
+    fUseAltSlash := True;
+  end else
+    fUseAltSlash := False;
 end;
 
 { TdevClassBrowsing }
