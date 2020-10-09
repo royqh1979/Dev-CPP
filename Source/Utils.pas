@@ -160,6 +160,8 @@ function AnsiToUTF8(s:String):String;
 
 function GetSystemCharsetName():String;
 
+function IsUTF8Encoding(s:AnsiString):boolean;
+
 implementation
 
 uses
@@ -1312,6 +1314,70 @@ begin
   acp := GetACP();
   Result := GetCodePage(acp).Name;
 end;
+
+{
+utf-8编码的文本文档，有的带有BOM (Byte Order Mark, 字节序标志)，即0xEF, 0xBB,0xBF，有的没有。用Windows的notepad编辑的文本保存是会自动添加BOM，我们常用UE编辑器在保存utf-8编码的时候也会自动添加BOM，Notepad++默认设置中保存utf-8编码时是无BOM的。其它文本编辑器就没有尝试过，有兴趣的可以自己试试。 
+　　utf-8是一种多字节编码的字符集，表示一个Unicode字符时，它可以是1个至多个字节。即在文本全部是ASCII字符时utf-8是和ASCII一致的(utf-8向下兼容ASCII)。utf-8字节流如下所示：
+
+1字节：0xxxxxxx 
+2字节：110xxxxx 10xxxxxx 
+3字节：1110xxxx 10xxxxxx 10xxxxxx
+
+　　按照utf-8编码规则进行验证，例如： 
+　　第一个字符的第一个字节的第一个bit为0，说明是个ANSII字符。继续查看第二个字符，若第一个比特是1，则查看第二个比特，若第二个比特为1，如果不为1说明这不是一个utf-8编码的文本。如果第二个比特为1，则查看第三个比特为0，不为0则说明不是utf-8编码,如果是0则说明该字符肯能是2字节的utf-8。查看该字符的第二个字节，如果前两个比特符合10则说明这是一个utf-8编码的字符。依次类推，若一旦有一个bit不满足UTF-8编码要求，就判定文本为ANSI（GBK），若直到文本结束都符合utf-8编码规则，则说明文本是UTF-8编码的。 
+　　由上述描述可知字符的第一个字节如果介于0x80与0xC0之间或大于0xF0则不符合utf-8的编码规则，可直接判断不是utf-8编码的文本。如果第一个字节符合utf-8规则且小于0xC0则判断第二个字节，如果第二个字节和0xC0做与操作结果不是0x80则可判断不是utf-8编码的文本。依次类推，如果第一个字节介于0xE0、0xF0之间，且第二个字节符合规则，第三个字节与第二个字节做同样判断，如果符合规则则该字符是utf-8字符，判断下一个字符直到文本结束。
+}
+function IsUTF8Encoding(s:AnsiString):boolean;
+var
+  allAscii: boolean;
+  ii: Integer;
+  tmp: Byte;
+  buffer: PChar;
+  size: Int64;
+begin
+  allAscii := True;
+  buffer := PChar(s);
+  size := Length(s);
+  ii := 0;
+  while ii < size do
+  begin
+    tmp := Byte(buffer[ii]);
+    if tmp < $80 then        //值小于0x80的为ASCII字符
+      Inc(ii)
+    else if tmp < $C0 then begin   //值介于0x80与0xC0之间的为无效UTF-8字符
+      Result := False;
+      Exit;
+    end else if tmp < $E0 then begin   //此范围内为2字节UTF-8字符
+      if ii >= (size - 1) then begin
+        Result := False;
+        Exit;
+      end;
+      if (Byte(buffer[ii + 1]) and $C0) <> $80 then begin
+        Result := False;
+        Exit;
+      end;
+      allAscii := False;
+      Inc(ii, 2);
+    end else if tmp < $F0 then begin //此范围内为3字节UTF-8字符
+      if ii >= size - 2 then begin
+        Result := False;
+        Exit;
+      end;
+      if ((Byte(buffer[ii + 1]) and $C0) <> $80) or
+       ((Byte(buffer[ii + 2]) and $C0) <> $80) then begin
+        Result := False;
+        Exit;
+      end;
+      allAscii := False;
+      Inc(ii, 3);
+    end else begin
+      Result := False;
+      Exit;
+    end; 
+  end;
+  Result := not allAscii;//All is ascii char, not utf-8 too.
+end;
+
 
 end.
 

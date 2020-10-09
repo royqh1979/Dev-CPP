@@ -1,5 +1,6 @@
-Version 5.13-beta3.1
+Version 5.13-beta4
   - add: if the user first run Dev-CPP and is using simplified-chinese windows, the option "use Alt+/  to activate Auto Code Completion" is set to on by default"
+  - add: auto detect if a file is UTF-8 encoded. If so, open it use UTF8.
 
 Version 5.13-beta3
   - fix: English label error for step out button.
