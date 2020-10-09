@@ -1605,8 +1605,9 @@ begin
   e.Activate;
 
   // Parse it after is has been shown so the user will not see random unpainted stuff for a while.
-  if not Assigned(fProject) then
+  if not Assigned(fProject) then begin
     CppParser.ParseFile(e.FileName, e.InProject, True);
+  end;
 end;
 
 procedure TMainForm.OpenFileList(List: TStringList);
