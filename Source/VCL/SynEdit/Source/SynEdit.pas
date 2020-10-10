@@ -9161,6 +9161,7 @@ begin
       if PosY<1 then
         Exit;
       Line := Lines[PosY - 1];
+      PosX := Length(Line);      
       continue;
     end;
     Test := Line[PosX];
