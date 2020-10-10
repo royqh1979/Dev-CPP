@@ -388,6 +388,7 @@ const
   ID_EOPT_TABS                          = 26030;
   ID_EOPT_UTF8                          = 26031;
   ID_EOPT_ALTSLASH                      = 26032;
+  ID_EOPT_CODECOMPLETE_WHILE_INPUT      = 26033;
   
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;

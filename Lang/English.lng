@@ -350,6 +350,7 @@ Ver=1
 26030=Tabs
 26031=Use UTF-8 As the Default file encoding
 26032=Use Alt+/ instead of Ctrl+Space
+26033=Show Code Completion Suggestion while inputing
 
 27001=Show hidden line characters
 27002=Show mouseover hints
