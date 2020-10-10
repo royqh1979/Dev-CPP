@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Dev-C++ 2020';
-  DEVCPP_VERSION = '5.13-beta3.1';
+  DEVCPP_VERSION = '5.13-beta4';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';

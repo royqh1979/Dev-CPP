@@ -9156,6 +9156,13 @@ begin
     PosX := Length(Line);
   numBrackets := 1;
   while True do begin
+    if Length(Line)=0 then begin;
+      dec(PosY);
+      if PosY<1 then
+        Exit;
+      Line := Lines[PosY - 1];
+      continue;
+    end;
     Test := Line[PosX];
     p.Char := PosX;
     p.Line := PosY;

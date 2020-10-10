@@ -6660,7 +6660,7 @@ var
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then
-    e.ShowCompletion;
+    e.ShowCompletion('');
 end;
 
 procedure TMainForm.actPackageManagerExecute(Sender: TObject);
