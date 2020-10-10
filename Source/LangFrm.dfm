@@ -1,28 +1,28 @@
 object LangForm: TLangForm
-  Left = 197
-  Top = 214
+  Left = 378
+  Top = 219
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Dev-C++ first time configuration'
-  ClientHeight = 320
-  ClientWidth = 560
+  ClientHeight = 427
+  ClientWidth = 747
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -12
+  Font.Height = -15
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 15
+  PixelsPerInch = 120
+  TextHeight = 20
   object OkBtn: TBitBtn
-    Left = 270
-    Top = 280
-    Width = 280
-    Height = 30
+    Left = 360
+    Top = 373
+    Width = 373
+    Height = 40
     Caption = '&Next'
     Default = True
     TabOrder = 0
@@ -56,17 +56,17 @@ object LangForm: TLangForm
       BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
   end
   object LangPanel: TPanel
-    Left = 260
+    Left = 347
     Top = 0
-    Width = 300
-    Height = 275
+    Width = 400
+    Height = 367
     BevelOuter = bvNone
     TabOrder = 1
     object lblLangInfo: TLabel
-      Left = 8
-      Top = 230
-      Width = 284
-      Height = 48
+      Left = 11
+      Top = 307
+      Width = 378
+      Height = 64
       Alignment = taCenter
       AutoSize = False
       Caption = 
@@ -75,35 +75,35 @@ object LangForm: TLangForm
       WordWrap = True
     end
     object grpLanguages: TGroupBox
-      Left = 16
-      Top = 12
-      Width = 268
-      Height = 213
+      Left = 21
+      Top = 16
+      Width = 358
+      Height = 284
       Caption = 'Select your language:'
       TabOrder = 0
       object lbLanguages: TListBox
-        Left = 8
-        Top = 20
-        Width = 250
-        Height = 181
-        ItemHeight = 15
+        Left = 11
+        Top = 27
+        Width = 333
+        Height = 241
+        ItemHeight = 20
         TabOrder = 0
       end
     end
   end
   object FinishPanel: TPanel
-    Left = 260
+    Left = 347
     Top = 0
-    Width = 300
-    Height = 275
+    Width = 400
+    Height = 367
     BevelOuter = bvNone
     TabOrder = 2
     Visible = False
     object Finish2: TLabel
-      Left = 8
-      Top = 64
-      Width = 273
-      Height = 73
+      Left = 11
+      Top = 85
+      Width = 364
+      Height = 98
       AutoSize = False
       Caption = 
         'If you need help using Dev-C++, please refer to the Dev-C++ help' +
@@ -112,10 +112,10 @@ object LangForm: TLangForm
       WordWrap = True
     end
     object Finish3: TLabel
-      Left = 8
-      Top = 146
-      Width = 284
-      Height = 75
+      Left = 11
+      Top = 195
+      Width = 378
+      Height = 100
       AutoSize = False
       Caption = 
         'You can also download packages (like libraries or tools) to use ' +
@@ -124,10 +124,10 @@ object LangForm: TLangForm
       WordWrap = True
     end
     object Finish1: TLabel
-      Left = 8
-      Top = 8
-      Width = 284
-      Height = 45
+      Left = 11
+      Top = 11
+      Width = 378
+      Height = 60
       AutoSize = False
       Caption = 
         'Dev-C++ has been configured successfully, you may now click OK t' +
@@ -138,11 +138,11 @@ object LangForm: TLangForm
   object synExample: TSynEdit
     Left = 0
     Top = 0
-    Width = 260
-    Height = 320
+    Width = 347
+    Height = 427
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -18
     Font.Name = 'Courier New'
     Font.Style = []
     TabOrder = 3
@@ -162,18 +162,18 @@ object LangForm: TLangForm
     FontSmoothing = fsmNone
   end
   object EditPanel: TPanel
-    Left = 260
+    Left = 347
     Top = 0
-    Width = 300
-    Height = 275
+    Width = 400
+    Height = 367
     BevelOuter = bvNone
     TabOrder = 4
     Visible = False
     object lblEditInfo: TLabel
-      Left = 8
-      Top = 230
-      Width = 284
-      Height = 48
+      Left = 11
+      Top = 307
+      Width = 378
+      Height = 64
       Alignment = taCenter
       AutoSize = False
       Caption = 
@@ -182,50 +182,50 @@ object LangForm: TLangForm
       WordWrap = True
     end
     object grpThemes: TGroupBox
-      Left = 16
-      Top = 12
-      Width = 268
-      Height = 205
+      Left = 21
+      Top = 16
+      Width = 358
+      Height = 273
       Caption = 'Select your theme:'
       TabOrder = 0
       object lblIcons: TLabel
-        Left = 8
-        Top = 104
-        Width = 31
-        Height = 15
+        Left = 11
+        Top = 139
+        Width = 37
+        Height = 20
         Caption = 'Icons:'
       end
       object lblColor: TLabel
-        Left = 8
-        Top = 72
-        Width = 32
-        Height = 15
+        Left = 11
+        Top = 96
+        Width = 39
+        Height = 20
         Caption = 'Color:'
       end
       object lblFont: TLabel
-        Left = 8
-        Top = 32
-        Width = 27
-        Height = 15
+        Left = 11
+        Top = 43
+        Width = 32
+        Height = 20
         Caption = 'Font:'
       end
       object cmbIcons: TComboBox
-        Left = 56
-        Top = 102
-        Width = 201
-        Height = 23
+        Left = 75
+        Top = 136
+        Width = 268
+        Height = 28
         Style = csDropDownList
-        ItemHeight = 15
+        ItemHeight = 20
         TabOrder = 0
         OnChange = cmbIconsChange
       end
       object cmbColors: TComboBox
-        Left = 56
-        Top = 70
-        Width = 201
-        Height = 23
+        Left = 75
+        Top = 93
+        Width = 268
+        Height = 28
         Style = csDropDownList
-        ItemHeight = 15
+        ItemHeight = 20
         TabOrder = 1
         OnChange = ColorChange
         Items.Strings = (
@@ -241,9 +241,9 @@ object LangForm: TLangForm
           'Obvilion')
       end
       object cmbFont: TComboBox
-        Left = 56
-        Top = 22
-        Width = 201
+        Left = 75
+        Top = 29
+        Width = 268
         Height = 36
         AutoComplete = False
         Style = csOwnerDrawVariable

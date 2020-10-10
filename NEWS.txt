@@ -1,4 +1,7 @@
-Version 5.13-beta4
+Version 5.13-beta5
+  - enhancement: When first running, will check the user's language and set as the preference (Only Chinese now)
+
+Version 5.13-beta4    October  2020
   - fix: auto code completion error when input ( as the end of
   - fix: crash when encounter } start in line
   - enhancement: code completion suggestion while inputing;

@@ -160,6 +160,8 @@ function AnsiToUTF8(s:String):String;
 
 function GetSystemCharsetName():String;
 
+function GetLanguageFileName():String;
+
 function IsUTF8Encoding(s:AnsiString):boolean;
 
 implementation
@@ -1313,6 +1315,17 @@ var
 begin
   acp := GetACP();
   Result := GetCodePage(acp).Name;
+end;
+
+function GetLanguageFileName():String;
+var
+  acp: cardinal;
+begin
+  acp := GetACP();
+  Result := GetCodePage(acp).Language;
+  if Result = '' then begin
+    Result := 'english';
+  end;
 end;
 
 {
