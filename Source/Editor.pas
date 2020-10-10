@@ -96,7 +96,7 @@ type
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
-    procedure CompletionInsert(const append: AnsiString);
+    procedure CompletionInsert(appendFunc:boolean=False);
     procedure CompletionTimer(Sender: TObject);
     function FunctionTipAllowed: boolean;
     procedure FunctionTipTimer(Sender: TObject);
@@ -134,7 +134,7 @@ type
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
-    procedure ShowCompletion;
+    procedure ShowCompletion(key:ansistring='');
     procedure DestroyCompletion;
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -879,7 +879,8 @@ begin
       fText.SelText := Key;
       // There's only one suggestion and is exactly the search word
       if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName,False) then begin
-         CompletionInsert('');
+         CompletionInsert();
+         fCompletionBox.Hide;
       end;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
@@ -887,14 +888,16 @@ begin
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
-      CompletionInsert('');
+      CompletionInsert(True);
       fCompletionBox.Hide;
     end else begin  // other keys, stop completion
       //stop completion now
       //CompletionInsert(Key);
       fCompletionBox.Hide;
-      fText.SelText := Key;
-      EditorKeyPress(fText,Key);
+      //Send the key to the SynEdit
+      PostMessage(fText.Handle, WM_CHAR, Ord(Key), 0);
+//      fText.SelText := Key;
+//      EditorKeyPress(fText,Key);
     end;
   end;
 end;
@@ -1184,6 +1187,10 @@ begin
   if not Assigned(fText.Highlighter) then
     Exit;
 
+  if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
+   and (Key in fText.IdentChars) then begin
+    ShowCompletion(Key);
+  end;
   // Doing this here instead of in EditorKeyDown to be able to delete some key messages
   HandleSymbolCompletion(Key);
 
@@ -1266,7 +1273,7 @@ begin
     (fText.CaretY <> fCompletionInitialPosition.Line) then
     Exit;
 
-  ShowCompletion;
+  ShowCompletion();
 end;
 
 procedure TEditor.InitCompletion;
@@ -1300,7 +1307,7 @@ begin
   end;
 end;
 
-procedure TEditor.ShowCompletion;
+procedure TEditor.ShowCompletion(key:ansistring);
 var
   P: TPoint;
   M: TMemoryStream;
@@ -1341,8 +1348,8 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
 
   // Filter the whole statement list
-  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName, True) then
-    CompletionInsert(''); // if only have one suggestion, just use it 
+  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, True) then
+    CompletionInsert(); // if only have one suggestion, just use it 
 end;
 
 procedure TEditor.DestroyCompletion;
@@ -1433,37 +1440,39 @@ begin
     end;
 end;
 
-procedure TEditor.CompletionInsert(const append: AnsiString);
+procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
   Statement: PStatement;
   FuncAddOn: AnsiString;
-  Key: char;
 begin
   Statement := fCompletionBox.SelectedStatement;
   if not Assigned(Statement) then
     Exit;
 
+  FuncAddOn := '';
+
+  //don't auto append '()'
   // if we are inserting a function,
-  if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
-    if (Length(fText.LineText) < fText.WordEnd.Char+1 ) // it's the last char on line
-      or (fText.LineText[fText.WordEnd.Char+1] <> '(') then  // it don't have '(' after it
+  if appendFunc then begin
+    if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
+      if (Length(fText.LineText) < fText.WordEnd.Char+1 ) // it's the last char on line
+        or (fText.LineText[fText.WordEnd.Char+1] <> '(') then begin  // it don't have '(' after it
       FuncAddOn := '()';
-    end else
-      FuncAddOn := '';
-  end else
-    FuncAddOn := '';
+      end;
+    end;
+  end;
 
   // delete the part of the word that's already been typed ...
   fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
   fText.SelEnd := fText.RowColToCharIndex(fText.WordEnd);
-
+  //don't auto append '()'
   // ... by replacing the selection
-  fText.SelText := Statement^._Command + FuncAddOn + append;
+  fText.SelText := Statement^._Command + FuncAddOn;
 
   // Move caret inside the ()'s, only when the user has something to do there...
   if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
 
-    fText.CaretX := fText.CaretX - Length(FuncAddOn) - Length(append) + 1;
+    fText.CaretX := fText.CaretX - Length(FuncAddOn) + 1;
 
     // immediately activate function hint
     if devEditor.ShowFunctionTip and Assigned(fText.Highlighter) then begin

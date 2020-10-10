@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 726
-  Top = 225
+  Left = 590
+  Top = 172
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -951,7 +951,7 @@ object MainForm: TMainForm
     Top = 56
     Width = 238
     Height = 361
-    ActivePage = LeftDebugSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     TabOrder = 1
