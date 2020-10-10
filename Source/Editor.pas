@@ -877,18 +877,24 @@ begin
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName,False);
+      // There's only one suggestion and is exactly the search word
+      if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName,False) then begin
+         CompletionInsert('');
+      end;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
-    end else if (Key in [Char(VK_RETURN), #9]) then begin // Ending chars, don't insert
+    end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
       CompletionInsert('');
       fCompletionBox.Hide;
-    end else begin
-      CompletionInsert(Key);
+    end else begin  // other keys, stop completion
+      //stop completion now
+      //CompletionInsert(Key);
       fCompletionBox.Hide;
+      fText.SelText := Key;
+      EditorKeyPress(fText,Key);
     end;
   end;
 end;
@@ -1431,6 +1437,7 @@ procedure TEditor.CompletionInsert(const append: AnsiString);
 var
   Statement: PStatement;
   FuncAddOn: AnsiString;
+  Key: char;
 begin
   Statement := fCompletionBox.SelectedStatement;
   if not Assigned(Statement) then
@@ -1438,9 +1445,8 @@ begin
 
   // if we are inserting a function,
   if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
-
-    // If the argument list is already there, don't add another ()
-    if (Length(fText.LineText) = 0) or (fText.LineText[fText.WordEnd.Char] <> '(') then begin
+    if (Length(fText.LineText) < fText.WordEnd.Char+1 ) // it's the last char on line
+      or (fText.LineText[fText.WordEnd.Char+1] <> '(') then  // it don't have '(' after it
       FuncAddOn := '()';
     end else
       FuncAddOn := '';

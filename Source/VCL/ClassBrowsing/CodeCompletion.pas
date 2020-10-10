@@ -215,8 +215,15 @@ begin
       Node := fParser.Statements.FirstNode;
       while Assigned(Node) do begin
         Statement := Node^.Data;
-        if ApplyClassFilter(Statement, fCurrentStatement, InheritanceStatements) then
-          fFullCompletionStatementList.Add(Statement);
+        if ApplyClassFilter(Statement, fCurrentStatement, InheritanceStatements) then begin
+          if (fFullCompletionStatementList.Count = 0) or
+            (not (
+              SameStr(
+                PStatement(fFullCompletionStatementList[fFullCompletionStatementList.Count-1])^._Command,
+                Statement^._Command)
+             ) ) then
+            fFullCompletionStatementList.Add(Statement);
+        end;
         Node := Node^.NextNode;
       end;
 
@@ -251,8 +258,15 @@ begin
       Node := fParser.Statements.FirstNode;
       while Assigned(Node) do begin
         Statement := Node^.Data;
-        if ApplyMemberFilter(Statement, fCurrentStatement, ParentTypeStatement, InheritanceStatements) then
-          fFullCompletionStatementList.Add(Statement);
+        if ApplyMemberFilter(Statement, fCurrentStatement, ParentTypeStatement, InheritanceStatements)then begin
+          if (fFullCompletionStatementList.Count = 0) or
+            (not (
+              SameStr(
+                PStatement(fFullCompletionStatementList[fFullCompletionStatementList.Count-1])^._Command,
+                Statement^._Command)
+             ) ) then
+            fFullCompletionStatementList.Add(Statement);
+        end;
         Node := Node^.NextNode;
       end;
     end;
@@ -319,6 +333,7 @@ end;
 function TCodeCompletion.Search(const Phrase, Filename: AnsiString;AutoHideOnSingleResult:boolean):boolean;
 var
   I: integer;
+  symbol: ansistring;
 begin
   Result:=False;
   if fEnabled then begin
@@ -336,8 +351,9 @@ begin
     while (I > 0) and (I <= Length(Phrase)) and (Phrase[i] in ['.', ':', '-', '>']) do
       Inc(I);
 
+    symbol := Copy(Phrase, I, MaxInt);
     // filter fFullCompletionStatementList to fCompletionStatementList
-    FilterList(Copy(Phrase, I, MaxInt));
+    FilterList(symbol);
 
 
     if fCompletionStatementList.Count > 0 then begin
@@ -352,12 +368,19 @@ begin
         CodeComplForm.lbCompletion.Items.EndUpdate;
       end;
 
-      // if only one suggestion, don't show the frame
-      if (fCompletionStatementList.Count =1) and AutoHideOnSingleResult then begin
+      // if only one suggestion, and is exactly the symbol to search, hide the frame (the search is over)
+      if (fCompletionStatementList.Count =1) and
+        SameStr(symbol, PStatement(fCompletionStatementList[0])^._Command) then begin
         Result:=True;
-        CodeComplForm.Hide;
         Exit;
       end;
+
+      // if only one suggestion and auto hide , don't show the frame
+      if (fCompletionStatementList.Count =1) and AutoHideOnSingleResult then begin
+        Result:=True;
+        Exit;
+      end;
+
       CodeComplForm.Show;
       CodeComplForm.lbCompletion.SetFocus;
       if CodeComplForm.lbCompletion.Items.Count > 0 then
