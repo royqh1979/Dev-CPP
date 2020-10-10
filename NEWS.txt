@@ -1,4 +1,6 @@
 Version 5.13-beta4
+  - fix: auto code completion error when input ( as the end of
+  - enhancement: in auto code completion, only display one suggestion for all overload function/methods
   - add: if the user first run Dev-CPP and is using simplified-chinese windows, the option "use Alt+/  to activate Auto Code Completion" is set to on by default"
   - add: auto detect if a file is UTF-8 encoded. If so, open it use UTF8.
 
