@@ -506,7 +506,7 @@ begin
   Font.Name := devData.InterfaceFont;
   Font.Size := devData.InterfaceFontSize;
 
-  cbUseAltSlash.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
+  cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
   cbUseAltSlash.Caption := Lang[ID_EOPT_ALTSLASH];
   cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
   btnOk.Caption := Lang[ID_BTN_OK];

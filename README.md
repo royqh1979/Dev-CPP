@@ -19,5 +19,6 @@ HighLights of News:
  * rename symbol ( using clang-rename)
  * -Wall -Wextra -Werror is setted by default in the Debug profile, to help beginners learn good coding habits.
  * redirect STDIN to a data file while running or debuging ( to easy debug / need a patched gdb ) 
+ * xege(graphics.h) and libturtle integration
  
 And dozens of fixes and changes, see News.txt  
