@@ -4906,8 +4906,10 @@ procedure TMainForm.ViewCPUItemClick(Sender: TObject);
 begin
   if not Assigned(CPUForm) then begin
     CPUForm := TCPUForm.Create(self);
-    CPUForm.Show;
   end;
+  CPUForm.Show;
+  Debugger.SendCommand('info', 'registers');
+  Debugger.SendCommand('disas','');
 end;
 
 procedure TMainForm.edGdbCommandKeyPress(Sender: TObject; var Key: Char);

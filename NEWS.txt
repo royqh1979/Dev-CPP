@@ -1,6 +1,8 @@
 Version 5.13-beta5
   - fix: crash when encounter } and have blank lines before it
   - fix: Code completion while typing, if variable name have only one suggestion it will auto use it, that's not right.
+  - fix: can't correctly skip ')' when there is a string before it.
+  - fix: crash when open/close CPU window and stop debugging.
   - enhancement: When first running, will check the user's language and set as the preference (Only Chinese now)
   - enhancement: breakpoint condition
   - enhancement: save current file using utf8;

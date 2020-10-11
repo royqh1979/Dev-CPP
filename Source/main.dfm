@@ -259,7 +259,7 @@ object MainForm: TMainForm
             Width = 1002
             Height = 24
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 16
+            ItemHeight = 0
             TabOrder = 1
             OnKeyPress = edGdbCommandKeyPress
           end
@@ -317,7 +317,7 @@ object MainForm: TMainForm
             Width = 1090
             Height = 24
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 16
+            ItemHeight = 0
             TabOrder = 1
             OnKeyPress = EvaluateInputKeyPress
           end

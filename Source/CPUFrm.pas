@@ -79,24 +79,28 @@ procedure TCPUForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   I: integer;
 begin
-  for I := 0 to fRegisters.Count - 1 do
-    Dispose(PRegister(fRegisters.Items[I]));
-  fRegisters.Free;
-
-  fAssembler.Free;
+  if Assigned(fRegisters) then begin
+    for I := 0 to fRegisters.Count - 1 do
+      Dispose(PRegister(fRegisters.Items[I]));
+    fRegisters.Free;
+  end;
+  fRegisters := nil;
+  if Assigned(fAssembler) then
+    fAssembler.Free;
+  fAssembler := nil;
 
   // Clear contents of the debug reader
   MainForm.Debugger.Reader.Registers := nil;
   MainForm.Debugger.Reader.Disassembly := nil;
-  MainForm.Debugger.Reader.Backtrace := nil;
 
   // Save column widths of registerbox
   devData.CPURegisterCol1 := RegisterListbox.Column[0].Width;
   devData.CPURegisterCol2 := RegisterListbox.Column[1].Width;
   devData.CPURegisterCol3 := RegisterListbox.Column[2].Width;
 
-  Action := caFree;
-  CPUForm := nil;
+  //We only hide on close, don't free it
+  Action := caHide;
+  //CPUForm := nil;
 end;
 
 
