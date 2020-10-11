@@ -61,6 +61,7 @@ type
     fNew: boolean;
     fText: TSynEdit;
     fTabSheet: TTabSheet;
+    fGutterClickedLine: integer;
     fErrorLine: integer;
     fActiveLine: integer;
     fDebugGutter: TDebugGutter;
@@ -146,6 +147,7 @@ type
     property CompletionBox: TCodeCompletion read fCompletionBox;
     property PageControl: TPageControl read GetPageControl write SetPageControl;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
+    property GutterClickedLine: integer read fGutterClickedLine;
   end;
   
 implementation
@@ -383,7 +385,9 @@ end;
 
 procedure TEditor.EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
 begin
-  ToggleBreakPoint(Line);
+  if Button = mbLeft then
+    ToggleBreakPoint(Line);
+  fGutterClickedLine := Line;
 end;
 
 procedure TEditor.ToggleBreakpoint(Line: integer);
@@ -1110,7 +1114,7 @@ begin
       if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
         Exit;
       if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
-        'Character') and not tokenFinished) and not (key in ['''','"']) then
+        'Character')) and not tokenFinished and not (key in ['''','"']) then
         Exit;
     end;
   end;
@@ -1348,7 +1352,8 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
 
   // Filter the whole statement list
-  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, True) then
+  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, True)
+    and (key = '') then //only one suggestion and it's not input while typing
     CompletionInsert(); // if only have one suggestion, just use it 
 end;
 

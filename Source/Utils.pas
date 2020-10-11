@@ -160,7 +160,16 @@ function AnsiToUTF8(s:String):String;
 
 function GetSystemCharsetName():String;
 
+function GetLanguageFileName():String;
+
 function IsUTF8Encoding(s:AnsiString):boolean;
+
+// Dialogs with the same font setting as mainform
+function ShowInputQuery(const ACaption, APrompt: string;
+  var Value: string): Boolean;
+function ShowInputBox(const Caption, Prompt, Default : string): String;
+
+function IsIdentifier(const s:string):boolean;
 
 implementation
 
@@ -1315,6 +1324,17 @@ begin
   Result := GetCodePage(acp).Name;
 end;
 
+function GetLanguageFileName():String;
+var
+  acp: cardinal;
+begin
+  acp := GetACP();
+  Result := GetCodePage(acp).Language;
+  if Result = '' then begin
+    Result := 'english';
+  end;
+end;
+
 {
 utf-8编码的文本文档，有的带有BOM (Byte Order Mark, 字节序标志)，即0xEF, 0xBB,0xBF，有的没有。用Windows的notepad编辑的文本保存是会自动添加BOM，我们常用UE编辑器在保存utf-8编码的时候也会自动添加BOM，Notepad++默认设置中保存utf-8编码时是无BOM的。其它文本编辑器就没有尝试过，有兴趣的可以自己试试。 
 　　utf-8是一种多字节编码的字符集，表示一个Unicode字符时，它可以是1个至多个字节。即在文本全部是ASCII字符时utf-8是和ASCII一致的(utf-8向下兼容ASCII)。utf-8字节流如下所示：
@@ -1378,6 +1398,53 @@ begin
   Result := not allAscii;//All is ascii char, not utf-8 too.
 end;
 
+function ShowInputQuery(const ACaption, APrompt: string;
+  var Value: string): Boolean;
+var
+  oldName:TFontDataName;
+  oldHeight: integer;
+begin
+  oldName:=Graphics.DefFontData.Name;
+  oldHeight:=Graphics.DefFontData.Height;
+  Graphics.DefFontData.Name:=Application.MainForm.Font.Name;
+  Graphics.DefFontData.Height:=Application.MainForm.Font.Height;
+  Result:=InputQuery(ACaption, APrompt,Value);
+  Graphics.DefFontData.Name:=oldName;
+  Graphics.DefFontData.Height:=oldHeight;
 
+end;
+
+function ShowInputBox(const Caption, Prompt, Default : string): String;
+var
+  oldName:TFontDataName;
+  oldHeight: integer;
+begin
+  oldName:=Graphics.DefFontData.Name;
+  oldHeight:=Graphics.DefFontData.Height;
+  Graphics.DefFontData.Name:=Application.MainForm.Font.Name;
+  Graphics.DefFontData.Height:=Application.MainForm.Font.Height;
+  Result:=InputBox(Caption, Prompt,Default);
+  Graphics.DefFontData.Name:=oldName;
+  Graphics.DefFontData.Height:=oldHeight;
+
+end;
+
+function IsIdentifier(const s:string):boolean;
+var
+  i:integer;
+  len:integer;
+begin
+  Result:=False;
+  len := Length(s);
+  if len<=0 then
+    Exit;
+  if not (s[1] in ['_','a'..'z','A'..'Z']) then
+    Exit;
+  for i:=2 to len do begin
+    if not (s[i] in ['_',0..9,'a'..'z','A'..'Z']) then
+      Exit;
+  end;
+  Result:=True;
+end;
 end.
 

@@ -69,8 +69,6 @@ type
     CutItem: TMenuItem;
     CopyItem: TMenuItem;
     PasteItem: TMenuItem;
-    ToggleBookmarksItem: TMenuItem;
-    GotoBookmarksItem: TMenuItem;
     SelectallItem: TMenuItem;
     SearchMenu: TMenuItem;
     FindItem: TMenuItem;
@@ -94,7 +92,6 @@ type
     ExecuteMenu: TMenuItem;
     CompileItem: TMenuItem;
     RunItem: TMenuItem;
-    N10: TMenuItem;
     CompileandRunItem: TMenuItem;
     RebuildallItem: TMenuItem;
     N8: TMenuItem;
@@ -120,7 +117,6 @@ type
     tbMain: TToolBar;
     OpenBtn: TToolButton;
     tbCompile: TToolBar;
-    CleanItem: TMenuItem;
     NewFileBtn: TToolButton;
     SaveBtn: TToolButton;
     CloseBtn: TToolButton;
@@ -252,7 +248,6 @@ type
     EditorPageControlLeft: TPageControl;
     Close1: TMenuItem;
     N16: TMenuItem;
-    DebugSheet: TTabSheet;
     actAddWatch: TAction;
     actEditWatch: TAction;
     actStepOver: TAction;
@@ -269,23 +264,16 @@ type
     Swapheadersource1: TMenuItem;
     N23: TMenuItem;
     actSwapHeaderSource: TAction;
-    InsertItem: TMenuItem;
-    SyntaxCheckItem: TMenuItem;
     actSyntaxCheck: TAction;
     Shortcuts: TdevShortcuts;
     actConfigdevShortcuts: TAction;
     ConfiguredevShortcuts1: TMenuItem;
-    DateTimeMenuItem: TMenuItem;
     N25: TMenuItem;
     Programreset1: TMenuItem;
-    CommentheaderMenuItem: TMenuItem;
     actComment: TAction;
     actUncomment: TAction;
     actIndent: TAction;
     actUnindent: TAction;
-    N26: TMenuItem;
-    Comment1: TMenuItem;
-    Uncomment1: TMenuItem;
     Indent1: TMenuItem;
     Unindent1: TMenuItem;
     N27: TMenuItem;
@@ -309,7 +297,6 @@ type
     actBrowserViewAll: TAction;
     actBrowserViewCurrent: TAction;
     actProfile: TAction;
-    N29: TMenuItem;
     Profileanalysis1: TMenuItem;
     N24: TMenuItem;
     N31: TMenuItem;
@@ -372,7 +359,6 @@ type
     ProjectView: TTreeView;
     LeftClassSheet: TTabSheet;
     ClassBrowser: TClassBrowser;
-    AddWatchBtn: TSpeedButton;
     FloatingPojectManagerItem: TMenuItem;
     actSaveProjectAs: TAction;
     SaveprojectasItem: TMenuItem;
@@ -383,12 +369,7 @@ type
     cmbCompilers: TComboBox;
     N17: TMenuItem;
     ToolClassesItem: TMenuItem;
-    LeftDebugSheet: TTabSheet;
-    DebugView: TTreeView;
-    ContinueBtn: TSpeedButton;
-    DebugStartPanel: TPanel;
-    DDebugBtn: TSpeedButton;
-    StopExecBtn: TSpeedButton;
+    WatchView: TTreeView;
     N67: TMenuItem;
     FloatingReportwindowItem: TMenuItem;
     actAttachProcess: TAction;
@@ -421,22 +402,14 @@ type
     actGoto: TAction;
     TEXItem: TMenuItem;
     actExportTex: TAction;
-    StepOverBtn: TSpeedButton;
-    StepIntoBtn: TSpeedButton;
     lblSendCommandGdb: TLabel;
     edGdbCommand: TComboBox;
     DebugOutput: TMemo;
-    DebugSendPanel: TPanel;
-    ViewCPUBtn: TSpeedButton;
     EvaluateInput: TComboBox;
     lblEvaluate: TLabel;
     EvalOutput: TMemo;
-    StepOutBtn: TButton;
     actStepOut: TAction;
-    ChooseCustomCommandBtn: TButton;
     actRunToCursor: TAction;
-    RunCustomCommandBtn: TButton;
-    actCallStack: TAction;
     MsgPasteItem: TMenuItem;
     actMsgCopy: TAction;
     actMsgCopyAll: TAction;
@@ -463,7 +436,6 @@ type
     N12: TMenuItem;
     Abortcompilation1: TMenuItem;
     oggleBreakpoint1: TMenuItem;
-    N18: TMenuItem;
     StopBtn: TToolButton;
     ToolButton5: TToolButton;
     actRevSearchAgain: TAction;
@@ -485,9 +457,6 @@ type
     mnuBrowserViewInclude: TMenuItem;
     actMoveSelUp: TAction;
     actMoveSelDown: TAction;
-    N68: TMenuItem;
-    actMoveSelUp1: TMenuItem;
-    actMoveSelDown1: TMenuItem;
     actCodeCompletion: TAction;
     actPackageCheck: TAction;
     actPackageManager: TAction;
@@ -498,14 +467,12 @@ type
     Removefolder2: TMenuItem;
     N44: TMenuItem;
     Addfile1: TMenuItem;
-    N49: TMenuItem;
     N69: TMenuItem;
     CloseProject1: TMenuItem;
     SourceFile1: TMenuItem;
     chkShortenPaths: TCheckBox;
     actShortenCompPaths: TAction;
     actSyntaxCheckFile: TAction;
-    SyntaxCheckCurrentFile1: TMenuItem;
     PageControlPanel: TPanel;
     EditorPageControlRight: TPageControl;
     EditorPageControlSplitter: TSplitter;
@@ -523,28 +490,17 @@ type
     Abortcompilation2: TMenuItem;
     actToggleCommentInline: TAction;
     actCommentInlineSel1: TMenuItem;
-    FormatMenu: TMenuItem;
     actFormatCurrentFile: TAction;
-    FormatCurrentFile1: TMenuItem;
     actFormatOptions: TAction;
-    actFormatOptions1: TMenuItem;
-    N46: TMenuItem;
     actRunTests: TAction;
     DonateItem: TMenuItem;
     actDonate: TAction;
     actRenameSymbol: TAction;
     RefactorMenu: TMenuItem;
     Rename: TMenuItem;
-    UseUTF8Encoding: TMenuItem;
     N47: TMenuItem;
     actUseUTF8: TAction;
-    actCallStackFull: TAction;
-    actLocals: TAction;
-    actGlobals: TAction;
-    actParameters: TAction;
     CustomDebugPopup: TPopupMenu;
-    actRunCustomCommand: TAction;
-    actChooseCustomCommand: TAction;
     miRuntoCursor: TMenuItem;
     miCallStack: TMenuItem;
     miCallStackFull: TMenuItem;
@@ -569,6 +525,48 @@ type
     MessageControl: TPageControl;
     actMsgDisplayGDBCommands: TAction;
     actMsgDisplayGDBAnnotations: TAction;
+    StepOver1: TMenuItem;
+    StepInto1: TMenuItem;
+    StepInto2: TMenuItem;
+    EditMakefile1: TMenuItem;
+    Clean1: TMenuItem;
+    N18: TMenuItem;
+    Continue1: TMenuItem;
+    Addwatch1: TMenuItem;
+    RuntoCursor1: TMenuItem;
+    N10: TMenuItem;
+    EncodingItem: TMenuItem;
+    UseUTF8Encoding1: TMenuItem;
+    CodeMenu: TMenuItem;
+    FormatCurrentFile1: TMenuItem;
+    InsertItem: TMenuItem;
+    N26: TMenuItem;
+    CommentHeaderMenuItem: TMenuItem;
+    DateTimeMenuItem: TMenuItem;
+    ToggleBookmarksItem: TMenuItem;
+    GotoBookmarksItem: TMenuItem;
+    N29: TMenuItem;
+    actMoveSelUp1: TMenuItem;
+    actMoveSelDown1: TMenuItem;
+    N46: TMenuItem;
+    SyntaxCheckCurrentFile1: TMenuItem;
+    N49: TMenuItem;
+    SyntaxCheck1: TMenuItem;
+    FormattingOptions1: TMenuItem;
+    C1: TMenuItem;
+    actBreakPointProperties: TAction;
+    DebugSheet: TTabSheet;
+    DebugViews: TPageControl;
+    WatchSheet: TTabSheet;
+    EvaluateSheet: TTabSheet;
+    DebugConsoleSheet: TTabSheet;
+    CallStackSheet: TTabSheet;
+    BreakpointsSheet: TTabSheet;
+    BreakpointProperies1: TMenuItem;
+    StackTrace: TListView;
+    BreakpointsView: TListView;
+    actConvertToUTF8: TAction;
+    ConvertToUTF8Item: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -744,7 +742,7 @@ type
     procedure cmbMembersChange(Sender: TObject);
     procedure CompilerOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FindOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure DebugViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure WatchViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DebugPopupPopup(Sender: TObject);
     procedure FloatingReportwindowItemClick(Sender: TObject);
     procedure actAttachProcessUpdate(Sender: TObject);
@@ -775,12 +773,11 @@ type
     procedure FormShow(Sender: TObject);
     procedure actStepOutExecute(Sender: TObject);
     procedure actRunToCursorExecute(Sender: TObject);
-    procedure actCallStackExecute(Sender: TObject);
     procedure actMsgPasteExecute(Sender: TObject);
     procedure actUpdateDebuggerRunningCPU(Sender: TObject);
     procedure actUpdateEmptyEditorFindForm(Sender: TObject);
     procedure actReplaceAllExecute(Sender: TObject);
-    procedure DebugViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
+    procedure WatchViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
       TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
     procedure FindOutputAdvancedCustomDrawSubItem(Sender: TCustomListView; Item: TListItem; SubItem: Integer; State:
       TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
@@ -829,15 +826,16 @@ type
     procedure actRenameSymbolExecute(Sender: TObject);
     procedure actUseUTF8Execute(Sender: TObject);
     procedure actUseUTF8Update(Sender: TObject);
-    procedure actChooseCustomCommandExecute(Sender: TObject);
-    procedure actLocalsExecute(Sender: TObject);
-    procedure actParametersExecute(Sender: TObject);
-    procedure actGlobalsExecute(Sender: TObject);
-    procedure actCallStackFullExecute(Sender: TObject);
     procedure actMsgDisplayGDBCommandsExecute(Sender: TObject);
     procedure actMsgDisplayGDBCommandsUpdate(Sender: TObject);
     procedure actMsgDisplayGDBAnnotationsUpdate(Sender: TObject);
     procedure actMsgDisplayGDBAnnotationsExecute(Sender: TObject);
+    procedure actBreakPointPropertiesUpdate(Sender: TObject);
+    procedure actBreakPointPropertiesExecute(Sender: TObject);
+    procedure StackTraceClick(Sender: TObject);
+    procedure OnBreakPointsChanged;
+    procedure actConvertToUTF8Update(Sender: TObject);
+    procedure actConvertToUTF8Execute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -858,7 +856,6 @@ type
     fLogOutputRawData: TStringList;
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
-    fCustomDebugActions: TObjectList;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -905,6 +902,7 @@ type
     procedure OnInputEvalReady(const evalvalue: AnsiString);
     procedure SetStatusbarLineCol;
     procedure SetStatusbarMessage(const msg: AnsiString);
+    procedure OnBacktraceReady;
 
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
@@ -960,7 +958,7 @@ begin
       // Set left control images
       ProjectView.Images := CurrentTheme.ProjectImages;
       ClassBrowser.Images := CurrentTheme.BrowserImages;
-      DebugView.Images := CurrentTheme.MenuImages;
+      WatchView.Images := CurrentTheme.MenuImages;
 
       // Set left control and editor popup images
       ProjectPopup.Images := CurrentTheme.MenuImages;
@@ -1046,7 +1044,6 @@ begin
   FreeAndNil(fCompiler);
   FreeAndNil(fDebugger);
   FreeAndNil(dmMain);
-  FreeAndNil(fCustomDebugActions);
   devExecutor.Free; // sets itself to nil
   Lang.Free; // sets itself to nil
   DestroyOptions;
@@ -1143,6 +1140,7 @@ begin
   WindowMenu.Caption := Lang[ID_MNU_WINDOW];
   HelpMenu.Caption := Lang[ID_MNU_HELP];
   RefactorMenu.Caption := Lang[ID_MNU_REFACTOR];
+  CodeMenu.Caption := Lang[ID_MNU_CODE];
 
   // File menu
   mnuNew.Caption := Lang[ID_SUB_NEW];
@@ -1200,8 +1198,9 @@ begin
   actPaste.Caption := Lang[ID_ITEM_PASTE];
   actSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
 
-
+  EncodingItem.Caption := Lang[ID_ITEM_ENCODING];
   actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
+  actConvertToUTF8.Caption := Lang[ID_ITEM_CONV_UTF8];
 
   // Insert submenu
   actInsert.Caption := Lang[ID_TB_INSERT];
@@ -1278,6 +1277,7 @@ begin
   actDebug.Caption := Lang[ID_ITEM_DEBUG];
   actGotoBreakPoint.Caption := Lang[ID_ITEM_GOTOBREAKPOINT];
   actBreakPoint.Caption := Lang[ID_ITEM_TOGGLEBREAK];
+  actBreakPointProperties.Caption := Lang[ID_ITEM_BREAKPOINT_PROP];
   actDeleteProfile.Caption := Lang[ID_ITEM_DELPROFINFORMATION];
   actAbortCompilation.Caption := Lang[ID_ITEM_ABORTCOMP];
 
@@ -1322,13 +1322,7 @@ begin
   actStepInto.Caption := Lang[ID_ITEM_STEPINTO];
   actStepOut.Caption := Lang[ID_ITEM_STEPOUT];
   actRunToCursor.Caption := Lang[ID_ITEM_RUNTOCURSOR];
-  actCallStack.Caption := Lang[ID_ITEM_CALLSTACK];
-  actCallStackFull.Caption :=  Lang[ID_ITEM_CALLSTACKFULL];
-  actLocals.Caption := Lang[ID_ITEM_LOCALS];
-  actGlobals.Caption := Lang[ID_ITEM_GLOBALS];
-  actParameters.Caption := Lang[ID_ITEM_ARGS];
-  actCallStackFull.Caption := Lang[ID_ITEM_CALLSTACKFULL];
-
+  
   actWatchItem.Caption := Lang[ID_ITEM_WATCHITEMS];
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
@@ -1389,7 +1383,14 @@ begin
   // Debug Tab
   lblSendCommandGdb.Caption := Lang[ID_DEB_SENDGDBCOMMAND];
   lblEvaluate.Caption := Lang[ID_DEB_EVALUATE];
+  WatchSheet.Caption := Lang[ID_DEB_WATCH];
+  DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
+  EvaluateSheet.Caption := Lang[ID_DEB_EVALUATE];
+  CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
+  BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
 
+
+  {
   // Adapt UI spacing to translation text length
   len := Canvas.TextWidth(lblSendCommandGdb.Caption);
   edGdbCommand.Left := len + 10;
@@ -1398,6 +1399,7 @@ begin
   len := Canvas.TextWidth(lblEvaluate.Caption);
   EvaluateInput.Left := len + 10;
   EvaluateInput.Width := EvalOutput.Width - len - 6;
+  }
 
   // Find Results Tab
   FindOutput.Columns[0].Caption := '';
@@ -1406,10 +1408,17 @@ begin
   FindOutput.Columns[3].Caption := Lang[ID_COL_FILE];
   FindOutput.Columns[4].Caption := Lang[ID_COL_MSG];
 
+  StackTrace.Columns[0].Caption := Lang[ID_COL_FUNC];
+  StackTrace.Columns[1].Caption := Lang[ID_COL_FILE];
+  StackTrace.Columns[2].Caption := Lang[ID_COL_LINE];
+
+  BreakpointsView.Columns[0].Caption := Lang[ID_COL_FILE];
+  BreakpointsView.Columns[1].Caption := Lang[ID_COL_LINE];
+  BreakpointsView.Columns[2].Caption := Lang[ID_COL_CONDITION];
   // Left page control
   LeftProjectSheet.Caption := Lang[ID_LP_PROJECT];
   LeftClassSheet.Caption := Lang[ID_LP_CLASSES];
-  LeftDebugSheet.Caption := Lang[ID_SHEET_DEBUG];
+
 
   BuildBookMarkMenus;
   SetHints;
@@ -2545,7 +2554,7 @@ begin
   CurDir := ExtractFilePath(OldName);
 
   // Do we want to rename?
-  if InputQuery(Lang[ID_RENAME], Lang[ID_MSG_FILERENAME], NewName) and (ExtractFileName(NewName) <> '') then begin
+  if ShowInputQuery(Lang[ID_RENAME], Lang[ID_MSG_FILERENAME], NewName) and (ExtractFileName(NewName) <> '') then begin
 
     NewName := ExpandFileto(NewName, CurDir);
 
@@ -3077,7 +3086,7 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
-  LeftPageControl.ActivePage := LeftDebugSheet;
+  DebugViews.ActivePage := WatchSheet;
   MessageControl.ActivePage := DebugSheet;
   OpenCloseMessageSheet(True);
 
@@ -3262,6 +3271,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('start', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
       ctProject:  begin
         params := '';
@@ -3271,6 +3281,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('start', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
     end;
   end else begin
@@ -3284,6 +3295,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('run', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
       ctProject: begin
         params := '';
@@ -3293,6 +3305,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('run', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
     end;
   end;
@@ -3335,7 +3348,7 @@ end;
 
 procedure TMainForm.actUpdateDeleteWatch(Sender: TObject);
 begin
-  TCustomAction(Sender).Enabled := Assigned(DebugView.Selected);
+  TCustomAction(Sender).Enabled := Assigned(WatchView.Selected);
 end;
 
 procedure TMainForm.actUpdatePageorProject(Sender: TObject);
@@ -3756,7 +3769,7 @@ begin
       s := e.Text.SelText
     else begin
       s := e.Text.WordAtCursor;
-      if not InputQuery(Lang[ID_NV_ADDWATCH], Lang[ID_NV_ENTERVAR], s) then
+      if not ShowInputQuery(Lang[ID_NV_ADDWATCH], Lang[ID_NV_ENTERVAR], s) then
         Exit;
     end;
     if s <> '' then
@@ -3768,6 +3781,7 @@ procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('next', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -3777,6 +3791,7 @@ procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('step', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -3786,7 +3801,7 @@ procedure TMainForm.actRemoveWatchExecute(Sender: TObject);
 var
   node: TTreeNode;
 begin
-  node := DebugView.Selected;
+  node := WatchView.Selected;
   if Assigned(node) then begin
 
     // Retrieve topmost node
@@ -3826,6 +3841,7 @@ begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
     fDebugger.SendCommand('continue', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -4776,7 +4792,7 @@ var
   fp, S: AnsiString;
 begin
   S := 'New folder';
-  if InputQuery(Lang[ID_POP_ADDFOLDER], Lang[ID_MSG_ADDBROWSERFOLDER], S) and (S <> '') then begin
+  if ShowInputQuery(Lang[ID_POP_ADDFOLDER], Lang[ID_MSG_ADDBROWSERFOLDER], S) and (S <> '') then begin
     fp := fProject.GetFolderPath(ProjectView.Selected);
     if fp <> '' then
       fProject.AddFolder(fp + '/' + S)
@@ -4811,7 +4827,7 @@ var
 begin
   if Assigned(ProjectView.Selected) and (ProjectView.Selected.Data = Pointer(-1)) then begin
     S := ProjectView.Selected.Text;
-    if InputQuery(Lang[ID_POP_RENAMEFOLDER], Lang[ID_MSG_RENAMEBROWSERFOLDER], S) and (S <> '') then begin
+    if ShowInputQuery(Lang[ID_POP_RENAMEFOLDER], Lang[ID_MSG_RENAMEBROWSERFOLDER], S) and (S <> '') then begin
       ProjectView.Selected.Text := S;
       fProject.UpdateFolders;
     end;
@@ -4890,8 +4906,10 @@ procedure TMainForm.ViewCPUItemClick(Sender: TObject);
 begin
   if not Assigned(CPUForm) then begin
     CPUForm := TCPUForm.Create(self);
-    CPUForm.Show;
   end;
+  CPUForm.Show;
+  Debugger.SendCommand('info', 'registers');
+  Debugger.SendCommand('disas','');
 end;
 
 procedure TMainForm.edGdbCommandKeyPress(Sender: TObject; var Key: Char);
@@ -5606,7 +5624,7 @@ begin
     FindOutputDblClick(sender);
 end;
 
-procedure TMainForm.DebugViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TMainForm.WatchViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_DELETE then
     actRemoveWatchExecute(sender);
@@ -5614,7 +5632,7 @@ end;
 
 procedure TMainForm.DebugPopupPopup(Sender: TObject);
 begin
-  RemoveWatchPop.Enabled := Assigned(DebugView.Selected);
+  RemoveWatchPop.Enabled := Assigned(WatchView.Selected);
 end;
 
 procedure TMainForm.FloatingReportwindowItemClick(Sender: TObject);
@@ -5690,7 +5708,7 @@ procedure TMainForm.actModifyWatchExecute(Sender: TObject);
 var
   curnode: TTreeNode;
   fullname: AnsiString;
-  value: AnsiString;
+  value : AnsiString;
 
   function GetNodeName(node: TTreeNode): AnsiString;
   var
@@ -5713,7 +5731,7 @@ var
   end;
 
 begin
-  curnode := DebugView.Selected;
+  curnode := WatchView.Selected;
   if Assigned(curnode) then begin // only edit members
 
     fullname := GetNodeName(curnode);
@@ -5725,16 +5743,38 @@ begin
         fullname := GetNodeName(curnode) + '.' + fullname;
     end;
 
-    value := GetNodeValue(DebugView.Selected);
+    value := GetNodeValue(WatchView.Selected);
 
-    if InputQuery(Lang[ID_NV_MODIFYVALUE], fullname, value) then
+    if ShowInputQuery(Lang[ID_NV_MODIFYVALUE], fullname, value) then
       fDebugger.SendCommand('set variable', fullname + ' = ' + value);
   end;
 end;
 
 procedure TMainForm.actModifyWatchUpdate(Sender: TObject);
+var
+  curnode: TTreeNode;
+  fullname: AnsiString;
+
+  function GetNodeName(node: TTreeNode): AnsiString;
+  var
+    epos: integer;
+  begin
+    Result := '';
+    epos := Pos(' = ', node.Text);
+    if epos > 0 then
+      Result := Copy(node.Text, 1, epos - 1);
+  end;
+
 begin
-  TCustomAction(Sender).Enabled := Assigned(DebugView.Selected) and fDebugger.Executing;
+  curnode := WatchView.Selected;
+  if Assigned(curnode) then begin // only edit members
+    fullname := GetNodeName(curnode);
+    if IsIdentifier(fullname) then begin
+      TCustomAction(Sender).Enabled := fDebugger.Executing;
+      Exit;
+    end;
+  end;
+  TCustomAction(Sender).Enabled := False;
 end;
 
 procedure TMainForm.ClearallWatchPopClick(Sender: TObject);
@@ -6011,7 +6051,7 @@ begin
   fDebugger := TDebugger.Create;
   fDebugger.UseUTF8 := devEditor.UseUTF8ByDefault;
   with fDebugger do begin
-    DebugView := Self.DebugView;
+    WatchView := Self.WatchView;
   end;
 
   // Create an editor manager
@@ -6051,20 +6091,6 @@ begin
     Filename := devDirs.Config + DEV_SHORTCUTS_FILE;
     Load(ActionList);
   end;
-
-  fCustomDebugActions:=TObjectList.Create;
-  with fCustomDebugActions do begin
-    Add(actRunToCursor);
-    Add(actLocals);
-    Add(actParameters);
-    Add(actGlobals);
-    Add(actCallStack);
-    Add(actCallStackFull);
-  end;
-  if (devDebugger.CustomCommandIndex<0) or
-    (devDebugger.CustomCommandIndex>=fCustomDebugActions.Count) then
-    devDebugger.CustomCommandIndex := 0;
-  RunCustomCommandBtn.Action := TAction(fCustomDebugActions[devDebugger.CustomCommandIndex]);
 
   // Accept file drags
   DragAcceptFiles(Self.Handle, true);
@@ -6231,7 +6257,7 @@ procedure TMainForm.OnInputEvalReady(const evalvalue: AnsiString);
 begin
   EvalOutput.Text := evalvalue;
   EvalOutput.Font.Color := clWindowText;
-  MainForm.fDebugger.OnEvalReady := nil;
+  fDebugger.OnEvalReady := nil;
 end;
 
 procedure TMainForm.EvaluateInputKeyPress(Sender: TObject; var Key: Char);
@@ -6293,6 +6319,7 @@ procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('finish', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -6307,31 +6334,14 @@ begin
     if assigned(e) then begin
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
+      fDebugger.SendCommand('backtrace', '');
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
     end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actRunToCursor);
-    RunCustomCommandBtn.Action := actRunToCursor;
-    RunCustomCommandBtn.Update;
   end;
 end;
 
-procedure TMainForm.actCallStackExecute(Sender: TObject);
-var
-  e:TEditor;
-begin
-  if fDebugger.Executing then begin
-    e:=fEditorList.GetEditor;
-    if assigned(e) then begin
-      fDebugger.SendCommand('backtrace', '',true);
-    end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStack);
-    RunCustomCommandBtn.Action := actCallStack;
-    RunCustomCommandBtn.Update;
-  end;
-end;
-
-procedure TMainForm.DebugViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+procedure TMainForm.WatchViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
   curnode: TTreeNode;
@@ -7019,74 +7029,6 @@ begin
   end;
 end;
 
-procedure TMainForm.actChooseCustomCommandExecute(Sender: TObject);
-var
-  p1:TPoint;
-begin
-  p1 := RunCustomCommandBtn.ClientToScreen(Point(0,0));
-  CustomDebugPopup.Popup(p1.x,p1.y);
-end;
-
-
-procedure TMainForm.actLocalsExecute(Sender: TObject);
-var
-  e:TEditor;
-begin
-  if fDebugger.Executing then begin
-    e:=fEditorList.GetEditor;
-    if assigned(e) then begin
-      fDebugger.SendCommand('info locals', '',true);
-    end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actLocals);
-    RunCustomCommandBtn.Action := actLocals;
-    RunCustomCommandBtn.Update;
-  end;
-end;
-
-procedure TMainForm.actParametersExecute(Sender: TObject);
-var
-  e:TEditor;
-begin
-  if fDebugger.Executing then begin
-    e:=fEditorList.GetEditor;
-    if assigned(e) then begin
-      fDebugger.SendCommand('info args', '',true);
-    end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actParameters);
-    RunCustomCommandBtn.Action := actParameters;
-    RunCustomCommandBtn.Update;
-  end;
-end;
-
-procedure TMainForm.actGlobalsExecute(Sender: TObject);
-var
-  e:TEditor;
-begin
-  if fDebugger.Executing then begin
-    e:=fEditorList.GetEditor;
-    if assigned(e) then begin
-      fDebugger.SendCommand('info variables', '',true);
-    end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actGlobals);
-    RunCustomCommandBtn.Action := actGlobals;
-    RunCustomCommandBtn.Update;
-  end;
-end;
-
-procedure TMainForm.actCallStackFullExecute(Sender: TObject);
-var
-  e:TEditor;
-begin
-  if fDebugger.Executing then begin
-    e:=fEditorList.GetEditor;
-    if assigned(e) then begin
-      fDebugger.SendCommand('backtrace full', '',true);
-    end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStackFull);
-    RunCustomCommandBtn.Action := actCallStackFull;
-    RunCustomCommandBtn.Update;
-  end;
-end;
 
 procedure TMainForm.actMsgDisplayGDBCommandsExecute(Sender: TObject);
 begin
@@ -7106,6 +7048,130 @@ end;
 procedure TMainForm.actMsgDisplayGDBAnnotationsExecute(Sender: TObject);
 begin
   devDebugger.ShowAnnotations := not devDebugger.ShowAnnotations;
+end;
+
+procedure TMainForm.actBreakPointPropertiesUpdate(Sender: TObject);
+var
+  e:TEditor;
+  breakId: integer;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    breakId:=fDebugger.GetBreakPointIndexOnLine(e.GutterClickedLine,e);
+    TAction(Sender).Visible := (breakId <> -1);
+  end;
+end;
+
+procedure TMainForm.actBreakPointPropertiesExecute(Sender: TObject);
+var
+  e:TEditor;
+  breakId: integer;
+  oldCondition: String;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    breakId:=fDebugger.GetBreakPointIndexOnLine(e.GutterClickedLine,e);
+    if breakId = -1 then
+      Exit;
+    oldCondition := PBreakPoint(fDebugger.BreakPointList[breakId])^.condition;
+    PBreakPoint(fDebugger.BreakPointList[breakId])^.condition :=
+      Trim(ShowInputBox(LANG[ID_ITEM_BREAKPOINT_PROP], LANG[ID_MSG_BREAKPOINT_CONDITION]
+        , oldCondition));
+    OnBreakPointsChanged;
+  end;
+end;
+
+procedure TMainForm.StackTraceClick(Sender: TObject);
+var
+  sel: TListItem;
+  e: TEditor;
+  i: integer;
+begin
+  sel := StackTrace.Selected;
+  if Assigned(sel) then begin
+    e := EditorList.GetEditorFromFileName(sel.SubItems[0]);
+    if Assigned(e) then begin
+      e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
+    end;
+    i := sel.Index;
+    if Debugger.Executing then begin
+      Debugger.SendCommand('select-frame',IntToStr(i));
+      //update register info
+      // Load the registers...
+      Debugger.SendCommand('info', 'registers');
+      Debugger.SendCommand('disas','');
+    end;
+  end;
+end;
+
+procedure TMainForm.OnBacktraceReady;
+var
+  I: integer;
+  item: TListItem;
+begin
+  StackTrace.Items.BeginUpdate;
+  StackTrace.Clear;
+  if Assigned(fDebugger.Reader) then begin
+    for I := 0 to fDebugger.Reader.Backtrace.Count - 1 do begin
+      item := StackTrace.Items.Add;
+      item.Caption := PTrace(fDebugger.Reader.Backtrace.Items[I])^.funcname;
+      item.SubItems.Add(PTrace(fDebugger.Reader.Backtrace.Items[I])^.filename);
+      item.SubItems.Add(PTrace(fDebugger.Reader.Backtrace.Items[I])^.line);
+    end;
+  end;
+  StackTrace.Items.EndUpdate;
+
+  if Assigned(fDebugger.Reader) then begin
+    // Free list for reuse
+    for I := 0 to fDebugger.Reader.Backtrace.Count - 1 do
+      Dispose(PTrace(fDebugger.Reader.Backtrace.Items[I]));
+    fDebugger.Reader.Backtrace.Clear;
+  end;
+end;
+
+procedure TMainForm.OnBreakPointsChanged;
+var
+  I: integer;
+  item: TListItem;
+  filename: string;
+begin
+  BreakpointsView.Items.BeginUpdate;
+  BreakpointsView.Clear;
+  for I := 0 to fDebugger.BreakPointList.Count - 1 do begin
+      item := BreakpointsView.Items.Add;
+      filename := StringReplace(PBreakPoint(fDebugger.BreakPointList[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
+
+      item.Caption := filename;
+      item.SubItems.Add(IntToStr(PBreakPoint(fDebugger.BreakPointList[I])^.line));
+      item.SubItems.Add(PBreakPoint(fDebugger.BreakPointList[I])^.condition);
+  end;
+  BreakpointsView.Items.EndUpdate;
+
+end;
+
+
+procedure TMainForm.actConvertToUTF8Update(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=fEditorList.GetEditor;
+  if not assigned(e) then begin
+    actConvertToUTF8.Enabled := False;
+  end else begin
+    actConvertToUTF8.Enabled := not e.UseUTF8;
+  end;
+end;
+
+procedure TMainForm.actConvertToUTF8Execute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=fEditorList.GetEditor;
+  if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    e.UseUTF8 := True;
+    e.SaveFile(e.FileName);
+    e.LoadFile(e.FileName);
+  end;
 end;
 
 end.

@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 590
-  Top = 172
+  Left = 497
+  Top = 87
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++ 2020'
   ClientHeight = 671
-  ClientWidth = 1232
+  ClientWidth = 1185
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -28,30 +28,34 @@ object MainForm: TMainForm
   object SplitterLeft: TSplitter
     Left = 238
     Top = 56
-    Height = 361
+    Width = 4
+    Height = 359
+    Beveled = True
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 417
-    Width = 1232
-    Height = 4
+    Top = 415
+    Width = 1185
+    Height = 6
     Cursor = crVSplit
     Align = alBottom
+    Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = SplitterBottomMoved
   end
   object MessageControl: TPageControl
     Left = 0
     Top = 421
-    Width = 1232
+    Width = 1185
     Height = 225
     ActivePage = DebugSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
     TabOrder = 2
+    TabPosition = tpBottom
     OnChange = MessageControlChange
     object CompSheet: TTabSheet
       Caption = 'Compiler'
@@ -59,8 +63,8 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 1224
-        Height = 194
+        Width = 1177
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -104,8 +108,8 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 1224
-        Height = 194
+        Width = 1177
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -150,13 +154,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 194
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           192
-          194)
+          196)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -186,16 +190,16 @@ object MainForm: TMainForm
       object CompResGroupBox: TPanel
         Left = 192
         Top = 0
-        Width = 1032
-        Height = 194
+        Width = 985
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 1032
-          Height = 194
+          Width = 985
+          Height = 196
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -213,265 +217,179 @@ object MainForm: TMainForm
       end
     end
     object DebugSheet: TTabSheet
-      Caption = 'Debugging'
+      Caption = 'Debug'
       ImageIndex = 32
-      object DebugSendPanel: TPanel
-        Left = 725
-        Top = 0
-        Width = 499
-        Height = 194
-        Align = alClient
-        BevelOuter = bvNone
-        TabOrder = 0
-        DesignSize = (
-          499
-          194)
-        object lblSendCommandGdb: TLabel
-          Left = 5
-          Top = 9
-          Width = 144
-          Height = 16
-          Caption = 'Send command to GDB:'
-        end
-        object edGdbCommand: TComboBox
-          Left = 167
-          Top = 4
-          Width = 325
-          Height = 24
-          Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 16
-          TabOrder = 0
-          OnKeyPress = edGdbCommandKeyPress
-        end
-        object DebugOutput: TMemo
-          Left = 5
-          Top = 37
-          Width = 489
-          Height = 133
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          PopupMenu = DebugOutputPopup
-          ReadOnly = True
-          ScrollBars = ssVertical
-          TabOrder = 1
-        end
-      end
-      object DebugStartPanel: TPanel
+      object DebugViews: TPageControl
         Left = 0
         Top = 0
-        Width = 725
-        Height = 194
-        Align = alLeft
-        BevelOuter = bvNone
-        BiDiMode = bdLeftToRight
-        ParentBiDiMode = False
-        TabOrder = 1
-        DesignSize = (
-          725
-          194)
-        object DDebugBtn: TSpeedButton
-          Left = 5
-          Top = 9
-          Width = 138
-          Height = 30
-          Action = actDebug
-          Glyph.Data = {
-            36040000424D3604000000000000360000002800000010000000100000000100
-            2000000000000004000000000000000000000000000000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF000000000000000000FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF0000000000FF7BB500FF7BB50000000000FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF0000000000FF9CC600FF9CC600FF7BB500FF7BB50000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF000000
-            0000FF9CC600FF9CC600FF9CC600FF9CC600FF7BB500FF7BB50000000000FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF006B6B6B00FFB5
-            D600FFB5D600FF9CC600FFCEE700FFCEE700FFB5D600FF9CC600FF7BB5000000
-            0000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF0000000000FFCE
-            E700FFB5D600FFCEE7000000000000000000FFDEEF00FFB5D600FF9CC600FF7B
-            B50000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF0000000000FFCE
-            E700FFCEE70000000000FF00FF00FF00FF0000000000FFDEEF00FFB5D600FF9C
-            C600FF7BB50000000000FF00FF00FF00FF00FF00FF00FF00FF0000000000F7F7
-            F70000000000FF00FF00FF00FF00FF00FF00FF00FF0000000000FFDEEF00FFB5
-            D600FF9CC600FF7BB50000000000FF00FF00FF00FF00FF00FF00FF00FF000000
-            0000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF0000000000FFDE
-            EF00FFB5D600FF9CC600FF7BB50000000000FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF000000
-            0000FFDEEF00FFB5D600FF9CC600FF7BB50000000000FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF0000000000FFDEEF00FFB5D600FF9CC600FF7BB50000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF0000000000FFDEEF00FFB5D600FF7BB50000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF0000000000FFDEEF00FF7BB50000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF0000000000FFC6DE0000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF0000000000FF00FF00}
+        Width = 1177
+        Height = 196
+        ActivePage = BreakpointsSheet
+        Align = alClient
+        Style = tsFlatButtons
+        TabOrder = 0
+        object DebugConsoleSheet: TTabSheet
+          Caption = 'Debug Console'
+          ImageIndex = 2
+          DesignSize = (
+            1169
+            162)
+          object lblSendCommandGdb: TLabel
+            Left = 5
+            Top = 9
+            Width = 144
+            Height = 16
+            Caption = 'Send command to GDB:'
+          end
+          object DebugOutput: TMemo
+            Left = 0
+            Top = 40
+            Width = 1169
+            Height = 122
+            Align = alBottom
+            Anchors = [akLeft, akTop, akRight, akBottom]
+            PopupMenu = DebugOutputPopup
+            ReadOnly = True
+            ScrollBars = ssVertical
+            TabOrder = 0
+          end
+          object edGdbCommand: TComboBox
+            Left = 167
+            Top = 4
+            Width = 1002
+            Height = 24
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 0
+            TabOrder = 1
+            OnKeyPress = edGdbCommandKeyPress
+          end
         end
-        object StopExecBtn: TSpeedButton
-          Left = 5
-          Top = 47
-          Width = 138
-          Height = 31
-          Action = actStopExecute
-          Glyph.Data = {
-            36040000424D3604000000000000360000002800000010000000100000000100
-            2000000000000004000000000000000000000000000000000000FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00000000000000A50000000000FF00FF00FF00FF00FF00FF00FF00
-            FF00000000000000A50000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00000000000000FF000000D6000000A50000000000FF00FF00FF00FF000000
-            00000000D6000000D6000000A50000000000FF00FF00FF00FF00FF00FF000000
-            00007B7BFF006B6BFF000000FF000000D6000000A50000000000000000000000
-            D6000000FF000000FF000000D6000000A50000000000FF00FF00FF00FF00FF00
-            FF00000000007B7BFF006B6BFF000000FF000000D6000000FF000000FF000000
-            FF000000FF000000FF000000D60000000000FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00000000007B7BFF006B6BFF000000FF000000FF000000FF000000
-            FF000000FF000000D60000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00000000000000FF000000FF000000FF000000FF000000
-            FF000000FF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00000000000000FF000000FF000000FF000000FF000000
-            FF000000FF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00000000006B6BFF000000FF000000FF000000FF000000FF000000
-            FF000000D6000000A50000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00000000006B6BFF000000FF000000FF000000FF000000FF000000FF006B6B
-            FF000000FF000000D6000000A50000000000FF00FF00FF00FF00FF00FF000000
-            00007B7BFF006B6BFF000000FF000000FF006B6BFF0000000000000000007B7B
-            FF006B6BFF000000FF000000D6000000A50000000000FF00FF00FF00FF00FF00
-            FF00000000007B7BFF006B6BFF006B6BFF0000000000FF00FF00FF00FF000000
-            00007B7BFF006B6BFF000000FF0000000000FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00000000007B7BFF0000000000FF00FF00FF00FF00FF00FF00FF00
-            FF00000000007B7BFF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF0000000000FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00
-            FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00}
+        object WatchSheet: TTabSheet
+          Caption = 'Watch'
+          object WatchView: TTreeView
+            Left = 0
+            Top = 0
+            Width = 1169
+            Height = 162
+            Align = alClient
+            BevelInner = bvNone
+            BevelOuter = bvNone
+            BorderStyle = bsNone
+            ChangeDelay = 1
+            Images = dmMain.MenuImages_NewLook
+            Indent = 19
+            MultiSelectStyle = []
+            PopupMenu = DebugPopup
+            ReadOnly = True
+            RightClickSelect = True
+            TabOrder = 0
+            OnAdvancedCustomDrawItem = WatchViewAdvancedCustomDrawItem
+            OnKeyDown = WatchViewKeyDown
+          end
         end
-        object lblEvaluate: TLabel
-          Left = 5
-          Top = 94
-          Width = 56
-          Height = 16
-          Caption = 'Evaluate:'
+        object EvaluateSheet: TTabSheet
+          Caption = 'Evaluate'
+          ImageIndex = 1
+          DesignSize = (
+            1169
+            162)
+          object lblEvaluate: TLabel
+            Left = 5
+            Top = 6
+            Width = 56
+            Height = 16
+            Caption = 'Evaluate:'
+          end
+          object EvalOutput: TMemo
+            Left = 0
+            Top = 33
+            Width = 1169
+            Height = 129
+            Align = alBottom
+            Anchors = [akLeft, akTop, akRight, akBottom]
+            ReadOnly = True
+            ScrollBars = ssBoth
+            TabOrder = 0
+          end
+          object EvaluateInput: TComboBox
+            Left = 79
+            Top = 1
+            Width = 1090
+            Height = 24
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 0
+            TabOrder = 1
+            OnKeyPress = EvaluateInputKeyPress
+          end
         end
-        object StepOverBtn: TSpeedButton
-          Left = 290
-          Top = 9
-          Width = 138
-          Height = 30
-          Action = actStepOver
+        object CallStackSheet: TTabSheet
+          Caption = 'Call Stack'
+          ImageIndex = 3
+          object StackTrace: TListView
+            Left = 0
+            Top = 0
+            Width = 1169
+            Height = 162
+            Cursor = crHandPoint
+            Align = alClient
+            Columns = <
+              item
+                AutoSize = True
+                Caption = 'Function'
+                MinWidth = 80
+              end
+              item
+                AutoSize = True
+                Caption = 'File'
+              end
+              item
+                Caption = 'Line'
+                Width = 53
+              end>
+            GridLines = True
+            HideSelection = False
+            ReadOnly = True
+            RowSelect = True
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            ViewStyle = vsReport
+            OnClick = StackTraceClick
+          end
         end
-        object ContinueBtn: TSpeedButton
-          Left = 148
-          Top = 9
-          Width = 138
-          Height = 30
-          Action = actContinue
-        end
-        object StepIntoBtn: TSpeedButton
-          Left = 433
-          Top = 9
-          Width = 138
-          Height = 30
-          Action = actStepInto
-        end
-        object AddWatchBtn: TSpeedButton
-          Left = 290
-          Top = 47
-          Width = 138
-          Height = 31
-          Action = actAddWatch
-          Glyph.Data = {
-            36040000424D3604000000000000360000002800000010000000100000000100
-            2000000000000004000000000000000000000000000000000000000000002929
-            2900292929002929290029292900292929002929290029292900292929002929
-            29002929290000000000FF00FF00FF00FF00FF00FF00FF00FF0000000000D6D6
-            D600BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBDBD00BDBD
-            BD009494940029292900FF00FF0000000000000000000000000000000000F7F7
-            F700D6D6D600D6D6D600D6D6D600D6D6D600CECECE00CECECE00CECECE00CECE
-            CE00BDBDBD002929290000000000006BA500006BA5000000000000000000F7F7
-            F700D6D6D6006363630063636300D6D6D60063636300CECECE0063636300CECE
-            CE00BDBDBD0000000000006BA5006BCEFF00006BA5000000000000000000F7F7
-            F700DEDEDE00D6D6D600D6D6D600D6D6D6000808080008080800080808000808
-            080008080800006BA5006BCEFF00006BA50000000000FF00FF0000000000F7F7
-            F700DEDEDE006363630063636300080808008C8C8C00E7CE9400E7CE8C00DEC6
-            84006B6B6B006BCEFF00006BA50000000000FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE00DEDEDE00080808008C8C8C00E7DEAD00EFDEB500E7DEAD00E7D6
-            9400EFD68C006B6B6B0008080800FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE006363630008080800EFDEAD00EFE7C600EFEFD600EFE7C600E7DE
-            AD00EFD69400B59C520008080800FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE00DEDEDE0008080800EFDEB500EFEFD600F7F7EF00F7EFD600EFDE
-            B500EFDE9C00B59C520008080800FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE006363630008080800EFDEAD00EFE7C600EFEFD600EFE7C600E7DE
-            AD00EFD69C00B59C520008080800FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE00DEDEDE00080808008C8C8C00EFDEAD00EFE7B500E7DEAD00E7D6
-            9400EFD68C008C8C8C0008080800FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE0063636300DEDEDE006B6B6B008C8C8C00E7D69400E7D69400DEC6
-            84008C8C8C0008080800FF00FF00FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE00DEDEDE00DEDEDE00DEDEDE000808080008080800080808000808
-            08000808080029292900FF00FF00FF00FF00FF00FF00FF00FF0000000000F7F7
-            F700DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDEDE00DEDE
-            DE00BDBDBD0029292900FF00FF00FF00FF00FF00FF00FF00FF0000000000FFFF
-            FF00F7F7F700F7F7F700F7F7F700F7F7F700F7F7F700F7F7F700F7F7F700F7F7
-            F700DEDEDE0029292900FF00FF00FF00FF00FF00FF00FF00FF006B6B6B002929
-            2900292929002929290029292900292929002929290029292900000000000000
-            00000000000000000000FF00FF00FF00FF00FF00FF00FF00FF00}
-        end
-        object ViewCPUBtn: TSpeedButton
-          Left = 148
-          Top = 47
-          Width = 138
-          Height = 31
-          Action = actViewCPU
-        end
-        object EvaluateInput: TComboBox
-          Left = 79
-          Top = 89
-          Width = 637
-          Height = 24
-          Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 16
-          TabOrder = 0
-          OnKeyPress = EvaluateInputKeyPress
-        end
-        object EvalOutput: TMemo
-          Left = 5
-          Top = 123
-          Width = 711
-          Height = 46
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          ReadOnly = True
-          ScrollBars = ssBoth
-          TabOrder = 1
-        end
-        object StepOutBtn: TButton
-          Left = 576
-          Top = 9
-          Width = 138
-          Height = 30
-          Action = actStepOut
-          TabOrder = 2
-        end
-        object ChooseCustomCommandBtn: TButton
-          Left = 680
-          Top = 47
-          Width = 34
-          Height = 31
-          Action = actChooseCustomCommand
-          TabOrder = 3
-        end
-        object RunCustomCommandBtn: TButton
-          Left = 433
-          Top = 47
-          Width = 248
-          Height = 31
-          Action = actRunCustomCommand
-          TabOrder = 4
+        object BreakpointsSheet: TTabSheet
+          Caption = 'Break Points'
+          ImageIndex = 4
+          object BreakpointsView: TListView
+            Left = 0
+            Top = 0
+            Width = 1169
+            Height = 162
+            Cursor = crHandPoint
+            Align = alClient
+            Columns = <
+              item
+                Caption = 'File'
+                Width = 400
+              end
+              item
+                Caption = 'Line'
+                Width = 60
+              end
+              item
+                AutoSize = True
+                Caption = 'Condition'
+              end>
+            GridLines = True
+            HideSelection = False
+            ReadOnly = True
+            RowSelect = True
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            ViewStyle = vsReport
+            OnClick = StackTraceClick
+          end
         end
       end
     end
@@ -481,8 +399,8 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 1224
-        Height = 194
+        Width = 1177
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -531,7 +449,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 1232
+    Width = 1185
     Height = 56
     Align = alTop
     AutoDock = False
@@ -885,9 +803,9 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 687
+      Left = 686
       Top = 2
-      Width = 255
+      Width = 171
       Height = 24
       Caption = 'tbCompilers'
       EdgeBorders = []
@@ -921,7 +839,7 @@ object MainForm: TMainForm
   object Statusbar: TStatusBar
     Left = 0
     Top = 646
-    Width = 1232
+    Width = 1185
     Height = 25
     Panels = <
       item
@@ -950,11 +868,13 @@ object MainForm: TMainForm
     Left = 0
     Top = 56
     Width = 238
-    Height = 361
+    Height = 359
     ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
+    MultiLine = True
     TabOrder = 1
+    TabPosition = tpLeft
     OnChange = LeftPageControlChange
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
@@ -962,8 +882,8 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 230
-        Height = 330
+        Width = 209
+        Height = 351
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -997,8 +917,8 @@ object MainForm: TMainForm
       object ClassBrowser: TClassBrowser
         Left = 0
         Top = 0
-        Width = 230
-        Height = 330
+        Width = 209
+        Height = 351
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -1027,45 +947,21 @@ object MainForm: TMainForm
         TabVisible = False
       end
     end
-    object LeftDebugSheet: TTabSheet
-      Caption = 'Debug'
-      ImageIndex = -1
-      object DebugView: TTreeView
-        Left = 0
-        Top = 0
-        Width = 230
-        Height = 330
-        Align = alClient
-        BevelInner = bvNone
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        ChangeDelay = 1
-        Images = dmMain.MenuImages_NewLook
-        Indent = 19
-        MultiSelectStyle = []
-        PopupMenu = DebugPopup
-        ReadOnly = True
-        RightClickSelect = True
-        TabOrder = 0
-        OnAdvancedCustomDrawItem = DebugViewAdvancedCustomDrawItem
-        OnKeyDown = DebugViewKeyDown
-      end
-    end
   end
   object PageControlPanel: TPanel
-    Left = 241
+    Left = 242
     Top = 56
-    Width = 991
-    Height = 361
+    Width = 943
+    Height = 359
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 991
+      Left = 943
       Top = 0
       Width = 0
-      Height = 361
+      Height = 359
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1073,8 +969,8 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 991
-      Height = 361
+      Width = 943
+      Height = 359
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1088,10 +984,10 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 991
+      Left = 943
       Top = 0
       Width = 0
-      Height = 361
+      Height = 359
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1276,40 +1172,14 @@ object MainForm: TMainForm
       object N23: TMenuItem
         Caption = '-'
       end
-      object UseUTF8Encoding: TMenuItem
-        Action = actUseUTF8
+      object Indent1: TMenuItem
+        Action = actIndent
       end
-      object N47: TMenuItem
+      object Unindent1: TMenuItem
+        Action = actUnindent
+      end
+      object N64: TMenuItem
         Caption = '-'
-      end
-      object InsertItem: TMenuItem
-        Action = actInsert
-        object DateTimeMenuItem: TMenuItem
-          Caption = '&Date/Time'
-          OnClick = DateTimeMenuItemClick
-        end
-        object CommentheaderMenuItem: TMenuItem
-          Caption = '&Comment Header'
-          OnClick = CommentheaderMenuItemClick
-        end
-        object N999: TMenuItem
-          Caption = '-'
-        end
-      end
-      object ToggleBookmarksItem: TMenuItem
-        Action = actToggle
-      end
-      object GotoBookmarksItem: TMenuItem
-        Action = actGoto
-      end
-      object N26: TMenuItem
-        Caption = '-'
-      end
-      object Comment1: TMenuItem
-        Action = actComment
-      end
-      object Uncomment1: TMenuItem
-        Action = actUncomment
       end
       object ToggleComment1: TMenuItem
         Action = actToggleComment
@@ -1320,13 +1190,16 @@ object MainForm: TMainForm
       object N27: TMenuItem
         Caption = '-'
       end
-      object Indent1: TMenuItem
-        Action = actIndent
+      object EncodingItem: TMenuItem
+        Caption = 'Encoding'
+        object UseUTF8Encoding1: TMenuItem
+          Action = actUseUTF8
+        end
+        object ConvertToUTF8Item: TMenuItem
+          Action = actConvertToUTF8
+        end
       end
-      object Unindent1: TMenuItem
-        Action = actUnindent
-      end
-      object N64: TMenuItem
+      object N47: TMenuItem
         Caption = '-'
       end
       object CollapseAll: TMenuItem
@@ -1343,15 +1216,6 @@ object MainForm: TMainForm
       end
       object DeleteLine1: TMenuItem
         Action = actDeleteLine
-      end
-      object N68: TMenuItem
-        Caption = '-'
-      end
-      object actMoveSelUp1: TMenuItem
-        Action = actMoveSelUp
-      end
-      object actMoveSelDown1: TMenuItem
-        Action = actMoveSelDown
       end
     end
     object SearchMenu: TMenuItem
@@ -1394,6 +1258,54 @@ object MainForm: TMainForm
       end
       object GotolineItem: TMenuItem
         Action = actGotoLine
+      end
+    end
+    object CodeMenu: TMenuItem
+      Caption = 'Co&de'
+      object FormatCurrentFile1: TMenuItem
+        Action = actFormatCurrentFile
+      end
+      object FormattingOptions1: TMenuItem
+        Action = actFormatOptions
+      end
+      object N29: TMenuItem
+        Caption = '-'
+      end
+      object SyntaxCheck1: TMenuItem
+        Action = actSyntaxCheck
+      end
+      object SyntaxCheckCurrentFile1: TMenuItem
+        Action = actSyntaxCheckFile
+      end
+      object N46: TMenuItem
+        Caption = '-'
+      end
+      object InsertItem: TMenuItem
+        Action = actInsert
+        object DateTimeMenuItem: TMenuItem
+          Caption = '&Date/Time'
+        end
+        object CommentHeaderMenuItem: TMenuItem
+          Caption = '&Comment Header'
+        end
+        object N26: TMenuItem
+          Caption = '-'
+        end
+      end
+      object ToggleBookmarksItem: TMenuItem
+        Action = actToggle
+      end
+      object GotoBookmarksItem: TMenuItem
+        Action = actGoto
+      end
+      object N49: TMenuItem
+        Caption = '-'
+      end
+      object actMoveSelUp1: TMenuItem
+        Action = actMoveSelUp
+      end
+      object actMoveSelDown1: TMenuItem
+        Action = actMoveSelDown
       end
     end
     object ViewMenu: TMenuItem
@@ -1508,6 +1420,15 @@ object MainForm: TMainForm
       object N6: TMenuItem
         Caption = '-'
       end
+      object EditMakefile1: TMenuItem
+        Action = actProjectMakeFile
+      end
+      object Clean1: TMenuItem
+        Action = actClean
+      end
+      object N18: TMenuItem
+        Caption = '-'
+      end
       object ProjectoptionsItem: TMenuItem
         Action = actProjectOptions
       end
@@ -1532,31 +1453,51 @@ object MainForm: TMainForm
       object N69: TMenuItem
         Caption = '-'
       end
-      object SyntaxCheckItem: TMenuItem
-        Action = actSyntaxCheck
-      end
-      object SyntaxCheckCurrentFile1: TMenuItem
-        Action = actSyntaxCheckFile
-      end
-      object N10: TMenuItem
-        Caption = '-'
-      end
       object mnuExecParameters: TMenuItem
         Action = actExecParams
       end
       object N8: TMenuItem
         Caption = '-'
       end
-      object N49: TMenuItem
-        Action = actProjectMakeFile
+      object Abortcompilation1: TMenuItem
+        Action = actDebug
       end
-      object N18: TMenuItem
+      object StepOver1: TMenuItem
+        Action = actStepOver
+      end
+      object StepInto1: TMenuItem
+        Action = actStepInto
+      end
+      object StepInto2: TMenuItem
+        Action = actStepOut
+      end
+      object RuntoCursor1: TMenuItem
+        Action = actRunToCursor
+        ShortCut = 16500
+      end
+      object Continue1: TMenuItem
+        Action = actContinue
+      end
+      object Programreset1: TMenuItem
+        Action = actStopExecute
+      end
+      object N12: TMenuItem
         Caption = '-'
       end
-      object CleanItem: TMenuItem
-        Action = actClean
+      object Addwatch1: TMenuItem
+        Action = actAddWatch
       end
-      object N29: TMenuItem
+      object C1: TMenuItem
+        Action = actViewCPU
+      end
+      object oggleBreakpoint1: TMenuItem
+        Action = actBreakPoint
+      end
+      object Abortcompilation2: TMenuItem
+        Action = actGotoBreakPoint
+        ShortCut = 16497
+      end
+      object N25: TMenuItem
         Caption = '-'
       end
       object Profileanalysis1: TMenuItem
@@ -1564,25 +1505,6 @@ object MainForm: TMainForm
       end
       object DeleteProfilingInformation: TMenuItem
         Action = actDeleteProfile
-      end
-      object N25: TMenuItem
-        Caption = '-'
-      end
-      object Abortcompilation2: TMenuItem
-        Action = actGotoBreakPoint
-        ShortCut = 113
-      end
-      object oggleBreakpoint1: TMenuItem
-        Action = actBreakPoint
-      end
-      object Abortcompilation1: TMenuItem
-        Action = actDebug
-      end
-      object N12: TMenuItem
-        Caption = '-'
-      end
-      object Programreset1: TMenuItem
-        Action = actStopExecute
       end
     end
     object ToolsMenu: TMenuItem
@@ -1608,12 +1530,15 @@ object MainForm: TMainForm
       object ConfiguretoolsItem: TMenuItem
         Action = actConfigTools
       end
-      object N24: TMenuItem
+      object N10: TMenuItem
         Caption = '-'
       end
       object PackageManagerItem: TMenuItem
         Action = actPackageManager
         Caption = 'Package Manager'
+      end
+      object N24: TMenuItem
+        Caption = '-'
       end
     end
     object RefactorMenu: TMenuItem
@@ -1621,19 +1546,6 @@ object MainForm: TMainForm
       GroupIndex = 9
       object Rename: TMenuItem
         Action = actRenameSymbol
-      end
-    end
-    object FormatMenu: TMenuItem
-      Caption = 'AStyle'
-      GroupIndex = 9
-      object FormatCurrentFile1: TMenuItem
-        Action = actFormatCurrentFile
-      end
-      object N46: TMenuItem
-        Caption = '-'
-      end
-      object actFormatOptions1: TMenuItem
-        Action = actFormatOptions
       end
     end
     object WindowMenu: TMenuItem
@@ -1689,6 +1601,9 @@ object MainForm: TMainForm
   object EditorPopup: TPopupMenu
     Left = 403
     Top = 216
+    object BreakpointProperies1: TMenuItem
+      Action = actBreakPointProperties
+    end
     object GotoDeclEditor: TMenuItem
       Action = actGotoDeclEditor
     end
@@ -1853,7 +1768,7 @@ object MainForm: TMainForm
     Top = 164
     object actViewCPU: TAction
       Category = 'Debug'
-      Caption = '&View CPU window'
+      Caption = '&View CPU window...'
       OnExecute = ViewCPUItemClick
       OnUpdate = actUpdateDebuggerRunningCPU
     end
@@ -2329,13 +2244,13 @@ object MainForm: TMainForm
     object actBreakPoint: TAction
       Category = 'Debug'
       Caption = 'Toggle Breakpoint'
-      ShortCut = 115
+      ShortCut = 16499
       OnExecute = actBreakPointExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actAddWatch: TAction
       Category = 'Debug'
-      Caption = '&Add watch'
+      Caption = '&Add Watch...'
       ImageIndex = 21
       OnExecute = actAddWatchExecute
       OnUpdate = actUpdatePageCount
@@ -2348,6 +2263,7 @@ object MainForm: TMainForm
     object actContinue: TAction
       Category = 'Debug'
       Caption = '&Continue'
+      ShortCut = 115
       OnExecute = actContinueExecute
       OnUpdate = actUpdateDebuggerRunning
     end
@@ -2677,15 +2593,10 @@ object MainForm: TMainForm
       OnExecute = actRunToCursorExecute
       OnUpdate = actUpdateDebuggerRunning
     end
-    object actCallStack: TAction
-      Category = 'Debug'
-      Caption = 'Call Stack'
-      OnExecute = actCallStackExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
     object actStepOut: TAction
       Category = 'Debug'
       Caption = 'Step O&ut'
+      ShortCut = 16503
       OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
     end
@@ -2832,7 +2743,7 @@ object MainForm: TMainForm
     end
     object actFormatOptions: TAction
       Category = 'AStyle'
-      Caption = 'Formatting Options'
+      Caption = 'Formatting Options...'
       OnExecute = actFormatOptionsExecute
     end
     object actRunTests: TAction
@@ -2860,40 +2771,6 @@ object MainForm: TMainForm
       OnExecute = actUseUTF8Execute
       OnUpdate = actUseUTF8Update
     end
-    object actCallStackFull: TAction
-      Category = 'Debug'
-      Caption = 'Call Stack Full'
-      OnExecute = actCallStackFullExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actLocals: TAction
-      Category = 'Debug'
-      Caption = 'Locals'
-      OnExecute = actLocalsExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actGlobals: TAction
-      Category = 'Debug'
-      Caption = 'Globals'
-      OnExecute = actGlobalsExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actParameters: TAction
-      Category = 'Debug'
-      Caption = 'Function Parameters'
-      OnExecute = actParametersExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actRunCustomCommand: TAction
-      Category = 'Debug'
-      Caption = 'Custom Command'
-    end
-    object actChooseCustomCommand: TAction
-      Category = 'Debug'
-      Caption = '>'
-      OnExecute = actChooseCustomCommandExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
     object actMsgDisplayGDBCommands: TAction
       Category = 'Messages'
       Caption = 'Display GDB Commands'
@@ -2905,6 +2782,18 @@ object MainForm: TMainForm
       Caption = 'Display GDB Annotations'
       OnExecute = actMsgDisplayGDBAnnotationsExecute
       OnUpdate = actMsgDisplayGDBAnnotationsUpdate
+    end
+    object actBreakPointProperties: TAction
+      Category = 'Debug'
+      Caption = 'Breakpoint Properties...'
+      OnExecute = actBreakPointPropertiesExecute
+      OnUpdate = actBreakPointPropertiesUpdate
+    end
+    object actConvertToUTF8: TAction
+      Category = 'Edit'
+      Caption = 'Convert To UTF8'
+      OnExecute = actConvertToUTF8Execute
+      OnUpdate = actConvertToUTF8Update
     end
   end
   object MessagePopup: TPopupMenu
@@ -3092,19 +2981,19 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object Locals1: TMenuItem
-      Action = actLocals
+      Caption = 'Locals'
     end
     object FunctionParameters1: TMenuItem
-      Action = actParameters
+      Caption = 'Function Parameters'
     end
     object Globals1: TMenuItem
-      Action = actGlobals
+      Caption = 'Globals'
     end
     object miCallStack: TMenuItem
-      Action = actCallStack
+      Caption = 'Call Stack'
     end
     object miCallStackFull: TMenuItem
-      Action = actCallStackFull
+      Caption = 'Call Stack Full'
     end
   end
   object DebugOutputPopup: TPopupMenu

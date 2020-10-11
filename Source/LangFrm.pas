@@ -102,13 +102,15 @@ end;
 procedure TLangForm.UpdateLangList(List: TStrings);
 var
   I, sel: integer;
+  favorLang: ansistring;
 begin
   lbLanguages.Items.BeginUpdate;
   try
     lbLanguages.Clear;
+    favorLang:=GetLanguageFileName();
     for I := 0 to List.Count - 1 do begin
       sel := lbLanguages.Items.Add(List.ValueFromIndex[I]);
-      if StartsText('english', lbLanguages.Items[sel]) then
+      if EndsText(favorLang, lbLanguages.Items[sel]) then
         lbLanguages.Selected[sel] := True;
     end;
   finally

@@ -63,6 +63,7 @@ type
   TBreakPoint = record
     line: integer;
     editor: TEditor;
+    condition: string;
   end;
 
   PTrace = ^TTrace;
@@ -92,7 +93,7 @@ type
     fBacktrace: TList;
     fBreakpointList: TList;
     fWatchVarList: TList; // contains all parents
-    fDebugView: TTreeView;
+    fWatchView: TTreeView;
     fIndex: integer;
     fBreakPointLine: integer;
     fBreakPointFile: AnsiString;
@@ -163,7 +164,7 @@ type
     property PipeWrite: THandle read fPipeWrite write fPipeWrite;
     property BreakPointList: TList read fBreakPointList write fBreakPointList;
     property WatchVarList: TList read fWatchVarList write fWatchVarList;
-    property DebugView: TTreeView read fDebugView write fDebugView;
+    property WatchView: TTreeView read fWatchView write fWatchView;
     property BreakPointFile: AnsiString read fBreakPointFile;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property CommandRunning: boolean read fCmdRunning;
@@ -183,11 +184,18 @@ begin
   fCmdQueue := TQueue.Create;
   fCmdRunning := True;
   fCurrentCmd := nil;
+  fBacktrace := TList.Create;
   InitializeCriticalSection(fCSQueue);
 end;
 
 destructor TDebugReader.Destroy;
+var
+  i: integer;
 begin
+  for I := 0 to fBacktrace.Count - 1 do
+    Dispose(PTrace(fBacktrace.Items[I]));
+  fBackTrace.Free;
+
   ClearCmdQueue;
   fCmdQueue.Free;
   if assigned(fCurrentCmd) then begin
@@ -296,10 +304,11 @@ begin
 
     if dodisassemblerready then
       CPUForm.OnAssemblerReady;
-
-    if dobacktraceready then
-      CPUForm.OnBacktraceReady;
   end;
+
+  if dobacktraceready then
+    MainForm.OnBacktraceReady;
+
 
   if doupdateexecution then begin
     MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine); // set active line
@@ -618,14 +627,14 @@ begin
         if ParentNode.Text = '' then // root node, replace text only
           ParentNode.Text := NodeText
         else
-          ParentNode := DebugView.Items.AddChild(ParentNode, NodeText);
+          ParentNode := WatchView.Items.AddChild(ParentNode, NodeText);
       end else if StartsStr('}', NodeText) then begin // end of struct, change parent
         ParentNode := ParentNode.Parent;
       end else begin // next parent member/child
         if ParentNode.Text = '' then // root node, replace text only
           ParentNode.Text := NodeText
         else
-          DebugView.Items.AddChild(ParentNode, NodeText);
+          WatchView.Items.AddChild(ParentNode, NodeText);
       end;
     end;
   finally
@@ -717,18 +726,11 @@ procedure TDebugReader.HandleFrames;
 var
   s: AnsiString;
   trace: PTrace;
-  num: integer;
 begin
   s := GetNextLine;
 
   // Is this a backtrace dump?
-  if Assigned(fBacktrace) and StartsStr('#', s) then begin
-    num := StrToInt(Trim(Copy(s,2,MaxInt)));
-
-    if num < fBacktrace.Count then begin
-      Exit;
-    end;
-
+  if StartsStr('#', s) then begin
     trace := new(PTrace);
 
     // Find function name
@@ -989,7 +991,7 @@ var
   NextAnnotation: TAnnotateType;
 begin
   // Only update once per update at most
-  DebugView.Items.BeginUpdate;
+  WatchView.Items.BeginUpdate;
   try
 
     dobacktraceready := false;
@@ -1036,7 +1038,7 @@ begin
 
     // Only update once per update at most
   finally
-    DebugView.Items.EndUpdate;
+    WatchView.Items.EndUpdate;
   end;
 
   Synchronize(SyncFinishedParsing);

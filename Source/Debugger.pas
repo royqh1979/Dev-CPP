@@ -38,7 +38,7 @@ type
     fProcessID: THandle;
     fExecuting: boolean;
     fCommandChanged: boolean;
-    fDebugView: TTreeView;
+    fWatchView: TTreeView;
     fLeftPageIndexBackup: integer;
     fBreakPointList: TList;
     fWatchVarList: TList;
@@ -61,6 +61,7 @@ type
     procedure AddBreakPoint(Linein: integer; e: TEditor); overload;
     procedure RemoveBreakPoint(Linein: integer; e: TEditor); overload;
     procedure DeleteBreakPointsOf(editor: TEditor);
+    function GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;
 
     // watch var
     procedure AddWatchVar(i: integer); overload;
@@ -76,7 +77,7 @@ type
     property WatchVarList: TList read fWatchVarList write fWatchVarList;
     property BreakPointList: TList read fBreakPointList write fBreakPointList;
     property CommandChanged: boolean read fCommandChanged write fCommandChanged;
-    property DebugView: TTreeView read fDebugView write fDebugView;
+    property WatchView: TTreeView read fWatchView write fWatchView;
     property OnEvalReady: TEvalReadyEvent read fOnEvalReady write fOnEvalReady;
     property Reader: TDebugReader read fReader write fReader;
     property BreakPointFile: AnsiString read GetBreakPointFile;
@@ -184,7 +185,7 @@ begin
   Reader.FreeOnTerminate := true;
   Reader.BreakpointList := BreakPointList;
   Reader.WatchVarList := WatchVarList;
-  Reader.DebugView := DebugView;
+  Reader.WatchView := WatchView;
   Reader.UseUTF8 := UseUTF8;
   Reader.Resume;
 
@@ -219,6 +220,8 @@ begin
 
     MainForm.UpdateAppTitle;
 
+    MainForm.OnBacktraceReady;
+
     Application.HintHidePause := 2500;
   end;
 end;
@@ -240,10 +243,16 @@ end;
 procedure TDebugger.AddBreakPoint(i: integer);
 var
   filename: AnsiString;
+  condition : AnsiString;
 begin
   // "filename":linenum
   filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
-  SendCommand('break', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line));
+  if PBreakPoint(BreakPointList.Items[i])^.condition = '' then
+    condition := ''
+  else
+    condition := ' if '+PBreakPoint(BreakPointList.Items[i])^.condition;
+  SendCommand('break',
+    '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line)+ condition);
 end;
 
 procedure TDebugger.RemoveBreakPoint(i: integer);
@@ -263,8 +272,10 @@ begin
   with APBreakPoint^ do begin
     line := Linein;
     editor := e;
+    condition := '';
   end;
   BreakPointList.Add(APBreakPoint);
+  MainForm.OnBreakPointsChanged;
 
   // Debugger already running? Add it to GDB
   if Executing then
@@ -289,7 +300,23 @@ begin
       break;
     end;
   end;
+  MainForm.OnBreakPointsChanged;
 end;
+
+function TDebugger.GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;
+var
+  i: integer;
+begin
+  Result := -1;
+  for i := 0 to BreakPointList.Count - 1 do begin
+    if (PBreakPoint(BreakPointList.Items[i])^.line = LineNo)
+     and (PBreakPoint(BreakPointList.Items[i])^.editor = e) then begin
+      Result := i;
+      break;
+    end;
+  end;
+end;
+
 
 procedure TDebugger.DeleteBreakPointsOf(editor: TEditor);
 var
@@ -304,6 +331,9 @@ begin
       Dispose(PBreakPoint(BreakPointList.Items[i]));
       BreakPointList.Delete(i);
     end;
+
+  MainForm.OnBreakPointsChanged;
+    
 end;
 
 procedure TDebugger.AddWatchVar(i: integer);
@@ -336,7 +366,7 @@ begin
   WatchVarList.Add(wparent);
 
   // Add parent to GUI
-  parentnode := DebugView.Items.AddObject(nil, wparent^.name + ' = Execute to evaluate', wparent);
+  parentnode := WatchView.Items.AddObject(nil, wparent^.name + ' = Execute to evaluate', wparent);
   parentnode.ImageIndex := 21;
   parentnode.SelectedIndex := 21;
 
@@ -390,7 +420,7 @@ var
   I: integer;
   wparent: PWatchVar;
 begin
-  DebugView.Items.BeginUpdate;
+  WatchView.Items.BeginUpdate;
   try
     for I := WatchVarList.Count - 1 downto 0 do begin
       wparent := PWatchVar(WatchVarList.Items[I]);
@@ -417,7 +447,7 @@ begin
       end;
     end;
   finally
-    DebugView.Items.EndUpdate;
+    WatchView.Items.EndUpdate;
   end;
 end;
 

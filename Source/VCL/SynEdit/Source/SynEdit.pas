@@ -9161,6 +9161,7 @@ begin
       if PosY<1 then
         Exit;
       Line := Lines[PosY - 1];
+      PosX := Length(Line);      
       continue;
     end;
     Test := Line[PosX];
@@ -9383,7 +9384,7 @@ begin
         endPos := Start + Length(Token)-1;
         if ((PosX >= Start) and (PosX <= endPos)) then begin
           Attri := Highlighter.GetTokenAttribute;
-          if PosX = endPos-1 then
+          if PosX = endPos then
             TokenFinished := Highlighter.GetTokenFinished
           else
             TokenFinished := False;

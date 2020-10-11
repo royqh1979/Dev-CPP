@@ -500,7 +500,7 @@ var
   S: AnsiString;
 begin
   S := 'New compiler';
-  if not InputQuery(Lang[ID_COPT_NEWCOMPSET], Lang[ID_COPT_PROMPTNEWCOMPSET], S) or (S = '') then
+  if not ShowInputQuery(Lang[ID_COPT_NEWCOMPSET], Lang[ID_COPT_PROMPTNEWCOMPSET], S) or (S = '') then
     Exit;
 
   // Add empty compiler set
@@ -568,7 +568,7 @@ var
 begin
   if cmbCompilerSetComp.ItemIndex <> -1 then begin
     S := cmbCompilerSetComp.Text;
-    if not InputQuery(Lang[ID_COPT_RENAMECOMPSET], Lang[ID_COPT_PROMPTRENAMECOMPSET], S) or (S = '') or (S =
+    if not ShowInputQuery(Lang[ID_COPT_RENAMECOMPSET], Lang[ID_COPT_PROMPTRENAMECOMPSET], S) or (S = '') or (S =
       cmbCompilerSetComp.Text) then
       Exit;
 
