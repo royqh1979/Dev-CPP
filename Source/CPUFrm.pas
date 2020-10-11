@@ -31,10 +31,8 @@ type
     CodeList: TSynEdit;
     RegisterListbox: TListView;
     DisasPanel: TPanel;
-    StackTrace: TListView;
     RadioATT: TRadioButton;
     RadioIntel: TRadioButton;
-    lblBacktrace: TLabel;
     CPUPopup: TPopupMenu;
     CPUCopy: TMenuItem;
     CPUCopyAll: TMenuItem;
@@ -43,11 +41,9 @@ type
     N2: TMenuItem;
     CPUSelectAll: TMenuItem;
     RegPanel: TPanel;
-    TracePanel: TPanel;
-    VertSplit: TSplitter;
-    HorzSplit: TSplitter;
     LeftPanel: TPanel;
     edFunc: TEdit;
+    VertSplit: TSplitter;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure gbSyntaxClick(Sender: TObject);
@@ -55,21 +51,17 @@ type
     procedure CPUCopyAllClick(Sender: TObject);
     procedure CPUPasteClick(Sender: TObject);
     procedure CPUCutClick(Sender: TObject);
-    procedure StackTraceClick(Sender: TObject);
     procedure CPUSelectAllClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure UpdateInfo;
   private
     fRegisters: TList;
     fAssembler: TStringList;
-    fBacktrace: TList;
-    fStackTraceUpdating: boolean;
 
     procedure LoadText;
   public
     procedure OnAssemblerReady;
     procedure OnRegistersReady;
-    procedure OnBacktraceReady;
   end;
 
 var
@@ -92,10 +84,6 @@ begin
   fRegisters.Free;
 
   fAssembler.Free;
-
-  for I := 0 to fBacktrace.Count - 1 do
-    Dispose(PTrace(fBacktrace.Items[I]));
-  fBackTrace.Free;
 
   // Clear contents of the debug reader
   MainForm.Debugger.Reader.Registers := nil;
@@ -120,34 +108,11 @@ begin
 
   Caption := Lang[ID_CPU_CAPTION];
   lblFunc.Caption := Lang[ID_CPU_FUNC];
-  lblBacktrace.Caption := Lang[ID_DEB_BACKTRACE];
-
   CPUCut.Caption := Lang[ID_ITEM_CUT];
   CPUCopy.Caption := Lang[ID_ITEM_COPY];
   CPUCopyAll.Caption := Lang[ID_ITEM_COPYALL];
   CPUPaste.Caption := Lang[ID_ITEM_PASTE];
   CPUSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
-end;
-
-procedure TCPUForm.OnBacktraceReady;
-var
-  I: integer;
-  item: TListItem;
-begin
-  StackTrace.Items.BeginUpdate;
-  StackTrace.Clear;
-  for I := 0 to fBacktrace.Count - 1 do begin
-    item := StackTrace.Items.Add;
-    item.Caption := PTrace(fBacktrace.Items[I])^.funcname;
-    item.SubItems.Add(PTrace(fBacktrace.Items[I])^.filename);
-    item.SubItems.Add(PTrace(fBacktrace.Items[I])^.line);
-  end;
-  StackTrace.Items.EndUpdate;
-
-  // Free list for reuse
-  for I := 0 to fBacktrace.Count - 1 do
-    Dispose(PTrace(fBacktrace.Items[I]));
-  fBacktrace.Clear;
 end;
 
 procedure TCPUForm.OnAssemblerReady;
@@ -211,7 +176,6 @@ begin
       gbSyntaxClick(nil);
 
     // Obtain stack trace too
-    MainForm.Debugger.Reader.Backtrace := fBacktrace;
     MainForm.Debugger.SendCommand('backtrace', '');
   end;
 end;
@@ -228,9 +192,6 @@ begin
 
   fRegisters := TList.Create;
   fAssembler := TStringList.Create;
-  fBacktrace := TList.Create;
-  fStackTraceUpdating := False;
-
   UpdateInfo;
 end;
 
@@ -263,8 +224,6 @@ begin
     ClipBoard.AsText := edFunc.SelText
   else if CodeList.Focused then
     CodeList.CopyToClipboard
-  else if StackTrace.Focused then
-    Clipboard.AsText := GetPrettyLine(StackTrace)
   else if RegisterListbox.Focused then
     Clipboard.AsText := GetPrettyLine(RegisterListbox);
 end;
@@ -277,11 +236,7 @@ begin
     ClipBoard.AsText := edFunc.Text
   else if CodeList.Focused then
     CodeList.CopyToClipboard
-  else if StackTrace.Focused then begin
-    ClipBoard.AsText := '';
-    for i := 0 to pred(StackTrace.Items.Count) do
-      Clipboard.AsText := Clipboard.AsText + GetPrettyLine(StackTrace, i) + #13#10;
-  end else if RegisterListbox.Focused then begin
+  else if RegisterListbox.Focused then begin
     ClipBoard.AsText := '';
     for i := 0 to pred(RegisterListbox.Items.Count) do
       Clipboard.AsText := Clipboard.AsText + GetPrettyLine(RegisterListbox, i) + #13#10;
@@ -298,40 +253,6 @@ procedure TCPUForm.CPUSelectAllClick(Sender: TObject);
 begin
   if edFunc.Focused then
     edFunc.SelectAll;
-end;
-
-procedure TCPUForm.StackTraceClick(Sender: TObject);
-var
-  sel: TListItem;
-  e: TEditor;
-  i: integer;
-begin
-  sel := StackTrace.Selected;
-  if Assigned(sel) then begin
-    e := MainForm.EditorList.GetEditorFromFileName(sel.SubItems[0]);
-  if Assigned(e) then begin
-    e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
-  end;
-  i := sel.Index;
-  edFunc.Text := sel.Caption;
-  if MainForm.Debugger.Executing then begin
-    MainForm.Debugger.SendCommand('select-frame',IntToStr(i));
-    //update register info
-    // Load the registers...
-    MainForm.Debugger.Reader.Registers := fRegisters;
-    MainForm.Debugger.SendCommand('info', 'registers');
-
-    // Set disassembly flavor and load the current function
-    MainForm.Debugger.Reader.Disassembly := fAssembler;
-    if devData.UseATTSyntax then // gbSyntaxClick has NOT been called yet...
-      gbSyntaxClick(nil);
-    MainForm.Debugger.SendCommand('disas','');
-    {
-    MainForm.Debugger.SendCommand('backtrace','');
-    }
-  end;
-  end;
-
 end;
 
 procedure TCPUForm.FormShow(Sender: TObject);

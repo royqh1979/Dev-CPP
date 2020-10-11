@@ -63,7 +63,7 @@ type
   TBreakPoint = record
     line: integer;
     editor: TEditor;
-    expression: string;
+    condition: string;
   end;
 
   PTrace = ^TTrace;
@@ -184,11 +184,18 @@ begin
   fCmdQueue := TQueue.Create;
   fCmdRunning := True;
   fCurrentCmd := nil;
+  fBacktrace := TList.Create;
   InitializeCriticalSection(fCSQueue);
 end;
 
 destructor TDebugReader.Destroy;
+var
+  i: integer;
 begin
+  for I := 0 to fBacktrace.Count - 1 do
+    Dispose(PTrace(fBacktrace.Items[I]));
+  fBackTrace.Free;
+
   ClearCmdQueue;
   fCmdQueue.Free;
   if assigned(fCurrentCmd) then begin
@@ -297,10 +304,11 @@ begin
 
     if dodisassemblerready then
       CPUForm.OnAssemblerReady;
-
-    if dobacktraceready then
-      CPUForm.OnBacktraceReady;
   end;
+
+  if dobacktraceready then
+    MainForm.OnBacktraceReady;
+
 
   if doupdateexecution then begin
     MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine); // set active line
@@ -718,18 +726,11 @@ procedure TDebugReader.HandleFrames;
 var
   s: AnsiString;
   trace: PTrace;
-  num: integer;
 begin
   s := GetNextLine;
 
   // Is this a backtrace dump?
-  if Assigned(fBacktrace) and StartsStr('#', s) then begin
-    num := StrToInt(Trim(Copy(s,2,MaxInt)));
-
-    if num < fBacktrace.Count then begin
-      Exit;
-    end;
-
+  if StartsStr('#', s) then begin
     trace := new(PTrace);
 
     // Find function name

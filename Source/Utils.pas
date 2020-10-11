@@ -167,6 +167,9 @@ function IsUTF8Encoding(s:AnsiString):boolean;
 // Dialogs with the same font setting as mainform
 function ShowInputQuery(const ACaption, APrompt: string;
   var Value: string): Boolean;
+function ShowInputBox(const Caption, Prompt, Default : string): String;
+
+function IsIdentifier(const s:string):boolean;
 
 implementation
 
@@ -1411,5 +1414,37 @@ begin
 
 end;
 
+function ShowInputBox(const Caption, Prompt, Default : string): String;
+var
+  oldName:TFontDataName;
+  oldHeight: integer;
+begin
+  oldName:=Graphics.DefFontData.Name;
+  oldHeight:=Graphics.DefFontData.Height;
+  Graphics.DefFontData.Name:=Application.MainForm.Font.Name;
+  Graphics.DefFontData.Height:=Application.MainForm.Font.Height;
+  Result:=InputBox(Caption, Prompt,Default);
+  Graphics.DefFontData.Name:=oldName;
+  Graphics.DefFontData.Height:=oldHeight;
+
+end;
+
+function IsIdentifier(const s:string):boolean;
+var
+  i:integer;
+  len:integer;
+begin
+  Result:=False;
+  len := Length(s);
+  if len<=0 then
+    Exit;
+  if not (s[1] in ['_','a'..'z','A'..'Z']) then
+    Exit;
+  for i:=2 to len do begin
+    if not (s[i] in ['_',0..9,'a'..'z','A'..'Z']) then
+      Exit;
+  end;
+  Result:=True;
+end;
 end.
 

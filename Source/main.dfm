@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 590
-  Top = 172
+  Left = 110
+  Top = 77
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -28,17 +28,20 @@ object MainForm: TMainForm
   object SplitterLeft: TSplitter
     Left = 238
     Top = 56
-    Height = 361
+    Width = 4
+    Height = 359
+    Beveled = True
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 417
+    Top = 415
     Width = 1185
-    Height = 4
+    Height = 6
     Cursor = crVSplit
     Align = alBottom
+    Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = SplitterBottomMoved
   end
@@ -221,7 +224,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 1177
         Height = 196
-        ActivePage = WatchSheet
+        ActivePage = BreakpointsSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
@@ -317,6 +320,75 @@ object MainForm: TMainForm
             ItemHeight = 16
             TabOrder = 1
             OnKeyPress = EvaluateInputKeyPress
+          end
+        end
+        object CallStackSheet: TTabSheet
+          Caption = 'Call Stack'
+          ImageIndex = 3
+          object StackTrace: TListView
+            Left = 0
+            Top = 0
+            Width = 1169
+            Height = 162
+            Cursor = crHandPoint
+            Align = alClient
+            Columns = <
+              item
+                AutoSize = True
+                Caption = 'Function'
+                MinWidth = 80
+              end
+              item
+                AutoSize = True
+                Caption = 'File'
+              end
+              item
+                Caption = 'Line'
+                Width = 53
+              end>
+            GridLines = True
+            HideSelection = False
+            ReadOnly = True
+            RowSelect = True
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            ViewStyle = vsReport
+            OnClick = StackTraceClick
+          end
+        end
+        object BreakpointsSheet: TTabSheet
+          Caption = 'Break Points'
+          ImageIndex = 4
+          object BreakpointsView: TListView
+            Left = 0
+            Top = 0
+            Width = 1169
+            Height = 162
+            Cursor = crHandPoint
+            Align = alClient
+            Columns = <
+              item
+                Caption = 'File'
+                Width = 400
+              end
+              item
+                Caption = 'Line'
+                Width = 60
+              end
+              item
+                AutoSize = True
+                Caption = 'Condition'
+              end>
+            GridLines = True
+            HideSelection = False
+            ReadOnly = True
+            RowSelect = True
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            ViewStyle = vsReport
+            OnClick = StackTraceClick
           end
         end
       end
@@ -796,7 +868,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 56
     Width = 238
-    Height = 361
+    Height = 359
     ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
@@ -811,7 +883,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 209
-        Height = 353
+        Height = 351
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelInner = bvNone
@@ -846,7 +918,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 209
-        Height = 353
+        Height = 351
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -877,19 +949,19 @@ object MainForm: TMainForm
     end
   end
   object PageControlPanel: TPanel
-    Left = 241
+    Left = 242
     Top = 56
-    Width = 944
-    Height = 361
+    Width = 943
+    Height = 359
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 944
+      Left = 943
       Top = 0
       Width = 0
-      Height = 361
+      Height = 359
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -897,8 +969,8 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 944
-      Height = 361
+      Width = 943
+      Height = 359
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -912,10 +984,10 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 944
+      Left = 943
       Top = 0
       Width = 0
-      Height = 361
+      Height = 359
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1118,7 +1190,7 @@ object MainForm: TMainForm
       object N27: TMenuItem
         Caption = '-'
       end
-      object Encoding: TMenuItem
+      object EncodingItem: TMenuItem
         Caption = 'Encoding'
         object UseUTF8Encoding1: TMenuItem
           Action = actUseUTF8
@@ -1185,7 +1257,7 @@ object MainForm: TMainForm
         Action = actGotoLine
       end
     end
-    object Code1: TMenuItem
+    object CodeMenu: TMenuItem
       Caption = 'Co&de'
       object FormatCurrentFile1: TMenuItem
         Action = actFormatCurrentFile
@@ -1526,6 +1598,9 @@ object MainForm: TMainForm
   object EditorPopup: TPopupMenu
     Left = 403
     Top = 216
+    object BreakpointProperies1: TMenuItem
+      Action = actBreakPointProperties
+    end
     object GotoDeclEditor: TMenuItem
       Action = actGotoDeclEditor
     end
@@ -2515,12 +2590,6 @@ object MainForm: TMainForm
       OnExecute = actRunToCursorExecute
       OnUpdate = actUpdateDebuggerRunning
     end
-    object actCallStack: TAction
-      Category = 'Debug'
-      Caption = 'Call Stack'
-      OnExecute = actCallStackExecute
-      OnUpdate = actUpdateDebuggerRunning
-    end
     object actStepOut: TAction
       Category = 'Debug'
       Caption = 'Step O&ut'
@@ -2699,35 +2768,6 @@ object MainForm: TMainForm
       OnExecute = actUseUTF8Execute
       OnUpdate = actUseUTF8Update
     end
-    object actCallStackFull: TAction
-      Category = 'Debug'
-      Caption = 'Call Stack Full'
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actLocals: TAction
-      Category = 'Debug'
-      Caption = 'Locals'
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actGlobals: TAction
-      Category = 'Debug'
-      Caption = 'Globals'
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actParameters: TAction
-      Category = 'Debug'
-      Caption = 'Function Parameters'
-      OnUpdate = actUpdateDebuggerRunning
-    end
-    object actRunCustomCommand: TAction
-      Category = 'Debug'
-      Caption = 'Custom Command'
-    end
-    object actChooseCustomCommand: TAction
-      Category = 'Debug'
-      Caption = '>'
-      OnUpdate = actUpdateDebuggerRunning
-    end
     object actMsgDisplayGDBCommands: TAction
       Category = 'Messages'
       Caption = 'Display GDB Commands'
@@ -2740,9 +2780,17 @@ object MainForm: TMainForm
       OnExecute = actMsgDisplayGDBAnnotationsExecute
       OnUpdate = actMsgDisplayGDBAnnotationsUpdate
     end
-    object actBreakPointProperies: TAction
+    object actBreakPointProperties: TAction
       Category = 'Debug'
-      Caption = 'Breakpoint Properies...'
+      Caption = 'Breakpoint Properties...'
+      OnExecute = actBreakPointPropertiesExecute
+      OnUpdate = actBreakPointPropertiesUpdate
+    end
+    object actConvertToUTF8: TAction
+      Category = 'Edit'
+      Caption = 'actConvertToUTF8'
+      OnExecute = actConvertToUTF8Execute
+      OnUpdate = actConvertToUTF8Update
     end
   end
   object MessagePopup: TPopupMenu
@@ -2930,19 +2978,19 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object Locals1: TMenuItem
-      Action = actLocals
+      Caption = 'Locals'
     end
     object FunctionParameters1: TMenuItem
-      Action = actParameters
+      Caption = 'Function Parameters'
     end
     object Globals1: TMenuItem
-      Action = actGlobals
+      Caption = 'Globals'
     end
     object miCallStack: TMenuItem
-      Action = actCallStack
+      Caption = 'Call Stack'
     end
     object miCallStackFull: TMenuItem
-      Action = actCallStackFull
+      Caption = 'Call Stack Full'
     end
   end
   object DebugOutputPopup: TPopupMenu

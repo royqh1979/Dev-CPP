@@ -61,6 +61,7 @@ type
     procedure AddBreakPoint(Linein: integer; e: TEditor); overload;
     procedure RemoveBreakPoint(Linein: integer; e: TEditor); overload;
     procedure DeleteBreakPointsOf(editor: TEditor);
+    function GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;
 
     // watch var
     procedure AddWatchVar(i: integer); overload;
@@ -219,6 +220,8 @@ begin
 
     MainForm.UpdateAppTitle;
 
+    MainForm.OnBacktraceReady;
+
     Application.HintHidePause := 2500;
   end;
 end;
@@ -240,10 +243,16 @@ end;
 procedure TDebugger.AddBreakPoint(i: integer);
 var
   filename: AnsiString;
+  condition : AnsiString;
 begin
   // "filename":linenum
   filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
-  SendCommand('break', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line));
+  if PBreakPoint(BreakPointList.Items[i])^.condition = '' then
+    condition := ''
+  else
+    condition := ' if '+PBreakPoint(BreakPointList.Items[i])^.condition;
+  SendCommand('break',
+    '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line)+ condition);
 end;
 
 procedure TDebugger.RemoveBreakPoint(i: integer);
@@ -263,9 +272,10 @@ begin
   with APBreakPoint^ do begin
     line := Linein;
     editor := e;
-    expression := '';
+    condition := '';
   end;
   BreakPointList.Add(APBreakPoint);
+  MainForm.OnBreakPointsChanged;
 
   // Debugger already running? Add it to GDB
   if Executing then
@@ -290,7 +300,23 @@ begin
       break;
     end;
   end;
+  MainForm.OnBreakPointsChanged;
 end;
+
+function TDebugger.GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;
+var
+  i: integer;
+begin
+  Result := -1;
+  for i := 0 to BreakPointList.Count - 1 do begin
+    if (PBreakPoint(BreakPointList.Items[i])^.line = LineNo)
+     and (PBreakPoint(BreakPointList.Items[i])^.editor = e) then begin
+      Result := i;
+      break;
+    end;
+  end;
+end;
+
 
 procedure TDebugger.DeleteBreakPointsOf(editor: TEditor);
 var
@@ -305,6 +331,9 @@ begin
       Dispose(PBreakPoint(BreakPointList.Items[i]));
       BreakPointList.Delete(i);
     end;
+
+  MainForm.OnBreakPointsChanged;
+    
 end;
 
 procedure TDebugger.AddWatchVar(i: integer);

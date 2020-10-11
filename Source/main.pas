@@ -410,7 +410,6 @@ type
     EvalOutput: TMemo;
     actStepOut: TAction;
     actRunToCursor: TAction;
-    actCallStack: TAction;
     MsgPasteItem: TMenuItem;
     actMsgCopy: TAction;
     actMsgCopyAll: TAction;
@@ -501,13 +500,7 @@ type
     Rename: TMenuItem;
     N47: TMenuItem;
     actUseUTF8: TAction;
-    actCallStackFull: TAction;
-    actLocals: TAction;
-    actGlobals: TAction;
-    actParameters: TAction;
     CustomDebugPopup: TPopupMenu;
-    actRunCustomCommand: TAction;
-    actChooseCustomCommand: TAction;
     miRuntoCursor: TMenuItem;
     miCallStack: TMenuItem;
     miCallStackFull: TMenuItem;
@@ -542,9 +535,9 @@ type
     Addwatch1: TMenuItem;
     RuntoCursor1: TMenuItem;
     N10: TMenuItem;
-    Encoding: TMenuItem;
+    EncodingItem: TMenuItem;
     UseUTF8Encoding1: TMenuItem;
-    Code1: TMenuItem;
+    CodeMenu: TMenuItem;
     FormatCurrentFile1: TMenuItem;
     InsertItem: TMenuItem;
     N26: TMenuItem;
@@ -561,12 +554,18 @@ type
     SyntaxCheck1: TMenuItem;
     FormattingOptions1: TMenuItem;
     C1: TMenuItem;
-    actBreakPointProperies: TAction;
+    actBreakPointProperties: TAction;
     DebugSheet: TTabSheet;
     DebugViews: TPageControl;
     WatchSheet: TTabSheet;
     EvaluateSheet: TTabSheet;
     DebugConsoleSheet: TTabSheet;
+    CallStackSheet: TTabSheet;
+    BreakpointsSheet: TTabSheet;
+    BreakpointProperies1: TMenuItem;
+    StackTrace: TListView;
+    BreakpointsView: TListView;
+    actConvertToUTF8: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -773,7 +772,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure actStepOutExecute(Sender: TObject);
     procedure actRunToCursorExecute(Sender: TObject);
-    procedure actCallStackExecute(Sender: TObject);
     procedure actMsgPasteExecute(Sender: TObject);
     procedure actUpdateDebuggerRunningCPU(Sender: TObject);
     procedure actUpdateEmptyEditorFindForm(Sender: TObject);
@@ -831,6 +829,12 @@ type
     procedure actMsgDisplayGDBCommandsUpdate(Sender: TObject);
     procedure actMsgDisplayGDBAnnotationsUpdate(Sender: TObject);
     procedure actMsgDisplayGDBAnnotationsExecute(Sender: TObject);
+    procedure actBreakPointPropertiesUpdate(Sender: TObject);
+    procedure actBreakPointPropertiesExecute(Sender: TObject);
+    procedure StackTraceClick(Sender: TObject);
+    procedure OnBreakPointsChanged;
+    procedure actConvertToUTF8Update(Sender: TObject);
+    procedure actConvertToUTF8Execute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -851,7 +855,6 @@ type
     fLogOutputRawData: TStringList;
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
-    fCustomDebugActions: TObjectList;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -898,6 +901,7 @@ type
     procedure OnInputEvalReady(const evalvalue: AnsiString);
     procedure SetStatusbarLineCol;
     procedure SetStatusbarMessage(const msg: AnsiString);
+    procedure OnBacktraceReady;
 
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
@@ -1039,7 +1043,6 @@ begin
   FreeAndNil(fCompiler);
   FreeAndNil(fDebugger);
   FreeAndNil(dmMain);
-  FreeAndNil(fCustomDebugActions);
   devExecutor.Free; // sets itself to nil
   Lang.Free; // sets itself to nil
   DestroyOptions;
@@ -1136,6 +1139,7 @@ begin
   WindowMenu.Caption := Lang[ID_MNU_WINDOW];
   HelpMenu.Caption := Lang[ID_MNU_HELP];
   RefactorMenu.Caption := Lang[ID_MNU_REFACTOR];
+  CodeMenu.Caption := Lang[ID_MNU_CODE];
 
   // File menu
   mnuNew.Caption := Lang[ID_SUB_NEW];
@@ -1193,7 +1197,7 @@ begin
   actPaste.Caption := Lang[ID_ITEM_PASTE];
   actSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
 
-
+  EncodingItem.Caption := Lang[ID_ITEM_ENCODING];
   actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
 
   // Insert submenu
@@ -1271,6 +1275,7 @@ begin
   actDebug.Caption := Lang[ID_ITEM_DEBUG];
   actGotoBreakPoint.Caption := Lang[ID_ITEM_GOTOBREAKPOINT];
   actBreakPoint.Caption := Lang[ID_ITEM_TOGGLEBREAK];
+  actBreakPointProperties.Caption := Lang[ID_ITEM_BREAKPOINT_PROP];
   actDeleteProfile.Caption := Lang[ID_ITEM_DELPROFINFORMATION];
   actAbortCompilation.Caption := Lang[ID_ITEM_ABORTCOMP];
 
@@ -1315,13 +1320,7 @@ begin
   actStepInto.Caption := Lang[ID_ITEM_STEPINTO];
   actStepOut.Caption := Lang[ID_ITEM_STEPOUT];
   actRunToCursor.Caption := Lang[ID_ITEM_RUNTOCURSOR];
-  actCallStack.Caption := Lang[ID_ITEM_CALLSTACK];
-  actCallStackFull.Caption :=  Lang[ID_ITEM_CALLSTACKFULL];
-  actLocals.Caption := Lang[ID_ITEM_LOCALS];
-  actGlobals.Caption := Lang[ID_ITEM_GLOBALS];
-  actParameters.Caption := Lang[ID_ITEM_ARGS];
-  actCallStackFull.Caption := Lang[ID_ITEM_CALLSTACKFULL];
-
+  
   actWatchItem.Caption := Lang[ID_ITEM_WATCHITEMS];
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
@@ -1382,7 +1381,14 @@ begin
   // Debug Tab
   lblSendCommandGdb.Caption := Lang[ID_DEB_SENDGDBCOMMAND];
   lblEvaluate.Caption := Lang[ID_DEB_EVALUATE];
+  WatchSheet.Caption := Lang[ID_DEB_WATCH];
+  DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
+  EvaluateSheet.Caption := Lang[ID_DEB_EVALUATE];
+  CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
+  BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
 
+
+  {
   // Adapt UI spacing to translation text length
   len := Canvas.TextWidth(lblSendCommandGdb.Caption);
   edGdbCommand.Left := len + 10;
@@ -1391,6 +1397,7 @@ begin
   len := Canvas.TextWidth(lblEvaluate.Caption);
   EvaluateInput.Left := len + 10;
   EvaluateInput.Width := EvalOutput.Width - len - 6;
+  }
 
   // Find Results Tab
   FindOutput.Columns[0].Caption := '';
@@ -1399,10 +1406,17 @@ begin
   FindOutput.Columns[3].Caption := Lang[ID_COL_FILE];
   FindOutput.Columns[4].Caption := Lang[ID_COL_MSG];
 
+  StackTrace.Columns[0].Caption := Lang[ID_COL_FUNC];
+  StackTrace.Columns[1].Caption := Lang[ID_COL_FILE];
+  StackTrace.Columns[2].Caption := Lang[ID_COL_LINE];
+
+  BreakpointsView.Columns[0].Caption := Lang[ID_COL_FILE];
+  BreakpointsView.Columns[1].Caption := Lang[ID_COL_LINE];
+  BreakpointsView.Columns[2].Caption := Lang[ID_COL_CONDITION];
   // Left page control
   LeftProjectSheet.Caption := Lang[ID_LP_PROJECT];
   LeftClassSheet.Caption := Lang[ID_LP_CLASSES];
-  WatchSheet.Caption := Lang[ID_SHEET_DEBUG];
+
 
   BuildBookMarkMenus;
   SetHints;
@@ -3255,6 +3269,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('start', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
       ctProject:  begin
         params := '';
@@ -3264,6 +3279,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('start', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
     end;
   end else begin
@@ -3277,6 +3293,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('run', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
       ctProject: begin
         params := '';
@@ -3286,6 +3303,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('run', params);
+        fDebugger.SendCommand('backtrace', '');
       end;
     end;
   end;
@@ -3761,6 +3779,7 @@ procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('next', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -3770,6 +3789,7 @@ procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('step', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -3819,6 +3839,7 @@ begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
     fDebugger.SendCommand('continue', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -5683,7 +5704,7 @@ procedure TMainForm.actModifyWatchExecute(Sender: TObject);
 var
   curnode: TTreeNode;
   fullname: AnsiString;
-  value: AnsiString;
+  value : AnsiString;
 
   function GetNodeName(node: TTreeNode): AnsiString;
   var
@@ -5726,8 +5747,30 @@ begin
 end;
 
 procedure TMainForm.actModifyWatchUpdate(Sender: TObject);
+var
+  curnode: TTreeNode;
+  fullname: AnsiString;
+
+  function GetNodeName(node: TTreeNode): AnsiString;
+  var
+    epos: integer;
+  begin
+    Result := '';
+    epos := Pos(' = ', node.Text);
+    if epos > 0 then
+      Result := Copy(node.Text, 1, epos - 1);
+  end;
+
 begin
-  TCustomAction(Sender).Enabled := Assigned(WatchView.Selected) and fDebugger.Executing;
+  curnode := WatchView.Selected;
+  if Assigned(curnode) then begin // only edit members
+    fullname := GetNodeName(curnode);
+    if IsIdentifier(fullname) then begin
+      TCustomAction(Sender).Enabled := fDebugger.Executing;
+      Exit;
+    end;
+  end;
+  TCustomAction(Sender).Enabled := False;
 end;
 
 procedure TMainForm.ClearallWatchPopClick(Sender: TObject);
@@ -6045,23 +6088,6 @@ begin
     Load(ActionList);
   end;
 
-  fCustomDebugActions:=TObjectList.Create;
-  with fCustomDebugActions do begin
-    Add(actRunToCursor);
-    Add(actLocals);
-    Add(actParameters);
-    Add(actGlobals);
-    Add(actCallStack);
-    Add(actCallStackFull);
-  end;
-  //don't use custom debug command btn anymore
-  {
-  if (devDebugger.CustomCommandIndex<0) or
-    (devDebugger.CustomCommandIndex>=fCustomDebugActions.Count) then
-    devDebugger.CustomCommandIndex := 0;
-  RunCustomCommandBtn.Action := TAction(fCustomDebugActions[devDebugger.CustomCommandIndex]);
-  }
-
   // Accept file drags
   DragAcceptFiles(Self.Handle, true);
 
@@ -6227,7 +6253,7 @@ procedure TMainForm.OnInputEvalReady(const evalvalue: AnsiString);
 begin
   EvalOutput.Text := evalvalue;
   EvalOutput.Font.Color := clWindowText;
-  MainForm.fDebugger.OnEvalReady := nil;
+  fDebugger.OnEvalReady := nil;
 end;
 
 procedure TMainForm.EvaluateInputKeyPress(Sender: TObject; var Key: Char);
@@ -6289,6 +6315,7 @@ procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     fDebugger.SendCommand('finish', '');
+    fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
   end;
@@ -6303,31 +6330,10 @@ begin
     if assigned(e) then begin
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
+      fDebugger.SendCommand('backtrace', '');
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
     end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actRunToCursor);
-    {
-    RunCustomCommandBtn.Action := actRunToCursor;
-    RunCustomCommandBtn.Update;
-    }
-  end;
-end;
-
-procedure TMainForm.actCallStackExecute(Sender: TObject);
-var
-  e:TEditor;
-begin
-  if fDebugger.Executing then begin
-    e:=fEditorList.GetEditor;
-    if assigned(e) then begin
-      fDebugger.SendCommand('backtrace', '',true);
-    end;
-    devDebugger.CustomCommandIndex := fCustomDebugActions.IndexOf(actCallStack);
-    {
-    RunCustomCommandBtn.Action := actCallStack;
-    RunCustomCommandBtn.Update;
-    }
   end;
 end;
 
@@ -7038,6 +7044,129 @@ end;
 procedure TMainForm.actMsgDisplayGDBAnnotationsExecute(Sender: TObject);
 begin
   devDebugger.ShowAnnotations := not devDebugger.ShowAnnotations;
+end;
+
+procedure TMainForm.actBreakPointPropertiesUpdate(Sender: TObject);
+var
+  e:TEditor;
+  breakId: integer;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    breakId:=fDebugger.GetBreakPointIndexOnLine(e.GutterClickedLine,e);
+    TAction(Sender).Visible := (breakId <> -1);
+  end;
+end;
+
+procedure TMainForm.actBreakPointPropertiesExecute(Sender: TObject);
+var
+  e:TEditor;
+  breakId: integer;
+  oldCondition: String;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    breakId:=fDebugger.GetBreakPointIndexOnLine(e.GutterClickedLine,e);
+    if breakId = -1 then
+      Exit;
+    oldCondition := PBreakPoint(fDebugger.BreakPointList[breakId])^.condition;
+    PBreakPoint(fDebugger.BreakPointList[breakId])^.condition :=
+      Trim(ShowInputBox(LANG[ID_ITEM_BREAKPOINT_PROP], LANG[ID_MSG_BREAKPOINT_CONDITION]
+        , oldCondition));
+    OnBreakPointsChanged;
+  end;
+end;
+
+procedure TMainForm.StackTraceClick(Sender: TObject);
+var
+  sel: TListItem;
+  e: TEditor;
+  i: integer;
+begin
+  sel := StackTrace.Selected;
+  if Assigned(sel) then begin
+    e := EditorList.GetEditorFromFileName(sel.SubItems[0]);
+    if Assigned(e) then begin
+      e.SetCaretPosAndActivate(StrToIntDef(sel.SubItems[1], 1), 1);
+    end;
+    i := sel.Index;
+    if Debugger.Executing then begin
+      Debugger.SendCommand('select-frame',IntToStr(i));
+      //update register info
+      // Load the registers...
+      Debugger.SendCommand('info', 'registers');
+      Debugger.SendCommand('disas','');
+    end;
+  end;
+end;
+
+procedure TMainForm.OnBacktraceReady;
+var
+  I: integer;
+  item: TListItem;
+begin
+  StackTrace.Items.BeginUpdate;
+  StackTrace.Clear;
+  if Assigned(fDebugger.Reader) then begin
+    for I := 0 to fDebugger.Reader.Backtrace.Count - 1 do begin
+      item := StackTrace.Items.Add;
+      item.Caption := PTrace(fDebugger.Reader.Backtrace.Items[I])^.funcname;
+      item.SubItems.Add(PTrace(fDebugger.Reader.Backtrace.Items[I])^.filename);
+      item.SubItems.Add(PTrace(fDebugger.Reader.Backtrace.Items[I])^.line);
+    end;
+  end;
+  StackTrace.Items.EndUpdate;
+
+  if Assigned(fDebugger.Reader) then begin
+    // Free list for reuse
+    for I := 0 to fDebugger.Reader.Backtrace.Count - 1 do
+      Dispose(PTrace(fDebugger.Reader.Backtrace.Items[I]));
+    fDebugger.Reader.Backtrace.Clear;
+  end;
+end;
+
+procedure TMainForm.OnBreakPointsChanged;
+var
+  I: integer;
+  item: TListItem;
+  filename: string;
+begin
+  BreakpointsView.Items.BeginUpdate;
+  BreakpointsView.Clear;
+  for I := 0 to fDebugger.BreakPointList.Count - 1 do begin
+      item := BreakpointsView.Items.Add;
+      filename := StringReplace(PBreakPoint(fDebugger.BreakPointList[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
+
+      item.Caption := filename;
+      item.SubItems.Add(IntToStr(PBreakPoint(fDebugger.BreakPointList[I])^.line));
+      item.SubItems.Add(PBreakPoint(fDebugger.BreakPointList[I])^.condition);
+  end;
+  BreakpointsView.Items.EndUpdate;
+
+end;
+
+
+procedure TMainForm.actConvertToUTF8Update(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=fEditorList.GetEditor;
+  if not assigned(e) then begin
+    actUseUTF8.Enabled := False;
+  end else begin
+    actUseUTF8.Enabled := not e.UseUTF8;
+  end;
+end;
+
+procedure TMainForm.actConvertToUTF8Execute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=fEditorList.GetEditor;
+  if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    e.UseUTF8 := True;
+    e.Save;
+  end;
 end;
 
 end.

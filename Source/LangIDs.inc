@@ -29,7 +29,8 @@ const
   ID_MNU_WINDOW                         = 8;
   ID_MNU_HELP                           = 9;
   ID_MNU_DEBUG                          = 10;
-  ID_MNU_REFACTOR = 11;
+  ID_MNU_REFACTOR                       = 11;
+  ID_MNU_CODE                          = 12;
 
   // file menu
   ID_SUB_NEW                            = 1001;
@@ -98,7 +99,8 @@ const
   ID_ITEM_MOVESELDOWN                   = 22012;
   ID_ITEM_SWAPEDITOR                    = 22013;
   ID_ITEM_TOGGLECOMMENTINLINE           = 22014;
-  ID_ITEM_UTF8 = 22015;
+  ID_ITEM_UTF8                          = 22015;
+  ID_ITEM_ENCODING                      = 22016;
 
   // search menu
   ID_ITEM_FIND                          = 5001;
@@ -222,6 +224,7 @@ const
   ID_ITEM_GLOBALS          = 10027;
   ID_ITEM_ARGS          = 10028;
   ID_ITEM_CALLSTACKFULL          = 10029;
+  ID_ITEM_BREAKPOINT_PROP       = 10030;
 
 
   // unit popup
@@ -285,6 +288,9 @@ const
   ID_OUTPUTSIZE                         = 16008;
   ID_TOTALWARNINGS                      = 16009;
 
+  ID_COL_FUNC                           = 16010;
+  ID_COL_CONDITION                      = 16011;
+
   ID_DEB_WATCHES                        = 17001;
   ID_DEB_BACKTRACE                      = 17002;
   ID_DEB_OUTPUT                         = 17003;
@@ -294,7 +300,10 @@ const
   
   ID_DEB_SHOWCOMMAND					= 17007;
   ID_DEB_FULLANNOATION					= 17008;
-  
+  ID_DEB_WATCH                = 17009;
+  ID_DEB_CONSOLE_SHEET                = 17010;
+  ID_DEB_CALLSTACK                = 17011;
+  ID_DEB_BREAK_POINTS         = 17012;
 
   // specials toolbar
   ID_TB_NEW                             = 18001;
@@ -968,6 +977,8 @@ const
   ID_MSG_CORRESPONDINGHEADER            = 60026;
   ID_MSG_PLEASEUPDATEPROJECT            = 60027;
   ID_MSG_COMPILERNOTFOUND               = 60028;
+  ID_MSG_BREAKPOINT_CONDITION           = 60029;
+  ID_MSG_CONVERTTOUTF8                  = 60030;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;
