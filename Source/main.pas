@@ -566,6 +566,7 @@ type
     StackTrace: TListView;
     BreakpointsView: TListView;
     actConvertToUTF8: TAction;
+    ConvertToUTF8Item: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1199,6 +1200,7 @@ begin
 
   EncodingItem.Caption := Lang[ID_ITEM_ENCODING];
   actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
+  actConvertToUTF8.Caption := Lang[ID_ITEM_CONV_UTF8];
 
   // Insert submenu
   actInsert.Caption := Lang[ID_TB_INSERT];
@@ -7152,9 +7154,9 @@ var
 begin
   e:=fEditorList.GetEditor;
   if not assigned(e) then begin
-    actUseUTF8.Enabled := False;
+    actConvertToUTF8.Enabled := False;
   end else begin
-    actUseUTF8.Enabled := not e.UseUTF8;
+    actConvertToUTF8.Enabled := not e.UseUTF8;
   end;
 end;
 
@@ -7165,7 +7167,8 @@ begin
   e:=fEditorList.GetEditor;
   if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
     e.UseUTF8 := True;
-    e.Save;
+    e.SaveFile(e.FileName);
+    e.LoadFile(e.FileName);
   end;
 end;
 

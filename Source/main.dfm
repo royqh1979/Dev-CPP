@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 110
-  Top = 77
+  Left = 497
+  Top = 87
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1194,6 +1194,9 @@ object MainForm: TMainForm
         Caption = 'Encoding'
         object UseUTF8Encoding1: TMenuItem
           Action = actUseUTF8
+        end
+        object ConvertToUTF8Item: TMenuItem
+          Action = actConvertToUTF8
         end
       end
       object N47: TMenuItem
@@ -2788,7 +2791,7 @@ object MainForm: TMainForm
     end
     object actConvertToUTF8: TAction
       Category = 'Edit'
-      Caption = 'actConvertToUTF8'
+      Caption = 'Convert To UTF8'
       OnExecute = actConvertToUTF8Execute
       OnUpdate = actConvertToUTF8Update
     end

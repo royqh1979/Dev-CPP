@@ -1114,7 +1114,7 @@ begin
       if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
         Exit;
       if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
-        'Character') and not tokenFinished) and not (key in ['''','"']) then
+        'Character')) and not tokenFinished and not (key in ['''','"']) then
         Exit;
     end;
   end;

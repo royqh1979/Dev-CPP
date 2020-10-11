@@ -101,6 +101,7 @@ const
   ID_ITEM_TOGGLECOMMENTINLINE           = 22014;
   ID_ITEM_UTF8                          = 22015;
   ID_ITEM_ENCODING                      = 22016;
+  ID_ITEM_CONV_UTF8                     = 22017;
 
   // search menu
   ID_ITEM_FIND                          = 5001;
