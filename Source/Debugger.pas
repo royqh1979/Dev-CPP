@@ -38,7 +38,7 @@ type
     fProcessID: THandle;
     fExecuting: boolean;
     fCommandChanged: boolean;
-    fDebugView: TTreeView;
+    fWatchView: TTreeView;
     fLeftPageIndexBackup: integer;
     fBreakPointList: TList;
     fWatchVarList: TList;
@@ -76,7 +76,7 @@ type
     property WatchVarList: TList read fWatchVarList write fWatchVarList;
     property BreakPointList: TList read fBreakPointList write fBreakPointList;
     property CommandChanged: boolean read fCommandChanged write fCommandChanged;
-    property DebugView: TTreeView read fDebugView write fDebugView;
+    property WatchView: TTreeView read fWatchView write fWatchView;
     property OnEvalReady: TEvalReadyEvent read fOnEvalReady write fOnEvalReady;
     property Reader: TDebugReader read fReader write fReader;
     property BreakPointFile: AnsiString read GetBreakPointFile;
@@ -184,7 +184,7 @@ begin
   Reader.FreeOnTerminate := true;
   Reader.BreakpointList := BreakPointList;
   Reader.WatchVarList := WatchVarList;
-  Reader.DebugView := DebugView;
+  Reader.WatchView := WatchView;
   Reader.UseUTF8 := UseUTF8;
   Reader.Resume;
 
@@ -263,6 +263,7 @@ begin
   with APBreakPoint^ do begin
     line := Linein;
     editor := e;
+    expression := '';
   end;
   BreakPointList.Add(APBreakPoint);
 
@@ -336,7 +337,7 @@ begin
   WatchVarList.Add(wparent);
 
   // Add parent to GUI
-  parentnode := DebugView.Items.AddObject(nil, wparent^.name + ' = Execute to evaluate', wparent);
+  parentnode := WatchView.Items.AddObject(nil, wparent^.name + ' = Execute to evaluate', wparent);
   parentnode.ImageIndex := 21;
   parentnode.SelectedIndex := 21;
 
@@ -390,7 +391,7 @@ var
   I: integer;
   wparent: PWatchVar;
 begin
-  DebugView.Items.BeginUpdate;
+  WatchView.Items.BeginUpdate;
   try
     for I := WatchVarList.Count - 1 downto 0 do begin
       wparent := PWatchVar(WatchVarList.Items[I]);
@@ -417,7 +418,7 @@ begin
       end;
     end;
   finally
-    DebugView.Items.EndUpdate;
+    WatchView.Items.EndUpdate;
   end;
 end;
 

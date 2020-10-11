@@ -95,12 +95,15 @@ Alt+/        Open Code Completion  (depends on the option)
 
 Executing/Debugging
 -------------------
-F2			Goto Breakpoint
-F4			Toggle Breakpoint
+Cltr+F2			Goto Breakpoint
+Cltr+F4			Toggle Breakpoint
+F4             Continue
 F5			Start Debug
 F6			Stop Debug/Regular
-F7			Next Line
-F8			Step Line
+F7			Step Over
+F8			Step Into
+Ctrl+F8     Step Out
+Ctrl+F5     Run To Cursor
 F9			Compile
 F10			Start Regular
 F11			Compile and Run Regular

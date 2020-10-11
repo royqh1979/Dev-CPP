@@ -1,5 +1,8 @@
 Version 5.13-beta5
+  -  fix: crash when encounter } had have blank lines before it
   - enhancement: When first running, will check the user's language and set as the preference (Only Chinese now)
+  - change: regroup menuitems ( to highlight debug)
+  - redesign debug pane
 
 Version 5.13-beta4    October  2020
   - fix: auto code completion error when input ( as the end of

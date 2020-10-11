@@ -383,7 +383,8 @@ end;
 
 procedure TEditor.EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
 begin
-  ToggleBreakPoint(Line);
+  if Button = mbLeft then
+    ToggleBreakPoint(Line);
 end;
 
 procedure TEditor.ToggleBreakpoint(Line: integer);

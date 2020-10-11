@@ -1281,7 +1281,7 @@ var
   pt: TPoint;
 begin
   s := 'New syntax';
-  if not InputQuery(Lang[ID_EOPT_SAVESYNTAX], Lang[ID_EOPT_SAVESYNTAXQUESTION], s) or (s = '') then
+  if not ShowInputQuery(Lang[ID_EOPT_SAVESYNTAX], Lang[ID_EOPT_SAVESYNTAXQUESTION], s) or (s = '') then
     Exit;
 
   fINI := TIniFile.Create(devDirs.Config + s + SYNTAX_EXT);

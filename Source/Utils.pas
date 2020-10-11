@@ -164,6 +164,10 @@ function GetLanguageFileName():String;
 
 function IsUTF8Encoding(s:AnsiString):boolean;
 
+// Dialogs with the same font setting as mainform
+function ShowInputQuery(const ACaption, APrompt: string;
+  var Value: string): Boolean;
+
 implementation
 
 uses
@@ -1391,6 +1395,21 @@ begin
   Result := not allAscii;//All is ascii char, not utf-8 too.
 end;
 
+function ShowInputQuery(const ACaption, APrompt: string;
+  var Value: string): Boolean;
+var
+  oldName:TFontDataName;
+  oldHeight: integer;
+begin
+  oldName:=Graphics.DefFontData.Name;
+  oldHeight:=Graphics.DefFontData.Height;
+  Graphics.DefFontData.Name:=Application.MainForm.Font.Name;
+  Graphics.DefFontData.Height:=Application.MainForm.Font.Height;
+  Result:=InputQuery(ACaption, APrompt,Value);
+  Graphics.DefFontData.Name:=oldName;
+  Graphics.DefFontData.Height:=oldHeight;
+
+end;
 
 end.
 
