@@ -1159,7 +1159,7 @@ begin
             NewType,
             '',
             //fTokenizer[fIndex]^.Line,
-            startLine;
+            startLine,
             skTypedef,
             GetScope,
             fClassScope,
