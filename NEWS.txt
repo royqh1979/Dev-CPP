@@ -1,3 +1,11 @@
+Version 6-beta1
+  - version: upgrade to version 6, since we have made so many changes & enhancements.
+  - fix: export HTML correctly setting the charset name
+  - enhancement: breakpoint condition in effect while debugging
+  - enhancement: if the source code is utf-8 encoded, use utf-8 as the charset to export HTML
+  - enhancement: auto switch to structure pane when open/create a new file (not in project)
+  - add more about information
+  
 Version 5.13-beta5
   - fix: crash when encounter } and have blank lines before it
   - fix: Code completion while typing, if variable name have only one suggestion it will auto use it, that's not right.

@@ -61,6 +61,7 @@ type
     procedure AddBreakPoint(Linein: integer; e: TEditor); overload;
     procedure RemoveBreakPoint(Linein: integer; e: TEditor); overload;
     procedure DeleteBreakPointsOf(editor: TEditor);
+    procedure SetBreakPointCondition(i:integer; cond:ansistring);
     function GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;
 
     // watch var
@@ -253,6 +254,16 @@ begin
     condition := ' if '+PBreakPoint(BreakPointList.Items[i])^.condition;
   SendCommand('break',
     '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line)+ condition);
+end;
+
+procedure TDebugger.SetBreakPointCondition(i:integer; cond:ansistring);
+begin
+  PBreakPoint(BreakPointList[i])^.condition := cond;
+  if cond = '' then
+    SendCommand('cond', IntToStr(i+1))
+  else
+    SendCommand('cond', IntToStr(i+1)+' '+cond);
+  MainForm.OnBreakPointsChanged;
 end;
 
 procedure TDebugger.RemoveBreakPoint(i: integer);
