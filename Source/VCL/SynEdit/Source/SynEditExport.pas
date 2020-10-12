@@ -92,6 +92,7 @@ type
     procedure SetTitle(const Value: string);
     procedure SetUseBackground(const Value: boolean);
   protected
+    fCharset: String;
     fBackgroundColor: TColor;
     fClipboardFormat: UINT;
     fDefaultFilter: string;
@@ -205,6 +206,7 @@ type
     property Title: string read fTitle write SetTitle;
     { Use the token attribute background for the exporting. }
     property UseBackground: boolean read fUseBackground write SetUseBackground;
+    property Charset: string read fCharset write fCharset;
   end;
 
 implementation

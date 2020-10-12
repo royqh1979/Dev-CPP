@@ -135,6 +135,7 @@ begin
   fReplaceReserved['<'] := '&lt;';
   fReplaceReserved['>'] := '&gt;';
   fReplaceReserved['"'] := '&quot;';
+  {
   fReplaceReserved['™'] := '&trade;';
   fReplaceReserved['©'] := '&copy;';
   fReplaceReserved['®'] := '&reg;';
@@ -230,6 +231,7 @@ begin
   fReplaceReserved['×'] := '&times;';
   fReplaceReserved['÷'] := '&divide';
   fReplaceReserved['€'] := '&euro;';
+  }
 end;
 
 function TSynExporterHTML.AttriToCSS(Attri: TSynHighlighterAttributes;
@@ -359,7 +361,7 @@ const
                      '<html xmlns="http://www.w3.org/1999/xhtml">'#13#10 +
                      '<head>'#13#10 +
                      '<title>%s</title>'#13#10 +
-                     '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />'#13#10 +
+                     '<meta http-equiv="Content-Type" content="text/html; charset=%s" />'#13#10 +
                      '<meta name="generator" content="SynEdit HTML exporter" />'#13#10 +
                      '<style type="text/css">'#13#10 +
                      '<!--'#13#10 +
@@ -374,7 +376,7 @@ var
 begin
   EnumHighlighterAttris(Highlighter, True, AttriToCSSCallback, [@Styles]);
 
-  Header := Format(HTMLAsTextHeader, [Title, ColorToHtml(fFont.Color),
+  Header := Format(HTMLAsTextHeader, [Title,Charset, ColorToHtml(fFont.Color),
     ColorToHTML(fBackgroundColor), Styles]);
 
   Result := '';

@@ -619,6 +619,7 @@ procedure TEditor.ExportToHTML;
 var
   SynExporterHTML: TSynExporterHTML;
   SaveFileName: AnsiString;
+  newText : TStringList;
 begin
   SynExporterHTML := TSynExporterHTML.Create(nil);
   try
@@ -643,8 +644,19 @@ begin
     SynExporterHTML.UseBackground := True;
     SynExporterHTML.Font := fText.Font;
     SynExporterHTML.Highlighter := fText.Highlighter;
-
-    SynExporterHTML.ExportAll(fText.Lines);
+    if UseUTF8 then begin
+      SynExporterHTML.Charset := 'utf-8';
+      newText := TStringList.Create;
+      try
+        newText.Text:=AnsiToUTF8(fText.Text);
+        SynExporterHTML.ExportAll(newText);
+      finally
+        newText.Free;
+      end;
+    end else begin
+      SynExporterHTML.Charset := GetSystemCharsetName;
+      SynExporterHTML.ExportAll(fText.Lines);
+    end;
     SynExporterHTML.SaveToFile(SaveFileName);
   finally
     SynExporterHTML.Free;

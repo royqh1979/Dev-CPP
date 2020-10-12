@@ -1005,7 +1005,9 @@ end;
 procedure TCppParser.HandleOtherTypedefs;
 var
   NewType, OldType: AnsiString;
+  startLine: integer;
 begin
+  startLine := fTokenizer[fIndex]^.Line;
   // Skip typedef word
   Inc(fIndex);
 
@@ -1035,7 +1037,8 @@ begin
           OldType,
           NewType,
           '',
-          fTokenizer[fIndex]^.Line,
+          //fTokenizer[fIndex]^.Line,
+          startLine,
           skTypedef,
           GetScope,
           fClassScope,
@@ -1124,10 +1127,12 @@ var
   IsStruct: boolean;
   FirstSynonym, LastStatement: PStatement;
   SharedInheritance, NewClassLevel: TList;
+  startLine: integer;
 begin
   // Check if were dealing with a struct or union
   Prefix := fTokenizer[fIndex]^.Text;
   IsStruct := SameStr(Prefix, 'struct') or SameStr(Prefix, 'union');
+  startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip struct/class/union
 
   // Do not modifiy index initially
@@ -1153,7 +1158,8 @@ begin
             OldType,
             NewType,
             '',
-            fTokenizer[fIndex]^.Line,
+            //fTokenizer[fIndex]^.Line,
+            startLine,
             skTypedef,
             GetScope,
             fClassScope,
@@ -1189,7 +1195,8 @@ begin
               Prefix, // type
               Command, // command
               '', // args
-              fTokenizer[fIndex]^.Line,
+              //fTokenizer[fIndex]^.Line,
+              startLine,
               skClass,
               GetScope,
               fClassScope,
@@ -1263,7 +1270,8 @@ begin
                   Prefix,
                   Command,
                   '',
-                  fTokenizer[I]^.Line,
+                  //fTokenizer[I]^.Line,
+                  startLine,
                   skClass,
                   GetScope,
                   fClassScope,
@@ -1306,10 +1314,12 @@ var
   FunctionKind: TStatementKind;
   ParentClassName, ScopelessName: AnsiString;
   FunctionClass: PStatement;
+  startLine : integer;
 begin
   IsValid := True;
   IsDeclaration := False; // assume it's not a prototype
   I := fIndex;
+  startLine := fTokenizer[fIndex]^.Line;
 
   // Skip over argument list
   while (fIndex < fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] in [';', ':', '{', '}']) do
@@ -1368,7 +1378,8 @@ begin
         sType,
         ScopelessName,
         sArgs,
-        fTokenizer[fIndex - 1]^.Line,
+        //fTokenizer[fIndex - 1]^.Line,
+        startLine,
         FunctionKind,
         GetScope,
         fClassScope,
@@ -1386,7 +1397,8 @@ begin
         sType,
         ScopelessName,
         sArgs,
-        fTokenizer[fIndex - 1]^.Line,
+        //fTokenizer[fIndex - 1]^.Line,
+        startLine,
         FunctionKind,
         GetScope,
         fClassScope,
@@ -1636,8 +1648,10 @@ var
   Cmd: AnsiString;
   EnumName: AnsiString;
   I: integer;
+  startLine: integer;
 begin
   EnumName := '';
+  startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip 'enum'
   if fTokenizer[fIndex]^.Text[1] = '{' then begin // enum {...} NAME
 
@@ -1669,7 +1683,8 @@ begin
       'enum',
       EnumName,
       Args,
-      fTokenizer[fIndex]^.Line,
+      //fTokenizer[fIndex]^.Line,
+      startLine,
       skTypedef,
       GetScope,
       fClassScope,
@@ -1700,7 +1715,8 @@ begin
         LastType,
         Cmd,
         Args,
-        fTokenizer[fIndex]^.Line,
+        //fTokenizer[fIndex]^.Line,
+        startLine,
         skEnum,
         GetScope,
         fClassScope,

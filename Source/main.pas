@@ -1120,8 +1120,6 @@ begin
 end;
 
 procedure TMainForm.LoadText;
-var
-  len: integer;
 begin
   // Set interface font
   Font.Name := devData.InterfaceFont;
@@ -1559,6 +1557,7 @@ begin
     else
       exit;
   end;
+  LeftPageControl.ActivePage := LeftProjectSheet;
 
   // Only update class browser once
   ClassBrowser.BeginUpdate;
@@ -1616,6 +1615,7 @@ begin
   // Parse it after is has been shown so the user will not see random unpainted stuff for a while.
   if not Assigned(fProject) then begin
     CppParser.ParseFile(e.FileName, e.InProject, True);
+    LeftPageControl.ActivePage := LeftClassSheet;
   end;
 end;
 
@@ -1989,6 +1989,7 @@ begin
   NewEditor := fEditorList.NewEditor('',devEditor.UseUTF8ByDefault, False, True);
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
+  LeftPageControl.ActivePage := LeftClassSheet;
   UpdateFileEncodingStatusPanel;
 end;
 
@@ -2651,6 +2652,7 @@ begin
       FolderNode := fProject.Node;
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
+      LeftPageControl.ActivePage := LeftProjectSheet;
   if idx <> -1 then
     with fProject.OpenUnit(idx) do begin
       Activate;
@@ -6933,8 +6935,6 @@ var
   OldTopLine: integer;
   Output,ErrorMsg: ansiString;
 begin
-  if not devRefactorer.ValidateRename then
-    Exit;
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
     word := Editor.Text.WordAtCursor;
@@ -6963,7 +6963,7 @@ begin
           MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
         end
         else begin
-          Output:=RenameSymbol(Editor,newword,GetCompileTarget,fProject);
+          Output:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
           LogEntryProc(Output);
           LogEntryProc('------');
           ErrorMsg := ParseErrorMessage(Output);
@@ -7066,18 +7066,18 @@ procedure TMainForm.actBreakPointPropertiesExecute(Sender: TObject);
 var
   e:TEditor;
   breakId: integer;
-  oldCondition: String;
+  oldCond: String;
+  newCond: String;
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     breakId:=fDebugger.GetBreakPointIndexOnLine(e.GutterClickedLine,e);
     if breakId = -1 then
       Exit;
-    oldCondition := PBreakPoint(fDebugger.BreakPointList[breakId])^.condition;
-    PBreakPoint(fDebugger.BreakPointList[breakId])^.condition :=
-      Trim(ShowInputBox(LANG[ID_ITEM_BREAKPOINT_PROP], LANG[ID_MSG_BREAKPOINT_CONDITION]
-        , oldCondition));
-    OnBreakPointsChanged;
+    oldCond := PBreakPoint(fDebugger.BreakPointList[breakId])^.condition;
+    newCond := Trim(ShowInputBox(LANG[ID_ITEM_BREAKPOINT_PROP], LANG[ID_MSG_BREAKPOINT_CONDITION]
+        , oldCond));
+    fDebugger.SetBreakPointCondition(breakId,newCond);
   end;
 end;
 

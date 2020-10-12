@@ -349,7 +349,6 @@ begin
   if (doupdatecpuwindow and not spawnedcpuform) and Assigned(CPUForm) then begin
     MainForm.Debugger.SendCommand('disas', '');
     MainForm.Debugger.SendCommand('info registers', '');
-    MainForm.Debugger.SendCommand('backtrace', '');
   end;
 end;
 

@@ -1441,7 +1441,7 @@ begin
   if not (s[1] in ['_','a'..'z','A'..'Z']) then
     Exit;
   for i:=2 to len do begin
-    if not (s[i] in ['_',0..9,'a'..'z','A'..'Z']) then
+    if not (s[i] in ['_','0'..'9','a'..'z','A'..'Z']) then
       Exit;
   end;
   Result:=True;
