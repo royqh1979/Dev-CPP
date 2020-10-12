@@ -1120,8 +1120,6 @@ begin
 end;
 
 procedure TMainForm.LoadText;
-var
-  len: integer;
 begin
   // Set interface font
   Font.Name := devData.InterfaceFont;
@@ -6937,8 +6935,6 @@ var
   OldTopLine: integer;
   Output,ErrorMsg: ansiString;
 begin
-  if not devRefactorer.ValidateRename then
-    Exit;
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
     word := Editor.Text.WordAtCursor;
@@ -6967,7 +6963,7 @@ begin
           MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
         end
         else begin
-          Output:=RenameSymbol(Editor,newword,GetCompileTarget,fProject);
+          Output:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
           LogEntryProc(Output);
           LogEntryProc('------');
           ErrorMsg := ParseErrorMessage(Output);

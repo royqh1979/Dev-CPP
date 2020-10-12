@@ -4,7 +4,7 @@
 
     Dev-C++ is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     Dev-C++ is distributed in the hope that it will be useful,
@@ -21,24 +21,27 @@ unit Refactorer;
 interface
 
 uses
- Editor,devCFG,Project,Compiler;
+ Editor,devCFG,SynEdit,Project,Compiler,CppParser;
 
 type
   TRefactorer = class
   private
     fConfig: TdevRefactorer;
+    fCppParser: TCppParser;
+
   public
     function IsValidIdentifier(word:String):boolean;
     constructor Create(config:TdevRefactorer);
-    function RenameSymbol(Editor: TEditor;
-      word: AnsiString; Target: TTarget; Project:TProject):AnsiString;
+    function RenameSymbol(Editor: TEditor;   OldCaretXY:TBufferCoord;
+      oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
     function ParseErrorMessage(msg:AnsiString):AnsiString;
+    property CppParser: TCppParser read fCppParser write fCppParser;
   end;
 
 implementation
 
 uses
-  sysutils,SynEdit,utils,Classes;
+  main,sysutils,CBUtils,SynEditTextBuffer,SynEditHighlighter,utils,Classes;
 
 const
   ValidIdentifierChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z'];
@@ -89,90 +92,94 @@ begin
   Result := offset;
 end;
 
-function TRefactorer.RenameSymbol(Editor: TEditor;
-  word: AnsiString; Target: TTarget; Project:TProject):AnsiString;
-resourcestring
-  cAppendStr = '%s -I"%s"';
+function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
+  oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
 var
-  strList:TStringList;
-  ErrorOutput : ansiString;
-  FileName, WorkDir, RenameFileName: String;
-  IncludesParams : ansiString;
-  Cmd: ansiString;
-  i: Integer;
-  offset: Integer;
-begin
-  Result :='';
-  WorkDir := IncludeTrailingPathDelimiter(ExtractFileDir(Editor.FileName));
-  Filename := ExtractFileName(Editor.FileName);
+  Lines:TSynEditStringList;
+  newLines : TStringList;
+  PosY:integer;
+  CurrentNewLine,phrase : string;
+  pOldStatement : PStatement;
+  oldStatement : TStatement;
+  M: TMemoryStream;
 
-  case GetFileTyp(FileName) of
-    utcSrc,utcHead: begin
-      RenameFileName := WorkDir  + '~devcpp-rename-temp.c';
-      IncludesParams := FormatList(devCompilerSets.CompilationSet.CDir, cAppendStr);
-    end;
-    utCppSrc, utcppHead: begin
-      RenameFileName := WorkDir  + '~devcpp-rename-temp.cpp';
-      IncludesParams := FormatList(devCompilerSets.CompilationSet.CppDir, cAppendStr);
-    end;
-  else
-    Exit;
-  end;
-
-//  IncludesParams := IncludesParams + ' -I"'+ExtractFileDir(Editor.FileName)+'" ';
-
-  if (Target = ctProject) and assigned(Project) then
-    for i := 0 to pred(Project.Options.Includes.Count) do
-      if DirectoryExists(Project.Options.Includes[i]) then begin
-        IncludesParams := format(cAppendStr, [IncludesParams, Project.Options.Includes[i]]);
-      end;
-
-  Editor.SaveFile(RenameFileName);
-  try
-    if Editor.UseUTF8 then begin
-      offset := CalculateWordStartInUtf8(Editor);
-    end else begin
-      offset := Editor.Text.WordOffsetAtCursor;
-    end;
-
-    Cmd := devDirs.Exec + fConfig.RefactorerDir+fConfig.RenameFile
-      +' -i --offset='+IntToStr(offset)+' --new-name="<__dev_cpp__rename__>"  "'
-      +RenameFileName+'" -- '+IncludesParams+' -Wno-everything -target i686-pc-windows-gnu';
-
-    if Editor.UseUTF8 then
-      Cmd := Cmd + ' -finput-charset=utf-8'
-    else
-      Cmd := Cmd + ' -finput-charset='+GetSystemCharsetName;
-
-    ErrorOutput:= RunAndGetOutput(Cmd, WorkDir, nil, nil, False);
-
-    Result := Cmd + #13#10 + ErrorOutput;
-    if ParseErrorMessage(ErrorOutput)<>'' then
+  procedure ProcessLine;
+  var
+    Line,Token:String;
+    start:integer;
+    Attri: TSynHighlighterAttributes;
+    p: TBufferCoord;
+    statement: PStatement;
+  begin
+    CurrentNewLine := '';
+    Line := Lines[PosY];
+    if Line = '' then
       Exit;
 
-    //MessageBox(Application.Handle,PAnsiChar(Cmd),     PChar( 'Look'), MB_OK);
-    //MessageBox(Application.Handle,PAnsiChar(ErrorOutput),     PChar( 'Look'), MB_OK);
-
-    StrList := TStringList.Create;
-    try
-      // Use replace selection trick to preserve undo list
-      StrList.LoadFromFile(RenameFileName);
-      if Editor.UseUTF8 then
-        StrList.Text := UTF8ToAnsi(StrList.Text);
-      // Use replace all functionality
-      Editor.Text.BeginUpdate;
-      try
-        Editor.Text.SelectAll;
-        Editor.Text.SelText := StringReplace(StrList.Text,'<__dev_cpp__rename__>',word,[rfReplaceAll]); // do NOT use Lines.LoadFromFile which is not undo-able
-      finally
-        Editor.Text.EndUpdate; // repaint once
+    if PosY = 0 then
+      Editor.Text.Highlighter.ResetRange
+    else
+      Editor.Text.Highlighter.SetRange(Lines.Ranges[PosY - 1]);
+    Editor.Text.Highlighter.SetLine(Line, PosY);
+    while not Editor.Text.Highlighter.GetEol do begin
+        Start := Editor.Text.Highlighter.GetTokenPos + 1;
+        Token := Editor.Text.Highlighter.GetToken;
+        Attri := Editor.Text.Highlighter.GetTokenAttribute;
+        if SameStr(oldname,Token) then begin
+          //same name symbol , test if the same statement;
+          p.Line := PosY+1;
+          p.Char := Start;
+          phrase := Editor.GetWordAtPosition(p,wpInformation);
+          statement := MainForm.CppParser.FindStatementOf(
+            Editor.FileName,
+            phrase, p.Line, M);
+          if assigned(statement) and ((statement^._DefinitionFileName = oldStatement._DefinitionFileName)
+            and (statement^._DefinitionLine = oldStatement._DefinitionLine)) then // same statement
+            CurrentNewLine := Concat(CurrentNewLine,NewName)
+          else
+            CurrentNewLine := Concat(CurrentNewLine,Token);
+        end else begin
+          //not same name symbol
+          CurrentNewLine := Concat(CurrentNewLine,Token);
+        end;
+        Editor.Text.Highlighter.Next;
       end;
+  end;
+begin
+  Result:='';
+  Lines := Editor.Text.Lines;
+  if Lines.Count<1 then
+    Exit;
+  newLines := TStringList.Create;
+  M := TMemoryStream.Create;
+  try
+    Lines.SaveToStream(M);
+    phrase := Editor.GetWordAtPosition(oldCaretXY,wpInformation);
+    pOldStatement := MainForm.CppParser.FindStatementOf(
+      Editor.FileName,
+      phrase, oldCaretXY.Line, M);
+    if not Assigned(pOldStatement) then
+      Exit;
+    oldStatement := pOldStatement^;
+    PosY := 0;
+    while (PosY < Lines.Count) do begin
+      ProcessLine;
+      newLines.Add(currentNewLine);
+      inc(PosY);
+    end;
+    // Use replace all functionality
+    Editor.Text.BeginUpdate;
+    try
+      Editor.Text.SelectAll;
+      Editor.Text.SelText := newLines.Text;
     finally
-      StrList.Free;
+      Editor.Text.EndUpdate; // repaint once
     end;
   finally
-    DeleteFile(RenameFileName);
+    M.Free;
+    newLines.Free;
   end;
+
 end;
 
   function TRefactorer.ParseErrorMessage(msg:AnsiString):AnsiString;

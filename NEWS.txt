@@ -4,6 +4,7 @@ Version 6-beta1
   - enhancement: breakpoint condition in effect while debugging
   - enhancement: if the source code is utf-8 encoded, use utf-8 as the charset to export HTML
   - enhancement: auto switch to structure pane when open/create a new file (not in project)
+  - use self implementation of rename instead of clang-rename
   - add more about information
   
 Version 5.13-beta5

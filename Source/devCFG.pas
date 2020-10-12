@@ -246,17 +246,12 @@ type
   // Options for refactor
   TdevRefactorer = class(TPersistent)
   private
-    fRefactorerDir: AnsiString;
-    fRenameFile: AnsiString;
   public
     constructor Create;
     procedure SettoDefaults;
     procedure SaveSettings;
     procedure LoadSettings;
-    function ValidateRename: Boolean; // check if clang-rename.exe can be found
   published
-    property RefactorerDir: AnsiString read fRefactorerDir write fRefactorerDir;
-    property RenameFile: AnsiString read fRenameFile write fRenameFile;
   end;
 
   // Options for AStyle
@@ -2658,21 +2653,6 @@ end;
 
 procedure TdevRefactorer.SettoDefaults;
 begin
-  fRefactorerDir := 'Tools\';
-  fRenameFile := 'clang-rename.exe';
-end;
-
-function TdevRefactorer.ValidateRename: Boolean;
-begin
-  Result := False;
-
-  // Check if clang-rename.exe is where it should be
-  if not DirectoryExists(devDirs.Exec + fRefactorerDir) then
-    Exit;
-  if not FileExists(devDirs.Exec + fRefactorerDir + fRenameFile) then
-    Exit;
-
-  Result := True;
 end;
 
 { TdevFormatter }
