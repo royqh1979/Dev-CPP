@@ -1,7 +1,9 @@
 Version 6-beta1
   - version: upgrade to version 6, since we have made so many changes & enhancements.
+  - fix: font size in auto completion box
   - fix: export HTML correctly setting the charset name
   - enhancement: breakpoint condition in effect while debugging
+  - enhancement: set a default project folder when create a new project, and create it for the user
   - enhancement: if the source code is utf-8 encoded, use utf-8 as the charset to export HTML
   - enhancement: auto switch to structure pane when open/create a new file (not in project)
   - use self implementation of rename instead of clang-rename

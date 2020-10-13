@@ -4,12 +4,12 @@ object NewProjectForm: TNewProjectForm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'New Project'
-  ClientHeight = 300
-  ClientWidth = 540
+  ClientHeight = 471
+  ClientWidth = 720
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -12
+  Font.Height = -15
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
@@ -17,37 +17,79 @@ object NewProjectForm: TNewProjectForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    540
-    300)
-  PixelsPerInch = 96
-  TextHeight = 15
+    720
+    471)
+  PixelsPerInch = 120
+  TextHeight = 20
   object TemplateLabel: TLabel
-    Left = 24
-    Top = 188
-    Width = 240
-    Height = 27
+    Left = 32
+    Top = 251
+    Width = 393
+    Height = 54
     AutoSize = False
     Caption = '<desc>'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clNavy
-    Font.Height = -12
+    Font.Height = -15
     Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
   end
   object lblPrjName: TLabel
-    Left = 8
-    Top = 218
-    Width = 38
-    Height = 15
+    Left = 11
+    Top = 314
+    Width = 47
+    Height = 20
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Name: '
   end
+  object btnProjectLocation: TSpeedButton
+    Left = 672
+    Top = 388
+    Width = 29
+    Height = 29
+    Glyph.Data = {
+      36030000424D3603000000000000360000002800000010000000100000000100
+      18000000000000030000120B0000120B00000000000000000000BFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+      00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+      BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+      00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+      00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+      BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+      00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000000000
+      000000000000000000000000000000000000000000000000000000BFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBF00000000AEFF0096DB0096DB0096DB0096DB0096DB00
+      96DB0096DB0082BE000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+      00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF00AEFF00AEFF00AEFF00
+      AEFF00AEFF0096DB000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+      00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF5DCCFF5DCCFF5DCCFF5D
+      CCFF5DCCFF00AEFF000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF686868BDEBFF
+      5DCCFF5DCCFF000000000000000000000000000000000000BFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBFBFBFBF000000000000000000BFBFBFBFBFBFBFBFBFBF
+      BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+    OnClick = btnProjectLocationClick
+  end
+  object lblPrjLocation: TLabel
+    Left = 11
+    Top = 362
+    Width = 60
+    Height = 20
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Location:'
+  end
   object btnOk: TBitBtn
-    Left = 273
-    Top = 269
-    Width = 81
-    Height = 24
+    Left = 364
+    Top = 430
+    Width = 108
+    Height = 32
     Anchors = [akRight, akBottom]
     Caption = '&OK'
     Default = True
@@ -74,10 +116,10 @@ object NewProjectForm: TNewProjectForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 361
-    Top = 269
-    Width = 83
-    Height = 24
+    Left = 481
+    Top = 430
+    Width = 111
+    Height = 32
     Anchors = [akRight, akBottom]
     Caption = '&Cancel'
     TabOrder = 1
@@ -86,15 +128,15 @@ object NewProjectForm: TNewProjectForm
   object TabsMain: TTabControl
     Left = 0
     Top = 0
-    Width = 540
-    Height = 175
+    Width = 720
+    Height = 233
     TabOrder = 2
     OnChange = TabsMainChange
     object ProjView: TListView
       Left = 4
       Top = 6
-      Width = 532
-      Height = 165
+      Width = 712
+      Height = 223
       Align = alClient
       BevelInner = bvNone
       BevelOuter = bvNone
@@ -104,7 +146,7 @@ object NewProjectForm: TNewProjectForm
       ColumnClick = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       HideSelection = False
@@ -118,10 +160,10 @@ object NewProjectForm: TNewProjectForm
     end
   end
   object btnHelp: TBitBtn
-    Left = 458
-    Top = 269
-    Width = 75
-    Height = 24
+    Left = 611
+    Top = 430
+    Width = 100
+    Height = 32
     Anchors = [akRight, akBottom]
     Enabled = False
     TabOrder = 3
@@ -129,39 +171,46 @@ object NewProjectForm: TNewProjectForm
     Kind = bkHelp
   end
   object cbDefault: TCheckBox
-    Left = 280
-    Top = 211
-    Width = 201
-    Height = 17
+    Left = 445
+    Top = 281
+    Width = 268
+    Height = 23
     Caption = '&Make default language'
     TabOrder = 4
   end
   object rbCpp: TRadioButton
-    Left = 376
-    Top = 185
-    Width = 105
-    Height = 17
+    Left = 565
+    Top = 247
+    Width = 140
+    Height = 22
     Caption = 'C&++ project'
     Checked = True
     TabOrder = 5
     TabStop = True
   end
   object rbC: TRadioButton
-    Left = 280
-    Top = 185
-    Width = 81
-    Height = 17
+    Left = 437
+    Top = 247
+    Width = 108
+    Height = 22
     Caption = '&C project'
     TabOrder = 6
   end
   object edProjectName: TEdit
-    Left = 8
-    Top = 240
-    Width = 521
+    Left = 11
+    Top = 335
+    Width = 686
     Height = 23
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 7
     OnChange = edProjectNameChange
+  end
+  object edProjectLocation: TEdit
+    Left = 11
+    Top = 389
+    Width = 654
+    Height = 28
+    TabOrder = 8
   end
   object ImageList: TImageList
     Height = 32

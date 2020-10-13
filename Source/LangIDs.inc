@@ -491,6 +491,7 @@ const
   ID_NP_MAKEDEFAULT                     = 28004;
   ID_NP_PRJSHEET                        = 28005;
   ID_NP_PRJOPTIONS                      = 28006;
+  ID_NP_LOCATION                        = 28007;
   
   //remove unit
   ID_RU                                 = 29001;
@@ -980,6 +981,7 @@ const
   ID_MSG_COMPILERNOTFOUND               = 60028;
   ID_MSG_BREAKPOINT_CONDITION           = 60029;
   ID_MSG_CONVERTTOUTF8                  = 60030;
+  ID_MSG_CREATEFOLDER                   = 60031;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;
@@ -1011,6 +1013,7 @@ const
   ID_ERR_STATEMENT_NOT_FOUND        = 61027;
   ID_ERR_STATEMENT_OUT_OF_BOUND     = 61028;
   ID_ERR_STATEMENT_EXISTING         = 61029;
+  ID_ERR_CREATEFOLDER                  =61030;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;

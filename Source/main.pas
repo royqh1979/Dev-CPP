@@ -2018,35 +2018,34 @@ begin
           Exit;
       end;
 
-      // Ask the user where he wants to save
-      with TSaveDialog.Create(nil) do try
-        Filter := FLT_PROJECTS;
-        InitialDir := devDirs.Default;
-        FileName := edProjectName.Text + DEV_EXT; // guess initial name
-        Options := Options + [ofOverwritePrompt];
-        DefaultExt := 'dev';
-
-        // The user pressed the OK key. Save initial copy to disk
-        if Execute then begin
-          s := FileName;
-
-          // Create an empty project
-          fProject := TProject.Create(s, edProjectName.Text);
-
-          // Assign the selected template to it
-          if not fProject.AssignTemplate(s, GetTemplate) then begin
-            FreeAndNil(fProject);
-            MessageBox(Application.Handle, PAnsiChar(Lang[ID_ERR_TEMPLATE]), PAnsiChar(Lang[ID_ERROR]), MB_OK or
-              MB_ICONERROR);
-            Exit;
-          end;
-
-          // Save project preferences to disk. Don't force save all editors yet
-          fProject.SaveOptions;
+      //Create the project folder
+      if not DirectoryExists(edProjectLocation.Text) then begin
+        if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
+            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+          Exit;
+        if not CreateDir(edProjectLocation.Text) then begin
+          MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
+            mtError, [mbOK], 0);
+          Exit;
         end;
-      finally
-        Free;
       end;
+
+      s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
+
+      // Create an empty project
+      fProject := TProject.Create(s, edProjectName.Text);
+
+      // Assign the selected template to it
+      if not fProject.AssignTemplate(s, GetTemplate) then begin
+        FreeAndNil(fProject);
+        MessageBox(Application.Handle, PAnsiChar(Lang[ID_ERR_TEMPLATE]), PAnsiChar(Lang[ID_ERROR]), MB_OK or
+          MB_ICONERROR);
+        Exit;
+      end;
+
+      // Save project preferences to disk. Don't force save all editors yet
+      fProject.SaveOptions;
+
     end;
   finally
     Free;

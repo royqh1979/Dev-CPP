@@ -1911,10 +1911,10 @@ begin
 
     // Set save box options
     FileName := fFileName;
-    if (fFileName <> '') then
-      InitialDir := ExtractFilePath(fFileName)
-    else if Assigned(MainForm.Project) then
-      InitialDir := MainForm.Project.Directory;
+    if Assigned(MainForm.Project) then
+      InitialDir := MainForm.Project.Directory
+    else if (fFileName <> '') then
+      InitialDir := ExtractFilePath(fFileName);
 
     // Open the save box
     if Execute then
