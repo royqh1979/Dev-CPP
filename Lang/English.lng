@@ -941,6 +941,10 @@ Ver=1
 61023=Error launching debugger: no executable directory provided
 61024=Error writing to GDB
 61025=Source file has unsaved modifications. Save it before continue?
+61026='%s' is not a valid identifier!
+61027=Definition of %s is not found.
+61028=Definition of %s is not in file %s.
+61029=%s has been defined in %s:%d..
 
 
 62001=Untitled

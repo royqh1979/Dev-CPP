@@ -30,66 +30,22 @@ type
     fCppParser: TCppParser;
 
   public
-    function IsValidIdentifier(word:String):boolean;
-    constructor Create(config:TdevRefactorer);
+    constructor Create(config:TdevRefactorer; Parser:TCppParser);
     function RenameSymbol(Editor: TEditor;   OldCaretXY:TBufferCoord;
       oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
-    function ParseErrorMessage(msg:AnsiString):AnsiString;
-    property CppParser: TCppParser read fCppParser write fCppParser;
+    property CppParser: TCppParser read fCppParser;
   end;
 
 implementation
 
 uses
-  main,sysutils,CBUtils,SynEditTextBuffer,SynEditHighlighter,utils,Classes;
+  sysutils,CBUtils,SynEditTextBuffer,SynEditHighlighter,utils,Classes,
+  MultiLangSupport;
 
-const
-  ValidIdentifierChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z'];
-
-constructor TRefactorer.Create(config:TdevRefactorer);
+constructor TRefactorer.Create(config:TdevRefactorer;Parser:TCppParser);
 begin
   fConfig :=config;
-end;
-
-function TRefactorer.IsValidIdentifier(word:AnsiString):boolean;
-var
-  i,Len:Integer;
-begin
-  Result := False;
-  Len:=Length(word);
-  if Len<1 then
-    Exit;
-
-  //valid identifier can't start with number
-  if word[1] in ['0'..'9'] then
-    Exit;
-
-  for i:=1 to Len do
-  begin
-    if not (word[i] in ValidIdentifierChars) and (ord(word[i])<128) then
-      Exit;
-  end;
-  Result:=True;
-end;
-
-function CalculateWordStartInUtf8(Editor:TEditor):integer;
-var
-  pos : TBufferCoord;
-  i:integer;
-  utf8Str: String;
-  offset : integer;
-  substr : String;
-begin
-  pos := Editor.Text.WordStart;
-  offset :=0;
-  for i:=0 to pos.Line-2 do begin
-    utf8Str := AnsiToUTF8(Editor.Text.Lines[i]);
-    offset := offset + length(utf8str) + 2;
-  end;
-  substr := copy(Editor.Text.Lines[pos.Line-1],1,pos.Char-1);
-  utf8str := AnsiToUTF8(substr);
-  offset := offset + length(utf8str)+1;
-  Result := offset;
+  fCppParser := Parser;
 end;
 
 function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
@@ -98,8 +54,8 @@ var
   Lines:TSynEditStringList;
   newLines : TStringList;
   PosY:integer;
-  CurrentNewLine,phrase : string;
-  pOldStatement : PStatement;
+  CurrentNewLine,phrase,newphrase : string;
+  pOldStatement,pNewStatement: PStatement;
   oldStatement : TStatement;
   M: TMemoryStream;
 
@@ -107,7 +63,6 @@ var
   var
     Line,Token:String;
     start:integer;
-    Attri: TSynHighlighterAttributes;
     p: TBufferCoord;
     statement: PStatement;
   begin
@@ -124,13 +79,12 @@ var
     while not Editor.Text.Highlighter.GetEol do begin
         Start := Editor.Text.Highlighter.GetTokenPos + 1;
         Token := Editor.Text.Highlighter.GetToken;
-        Attri := Editor.Text.Highlighter.GetTokenAttribute;
         if SameStr(oldname,Token) then begin
           //same name symbol , test if the same statement;
           p.Line := PosY+1;
           p.Char := Start;
           phrase := Editor.GetWordAtPosition(p,wpInformation);
-          statement := MainForm.CppParser.FindStatementOf(
+          statement := CppParser.FindStatementOf(
             Editor.FileName,
             phrase, p.Line, M);
           if assigned(statement) and ((statement^._DefinitionFileName = oldStatement._DefinitionFileName)
@@ -146,7 +100,15 @@ var
       end;
   end;
 begin
+//TODO: 1. 增加对newWord的重名检查; 2. 检查定义是否在本文件中（单文件） 或者 在本项目文件列表中（项目）
+//TODO: 3.修改项目中其他文件（定义所在文件放在最后修改）
   Result:='';
+  //Test if newword is a valid id
+  if not IsIdentifier(newName) then begin
+    Result := Format(Lang[ID_ERR_NOT_IDENTIFIER],[newName]);
+    Exit;
+  end;
+
   Lines := Editor.Text.Lines;
   if Lines.Count<1 then
     Exit;
@@ -154,13 +116,33 @@ begin
   M := TMemoryStream.Create;
   try
     Lines.SaveToStream(M);
+    // get full phrase (such as s.name instead of name)
     phrase := Editor.GetWordAtPosition(oldCaretXY,wpInformation);
-    pOldStatement := MainForm.CppParser.FindStatementOf(
+    // Find it's definition
+    pOldStatement := CppParser.FindStatementOf(
       Editor.FileName,
       phrase, oldCaretXY.Line, M);
-    if not Assigned(pOldStatement) then
+    // definition of the old name is not found
+    if not Assigned(pOldStatement) then begin
+      Result := Format(Lang[ID_ERR_STATEMENT_NOT_FOUND],[phrase]);
       Exit;
-    oldStatement := pOldStatement^;
+    end;
+    // found but not in this file
+    if not SameStr(pOldStatement^._DefinitionFileName, Editor.FileName) then begin
+      Result := Format(Lang[ID_ERR_STATEMENT_OUT_OF_BOUND],[phrase,Editor.FileName]);
+      Exit;
+    end;
+    oldStatement := pOldStatement^; // save it  (cause statement node may change each time of find)
+    // check if newWord is duplicate with existing definitions
+    newphrase :=Copy(phrase,1,Length(phrase)-Length(oldName)) + newName;
+    pNewStatement := CppParser.FindStatementOf(
+      Editor.FileName,
+      newphrase, oldCaretXY.Line, M);
+    if Assigned(pNewStatement) then begin // definition with same name existing
+      Result := Format(Lang[ID_ERR_STATEMENT_EXISTING],[newphrase,pNewStatement^._DefinitionFileName,
+        pNewStatement^._DefinitionLine]);
+      Exit;
+    end;
     PosY := 0;
     while (PosY < Lines.Count) do begin
       ProcessLine;
@@ -181,30 +163,6 @@ begin
   end;
 
 end;
-
-  function TRefactorer.ParseErrorMessage(msg:AnsiString):AnsiString;
-  var
-    lines: TStringList;
-    i: Integer;
-  begin
-    Result:='';
-    lines := TStringList.Create;
-    try
-      lines.Text := msg;
-      i := lines.Count -1 ;
-      while i>=0 do
-      begin
-        if StartsStr('ERROR:',lines[i]) then begin
-          Result:=lines[i];
-          break;
-        end;
-        dec(i);
-      end;
-    finally
-      lines.Free;
-    end;
-  end;
-
 
 end.
 

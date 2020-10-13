@@ -6933,7 +6933,7 @@ var
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
-  Output,ErrorMsg: ansiString;
+  ErrorMsg: ansiString;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -6957,21 +6957,13 @@ begin
       OldTopLine := Editor.Text.TopLine;
       OldCaretXY := Editor.Text.CaretXY;
 
-      with TRefactorer.Create(devRefactorer) do try
-        if not IsValidIdentifier(newword) then begin
+      with TRefactorer.Create(devRefactorer,CppParser) do try
+        ErrorMsg:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
+        LogEntryProc(ErrorMsg);
+        LogEntryProc('------');
+        if ErrorMsg <> '' then begin
           MessageBeep($F);
-          MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
-        end
-        else begin
-          Output:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
-          LogEntryProc(Output);
-          LogEntryProc('------');
-          ErrorMsg := ParseErrorMessage(Output);
-//          LogEntryProc(ErrorMsg);
-          if ErrorMsg <> '' then begin
-            MessageBeep($F);
-            MessageDlg(ErrorMsg, mtError, [MbOK], 0);
-          end;
+          MessageDlg(ErrorMsg, mtError, [MbOK], 0);
         end;
 
       finally
@@ -6981,6 +6973,8 @@ begin
       // Attempt to not scroll view
       Editor.Text.TopLine := OldTopLine;
       Editor.Text.CaretXY := OldCaretXY;
+
+      Editor.Save;
     finally
       Free;
     end;
@@ -7169,8 +7163,8 @@ begin
   e:=fEditorList.GetEditor;
   if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
     e.UseUTF8 := True;
-    e.SaveFile(e.FileName);
-    e.LoadFile(e.FileName);
+    e.Text.Modified := True; // set modified flag to make sure save.
+    e.Save;
   end;
 end;
 

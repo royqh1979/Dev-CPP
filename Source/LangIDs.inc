@@ -1007,6 +1007,10 @@ const
   ID_ERR_GDBNOUTFOUND                   = 61023;
   ID_ERR_WRITEGDB                       = 61024;
   ID_ERR_FILEMODIFIED               = 61025;
+  ID_ERR_NOT_IDENTIFIER             = 61026;
+  ID_ERR_STATEMENT_NOT_FOUND        = 61027;
+  ID_ERR_STATEMENT_OUT_OF_BOUND     = 61028;
+  ID_ERR_STATEMENT_EXISTING         = 61029;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;

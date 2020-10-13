@@ -41,6 +41,7 @@ type
     fMinHeight: integer;
     fMaxWidth: integer;
     fMaxHeight: integer;
+    fFontSize: integer;
     fPos: TPoint;
     fColor: TColor;
     fWidth: integer;
@@ -82,6 +83,7 @@ type
     property MinHeight: integer read fMinHeight write fMinHeight;
     property MaxWidth: integer read fMaxWidth write fMaxWidth;
     property MaxHeight: integer read fMaxHeight write fMaxHeight;
+    property FontSize: integer read fFontSize write fFontSize;
     property OnKeyPress: TKeyPressEvent read fOnKeyPress write fOnKeyPress;
     property OnResize: TNotifyEvent read fOnResize write fOnResize;
     property OnlyGlobals: boolean read fOnlyGlobals write fOnlyGlobals;
@@ -344,7 +346,11 @@ begin
     if not CodeComplForm.Showing then begin
       fParser.GetFileIncludes(Filename, fIncludedFiles);
       GetCompletionFor(Phrase);
+      CodeComplForm.lbCompletion.Font.Size := FontSize;
+      CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
+      CodeComplForm.Update;
     end;
+
 
     // Sort here by member
     I := fParser.FindLastOperator(Phrase);
@@ -362,8 +368,9 @@ begin
         CodeComplForm.lbCompletion.Items.Clear;
 
         // Only slow one hundred statements...
-        for I := 0 to min(fShowCount, fCompletionStatementList.Count - 1) do
+        for I := 0 to min(fShowCount, fCompletionStatementList.Count - 1) do begin
           CodeComplForm.lbCompletion.Items.AddObject('', fCompletionStatementList[I]);
+        end;
       finally
         CodeComplForm.lbCompletion.Items.EndUpdate;
       end;
