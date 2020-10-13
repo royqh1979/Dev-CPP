@@ -2032,6 +2032,19 @@ begin
 
       s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
 
+      if FileExists(s) then begin
+        with TSaveDialog.Create(nil) do try
+          Filter := FLT_PROJECTS;
+          Options := Options + [ofOverwritePrompt];
+          Title := Lang[ID_NV_SAVEPROJECT];
+
+          if Execute then
+            s := FileName;
+        finally
+          Free
+        end;
+      end;
+
       // Create an empty project
       fProject := TProject.Create(s, edProjectName.Text);
 

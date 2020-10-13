@@ -166,8 +166,13 @@ begin
   btnCancel.Caption := Lang[ID_BTN_CANCEL];
   btnHelp.Caption := Lang[ID_BTN_HELP];
 
-  edProjectName.Text := format(Lang[ID_NEWPROJECT], [dmMain.GetNewFileNumber]);
-  edProjectLocation.Text := devDirs.Default + PathDelim + edProjectName.Text;
+  while True do begin
+    edProjectName.Text := format(Lang[ID_NEWPROJECT], [dmMain.GetNewFileNumber]);
+    edProjectLocation.Text := devDirs.Default + PathDelim + edProjectName.Text;
+    if not DirectoryExists(edProjectLocation.Text) then
+      break;
+  end;
+
 end;
 
 procedure TNewProjectForm.UpdateView;

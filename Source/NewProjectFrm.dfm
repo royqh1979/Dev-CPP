@@ -37,7 +37,7 @@ object NewProjectForm: TNewProjectForm
   end
   object lblPrjName: TLabel
     Left = 11
-    Top = 314
+    Top = 306
     Width = 47
     Height = 20
     Anchors = [akLeft, akRight, akBottom]
@@ -45,7 +45,7 @@ object NewProjectForm: TNewProjectForm
   end
   object btnProjectLocation: TSpeedButton
     Left = 672
-    Top = 388
+    Top = 380
     Width = 29
     Height = 29
     Glyph.Data = {
@@ -79,7 +79,7 @@ object NewProjectForm: TNewProjectForm
   end
   object lblPrjLocation: TLabel
     Left = 11
-    Top = 362
+    Top = 354
     Width = 60
     Height = 20
     Anchors = [akLeft, akRight, akBottom]
@@ -198,7 +198,7 @@ object NewProjectForm: TNewProjectForm
   end
   object edProjectName: TEdit
     Left = 11
-    Top = 335
+    Top = 327
     Width = 686
     Height = 23
     Anchors = [akLeft, akRight, akBottom]
@@ -207,7 +207,7 @@ object NewProjectForm: TNewProjectForm
   end
   object edProjectLocation: TEdit
     Left = 11
-    Top = 389
+    Top = 381
     Width = 654
     Height = 28
     TabOrder = 8
