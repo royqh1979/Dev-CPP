@@ -2427,7 +2427,7 @@ begin
   fDoubleQuoteComplete := True;
   fDeleteSymbolPairs := True;
 
-  fUseUTF8ByDefault := False;
+  fUseUTF8ByDefault := True;
 end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);
