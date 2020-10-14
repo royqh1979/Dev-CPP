@@ -1,5 +1,7 @@
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
+  - enhancement: redesign debug views
+  - enhancement: add icons for debug buttons
 
 Version 6-beta1 October  2020
   - version: upgrade to version 6, since we have made so many changes & enhancements.

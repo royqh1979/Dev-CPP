@@ -369,7 +369,6 @@ type
     cmbCompilers: TComboBox;
     N17: TMenuItem;
     ToolClassesItem: TMenuItem;
-    WatchView: TTreeView;
     N67: TMenuItem;
     FloatingReportwindowItem: TMenuItem;
     actAttachProcess: TAction;
@@ -557,8 +556,6 @@ type
     actBreakPointProperties: TAction;
     DebugSheet: TTabSheet;
     DebugViews: TPageControl;
-    WatchSheet: TTabSheet;
-    EvaluateSheet: TTabSheet;
     DebugConsoleSheet: TTabSheet;
     CallStackSheet: TTabSheet;
     BreakpointsSheet: TTabSheet;
@@ -567,6 +564,25 @@ type
     BreakpointsView: TListView;
     actConvertToUTF8: TAction;
     ConvertToUTF8Item: TMenuItem;
+    DebugButtonsPanel: TPanel;
+    ToolBar1: TToolBar;
+    ToolButton4: TToolButton;
+    ToolBar2: TToolBar;
+    ToolButton6: TToolButton;
+    ToolBar3: TToolBar;
+    ToolButton8: TToolButton;
+    ToolBar4: TToolBar;
+    ToolButton9: TToolButton;
+    ToolBar5: TToolBar;
+    ToolButton10: TToolButton;
+    ToolBar6: TToolBar;
+    ToolButton11: TToolButton;
+    ToolBar7: TToolBar;
+    ToolButton12: TToolButton;
+    Panel1: TPanel;
+    Splitter1: TSplitter;
+    WatchSheet: TTabSheet;
+    WatchView: TTreeView;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -836,6 +852,8 @@ type
     procedure OnBreakPointsChanged;
     procedure actConvertToUTF8Update(Sender: TObject);
     procedure actConvertToUTF8Execute(Sender: TObject);
+    procedure BreakpointsViewSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1383,7 +1401,6 @@ begin
   lblEvaluate.Caption := Lang[ID_DEB_EVALUATE];
   WatchSheet.Caption := Lang[ID_DEB_WATCH];
   DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
-  EvaluateSheet.Caption := Lang[ID_DEB_EVALUATE];
   CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
   BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
 
@@ -3100,8 +3117,8 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
-  DebugViews.ActivePage := WatchSheet;
-  MessageControl.ActivePage := DebugSheet;
+  DebugViews.ActivePage := DebugConsoleSheet;
+  LeftPageControl.ActivePage := DebugSheet;
   OpenCloseMessageSheet(True);
 
   // Reset watch vars
@@ -7177,6 +7194,20 @@ begin
     e.UseUTF8 := True;
     e.Text.Modified := True; // set modified flag to make sure save.
     e.Save;
+  end;
+end;
+
+procedure TMainForm.BreakpointsViewSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
+var
+  e: TEditor;
+begin
+  if Selected then begin
+    e := EditorList.GetEditorFromFileName(Item.Caption);
+    if Assigned(e) then begin
+      e.SetCaretPosAndActivate(StrToIntDef(Item.SubItems[0], 1), 1);
+      e.Activate; 
+    end;
   end;
 end;
 

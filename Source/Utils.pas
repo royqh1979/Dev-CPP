@@ -50,7 +50,7 @@ procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files
 
 function ExecuteFile(const FileName, Params, DefaultDir: AnsiString; ShowCmd: Integer): THandle;
 function RunAndGetOutput(const Cmd, WorkDir: AnsiString; LineOutputFunc: TLineOutputFunc; CheckAbortFunc:
-  TCheckAbortFunc; ShowReturnValue: Boolean = True): AnsiString;
+  TCheckAbortFunc; ShowReturnValue: Boolean = True;pEnvironment:PChar=nil): AnsiString;
 
 function GetShortName(const FileName: AnsiString): AnsiString;
 
@@ -504,7 +504,8 @@ end;
 function RunAndGetOutput(const Cmd, WorkDir: AnsiString;
   LineOutputFunc: TLineOutputFunc;
   CheckAbortFunc: TCheckAbortFunc;
-  ShowReturnValue: Boolean): AnsiString;
+  ShowReturnValue: Boolean;
+  pEnvironment:PChar): AnsiString;
 var
   si: TStartupInfo;
   pi: TProcessInformation;
