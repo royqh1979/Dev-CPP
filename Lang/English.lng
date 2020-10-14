@@ -107,8 +107,8 @@ Ver=1
 
 7001=&Compile
 7002=&Run
-7003=C&ompile && Run
-7004=&Rebuild All
+7003=Compile && Run
+7004=Rebuild &All
 7005=C&lean
 7006=Co&mpile Results
 7007=&Syntax Check
@@ -147,17 +147,17 @@ Ver=1
 
 
 10001=&Debug
-10002=&Toggle Breakpoint
+10002=Toggle &Breakpoint
 10003=&Step Over
-10004=&Continue
-10005=&Add watch...
+10004=C&ontinue
+10005=Add &Watch...
 10006=&Watch Variables
-10007=Stop Execution
+10007=S&top Execution
 10008=&Edit watch
 10009=&Remove watch
 10010=Step &Into
-10011=Run to &Cursor
-10012=&View CPU window...
+10011=Run to Cursor
+10012=View CPU window...
 10013=A&ttach to process...
 10014=&Modify watch
 10015=&Clear all
