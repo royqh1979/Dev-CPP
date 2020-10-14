@@ -4041,7 +4041,7 @@ begin
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
 
       // add a dev-cpp's own macro
-      CppParser.AddHardDefineByLine('#define _DEV_CPP_2020_ 6');
+      CppParser.AddHardDefineByLine('#define _EGE_FOR_AUTO_CODE_COMPLETETION_ONLY_ 1');
     end;
 
   // Configure code completion
