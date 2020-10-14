@@ -488,7 +488,6 @@ type
     actGotoBreakPoint: TAction;
     Abortcompilation2: TMenuItem;
     actToggleCommentInline: TAction;
-    actCommentInlineSel1: TMenuItem;
     actFormatCurrentFile: TAction;
     actFormatOptions: TAction;
     actRunTests: TAction;
@@ -4040,6 +4039,9 @@ begin
       CppParser.ResetDefines;
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
+
+      // add a dev-cpp's own macro
+      CppParser.AddHardDefineByLine('#define _DEV_CPP_2020_ 6');
     end;
 
   // Configure code completion

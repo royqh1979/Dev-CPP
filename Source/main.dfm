@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 441
-  Top = 101
+  Left = 681
+  Top = 97
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1325,9 +1325,6 @@ object MainForm: TMainForm
       end
       object ToggleComment1: TMenuItem
         Action = actToggleComment
-      end
-      object actCommentInlineSel1: TMenuItem
-        Action = actToggleCommentInline
       end
       object N27: TMenuItem
         Caption = '-'
