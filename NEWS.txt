@@ -4,7 +4,7 @@ Version 6-beta2 October  2020
   - enhancement: redesign debug views
   - enhancement: add icons for debug buttons
   - enhancement: add icons for indent/unindent buttons
-  - enhancement: when parsing definitions, add a MACRO define '_DEV_CPP_2020_'. EGE use to stop include windows.h (so can show less non-using code suggestions from windows.h).
+  - enhancement: when parsing definitions, add a MACRO define '_EGE_FOR_AUTO_CODE_COMPLETETION_ONLY_'. EGE use to stop include windows.h (so can show less non-using code suggestions from windows.h).
 
 Version 6-beta1 October  2020
   - version: upgrade to version 6, since we have made so many changes & enhancements.
