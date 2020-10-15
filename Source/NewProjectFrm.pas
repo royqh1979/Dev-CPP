@@ -39,6 +39,9 @@ type
     TemplateLabel: TLabel;
     btnHelp: TBitBtn;
     ImageList: TImageList;
+    edProjectLocation: TEdit;
+    btnProjectLocation: TSpeedButton;
+    lblPrjLocation: TLabel;
     procedure ProjViewChange(Sender: TObject; Item: TListItem; Change: TItemChange);
     procedure FormCreate(Sender: TObject);
     procedure LoadText;
@@ -47,6 +50,7 @@ type
     procedure ProjViewDblClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
     procedure edProjectNameChange(Sender: TObject);
+    procedure btnProjectLocationClick(Sender: TObject);
   private
     procedure AddTemplate(const FileName: AnsiString);
     procedure ReadTemplateDir;
@@ -153,6 +157,7 @@ begin
 
   Caption := Lang[ID_NP];
   lblPrjName.Caption := Lang[ID_NP_PRJNAME];
+  lblPrjLocation.Caption := Lang[ID_NP_LOCATION];
   rbC.Caption := Lang[ID_NP_DEFAULTC];
   rbCpp.Caption := Lang[ID_NP_DEFAULTCPP];
   cbDefault.Caption := Lang[ID_NP_MAKEDEFAULT];
@@ -161,7 +166,13 @@ begin
   btnCancel.Caption := Lang[ID_BTN_CANCEL];
   btnHelp.Caption := Lang[ID_BTN_HELP];
 
-  edProjectName.Text := format(Lang[ID_NEWPROJECT], [dmMain.GetNewFileNumber]);
+  while True do begin
+    edProjectName.Text := format(Lang[ID_NEWPROJECT], [dmMain.GetNewFileNumber]);
+    edProjectLocation.Text := devDirs.Default + PathDelim + edProjectName.Text;
+    if not DirectoryExists(edProjectLocation.Text) then
+      break;
+  end;
+
 end;
 
 procedure TNewProjectForm.UpdateView;
@@ -248,6 +259,17 @@ end;
 procedure TNewProjectForm.edProjectNameChange(Sender: TObject);
 begin
   btnOk.Enabled := Assigned(ProjView.Selected) and (edProjectName.Text <> '');
+end;
+
+procedure TNewProjectForm.btnProjectLocationClick(Sender: TObject);
+var
+  Dir: string;
+begin
+  Dir := edProjectLocation.Text;
+  if not DirectoryExists(Dir) then
+    Dir := devDirs.Default;
+  if Utils.SelectDirectory(Lang[ID_NP_LOCATION],'',Dir) then
+    edProjectLocation.Text := Dir;
 end;
 
 end.

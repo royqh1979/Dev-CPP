@@ -1,13 +1,23 @@
-Version 6-beta1
+Version 6-beta2 October  2020
+  - fix: Debug menuitem captions
+  - fix: gray debug\run buttons while a program is running or debugging. 
+  - enhancement: redesign debug views
+  - enhancement: add icons for debug buttons
+  - enhancement: add icons for indent/unindent buttons
+  - enhancement: when parsing definitions, add a MACRO define '_EGE_FOR_AUTO_CODE_COMPLETETION_ONLY_'. EGE use to stop include windows.h (so can show less non-using code suggestions from windows.h).
+
+Version 6-beta1 October  2020
   - version: upgrade to version 6, since we have made so many changes & enhancements.
+  - fix: font size in auto completion box
   - fix: export HTML correctly setting the charset name
   - enhancement: breakpoint condition in effect while debugging
+  - enhancement: set a default project folder when create a new project, and create it for the user
   - enhancement: if the source code is utf-8 encoded, use utf-8 as the charset to export HTML
   - enhancement: auto switch to structure pane when open/create a new file (not in project)
   - use self implementation of rename instead of clang-rename
   - add more about information
   
-Version 5.13-beta5
+Version 5.13-beta5 October  2020
   - fix: crash when encounter } and have blank lines before it
   - fix: Code completion while typing, if variable name have only one suggestion it will auto use it, that's not right.
   - fix: can't correctly skip ')' when there is a string before it.

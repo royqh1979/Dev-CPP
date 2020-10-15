@@ -185,14 +185,15 @@ begin
     SetEvent(StartupEvent);
     WaitForSingleObject(ProcessInfo.hProcess, fTimeOut);
   end else begin
-    {with TStringList.Create do try
+  {
+    with TStringList.Create do try
       Add('"' + fFile + '" ' + params);
       Add('CreateProcess Failed:'+SysErrorMessage(GetLastError));
       SaveToFile('f:\\log.txt');
     finally
       Free;
     end;
-    }
+  }
     SetEvent(StartupEvent);
   end;
 

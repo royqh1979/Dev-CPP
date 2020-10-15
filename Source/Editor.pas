@@ -1029,8 +1029,9 @@ var
 
   procedure HandleMultilineCommentCompletion;
   begin
-    if (fText.CaretX > 1) and (fText.LineText[fText.CaretX - 1] = '/') then
+    if ((fText.CaretX > 1) and (fText.LineText[fText.CaretX - 1] = '/')) then begin
       InsertString('*/', false);
+    end;
   end;
 
   procedure HandleBraceCompletion;
@@ -1336,7 +1337,8 @@ begin
   P := fText.RowColumnToPixels(fText.DisplayXY);
   Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
-
+  //Set Font size;
+  fCompletionBox.FontSize := fText.Font.Size;
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
   if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
     if (attr <> fText.Highlighter.SymbolAttribute) and
@@ -1909,10 +1911,10 @@ begin
 
     // Set save box options
     FileName := fFileName;
-    if (fFileName <> '') then
-      InitialDir := ExtractFilePath(fFileName)
-    else if Assigned(MainForm.Project) then
-      InitialDir := MainForm.Project.Directory;
+    if Assigned(MainForm.Project) then
+      InitialDir := MainForm.Project.Directory
+    else if (fFileName <> '') then
+      InitialDir := ExtractFilePath(fFileName);
 
     // Open the save box
     if Execute then

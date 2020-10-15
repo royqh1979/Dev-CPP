@@ -50,7 +50,7 @@ procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files
 
 function ExecuteFile(const FileName, Params, DefaultDir: AnsiString; ShowCmd: Integer): THandle;
 function RunAndGetOutput(const Cmd, WorkDir: AnsiString; LineOutputFunc: TLineOutputFunc; CheckAbortFunc:
-  TCheckAbortFunc; ShowReturnValue: Boolean = True): AnsiString;
+  TCheckAbortFunc; ShowReturnValue: Boolean = True;pEnvironment:PChar=nil): AnsiString;
 
 function GetShortName(const FileName: AnsiString): AnsiString;
 
@@ -168,13 +168,16 @@ function IsUTF8Encoding(s:AnsiString):boolean;
 function ShowInputQuery(const ACaption, APrompt: string;
   var Value: string): Boolean;
 function ShowInputBox(const Caption, Prompt, Default : string): String;
+function SelectDirectory(const Caption: string; const Root: WideString;
+  var Directory: string): Boolean;
 
 function IsIdentifier(const s:string):boolean;
 
 implementation
 
 uses
-  devcfg, version, Graphics, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage;
+  devcfg, version, Graphics, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage,
+  FileCtrl;
 
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
 var
@@ -501,7 +504,8 @@ end;
 function RunAndGetOutput(const Cmd, WorkDir: AnsiString;
   LineOutputFunc: TLineOutputFunc;
   CheckAbortFunc: TCheckAbortFunc;
-  ShowReturnValue: Boolean): AnsiString;
+  ShowReturnValue: Boolean;
+  pEnvironment:PChar): AnsiString;
 var
   si: TStartupInfo;
   pi: TProcessInformation;
@@ -1446,5 +1450,74 @@ begin
   end;
   Result:=True;
 end;
+
+function SelectDirCB(Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM): Integer stdcall;
+begin
+  if (uMsg = BFFM_INITIALIZED) and (lpData <> 0) then
+    SendMessage(Wnd, BFFM_SETSELECTION, Integer(True), lpdata);
+  result := 0;
+end;
+
+function SelectDirectory(const Caption: string; const Root: WideString;
+  var Directory: string): Boolean;
+var
+  WindowList: Pointer;
+  BrowseInfo: TBrowseInfo;
+  Buffer: PChar;
+  OldErrorMode: Cardinal;
+  RootItemIDList, ItemIDList: PItemIDList;
+  ShellMalloc: IMalloc;
+  IDesktopFolder: IShellFolder;
+  Eaten, Flags: LongWord;
+begin
+  Result := False;
+  if not DirectoryExists(Directory) then
+    Directory := '';
+  FillChar(BrowseInfo, SizeOf(BrowseInfo), 0);
+  if (ShGetMalloc(ShellMalloc) = S_OK) and (ShellMalloc <> nil) then
+  begin
+    Buffer := ShellMalloc.Alloc(MAX_PATH);
+    try
+      RootItemIDList := nil;
+      if Root <> '' then
+      begin
+        SHGetDesktopFolder(IDesktopFolder);
+        IDesktopFolder.ParseDisplayName(Application.Handle, nil,
+          POleStr(Root), Eaten, RootItemIDList, Flags);
+      end;
+      with BrowseInfo do
+      begin
+        hwndOwner := Application.Handle;
+        pidlRoot := RootItemIDList;
+        pszDisplayName := Buffer;
+        lpszTitle := PChar(Caption);
+        ulFlags := BIF_RETURNONLYFSDIRS or BIF_USENEWUI;
+        if Directory <> '' then
+        begin
+          lpfn := SelectDirCB;
+          lParam := Integer(PChar(Directory));
+        end;
+      end;
+      WindowList := DisableTaskWindows(0);
+      OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+      try
+        ItemIDList := ShBrowseForFolder(BrowseInfo);
+      finally
+        SetErrorMode(OldErrorMode);
+        EnableTaskWindows(WindowList);
+      end;
+      Result :=  ItemIDList <> nil;
+      if Result then
+      begin
+        ShGetPathFromIDList(ItemIDList, Buffer);
+        ShellMalloc.Free(ItemIDList);
+        Directory := Buffer;
+      end;
+    finally
+      ShellMalloc.Free(Buffer);
+    end;
+  end;
+end;
+
 end.
 

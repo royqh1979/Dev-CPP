@@ -369,7 +369,6 @@ type
     cmbCompilers: TComboBox;
     N17: TMenuItem;
     ToolClassesItem: TMenuItem;
-    WatchView: TTreeView;
     N67: TMenuItem;
     FloatingReportwindowItem: TMenuItem;
     actAttachProcess: TAction;
@@ -489,7 +488,6 @@ type
     actGotoBreakPoint: TAction;
     Abortcompilation2: TMenuItem;
     actToggleCommentInline: TAction;
-    actCommentInlineSel1: TMenuItem;
     actFormatCurrentFile: TAction;
     actFormatOptions: TAction;
     actRunTests: TAction;
@@ -557,8 +555,6 @@ type
     actBreakPointProperties: TAction;
     DebugSheet: TTabSheet;
     DebugViews: TPageControl;
-    WatchSheet: TTabSheet;
-    EvaluateSheet: TTabSheet;
     DebugConsoleSheet: TTabSheet;
     CallStackSheet: TTabSheet;
     BreakpointsSheet: TTabSheet;
@@ -567,6 +563,26 @@ type
     BreakpointsView: TListView;
     actConvertToUTF8: TAction;
     ConvertToUTF8Item: TMenuItem;
+    DebugButtonsPanel: TPanel;
+    ToolBar1: TToolBar;
+    ToolButton4: TToolButton;
+    ToolBar2: TToolBar;
+    ToolButton6: TToolButton;
+    ToolBar3: TToolBar;
+    ToolButton8: TToolButton;
+    ToolBar4: TToolBar;
+    ToolButton9: TToolButton;
+    ToolBar5: TToolBar;
+    ToolButton10: TToolButton;
+    ToolBar6: TToolBar;
+    ToolButton11: TToolButton;
+    ToolBar7: TToolBar;
+    ToolButton12: TToolButton;
+    Panel1: TPanel;
+    Splitter1: TSplitter;
+    WatchSheet: TTabSheet;
+    WatchView: TTreeView;
+    Panel2: TPanel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -836,6 +852,8 @@ type
     procedure OnBreakPointsChanged;
     procedure actConvertToUTF8Update(Sender: TObject);
     procedure actConvertToUTF8Execute(Sender: TObject);
+    procedure BreakpointsViewSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1383,7 +1401,6 @@ begin
   lblEvaluate.Caption := Lang[ID_DEB_EVALUATE];
   WatchSheet.Caption := Lang[ID_DEB_WATCH];
   DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
-  EvaluateSheet.Caption := Lang[ID_DEB_EVALUATE];
   CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
   BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
 
@@ -2018,35 +2035,47 @@ begin
           Exit;
       end;
 
-      // Ask the user where he wants to save
-      with TSaveDialog.Create(nil) do try
-        Filter := FLT_PROJECTS;
-        InitialDir := devDirs.Default;
-        FileName := edProjectName.Text + DEV_EXT; // guess initial name
-        Options := Options + [ofOverwritePrompt];
-        DefaultExt := 'dev';
-
-        // The user pressed the OK key. Save initial copy to disk
-        if Execute then begin
-          s := FileName;
-
-          // Create an empty project
-          fProject := TProject.Create(s, edProjectName.Text);
-
-          // Assign the selected template to it
-          if not fProject.AssignTemplate(s, GetTemplate) then begin
-            FreeAndNil(fProject);
-            MessageBox(Application.Handle, PAnsiChar(Lang[ID_ERR_TEMPLATE]), PAnsiChar(Lang[ID_ERROR]), MB_OK or
-              MB_ICONERROR);
-            Exit;
-          end;
-
-          // Save project preferences to disk. Don't force save all editors yet
-          fProject.SaveOptions;
+      //Create the project folder
+      if not DirectoryExists(edProjectLocation.Text) then begin
+        if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
+            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+          Exit;
+        if not CreateDir(edProjectLocation.Text) then begin
+          MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
+            mtError, [mbOK], 0);
+          Exit;
         end;
-      finally
-        Free;
       end;
+
+      s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
+
+      if FileExists(s) then begin
+        with TSaveDialog.Create(nil) do try
+          Filter := FLT_PROJECTS;
+          Options := Options + [ofOverwritePrompt];
+          Title := Lang[ID_NV_SAVEPROJECT];
+
+          if Execute then
+            s := FileName;
+        finally
+          Free
+        end;
+      end;
+
+      // Create an empty project
+      fProject := TProject.Create(s, edProjectName.Text);
+
+      // Assign the selected template to it
+      if not fProject.AssignTemplate(s, GetTemplate) then begin
+        FreeAndNil(fProject);
+        MessageBox(Application.Handle, PAnsiChar(Lang[ID_ERR_TEMPLATE]), PAnsiChar(Lang[ID_ERROR]), MB_OK or
+          MB_ICONERROR);
+        Exit;
+      end;
+
+      // Save project preferences to disk. Don't force save all editors yet
+      fProject.SaveOptions;
+
     end;
   finally
     Free;
@@ -3088,8 +3117,8 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
-  DebugViews.ActivePage := WatchSheet;
-  MessageControl.ActivePage := DebugSheet;
+  DebugViews.ActivePage := DebugConsoleSheet;
+  LeftPageControl.ActivePage := DebugSheet;
   OpenCloseMessageSheet(True);
 
   // Reset watch vars
@@ -3361,7 +3390,8 @@ end;
 procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
 begin
   TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-    Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
+    Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+     and (not devExecutor.Running);
 end;
 
 procedure TMainForm.actUpdateProject(Sender: TObject);
@@ -3405,19 +3435,22 @@ procedure TMainForm.actRunUpdate(Sender: TObject);
 begin
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (fProject.Options.typ <> dptStat) and (not
-      fCompiler.Compiling)
+      fCompiler.Compiling) and (not fDebugger.Executing) and (not devExecutor.Running)
   else
-    TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (not fCompiler.Compiling);
+    TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (not fCompiler.Compiling)
+      and (not fDebugger.Executing)  and (not devExecutor.Running);
 end;
 
 procedure TMainForm.actCompileRunUpdate(Sender: TObject);
 begin
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling) and
-      (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet)
+      (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+       and (not devExecutor.Running)
   else
     TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-      Assigned(devCompilerSets.CompilationSet)
+      Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+      and (not devExecutor.Running);
 end;
 
 procedure TMainForm.ToolbarDockClick(Sender: TObject);
@@ -4011,6 +4044,9 @@ begin
       CppParser.ResetDefines;
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
+
+      // add a dev-cpp's own macro
+      CppParser.AddHardDefineByLine('#define _EGE_FOR_AUTO_CODE_COMPLETETION_ONLY_ 1');
     end;
 
   // Configure code completion
@@ -6933,7 +6969,7 @@ var
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
-  Output,ErrorMsg: ansiString;
+  ErrorMsg: ansiString;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -6957,21 +6993,13 @@ begin
       OldTopLine := Editor.Text.TopLine;
       OldCaretXY := Editor.Text.CaretXY;
 
-      with TRefactorer.Create(devRefactorer) do try
-        if not IsValidIdentifier(newword) then begin
+      with TRefactorer.Create(devRefactorer,CppParser) do try
+        ErrorMsg:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
+        LogEntryProc(ErrorMsg);
+        LogEntryProc('------');
+        if ErrorMsg <> '' then begin
           MessageBeep($F);
-          MessageDlg('"'+newword+'" is not a valid identifier!', mtError, [MbOK], 0);
-        end
-        else begin
-          Output:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
-          LogEntryProc(Output);
-          LogEntryProc('------');
-          ErrorMsg := ParseErrorMessage(Output);
-//          LogEntryProc(ErrorMsg);
-          if ErrorMsg <> '' then begin
-            MessageBeep($F);
-            MessageDlg(ErrorMsg, mtError, [MbOK], 0);
-          end;
+          MessageDlg(ErrorMsg, mtError, [MbOK], 0);
         end;
 
       finally
@@ -6981,6 +7009,8 @@ begin
       // Attempt to not scroll view
       Editor.Text.TopLine := OldTopLine;
       Editor.Text.CaretXY := OldCaretXY;
+
+      Editor.Save;
     finally
       Free;
     end;
@@ -7169,8 +7199,22 @@ begin
   e:=fEditorList.GetEditor;
   if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
     e.UseUTF8 := True;
-    e.SaveFile(e.FileName);
-    e.LoadFile(e.FileName);
+    e.Text.Modified := True; // set modified flag to make sure save.
+    e.Save;
+  end;
+end;
+
+procedure TMainForm.BreakpointsViewSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
+var
+  e: TEditor;
+begin
+  if Selected then begin
+    e := EditorList.GetEditorFromFileName(Item.Caption);
+    if Assigned(e) then begin
+      e.SetCaretPosAndActivate(StrToIntDef(Item.SubItems[0], 1), 1);
+      e.Activate; 
+    end;
   end;
 end;
 

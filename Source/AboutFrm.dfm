@@ -4,45 +4,45 @@ object AboutForm: TAboutForm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Dev-C++ :-)'
-  ClientHeight = 657
-  ClientWidth = 414
+  ClientHeight = 791
+  ClientWidth = 552
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -12
+  Font.Height = -15
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 15
+  PixelsPerInch = 120
+  TextHeight = 20
   object lblVersion: TLabel
-    Left = 214
-    Top = 116
-    Width = 41
-    Height = 15
+    Left = 285
+    Top = 155
+    Width = 52
+    Height = 20
     Caption = 'Version '
   end
   object lblCopyright: TLabel
-    Left = 8
-    Top = 116
+    Left = 11
+    Top = 155
     Width = 190
     Height = 13
     Caption = 'Copyright (c) Bloodshed Software'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = 11
+    Font.Height = 15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
   end
   object imgBanner: TImage
     Left = 0
-    Top = -43
-    Width = 414
-    Height = 150
+    Top = -57
+    Width = 552
+    Height = 200
     DragMode = dmAutomatic
     Picture.Data = {
       07544269746D617076ED0500424D76ED0500000000003600000028000000DB01
@@ -12188,26 +12188,26 @@ object AboutForm: TAboutForm
       FE2D}
   end
   object btnOk: TBitBtn
-    Left = 334
-    Top = 630
-    Width = 75
-    Height = 25
+    Left = 445
+    Top = 752
+    Width = 100
+    Height = 33
     Caption = '&OK'
     TabOrder = 5
     Kind = bkOK
   end
   object grpLicense: TGroupBox
-    Left = 8
-    Top = 144
-    Width = 401
-    Height = 121
+    Left = 11
+    Top = 192
+    Width = 534
+    Height = 161
     Caption = 'GNU General Public License : '
     TabOrder = 1
     object txtLicense: TMemo
-      Left = 8
-      Top = 16
-      Width = 385
-      Height = 95
+      Left = 11
+      Top = 21
+      Width = 513
+      Height = 127
       Lines.Strings = (
         'GNU GENERAL PUBLIC LICENSE'
         ''
@@ -12936,377 +12936,302 @@ object AboutForm: TAboutForm
     end
   end
   object grpLinks: TGroupBox
-    Left = 8
-    Top = 264
-    Width = 401
-    Height = 353
+    Left = 11
+    Top = 360
+    Width = 534
+    Height = 385
     Caption = 'Web sites / email : '
     TabOrder = 2
     object lblBlood: TLabel
-      Left = 16
-      Top = 282
-      Width = 153
-      Height = 15
+      Left = 21
+      Top = 288
+      Width = 194
+      Height = 20
       Caption = 'Bloodshed Software Website:'
     end
     object lblBloodURL: TLabel
-      Left = 184
-      Top = 282
-      Width = 125
-      Height = 13
+      Left = 245
+      Top = 288
+      Width = 148
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.bloodshed.net'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblMinGW: TLabel
-      Left = 16
-      Top = 242
-      Width = 140
-      Height = 15
+      Left = 21
+      Top = 147
+      Width = 174
+      Height = 20
       Caption = 'MinGW Compiler Website:'
     end
     object lblMinGWURL: TLabel
-      Left = 184
-      Top = 242
-      Width = 106
-      Height = 13
+      Left = 245
+      Top = 147
+      Width = 123
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.mingw.org'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblDiscussion: TLabel
-      Left = 16
-      Top = 300
-      Width = 149
-      Height = 15
+      Left = 21
+      Top = 312
+      Width = 183
+      Height = 20
       Caption = 'Dev-C++ Discussion Forum:'
     end
     object lblDiscussionURL: TLabel
-      Left = 184
-      Top = 300
-      Width = 161
-      Height = 13
+      Left = 245
+      Top = 312
+      Width = 189
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.bloodshed.net/forum/'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblMailing: TLabel
-      Left = 16
-      Top = 318
-      Width = 147
-      Height = 15
+      Left = 21
+      Top = 336
+      Width = 183
+      Height = 20
       Caption = 'Dev-C++ Users Mailing List:'
     end
     object lblMailingURL: TLabel
-      Left = 184
-      Top = 318
-      Width = 201
-      Height = 13
+      Left = 245
+      Top = 336
+      Width = 243
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.bloodshed.net/devcpp-ml.html'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblResources: TLabel
-      Left = 16
-      Top = 336
-      Width = 125
-      Height = 15
+      Left = 21
+      Top = 360
+      Width = 157
+      Height = 20
       Caption = 'Dev-C++ Resource Site:'
     end
     object lblResourcesURL: TLabel
-      Left = 184
-      Top = 336
-      Width = 153
-      Height = 13
+      Left = 245
+      Top = 360
+      Width = 179
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.bloodshed.net/dev/'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblBlog: TLabel
-      Left = 16
-      Top = 172
-      Width = 27
-      Height = 15
+      Left = 21
+      Top = 229
+      Width = 34
+      Height = 20
       Caption = 'Blog:'
     end
     object lblBlogURL: TLabel
-      Left = 184
-      Top = 172
-      Width = 160
-      Height = 13
+      Left = 245
+      Top = 229
+      Width = 198
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://orwelldevcpp.blogspot.com'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object bvNew: TBevel
-      Left = 16
-      Top = 114
-      Width = 369
-      Height = 2
+      Left = 21
+      Top = 176
+      Width = 492
+      Height = 3
       Shape = bsBottomLine
     end
     object lblSubreddit: TLabel
-      Left = 16
-      Top = 154
-      Width = 54
-      Height = 15
+      Left = 21
+      Top = 205
+      Width = 68
+      Height = 20
       Caption = 'Subreddit:'
     end
     object lblSubredditURL: TLabel
-      Left = 184
-      Top = 154
-      Width = 161
-      Height = 13
+      Left = 245
+      Top = 205
+      Width = 187
+      Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.reddit.com/r/devcpp/'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblRepository: TLabel
-      Left = 16
-      Top = 40
-      Width = 59
-      Height = 15
+      Left = 21
+      Top = 53
+      Width = 74
+      Height = 20
       Caption = 'Repository:'
     end
     object lblRepositoryURL: TLabel
-      Left = 184
-      Top = 136
-      Width = 177
-      Height = 13
+      Left = 245
+      Top = 181
+      Width = 211
+      Height = 16
       Cursor = crHandPoint
       Caption = 'https://sf.net/projects/orwelldevcpp/'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblPost4992: TLabel
-      Left = 16
-      Top = 24
-      Width = 32
-      Height = 15
+      Left = 21
+      Top = 32
+      Width = 41
+      Height = 20
       Caption = '> 5.11'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -12
+      Font.Height = -15
       Font.Name = 'Segoe UI'
       Font.Style = [fsItalic]
       ParentFont = False
     end
     object lblCompilers: TLabel
-      Left = 16
-      Top = 224
-      Width = 52
-      Height = 15
+      Left = 21
+      Top = 123
+      Width = 65
+      Height = 20
       Caption = 'Compilers'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -12
+      Font.Height = -15
       Font.Name = 'Segoe UI'
       Font.Style = [fsItalic]
       ParentFont = False
     end
     object lblPre4992: TLabel
-      Left = 16
+      Left = 21
       Top = 264
-      Width = 106
-      Height = 15
+      Width = 130
+      Height = 20
       Caption = '<= 4.9.9.2 (old stuff)'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -12
+      Font.Height = -15
       Font.Name = 'Segoe UI'
       Font.Style = [fsItalic]
       ParentFont = False
     end
     object bvCompilers: TBevel
-      Left = 16
-      Top = 258
-      Width = 369
-      Height = 2
+      Left = 21
+      Top = 256
+      Width = 492
+      Height = 3
       Shape = bsBottomLine
     end
-    object imgDonate: TImage
-      Left = 16
-      Top = 188
-      Width = 92
-      Height = 26
-      Cursor = crHandPoint
-      AutoSize = True
-      Picture.Data = {
-        07544269746D61708E0D0000424D8E0D00000000000036040000280000005C00
-        00001A000000010008000000000058090000C40E0000C40E0000000100000001
-        000066330000673A150074523600555348007C654A005063670087725E008987
-        7A004B6F8900467DAB003E8BB800379AD8003399FF0033A5EF0026A9FF002CAC
-        FF0034AFFF003CB2FF0045B7FE005ABEFF0078CAFF00929795008D9DA50098AC
-        B400A0BBC4009DCADE00A8C9D6009AD3EE0087D2FE0096D6FF009EDEFE00A8D8
-        EE00B3DCEF00A2DFFE00A8E1FE00B0E0FF00B4E2FF00B0E4FE00B5E6FE00BAE7
-        FE00C0E9FE00C9ECFF00D3EFFF00DCF3FF00E5F6FF00EEF9FF00F0F0F000F8FD
-        FF00000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        00002E2E2E2E2E2E2E2E0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C
-        0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C
-        0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C2E2E2E2E2E2E2E2E2E2E
-        2E2E2E2E0C0C1C292A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A
-        2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A
-        2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A230C0E2E2E2E2E2E2E2E2E2E2E2E0C
-        1C24242424242424242424242424242424242424242424242424242424242424
-        2424242424242424242424242424242424242424242424242424242424242424
-        2424242424242424242424242424241E0C2E2E2E2E2E2E2E2E2E0C1C1D1D1D1D
-        1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D
-        1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D1D
-        1D1D1D1D1D1D1D1D1D1D1D1D1D0C2E2E2E2E2E2E2E0C14141414141414141414
-        1414141414141414141414141414141414141414141414141414141414141414
-        1414141414141414141414141414141414141414141414141414141414141414
-        141414141414141414140C2E2E2E2E2E0C121313131313131313131313131313
-        1313131313131313131313131313131313131313131313131313131313131313
-        1313131313131313131313131313131313131313131313131313131313131313
-        131313131313130C2E2E2E2E0C11111111111111111111111111111111111111
-        1111111111111111111111111111111111111111111111111111111111111111
-        1111111111111111111111111111111111111111111111111111111111111111
-        1111110C2E2E2E0C0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E0E
-        0C2E2E0C0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0A0303030303080B0F0F
-        0F0F0B030000020A0F0F08030A0E0F08030A0E0F0800020A03030F0F0F030000
-        0B0F0B030000050B0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0C2E0C0F
-        0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0A00000000000000090F0F0D0100
-        05050100090F0800050F0F0800050F0B0000050200000F0F0A0001080B0D0200
-        050500020D0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0C0C1010101010
-        101010101010101010101010101010000010100D0800000A1009000310100B00
-        010D0A000310100A0003100A0003100D01000B100B0001101009000510100A0B
-        1010101010101010101010101010101010101010100C0C111111111111111213
-        1C1C1E1E1E1E1E1E1E1E1E0200171E1E1E1500021E0700071E1E1E0400161B00
-        001E1E1B00001E1B010007180200171E1E0200191E07000207070707161E1E1E
-        1E1E1E1E1E1E1D1C1413111111111111110C0C1111111111131C212121212121
-        212121212121210600151E212121020018150006212121070007210200172121
-        0200182118040100000007212102001721150001020402000221212121212121
-        2121212121211E1412111111110C0C121212121C222222222222222222222222
-        222222150006222222220700071900011F222207001522060004222206001622
-        2222222216000422220700072218000222221700042222222222222222222222
-        222222221E131212120C0C1212121D2222222222222222222222222222222218
-        0002222222220700072206000217160100192215000004170200072217000217
-        0700042217040002071F04000617020015222222222222222222222222222222
-        22221412120C0C12121C25252525252525252525252525252525252500001F25
-        252507001525250700000001152525180002060000011A252507000000011A25
-        1A00000000151F06000000041F25252525252525252525252525252525252513
-        120C0C1213262626262626262626262626262626262626260400182626200100
-        1A26262620181826262626262626261A18202626262620181826262626260100
-        202626261A181A26262626262626262626262626262626262626261D120C2E11
-        1427272727272727272727272727272727272727070002040401000427272727
-        2727272727272727272727272727272727272727272727272727150118272727
-        272727272727272727272727272727272727272727272727112E2E0C1C282828
-        2828282828282828282828282828282815000000000107202828282828282828
-        28282828282828282828282828282828282828282828281A1728282828282828
-        28282828282828282828282828282828282828280C2E2E2E1229292929292929
-        2929292929292929292929292929292929292929292929292929292929292929
-        2929292929292929292929292929292929292929292929292929292929292929
-        2929292929292929292929292929291F2E2E2E2E0C1E2A2A2A2A2A2A2A2A2A2A
-        2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A
-        2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A2A
-        2A2A2A2A2A2A2A2A2A2A2A0C2E2E2E2E2E0C292B2B2B2B2B2B2B2B2B2B2B2B2B
-        2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B
-        2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B2B
-        2B2B2B2B2B2A0C2E2E2E2E2E2E2E0C242C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C
-        2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C
-        2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C2C
-        2B0C2E2E2E2E2E2E2E2E2E0C1C2B2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D
-        2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D
-        2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D2D230C2E2E2E
-        2E2E2E2E2E2E2E2E0C0C14242B2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
-        2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
-        2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F291D0C0C2E2E2E2E2E2E2E2E
-        2E2E2E2E2E2E0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C
-        0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C
-        0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C2E2E2E2E2E2E2E2E}
-      OnClick = imgDonateClick
-    end
     object Label1: TLabel
-      Left = 16
-      Top = 136
-      Width = 59
-      Height = 15
+      Left = 21
+      Top = 181
+      Width = 74
+      Height = 20
       Caption = 'Repository:'
     end
     object Label2: TLabel
-      Left = 184
-      Top = 40
-      Width = 192
-      Height = 13
+      Left = 245
+      Top = 53
+      Width = 230
+      Height = 16
       Cursor = crHandPoint
       Caption = 'https://github.com/royqh1979/Dev-CPP'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = 11
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsUnderline]
+      ParentFont = False
+      OnClick = URLLabelClick
+    end
+    object S: TLabel
+      Left = 21
+      Top = 77
+      Width = 83
+      Height = 20
+      Caption = 'SourceForge'
+    end
+    object Label3: TLabel
+      Left = 245
+      Top = 77
+      Width = 274
+      Height = 16
+      Cursor = crHandPoint
+      Caption = 'https://sourceforge.net/projects/dev-cpp-2020/'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlue
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsUnderline]
+      ParentFont = False
+      OnClick = URLLabelClick
+    end
+    object Label4: TLabel
+      Left = 21
+      Top = 101
+      Width = 64
+      Height = 20
+      Caption = #20013#25991#31449#28857
+    end
+    object Label5: TLabel
+      Left = 245
+      Top = 101
+      Width = 148
+      Height = 16
+      Cursor = crHandPoint
+      Caption = 'https://royqh.net/devcpp/'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlue
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
@@ -13314,10 +13239,10 @@ object AboutForm: TAboutForm
     end
   end
   object btnAuthors: TBitBtn
-    Left = 243
-    Top = 630
-    Width = 83
-    Height = 25
+    Left = 324
+    Top = 752
+    Width = 111
+    Height = 33
     Caption = '&Authors'
     TabOrder = 4
     OnClick = btnAuthorsClick
@@ -13352,10 +13277,10 @@ object AboutForm: TAboutForm
       C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1C1}
   end
   object btnUpdateCheck: TBitBtn
-    Left = 8
-    Top = 630
-    Width = 185
-    Height = 25
+    Left = 11
+    Top = 752
+    Width = 246
+    Height = 33
     Caption = '&Check for updates'
     Enabled = False
     TabOrder = 3
@@ -13388,10 +13313,10 @@ object AboutForm: TAboutForm
       B9B9B9B9B9BABABABCBCBCBEBEBEBFBFBFBFBFBFBFBFBFBFBFBF}
   end
   object pnlFish: TPanel
-    Left = -100
-    Top = 40
-    Width = 57
-    Height = 40
+    Left = -133
+    Top = 53
+    Width = 76
+    Height = 54
     BevelOuter = bvNone
     TabOrder = 0
     object FishImage: TImage

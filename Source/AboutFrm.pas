@@ -60,9 +60,12 @@ type
     lblCompilers: TLabel;
     lblPre4992: TLabel;
     bvCompilers: TBevel;
-    imgDonate: TImage;
     Label1: TLabel;
     Label2: TLabel;
+    S: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
     procedure URLLabelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAuthorsClick(Sender: TObject);

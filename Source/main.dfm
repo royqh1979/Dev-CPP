@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 497
-  Top = 87
+  Left = 681
+  Top = 97
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -219,107 +219,65 @@ object MainForm: TMainForm
     object DebugSheet: TTabSheet
       Caption = 'Debug'
       ImageIndex = 32
-      object DebugViews: TPageControl
-        Left = 0
+      object Splitter1: TSplitter
+        Left = 457
         Top = 0
-        Width = 1177
+        Width = 8
         Height = 196
-        ActivePage = BreakpointsSheet
+        Beveled = True
+      end
+      object DebugViews: TPageControl
+        Left = 465
+        Top = 0
+        Width = 712
+        Height = 196
+        ActivePage = DebugConsoleSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
         object DebugConsoleSheet: TTabSheet
           Caption = 'Debug Console'
           ImageIndex = 2
-          DesignSize = (
-            1169
-            162)
-          object lblSendCommandGdb: TLabel
-            Left = 5
-            Top = 9
-            Width = 144
-            Height = 16
-            Caption = 'Send command to GDB:'
-          end
-          object DebugOutput: TMemo
-            Left = 0
-            Top = 40
-            Width = 1169
-            Height = 122
-            Align = alBottom
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            PopupMenu = DebugOutputPopup
-            ReadOnly = True
-            ScrollBars = ssVertical
-            TabOrder = 0
-          end
-          object edGdbCommand: TComboBox
-            Left = 167
-            Top = 4
-            Width = 1002
-            Height = 24
-            Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 0
-            TabOrder = 1
-            OnKeyPress = edGdbCommandKeyPress
-          end
-        end
-        object WatchSheet: TTabSheet
-          Caption = 'Watch'
-          object WatchView: TTreeView
+          object Panel2: TPanel
             Left = 0
             Top = 0
-            Width = 1169
+            Width = 704
             Height = 162
             Align = alClient
-            BevelInner = bvNone
             BevelOuter = bvNone
-            BorderStyle = bsNone
-            ChangeDelay = 1
-            Images = dmMain.MenuImages_NewLook
-            Indent = 19
-            MultiSelectStyle = []
-            PopupMenu = DebugPopup
-            ReadOnly = True
-            RightClickSelect = True
             TabOrder = 0
-            OnAdvancedCustomDrawItem = WatchViewAdvancedCustomDrawItem
-            OnKeyDown = WatchViewKeyDown
-          end
-        end
-        object EvaluateSheet: TTabSheet
-          Caption = 'Evaluate'
-          ImageIndex = 1
-          DesignSize = (
-            1169
-            162)
-          object lblEvaluate: TLabel
-            Left = 5
-            Top = 6
-            Width = 56
-            Height = 16
-            Caption = 'Evaluate:'
-          end
-          object EvalOutput: TMemo
-            Left = 0
-            Top = 33
-            Width = 1169
-            Height = 129
-            Align = alBottom
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            ReadOnly = True
-            ScrollBars = ssBoth
-            TabOrder = 0
-          end
-          object EvaluateInput: TComboBox
-            Left = 79
-            Top = 1
-            Width = 1090
-            Height = 24
-            Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 0
-            TabOrder = 1
-            OnKeyPress = EvaluateInputKeyPress
+            DesignSize = (
+              704
+              162)
+            object lblSendCommandGdb: TLabel
+              Left = 5
+              Top = 9
+              Width = 144
+              Height = 16
+              Caption = 'Send command to GDB:'
+            end
+            object edGdbCommand: TComboBox
+              Left = 200
+              Top = 4
+              Width = 504
+              Height = 24
+              Anchors = [akLeft, akTop, akRight]
+              ItemHeight = 16
+              TabOrder = 0
+              OnKeyPress = edGdbCommandKeyPress
+            end
+            object DebugOutput: TMemo
+              Left = 0
+              Top = 40
+              Width = 704
+              Height = 122
+              Align = alBottom
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              PopupMenu = DebugOutputPopup
+              ReadOnly = True
+              ScrollBars = ssVertical
+              TabOrder = 1
+            end
           end
         end
         object CallStackSheet: TTabSheet
@@ -328,7 +286,7 @@ object MainForm: TMainForm
           object StackTrace: TListView
             Left = 0
             Top = 0
-            Width = 1169
+            Width = 704
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -363,7 +321,7 @@ object MainForm: TMainForm
           object BreakpointsView: TListView
             Left = 0
             Top = 0
-            Width = 1169
+            Width = 704
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -388,7 +346,179 @@ object MainForm: TMainForm
             ShowHint = True
             TabOrder = 0
             ViewStyle = vsReport
-            OnClick = StackTraceClick
+            OnSelectItem = BreakpointsViewSelectItem
+          end
+        end
+      end
+      object DebugButtonsPanel: TPanel
+        Left = 0
+        Top = 0
+        Width = 457
+        Height = 196
+        Align = alLeft
+        BevelOuter = bvNone
+        TabOrder = 1
+        DesignSize = (
+          457
+          196)
+        object ToolBar1: TToolBar
+          Left = 0
+          Top = 0
+          Width = 25
+          Height = 25
+          Align = alNone
+          ButtonHeight = 25
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 0
+          object ToolButton4: TToolButton
+            Left = 0
+            Top = 0
+            Action = actDebug
+          end
+        end
+        object ToolBar2: TToolBar
+          Left = 0
+          Top = 25
+          Width = 25
+          Height = 25
+          Align = alNone
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 1
+          object ToolButton6: TToolButton
+            Left = 0
+            Top = 0
+            Action = actStepOver
+          end
+        end
+        object ToolBar3: TToolBar
+          Left = 0
+          Top = 50
+          Width = 25
+          Height = 25
+          Align = alNone
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 2
+          object ToolButton8: TToolButton
+            Left = 0
+            Top = 0
+            Action = actStepInto
+          end
+        end
+        object ToolBar4: TToolBar
+          Left = 0
+          Top = 75
+          Width = 25
+          Height = 25
+          Align = alNone
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 3
+          object ToolButton9: TToolButton
+            Left = 0
+            Top = 0
+            Action = actStepOut
+          end
+        end
+        object ToolBar5: TToolBar
+          Left = 0
+          Top = 100
+          Width = 25
+          Height = 25
+          Align = alNone
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 4
+          object ToolButton10: TToolButton
+            Left = 0
+            Top = 0
+            Action = actContinue
+          end
+        end
+        object ToolBar6: TToolBar
+          Left = 0
+          Top = 125
+          Width = 25
+          Height = 25
+          Align = alNone
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 5
+          object ToolButton11: TToolButton
+            Left = 0
+            Top = 0
+            Action = actStopExecute
+          end
+        end
+        object ToolBar7: TToolBar
+          Left = 0
+          Top = 150
+          Width = 25
+          Height = 25
+          Align = alNone
+          Caption = 'ToolBar1'
+          EdgeBorders = []
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          TabOrder = 6
+          object ToolButton12: TToolButton
+            Left = 0
+            Top = 0
+            Action = actAddWatch
+          end
+        end
+        object Panel1: TPanel
+          Left = 32
+          Top = 0
+          Width = 425
+          Height = 193
+          Anchors = [akLeft, akTop, akRight, akBottom]
+          BevelOuter = bvNone
+          TabOrder = 7
+          DesignSize = (
+            425
+            193)
+          object lblEvaluate: TLabel
+            Left = 5
+            Top = 6
+            Width = 56
+            Height = 16
+            Caption = 'Evaluate:'
+          end
+          object EvaluateInput: TComboBox
+            Left = 82
+            Top = 1
+            Width = 343
+            Height = 24
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 16
+            TabOrder = 0
+            OnKeyPress = EvaluateInputKeyPress
+          end
+          object EvalOutput: TMemo
+            Left = 0
+            Top = 32
+            Width = 425
+            Height = 161
+            Align = alBottom
+            Anchors = [akLeft, akTop, akRight, akBottom]
+            ReadOnly = True
+            ScrollBars = ssBoth
+            TabOrder = 1
           end
         end
       end
@@ -869,7 +999,7 @@ object MainForm: TMainForm
     Top = 56
     Width = 238
     Height = 359
-    ActivePage = LeftClassSheet
+    ActivePage = WatchSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -886,8 +1016,7 @@ object MainForm: TMainForm
         Height = 351
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
-        BevelInner = bvNone
-        BevelOuter = bvNone
+        BevelKind = bkFlat
         BorderStyle = bsNone
         ChangeDelay = 1
         DragMode = dmAutomatic
@@ -926,7 +1055,6 @@ object MainForm: TMainForm
         Indent = 19
         TabOrder = 0
         PopupMenu = BrowserPopup
-        BorderStyle = bsNone
         MultiSelectStyle = []
         ShowFilter = sfAll
         OnSelect = ClassBrowserSelect
@@ -945,6 +1073,29 @@ object MainForm: TMainForm
         ItemImages.InheritedVariablePublic = 11
         ShowInheritedMembers = False
         TabVisible = False
+      end
+    end
+    object WatchSheet: TTabSheet
+      Caption = 'Watch'
+      ImageIndex = 2
+      object WatchView: TTreeView
+        Left = 0
+        Top = 0
+        Width = 209
+        Height = 351
+        Align = alClient
+        BevelKind = bkFlat
+        BorderStyle = bsNone
+        ChangeDelay = 1
+        Images = dmMain.MenuImages_NewLook
+        Indent = 19
+        MultiSelectStyle = []
+        PopupMenu = DebugPopup
+        ReadOnly = True
+        RightClickSelect = True
+        TabOrder = 0
+        OnAdvancedCustomDrawItem = WatchViewAdvancedCustomDrawItem
+        OnKeyDown = WatchViewKeyDown
       end
     end
   end
@@ -1183,9 +1334,6 @@ object MainForm: TMainForm
       end
       object ToggleComment1: TMenuItem
         Action = actToggleComment
-      end
-      object actCommentInlineSel1: TMenuItem
-        Action = actToggleCommentInline
       end
       object N27: TMenuItem
         Caption = '-'
@@ -1768,7 +1916,7 @@ object MainForm: TMainForm
     Top = 164
     object actViewCPU: TAction
       Category = 'Debug'
-      Caption = '&View CPU window...'
+      Caption = 'View CPU window...'
       OnExecute = ViewCPUItemClick
       OnUpdate = actUpdateDebuggerRunningCPU
     end
@@ -2116,7 +2264,7 @@ object MainForm: TMainForm
     object actRebuild: TAction
       Tag = 4
       Category = 'Execute'
-      Caption = 'R&ebuild All'
+      Caption = 'Rebuild &All'
       ImageIndex = 30
       ShortCut = 123
       OnExecute = actRebuildExecute
@@ -2243,14 +2391,14 @@ object MainForm: TMainForm
     end
     object actBreakPoint: TAction
       Category = 'Debug'
-      Caption = 'Toggle Breakpoint'
+      Caption = 'Toggle &Breakpoint'
       ShortCut = 16499
       OnExecute = actBreakPointExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actAddWatch: TAction
       Category = 'Debug'
-      Caption = '&Add Watch...'
+      Caption = 'Add &Watch...'
       ImageIndex = 21
       OnExecute = actAddWatchExecute
       OnUpdate = actUpdatePageCount
@@ -2262,7 +2410,8 @@ object MainForm: TMainForm
     end
     object actContinue: TAction
       Category = 'Debug'
-      Caption = '&Continue'
+      Caption = 'C&ontinue'
+      ImageIndex = 54
       ShortCut = 115
       OnExecute = actContinueExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2281,7 +2430,7 @@ object MainForm: TMainForm
     end
     object actStopExecute: TAction
       Category = 'Debug'
-      Caption = 'Stop execution'
+      Caption = 'S&top execution'
       ImageIndex = 11
       ShortCut = 117
       OnExecute = actStopExecuteExecute
@@ -2525,14 +2674,16 @@ object MainForm: TMainForm
     end
     object actStepOver: TAction
       Category = 'Debug'
-      Caption = 'Step &Over'
+      Caption = '&Step Over'
+      ImageIndex = 58
       ShortCut = 118
       OnExecute = actStepOverExecute
       OnUpdate = actUpdateDebuggerRunning
     end
     object actStepInto: TAction
       Category = 'Debug'
-      Caption = 'Step Into'
+      Caption = 'Step &Into'
+      ImageIndex = 56
       ShortCut = 119
       OnExecute = actStepIntoExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2589,13 +2740,14 @@ object MainForm: TMainForm
     end
     object actRunToCursor: TAction
       Category = 'Debug'
-      Caption = '&Run to Cursor'
+      Caption = 'Run to Cursor'
       OnExecute = actRunToCursorExecute
       OnUpdate = actUpdateDebuggerRunning
     end
     object actStepOut: TAction
       Category = 'Debug'
-      Caption = 'Step O&ut'
+      Caption = 'Step &Out'
+      ImageIndex = 57
       ShortCut = 16503
       OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
