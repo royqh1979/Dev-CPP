@@ -1,7 +1,9 @@
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
+  - fix: gray debug\run buttons while a program is running or debugging. 
   - enhancement: redesign debug views
   - enhancement: add icons for debug buttons
+  - enhancement: add icons for indent/unindent buttons
   - enhancement: when parsing definitions, add a MACRO define '_DEV_CPP_2020_'. EGE use to stop include windows.h (so can show less non-using code suggestions from windows.h).
 
 Version 6-beta1 October  2020
