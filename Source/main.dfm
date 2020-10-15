@@ -231,44 +231,53 @@ object MainForm: TMainForm
         Top = 0
         Width = 712
         Height = 196
-        ActivePage = CallStackSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
         object DebugConsoleSheet: TTabSheet
           Caption = 'Debug Console'
           ImageIndex = 2
-          DesignSize = (
-            704
-            162)
-          object lblSendCommandGdb: TLabel
-            Left = 5
-            Top = 9
-            Width = 144
-            Height = 16
-            Caption = 'Send command to GDB:'
-          end
-          object DebugOutput: TMemo
+          object Panel2: TPanel
             Left = 0
-            Top = 40
+            Top = 0
             Width = 704
-            Height = 122
-            Align = alBottom
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            PopupMenu = DebugOutputPopup
-            ReadOnly = True
-            ScrollBars = ssVertical
+            Height = 162
+            Align = alClient
+            BevelOuter = bvNone
             TabOrder = 0
-          end
-          object edGdbCommand: TComboBox
-            Left = 200
-            Top = 4
-            Width = 504
-            Height = 24
-            Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 16
-            TabOrder = 1
-            OnKeyPress = edGdbCommandKeyPress
+            DesignSize = (
+              704
+              162)
+            object lblSendCommandGdb: TLabel
+              Left = 5
+              Top = 9
+              Width = 144
+              Height = 16
+              Caption = 'Send command to GDB:'
+            end
+            object edGdbCommand: TComboBox
+              Left = 200
+              Top = 4
+              Width = 504
+              Height = 24
+              Anchors = [akLeft, akTop, akRight]
+              ItemHeight = 16
+              TabOrder = 0
+              OnKeyPress = edGdbCommandKeyPress
+            end
+            object DebugOutput: TMemo
+              Left = 0
+              Top = 40
+              Width = 704
+              Height = 122
+              Align = alBottom
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              PopupMenu = DebugOutputPopup
+              ReadOnly = True
+              ScrollBars = ssVertical
+              TabOrder = 1
+            end
           end
         end
         object CallStackSheet: TTabSheet

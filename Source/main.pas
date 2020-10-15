@@ -582,6 +582,7 @@ type
     Splitter1: TSplitter;
     WatchSheet: TTabSheet;
     WatchView: TTreeView;
+    Panel2: TPanel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -3389,7 +3390,8 @@ end;
 procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
 begin
   TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-    Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
+    Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+     and (not devExecutor.Running);
 end;
 
 procedure TMainForm.actUpdateProject(Sender: TObject);
@@ -3433,19 +3435,22 @@ procedure TMainForm.actRunUpdate(Sender: TObject);
 begin
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (fProject.Options.typ <> dptStat) and (not
-      fCompiler.Compiling)
+      fCompiler.Compiling) and (not fDebugger.Executing) and (not devExecutor.Running)
   else
-    TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (not fCompiler.Compiling);
+    TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (not fCompiler.Compiling)
+      and (not fDebugger.Executing)  and (not devExecutor.Running);
 end;
 
 procedure TMainForm.actCompileRunUpdate(Sender: TObject);
 begin
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling) and
-      (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet)
+      (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+       and (not devExecutor.Running)
   else
     TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-      Assigned(devCompilerSets.CompilationSet)
+      Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+      and (not devExecutor.Running);
 end;
 
 procedure TMainForm.ToolbarDockClick(Sender: TObject);
