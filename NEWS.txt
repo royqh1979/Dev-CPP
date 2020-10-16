@@ -1,3 +1,6 @@
+Version 6-beta3 October  2020
+  - fix: Text blur in Window High DPI (Environment Option -> Fix High DPI then Exit)
+
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
   - fix: gray debug\run buttons while a program is running or debugging. 
