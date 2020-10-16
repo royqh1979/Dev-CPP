@@ -3740,7 +3740,9 @@ var
 begin
   selection := TListView(Sender).Selected; // used by compile and resource lists
   if Assigned(selection) then begin
-    Line := StrToIntDef(selection.Caption, 1);
+    Line := StrToIntDef(selection.Caption, -1);
+    if Line<=0 then
+      Exit;
     Col := StrToIntDef(selection.SubItems[0], 1);
     errorfiletab := fEditorList.GetEditorFromFileName(selection.SubItems[1]);
 
