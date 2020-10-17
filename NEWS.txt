@@ -3,6 +3,8 @@ Version 6-beta3 October  2020
   - fix: gcc error output parsing error
   - fix: shouldn't jump to .o file when click in Compiler Output 
   - fix: copy in compiler window will only copy error messages, not copy line no and file name.
+  - fix: auto code completion will replace whole word if input just before a word, that's not right
+  - fix: increase item height in code suggestion window
   - enhancement: change some chinese translations
   - enhancement: context menu for breakpoints list in Debug panel
 

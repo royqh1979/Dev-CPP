@@ -1464,6 +1464,7 @@ procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
   Statement: PStatement;
   FuncAddOn: AnsiString;
+  P: TBufferCoord;
 begin
   Statement := fCompletionBox.SelectedStatement;
   if not Assigned(Statement) then
@@ -1471,7 +1472,6 @@ begin
 
   FuncAddOn := '';
 
-  //don't auto append '()'
   // if we are inserting a function,
   if appendFunc then begin
     if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
@@ -1482,10 +1482,11 @@ begin
     end;
   end;
 
+
   // delete the part of the word that's already been typed ...
+  p:=fText.CaretXY ; // CaretXY will change after call WordStart
   fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
-  fText.SelEnd := fText.RowColToCharIndex(fText.WordEnd);
-  //don't auto append '()'
+  fText.SelEnd := fText.RowColToCharIndex(p);
   // ... by replacing the selection
   fText.SelText := Statement^._Command + FuncAddOn;
 
