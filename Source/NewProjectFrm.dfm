@@ -200,7 +200,7 @@ object NewProjectForm: TNewProjectForm
     Left = 11
     Top = 327
     Width = 686
-    Height = 23
+    Height = 28
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 7
     OnChange = edProjectNameChange
