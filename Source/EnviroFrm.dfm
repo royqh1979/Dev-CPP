@@ -75,7 +75,7 @@ object EnviroForm: TEnviroForm
     Top = 0
     Width = 645
     Height = 567
-    ActivePage = tabGeneral
+    ActivePage = tabPaths
     HotTrack = True
     TabOrder = 0
     object tabGeneral: TTabSheet
@@ -194,7 +194,7 @@ object EnviroForm: TEnviroForm
       end
       object gbDebugger: TGroupBox
         Left = 20
-        Top = 267
+        Top = 227
         Width = 287
         Height = 129
         Caption = 'Debug Variable Browser'
@@ -226,7 +226,7 @@ object EnviroForm: TEnviroForm
       end
       object gbProgress: TGroupBox
         Left = 20
-        Top = 415
+        Top = 375
         Width = 287
         Height = 93
         Caption = 'Compilation Progress Window '
@@ -343,6 +343,15 @@ object EnviroForm: TEnviroForm
         Height = 22
         Caption = 'Check file associations on startup'
         TabOrder = 6
+      end
+      object btnHighDPIFixExit: TButton
+        Left = 16
+        Top = 488
+        Width = 297
+        Height = 33
+        Caption = 'Fix HighDPI and Exit'
+        TabOrder = 16
+        OnClick = btnHighDPIFixExitClick
       end
     end
     object tabPaths: TTabSheet
@@ -576,7 +585,7 @@ object EnviroForm: TEnviroForm
         Left = 21
         Top = 133
         Width = 546
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 0
         Text = 'edUserDir'
@@ -585,7 +594,7 @@ object EnviroForm: TEnviroForm
         Left = 21
         Top = 219
         Width = 546
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 1
         Text = 'edTemplatesDir'
@@ -594,7 +603,7 @@ object EnviroForm: TEnviroForm
         Left = 21
         Top = 476
         Width = 546
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 2
         Text = 'edSplash'
@@ -603,7 +612,7 @@ object EnviroForm: TEnviroForm
         Left = 21
         Top = 304
         Width = 546
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 3
         Text = 'edIcoLib'
@@ -612,7 +621,7 @@ object EnviroForm: TEnviroForm
         Left = 21
         Top = 391
         Width = 546
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 4
         Text = 'edLang'
@@ -621,7 +630,7 @@ object EnviroForm: TEnviroForm
         Left = 21
         Top = 45
         Width = 375
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 5
         Text = 'edOptionsDir'
@@ -717,7 +726,7 @@ object EnviroForm: TEnviroForm
         Width = 556
         Height = 427
         Anchors = [akLeft, akTop, akRight, akBottom]
-        ItemHeight = 15
+        ItemHeight = 20
         TabOrder = 0
       end
     end

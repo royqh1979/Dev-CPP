@@ -583,6 +583,19 @@ type
     WatchSheet: TTabSheet;
     WatchView: TTreeView;
     Panel2: TPanel;
+    CompilerPopup: TPopupMenu;
+    MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem20: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    actMsgCompilerCopy: TAction;
+    BreakpointsPopup: TPopupMenu;
+    BreakpointProperties1: TMenuItem;
+    actRemoveBreakpointInPane: TAction;
+    RemoveBreakpoint1: TMenuItem;
+    actBreakPointPropInPane: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -854,6 +867,9 @@ type
     procedure actConvertToUTF8Execute(Sender: TObject);
     procedure BreakpointsViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure actMsgCompilerCopyExecute(Sender: TObject);
+    procedure actBreakPointPropInPaneExecute(Sender: TObject);
+    procedure actRemoveBreakpointInPaneExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1198,6 +1214,7 @@ begin
 
   actMsgCut.Caption := Lang[ID_ITEM_CUT];
   actMsgCopy.Caption := Lang[ID_ITEM_COPY];
+  actMsgCompilerCopy.Caption := Lang[ID_ITEM_COPY];
   actMsgCopyAll.Caption := Lang[ID_ITEM_COPYALL];
   actMsgPaste.Caption := Lang[ID_ITEM_PASTE];
   actMsgSelAll.Caption := Lang[ID_ITEM_SELECTALL];
@@ -1294,6 +1311,8 @@ begin
   actGotoBreakPoint.Caption := Lang[ID_ITEM_GOTOBREAKPOINT];
   actBreakPoint.Caption := Lang[ID_ITEM_TOGGLEBREAK];
   actBreakPointProperties.Caption := Lang[ID_ITEM_BREAKPOINT_PROP];
+  actBreakPointPropInPane.Caption := Lang[ID_ITEM_BREAKPOINT_PROP];
+  actRemoveBreakPointInPane.Caption := Lang[ID_ITEM_REMOVE_BREAKPOINT];
   actDeleteProfile.Caption := Lang[ID_ITEM_DELPROFINFORMATION];
   actAbortCompilation.Caption := Lang[ID_ITEM_ABORTCOMP];
 
@@ -3740,7 +3759,9 @@ var
 begin
   selection := TListView(Sender).Selected; // used by compile and resource lists
   if Assigned(selection) then begin
-    Line := StrToIntDef(selection.Caption, 1);
+    Line := StrToIntDef(selection.Caption, -1);
+    if Line<=0 then
+      Exit;
     Col := StrToIntDef(selection.SubItems[0], 1);
     errorfiletab := fEditorList.GetEditorFromFileName(selection.SubItems[1]);
 
@@ -7213,7 +7234,52 @@ begin
     e := EditorList.GetEditorFromFileName(Item.Caption);
     if Assigned(e) then begin
       e.SetCaretPosAndActivate(StrToIntDef(Item.SubItems[0], 1), 1);
-      e.Activate; 
+      e.Activate;
+    end;
+  end;
+end;
+
+procedure TMainForm.actMsgCompilerCopyExecute(Sender: TObject);
+var
+  item:TListItem;
+begin
+  item:=CompilerOutput.Selected;
+  if assigned(item) then begin
+    Clipboard.AsText:=item.SubItems[2];
+  end;
+end;
+
+procedure TMainForm.actBreakPointPropInPaneExecute(Sender: TObject);
+var
+  breakId: integer;
+  oldCond: String;
+  newCond: String;
+begin
+  breakId:=BreakpointsView.ItemIndex;
+  if breakId>=0 then begin
+    oldCond := PBreakPoint(fDebugger.BreakPointList[breakId])^.condition;
+    newCond := Trim(ShowInputBox(LANG[ID_ITEM_BREAKPOINT_PROP], LANG[ID_MSG_BREAKPOINT_CONDITION]
+      , oldCond));
+    fDebugger.SetBreakPointCondition(breakId,newCond);
+  end;
+end;
+
+procedure TMainForm.actRemoveBreakpointInPaneExecute(Sender: TObject);
+var
+  e: TEditor;
+  Item: TListItem;
+  LineNo : integer;
+begin
+  Item :=  BreakpointsView.Selected;
+  if assigned(Item) then begin
+    e := EditorList.GetEditorFromFileName(Item.Caption);
+    if Assigned(e) then begin
+      LineNo := StrToIntDef(Item.SubItems[0], -1);
+      if LineNo<1 then
+        Exit;
+      e.SetCaretPosAndActivate(LineNo, 1);
+      e.Activate;
+      e.ToggleBreakPoint(LineNo);
     end;
   end;
 end;

@@ -88,6 +88,7 @@ type
     btnResetDev: TButton;
     cbShowDbgCmd: TCheckBox;
     cbShowDbgFullAnnotation: TCheckBox;
+    btnHighDPIFixExit: TButton;
     procedure BrowseClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -101,6 +102,7 @@ type
     procedure cbUIfontsizeChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnResetDevClick(Sender: TObject);
+    procedure btnHighDPIFixExitClick(Sender: TObject);
   private
     procedure LoadText;
   end;
@@ -108,7 +110,7 @@ type
 implementation
 
 uses
-  ShellAPI, Filectrl, devcfg, MultiLangSupport, version, DataFrm, utils, FileAssocs, ImageTheme, main;
+  Registry,ShellAPI, Filectrl, devcfg, MultiLangSupport, version, DataFrm, utils, FileAssocs, ImageTheme, main;
 
 {$R *.dfm}
 
@@ -286,6 +288,7 @@ begin
 
   btnExtAdd.Caption := Lang[ID_BTN_ADD];
   btnExtDel.Caption := Lang[ID_BTN_DELETE];
+  btnHighDPIFixExit.Caption := Lang[ID_BTN_DPI_FIX_EXIT];
 
   // associations tab
   lblAssocFileTypes.Caption := Lang[ID_ENV_FASSTYPES];
@@ -464,6 +467,25 @@ begin
 
   // Quit without saving
   TerminateProcess(GetCurrentProcess, 0);
+end;
+
+procedure TEnviroForm.btnHighDPIFixExitClick(Sender: TObject);
+var
+  lReg: TRegistry;
+begin
+  // open registry, set root and key
+  lReg := TRegistry.Create;
+  try
+    lReg.RootKey := HKEY_CURRENT_USER;
+    lReg.OpenKey('\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', True);
+    // write last Left, Top, Width and Height
+    lReg.WriteString(Application.ExeName, '~ HIGHDPIAWARE');
+  // close all
+  lReg.CloseKey;
+  finally
+    lReg.Free;
+  end;
+  MainForm.Close;
 end;
 
 end.

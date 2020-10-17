@@ -1055,16 +1055,20 @@ var
 
   procedure GetFileName; // obtain delimiter AFTER (full) filename
   begin
-    OMsg := Trim(OMsg);
-    if (Length(OMsg) > 2) and (OMsg[2] = ':') then begin // full file path at start, ignore this one
-      delim := FPos(':', OMsg, 3);
-    end else begin // find first
-      delim := FPos(':', OMsg, 1);
-    end;
+    while True do begin
+      OMsg := Trim(OMsg);
+      if (Length(OMsg) > 2) and (OMsg[2] = ':') then begin // full file path at start, ignore this one
+        delim := FPos(':', OMsg, 3);
+      end else begin // find first
+        delim := FPos(':', OMsg, 1);
+      end;
 
-    if delim > 0 then begin
-      OFile := Copy(OMsg, 1, delim - 1);
-      Delete(OMsg, 1, delim);
+      if delim > 0 then begin
+        OFile := Copy(OMsg, 1, delim - 1);
+        Delete(OMsg, 1, delim);
+      end;
+      if not EndsText('ld.exe',OFile) then // it's not a ld.exe output, stop parsing
+        break;
     end;
   end;
 

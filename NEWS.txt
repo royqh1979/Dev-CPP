@@ -1,3 +1,11 @@
+Version 6-beta3 October  2020
+  - fix: Text blur in Window High DPI (Environment Option -> Fix High DPI then Exit)
+  - fix: gcc error output parsing error
+  - fix: shouldn't jump to .o file when click in Compiler Output 
+  - fix: copy in compiler window will only copy error messages, not copy line no and file name.
+  - enhancement: change some chinese translations
+  - enhancement: context menu for breakpoints list in Debug panel
+
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
   - fix: gray debug\run buttons while a program is running or debugging. 

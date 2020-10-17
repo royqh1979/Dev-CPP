@@ -226,6 +226,7 @@ const
   ID_ITEM_ARGS          = 10028;
   ID_ITEM_CALLSTACKFULL          = 10029;
   ID_ITEM_BREAKPOINT_PROP       = 10030;
+  ID_ITEM_REMOVE_BREAKPOINT       = 10031;
 
 
   // unit popup
@@ -1075,6 +1076,7 @@ const
   ID_BTN_FLOATDEBUG                     = 63021;
   ID_BTN_CLEAR                          = 63022;
   ID_BTN_REFRESH                        = 63023;
+  ID_BTN_DPI_FIX_EXIT                   = 63024;
 
   ID_CPU_CAPTION                        = 64001;
   ID_CPU_ASMCODE                        = 64002;

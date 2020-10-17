@@ -176,6 +176,7 @@ Ver=1
 10028=Get Func Args Info
 10029=Get Call Stack & Locals Info
 10030=Breakpoint condition...
+10031=Remove Breakpoint
 
 
 11001=Remove File
@@ -1011,6 +1012,7 @@ Ver=1
 63021=Window Mode
 63022=Clear
 63023=Refresh
+63024=Fix High DPI then Exit
 
 
 64001=CPU Window
