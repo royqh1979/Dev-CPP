@@ -583,6 +583,14 @@ type
     WatchSheet: TTabSheet;
     WatchView: TTreeView;
     Panel2: TPanel;
+    CompilerPopup: TPopupMenu;
+    MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem20: TMenuItem;
+    MenuItem21: TMenuItem;
+    MenuItem22: TMenuItem;
+    MenuItem23: TMenuItem;
+    actMsgCompilerCopy: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -854,6 +862,7 @@ type
     procedure actConvertToUTF8Execute(Sender: TObject);
     procedure BreakpointsViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure actMsgCompilerCopyExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1198,6 +1207,7 @@ begin
 
   actMsgCut.Caption := Lang[ID_ITEM_CUT];
   actMsgCopy.Caption := Lang[ID_ITEM_COPY];
+  actMsgCompilerCopy.Caption := Lang[ID_ITEM_COPY];
   actMsgCopyAll.Caption := Lang[ID_ITEM_COPYALL];
   actMsgPaste.Caption := Lang[ID_ITEM_PASTE];
   actMsgSelAll.Caption := Lang[ID_ITEM_SELECTALL];
@@ -7217,6 +7227,16 @@ begin
       e.SetCaretPosAndActivate(StrToIntDef(Item.SubItems[0], 1), 1);
       e.Activate; 
     end;
+  end;
+end;
+
+procedure TMainForm.actMsgCompilerCopyExecute(Sender: TObject);
+var
+  item:TListItem;
+begin
+  item:=CompilerOutput.Selected;
+  if assigned(item) then begin
+    Clipboard.AsText:=item.SubItems[2];
   end;
 end;
 

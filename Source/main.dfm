@@ -91,7 +91,7 @@ object MainForm: TMainForm
         ReadOnly = True
         RowSelect = True
         ParentShowHint = False
-        PopupMenu = MessagePopup
+        PopupMenu = CompilerPopup
         ShowHint = True
         TabOrder = 0
         ViewStyle = vsReport
@@ -1920,6 +1920,12 @@ object MainForm: TMainForm
       OnExecute = ViewCPUItemClick
       OnUpdate = actUpdateDebuggerRunningCPU
     end
+    object actMsgCompilerCopy: TAction
+      Category = 'Messages'
+      Caption = 'Copy'
+      ShortCut = 16451
+      OnExecute = actMsgCompilerCopyExecute
+    end
     object actNewSource: TAction
       Tag = 1
       Category = 'File'
@@ -2282,7 +2288,7 @@ object MainForm: TMainForm
       Tag = 6
       Category = 'Debug'
       Caption = '&Debug'
-      ImageIndex = 32
+      ImageIndex = 59
       ShortCut = 116
       OnExecute = actDebugExecute
       OnUpdate = actDebugExecuteUpdate
@@ -2487,6 +2493,7 @@ object MainForm: TMainForm
     object actIndent: TAction
       Category = 'Edit'
       Caption = 'Indent'
+      ImageIndex = 60
       ShortCut = 9
       OnExecute = actIndentExecute
       OnUpdate = actUpdateIndent
@@ -2494,6 +2501,7 @@ object MainForm: TMainForm
     object actUnindent: TAction
       Category = 'Edit'
       Caption = 'Unindent'
+      ImageIndex = 61
       ShortCut = 8201
       OnExecute = actUnindentExecute
       OnUpdate = actUpdateIndent
@@ -3188,6 +3196,28 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object MenuItem12: TMenuItem
+      Action = actMsgClear
+    end
+  end
+  object CompilerPopup: TPopupMenu
+    Left = 283
+    Top = 299
+    object MenuItem14: TMenuItem
+      Action = actMsgCompilerCopy
+    end
+    object MenuItem15: TMenuItem
+      Action = actMsgCopyAll
+    end
+    object MenuItem20: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem21: TMenuItem
+      Action = actMsgSaveAll
+    end
+    object MenuItem22: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem23: TMenuItem
       Action = actMsgClear
     end
   end
