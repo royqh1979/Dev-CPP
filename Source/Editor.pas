@@ -192,7 +192,7 @@ begin
     if (integer(bp^.editor) = integer(e)) and (bp^.line >= FirstLine) then
       Inc(bp^.line, Count);
   end;
-
+  MainForm.OnBreakPointsChanged;
   LinesInsertedList(MainForm.CompilerOutput.Items);
   LinesInsertedList(MainForm.ResourceOutput.Items);
   LinesInsertedList(MainForm.FindOutput.Items);
@@ -232,6 +232,7 @@ begin
   end;
 
   // really delete items?
+  MainForm.OnBreakPointsChanged;
   LinesDeletedList(MainForm.CompilerOutput.Items);
   LinesDeletedList(MainForm.ResourceOutput.Items);
   LinesDeletedList(MainForm.FindOutput.Items);
