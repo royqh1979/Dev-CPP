@@ -176,6 +176,7 @@ Ver=1
 10028=Get Func Args Info
 10029=Get Call Stack & Locals Info
 10030=Breakpoint condition...
+10031=Remove Breakpoint
 
 
 11001=Remove File

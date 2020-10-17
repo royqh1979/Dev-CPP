@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1185
     Height = 225
-    ActivePage = CompSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
@@ -231,7 +231,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 712
         Height = 196
-        ActivePage = DebugConsoleSheet
+        ActivePage = BreakpointsSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
@@ -262,7 +262,7 @@ object MainForm: TMainForm
               Width = 504
               Height = 24
               Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 16
+              ItemHeight = 0
               TabOrder = 0
               OnKeyPress = edGdbCommandKeyPress
             end
@@ -343,6 +343,7 @@ object MainForm: TMainForm
             ReadOnly = True
             RowSelect = True
             ParentShowHint = False
+            PopupMenu = BreakpointsPopup
             ShowHint = True
             TabOrder = 0
             ViewStyle = vsReport
@@ -935,7 +936,7 @@ object MainForm: TMainForm
     object tbCompilers: TToolBar
       Left = 686
       Top = 2
-      Width = 171
+      Width = 251
       Height = 24
       Caption = 'tbCompilers'
       EdgeBorders = []
@@ -944,12 +945,16 @@ object MainForm: TMainForm
       Flat = True
       TabOrder = 6
       Wrapable = False
+      DesignSize = (
+        251
+        24)
       object cmbCompilers: TComboBox
         Left = 0
         Top = 0
         Width = 250
         Height = 22
         Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight, akBottom]
         Ctl3D = True
         DropDownCount = 16
         Font.Charset = DEFAULT_CHARSET
@@ -2293,6 +2298,13 @@ object MainForm: TMainForm
       OnExecute = actDebugExecute
       OnUpdate = actDebugExecuteUpdate
     end
+    object actBreakPoint: TAction
+      Category = 'Debug'
+      Caption = 'Toggle &Breakpoint'
+      ShortCut = 16499
+      OnExecute = actBreakPointExecute
+      OnUpdate = actUpdateEmptyEditor
+    end
     object actCompOptions: TAction
       Tag = 1
       Category = 'Tools'
@@ -2394,13 +2406,6 @@ object MainForm: TMainForm
       Caption = 'Show Toolbars'
       ShortCut = 16507
       OnExecute = actShowBarsExecute
-    end
-    object actBreakPoint: TAction
-      Category = 'Debug'
-      Caption = 'Toggle &Breakpoint'
-      ShortCut = 16499
-      OnExecute = actBreakPointExecute
-      OnUpdate = actUpdateEmptyEditor
     end
     object actAddWatch: TAction
       Category = 'Debug'
@@ -2955,6 +2960,15 @@ object MainForm: TMainForm
       OnExecute = actConvertToUTF8Execute
       OnUpdate = actConvertToUTF8Update
     end
+    object actRemoveBreakpointInPane: TAction
+      Category = 'Debug'
+      Caption = 'Remove Breakpoint'
+      OnExecute = actRemoveBreakpointInPaneExecute
+    end
+    object actBreakPointPropInPane: TAction
+      Category = 'Debug'
+      OnExecute = actBreakPointPropInPaneExecute
+    end
   end
   object MessagePopup: TPopupMenu
     Left = 339
@@ -3219,6 +3233,16 @@ object MainForm: TMainForm
     end
     object MenuItem23: TMenuItem
       Action = actMsgClear
+    end
+  end
+  object BreakpointsPopup: TPopupMenu
+    Left = 466
+    Top = 144
+    object BreakpointProperties1: TMenuItem
+      Action = actBreakPointProperties
+    end
+    object RemoveBreakpoint1: TMenuItem
+      Action = actRemoveBreakpointInPane
     end
   end
 end

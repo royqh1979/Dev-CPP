@@ -226,6 +226,7 @@ const
   ID_ITEM_ARGS          = 10028;
   ID_ITEM_CALLSTACKFULL          = 10029;
   ID_ITEM_BREAKPOINT_PROP       = 10030;
+  ID_ITEM_REMOVE_BREAKPOINT       = 10031;
 
 
   // unit popup

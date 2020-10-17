@@ -4,6 +4,7 @@ Version 6-beta3 October  2020
   - fix: shouldn't jump to .o file when click in Compiler Output 
   - fix: copy in compiler window will only copy error messages, not copy line no and file name.
   - enhancement: change some chinese translations
+  - enhancement: context menu for breakpoints list in Debug panel
 
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
