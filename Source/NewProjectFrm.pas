@@ -258,6 +258,7 @@ end;
 
 procedure TNewProjectForm.edProjectNameChange(Sender: TObject);
 begin
+  edProjectLocation.Text := ExtractFilePath(edProjectLocation.Text) + edProjectName.Text;
   btnOk.Enabled := Assigned(ProjView.Selected) and (edProjectName.Text <> '');
 end;
 

@@ -192,7 +192,7 @@ begin
     if (integer(bp^.editor) = integer(e)) and (bp^.line >= FirstLine) then
       Inc(bp^.line, Count);
   end;
-
+  MainForm.OnBreakPointsChanged;
   LinesInsertedList(MainForm.CompilerOutput.Items);
   LinesInsertedList(MainForm.ResourceOutput.Items);
   LinesInsertedList(MainForm.FindOutput.Items);
@@ -232,6 +232,7 @@ begin
   end;
 
   // really delete items?
+  MainForm.OnBreakPointsChanged;
   LinesDeletedList(MainForm.CompilerOutput.Items);
   LinesDeletedList(MainForm.ResourceOutput.Items);
   LinesDeletedList(MainForm.FindOutput.Items);
@@ -1463,6 +1464,7 @@ procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
   Statement: PStatement;
   FuncAddOn: AnsiString;
+  P: TBufferCoord;
 begin
   Statement := fCompletionBox.SelectedStatement;
   if not Assigned(Statement) then
@@ -1470,7 +1472,6 @@ begin
 
   FuncAddOn := '';
 
-  //don't auto append '()'
   // if we are inserting a function,
   if appendFunc then begin
     if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
@@ -1481,10 +1482,11 @@ begin
     end;
   end;
 
+
   // delete the part of the word that's already been typed ...
+  p:=fText.CaretXY ; // CaretXY will change after call WordStart
   fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
-  fText.SelEnd := fText.RowColToCharIndex(fText.WordEnd);
-  //don't auto append '()'
+  fText.SelEnd := fText.RowColToCharIndex(p);
   // ... by replacing the selection
   fText.SelText := Statement^._Command + FuncAddOn;
 

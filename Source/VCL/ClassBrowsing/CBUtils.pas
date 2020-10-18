@@ -73,6 +73,7 @@ type
     _Type: AnsiString; // type "int"
     _Command: AnsiString; // identifier/name of statement "foo"
     _Args: AnsiString; // args "(int a,float b)"
+    _Value: AnsiString; // Used for macro defines, "100" in "#defin COUNT 100"
     _Kind: TStatementKind; // kind of statement class/variable/function/etc
     _InheritanceList: TList; // list of pstatements this one inherits from, can be nil
     _Scope: TStatementScope; // global/local/classlocal
