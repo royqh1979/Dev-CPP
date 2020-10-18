@@ -131,6 +131,7 @@ type
     procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
     procedure DeleteTemporaries;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
+    function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
   public
     procedure ResetDefines;
@@ -178,7 +179,6 @@ type
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function FindLastOperator(const Phrase: AnsiString): integer;
     procedure GetMultipleInheritanceStatements(Statement: PStatement; List: TList);
-    function FindMacroDefine(const Command: AnsiString): PStatement;
   published
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
@@ -1165,6 +1165,7 @@ begin
       True,
       nil);
   end;
+  //TODO "#undef support"
   Inc(fIndex);
 end;
 
