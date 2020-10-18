@@ -64,6 +64,7 @@ type
     fIsProjectFile: boolean;
     fInvalidatedStatements: TList;
     fPendingDeclarations: TList;
+    fMacroDefines : TList;
     function AddChildStatements(// support for multiple parents
       Parents: TList;
       const FileName: AnsiString;
@@ -71,6 +72,7 @@ type
       const aType: AnsiString; // "Type" is already in use
       const Command: AnsiString;
       const Args: AnsiString;
+      const Value: AnsiString;
       Line: integer;
       Kind: TStatementKind;
       Scope: TStatementScope;
@@ -85,6 +87,7 @@ type
       const aType: AnsiString; // "Type" is already in use
       const Command: AnsiString;
       const Args: AnsiString;
+      const Value: AnsiString;
       Line: integer;
       Kind: TStatementKind;
       Scope: TStatementScope;
@@ -128,6 +131,7 @@ type
     procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
     procedure DeleteTemporaries;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
+    function expandMacroType(const name:AnsiString): AnsiString;
   public
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
@@ -174,6 +178,7 @@ type
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function FindLastOperator(const Phrase: AnsiString): integer;
     procedure GetMultipleInheritanceStatements(Statement: PStatement; List: TList);
+    function FindMacroDefine(const Command: AnsiString): PStatement;
   published
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
@@ -215,6 +220,7 @@ begin
   fProjectFiles := TStringList.Create;
   fInvalidatedStatements := TList.Create;
   fPendingDeclarations := TList.Create;
+  fMacroDefines := TList.Create;
   fCurrentClass := TList.Create;
   fSkipList := TIntList.Create;
   fParseLocalHeaders := False;
@@ -225,6 +231,7 @@ destructor TCppParser.Destroy;
 var
   i: Integer;
 begin
+  FreeAndNil(fMacroDefines);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
   FreeAndNil(fCurrentClass);
@@ -300,6 +307,36 @@ begin
   Result := StartAt;
 end;
 
+function TCppParser.FindMacroDefine(const Command:AnsiString):PStatement;
+var
+  Statement: PStatement;
+  I: integer;
+begin
+  // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
+  for I := 0 to fMacroDefines.Count - 1 do begin
+    Statement := fMacroDefines[i];
+    if Statement^._Command = Command then begin
+      Result := Statement;
+      Exit;
+    end;
+  end;
+  Result := nil;
+end;
+
+function TCppParser.expandMacroType(const name:AnsiString): AnsiString;
+var
+  Statement: PStatement;
+begin
+  Result := ' ' + name;
+  Statement := FindMacroDefine(name);
+  if Assigned(Statement) then begin
+    if Statement^._Value <> '' then
+      Result:= ' ' + Statement^._Value
+    else
+      Result:='';
+  end;
+end;
+
 // When finding declaration/definition pairs only search the separate incomplete pair list
 
 function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
@@ -358,6 +395,7 @@ function TCppParser.AddChildStatements(
   const aType: AnsiString; // "Type" is already in use
   const Command: AnsiString;
   const Args: AnsiString;
+  const Value: AnsiString;
   Line: integer;
   Kind: TStatementKind;
   Scope: TStatementScope;
@@ -378,6 +416,7 @@ begin
         aType,
         Command,
         Args,
+        Value,
         Line,
         Kind,
         Scope,
@@ -394,6 +433,7 @@ begin
       aType,
       Command,
       Args,
+      Value,
       Line,
       Kind,
       Scope,
@@ -412,6 +452,7 @@ function TCppParser.AddStatement(
   const aType: AnsiString; // "Type" is already in use
   const Command: AnsiString;
   const Args: AnsiString;
+  const Value: AnsiString;
   Line: integer;
   Kind: TStatementKind;
   Scope: TStatementScope;
@@ -435,6 +476,7 @@ var
       _Type := NewType;
       _Command := NewCommand;
       _Args := Args;
+      _Value := Value;
       _Kind := Kind;
       _InheritanceList := InheritanceList;
       _Scope := Scope;
@@ -488,6 +530,10 @@ begin
     Result := AddToList;
     if not IsDefinition then // add declarations to separate list to speed up searches for them
       fPendingDeclarations.Add(Result);
+  end;
+
+  if Kind = skPreprocessor then begin
+     fMacroDefines.Add(Result);
   end;
 end;
 
@@ -910,7 +956,7 @@ begin
 
       // Still walking through type
     end else {if IsValidIdentifier(fTokenizer[fIndex]^.Text) then} begin
-      sType := sType + fTokenizer[fIndex]^.Text + ' ';
+      sType := sType + expandMacroType(fTokenizer[fIndex]^.Text);
       bTypeOK := sType <> '';
     end;
     Inc(fIndex);
@@ -1037,6 +1083,7 @@ begin
           OldType,
           NewType,
           '',
+          '',
           //fTokenizer[fIndex]^.Line,
           startLine,
           skTypedef,
@@ -1108,6 +1155,7 @@ begin
       '', // define has no type
       Name,
       Args,
+      Value,
       fTokenizer[FIndex]^.Line,
       skPreprocessor,
       ssGlobal,
@@ -1158,6 +1206,7 @@ begin
             OldType,
             NewType,
             '',
+            '',
             //fTokenizer[fIndex]^.Line,
             startLine,
             skTypedef,
@@ -1195,6 +1244,7 @@ begin
               Prefix, // type
               Command, // command
               '', // args
+              '', // values
               //fTokenizer[fIndex]^.Line,
               startLine,
               skClass,
@@ -1269,6 +1319,7 @@ begin
                   '', // do not override hint
                   Prefix,
                   Command,
+                  '',
                   '',
                   //fTokenizer[I]^.Line,
                   startLine,
@@ -1378,6 +1429,7 @@ begin
         sType,
         ScopelessName,
         sArgs,
+        '',
         //fTokenizer[fIndex - 1]^.Line,
         startLine,
         FunctionKind,
@@ -1397,6 +1449,7 @@ begin
         sType,
         ScopelessName,
         sArgs,
+        '',
         //fTokenizer[fIndex - 1]^.Line,
         startLine,
         FunctionKind,
@@ -1560,7 +1613,7 @@ begin
     if (not SameStr(fTokenizer[fIndex]^.Text, 'struct')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'class')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then
-      LastType := LastType + ' ' + fTokenizer[fIndex]^.Text;
+      LastType := LastType + expandMacroType(fTokenizer[fIndex]^.Text);
     Inc(fIndex);
   until (fIndex >= fTokenizer.Tokens.Count) or IsFunctionPointer;
   LastType := Trim(LastType);
@@ -1621,6 +1674,7 @@ begin
           LastType,
           Cmd,
           Args,
+          '',
           fTokenizer[fIndex]^.Line,
           skVariable,
           GetScope,
@@ -1683,6 +1737,7 @@ begin
       'enum',
       EnumName,
       Args,
+      '',
       //fTokenizer[fIndex]^.Line,
       startLine,
       skTypedef,
@@ -1715,6 +1770,7 @@ begin
         LastType,
         Cmd,
         Args,
+        '',
         //fTokenizer[fIndex]^.Line,
         startLine,
         skEnum,
@@ -1851,6 +1907,7 @@ begin
   if Assigned(fOnBusy) then
     fOnBusy(Self);
 
+  fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
   fFilesToScan.Clear;
   if Assigned(fTokenizer) then
@@ -1888,6 +1945,7 @@ begin
     I := 0;
     fFilesScannedCount := 0;
     fFilesToScanCount := fFilesToScan.Count;
+    fMacroDefines.Clear; // empty before start
     while I < fFilesToScan.Count do begin
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       if Assigned(fOnTotalProgress) then
@@ -2040,6 +2098,7 @@ begin
   try
     fFilesToScanCount := 0;
     fFilesScannedCount := 0;
+    fMacroDefines.Clear; // empty before start
     if not Assigned(Stream) then begin
       if CFile = '' then
         InternalParse(HFile, True) // headers should be parsed via include
@@ -2402,6 +2461,7 @@ begin
           '',
           ParentStatement^._Command + '*',
           'this',
+          '',
           '',
           ParentStatement^._DefinitionLine + 1,
           skVariable,
@@ -2918,6 +2978,7 @@ begin
           '', // do not override hint
           Copy(S, 1, SpacePos - 1), // 'int*'
           Copy(S, SpacePos + 1, MaxInt), // a
+          '',
           '',
           Line,
           skVariable,

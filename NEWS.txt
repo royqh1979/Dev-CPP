@@ -8,6 +8,7 @@ Version 6-beta3 October  2020
   - enhancement: In new project wizard,  project folder path will change with project name
   - enhancement: change some chinese translations
   - enhancement: context menu for breakpoints list in Debug panel
+  - enhancement: empty macro defines don't show in variable/function type infos
 
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
