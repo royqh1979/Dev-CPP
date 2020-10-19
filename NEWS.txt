@@ -9,6 +9,7 @@ Version 6-beta3 October  2020
   - fix: show wrong encoding in status bar when first open a file
   - fix: only auto detect utf-8 file encoding when first open it
   - fix: lost open file menuitem
+  - fix: font too small in toolbar
   - enhancement: In new project wizard,  project folder path will change with project name
   - enhancement: change some chinese translations
   - enhancement: context menu for breakpoints list in Debug panel
