@@ -129,7 +129,7 @@ type
     procedure UpdateCaption(const NewCaption: AnsiString);
     procedure InsertDefaultText;
     procedure ToggleBreakPoint(Line: integer);
-    procedure LoadFile(FileName:String);
+    procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
     function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
     procedure IndentSelection;
@@ -277,7 +277,7 @@ begin
 
   // Load the file using Lines
   if not NewFile and FileExists(FileName) then begin
-    LoadFile(FileName);
+    LoadFile(FileName,True);
     fNew := False;
 
     // Save main.cpp as main.123456789.cpp
@@ -1969,19 +1969,24 @@ begin
   FileName := SaveFileName;
 end;
 
-  procedure TEditor.LoadFile(FileName:String);
+  procedure TEditor.LoadFile(FileName:String;DetectEncoding:bool=False);
   var
     tmpList: TStringList;
+    FileEncodingType: TFileEncodingType;
   begin
     tmpList := TStringList.Create;
     try
       tmpList.LoadFromFile(FileName);
-      if UseUTF8 then begin
-        Text.Lines.Text := UTF8ToAnsi(tmpList.Text);
-      end if IsUTF8Encoding(tmpList.Text) then begin
-        := UTF8ToAnsi(tmpList.Text);
-        UseUTF8 := True;
-      end else
+      if DetectEncoding then begin
+        FileEncodingType := GetFileEncodingType(tmpList.Text);
+        if FileEncodingType = etUTF8 then
+          UseUTF8 := True
+        else if FileEncodingType = etOther then
+          UseUTF8 := False;
+      end;
+      if UseUTF8 then
+        Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
+      else
         Text.Lines.Text := tmpList.Text;
     finally
       tmpList.Free;

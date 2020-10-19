@@ -262,7 +262,7 @@ object MainForm: TMainForm
               Width = 504
               Height = 24
               Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 0
+              ItemHeight = 16
               TabOrder = 0
               OnKeyPress = edGdbCommandKeyPress
             end
@@ -1004,7 +1004,7 @@ object MainForm: TMainForm
     Top = 56
     Width = 238
     Height = 359
-    ActivePage = WatchSheet
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -1187,12 +1187,11 @@ object MainForm: TMainForm
           Action = actNewClass
         end
       end
+      object Openprojectorfile1: TMenuItem
+        Action = actOpen
+      end
       object N34: TMenuItem
         Caption = '-'
-      end
-      object OpenprojectItem: TMenuItem
-        Tag = 1
-        Action = actOpen
       end
       object SaveUnitItem: TMenuItem
         Tag = 3
@@ -3025,6 +3024,7 @@ object MainForm: TMainForm
     MinHeight = 128
     MaxWidth = 0
     MaxHeight = 0
+    FontSize = 0
     OnResize = CodeCompletionResize
     OnlyGlobals = False
     Left = 60
