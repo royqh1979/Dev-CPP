@@ -27,9 +27,9 @@ object MainForm: TMainForm
   TextHeight = 16
   object SplitterLeft: TSplitter
     Left = 238
-    Top = 56
+    Top = 64
     Width = 4
-    Height = 359
+    Height = 351
     Beveled = True
     MinSize = 45
     ResizeStyle = rsUpdate
@@ -262,7 +262,7 @@ object MainForm: TMainForm
               Width = 504
               Height = 24
               Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 0
+              ItemHeight = 16
               TabOrder = 0
               OnKeyPress = edGdbCommandKeyPress
             end
@@ -581,22 +581,24 @@ object MainForm: TMainForm
     Left = 0
     Top = 0
     Width = 1185
-    Height = 56
+    Height = 64
     Align = alTop
     AutoDock = False
     AutoSize = True
     BevelInner = bvNone
     BevelOuter = bvNone
     BevelKind = bkNone
-    RowSize = 28
+    RowSize = 32
     TabOrder = 0
     OnClick = ToolbarDockClick
     OnContextPopup = ToolbarDockContextPopup
     object tbMain: TToolBar
       Left = 11
       Top = 2
-      Width = 172
-      Height = 24
+      Width = 205
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
       Caption = 'Main'
       EdgeBorders = []
       EdgeInner = esNone
@@ -615,32 +617,32 @@ object MainForm: TMainForm
         OnClick = NewFileBtnClick
       end
       object OpenBtn: TToolButton
-        Left = 23
+        Left = 28
         Top = 0
         Action = actOpen
       end
       object SaveBtn: TToolButton
-        Left = 46
+        Left = 56
         Top = 0
         Action = actSave
       end
       object SaveAllBtn: TToolButton
-        Left = 69
+        Left = 84
         Top = 0
         Action = actSaveAll
       end
       object CloseBtn: TToolButton
-        Left = 92
+        Left = 112
         Top = 0
         Action = actClose
       end
       object CloseAllBtn: TToolButton
-        Left = 115
+        Left = 140
         Top = 0
         Action = actCloseAll
       end
       object ToolButton7: TToolButton
-        Left = 138
+        Left = 168
         Top = 0
         Width = 8
         Caption = 'ToolButton7'
@@ -648,16 +650,18 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object PrintBtn: TToolButton
-        Left = 146
+        Left = 176
         Top = 0
         Action = actPrint
       end
     end
     object tbCompile: TToolBar
-      Left = 464
+      Left = 543
       Top = 2
-      Width = 209
-      Height = 24
+      Width = 250
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
       Caption = 'Compile and Run'
       EdgeBorders = []
       EdgeInner = esNone
@@ -674,22 +678,22 @@ object MainForm: TMainForm
         Action = actCompile
       end
       object RunBtn: TToolButton
-        Left = 23
+        Left = 28
         Top = 0
         Action = actRun
       end
       object CompileAndRunBtn: TToolButton
-        Left = 46
+        Left = 56
         Top = 0
         Action = actCompRun
       end
       object RebuildAllBtn: TToolButton
-        Left = 69
+        Left = 84
         Top = 0
         Action = actRebuild
       end
       object ToolButton2: TToolButton
-        Left = 92
+        Left = 112
         Top = 0
         Width = 8
         Caption = 'ToolButton2'
@@ -697,12 +701,12 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object DebugBtn: TToolButton
-        Left = 100
+        Left = 120
         Top = 0
         Action = actDebug
       end
       object ToolButton3: TToolButton
-        Left = 123
+        Left = 148
         Top = 0
         Width = 8
         Caption = 'ToolButton3'
@@ -710,12 +714,12 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object StopBtn: TToolButton
-        Left = 131
+        Left = 156
         Top = 0
         Action = actStopExecute
       end
       object ToolButton5: TToolButton
-        Left = 154
+        Left = 184
         Top = 0
         Width = 8
         Caption = 'ToolButton5'
@@ -723,21 +727,23 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ProfileBtn: TToolButton
-        Left = 162
+        Left = 192
         Top = 0
         Action = actProfile
       end
       object ProfilingInforBtn: TToolButton
-        Left = 185
+        Left = 220
         Top = 0
         Action = actDeleteProfile
       end
     end
     object tbProject: TToolBar
-      Left = 373
+      Left = 435
       Top = 2
-      Width = 78
-      Height = 24
+      Width = 95
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
       Caption = 'Project'
       EdgeBorders = []
       EdgeInner = esNone
@@ -754,12 +760,12 @@ object MainForm: TMainForm
         Action = actProjectAdd
       end
       object RemoveFromProjectBtn: TToolButton
-        Left = 23
+        Left = 28
         Top = 0
         Action = actProjectRemove
       end
       object ToolButton20: TToolButton
-        Left = 46
+        Left = 56
         Top = 0
         Width = 8
         Caption = 'ToolButton20'
@@ -767,16 +773,18 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ProjectOptionsBtn: TToolButton
-        Left = 54
+        Left = 64
         Top = 0
         Action = actProjectOptions
       end
     end
     object tbEdit: TToolBar
-      Left = 196
+      Left = 229
       Top = 2
-      Width = 47
-      Height = 24
+      Width = 58
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
       Caption = 'Edit'
       EdgeBorders = []
       EdgeInner = esNone
@@ -793,16 +801,18 @@ object MainForm: TMainForm
         Action = actUndo
       end
       object RedoBtn: TToolButton
-        Left = 23
+        Left = 28
         Top = 0
         Action = actRedo
       end
     end
     object tbSearch: TToolBar
-      Left = 256
+      Left = 300
       Top = 2
-      Width = 104
-      Height = 24
+      Width = 122
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
       Caption = 'Search'
       EdgeBorders = []
       EdgeInner = esNone
@@ -819,12 +829,12 @@ object MainForm: TMainForm
         Action = actFind
       end
       object ReplaceBtn: TToolButton
-        Left = 23
+        Left = 28
         Top = 0
         Action = actReplace
       end
       object ToolButton1: TToolButton
-        Left = 46
+        Left = 56
         Top = 0
         Width = 8
         Caption = 'ToolButton1'
@@ -832,21 +842,23 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object FindNextBtn: TToolButton
-        Left = 54
+        Left = 64
         Top = 0
         Action = actGotoFunction
       end
       object GotoLineBtn: TToolButton
-        Left = 77
+        Left = 92
         Top = 0
         Action = actGotoLine
       end
     end
     object tbSpecials: TToolBar
       Left = 11
-      Top = 30
-      Width = 71
-      Height = 24
+      Top = 34
+      Width = 85
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
       Caption = 'Specials'
       EdgeBorders = []
       EdgeInner = esNone
@@ -864,21 +876,22 @@ object MainForm: TMainForm
         Action = actInsert
       end
       object ToggleBtn: TToolButton
-        Left = 23
+        Left = 28
         Top = 0
         Action = actToggle
       end
       object GotoBtn: TToolButton
-        Left = 46
+        Left = 56
         Top = 0
         Action = actGoto
       end
     end
     object tbClasses: TToolBar
-      Left = 95
-      Top = 30
+      Left = 109
+      Top = 34
       Width = 700
-      Height = 24
+      Height = 28
+      ButtonHeight = 28
       Caption = 'tbClasses'
       EdgeBorders = []
       EdgeInner = esNone
@@ -890,16 +903,16 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 350
-        Height = 22
+        Height = 28
         Style = csDropDownList
         Ctl3D = True
         DropDownCount = 16
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
+        Font.Height = -17
         Font.Name = 'Courier New'
         Font.Style = []
-        ItemHeight = 14
+        ItemHeight = 20
         ItemIndex = 0
         ParentCtl3D = False
         ParentFont = False
@@ -915,16 +928,16 @@ object MainForm: TMainForm
         Left = 350
         Top = 0
         Width = 350
-        Height = 22
+        Height = 28
         Style = csDropDownList
         Ctl3D = True
         DropDownCount = 16
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
+        Font.Height = -17
         Font.Name = 'Courier New'
         Font.Style = []
-        ItemHeight = 14
+        ItemHeight = 20
         ParentCtl3D = False
         ParentFont = False
         Sorted = True
@@ -934,10 +947,11 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 686
+      Left = 806
       Top = 2
-      Width = 251
-      Height = 24
+      Width = 350
+      Height = 28
+      ButtonHeight = 28
       Caption = 'tbCompilers'
       EdgeBorders = []
       EdgeInner = esNone
@@ -946,23 +960,23 @@ object MainForm: TMainForm
       TabOrder = 6
       Wrapable = False
       DesignSize = (
-        251
-        24)
+        350
+        28)
       object cmbCompilers: TComboBox
         Left = 0
         Top = 0
-        Width = 250
-        Height = 22
+        Width = 345
+        Height = 28
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
         Ctl3D = True
         DropDownCount = 16
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
+        Font.Height = -17
         Font.Name = 'Courier New'
         Font.Style = []
-        ItemHeight = 14
+        ItemHeight = 20
         ParentCtl3D = False
         ParentFont = False
         TabOrder = 0
@@ -1001,10 +1015,10 @@ object MainForm: TMainForm
   end
   object LeftPageControl: TPageControl
     Left = 0
-    Top = 56
+    Top = 64
     Width = 238
-    Height = 359
-    ActivePage = WatchSheet
+    Height = 351
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -1018,7 +1032,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 209
-        Height = 351
+        Height = 343
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelKind = bkFlat
@@ -1052,7 +1066,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 209
-        Height = 351
+        Height = 343
         Align = alClient
         Color = clWhite
         Images = dmMain.ClassImages
@@ -1087,7 +1101,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 209
-        Height = 351
+        Height = 343
         Align = alClient
         BevelKind = bkFlat
         BorderStyle = bsNone
@@ -1106,9 +1120,9 @@ object MainForm: TMainForm
   end
   object PageControlPanel: TPanel
     Left = 242
-    Top = 56
+    Top = 64
     Width = 943
-    Height = 359
+    Height = 351
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
@@ -1117,7 +1131,7 @@ object MainForm: TMainForm
       Left = 943
       Top = 0
       Width = 0
-      Height = 359
+      Height = 351
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1126,7 +1140,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 943
-      Height = 359
+      Height = 351
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1143,7 +1157,7 @@ object MainForm: TMainForm
       Left = 943
       Top = 0
       Width = 0
-      Height = 359
+      Height = 351
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1187,12 +1201,11 @@ object MainForm: TMainForm
           Action = actNewClass
         end
       end
+      object Openprojectorfile1: TMenuItem
+        Action = actOpen
+      end
       object N34: TMenuItem
         Caption = '-'
-      end
-      object OpenprojectItem: TMenuItem
-        Tag = 1
-        Action = actOpen
       end
       object SaveUnitItem: TMenuItem
         Tag = 3
@@ -3025,6 +3038,7 @@ object MainForm: TMainForm
     MinHeight = 128
     MaxWidth = 0
     MaxHeight = 0
+    FontSize = 0
     OnResize = CodeCompletionResize
     OnlyGlobals = False
     Left = 60

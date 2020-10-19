@@ -43,7 +43,6 @@ type
     NewprojectItem: TMenuItem;
     NewTemplateItem: TMenuItem;
     N34: TMenuItem;
-    OpenprojectItem: TMenuItem;
     ClearhistoryItem: TMenuItem;
     N11: TMenuItem;
     NewSourceFileItem: TMenuItem;
@@ -596,6 +595,7 @@ type
     actRemoveBreakpointInPane: TAction;
     RemoveBreakpoint1: TMenuItem;
     actBreakPointPropInPane: TAction;
+    Openprojectorfile1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1639,7 +1639,6 @@ begin
 
   // Open the file in an editor
   e := fEditorList.NewEditor(FileName,OpenUseUTF8, False, False);
-  UpdateFileEncodingStatusPanel;
   if Assigned(fProject) then begin
     if (not SameFileName(fProject.FileName, FileName)) and (fProject.GetUnitFromString(FileName) = -1) then
       dmMain.RemoveFromHistory(FileName);
@@ -1647,6 +1646,7 @@ begin
     dmMain.RemoveFromHistory(FileName);
   end;
   e.Activate;
+  UpdateFileEncodingStatusPanel;
 
   // Parse it after is has been shown so the user will not see random unpainted stuff for a while.
   if not Assigned(fProject) then begin
