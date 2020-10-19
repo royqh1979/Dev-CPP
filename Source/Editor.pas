@@ -1976,10 +1976,10 @@ end;
     tmpList := TStringList.Create;
     try
       tmpList.LoadFromFile(FileName);
-      if UseUTF8 then
-        Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
-      else if IsUTF8Encoding(tmpList.Text) then begin
+      if UseUTF8 then begin
         Text.Lines.Text := UTF8ToAnsi(tmpList.Text);
+      end if IsUTF8Encoding(tmpList.Text) then begin
+        := UTF8ToAnsi(tmpList.Text);
         UseUTF8 := True;
       end else
         Text.Lines.Text := tmpList.Text;

@@ -1259,7 +1259,7 @@ var
 begin
   len := (Length(s)+1)*4;
   lpWC := AllocMem(len);
-  MultibyteToWideChar(CP_ACP,MB_PRECOMPOSED,PChar(s),Length(s),
+  MultibyteToWideChar(CP_ACP,0,PChar(s),Length(s),
     lpWC,len);
   Result :=lpWC;
   FreeMem(lpWC);
@@ -1272,7 +1272,7 @@ var
 begin
   len := (Length(s)+1)*4;
   lpWC := AllocMem(len);
-  MultibyteToWideChar(CP_UTF8,MB_PRECOMPOSED,PChar(s),Length(s),
+  MultibyteToWideChar(CP_UTF8,0,PChar(s),Length(s),
     lpWC,len);
   Result :=lpWC;
   FreeMem(lpWC);
@@ -1285,7 +1285,7 @@ var
 begin
   len := (Length(s)+1)*4;
   lpC := AllocMem(len);
-  WideCharToMultibyte(CP_UTF8,WC_COMPOSITECHECK,PWideChar(s),Length(s),
+  WideCharToMultibyte(CP_UTF8,0,PWideChar(s),Length(s),
     lpC,len,nil,nil);
   Result :=lpC;
   FreeMem(lpC);
@@ -1298,7 +1298,7 @@ var
 begin
   len := (Length(s)+1)*4;
   lpC := AllocMem(len);
-  WideCharToMultibyte(CP_ACP,WC_COMPOSITECHECK,PWideChar(s),Length(s),
+  WideCharToMultibyte(CP_ACP,0,PWideChar(s),Length(s),
     lpC,len,nil,nil);
   Result :=lpC;
   FreeMem(lpC);
