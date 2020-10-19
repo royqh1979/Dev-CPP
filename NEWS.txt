@@ -1,3 +1,6 @@
+Version 6-beta4 October  2020
+  - fix: delete [] was thought as a type
+
 Version 6-beta3 October  2020
   - fix: Text blur in Window High DPI (Environment Option -> Fix High DPI then Exit)
   - fix: gcc error output parsing error
@@ -14,7 +17,7 @@ Version 6-beta3 October  2020
   - enhancement: change some chinese translations
   - enhancement: context menu for breakpoints list in Debug panel
   - enhancement: empty macro defines don't show in variable/function type infos
-
+  
 Version 6-beta2 October  2020
   - fix: Debug menuitem captions
   - fix: gray debug\run buttons while a program is running or debugging. 

@@ -770,6 +770,7 @@ begin
   SameStr(fTokenizer[fIndex]^.Text, 'decltype') or // skip to )
   SameStr(fTokenizer[fIndex]^.Text, 'default') or // skip to :
   SameStr(fTokenizer[fIndex]^.Text, 'delete') or // skip to ;
+  SameStr(fTokenizer[fIndex]^.Text, 'delete[]') or // skip to ;
   SameStr(fTokenizer[fIndex]^.Text, 'do') or // skip to {
   // double is a type
   SameStr(fTokenizer[fIndex]^.Text, 'dynamic_cast') or // skip
@@ -1532,6 +1533,7 @@ begin
 
     // Skip to ;
   end else if SameStr(fTokenizer[fIndex]^.Text, 'delete') or
+    SameStr(fTokenizer[fIndex]^.Text, 'delete[]') or
     SameStr(fTokenizer[fIndex]^.Text, 'goto') or
     SameStr(fTokenizer[fIndex]^.Text, 'new') or
     SameStr(fTokenizer[fIndex]^.Text, 'return') or
