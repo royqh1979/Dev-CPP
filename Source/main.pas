@@ -5629,17 +5629,6 @@ var
             Pointer(Statement));
       end;
     end;
-    {
-    Node := CppParser.Statements.FirstNode;
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-      if (Statement^._Parent = ParentStatement) and Statement^._InProject and (Statement^._Kind = AddKind) then
-        cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
-          ' : ' + Statement^._Type,
-          Pointer(Statement));
-      Node := Node^.NextNode;
-    end;
-    }
   end;
 begin
   cmbMembers.Items.BeginUpdate;

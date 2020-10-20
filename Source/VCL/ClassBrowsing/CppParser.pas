@@ -2141,28 +2141,7 @@ begin
       end;
     end;
   end;
-  {
-  Node := fStatementList.FirstNode;
-  while Assigned(Node) do begin
-    Statement := Node^.Data;
-    if Statement^._Parent = ParentStatement then begin
-      if Statement^._HasDefinition then begin
-        if Statement^._Line > maxInGeneral then
-          maxInGeneral := Statement^._Line;
-        if Statement^._ClassScope = scope then
-          if Statement^._Line > maxInScope then
-            maxInScope := Statement^._Line;
-      end else begin
-        if Statement^._DefinitionLine > maxInGeneral then
-          maxInGeneral := Statement^._Line;
-        if Statement^._ClassScope = scope then
-          if Statement^._DefinitionLine > maxInScope then
-            maxInScope := Statement^._DefinitionLine;
-      end;
-    end;
-    Node := Node^.NextNode;
-  end;
-  }
+  
   if maxInScope = -1 then begin
     AddScopeStr := True;
     Result := maxInGeneral;
@@ -2646,33 +2625,6 @@ begin
       end;
     end;
   end;
-  {
-  Node := fStatementList.LastNode;
-  while Assigned(Node) do begin
-    Statement := Node^.Data;
-    if Statement^._Parent = CurrentClass then begin // TODO: type definitions can have scope too
-      if Statement^._Kind = skClass then begin // these have type 'class'
-        // We have found the statement of the type directly
-        if SameStr(Statement^._Command, s) then begin
-          Result := Statement; // 'class foo'
-          Exit;
-        end;
-      end else if Statement^._Kind = skTypedef then begin
-        // We have found a variable with the same name, search for type
-        if SameStr(Statement^._Command, s) then begin
-          if not SameStr(aType, Statement^._Type) then // prevent infinite loop
-            Result := FindTypeDefinitionOf(Statement^._Type, CurrentClass)
-          else
-            Result := Statement; // stop walking the trail here
-          if Result = nil then // found end of typedef trail, return result
-            Result := Statement;
-          Exit;
-        end;
-      end;
-    end;
-    Node := Node^.PrevNode;
-  end;
-  }
   Result := nil;
 end;
 
@@ -2680,10 +2632,12 @@ function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStat
 var
   Node: PStatementNode;
   Statement: PStatement;
+  GlobalStatement: PStatement;
   Children:TList;
   i:integer;
 begin
 
+  GlobalStatement:=nil;
   // Check local variables
   Children := Statements.GetChildrenStatements(nil);
   if Assigned(Children) then begin
@@ -2697,31 +2651,16 @@ begin
           Exit;
         end;
       end;
+      // found a Global define, cache it but not use now;
+      if (Statement^._Scope = ssGlobal) then begin
+        if SameStr(Statement^._Command, Phrase) then begin
+          GlobalStatement := Statement;
+        end;
+      end;
     end;
   end;
 
-  {
-  Node := fStatementList.LastNode;
-  while Assigned(Node) do begin
-    Statement := Node^.Data;
-    // Class members
-    if (Statement^._Scope = ssClassLocal) and Assigned(CurrentClass) and (Statement^._Parent = CurrentClass) then begin
-      if SameStr(Statement^._Command, Phrase) then begin
-        result := Statement;
-        Exit;
-      end;
-      // Local scope variables (includes function arguments)
-    end else if (Statement^._Scope = ssLocal) then begin
-      if SameStr(Statement^._Command, Phrase) then begin
-        result := Statement;
-        Exit;
-      end;
-    end;
-    Node := Node^.PrevNode;
-  end;
-  }
-
-  // Then, assume the variable belongs to the current scope/class, if there is one
+    // Then, assume the variable belongs to the current scope/class, if there is one
   if Assigned(CurrentClass) then begin
     Children := Statements.GetChildrenStatements(CurrentClass);
     if Assigned(Children) then begin
@@ -2734,7 +2673,6 @@ begin
             result := Statement;
             Exit;
           end;
-          // Local scope variables (includes function arguments)
         end
       end;
     end;
@@ -2743,14 +2681,6 @@ begin
     Node := fStatementList.LastNode; // Start scanning backwards, because owner data is found there
     while Assigned(Node) do begin
       Statement := Node^.Data;
-      {
-      if Statement^._Parent = CurrentClass then begin
-        if SameStr(Statement^._Command, Phrase) then begin
-          result := Statement;
-          Exit;
-        end;
-      end else
-      }
       if Assigned(CurrentClass^._InheritanceList) and
         (CurrentClass^._InheritanceList.IndexOf(Statement^._Parent) <> -1) then begin
         // hide private stuff?
@@ -2763,36 +2693,7 @@ begin
     end;
   end;
 
-  // What remains are globals. Just do a raw scan...
-  Children := Statements.GetChildrenStatements(nil);
-  if Assigned(Children) then begin
-    for i:=0 to Children.Count-1 do
-    begin
-      Statement := PStatement(Children[i]);
-      // Local scope variables (includes function arguments)
-      if (Statement^._Scope = ssGlobal) then begin
-        if SameStr(Statement^._Command, Phrase) then begin
-          result := Statement;
-          Exit;
-        end;
-      end;
-    end;
-  end;
-  {
-  Node := fStatementList.LastNode; // prefer globals inside source files
-  while Assigned(Node) do begin
-    Statement := Node^.Data;
-    if Statement^._Scope = ssGlobal then begin
-      if SameStr(Statement^._Command, Phrase) then begin
-        result := Statement;
-        Exit;
-      end;
-    end;
-    Node := Node^.PrevNode;
-  end;
-  }
-
-  Result := nil;
+  Result := GlobalStatement;
 end;
 
 function TCppParser.FindStatementOf(Phrase: AnsiString; CurrentClass: PStatement): PStatement;
