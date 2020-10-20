@@ -744,92 +744,11 @@ begin
 end;
 
 function TCppParser.CheckForKeyword: boolean;
+var
+  v:integer;
 begin
-  Result :=
-    SameStr(fTokenizer[fIndex]^.Text, 'alignas') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'alignof') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'and') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'and_eq') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'asm') or // skip to }
-  // auto is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'bitand') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'bitor') or // skip
-  // bool is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'break') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'case') or // skip to :
-  SameStr(fTokenizer[fIndex]^.Text, 'catch') or // skip to {
-  // char is a type
-  // char16_t is a type
-  // char32_t is a type
-  // class is handled elsewhere
-  SameStr(fTokenizer[fIndex]^.Text, 'compl') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'const') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'constexpr') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'const_cast') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'continue') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'decltype') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'default') or // skip to :
-  SameStr(fTokenizer[fIndex]^.Text, 'delete') or // skip to ;
-  SameStr(fTokenizer[fIndex]^.Text, 'do') or // skip to {
-  // double is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'dynamic_cast') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'else') or // skip
-  // enum is handled elsewhere
-  SameStr(fTokenizer[fIndex]^.Text, 'explicit') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'export') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'extern') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'false') or // skip
-  // float is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'for') or // skip to ), ( when scanning code blocks
-  SameStr(fTokenizer[fIndex]^.Text, 'friend') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'goto') or // skip to ;
-  SameStr(fTokenizer[fIndex]^.Text, 'if') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'inline') or // skip
-  // int is a type
-  // long is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'mutable') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'namespace') or // skip to {
-  SameStr(fTokenizer[fIndex]^.Text, 'new') or // skip to ;
-  SameStr(fTokenizer[fIndex]^.Text, 'noexcept') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'not') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'not_eq') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'nullptr') or // skip
-  // operator is handled elsewhere
-  SameStr(fTokenizer[fIndex]^.Text, 'or') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'or_eq') or // skip
-  // private is handled elsewhere
-  // protected is handled elsewhere
-  // public is handled elsewhere
-  SameStr(fTokenizer[fIndex]^.Text, 'register') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'reinterpret_cast') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'return') or // skip to ;
-  // short is a type
-  // signed is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'sizeof') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'static') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'static_assert') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'static_cast') or // skip
-  // struct is handled elsewhere
-  SameStr(fTokenizer[fIndex]^.Text, 'switch') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'template') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'this') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'thread_local') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'throw') or // skip to ;
-  SameStr(fTokenizer[fIndex]^.Text, 'true') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'try') or //skip to {
-  // typedef is handled elsewhere
-  SameStr(fTokenizer[fIndex]^.Text, 'typeid') or //skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'typename') or //skip
-  // union is handled elsewhere
-  // unsigned is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'using') or // skip to ;
-  SameStr(fTokenizer[fIndex]^.Text, 'virtual') or // skip
-  // void is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'volatile') or // skip
-  // wchar_t is a type
-  SameStr(fTokenizer[fIndex]^.Text, 'while') or // skip to )
-  SameStr(fTokenizer[fIndex]^.Text, 'xor') or // skip
-  SameStr(fTokenizer[fIndex]^.Text, 'xor_eq'); // skip
+  v := CppKeywords.ValueOf(fTokenizer[fIndex]^.Text);
+  Result := (v>=0) and (v <> Ord(skNone));   
 end;
 
 function TCppParser.CheckForTypedef: boolean;
@@ -1486,102 +1405,56 @@ begin
 end;
 
 procedure TCppParser.HandleKeyword;
+var
+  skipType : TSkipType;
+  v: integer;
 begin
   // Skip
-  if SameStr(fTokenizer[fIndex]^.Text, 'and') or
-    SameStr(fTokenizer[fIndex]^.Text, 'and_eq') or
-    SameStr(fTokenizer[fIndex]^.Text, 'bitand') or
-    SameStr(fTokenizer[fIndex]^.Text, 'bitor') or
-    SameStr(fTokenizer[fIndex]^.Text, 'break') or
-    SameStr(fTokenizer[fIndex]^.Text, 'compl') or
-    SameStr(fTokenizer[fIndex]^.Text, 'const') or
-    SameStr(fTokenizer[fIndex]^.Text, 'constexpr') or
-    SameStr(fTokenizer[fIndex]^.Text, 'const_cast') or
-    SameStr(fTokenizer[fIndex]^.Text, 'continue') or
-    SameStr(fTokenizer[fIndex]^.Text, 'dynamic_cast') or
-    SameStr(fTokenizer[fIndex]^.Text, 'else') or
-    SameStr(fTokenizer[fIndex]^.Text, 'explicit') or
-    SameStr(fTokenizer[fIndex]^.Text, 'export') or
-    SameStr(fTokenizer[fIndex]^.Text, 'extern') or
-    SameStr(fTokenizer[fIndex]^.Text, 'false') or
-    SameStr(fTokenizer[fIndex]^.Text, 'for') or
-    SameStr(fTokenizer[fIndex]^.Text, 'friend') or
-    SameStr(fTokenizer[fIndex]^.Text, 'inline') or
-    SameStr(fTokenizer[fIndex]^.Text, 'mutable') or
-    SameStr(fTokenizer[fIndex]^.Text, 'noexcept') or
-    SameStr(fTokenizer[fIndex]^.Text, 'not') or
-    SameStr(fTokenizer[fIndex]^.Text, 'not_eq') or
-    SameStr(fTokenizer[fIndex]^.Text, 'nullptr') or
-    SameStr(fTokenizer[fIndex]^.Text, 'or') or
-    SameStr(fTokenizer[fIndex]^.Text, 'or_eq') or
-    SameStr(fTokenizer[fIndex]^.Text, 'register') or
-    SameStr(fTokenizer[fIndex]^.Text, 'reinterpret_cast') or
-    SameStr(fTokenizer[fIndex]^.Text, 'static') or
-    SameStr(fTokenizer[fIndex]^.Text, 'static_assert') or
-    SameStr(fTokenizer[fIndex]^.Text, 'static_cast') or
-    SameStr(fTokenizer[fIndex]^.Text, 'template') or
-    SameStr(fTokenizer[fIndex]^.Text, 'this') or
-    SameStr(fTokenizer[fIndex]^.Text, 'thread_local') or
-    SameStr(fTokenizer[fIndex]^.Text, 'true') or
-    SameStr(fTokenizer[fIndex]^.Text, 'typename') or
-    SameStr(fTokenizer[fIndex]^.Text, 'virtual') or
-    SameStr(fTokenizer[fIndex]^.Text, 'volatile') or
-    SameStr(fTokenizer[fIndex]^.Text, 'xor') or
-    SameStr(fTokenizer[fIndex]^.Text, 'xor_eq') then begin
-    Inc(fIndex);
 
-    // Skip to ;
-  end else if SameStr(fTokenizer[fIndex]^.Text, 'delete') or
-    SameStr(fTokenizer[fIndex]^.Text, 'goto') or
-    SameStr(fTokenizer[fIndex]^.Text, 'new') or
-    SameStr(fTokenizer[fIndex]^.Text, 'return') or
-    SameStr(fTokenizer[fIndex]^.Text, 'throw') or
-    SameStr(fTokenizer[fIndex]^.Text, 'using') then begin
-    repeat
+  v := CppKeywords.ValueOf(fTokenizer[fIndex]^.Text);
+  { {no need check here because we have checked in CheckForKeyword )
+  if v<0 then
+    Exit;
+    }
+  skipType := TSkipType(v);
+  case skipType of
+    skItself: begin
+      // skip it;
       Inc(fIndex);
-    until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';']);
-    Inc(fIndex); // step over
-
-    // Skip to :
-  end else if SameStr(fTokenizer[fIndex]^.Text, 'case') or
-    SameStr(fTokenizer[fIndex]^.Text, 'default') then begin
-
-    repeat
-      Inc(fIndex);
-    until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [':']);
-
-    // Skip to )
-  end else if SameStr(fTokenizer[fIndex]^.Text, 'alignas') or
-    SameStr(fTokenizer[fIndex]^.Text, 'alignof') or
-    SameStr(fTokenizer[fIndex]^.Text, 'decltype') or
-    SameStr(fTokenizer[fIndex]^.Text, 'if') or
-    SameStr(fTokenizer[fIndex]^.Text, 'sizeof') or
-    SameStr(fTokenizer[fIndex]^.Text, 'switch') or
-    SameStr(fTokenizer[fIndex]^.Text, 'typeid') or
-    SameStr(fTokenizer[fIndex]^.Text, 'while') then begin
-
-    repeat
-      Inc(fIndex);
-    until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[Length(fTokenizer[fIndex]^.Text)] in [')']);
-    Inc(fIndex); // step over
-
-    // Skip to {
-  end else if SameStr(fTokenizer[fIndex]^.Text, 'catch') or
-    SameStr(fTokenizer[fIndex]^.Text, 'do') or
-    SameStr(fTokenizer[fIndex]^.Text, 'namespace') or
-    SameStr(fTokenizer[fIndex]^.Text, 'try') then begin
-
-    repeat
-      Inc(fIndex);
-    until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in ['{']);
-
-    // Skip to }
-  end else if SameStr(fTokenizer[fIndex]^.Text, 'asm') then begin
-
-    repeat
-      Inc(fIndex);
-    until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in ['}']);
-    Inc(fIndex); // step over
+    end;
+    skToSemicolon: begin
+      // Skip to ;
+      repeat
+        Inc(fIndex);
+      until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';']);
+      Inc(fIndex); // step over
+    end;
+    skToColon: begin
+      // Skip to :
+      repeat
+        Inc(fIndex);
+      until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [':']);
+    end;
+    skToRightParenthesis: begin
+      // skip to )
+      repeat
+        Inc(fIndex);
+      until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[Length(fTokenizer[fIndex]^.Text)] in [')']);
+      Inc(fIndex); // step over
+    end;
+    skToLeftBrace: begin
+      // Skip to {
+      repeat
+        Inc(fIndex);
+      until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in ['{']);
+    end;
+    skToRightBrace: begin
+      // Skip to }
+      repeat
+        Inc(fIndex);
+      until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in ['}']);
+      Inc(fIndex); // step over
+    end;
   end;
 end;
 

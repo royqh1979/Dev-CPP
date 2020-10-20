@@ -949,6 +949,7 @@ Ver=1
 61028=Definition of %s is not in file %s.
 61029=%s has been defined in %s:%d..
 61030=Failed to create folder %s .
+61031='%s' is a C/C++ key word.
 
 
 62001=Untitled

@@ -1015,6 +1015,7 @@ const
   ID_ERR_STATEMENT_OUT_OF_BOUND     = 61028;
   ID_ERR_STATEMENT_EXISTING         = 61029;
   ID_ERR_CREATEFOLDER                  =61030;
+  ID_ERR_IS_KEYWORD                = 61031;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;
