@@ -311,7 +311,7 @@ begin
   if Member <> '' then begin // filter, case insensitive
     fCompletionStatementList.Capacity := fFullCompletionStatementList.Count;
     for I := 0 to fFullCompletionStatementList.Count - 1 do
-      if StartsText(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
+      if StartsStr(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
         fCompletionStatementList.Add(fFullCompletionStatementList[I]);
   end else
     fCompletionStatementList.Assign(fFullCompletionStatementList);
