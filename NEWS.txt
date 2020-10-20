@@ -1,5 +1,7 @@
 Version 6-beta4 October  2020
   - fix: delete [] was thought as a type
+  - fix: check if newname is a C/C++ keyword when Rename Symbol 
+  - enhancement: use TStringHash to check if token text is a key word, speed parsing.
 
 Version 6-beta3 October  2020
   - fix: Text blur in Window High DPI (Environment Option -> Fix High DPI then Exit)

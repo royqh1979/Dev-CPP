@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF WIN32}
-  SysUtils, StrUtils, Classes;
+  SysUtils, StrUtils, Classes, IniFiles;
 {$ENDIF}
 {$IFDEF LINUX}
 SysUtils, StrUtils;
@@ -40,6 +40,17 @@ type
     IncludeFiles: AnsiString; // "file","file" etc
   end;
 
+  TSkipType = (
+    skItself,  // skip itself
+    skToSemicolon, // skip to ;
+    skToColon, // skip to :
+    skToRightParenthesis, // skip to )
+    skToLeftBrace,// Skip to {
+    skToRightBrace, // skip to }
+    skNone // It's a keyword but don't process here
+  );
+
+
   TStatementKind = (
     skClass,
     skFunction,
@@ -49,6 +60,7 @@ type
     skTypedef,
     skEnum,
     skPreprocessor,
+    skNamespace,
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;
@@ -92,6 +104,8 @@ type
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
   TProgressEndEvent = procedure(Sender: TObject; Total: integer) of object;
 
+var
+  CppKeywords : TStringHash;
   // These functions are about six times faster than the locale sensitive AnsiX() versions
 function StartsStr(const subtext, text: AnsiString): boolean;
 function StartsText(const subtext, text: AnsiString): boolean;
@@ -130,6 +144,7 @@ function IsCfile(const Filename: AnsiString): boolean;
 function IsHfile(const Filename: AnsiString): boolean;
 procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
 function IsIncludeLine(const Line: AnsiString): boolean;
+function IsKeyword(const name:AnsiString): boolean;
 
 implementation
 
@@ -463,5 +478,142 @@ begin
   end;
 end;
 
+function IsKeyword(const name:AnsiString): boolean;
+begin
+  Result:= CppKeywords.ValueOf(name)>=0;
+end;
+
+
+initialization
+begin
+
+  CppKeywords := TStringHash.Create();
+  { we use TSkipType value to tell cpppaser how to handle this keyword }
+
+  // skip itself
+  CppKeywords.Add('and',Ord(skItself));
+  CppKeywords.Add('and_eq',Ord(skItself));
+  CppKeywords.Add('bitand',Ord(skItself));
+  CppKeywords.Add('bitor',Ord(skItself));
+  CppKeywords.Add('break',Ord(skItself));
+  CppKeywords.Add('compl',Ord(skItself));
+  CppKeywords.Add('const',Ord(skItself));
+  CppKeywords.Add('constexpr',Ord(skItself));
+  CppKeywords.Add('const_cast',Ord(skItself));
+  CppKeywords.Add('continue',Ord(skItself));
+  CppKeywords.Add('dynamic_cast',Ord(skItself));
+  CppKeywords.Add('else',Ord(skItself));
+  CppKeywords.Add('explicit',Ord(skItself));
+  CppKeywords.Add('export',Ord(skItself));
+  CppKeywords.Add('extern',Ord(skItself));
+  CppKeywords.Add('false',Ord(skItself));
+  CppKeywords.Add('for',Ord(skItself));
+  CppKeywords.Add('friend',Ord(skItself));
+  CppKeywords.Add('inline',Ord(skItself));
+  CppKeywords.Add('mutable',Ord(skItself));
+  CppKeywords.Add('noexcept',Ord(skItself));
+  CppKeywords.Add('not',Ord(skItself));
+  CppKeywords.Add('not_eq',Ord(skItself));
+  CppKeywords.Add('nullptr',Ord(skItself));
+  CppKeywords.Add('or',Ord(skItself));
+  CppKeywords.Add('or_eq',Ord(skItself));
+  CppKeywords.Add('register',Ord(skItself));
+  CppKeywords.Add('reinterpret_cast',Ord(skItself));
+  CppKeywords.Add('static',Ord(skItself));
+  CppKeywords.Add('static_assert',Ord(skItself));
+  CppKeywords.Add('static_cast',Ord(skItself));
+  CppKeywords.Add('template',Ord(skItself));
+  CppKeywords.Add('this',Ord(skItself));
+  CppKeywords.Add('thread_local',Ord(skItself));
+  CppKeywords.Add('true',Ord(skItself));
+  CppKeywords.Add('typename',Ord(skItself));
+  CppKeywords.Add('virtual',Ord(skItself));
+  CppKeywords.Add('volatile',Ord(skItself));
+  CppKeywords.Add('xor',Ord(skItself));
+  CppKeywords.Add('xor_eq',Ord(skItself));
+
+  // Skip to ;
+  CppKeywords.Add('delete',Ord(skToSemicolon));
+  CppKeywords.Add('delete[]',Ord(skToSemicolon));
+  CppKeywords.Add('goto',Ord(skToSemicolon));
+  CppKeywords.Add('new',Ord(skToSemicolon));
+  CppKeywords.Add('return',Ord(skToSemicolon));
+  CppKeywords.Add('throw',Ord(skToSemicolon));
+  CppKeywords.Add('using',Ord(skToSemicolon));
+
+  // Skip to :
+  CppKeywords.Add('case',Ord(skToColon));
+  CppKeywords.Add('default',Ord(skToColon));
+
+  // Skip to )
+  CppKeywords.Add('alignas',Ord(skToRightParenthesis));  // not right
+  CppKeywords.Add('alignof',Ord(skToRightParenthesis));  // not right
+  CppKeywords.Add('decltype',Ord(skToRightParenthesis)); // not right
+  CppKeywords.Add('if',Ord(skToRightParenthesis));
+  CppKeywords.Add('sizeof',Ord(skToRightParenthesis));
+  CppKeywords.Add('switch',Ord(skToRightParenthesis));
+  CppKeywords.Add('typeid',Ord(skToRightParenthesis));
+  CppKeywords.Add('while',Ord(skToRightParenthesis));
+
+  // Skip to {
+  CppKeywords.Add('catch',Ord(skToLeftBrace));
+  CppKeywords.Add('do',Ord(skToLeftBrace));
+  CppKeywords.Add('namespace',Ord(skToLeftBrace));
+  CppKeywords.Add('try',Ord(skToLeftBrace));
+  CppKeywords.Add('asm',Ord(skToRightBrace));
+
+  // wont handle
+
+  //Not supported yet
+  CppKeywords.Add('atomic_cancel',Ord(skNone));
+  CppKeywords.Add('atomic_commit',Ord(skNone));
+  CppKeywords.Add('atomic_noexcept',Ord(skNone));
+  CppKeywords.Add('concept',Ord(skNone));
+  CppKeywords.Add('consteval',Ord(skNone));
+  CppKeywords.Add('constinit',Ord(skNone));
+  CppKeywords.Add('co_wait',Ord(skNone));
+  CppKeywords.Add('co_return',Ord(skNone));
+  CppKeywords.Add('co_yield',Ord(skNone));
+  CppKeywords.Add('reflexpr',Ord(skNone));
+  CppKeywords.Add('requires',Ord(skNone));
+
+  // its a type
+  CppKeywords.Add('auto',Ord(skNone));
+  CppKeywords.Add('bool',Ord(skNone));
+  CppKeywords.Add('char',Ord(skNone));
+  CppKeywords.Add('char8_t',Ord(skNone));
+  CppKeywords.Add('char16_t',Ord(skNone));
+  CppKeywords.Add('char32_t',Ord(skNone));
+  CppKeywords.Add('double',Ord(skNone));
+  CppKeywords.Add('float',Ord(skNone));
+  CppKeywords.Add('int',Ord(skNone));
+  CppKeywords.Add('long',Ord(skNone));
+  CppKeywords.Add('short',Ord(skNone));
+  CppKeywords.Add('signed',Ord(skNone));
+  CppKeywords.Add('unsigned',Ord(skNone));
+  CppKeywords.Add('void',Ord(skNone));
+  CppKeywords.Add('wchar_t',Ord(skNone));
+
+  // handled elsewhere
+  CppKeywords.Add('class',Ord(skNone));
+  CppKeywords.Add('enum',Ord(skNone));
+  CppKeywords.Add('operator',Ord(skNone));
+  CppKeywords.Add('private',Ord(skNone));
+  CppKeywords.Add('protected',Ord(skNone));
+  CppKeywords.Add('public',Ord(skNone));
+  CppKeywords.Add('struct',Ord(skNone));
+  CppKeywords.Add('typedef',Ord(skNone));
+  CppKeywords.Add('union',Ord(skNone));
+
+  // nullptr is value
+  CppKeywords.Add('nullptr',Ord(skNone));
+
+end;
+
+finalization
+begin
+  CppKeywords.Clear;
+  CppKeywords.Free;
+end;
 end.
 

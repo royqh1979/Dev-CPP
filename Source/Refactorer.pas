@@ -100,12 +100,18 @@ var
       end;
   end;
 begin
-//TODO: 1. 增加对newWord的重名检查; 2. 检查定义是否在本文件中（单文件） 或者 在本项目文件列表中（项目）
-//TODO: 3.修改项目中其他文件（定义所在文件放在最后修改）
+//TODO: 1. 检查定义是否在本文件中（单文件） 或者 在本项目文件列表中（项目）
+//TODO: 2.修改项目中其他文件（定义所在文件放在最后修改）
   Result:='';
   //Test if newword is a valid id
   if not IsIdentifier(newName) then begin
     Result := Format(Lang[ID_ERR_NOT_IDENTIFIER],[newName]);
+    Exit;
+  end;
+
+  //Test if newName is a C++ keyword
+  if IsKeyword(newName) then begin
+    Result := Format(Lang[ID_ERR_IS_KEYWORD],[newName]);
     Exit;
   end;
 
