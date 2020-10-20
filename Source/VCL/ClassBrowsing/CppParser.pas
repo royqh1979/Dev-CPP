@@ -490,6 +490,7 @@ var
       _Temporary := fLaterScanning; // true if it's added by a function body scan
       _InProject := fIsProjectFile;
       _InSystemHeader := fIsSystemHeader;
+      _Children := nil;
     end;
     fStatementList.Add(Result);
   end;
@@ -2110,6 +2111,8 @@ var
   Statement: PStatement;
   maxInScope: integer;
   maxInGeneral: integer;
+  i:integer;
+  children: TList;
 begin
   // this function searches in the statements list for statements with
   // a specific _ParentID, and returns the suggested line in file for insertion
@@ -2118,6 +2121,27 @@ begin
   // line for insertion (the last line in the class).
   maxInScope := -1;
   maxInGeneral := -1;
+  children := Statements.GetChildrenStatements(ParentStatement);
+  if Assigned(children) then begin
+    for i:=0 to children.Count-1 do
+    begin
+      Statement := PStatement(children[i]);
+      if Statement^._HasDefinition then begin
+        if Statement^._Line > maxInGeneral then
+          maxInGeneral := Statement^._Line;
+        if Statement^._ClassScope = scope then
+          if Statement^._Line > maxInScope then
+            maxInScope := Statement^._Line;
+      end else begin
+        if Statement^._DefinitionLine > maxInGeneral then
+          maxInGeneral := Statement^._Line;
+        if Statement^._ClassScope = scope then
+          if Statement^._DefinitionLine > maxInScope then
+            maxInScope := Statement^._DefinitionLine;
+      end;
+    end;
+  end;
+  {
   Node := fStatementList.FirstNode;
   while Assigned(Node) do begin
     Statement := Node^.Data;
@@ -2138,6 +2162,7 @@ begin
     end;
     Node := Node^.NextNode;
   end;
+  }
   if maxInScope = -1 then begin
     AddScopeStr := True;
     Result := maxInGeneral;
@@ -2573,6 +2598,8 @@ var
   Statement: PStatement;
   position: integer;
   s: AnsiString;
+  i:integer;
+  Children: TList;
 begin
   // Remove pointer stuff from type
   s := aType; // 'Type' is a keyword
@@ -2593,6 +2620,33 @@ begin
     Delete(s, 1, position);
 
   // Seach them
+  // TODO: type definitions can have scope too
+  Children := Statements.GetChildrenStatements(CurrentClass);
+  if (Assigned(Children)) then begin
+    for i:=0 to Children.Count-1 do
+    begin
+      Statement:=PStatement(Children[i]);
+      if Statement^._Kind = skClass then begin // these have type 'class'
+        // We have found the statement of the type directly
+        if SameStr(Statement^._Command, s) then begin
+          Result := Statement; // 'class foo'
+          Exit;
+        end;
+      end else if Statement^._Kind = skTypedef then begin
+        // We have found a variable with the same name, search for type
+        if SameStr(Statement^._Command, s) then begin
+          if not SameStr(aType, Statement^._Type) then // prevent infinite loop
+            Result := FindTypeDefinitionOf(Statement^._Type, CurrentClass)
+          else
+            Result := Statement; // stop walking the trail here
+          if Result = nil then // found end of typedef trail, return result
+            Result := Statement;
+          Exit;
+        end;
+      end;
+    end;
+  end;
+  {
   Node := fStatementList.LastNode;
   while Assigned(Node) do begin
     Statement := Node^.Data;
@@ -2618,7 +2672,7 @@ begin
     end;
     Node := Node^.PrevNode;
   end;
-
+  }
   Result := nil;
 end;
 
@@ -2626,9 +2680,27 @@ function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStat
 var
   Node: PStatementNode;
   Statement: PStatement;
+  Children:TList;
+  i:integer;
 begin
 
   // Check local variables
+  Children := Statements.GetChildrenStatements(nil);
+  if Assigned(Children) then begin
+    for i:=0 to Children.Count-1 do
+    begin
+      Statement := PStatement(Children[i]);
+      // Local scope variables (includes function arguments)
+      if (Statement^._Scope = ssLocal) then begin
+        if SameStr(Statement^._Command, Phrase) then begin
+          result := Statement;
+          Exit;
+        end;
+      end;
+    end;
+  end;
+
+  {
   Node := fStatementList.LastNode;
   while Assigned(Node) do begin
     Statement := Node^.Data;
@@ -2647,19 +2719,40 @@ begin
     end;
     Node := Node^.PrevNode;
   end;
+  }
 
   // Then, assume the variable belongs to the current scope/class, if there is one
   if Assigned(CurrentClass) then begin
+    Children := Statements.GetChildrenStatements(CurrentClass);
+    if Assigned(Children) then begin
+      for i:=0 to Children.Count-1 do
+      begin
+        Statement := PStatement(Children[i]);
+        // Class members
+        if (Statement^._Scope = ssClassLocal) then begin
+          if SameStr(Statement^._Command, Phrase) then begin
+            result := Statement;
+            Exit;
+          end;
+          // Local scope variables (includes function arguments)
+        end
+      end;
+    end;
+
+    // try inheritance
     Node := fStatementList.LastNode; // Start scanning backwards, because owner data is found there
     while Assigned(Node) do begin
       Statement := Node^.Data;
+      {
       if Statement^._Parent = CurrentClass then begin
         if SameStr(Statement^._Command, Phrase) then begin
           result := Statement;
           Exit;
         end;
-      end else if Assigned(CurrentClass^._InheritanceList) and
-        (CurrentClass^._InheritanceList.IndexOf(Statement^._Parent) <> -1) then begin // try inheritance
+      end else
+      }
+      if Assigned(CurrentClass^._InheritanceList) and
+        (CurrentClass^._InheritanceList.IndexOf(Statement^._Parent) <> -1) then begin
         // hide private stuff?
         if SameStr(Statement^._Command, Phrase) then begin
           result := Statement;
@@ -2671,6 +2764,21 @@ begin
   end;
 
   // What remains are globals. Just do a raw scan...
+  Children := Statements.GetChildrenStatements(nil);
+  if Assigned(Children) then begin
+    for i:=0 to Children.Count-1 do
+    begin
+      Statement := PStatement(Children[i]);
+      // Local scope variables (includes function arguments)
+      if (Statement^._Scope = ssGlobal) then begin
+        if SameStr(Statement^._Command, Phrase) then begin
+          result := Statement;
+          Exit;
+        end;
+      end;
+    end;
+  end;
+  {
   Node := fStatementList.LastNode; // prefer globals inside source files
   while Assigned(Node) do begin
     Statement := Node^.Data;
@@ -2682,6 +2790,7 @@ begin
     end;
     Node := Node^.PrevNode;
   end;
+  }
 
   Result := nil;
 end;

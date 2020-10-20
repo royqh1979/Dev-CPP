@@ -5614,7 +5614,22 @@ var
   Node: PStatementNode;
   Statement, ParentStatement: PStatement;
   procedure AddStatementKind(AddKind: TStatementKind);
+  var
+    i:integer;
+    children: TList;
   begin
+    children := CppParser.Statements.GetChildrenStatements(ParentStatement);
+    if Assigned(Children) then begin
+      for i:=0 to Children.Count-1 do
+      begin
+        Statement := PStatement(Children[i]);
+        if  Statement^._InProject and (Statement^._Kind = AddKind) then
+          cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+            ' : ' + Statement^._Type,
+            Pointer(Statement));
+      end;
+    end;
+    {
     Node := CppParser.Statements.FirstNode;
     while Assigned(Node) do begin
       Statement := Node^.Data;
@@ -5624,6 +5639,7 @@ var
           Pointer(Statement));
       Node := Node^.NextNode;
     end;
+    }
   end;
 begin
   cmbMembers.Items.BeginUpdate;

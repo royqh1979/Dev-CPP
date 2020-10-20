@@ -31,6 +31,14 @@ Unittest support (doctest?google test?)
 git support?
 Refactor -> extract variable/ extract const / extract define
 rename symbol in project files
-compiler settings -> change project compiler set will lost settings?
+compiler settings -> change project compiler set will lost settings? ( no need)
+complete container library (must test it thoroughly)
+use hash to speed up symbol lookup 
+parsing namespace 
+parsing using namespace
+
+
+
+
 
 
