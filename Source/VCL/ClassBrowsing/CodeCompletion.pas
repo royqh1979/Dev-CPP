@@ -205,7 +205,12 @@ begin
             //todo: friend class / function support
             if (Statement^._Static) and
               ((Statement^._ClassScope in [scsPublic,scsNone])
-              or (ParentStatement = fCurrentStatement)) then
+                or (ParentStatement = fCurrentStatement)) //we are inside the class
+                or (                                     // we are inside the classes friend
+                    (Assigned(ParentStatement^._Friends) and
+                    (ParentStatement^._Friends.IndexOf(fCurrentStatement)<>-1)
+                    )
+               ) then
               fFullCompletionStatementList.Add(Statement);
           end;
         end;

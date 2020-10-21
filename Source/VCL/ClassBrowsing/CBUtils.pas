@@ -600,7 +600,7 @@ begin
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));
   CppKeywords.Add('enum',Ord(skNone));
-  CppKeywords.Add('friend',Ord(skItself));
+  CppKeywords.Add('friend',Ord(skNone));
   CppKeywords.Add('operator',Ord(skNone));
   CppKeywords.Add('private',Ord(skNone));
   CppKeywords.Add('protected',Ord(skNone));

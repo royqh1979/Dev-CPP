@@ -123,7 +123,6 @@ type
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
 
-    function CheckForNamespace: boolean;
     function CheckForTypedef: boolean;
     function CheckForTypedefEnum: boolean;
     function CheckForTypedefStruct: boolean;
@@ -1338,8 +1337,10 @@ begin
   FunctionClass := GetLastCurrentClass;
   if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] in [';', '}']) then begin // prototype
     IsDeclaration := True;
+    {
     if not fIsHeader and not Assigned(FunctionClass) then // in a CPP file
       IsValid := False; // not valid
+    }
   end else begin
 
     // Find the function body start after the inherited constructor
@@ -1350,8 +1351,11 @@ begin
     // Still a prototype
     if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] in [';', '}']) then begin
       IsDeclaration := True;
+      //Forward declaration, that's ok
+      {
       if not fIsHeader and not Assigned(FunctionClass) then
         IsValid := False;
+      }
     end;
   end;
 
@@ -2410,6 +2414,7 @@ begin
       fLaterScanning := False;
     end;
   end;
+  Result := ClosestStatement;
 end;
 
 function TCppParser.GetClass(const Phrase: AnsiString): AnsiString;
