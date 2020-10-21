@@ -1,8 +1,11 @@
 # Dev-C++ 2020
+
 A fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp)
 
 Orwell Dev-C++ has stopped update since 2016, So I forked it. 
 It's intended to be used for eductional purposes.
+
+中文网站在这里 https://royqh.net/devcpp/
 
 HighLights of News:
  * Greatly improved "Auto symbol completion" function. Autoskip matched )/}/]/"/', never need to delete it or skip it manually. This makes code input much fluent.
