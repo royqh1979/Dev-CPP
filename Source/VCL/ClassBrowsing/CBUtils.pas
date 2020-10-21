@@ -100,7 +100,7 @@ type
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search
-    _Friends: TList; // friend class / functions
+    _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
   end;
 

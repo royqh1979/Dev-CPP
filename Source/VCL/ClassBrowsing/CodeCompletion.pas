@@ -155,9 +155,10 @@ var
   Node: PStatementNode;
   Statement: PStatement;
   I,t: integer;
-  ParentStatement, ParentTypeStatement, CurrentStatementParent: PStatement;
+  ScopeStatement, ParentStatement, ParentTypeStatement, CurrentStatementParent: PStatement;
   Children : TList;
   isThis: boolean;
+  ScopeName : AnsiString;
 begin
   // Reset filter cache
   fIsIncludedCacheFileName := '';
@@ -195,27 +196,38 @@ begin
       if not Assigned(ParentStatement) then
         Exit;
 
-      // Then determine which type it has (so we can use it as a parent)
+      //get scopename, for friend check;
+        ScopeName := '';
+        if Assigned(fCurrentStatement) then begin
+          if (fCurrentStatement._Scope = ssClassLocal) and
+            (fCurrentStatement._Kind in [skFunction,skConstructor,skDestructor]) then begin
+            ScopeStatement := fCurrentStatement._parent;
+            if Assigned(ScopeStatement) then
+              ScopeName := ScopeStatement._Command;
+          end else
+            ScopeName := fCurrentStatement._Command;
+      end;
+
+      // It is a Class, so only show static members
       if (ParentStatement^._Kind = skClass) then begin
-        //todo It's a class/struct name , we should show static fields only;
+        //Filter static members
         Children := fParser.Statements.GetChildrenStatements(ParentStatement);
         if Assigned(Children) then begin
           for t:=0 to Children.Count-1 do begin
             Statement := PStatement(Children[t]);
-            //todo: friend class / function support
             if (Statement^._Static) and
               ((Statement^._ClassScope in [scsPublic,scsNone])
                 or (ParentStatement = fCurrentStatement)) //we are inside the class
                 or (                                     // we are inside the classes friend
                     (Assigned(ParentStatement^._Friends) and
-                    (ParentStatement^._Friends.IndexOf(fCurrentStatement)<>-1)
+                    (ParentStatement^._Friends.ValueOf(ScopeName)>=0)
                     )
                ) then
               fFullCompletionStatementList.Add(Statement);
           end;
         end;
       end else begin
-        //It's a var/method, we should show it's types member
+        //It's a var we should show its type's members
         ParentTypeStatement := fParser.FindTypeDefinitionOf(ParentStatement^._Type, CurrentStatementParent);
         if Assigned(ParentTypeStatement) then begin
           isThis :=  SameStr(ParentStatement^._Command,'this');
@@ -223,8 +235,12 @@ begin
           if Assigned(Children) then begin
             for t:=0 to Children.Count-1 do begin
               Statement := PStatement(Children[t]);
-            //todo: friend class / function support
-              if (isThis) or (Statement^._ClassScope in [scsPublic,scsNone]) then
+              if (isThis) or
+                 (Statement^._ClassScope in [scsPublic,scsNone]) or
+                 (     // we are inside the classes friend
+                    Assigned(ParentTypeStatement^._Friends) and
+                    (ParentTypeStatement^._Friends.ValueOf(ScopeName)>=0)
+                  )  then
                 fFullCompletionStatementList.Add(Statement);
             end;
           end;

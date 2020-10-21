@@ -252,9 +252,9 @@ end;
 
 function TStatementList.GetChildrenStatements(Statement:PStatement): TList;
 begin
-  if (Assigned(Statement)) then
+  if (Assigned(Statement)) then begin
     Result:= Statement._Children
-  else
+  end else
     Result:=fGlobalStatements;
 end;
 end.

@@ -808,14 +808,19 @@ end;
 function TCppParser.CheckForStructs: boolean;
 var
   I: integer;
+  dis: integer;
 begin
-  Result := (fIndex < fTokenizer.Tokens.Count - 2) and (
-    SameStr(fTokenizer[fIndex]^.Text, 'struct') or
-    SameStr(fTokenizer[fIndex]^.Text, 'class') or
-    SameStr(fTokenizer[fIndex]^.Text, 'union'));
+  if SameStr(fTokenizer[fIndex]^.Text, 'friend') then
+    dis := 1
+  else
+    dis := 0;
+  Result := (fIndex < fTokenizer.Tokens.Count -2-dis) and (
+    SameStr(fTokenizer[fIndex+dis]^.Text, 'struct') or
+    SameStr(fTokenizer[fIndex+dis]^.Text, 'class') or
+    SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
   if Result then begin
-    if fTokenizer[fIndex + 2]^.Text[1] <> ';' then begin // not: class something;
-      I := fIndex;
+    if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
+      I := fIndex+dis;
       // the check for ']' was added because of this example:
       // struct option long_options[] = {
       //		{"debug", 1, 0, 'D'},
@@ -1124,10 +1129,17 @@ var
   Command, Prefix, OldType, NewType: AnsiString;
   I: integer;
   IsStruct: boolean;
-  FirstSynonym, LastStatement: PStatement;
+  IsFriend: boolean;
+  ParentStatement,FirstSynonym, LastStatement: PStatement;
   SharedInheritance, NewClassLevel: TList;
   startLine: integer;
 begin
+  IsFriend := False;
+  Prefix := fTokenizer[fIndex]^.Text;
+  if SameStr(Prefix, 'friend') then begin
+    IsFriend := True;
+    Inc(fIndex);
+  end;
   // Check if were dealing with a struct or union
   Prefix := fTokenizer[fIndex]^.Text;
   IsStruct := SameStr(Prefix, 'struct') or SameStr(Prefix, 'union');
@@ -1174,6 +1186,14 @@ begin
 
       // Forward declaration, struct Foo. Don't mention in class browser
     end else begin
+      if IsFriend then begin
+        ParentStatement := GetLastCurrentClass;
+        if Assigned(ParentStatement) then begin
+          if not Assigned(ParentStatement^._Friends) then
+            ParentStatement^._Friends:=TStringHash.Create;
+          ParentStatement^._Friends.Add(fTokenizer[fIndex]^.Text,1);
+        end;
+      end;
       Inc(I); // step over ;
       fIndex := I;
     end;
@@ -1318,9 +1338,8 @@ var
   I, DelimPos: integer;
   FunctionKind: TStatementKind;
   ParentClassName, ScopelessName: AnsiString;
-  Statement,FunctionClass, FriendStatement: PStatement;
+  FunctionClass, FriendStatement: PStatement;
   startLine : integer;
-  t:integer;
   Children:TList;
 
 begin
@@ -1368,23 +1387,9 @@ begin
     end else
       ScopelessName := sName;
 //TODO : we should check namespace
-    Children := Statements.GetChildrenStatements(FunctionClass._parent);
-    FriendStatement := nil;
-    if Assigned(Children) then begin
-      for t:=0 to Children.Count-1 do begin
-        Statement := PStatement(Children[t]);
-        //todo : type signature check
-        if SameStr(Statement._Command,ScopelessName) then begin
-          FriendStatement := Statement;
-          break;
-        end;
-      end;
-      if Assigned(FriendStatement) then begin
-        if not Assigned(FunctionClass^._Friends) then
-          FunctionClass^._Friends:=TList.Create;
-        FunctionClass^._Friends.Add(FriendStatement);
-      end;
-    end;
+    if not Assigned(FunctionClass^._Friends) then
+      FunctionClass^._Friends:=TStringHash.Create;
+    FunctionClass^._Friends.Add(ScopelessName,1);
   end else if IsValid then begin
 
     // Use the class the function belongs to as the parent ID if the function is declared outside of the class body
@@ -2654,30 +2659,34 @@ begin
 
   // Seach them
   // TODO: type definitions can have scope too
-  Children := Statements.GetChildrenStatements(CurrentClass);
-  if (Assigned(Children)) then begin
-    for i:=0 to Children.Count-1 do
-    begin
-      Statement:=PStatement(Children[i]);
-      if Statement^._Kind = skClass then begin // these have type 'class'
-        // We have found the statement of the type directly
-        if SameStr(Statement^._Command, s) then begin
-          Result := Statement; // 'class foo'
-          Exit;
-        end;
-      end else if Statement^._Kind = skTypedef then begin
-        // We have found a variable with the same name, search for type
-        if SameStr(Statement^._Command, s) then begin
-          if not SameStr(aType, Statement^._Type) then // prevent infinite loop
-            Result := FindTypeDefinitionOf(Statement^._Type, CurrentClass)
-          else
-            Result := Statement; // stop walking the trail here
-          if Result = nil then // found end of typedef trail, return result
-            Result := Statement;
-          Exit;
+  while True do begin
+    Children := Statements.GetChildrenStatements(CurrentClass);
+    if (Assigned(Children)) then begin
+      for i:=0 to Children.Count-1 do begin
+        Statement:=PStatement(Children[i]);
+        if Statement^._Kind = skClass then begin // these have type 'class'
+          // We have found the statement of the type directly
+          if SameStr(Statement^._Command, s) then begin
+            Result := Statement; // 'class foo'
+            Exit;
+          end;
+        end else if Statement^._Kind = skTypedef then begin
+          // We have found a variable with the same name, search for type
+          if SameStr(Statement^._Command, s) then begin
+            if not SameStr(aType, Statement^._Type) then // prevent infinite loop
+              Result := FindTypeDefinitionOf(Statement^._Type, CurrentClass)
+            else
+              Result := Statement; // stop walking the trail here
+            if Result = nil then // found end of typedef trail, return result
+              Result := Statement;
+            Exit;
+          end;
         end;
       end;
     end;
+    if not assigned(CurrentClass) then
+      break;
+    CurrentClass := CurrentClass^._Parent;
   end;
   Result := nil;
 end;
@@ -2716,22 +2725,27 @@ begin
 
     // Then, assume the variable belongs to the current scope/class, if there is one
   if Assigned(CurrentClass) then begin
-    Children := Statements.GetChildrenStatements(CurrentClass);
-    if Assigned(Children) then begin
-      for i:=0 to Children.Count-1 do
-      begin
-        Statement := PStatement(Children[i]);
-        // Class members
-        if (Statement^._Scope = ssClassLocal) then begin
-          if SameStr(Statement^._Command, Phrase) then begin
-            result := Statement;
-            Exit;
+    Repeat
+      if CurrentClass._Kind in [skClass] then begin
+        Children := Statements.GetChildrenStatements(CurrentClass);
+        if Assigned(Children) then begin
+          for i:=0 to Children.Count-1 do begin
+            Statement := PStatement(Children[i]);
+            // Class members
+            if (Statement^._Scope = ssClassLocal) then begin
+              if SameStr(Statement^._Command, Phrase) then begin
+                result := Statement;
+                Exit;
+              end;
+            end
           end;
-        end
+        end;
       end;
-    end;
+      CurrentClass := CurrentClass^._Parent;
+    Until (not assigned(CurrentClass));
 
     // try inheritance
+    {
     Node := fStatementList.LastNode; // Start scanning backwards, because owner data is found there
     while Assigned(Node) do begin
       Statement := Node^.Data;
@@ -2745,6 +2759,7 @@ begin
       end;
       Node := Node^.PrevNode;
     end;
+    }
   end;
 
   Result := GlobalStatement;
