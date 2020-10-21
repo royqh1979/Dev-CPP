@@ -342,6 +342,10 @@ var
   Statement: PStatement;
 begin
   Result := name;
+  if StartsStr("__",name) then begin
+    Result := ''
+    Exit;
+  end;
   Statement := FindMacroDefine(name);
   if Assigned(Statement) then begin
     if (Statement^._Value <> '') then
@@ -509,6 +513,7 @@ var
       _InProject := fIsProjectFile;
       _InSystemHeader := fIsSystemHeader;
       _Children := nil;
+      _Friends := nil;
       _Static := isStatic;
     end;
     fStatementList.Add(Result);
@@ -894,7 +899,7 @@ begin
       if SameStr(s, 'static') then
         IsStatic := True;
       if s<>'' then
-        sType := sType + s;
+        sType := sType + ' '+ s;
       bTypeOK := sType <> '';
     end;
     Inc(fIndex);
@@ -1517,7 +1522,7 @@ begin
       (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then  begin
       s:=expandMacroType(fTokenizer[fIndex]^.Text);
       if s<>'' then
-        LastType := LastType + expandMacroType(fTokenizer[fIndex]^.Text);
+        LastType := LastType + ' '+expandMacroType(fTokenizer[fIndex]^.Text);
       if SameStr(s,'static') then
         isStatic := True;
     end;
@@ -3002,7 +3007,8 @@ begin
       _Temporary := derived^._Temporary; // true if it's added by a function body scan
       _InProject := derived^._InProject;
       _InSystemHeader := derived^._InSystemHeader;
-      _Children := nil;
+      _Children := nil; //Todo: inner class inheritance?
+      _Friends := nil; // Friends are not inherited;
       _Static := derived^._Static;
     end;
     fStatementList.Add(Result);
