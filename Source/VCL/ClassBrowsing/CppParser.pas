@@ -123,11 +123,13 @@ type
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
 
+    function CheckForNamespace: boolean;
     function CheckForTypedef: boolean;
     function CheckForTypedefEnum: boolean;
     function CheckForTypedefStruct: boolean;
     function CheckForStructs: boolean;
-    function CheckForMethod(var sType, sName, sArgs: AnsiString;var IsStatic:boolean): boolean; // caching of results
+    function CheckForMethod(var sType, sName, sArgs: AnsiString;
+      var IsStatic:boolean; var IsFriend:boolean): boolean; // caching of results
     function CheckForScope: boolean;
     function CheckForVar: boolean;
     function CheckForEnum: boolean;
@@ -135,7 +137,7 @@ type
     procedure HandlePreprocessor;
     procedure HandleOtherTypedefs;
     procedure HandleStructs(IsTypedef: boolean = False);
-    procedure HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean);
+    procedure HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean;IsFriend:boolean);
     procedure ScanMethodArgs(const ArgStr: AnsiString; const Filename: AnsiString; Line: Integer);
     procedure HandleScope;
     procedure HandleKeyword;
@@ -342,8 +344,8 @@ var
   Statement: PStatement;
 begin
   Result := name;
-  if StartsStr("__",name) then begin
-    Result := ''
+  if StartsStr('__',name) then begin
+    Result := '';
     Exit;
   end;
   Statement := FindMacroDefine(name);
@@ -830,7 +832,8 @@ begin
   end;
 end;
 
-function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;var isStatic:boolean): boolean;
+function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;
+  var isStatic:boolean;var IsFriend:boolean): boolean;
 var
   CurrentClassLevel: TList;
   fIndexBackup, DelimPos: integer;
@@ -846,6 +849,7 @@ begin
   // ; or {
 
   IsStatic := False;
+  IsFriend := False;
 
   sType := ''; // should contain type "int"
   sName := ''; // should contain function name "foo::function"
@@ -898,6 +902,8 @@ begin
       s:=expandMacroType(fTokenizer[fIndex]^.Text);
       if SameStr(s, 'static') then
         IsStatic := True;
+      if SameStr(s, 'friend') then
+        IsFriend := True;
       if s<>'' then
         sType := sType + ' '+ s;
       bTypeOK := sType <> '';
@@ -1307,14 +1313,17 @@ begin
   end;
 end;
 
-procedure TCppParser.HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean);
+procedure TCppParser.HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean; IsFriend:boolean);
 var
   IsValid, IsDeclaration: boolean;
   I, DelimPos: integer;
   FunctionKind: TStatementKind;
   ParentClassName, ScopelessName: AnsiString;
-  FunctionClass: PStatement;
+  Statement,FunctionClass, FriendStatement: PStatement;
   startLine : integer;
+  t:integer;
+  Children:TList;
+
 begin
   IsValid := True;
   IsDeclaration := False; // assume it's not a prototype
@@ -1346,7 +1355,33 @@ begin
     end;
   end;
 
-  if IsValid then begin
+  if IsFriend and IsDeclaration and Assigned(FunctionClass) then begin
+    DelimPos := Pos('::', sName);
+    if DelimPos > 0 then begin
+      ScopelessName := Copy(sName, DelimPos + 2, MaxInt);
+//      ParentClassName := Copy(sName, 1, DelimPos - 1);
+//        FunctionClass := GetIncompleteClass(ParentClassName);
+    end else
+      ScopelessName := sName;
+//TODO : we should check namespace
+    Children := Statements.GetChildrenStatements(FunctionClass._parent);
+    FriendStatement := nil;
+    if Assigned(Children) then begin
+      for t:=0 to Children.Count-1 do begin
+        Statement := PStatement(Children[t]);
+        //todo : type signature check
+        if SameStr(Statement._Command,ScopelessName) then begin
+          FriendStatement := Statement;
+          break;
+        end;
+      end;
+      if Assigned(FriendStatement) then begin
+        if not Assigned(FunctionClass^._Friends) then
+          FunctionClass^._Friends:=TList.Create;
+        FunctionClass^._Friends.Add(FriendStatement);
+      end;
+    end;
+  end else if IsValid then begin
 
     // Use the class the function belongs to as the parent ID if the function is declared outside of the class body
     DelimPos := Pos('::', sName);
@@ -1707,7 +1742,7 @@ end;
 function TCppParser.HandleStatement: boolean;
 var
   S1, S2, S3: AnsiString;
-  isStatic: boolean;
+  isStatic,isFriend: boolean;
 begin
   if fTokenizer[fIndex]^.Text[1] = '{' then begin
     AddSoloClassLevel(nil);
@@ -1734,8 +1769,8 @@ begin
       HandleOtherTypedefs; // typedef Foo Bar
   end else if CheckForStructs then begin
     HandleStructs(False);
-  end else if CheckForMethod(S1, S2, S3, isStatic) then begin
-    HandleMethod(S1, S2, S3, isStatic); // don't recalculate parts
+  end else if CheckForMethod(S1, S2, S3, isStatic, isFriend) then begin
+    HandleMethod(S1, S2, S3, isStatic, isFriend); // don't recalculate parts
   end else if CheckForVar then begin
     HandleVar;
   end else

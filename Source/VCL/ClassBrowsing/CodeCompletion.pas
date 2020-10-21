@@ -202,6 +202,7 @@ begin
         if Assigned(Children) then begin
           for t:=0 to Children.Count-1 do begin
             Statement := PStatement(Children[t]);
+            //todo: friend class / function support
             if (Statement^._Static) and
               ((Statement^._ClassScope in [scsPublic,scsNone])
               or (ParentStatement = fCurrentStatement)) then
@@ -217,6 +218,7 @@ begin
           if Assigned(Children) then begin
             for t:=0 to Children.Count-1 do begin
               Statement := PStatement(Children[t]);
+            //todo: friend class / function support
               if (isThis) or (Statement^._ClassScope in [scsPublic,scsNone]) then
                 fFullCompletionStatementList.Add(Statement);
             end;

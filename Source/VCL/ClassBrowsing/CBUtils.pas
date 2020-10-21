@@ -510,7 +510,6 @@ begin
   CppKeywords.Add('extern',Ord(skItself));
   CppKeywords.Add('false',Ord(skItself));
   CppKeywords.Add('for',Ord(skItself));
-  CppKeywords.Add('friend',Ord(skItself));
   CppKeywords.Add('mutable',Ord(skItself));
   CppKeywords.Add('noexcept',Ord(skItself));
   CppKeywords.Add('not',Ord(skItself));
@@ -601,14 +600,15 @@ begin
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));
   CppKeywords.Add('enum',Ord(skNone));
+  CppKeywords.Add('friend',Ord(skItself));
   CppKeywords.Add('operator',Ord(skNone));
   CppKeywords.Add('private',Ord(skNone));
   CppKeywords.Add('protected',Ord(skNone));
   CppKeywords.Add('public',Ord(skNone));
+  CppKeywords.Add('static',Ord(skNone));
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
-  CppKeywords.Add('static',Ord(skNone));
 
   // nullptr is value
   CppKeywords.Add('nullptr',Ord(skNone));

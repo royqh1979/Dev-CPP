@@ -148,6 +148,8 @@ begin
       PStatement(Node^.Data)^._InheritanceList.Free;
     if Assigned(PStatement(Node^.Data)^._Children) then
       PStatement(Node^.Data)^._Children.Free;
+    if Assigned(PStatement(Node^.Data)^._Friends) then
+      PStatement(Node^.Data)^._Friends.Free;
     Dispose(PStatement(Node^.Data));
   end;
   Dispose(Node);
