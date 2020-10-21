@@ -100,6 +100,8 @@ type
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search
+    _Friends: TList; // friend class / functions
+    _Static: boolean; // static function / variable
   end;
 
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
@@ -518,7 +520,6 @@ begin
   CppKeywords.Add('or_eq',Ord(skItself));
   CppKeywords.Add('register',Ord(skItself));
   CppKeywords.Add('reinterpret_cast',Ord(skItself));
-  CppKeywords.Add('static',Ord(skItself));
   CppKeywords.Add('static_assert',Ord(skItself));
   CppKeywords.Add('static_cast',Ord(skItself));
   CppKeywords.Add('template',Ord(skItself));
@@ -595,7 +596,7 @@ begin
 
   // it's part of type info
   CppKeywords.Add('const',Ord(skNone));
-  CppKeywords.Add('inline',Ord(skItself));  
+  CppKeywords.Add('inline',Ord(skItself));
 
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));
@@ -607,6 +608,7 @@ begin
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
+  CppKeywords.Add('static',Ord(skNone));
 
   // nullptr is value
   CppKeywords.Add('nullptr',Ord(skNone));

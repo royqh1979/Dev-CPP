@@ -2,6 +2,8 @@ Version 6-beta4 October  2020
   - fix: delete [] was thought as a type
   - fix: check if newname is a C/C++ keyword when Rename Symbol 
   - fix: correctly parse const keyword
+  - fix: correctly parse / code suggestion static class member methods/vars,
+  - enhancement: hide type name begin with '__' in variable defines.
   - enhancement: change the way cpp parser to handle inheritance, faster and less errors.
   - enhancement: Add _children to TStatement, to speedup symbol lookup
   - enhancement: use TStringHash to check if token text is a key word, speed parsing.

@@ -198,11 +198,14 @@ begin
       // Then determine which type it has (so we can use it as a parent)
       if (ParentStatement^._Kind = skClass) then begin
         //todo It's a class/struct name , we should show static fields only;
-        Children := fParser.Statements.GetChildrenStatements(fCurrentStatement);
+        Children := fParser.Statements.GetChildrenStatements(ParentStatement);
         if Assigned(Children) then begin
           for t:=0 to Children.Count-1 do begin
             Statement := PStatement(Children[t]);
-            fFullCompletionStatementList.Add(Statement);
+            if (Statement^._Static) and
+              ((Statement^._ClassScope in [scsPublic,scsNone])
+              or (ParentStatement = fCurrentStatement)) then
+              fFullCompletionStatementList.Add(Statement);
           end;
         end;
       end else begin

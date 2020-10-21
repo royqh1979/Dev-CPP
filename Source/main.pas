@@ -1010,6 +1010,7 @@ begin
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
     actCloseProjectExecute(Self);
+    
   if Assigned(fProject) then begin
     Action := caNone;
     Exit;

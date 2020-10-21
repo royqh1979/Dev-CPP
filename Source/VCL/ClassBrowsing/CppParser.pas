@@ -91,7 +91,8 @@ type
       ClassScope: TStatementClassScope;
       Visible: boolean;
       FindDeclaration: boolean;
-      IsDefinition: boolean): PStatement; // TODO: InheritanceList not supported
+      IsDefinition: boolean;
+      isStatic: boolean): PStatement; // TODO: InheritanceList not supported
     function AddStatement(
       Parent: PStatement;
       const FileName: AnsiString;
@@ -107,7 +108,8 @@ type
       Visible: boolean;
       FindDeclaration: boolean;
       IsDefinition: boolean;
-      InheritanceList: TList): PStatement;
+      InheritanceList: TList;
+      isStatic: boolean): PStatement;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetLastCurrentClass: PStatement; // gets last item from lastt level
@@ -125,7 +127,7 @@ type
     function CheckForTypedefEnum: boolean;
     function CheckForTypedefStruct: boolean;
     function CheckForStructs: boolean;
-    function CheckForMethod(var sType, sName, sArgs: AnsiString): boolean; // caching of results
+    function CheckForMethod(var sType, sName, sArgs: AnsiString;var IsStatic:boolean): boolean; // caching of results
     function CheckForScope: boolean;
     function CheckForVar: boolean;
     function CheckForEnum: boolean;
@@ -133,7 +135,7 @@ type
     procedure HandlePreprocessor;
     procedure HandleOtherTypedefs;
     procedure HandleStructs(IsTypedef: boolean = False);
-    procedure HandleMethod(const sType, sName, sArgs: AnsiString);
+    procedure HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean);
     procedure ScanMethodArgs(const ArgStr: AnsiString; const Filename: AnsiString; Line: Integer);
     procedure HandleScope;
     procedure HandleKeyword;
@@ -339,11 +341,11 @@ function TCppParser.expandMacroType(const name:AnsiString): AnsiString;
 var
   Statement: PStatement;
 begin
-  Result := ' ' + name;
+  Result := name;
   Statement := FindMacroDefine(name);
   if Assigned(Statement) then begin
-    if Statement^._Value <> '' then
-      Result:= ' ' + Statement^._Value
+    if (Statement^._Value <> '') then
+      Result:= Statement^._Value
     else
       Result:='';
   end;
@@ -414,7 +416,8 @@ function TCppParser.AddChildStatement(
   ClassScope: TStatementClassScope;
   Visible: boolean;
   FindDeclaration: boolean;
-  IsDefinition: boolean): PStatement;
+  IsDefinition: boolean;
+  isStatic: boolean): PStatement;
 var
   I: integer;
 begin
@@ -436,7 +439,8 @@ begin
         Visible,
         FindDeclaration,
         IsDefinition,
-        nil);
+        nil,
+        isStatic);
   end else begin
     Result := AddStatement(
       nil,
@@ -453,7 +457,8 @@ begin
       Visible,
       FindDeclaration,
       IsDefinition,
-      nil);
+      nil,
+      isStatic);
   end;
 end;
 
@@ -472,7 +477,8 @@ function TCppParser.AddStatement(
   Visible: boolean;
   FindDeclaration: boolean;
   IsDefinition: boolean;
-  InheritanceList: TList): PStatement;
+  InheritanceList: TList;
+  isStatic:boolean): PStatement;
 var
   Declaration: PStatement;
   OperatorPos: integer;
@@ -503,6 +509,7 @@ var
       _InProject := fIsProjectFile;
       _InSystemHeader := fIsSystemHeader;
       _Children := nil;
+      _Static := isStatic;
     end;
     fStatementList.Add(Result);
   end;
@@ -818,11 +825,12 @@ begin
   end;
 end;
 
-function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString): boolean;
+function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;var isStatic:boolean): boolean;
 var
   CurrentClassLevel: TList;
   fIndexBackup, DelimPos: integer;
   bTypeOK, bNameOK, bArgsOK: boolean;
+  s:AnsiString;
 begin
 
   // Function template:
@@ -831,6 +839,8 @@ begin
   // name (1 word)
   // (argument list)
   // ; or {
+
+  IsStatic := False;
 
   sType := ''; // should contain type "int"
   sName := ''; // should contain function name "foo::function"
@@ -847,15 +857,7 @@ begin
   while (fIndex < fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] in ['(', ';', ':', '{', '}', '#']) do
     begin
 
-    // Skip some compiler extensions BEFORE our function type
-    if not bTypeOK and StartsText('__mingw', fTokenizer[fIndex]^.Text) or SameStr('__attribute__',
-      fTokenizer[fIndex]^.Text) then begin
-      // TODO: this should be fixed by performing macro expansion
-      if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then
-        Inc(fIndex); // skip keyword. argument list is skipped at end of loop body
-
-      // If the first brace is ahead, we've found the function name. Stop adding to type
-    end else if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then
+    if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then
       begin // and start of a function
       sName := fTokenizer[fIndex]^.Text;
       sArgs := fTokenizer[fIndex + 1]^.Text;
@@ -888,7 +890,11 @@ begin
 
       // Still walking through type
     end else {if IsValidIdentifier(fTokenizer[fIndex]^.Text) then} begin
-      sType := sType + expandMacroType(fTokenizer[fIndex]^.Text);
+      s:=expandMacroType(fTokenizer[fIndex]^.Text);
+      if SameStr(s, 'static') then
+        IsStatic := True;
+      if s<>'' then
+        sType := sType + s;
       bTypeOK := sType <> '';
     end;
     Inc(fIndex);
@@ -1024,7 +1030,8 @@ begin
           False,
           False,
           True,
-          nil);
+          nil,
+          False);
         NewType := '';
         if fTokenizer[fIndex]^.Text[1] = ';' then
           break;
@@ -1095,7 +1102,8 @@ begin
       False, // not visible
       False,
       True,
-      nil);
+      nil,
+      False);
   end;
   //TODO "#undef support"
   Inc(fIndex);
@@ -1148,7 +1156,8 @@ begin
             False,
             False,
             True,
-            nil);
+            nil,
+            False);
         end;
         Inc(fIndex);
       until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] = ';');
@@ -1186,7 +1195,8 @@ begin
               True,
               False,
               True,
-              TList.Create);
+              TList.Create,
+              False);
             Command := '';
           end;
         end;
@@ -1262,7 +1272,8 @@ begin
                   True,
                   False,
                   True,
-                  SharedInheritance); // all synonyms inherit from the same statements
+                  SharedInheritance,
+                  False); // all synonyms inherit from the same statements
                 NewClassLevel.Add(LastStatement);
                 Command := '';
               end;
@@ -1291,7 +1302,7 @@ begin
   end;
 end;
 
-procedure TCppParser.HandleMethod(const sType, sName, sArgs: AnsiString);
+procedure TCppParser.HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean);
 var
   IsValid, IsDeclaration: boolean;
   I, DelimPos: integer;
@@ -1371,7 +1382,8 @@ begin
         True,
         not IsDeclaration, // check for declarations when we find an definition of a function
         not IsDeclaration,
-        nil)
+        nil,
+        IsStatic)
 
       // For function declarations, any given statement can belong to multiple typedef names
     else
@@ -1390,7 +1402,8 @@ begin
         fClassScope,
         True,
         not IsDeclaration, // check for declarations when we find an definition of a function
-        not IsDeclaration);
+        not IsDeclaration,
+        IsStatic);
   end;
 
   // Don't parse the function's block now... It will be parsed when user presses ctrl+space inside it ;)
@@ -1475,7 +1488,9 @@ procedure TCppParser.HandleVar;
 var
   LastType, Args, Cmd, S: AnsiString;
   IsFunctionPointer: boolean;
+  IsStatic : boolean;
 begin
+  IsStatic := False;
   // Keep going and stop on top of the variable name
   LastType := '';
   IsFunctionPointer := False;
@@ -1499,8 +1514,13 @@ begin
     // but we dont store it in the type cache, so must trim it to find the type info
     if (not SameStr(fTokenizer[fIndex]^.Text, 'struct')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'class')) and
-      (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then
-      LastType := LastType + expandMacroType(fTokenizer[fIndex]^.Text);
+      (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then  begin
+      s:=expandMacroType(fTokenizer[fIndex]^.Text);
+      if s<>'' then
+        LastType := LastType + expandMacroType(fTokenizer[fIndex]^.Text);
+      if SameStr(s,'static') then
+        isStatic := True;
+    end;
     Inc(fIndex);
   until (fIndex >= fTokenizer.Tokens.Count) or IsFunctionPointer;
   LastType := Trim(LastType);
@@ -1568,7 +1588,8 @@ begin
           fClassScope,
           True,
           False,
-          True); // TODO: not supported to pass list
+          True,
+          IsStatic); // TODO: not supported to pass list
       end;
 
       // Step over the variable name
@@ -1633,7 +1654,8 @@ begin
       False,
       False,
       True,
-      nil);
+      nil,
+      False);
 
   // Skip opening brace
   Inc(fIndex);
@@ -1666,7 +1688,8 @@ begin
         False,
         False,
         True,
-        nil);
+        nil,
+        False);
     end;
     Inc(fIndex);
   until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';', '{', '}']);
@@ -1679,6 +1702,7 @@ end;
 function TCppParser.HandleStatement: boolean;
 var
   S1, S2, S3: AnsiString;
+  isStatic: boolean;
 begin
   if fTokenizer[fIndex]^.Text[1] = '{' then begin
     AddSoloClassLevel(nil);
@@ -1705,8 +1729,8 @@ begin
       HandleOtherTypedefs; // typedef Foo Bar
   end else if CheckForStructs then begin
     HandleStructs(False);
-  end else if CheckForMethod(S1, S2, S3) then begin
-    HandleMethod(S1, S2, S3); // don't recalculate parts
+  end else if CheckForMethod(S1, S2, S3, isStatic) then begin
+    HandleMethod(S1, S2, S3, isStatic); // don't recalculate parts
   end else if CheckForVar then begin
     HandleVar;
   end else
@@ -1794,6 +1818,7 @@ begin
   if Assigned(fOnBusy) then
     fOnBusy(Self);
 
+  //remove all macrodefines;
   fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
   fFilesToScan.Clear;
@@ -1832,7 +1857,6 @@ begin
     I := 0;
     fFilesScannedCount := 0;
     fFilesToScanCount := fFilesToScan.Count;
-    fMacroDefines.Clear; // empty before start
     while I < fFilesToScan.Count do begin
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       if Assigned(fOnTotalProgress) then
@@ -1985,7 +2009,6 @@ begin
   try
     fFilesToScanCount := 0;
     fFilesScannedCount := 0;
-    fMacroDefines.Clear; // empty before start
     if not Assigned(Stream) then begin
       if CFile = '' then
         InternalParse(HFile, True) // headers should be parsed via include
@@ -2026,6 +2049,7 @@ begin
       if Statement^._Kind = skClass then // only classes have inheritance
         fInvalidatedStatements.Add(Statement);
 
+      fMacroDefines.Remove(Statement);
       fStatementList.Delete(Node);
     end;
     Node := NextNode;
@@ -2332,7 +2356,8 @@ begin
           False,
           False,
           True,
-          nil);
+          nil,
+          False);
       end;
 
       // Try to use arglist which includes names (implementation, not declaration)
@@ -2795,8 +2820,10 @@ begin
   while Assigned(Node) do begin
     NextNode := Node^.NextNode;
     Statement := Node^.Data;
-    if Statement^._Temporary then
+    if Statement^._Temporary then begin
+      fMacroDefines.Remove(Statement);
       fStatementList.Delete(Node);
+    end;
     Node := NextNode;
   end;
 end;
@@ -2840,7 +2867,8 @@ begin
           False,
           False,
           True,
-          nil);
+          nil,
+          False);
       end;
 
       ParamStart := I + 1; // step over ,
@@ -2975,6 +3003,7 @@ begin
       _InProject := derived^._InProject;
       _InSystemHeader := derived^._InSystemHeader;
       _Children := nil;
+      _Static := derived^._Static;
     end;
     fStatementList.Add(Result);
 end;
