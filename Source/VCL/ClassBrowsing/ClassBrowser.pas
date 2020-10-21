@@ -234,7 +234,6 @@ var
   Statement, ParentStatement: PStatement;
   NewNode: TTreeNode;
   bInherited: boolean;
-  InheritanceStatements: TList;
 
   procedure AddStatementNode(StatementNode: PStatementNode);
   begin
@@ -257,12 +256,7 @@ begin
   else
     ParentStatement := nil;
 
-  InheritanceStatements := TList.Create;
-  try
     // allow inheritance propagation, including MI
-    if fShowInheritedMembers and (ParentStatement <> nil) and (ParentStatement^._Kind = skClass) then
-      fParser.GetMultipleInheritanceStatements(ParentStatement, InheritanceStatements);
-
     // Walk all the statements
     bInherited := False;
     StatementNode := StartNode;
@@ -281,9 +275,12 @@ begin
 
         // Stop the current recurse when we run out of children
         if _Parent <> ParentStatement then begin
+        {
           bInherited := fShowInheritedMembers and (InheritanceStatements.IndexOf(_Parent) <> -1);
           if not bInherited then
             Continue;
+        }
+          Continue;
         end;
 
         // Only do inheritance checking when absolutely needed
@@ -307,9 +304,6 @@ begin
         end;
       end;
     end;
-  finally
-    InheritanceStatements.Free;
-  end;
 end;
 
 procedure TClassBrowser.UpdateView;

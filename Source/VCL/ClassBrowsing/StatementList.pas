@@ -39,6 +39,7 @@ type
     fFirstNode: PStatementNode;
     fLastNode: PStatementNode;
     fOwnsObjects: boolean;
+    fGlobalStatements: TList;
     procedure DisposeNode(Node: PStatementNode);
     procedure OnNodeAdding(Node: PStatementNode); // call when about to add this node
     procedure OnNodeDeleting(Node: PStatementNode); // call when about to delete this node
@@ -53,6 +54,7 @@ type
     function Delete(Node: PStatementNode): Integer; overload;
     function Delete(Data: PStatement): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
+    function GetChildrenStatements(Statement:PStatement): TList;
     procedure Clear;
     property FirstNode: PStatementNode read fFirstNode;
     property LastNode: PStatementNode read fLastNode;
@@ -70,11 +72,13 @@ begin
   fLastNode := nil;
   fCount := 0;
   fOwnsObjects := True;
+  fGlobalStatements := TList.Create;
 end;
 
 destructor TStatementList.Destroy;
 begin
   Clear;
+  fGlobalStatements.Free;
 end;
 
 function TStatementList.FirstStatement: PStatement;
@@ -115,19 +119,37 @@ end;
 function TStatementList.Add(Data: PStatement): Integer;
 var
   Node: PStatementNode;
+  parent: PStatement;
 begin
   // Create a new one
   Node := New(PStatementNode);
   Node^.Data := Data;
   OnNodeAdding(Node);
   Result := fCount;
+  if Assigned(Data^._Parent) then begin
+    parent := Data^._Parent;
+    if not Assigned(parent^._Children) then
+      parent^._Children := TList.Create;
+    parent^._Children.Add(Data);
+  end else begin
+    fGlobalStatements.Add(Data);
+  end;
 end;
 
 procedure TStatementList.DisposeNode(Node: PStatementNode);
 begin
+  // remove it from parent's children
+  if Assigned(Node^.Data^._Parent) then
+    Node^.Data^._Parent._Children.remove(Node^.Data)
+  else
+    fGlobalStatements.Remove(Node^.Data);
   if OwnsObjects then begin
-    if Assigned(PStatement(Node^.Data)._InheritanceList) then
-      PStatement(Node^.Data)._InheritanceList.Free;
+    if Assigned(PStatement(Node^.Data)^._InheritanceList) then
+      PStatement(Node^.Data)^._InheritanceList.Free;
+    if Assigned(PStatement(Node^.Data)^._Children) then
+      PStatement(Node^.Data)^._Children.Free;
+    if Assigned(PStatement(Node^.Data)^._Friends) then
+      PStatement(Node^.Data)^._Friends.Free;
     Dispose(PStatement(Node^.Data));
   end;
   Dispose(Node);
@@ -225,7 +247,15 @@ begin
   fFirstNode := nil;
   fLastNode := nil;
   fCount := 0;
+  fGlobalStatements.Clear;
 end;
 
+function TStatementList.GetChildrenStatements(Statement:PStatement): TList;
+begin
+  if (Assigned(Statement)) then begin
+    Result:= Statement._Children
+  end else
+    Result:=fGlobalStatements;
+end;
 end.
 

@@ -52,12 +52,10 @@ type
     fOnResize: TNotifyEvent;
     fOnlyGlobals: boolean;
     fCurrentStatement: PStatement;
-    fHideDelay: integer; // allow empty list once, then hide when empty again
     fIncludedFiles: TStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
-    function ApplyClassFilter(Statement, CurrentClass: PStatement; InheritanceStatements: TList): boolean;
-    function ApplyMemberFilter(Statement, CurrentClass, ParentClass: PStatement; InheritanceStatements: TList): boolean;
+    function ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
     procedure GetCompletionFor(Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -124,7 +122,6 @@ begin
   fEnabled := True;
   fOnlyGlobals := False;
   fShowCount := 100; // keep things fast
-  fHideDelay := 0;
 
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
@@ -139,56 +136,17 @@ begin
   inherited Destroy;
 end;
 
-function TCodeCompletion.ApplyClassFilter(Statement, CurrentClass: PStatement; InheritanceStatements: TList): boolean;
+function TCodeCompletion.ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
 begin
   Result :=
     (
-    (Statement^._Scope in [ssLocal, ssGlobal]) or // local or global var or
-    (
-    (Statement^._Scope = ssClassLocal) and // class var
-    (
-    (Statement^._Parent = CurrentClass) or // from current class
-    (
-    (InheritanceStatements.IndexOf(Statement^._Parent) <> -1) and
-    (Statement^._ClassScope <> scsPrivate)
-    ) // or an inheriting class
-    )
-    )
-    ) and
-    (IsIncluded(Statement^._FileName) or
-    IsIncluded(Statement^._DefinitionFileName));
-end;
-
-function TCodeCompletion.ApplyMemberFilter(Statement, CurrentClass, ParentClass: PStatement; InheritanceStatements:
-  TList): boolean;
-var
-  cs: set of TStatementClassScope;
-begin
-  Result := Statement^._Parent <> nil; // only members
-  if not Result then
-    Exit;
-
-  // all members of current class
-  Result := Result and ((ParentClass = CurrentClass) and (Statement^._Parent = ParentClass));
-
-  // all public and published members of var's class
-  Result := Result or
-    (
-    (ParentClass = Statement^._Parent) and
-    (not (Statement^._ClassScope in [scsProtected, scsPrivate]))
-    // or member of an inherited class
-    );
-
-  if (CurrentClass = nil) or (Statement^._Parent = CurrentClass) then
-    cs := [scsPrivate, scsProtected]
-  else
-    cs := [scsPrivate];
-
-  // all inherited class's non-private members
-  Result := Result or
-    (
-    (InheritanceStatements.IndexOf(Statement^._Parent) <> -1) and
-    (not (Statement^._ClassScope in cs)) // or member of an inherited class
+      (Statement^._Scope in [ssLocal, ssGlobal]) or // local or global var or
+      ( (Statement^._Scope = ssClassLocal) and // class var
+        (Statement^._Parent = CurrentClass) // from current class
+      )
+    ) and (
+      IsIncluded(Statement^._FileName) or
+      IsIncluded(Statement^._DefinitionFileName)
     );
 end;
 
@@ -196,35 +154,28 @@ procedure TCodeCompletion.GetCompletionFor(Phrase: AnsiString);
 var
   Node: PStatementNode;
   Statement: PStatement;
-  I: integer;
-  InheritanceStatements: TList;
-  ParentStatement, ParentTypeStatement, CurrentStatementParent: PStatement;
+  I,t: integer;
+  ScopeStatement, ParentStatement, ParentTypeStatement, CurrentStatementParent: PStatement;
+  Children : TList;
+  isThis: boolean;
+  ScopeName : AnsiString;
 begin
   // Reset filter cache
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
-  InheritanceStatements := TList.Create;
-  try
     I := fParser.FindLastOperator(Phrase);
     if I = 0 then begin
 
       // only add globals and members of the current class
 
       // Also consider classes the current class inherits from
-      fParser.GetMultipleInheritanceStatements(fCurrentStatement, InheritanceStatements);
       Node := fParser.Statements.FirstNode;
       while Assigned(Node) do begin
         Statement := Node^.Data;
-        if ApplyClassFilter(Statement, fCurrentStatement, InheritanceStatements) then begin
-          if (fFullCompletionStatementList.Count = 0) or
-            (not (
-              SameStr(
-                PStatement(fFullCompletionStatementList[fFullCompletionStatementList.Count-1])^._Command,
-                Statement^._Command)
-             ) ) then
-            fFullCompletionStatementList.Add(Statement);
+        if ApplyClassFilter(Statement, fCurrentStatement) then begin
+          fFullCompletionStatementList.Add(Statement);
         end;
         Node := Node^.NextNode;
       end;
@@ -245,36 +196,57 @@ begin
       if not Assigned(ParentStatement) then
         Exit;
 
-      // Then determine which type it has (so we can use it as a parent)
-      if ParentStatement^._Kind = skClass then // already found type
-        ParentTypeStatement := ParentStatement
-      else
-        ParentTypeStatement := fParser.FindTypeDefinitionOf(ParentStatement^._Type, CurrentStatementParent);
-      // TODO: should not be nil
-      if not Assigned(ParentTypeStatement) then
-        Exit;
+      //get scopename, for friend check;
+        ScopeName := '';
+        if Assigned(fCurrentStatement) then begin
+          if (fCurrentStatement._Scope = ssClassLocal) and
+            (fCurrentStatement._Kind in [skFunction,skConstructor,skDestructor]) then begin
+            ScopeStatement := fCurrentStatement._parent;
+            if Assigned(ScopeStatement) then
+              ScopeName := ScopeStatement._Command;
+          end else
+            ScopeName := fCurrentStatement._Command;
+      end;
 
-      // Then add members of the ClassIDs and InheritanceIDs
-      fParser.GetMultipleInheritanceStatements(ParentTypeStatement, InheritanceStatements);
-
-      Node := fParser.Statements.FirstNode;
-      while Assigned(Node) do begin
-        Statement := Node^.Data;
-        if ApplyMemberFilter(Statement, fCurrentStatement, ParentTypeStatement, InheritanceStatements)then begin
-          if (fFullCompletionStatementList.Count = 0) or
-            (not (
-              SameStr(
-                PStatement(fFullCompletionStatementList[fFullCompletionStatementList.Count-1])^._Command,
-                Statement^._Command)
-             ) ) then
-            fFullCompletionStatementList.Add(Statement);
+      // It is a Class, so only show static members
+      if (ParentStatement^._Kind = skClass) then begin
+        //Filter static members
+        Children := fParser.Statements.GetChildrenStatements(ParentStatement);
+        if Assigned(Children) then begin
+          for t:=0 to Children.Count-1 do begin
+            Statement := PStatement(Children[t]);
+            if (Statement^._Static) and
+              ((Statement^._ClassScope in [scsPublic,scsNone])
+                or (ParentStatement = fCurrentStatement)) //we are inside the class
+                or (                                     // we are inside the classes friend
+                    (Assigned(ParentStatement^._Friends) and
+                    (ParentStatement^._Friends.ValueOf(ScopeName)>=0)
+                    )
+               ) then
+              fFullCompletionStatementList.Add(Statement);
+          end;
         end;
-        Node := Node^.NextNode;
+      end else begin
+        //It's a var we should show its type's members
+        ParentTypeStatement := fParser.FindTypeDefinitionOf(ParentStatement^._Type, CurrentStatementParent);
+        if Assigned(ParentTypeStatement) then begin
+          isThis :=  SameStr(ParentStatement^._Command,'this');
+          Children := fParser.Statements.GetChildrenStatements(ParentTypeStatement);
+          if Assigned(Children) then begin
+            for t:=0 to Children.Count-1 do begin
+              Statement := PStatement(Children[t]);
+              if (isThis) or
+                 (Statement^._ClassScope in [scsPublic,scsNone]) or
+                 (     // we are inside the classes friend
+                    Assigned(ParentTypeStatement^._Friends) and
+                    (ParentTypeStatement^._Friends.ValueOf(ScopeName)>=0)
+                  )  then
+                fFullCompletionStatementList.Add(Statement);
+            end;
+          end;
+        end;
       end;
     end;
-  finally
-    InheritanceStatements.Free;
-  end;
 end;
 
 // Return 1 to show Item2 above Item1, otherwise -1
@@ -306,16 +278,31 @@ end;
 procedure TCodeCompletion.FilterList(const Member: AnsiString);
 var
   I: integer;
+  tmpList:TList;
+  lastCmd:String;
 begin
   fCompletionStatementList.Clear;
-  if Member <> '' then begin // filter, case insensitive
-    fCompletionStatementList.Capacity := fFullCompletionStatementList.Count;
-    for I := 0 to fFullCompletionStatementList.Count - 1 do
-      if StartsText(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
-        fCompletionStatementList.Add(fFullCompletionStatementList[I]);
-  end else
-    fCompletionStatementList.Assign(fFullCompletionStatementList);
-  fCompletionStatementList.Sort(@ListSort);
+  tmpList:=TList.Create;
+  try
+    if Member <> '' then begin // filter, case sensitive
+      tmpList.Capacity := fFullCompletionStatementList.Count;
+      for I := 0 to fFullCompletionStatementList.Count - 1 do
+        if StartsStr(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
+          tmpList.Add(fFullCompletionStatementList[I]);
+    end else
+      tmpList.Assign(fFullCompletionStatementList);
+    tmpList.sort(@ListSort);
+    // filter duplicates
+    lastCmd := '';
+    for I:=0 to tmpList.Count -1 do begin
+      if lastCmd <> PStatement(tmpList[I])^._Command then
+         fCompletionStatementList.Add(tmpList[I]);
+      lastCmd:=PStatement(tmpList[I])^._Command;
+    end;
+  finally
+    tmpList.Free;
+  end;
+
 end;
 
 procedure TCodeCompletion.Hide;
@@ -338,6 +325,12 @@ var
   symbol: ansistring;
 begin
   Result:=False;
+
+  if Phrase = '' then begin
+    Hide;
+    Exit;
+  end;
+    
   if fEnabled then begin
 
     Screen.Cursor := crHourglass;
@@ -392,11 +385,8 @@ begin
       CodeComplForm.lbCompletion.SetFocus;
       if CodeComplForm.lbCompletion.Items.Count > 0 then
         CodeComplForm.lbCompletion.ItemIndex := 0;
-      fHideDelay := 0;
-    end else if fHideDelay = 0 then begin
-      CodeComplForm.lbCompletion.Items.Clear;
-      fHideDelay := 1;
     end else begin
+      CodeComplForm.lbCompletion.Items.Clear;
       Hide;
     end;
 

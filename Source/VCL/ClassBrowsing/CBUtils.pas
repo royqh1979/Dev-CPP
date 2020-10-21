@@ -99,6 +99,9 @@ type
     _Temporary: boolean; // statements to be deleted after parsing
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
+    _Children: TList; // Children Statement to speedup search
+    _Friends: TStringHash; // friend class / functions
+    _Static: boolean; // static function / variable
   end;
 
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
@@ -497,7 +500,6 @@ begin
   CppKeywords.Add('bitor',Ord(skItself));
   CppKeywords.Add('break',Ord(skItself));
   CppKeywords.Add('compl',Ord(skItself));
-  CppKeywords.Add('const',Ord(skItself));
   CppKeywords.Add('constexpr',Ord(skItself));
   CppKeywords.Add('const_cast',Ord(skItself));
   CppKeywords.Add('continue',Ord(skItself));
@@ -508,8 +510,6 @@ begin
   CppKeywords.Add('extern',Ord(skItself));
   CppKeywords.Add('false',Ord(skItself));
   CppKeywords.Add('for',Ord(skItself));
-  CppKeywords.Add('friend',Ord(skItself));
-  CppKeywords.Add('inline',Ord(skItself));
   CppKeywords.Add('mutable',Ord(skItself));
   CppKeywords.Add('noexcept',Ord(skItself));
   CppKeywords.Add('not',Ord(skItself));
@@ -519,7 +519,6 @@ begin
   CppKeywords.Add('or_eq',Ord(skItself));
   CppKeywords.Add('register',Ord(skItself));
   CppKeywords.Add('reinterpret_cast',Ord(skItself));
-  CppKeywords.Add('static',Ord(skItself));
   CppKeywords.Add('static_assert',Ord(skItself));
   CppKeywords.Add('static_cast',Ord(skItself));
   CppKeywords.Add('template',Ord(skItself));
@@ -594,13 +593,19 @@ begin
   CppKeywords.Add('void',Ord(skNone));
   CppKeywords.Add('wchar_t',Ord(skNone));
 
+  // it's part of type info
+  CppKeywords.Add('const',Ord(skNone));
+  CppKeywords.Add('inline',Ord(skItself));
+
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));
   CppKeywords.Add('enum',Ord(skNone));
+  CppKeywords.Add('friend',Ord(skNone));
   CppKeywords.Add('operator',Ord(skNone));
   CppKeywords.Add('private',Ord(skNone));
   CppKeywords.Add('protected',Ord(skNone));
   CppKeywords.Add('public',Ord(skNone));
+  CppKeywords.Add('static',Ord(skNone));
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
