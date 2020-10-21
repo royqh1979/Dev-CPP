@@ -498,7 +498,6 @@ begin
   CppKeywords.Add('bitor',Ord(skItself));
   CppKeywords.Add('break',Ord(skItself));
   CppKeywords.Add('compl',Ord(skItself));
-  CppKeywords.Add('const',Ord(skItself));
   CppKeywords.Add('constexpr',Ord(skItself));
   CppKeywords.Add('const_cast',Ord(skItself));
   CppKeywords.Add('continue',Ord(skItself));
@@ -510,7 +509,6 @@ begin
   CppKeywords.Add('false',Ord(skItself));
   CppKeywords.Add('for',Ord(skItself));
   CppKeywords.Add('friend',Ord(skItself));
-  CppKeywords.Add('inline',Ord(skItself));
   CppKeywords.Add('mutable',Ord(skItself));
   CppKeywords.Add('noexcept',Ord(skItself));
   CppKeywords.Add('not',Ord(skItself));
@@ -594,6 +592,10 @@ begin
   CppKeywords.Add('unsigned',Ord(skNone));
   CppKeywords.Add('void',Ord(skNone));
   CppKeywords.Add('wchar_t',Ord(skNone));
+
+  // it's part of type info
+  CppKeywords.Add('const',Ord(skNone));
+  CppKeywords.Add('inline',Ord(skItself));  
 
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));

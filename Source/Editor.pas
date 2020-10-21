@@ -1367,7 +1367,7 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
 
   // Filter the whole statement list
-  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, True)
+  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)
     and (key = '') then //only one suggestion and it's not input while typing
     CompletionInsert(); // if only have one suggestion, just use it 
 end;

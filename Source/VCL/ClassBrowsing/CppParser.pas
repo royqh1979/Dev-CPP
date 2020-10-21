@@ -191,7 +191,6 @@ type
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function FindLastOperator(const Phrase: AnsiString): integer;
-    procedure GetMultipleInheritanceStatements(Statement: PStatement; List: TList);
   published
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
@@ -701,7 +700,7 @@ begin
           Statement := Node^.Data;
           if (Statement^._Kind = skClass) and SameStr(basename, Statement^._Command) then begin
             ClassStatement._InheritanceList.Add(Statement); // next I please
-            //InheritClassStatement(ClassStatement,isStruct, Statement,lastInheritScopeType);
+            InheritClassStatement(ClassStatement,isStruct, Statement,lastInheritScopeType);
             break;
           end;
           Node := Node^.PrevNode;
@@ -2043,34 +2042,6 @@ begin
     Dispose(PFileIncludes(P));
 end;
 
-procedure TCppParser.GetMultipleInheritanceStatements(Statement: PStatement; List: TList);
-var
-  I: integer;
-
-  procedure AddFromStatement(Statement: PStatement);
-  var
-    I: integer;
-  begin
-    if Assigned(Statement^._InheritanceList) then
-      for I := 0 to Statement^._InheritanceList.Count - 1 do
-        List.Add(Statement^._InheritanceList[i]);
-  end;
-begin
-  List.Clear;
-  if not Assigned(Statement) then
-    Exit;
-
-  // Add first level inheritance
-  AddFromStatement(Statement);
-
-  // then process inheritance of inherited items
-  I := 0;
-  while I < List.Count do begin
-    AddFromStatement(List[I]);
-    Inc(I); // step over
-  end;
-end;
-
 procedure TCppParser.ReProcessInheritance;
 var
   Node: PStatementNode;
@@ -2711,10 +2682,11 @@ end;
 
 function TCppParser.FindStatementOf(Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
-  Node: PStatementNode;
+  //Node: PStatementNode;
   ParentWord, MemberWord, OperatorToken: AnsiString;
-  InheritanceStatements: TList;
   Statement, MemberStatement, TypedefStatement, VariableStatement, CurrentClassParent: PStatement;
+  i: integer;
+  Children: TList;
 begin
   Result := nil;
 
@@ -2764,63 +2736,47 @@ begin
     end;
   end;
 
-  InheritanceStatements := TList.Create;
-  try
-    // Walk the chain of operators
-    while (MemberWord <> '') do begin
-      MemberStatement := nil;
+  // Walk the chain of operators
+  while (MemberWord <> '') do begin
+    MemberStatement := nil;
 
-      // Get inheritance and inheritance of inheritance and (etc)
-      InheritanceStatements.Clear;
-      GetMultipleInheritanceStatements(TypedefStatement, InheritanceStatements);
+    // Add members of this type
 
-      // Add members of this type
-      Node := fStatementList.LastNode; // Start scanning backwards, because owner data is found there
-      while Assigned(Node) do begin
-        Statement := Node^.Data;
-        if Statement^._Parent = TypedefStatement then begin
-          if SameStr(Statement^._Command, MemberWord) then begin
-            MemberStatement := Statement;
-            break; // there can be only one with an equal name
-          end;
-        end else if (InheritanceStatements.IndexOf(Statement^._Parent) <> -1) then begin // try inheritance
-          // hide private stuff?
-          if SameStr(Statement^._Command, MemberWord) then begin
-            MemberStatement := Statement;
-            break;
-          end;
+    Children := Statements.GetChildrenStatements(TypedefStatement);
+    if assigned(Children) then begin
+      for i:=0 to Children.Count-1 do begin
+        Statement := PStatement(Children[i]);
+        if SameStr(Statement^._Command, MemberWord) then begin
+          MemberStatement := Statement;
+          break; // there can be only one with an equal name
         end;
-        Node := Node^.PrevNode;
       end;
-
-      // Child not found. Stop searching
-      if not Assigned(MemberStatement) then
-        break;
-      Result := MemberStatement; // otherwise, continue
-
-      // next operator
-      Delete(Phrase, 1, Length(ParentWord) + Length(OperatorToken));
-
-      // Get the NEXT member, surrounding the next operator
-      ParentWord := GetClass(Phrase);
-      OperatorToken := GetOperator(Phrase);
-      MemberWord := GetMember(Phrase);
-
-      // Don't bother finding types
-      if MemberWord = '' then
-        break;
-
-      // At this point, we have a list of statements that conform to the a(operator)b demand.
-      // Now make these statements "a(operator)b" the parents, so we can use them as filters again
-      if MemberStatement^._Kind = skClass then
-        TypedefStatement := MemberStatement // a class statement is equal to its type
-      else
-        TypedefStatement := FindTypeDefinitionOf(MemberStatement^._Type, CurrentClass);
-      if not Assigned(TypedefStatement) then
-        break;
     end;
-  finally
-    InheritanceStatements.Free;
+    // Child not found. Stop searching
+    if not Assigned(MemberStatement) then
+      break;
+    Result := MemberStatement; // otherwise, continue
+
+    // next operator
+    Delete(Phrase, 1, Length(ParentWord) + Length(OperatorToken));
+
+    // Get the NEXT member, surrounding the next operator
+    ParentWord := GetClass(Phrase);
+    OperatorToken := GetOperator(Phrase);
+    MemberWord := GetMember(Phrase);
+
+    // Don't bother finding types
+    if MemberWord = '' then
+      break;
+
+    // At this point, we have a list of statements that conform to the a(operator)b demand.
+    // Now make these statements "a(operator)b" the parents, so we can use them as filters again
+    if MemberStatement^._Kind = skClass then
+      TypedefStatement := MemberStatement // a class statement is equal to its type
+    else
+      TypedefStatement := FindTypeDefinitionOf(MemberStatement^._Type, CurrentClass);
+    if not Assigned(TypedefStatement) then
+      break;
   end;
 end;
 

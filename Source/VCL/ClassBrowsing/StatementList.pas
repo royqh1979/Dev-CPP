@@ -138,16 +138,16 @@ end;
 
 procedure TStatementList.DisposeNode(Node: PStatementNode);
 begin
+  // remove it from parent's children
   if Assigned(Node^.Data^._Parent) then
     Node^.Data^._Parent._Children.remove(Node^.Data)
   else
     fGlobalStatements.Remove(Node^.Data);
   if OwnsObjects then begin
-    if Assigned(PStatement(Node^.Data)._InheritanceList) then
-      PStatement(Node^.Data)._InheritanceList.Free;
-    if Assigned(PStatement(Node^.Data)._Children) then
-      PStatement(Node^.Data)._InheritanceList.Free;
-      // remove it from parent's children
+    if Assigned(PStatement(Node^.Data)^._InheritanceList) then
+      PStatement(Node^.Data)^._InheritanceList.Free;
+    if Assigned(PStatement(Node^.Data)^._Children) then
+      PStatement(Node^.Data)^._Children.Free;
     Dispose(PStatement(Node^.Data));
   end;
   Dispose(Node);
