@@ -65,7 +65,19 @@ type
     fInvalidatedStatements: TList;
     fPendingDeclarations: TList;
     fMacroDefines : TList;
-    function AddChildStatements(// support for multiple parents
+     {
+      Note:
+       In Cpp Parser, Parent/Children means Scope , such as
+       Class A [
+        void foo(void);
+       ]
+       A is the parent of of foo; foo is a child of A.
+
+       And base/derived means inheritance.
+    }
+    function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
+
+    function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
       Parents: TList;
       const FileName: AnsiString;
       const HintText: AnsiString;
@@ -97,7 +109,7 @@ type
       IsDefinition: boolean;
       InheritanceList: TList): PStatement;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
-    procedure SetInheritance(Index: integer; ClassStatement: PStatement);
+    procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetLastCurrentClass: PStatement; // gets last item from lastt level
     function GetCurrentClassLevel: TList;
     function IsInCurrentClassLevel(const Command: AnsiString): PStatement;
@@ -133,6 +145,7 @@ type
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
+    procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
   public
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
@@ -388,7 +401,7 @@ begin
   Result := nil;
 end;
 
-function TCppParser.AddChildStatements(
+function TCppParser.AddChildStatement(
   Parents: TList;
   const FileName: AnsiString;
   const HintText: AnsiString;
@@ -652,51 +665,51 @@ begin
   end;
 end;
 
-procedure TCppParser.SetInheritance(Index: integer; ClassStatement: PStatement);
+procedure TCppParser.SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
 var
-  I: Integer;
   Node: PStatementNode;
   Statement: PStatement;
-  function CheckForScopeKeyword(Index: integer): boolean;
+  inheritScopeType: TStatementClassScope;
+  lastInheritScopeType : TStatementClassScope;
+  basename: AnsiString;
+  
+  function CheckForInheritScopeType(Index: integer): TStatementClassScope;
   begin
-    Result := (Index < fTokenizer.Tokens.Count - 1) and
-      (SameStr(fTokenizer[Index]^.Text, 'public') or
-      SameStr(fTokenizer[Index]^.Text, 'protected') or
-      SameStr(fTokenizer[Index]^.Text, 'private'));
+    Result := scsNone;
+    if SameStr(fTokenizer[Index]^.Text, 'public') then
+      Result := scsPublic
+    else if SameStr(fTokenizer[Index]^.Text, 'protected') then
+      Result := scsProtected
+    else if SameStr(fTokenizer[Index]^.Text, 'private') then
+      Result := scsPrivate;
   end;
-var
-  sl: TStringList;
+
 begin
-  sl := TStringList.Create;
-  try
-    // Assemble a list of statements in text form we inherit from
-    repeat
-      if not CheckForScopeKeyword(Index) then
-        if not (fTokenizer[Index]^.Text[1] in [',', ':', '(']) then
-          sl.Add(fTokenizer[Index]^.Text);
-      Inc(Index);
-    until (Index >= fTokenizer.Tokens.Count) or (fTokenizer[Index]^.Text[1] in ['{', ';']);
-
-    // Clear it. Assume it is assigned
-    ClassStatement._InheritanceList.Clear;
-
-    // Get their PStatement]
-    for I := 0 to sl.Count - 1 do begin
-
-      // Find the corresponding PStatements
-      Node := fStatementList.LastNode;
-      while Assigned(Node) do begin
-        Statement := Node^.Data;
-        if (Statement^._Kind = skClass) and SameStr(sl[I], Statement^._Command) then begin
-          ClassStatement._InheritanceList.Add(Statement); // next I please
-          break;
+  // Clear it. Assume it is assigned
+  ClassStatement._InheritanceList.Clear;
+  lastInheritScopeType := scsNone;
+  // Assemble a list of statements in text form we inherit from
+  repeat
+    inheritScopeType := CheckForInheritScopeType(Index);
+    if inheritScopeType = scsNone  then
+      if not (fTokenizer[Index]^.Text[1] in [',', ':', '(']) then begin
+        basename:=fTokenizer[Index]^.Text;
+        // Find the corresponding PStatement
+        //todo: add class list to speed up search
+        Node := fStatementList.LastNode;
+        while Assigned(Node) do begin
+          Statement := Node^.Data;
+          if (Statement^._Kind = skClass) and SameStr(basename, Statement^._Command) then begin
+            ClassStatement._InheritanceList.Add(Statement); // next I please
+            //InheritClassStatement(ClassStatement,isStruct, Statement,lastInheritScopeType);
+            break;
+          end;
+          Node := Node^.PrevNode;
         end;
-        Node := Node^.PrevNode;
       end;
-    end;
-  finally
-    sl.Free;
-  end;
+    Inc(Index);
+    lastInheritScopeType := inheritScopeType;
+  until (Index >= fTokenizer.Tokens.Count) or (fTokenizer[Index]^.Text[1] in ['{', ';']);
 end;
 
 function TCppParser.GetScope: TStatementScope;
@@ -1185,7 +1198,7 @@ begin
     // Walk to opening brace if we encountered inheritance statements
     if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ':') then begin
       if Assigned(FirstSynonym) then
-        SetInheritance(fIndex, FirstSynonym); // set the _InheritanceList value
+        SetInheritance(fIndex, FirstSynonym,IsStruct); // set the _InheritanceList value
       while (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do // skip decl after ':'
         Inc(fIndex);
     end;
@@ -1363,7 +1376,7 @@ begin
 
       // For function declarations, any given statement can belong to multiple typedef names
     else
-      AddChildStatements(
+      AddChildStatement(
         GetCurrentClassLevel,
         fCurrentFile,
         '', // do not override hint
@@ -1542,7 +1555,7 @@ begin
         end;
 
         // Add a statement for every struct we are in
-        AddChildStatements(
+        AddChildStatement(
           GetCurrentClassLevel,
           fCurrentFile,
           '', // do not override hint
@@ -2107,7 +2120,7 @@ end;
 function TCppParser.SuggestMemberInsertionLine(ParentStatement: PStatement; Scope: TStatementClassScope; var
   AddScopeStr: boolean): integer;
 var
-  Node: PStatementNode;
+  //Node: PStatementNode;
   Statement: PStatement;
   maxInScope: integer;
   maxInGeneral: integer;
@@ -2573,7 +2586,7 @@ end;
 
 function TCppParser.FindTypeDefinitionOf(const aType: AnsiString; CurrentClass: PStatement): PStatement;
 var
-  Node: PStatementNode;
+  //Node: PStatementNode;
   Statement: PStatement;
   position: integer;
   s: AnsiString;
@@ -2943,6 +2956,73 @@ begin
   List.Sorted := false;
   RecursiveFind(Filename);
 end;
+
+procedure TCppParser.InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
+var
+  Children:TList;
+  i:integer;
+  Statement:PStatement;
+  m_acc:TStatementClassScope;
+begin
+{
+  if not Assigned(base) then
+    Exit;
+  if not Assigned(derived) then
+    Exit;
+    }
+  //differentiate class and struct
+  if access = scsNone then
+    if isStruct then
+      access := scsPublic
+    else
+      access := scsPrivate;
+  Children := base^._Children;
+  if not assigned(Children) then
+    Exit;
+  for i:=0 to Children.Count-1 do begin
+    Statement := PStatement(Children[i]);
+    // don't inherit private members, constructors and destructors;
+    if (Statement^._ClassScope = scsPrivate)
+      or (Statement^._Kind in [skConstructor,skDestructor]) then
+      continue;
+    case access of
+      scsPublic: m_acc:=Statement^._ClassScope;
+      scsProtected: m_acc:=scsProtected;
+      scsPrivate: m_acc:=scsPrivate
+    end;
+    //inherit
+    AddInheritedStatement(derived,Statement,m_acc);
+  end;
+end;
+
+function TCppParser.AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
+begin
+  Result := new(PStatement);
+  with Result^ do begin
+    _Parent := derived;
+    _HintText := inherit^._HintText;
+      _Type := inherit^._Type;
+      _Command := inherit^._Command;
+      _Args := inherit^._Args;
+      _Value := inherit^._Value;
+      _Kind := inherit^._Kind;
+      _InheritanceList := inherit^._InheritanceList;
+      _Scope := inherit^._Scope;
+      _ClassScope := access;
+      _HasDefinition := inherit^._HasDefinition;
+      _Line := inherit^._Line;
+      _DefinitionLine := inherit^._DefinitionLine;
+      _FileName := inherit^._FileName;
+      _DefinitionFileName := inherit^._DefinitionFileName;
+      _Visible := inherit^._Visible; // sets visibility in class browser
+      _Temporary := derived^._Temporary; // true if it's added by a function body scan
+      _InProject := derived^._InProject;
+      _InSystemHeader := derived^._InSystemHeader;
+      _Children := nil;
+    end;
+    fStatementList.Add(Result);
+end;
+
 
 end.
 

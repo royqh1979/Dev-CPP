@@ -5611,7 +5611,6 @@ end;
 
 procedure TMainForm.cmbClassesChange(Sender: TObject);
 var
-  Node: PStatementNode;
   Statement, ParentStatement: PStatement;
   procedure AddStatementKind(AddKind: TStatementKind);
   var
