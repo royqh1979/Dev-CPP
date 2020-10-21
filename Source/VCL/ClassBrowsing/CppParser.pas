@@ -1338,7 +1338,7 @@ var
   I, DelimPos: integer;
   FunctionKind: TStatementKind;
   ParentClassName, ScopelessName: AnsiString;
-  FunctionClass, FriendStatement: PStatement;
+  FunctionClass: PStatement;
   startLine : integer;
   Children:TList;
 
@@ -2693,7 +2693,6 @@ end;
 
 function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
-  Node: PStatementNode;
   Statement: PStatement;
   GlobalStatement: PStatement;
   Children:TList;
