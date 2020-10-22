@@ -2741,23 +2741,6 @@ begin
       end;
       CurrentClass := CurrentClass^._Parent;
     Until (not assigned(CurrentClass));
-
-    // try inheritance
-    {
-    Node := fStatementList.LastNode; // Start scanning backwards, because owner data is found there
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-      if Assigned(CurrentClass^._InheritanceList) and
-        (CurrentClass^._InheritanceList.IndexOf(Statement^._Parent) <> -1) then begin
-        // hide private stuff?
-        if SameStr(Statement^._Command, Phrase) then begin
-          result := Statement;
-          Exit;
-        end;
-      end;
-      Node := Node^.PrevNode;
-    end;
-    }
   end;
 
   Result := GlobalStatement;

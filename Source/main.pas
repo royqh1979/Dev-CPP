@@ -3194,6 +3194,7 @@ begin
         // Did we compile?
         if not FileExists(fProject.Executable) then begin
           if MessageDlg(Lang[ID_ERR_PROJECTNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+            fCompSuccessAction := csaDebug;
             actCompileExecute(nil);
             Exit;
           end;
@@ -3267,6 +3268,7 @@ begin
           end else begin
             if CompareFileModifyTime(e.FileName,ChangeFileExt(e.FileName, EXE_EXT))>=0 then
               if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+                fCompSuccessAction := csaDebug;
                 MainForm.actCompileExecute(nil);
                 Exit;
               end;

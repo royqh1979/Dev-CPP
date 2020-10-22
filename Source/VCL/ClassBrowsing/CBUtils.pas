@@ -78,6 +78,13 @@ type
     scsNone
     );
 
+  TOperatorType = (
+    otArrow,
+    otDot,
+    otDColon,
+    otOther
+  );
+
   PStatement = ^TStatement;
   TStatement = record
     _Parent: PStatement; // parent class/struct/namespace
@@ -148,6 +155,10 @@ function IsHfile(const Filename: AnsiString): boolean;
 procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
 function IsIncludeLine(const Line: AnsiString): boolean;
 function IsKeyword(const name:AnsiString): boolean;
+
+function GetOperatorType(Phrase:AnsiString;index:integer):TOperatorType;
+
+function IsAncestor(a:PStatement;b:PStatement):boolean;
 
 implementation
 
@@ -484,6 +495,66 @@ end;
 function IsKeyword(const name:AnsiString): boolean;
 begin
   Result:= CppKeywords.ValueOf(name)>=0;
+end;
+
+function GetOperatorType(Phrase:AnsiString;index:integer):TOperatorType;
+begin
+  Result:=otOther;
+  if index>Length(Phrase) then begin
+    Exit;
+  end;
+  if (Phrase[index] = '.') then begin
+    Result:=otDot;
+    Exit;
+  end;
+  if (index+1)>Length(Phrase) then begin
+    Exit;
+  end;
+  if (Phrase[index] = '-') and (Phrase[index+1] = '>') then begin
+    Result:=otArrow;
+    Exit;
+  end;
+  if (Phrase[index] = ':') and (Phrase[index+1] = ':') then begin
+    Result:=otDColon;
+    Exit;
+  end;
+end;
+
+{
+ Test if b is ancestor of a
+}
+function IsAncestor(a:PStatement;b:PStatement):boolean;
+var
+  i: integer;
+  toVisit: TList;
+  vis_id: integer;
+  s: PStatement;
+begin
+  Result := False;
+  if (not Assigned(a)) or (not Assigned(b)) then
+    Exit;
+  if not (b._Kind = skClass) or not (a._Kind = skClass) then
+    Exit;
+  toVisit := TList.Create;
+  toVisit.Add(a);
+  try
+    vis_id :=0;
+    repeat
+      s:=toVisit[vis_id];
+      if (s = b) then begin
+        Result:= True;
+        Exit;
+      end;
+      if Assigned(s^._InheritanceList) then begin
+        for i :=0 to s^._InheritanceList.Count-1 do begin
+          toVisit.Add(s^._InheritanceList[i]);
+        end;
+      end;
+      inc(vis_id);
+    Until vis_id >= toVisit.Count;
+  finally
+    toVisit.Free;
+  end;
 end;
 
 
