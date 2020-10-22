@@ -1340,7 +1340,6 @@ var
   ParentClassName, ScopelessName: AnsiString;
   FunctionClass: PStatement;
   startLine : integer;
-  Children:TList;
 
 begin
   IsValid := True;
@@ -3031,7 +3030,9 @@ begin
     case access of
       scsPublic: m_acc:=Statement^._ClassScope;
       scsProtected: m_acc:=scsProtected;
-      scsPrivate: m_acc:=scsPrivate
+      scsPrivate: m_acc:=scsPrivate;
+    else
+      m_acc:=scsPrivate;
     end;
     //inherit
     AddInheritedStatement(derived,Statement,m_acc);

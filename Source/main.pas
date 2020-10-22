@@ -3138,7 +3138,8 @@ begin
 
   // Focus on the debugging buttons
   DebugViews.ActivePage := DebugConsoleSheet;
-  LeftPageControl.ActivePage := DebugSheet;
+  LeftPageControl.ActivePage := WatchSheet;
+  MessageControl.ActivePage := DebugSheet;
   OpenCloseMessageSheet(True);
 
   // Reset watch vars
