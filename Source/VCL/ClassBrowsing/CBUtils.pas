@@ -61,6 +61,7 @@ type
     skEnum,
     skPreprocessor,
     skNamespace,
+    skBlock,
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;
@@ -109,6 +110,15 @@ type
     _Children: TList; // Children Statement to speedup search
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
+  end;
+
+  PUsingNamespace =^TUsingNamespace;
+  TUsingNamespace = record
+    _namespace : TStringList; // List['std','foo'] for using namespace std::foo;
+    _Filename: AnsiString;
+    _Line: integer;
+    _EndLine: integer;
+    _FromHeader: boolean;
   end;
 
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
@@ -609,7 +619,7 @@ begin
   CppKeywords.Add('new',Ord(skToSemicolon));
   CppKeywords.Add('return',Ord(skToSemicolon));
   CppKeywords.Add('throw',Ord(skToSemicolon));
-  CppKeywords.Add('using',Ord(skToSemicolon));
+  CppKeywords.Add('using',Ord(skToSemicolon)); //won't use it
 
   // Skip to :
   CppKeywords.Add('case',Ord(skToColon));
@@ -626,11 +636,11 @@ begin
   CppKeywords.Add('while',Ord(skToRightParenthesis));
 
   // Skip to {
+  CppKeywords.Add('asm',Ord(skToRightBrace));
   CppKeywords.Add('catch',Ord(skToLeftBrace));
   CppKeywords.Add('do',Ord(skToLeftBrace));
-  CppKeywords.Add('namespace',Ord(skToLeftBrace));
+  CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
   CppKeywords.Add('try',Ord(skToLeftBrace));
-  CppKeywords.Add('asm',Ord(skToRightBrace));
 
   // wont handle
 
@@ -680,6 +690,7 @@ begin
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
+
 
   // nullptr is value
   CppKeywords.Add('nullptr',Ord(skNone));

@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 897
-  Top = 111
+  Left = 538
+  Top = 185
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1174,8 +1174,8 @@ object MainForm: TMainForm
   object MainMenu: TMainMenu
     AutoLineReduction = maManual
     Images = dmMain.MenuImages_NewLook
-    Left = 206
-    Top = 79
+    Left = 326
+    Top = 95
     object FileMenu: TMenuItem
       Caption = '&File'
       OnClick = actFileMenuExecute

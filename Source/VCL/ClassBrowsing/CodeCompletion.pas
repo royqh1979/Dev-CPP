@@ -197,16 +197,24 @@ begin
 
       // Add statements of all the text before the last operator
       Statement := fParser.FindStatementOf(Phrase, fCurrentStatement);
-      if not Assigned(Statement) then
+      if not Assigned(Statement) then begin // maybe a namespace name, give it all global definitions except macros (we can only do this now)
+        Children := fParser.Statements.GetChildrenStatements(nil);
+        for t:=0 to Children.Count-1 do begin
+          ChildStatement := PStatement(Children[t]);
+          if not (ChildStatement^._Kind = skPreprocessor)
+              and (ChildStatement^._Scope = ssGlobal) then
+              fFullCompletionStatementList.Add(ChildStatement);
+        end;
         Exit;
+      end;
 
       //get scopename, for friend check;
       ScopeName := '';
       if Assigned(ScopeTypeStatement) then
         ScopeName := ScopeTypeStatement^._Command;
 
-      // It is a Class, so only show static members
-      if (Statement^._Kind = skClass) and (opType = otDColon) and Assigned(ScopeTypeStatement) then begin
+      // It is a Class using in anthoer class , so only show static members
+      if (Statement^._Kind = skClass) and (opType = otDColon) and Assigned(ScopeTypeStatement)  then begin
         //Filter static members
         Children := fParser.Statements.GetChildrenStatements(Statement);
         if Assigned(Children) then begin
@@ -231,13 +239,14 @@ begin
 
       end else if (Statement^._Kind = skClass) and
               (opType = otDColon) and
-               not Assigned(ScopeTypeStatement) then begin
-        // we are defining class member functions, only show them
+               not Assigned(ScopeTypeStatement) then begin  // It is a Class using in global
+        // we are using static members, only show them
         Children := fParser.Statements.GetChildrenStatements(Statement);
         if Assigned(Children) then begin
           for t:=0 to Children.Count-1 do begin
             ChildStatement := PStatement(Children[t]);
-            if (ChildStatement^._Kind in [skFunction, skConstructor,skDestructor]) then
+            if (ChildStatement^._Static) and
+              (ChildStatement^._ClassScope =scsPublic) then
               fFullCompletionStatementList.Add(ChildStatement);
           end;
         end;
