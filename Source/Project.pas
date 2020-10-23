@@ -770,6 +770,7 @@ begin
         Modified := True;
       end;
       fOptions.CompilerOptions := ReadString('Project', 'CompilerSettings', '');
+      fOptions.UseUTF8 := ReadBool('Project','UseUTF8',False);
       fOptions.VersionInfo.Major := ReadInteger('VersionInfo', 'Major', 0);
       fOptions.VersionInfo.Minor := ReadInteger('VersionInfo', 'Minor', 1);
       fOptions.VersionInfo.Release := ReadInteger('VersionInfo', 'Release', 1);
@@ -846,6 +847,7 @@ begin
     WriteBool('Project', 'SupportXPThemes', fOptions.SupportXPThemes);
     WriteInteger('Project', 'CompilerSet', fOptions.CompilerSet);
     WriteString('Project', 'CompilerSettings', fOptions.CompilerOptions);
+    WriteBool('Project', 'UseUTF8', fOptions.UseUTF8);
 
     WriteInteger('VersionInfo', 'Major', fOptions.VersionInfo.Major);
     WriteInteger('VersionInfo', 'Minor', fOptions.VersionInfo.Minor);
@@ -1287,7 +1289,8 @@ begin
     if FileName <> '' then begin
       try
         SetCurrentDir(Directory);
-        fEditor := MainForm.EditorList.NewEditor(ExpandFileName(FileName), UseUTF8, true, false);
+        fEditor := MainForm.EditorList.NewEditor(ExpandFileName(FileName), true, true, false);
+        UseUTF8 := fEditor.UseUTF8;
         LoadUnitLayout(fEditor, index);
         Result := fEditor;
       except
@@ -1595,7 +1598,7 @@ begin
         fIniFile := TMemIniFile.Create(aFileName);
       NewUnit(FALSE, nil);
       with fUnits[fUnits.Count - 1] do begin
-        Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].UseUTF8, True, True);
+        Editor := MainForm.EditorList.NewEditor(FileName,UseUTF8, True, True);
         Editor.InsertDefaultText;
         Editor.Activate;
       end;
@@ -1670,7 +1673,7 @@ begin
     end else begin
       NewUnit(FALSE, nil);
       with fUnits[fUnits.Count - 1] do begin
-        Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].UseUTF8, TRUE, True);
+        Editor := MainForm.EditorList.NewEditor(FileName,False, TRUE, True);
         if fOptions.useGPP then
           s := aTemplate.OldData.CppText
         else

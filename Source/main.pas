@@ -7225,12 +7225,23 @@ end;
 procedure TMainForm.actConvertToUTF8Execute(Sender: TObject);
 var
   e:TEditor;
+  i:integer;
 begin
   e:=fEditorList.GetEditor;
   if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
     e.UseUTF8 := True;
     e.Text.Modified := True; // set modified flag to make sure save.
     e.Save;
+    // set project unit's utf-8 flag 
+    if e.InProject and Assigned(fProject) then begin
+      for i:=0 to fProject.Units.Count-1 do begin
+        if e = fProject.Units[i].Editor then begin
+          fProject.Units[i].UseUTF8 := e.UseUTF8;
+          fProject.Modified:=True;
+          break;
+        end;
+      end;
+    end;
   end;
 end;
 

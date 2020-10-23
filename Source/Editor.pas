@@ -111,7 +111,7 @@ type
     function GetPageControl: TPageControl;
     procedure SetPageControl(Value: TPageControl);
   public
-    constructor Create(const Filename: AnsiString;OpenUseUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
@@ -240,7 +240,7 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; OpenUseUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
 var
   s: AnsiString;
   I: integer;
@@ -273,11 +273,11 @@ begin
   // Create an editor and set static options
   fText := TSynEdit.Create(fTabSheet);
 
-  fUseUTF8 := OpenUseUTF8;
+  fUseUTF8 := AutoDetectUTF8;
 
   // Load the file using Lines
   if not NewFile and FileExists(FileName) then begin
-    LoadFile(FileName,True);
+    LoadFile(FileName,AutoDetectUTF8);
     fNew := False;
 
     // Save main.cpp as main.123456789.cpp

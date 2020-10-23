@@ -1,5 +1,7 @@
 Version 6-beta4 October  2020
   - fix: can't correctly show project file encoding in status bar
+  - fix: When loading Project configuration, if there's no UTF-8 setting in it, set it to False by default
+  - fix:  Before open a file, set UseUTF8 to True means auto-detect encoding, not enforcing it. 
   - fix: auto show watch and debug panel when start debug
   - fix: when debug and need re-compile file, when compile finishes, debugger not auto start
   - fix: delete [] was thought as a type
