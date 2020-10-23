@@ -164,6 +164,9 @@ begin
   fIsIncludedCacheResult := false;
   fUpdateCount := 0;
   fTabVisible := true;
+  RowSelect := true;
+  ShowLINES := False;
+
 end;
 
 destructor TClassBrowser.Destroy;
@@ -466,6 +469,7 @@ var
   st: PStatement;
   bInherited: boolean;
   TypeText: AnsiString;
+  color : TColor;
 begin
   // Assume the node image is correct
   bInherited := fShowInheritedMembers and (Node.ImageIndex in [
@@ -487,14 +491,24 @@ begin
       // Start drawing at top right corner of DisplayRect
       DrawRect := Node.DisplayRect(true);
       DrawPoint := Point(DrawRect.Right, DrawRect.Top);
-
+      color:=fControlCanvas.Brush.Color;
+      if  Node.Selected then begin
+        fControlCanvas.Brush.Color:=clHighLight;
+      end;
       // Draw function arguments to the right of the already drawn text
       if st^._Args <> '' then begin
         fControlCanvas.Font.Assign(self.Font);
-        if bInherited then
-          fControlCanvas.Font.Color := clGray
-        else
-          fControlCanvas.Font.Color := clMaroon;
+        if  Node.Selected then begin
+          if bInherited then
+            fControlCanvas.Font.Color := clGray
+          else
+            fControlCanvas.Font.Color := clHighlightText;
+        end else begin
+          if bInherited then
+            fControlCanvas.Font.Color := clGray
+          else
+            fControlCanvas.Font.Color := clMaroon;
+        end;
         fControlCanvas.TextOut(DrawPoint.X, DrawPoint.Y + 2, st^._Args); // center vertically
         Inc(DrawPoint.X, fControlCanvas.TextWidth(st^._Args) + 3); // add some right padding
       end;
@@ -506,9 +520,13 @@ begin
 
       // Then draw node type to the right of the arguments
       if TypeText <> '' then begin
-        fControlCanvas.Font.Color := clGray;
+        if  Node.Selected then
+          fControlCanvas.Font.Color := clHighLightText
+        else
+          fControlCanvas.Font.Color := clBlack;
         fControlCanvas.TextOut(DrawPoint.X, DrawPoint.Y + 2, ': ' + TypeText); // center vertically
       end;
+      fControlCanvas.Brush.Color:=color;
     except // stick head into sand method. sometimes during painting, the PStatement is invalid
            // this is caused by repainting while the CppParser is busy.
     end;
