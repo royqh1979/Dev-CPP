@@ -5520,11 +5520,12 @@ begin
     mnuOpenWith.Add(item);
   end;
   if GetAssociatedProgram(ext, s, s1) then begin
-    item := TMenuItem.Create(nil);
-    item.Caption := '-';
-    item.Tag := -1;
-    item.OnClick := mnuOpenWithClick;
-    mnuOpenWith.Add(item);
+    if (mnuOpenWith.Count > 0) then begin
+      item := TMenuItem.Create(nil);
+      item.Caption := '-';
+      item.Tag := -2;
+      mnuOpenWith.Add(item);
+    end;
     item := TMenuItem.Create(nil);
     item.Caption := s1;
     item.Tag := -1;
@@ -5538,6 +5539,7 @@ var
   idx, idx2: integer;
   item: TMenuItem;
   e: TEditor;
+  res :integer;
 begin
   if (Sender = mnuOpenWith) and (mnuOpenWith.Count > 0) then
     Exit;
@@ -5567,19 +5569,23 @@ begin
   if Assigned(e) then
     fEditorList.CloseEditor(e);
 
-  if idx > -1 then // devcpp-based
+  if idx > -1 then begin // devcpp-based
     ShellExecute(0, 'open',
       PAnsiChar(devExternalPrograms.ProgramName[idx]),
       PAnsiChar(fProject.Units[idx2].FileName),
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW)
       // idx=-2 means we prompted the user for a program, but didn't select one
-  else if idx <> -2 then // registry-based
-    ShellExecute(0, 'open',
+  end else if idx = -1 then begin// registry-based
+    res:=ShellExecute(0, 'open',
       PAnsiChar(fProject.Units[idx2].FileName),
       nil,
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW);
+    if (res <32) then begin
+      //error, how should we do
+    end
+  end;
 end;
 
 procedure TMainForm.RebuildClassesToolbar;
