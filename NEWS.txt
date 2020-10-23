@@ -6,6 +6,7 @@ Version 6-beta4 October  2020
   - fix: correctly parse const keyword
   - fix: correctly parse / code suggestion static class member methods/vars
   - fix: correctly parse / code suggestion class member according to access privileges (including friend access).
+  - enhancement:  namespace support, can use, but far from perfection ( C++ namespace's using rule is too complicated, fully support will be hard and slow, so we won't do it for now)
   - enhancement: auto code suggestion differentiate '::' from '.' and '->';
   - enhancement: hide type name begin with '__' in variable defines.
   - enhancement: friend function support in code suggestion. (may not work when friend function are overloaded)
