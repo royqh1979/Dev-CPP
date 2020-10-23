@@ -5511,8 +5511,21 @@ begin
   idx := integer(ProjectView.Selected.Data);
 
   ext := ExtractFileExt(fProject.Units[idx].FileName);
+  if SameStr('.rc',ext) then begin
+    item := TMenuItem.Create(nil);
+    item.Caption := ExtractFilename('ResEd.exe');
+    item.Tag := -3;
+    item.OnClick := mnuOpenWithClick;
+    mnuOpenWith.Add(item);
+  end;
   idx2 := devExternalPrograms.AssignedProgram(ext);
   if idx2 <> -1 then begin
+    if (mnuOpenWith.Count = 1) then begin
+      item := TMenuItem.Create(nil);
+      item.Caption := '-';
+      item.Tag := -2;
+      mnuOpenWith.Add(item);
+    end;
     item := TMenuItem.Create(nil);
     item.Caption := ExtractFilename(devExternalPrograms.ProgramName[idx2]);
     item.Tag := idx2;
@@ -5520,7 +5533,7 @@ begin
     mnuOpenWith.Add(item);
   end;
   if GetAssociatedProgram(ext, s, s1) then begin
-    if (mnuOpenWith.Count > 0) then begin
+    if (mnuOpenWith.Count = 1) then begin
       item := TMenuItem.Create(nil);
       item.Caption := '-';
       item.Tag := -2;
@@ -5539,7 +5552,6 @@ var
   idx, idx2: integer;
   item: TMenuItem;
   e: TEditor;
-  res :integer;
 begin
   if (Sender = mnuOpenWith) and (mnuOpenWith.Count > 0) then
     Exit;
@@ -5577,15 +5589,18 @@ begin
       SW_SHOW)
       // idx=-2 means we prompted the user for a program, but didn't select one
   end else if idx = -1 then begin// registry-based
-    res:=ShellExecute(0, 'open',
+    ShellExecute(0, 'open',
       PAnsiChar(fProject.Units[idx2].FileName),
       nil,
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW);
-    if (res <32) then begin
-      //error, how should we do
-    end
-  end;
+  end else if idx = -3 then begin// ResEd.exe
+    ShellExecute(0, 'open',
+      PAnsiChar(devDirs.Exec + 'ResEd/ResEd.exe'),
+      PAnsiChar(fProject.Units[idx2].FileName),
+      PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
+      SW_SHOW);
+  end
 end;
 
 procedure TMainForm.RebuildClassesToolbar;

@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 538
-  Top = 185
+  Left = 369
+  Top = 376
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -262,7 +262,7 @@ object MainForm: TMainForm
               Width = 504
               Height = 24
               Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 0
+              ItemHeight = 16
               TabOrder = 0
               OnKeyPress = edGdbCommandKeyPress
             end

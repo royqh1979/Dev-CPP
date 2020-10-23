@@ -272,7 +272,7 @@ begin
       NextNode := Node^.NextNode;
       // Do not call OnNodeDeleting, because all nodes will be cleared
       statement := PStatement(Node^.Data);
-      Add(Format('%s,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent])));
+      Add(Format('%s,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)]));
       Node := NextNode;
     end;
     SaveToFile(Filename);
