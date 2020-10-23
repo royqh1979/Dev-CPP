@@ -6307,6 +6307,11 @@ begin
 
   // We need this variable during the whole startup process
   devData.First := FALSE;
+
+  //windows xp hack
+  if Win32MajorVersion < 6 then begin
+    LeftPageControl.TabPosition := tpTop;
+  end;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
