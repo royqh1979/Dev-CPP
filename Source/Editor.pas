@@ -382,6 +382,7 @@ begin
   // Allow the user to start typing right away
   fTabSheet.PageControl.ActivePage := fTabSheet;
   fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  MainForm.UpdateFileEncodingStatusPanel;
 end;
 
 procedure TEditor.EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);

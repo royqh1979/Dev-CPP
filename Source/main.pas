@@ -918,8 +918,8 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
-    procedure UpdateFileEncodingStatusPanel;
   public
+    procedure UpdateFileEncodingStatusPanel;
     procedure ScanActiveProject;
     procedure UpdateCompilerList;
     function GetCompileTarget: TTarget;
@@ -1618,6 +1618,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
+  UpdateFileEncodingStatusPanel
 end;
 
 procedure TMainForm.OpenFile(const FileName: AnsiString; OpenUseUTF8: boolean);
