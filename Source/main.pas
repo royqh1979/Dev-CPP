@@ -918,8 +918,8 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
-    procedure UpdateFileEncodingStatusPanel;
   public
+    procedure UpdateFileEncodingStatusPanel;
     procedure ScanActiveProject;
     procedure UpdateCompilerList;
     function GetCompileTarget: TTarget;
@@ -1618,6 +1618,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
+  UpdateFileEncodingStatusPanel
 end;
 
 procedure TMainForm.OpenFile(const FileName: AnsiString; OpenUseUTF8: boolean);
@@ -3138,7 +3139,8 @@ begin
 
   // Focus on the debugging buttons
   DebugViews.ActivePage := DebugConsoleSheet;
-  LeftPageControl.ActivePage := DebugSheet;
+  LeftPageControl.ActivePage := WatchSheet;
+  MessageControl.ActivePage := DebugSheet;
   OpenCloseMessageSheet(True);
 
   // Reset watch vars
@@ -3193,6 +3195,7 @@ begin
         // Did we compile?
         if not FileExists(fProject.Executable) then begin
           if MessageDlg(Lang[ID_ERR_PROJECTNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+            fCompSuccessAction := csaDebug;
             actCompileExecute(nil);
             Exit;
           end;
@@ -3266,6 +3269,7 @@ begin
           end else begin
             if CompareFileModifyTime(e.FileName,ChangeFileExt(e.FileName, EXE_EXT))>=0 then
               if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+                fCompSuccessAction := csaDebug;
                 MainForm.actCompileExecute(nil);
                 Exit;
               end;
@@ -5507,8 +5511,21 @@ begin
   idx := integer(ProjectView.Selected.Data);
 
   ext := ExtractFileExt(fProject.Units[idx].FileName);
+  if SameStr('.rc',ext) then begin
+    item := TMenuItem.Create(nil);
+    item.Caption := ExtractFilename('ResEd.exe');
+    item.Tag := -3;
+    item.OnClick := mnuOpenWithClick;
+    mnuOpenWith.Add(item);
+  end;
   idx2 := devExternalPrograms.AssignedProgram(ext);
   if idx2 <> -1 then begin
+    if (mnuOpenWith.Count = 1) then begin
+      item := TMenuItem.Create(nil);
+      item.Caption := '-';
+      item.Tag := -2;
+      mnuOpenWith.Add(item);
+    end;
     item := TMenuItem.Create(nil);
     item.Caption := ExtractFilename(devExternalPrograms.ProgramName[idx2]);
     item.Tag := idx2;
@@ -5516,11 +5533,12 @@ begin
     mnuOpenWith.Add(item);
   end;
   if GetAssociatedProgram(ext, s, s1) then begin
-    item := TMenuItem.Create(nil);
-    item.Caption := '-';
-    item.Tag := -1;
-    item.OnClick := mnuOpenWithClick;
-    mnuOpenWith.Add(item);
+    if (mnuOpenWith.Count = 1) then begin
+      item := TMenuItem.Create(nil);
+      item.Caption := '-';
+      item.Tag := -2;
+      mnuOpenWith.Add(item);
+    end;
     item := TMenuItem.Create(nil);
     item.Caption := s1;
     item.Tag := -1;
@@ -5563,19 +5581,26 @@ begin
   if Assigned(e) then
     fEditorList.CloseEditor(e);
 
-  if idx > -1 then // devcpp-based
+  if idx > -1 then begin // devcpp-based
     ShellExecute(0, 'open',
       PAnsiChar(devExternalPrograms.ProgramName[idx]),
       PAnsiChar(fProject.Units[idx2].FileName),
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW)
       // idx=-2 means we prompted the user for a program, but didn't select one
-  else if idx <> -2 then // registry-based
+  end else if idx = -1 then begin// registry-based
     ShellExecute(0, 'open',
       PAnsiChar(fProject.Units[idx2].FileName),
       nil,
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW);
+  end else if idx = -3 then begin// ResEd.exe
+    ShellExecute(0, 'open',
+      PAnsiChar(devDirs.Exec + 'ResEd/ResEd.exe'),
+      PAnsiChar(fProject.Units[idx2].FileName),
+      PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
+      SW_SHOW);
+  end
 end;
 
 procedure TMainForm.RebuildClassesToolbar;
@@ -6282,6 +6307,11 @@ begin
 
   // We need this variable during the whole startup process
   devData.First := FALSE;
+
+  //windows xp hack
+  if Win32MajorVersion < 6 then begin
+    LeftPageControl.TabPosition := tpTop;
+  end;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -7221,12 +7251,23 @@ end;
 procedure TMainForm.actConvertToUTF8Execute(Sender: TObject);
 var
   e:TEditor;
+  i:integer;
 begin
   e:=fEditorList.GetEditor;
   if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
     e.UseUTF8 := True;
     e.Text.Modified := True; // set modified flag to make sure save.
     e.Save;
+    // set project unit's utf-8 flag 
+    if e.InProject and Assigned(fProject) then begin
+      for i:=0 to fProject.Units.Count-1 do begin
+        if e = fProject.Units[i].Editor then begin
+          fProject.Units[i].UseUTF8 := e.UseUTF8;
+          fProject.Modified:=True;
+          break;
+        end;
+      end;
+    end;
   end;
 end;
 

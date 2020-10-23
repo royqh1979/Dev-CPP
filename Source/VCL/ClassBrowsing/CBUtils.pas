@@ -61,6 +61,7 @@ type
     skEnum,
     skPreprocessor,
     skNamespace,
+    skBlock,
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;
@@ -77,6 +78,13 @@ type
     scsProtected,
     scsNone
     );
+
+  TOperatorType = (
+    otArrow,
+    otDot,
+    otDColon,
+    otOther
+  );
 
   PStatement = ^TStatement;
   TStatement = record
@@ -102,6 +110,15 @@ type
     _Children: TList; // Children Statement to speedup search
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
+  end;
+
+  PUsingNamespace =^TUsingNamespace;
+  TUsingNamespace = record
+    _namespace : TStringList; // List['std','foo'] for using namespace std::foo;
+    _Filename: AnsiString;
+    _Line: integer;
+    _EndLine: integer;
+    _FromHeader: boolean;
   end;
 
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
@@ -148,6 +165,10 @@ function IsHfile(const Filename: AnsiString): boolean;
 procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
 function IsIncludeLine(const Line: AnsiString): boolean;
 function IsKeyword(const name:AnsiString): boolean;
+
+function GetOperatorType(Phrase:AnsiString;index:integer):TOperatorType;
+
+function IsAncestor(a:PStatement;b:PStatement):boolean;
 
 implementation
 
@@ -486,6 +507,66 @@ begin
   Result:= CppKeywords.ValueOf(name)>=0;
 end;
 
+function GetOperatorType(Phrase:AnsiString;index:integer):TOperatorType;
+begin
+  Result:=otOther;
+  if index>Length(Phrase) then begin
+    Exit;
+  end;
+  if (Phrase[index] = '.') then begin
+    Result:=otDot;
+    Exit;
+  end;
+  if (index+1)>Length(Phrase) then begin
+    Exit;
+  end;
+  if (Phrase[index] = '-') and (Phrase[index+1] = '>') then begin
+    Result:=otArrow;
+    Exit;
+  end;
+  if (Phrase[index] = ':') and (Phrase[index+1] = ':') then begin
+    Result:=otDColon;
+    Exit;
+  end;
+end;
+
+{
+ Test if b is ancestor of a
+}
+function IsAncestor(a:PStatement;b:PStatement):boolean;
+var
+  i: integer;
+  toVisit: TList;
+  vis_id: integer;
+  s: PStatement;
+begin
+  Result := False;
+  if (not Assigned(a)) or (not Assigned(b)) then
+    Exit;
+  if not (b._Kind = skClass) or not (a._Kind = skClass) then
+    Exit;
+  toVisit := TList.Create;
+  toVisit.Add(a);
+  try
+    vis_id :=0;
+    repeat
+      s:=toVisit[vis_id];
+      if (s = b) then begin
+        Result:= True;
+        Exit;
+      end;
+      if Assigned(s^._InheritanceList) then begin
+        for i :=0 to s^._InheritanceList.Count-1 do begin
+          toVisit.Add(s^._InheritanceList[i]);
+        end;
+      end;
+      inc(vis_id);
+    Until vis_id >= toVisit.Count;
+  finally
+    toVisit.Free;
+  end;
+end;
+
 
 initialization
 begin
@@ -538,7 +619,7 @@ begin
   CppKeywords.Add('new',Ord(skToSemicolon));
   CppKeywords.Add('return',Ord(skToSemicolon));
   CppKeywords.Add('throw',Ord(skToSemicolon));
-  CppKeywords.Add('using',Ord(skToSemicolon));
+  CppKeywords.Add('using',Ord(skToSemicolon)); //won't use it
 
   // Skip to :
   CppKeywords.Add('case',Ord(skToColon));
@@ -555,11 +636,11 @@ begin
   CppKeywords.Add('while',Ord(skToRightParenthesis));
 
   // Skip to {
+  CppKeywords.Add('asm',Ord(skToRightBrace));
   CppKeywords.Add('catch',Ord(skToLeftBrace));
   CppKeywords.Add('do',Ord(skToLeftBrace));
-  CppKeywords.Add('namespace',Ord(skToLeftBrace));
+  CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
   CppKeywords.Add('try',Ord(skToLeftBrace));
-  CppKeywords.Add('asm',Ord(skToRightBrace));
 
   // wont handle
 
@@ -609,6 +690,7 @@ begin
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
+
 
   // nullptr is value
   CppKeywords.Add('nullptr',Ord(skNone));

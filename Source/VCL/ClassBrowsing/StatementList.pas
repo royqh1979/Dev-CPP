@@ -22,7 +22,7 @@ unit StatementList;
 interface
 
 uses
-  Classes, CBUtils, Forms, SysUtils;
+  Classes, CBUtils, Forms, SysUtils, iniFiles;
 
 type
   PStatementNode = ^TStatementNode;
@@ -55,6 +55,7 @@ type
     function Delete(Data: PStatement): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
+    procedure DumpTo(Filename:AnsiString);
     procedure Clear;
     property FirstNode: PStatementNode read fFirstNode;
     property LastNode: PStatementNode read fLastNode;
@@ -139,10 +140,11 @@ end;
 procedure TStatementList.DisposeNode(Node: PStatementNode);
 begin
   // remove it from parent's children
-  if Assigned(Node^.Data^._Parent) then
+  if Assigned(Node^.Data^._Parent) then begin
     Node^.Data^._Parent._Children.remove(Node^.Data)
-  else
+  end else begin
     fGlobalStatements.Remove(Node^.Data);
+  end;
   if OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then
       PStatement(Node^.Data)^._InheritanceList.Free;
@@ -257,5 +259,27 @@ begin
   end else
     Result:=fGlobalStatements;
 end;
+
+procedure TStatementList.DumpTo(Filename:AnsiString);
+var
+  Node, NextNode: PStatementNode;
+  statement:PStatement;
+begin
+  with TStringList.Create do try
+    // Search all nodes
+    Node := fFirstNode;
+    while Assigned(Node) do begin
+      NextNode := Node^.NextNode;
+      // Do not call OnNodeDeleting, because all nodes will be cleared
+      statement := PStatement(Node^.Data);
+      Add(Format('%s,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)]));
+      Node := NextNode;
+    end;
+    SaveToFile(Filename);
+  finally
+    Free;
+  End;
+end;
+
 end.
 

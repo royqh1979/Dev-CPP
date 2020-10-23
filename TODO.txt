@@ -33,9 +33,26 @@ Refactor -> extract variable/ extract const / extract define
 rename symbol in project files
 compiler settings -> change project compiler set will lost settings? ( no need)
 complete container library (must test it thoroughly)
-use hash to speed up symbol lookup 
+use hash to speed up symbol lookup  (done)
 parsing namespace 
 parsing using namespace
+
+ friend  support£®done£©
+static/class method (done);
+differentiate -> :: .
+namespace support 
+
+redo inheritance(done)
+
+innerclass 
+
+Expand macro in preprocessor (Expansion will change line numbers, need support)
+
+function type signatures (need macro expansion£©
+
+
+
+const÷ß≥÷ (done)
 
 
 

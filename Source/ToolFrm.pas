@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Menus, Graphics, Controls, Forms,
-  StdCtrls, Buttons, ShellAPI;
+  StdCtrls, Buttons, ShellAPI, ExtCtrls;
 
 type
   { Tool List }
@@ -82,6 +82,7 @@ type
     btnAdd: TSpeedButton;
     btnDelete: TSpeedButton;
     btnEdit: TSpeedButton;
+    Panel2: TPanel;
     procedure btnEditClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);

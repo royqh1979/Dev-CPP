@@ -65,16 +65,7 @@ type
     fInvalidatedStatements: TList;
     fPendingDeclarations: TList;
     fMacroDefines : TList;
-     {
-      Note:
-       In Cpp Parser, Parent/Children means Scope , such as
-       Class A [
-        void foo(void);
-       ]
-       A is the parent of of foo; foo is a child of A.
-
-       And base/derived means inheritance.
-    }
+   
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -237,7 +228,7 @@ begin
   fPendingDeclarations := TList.Create;
   fMacroDefines := TList.Create;
   fCurrentClass := TList.Create;
-  fSkipList := TIntList.Create;
+  fSkipList:=TIntList.Create;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
 end;
@@ -350,7 +341,7 @@ begin
   Statement := FindMacroDefine(name);
   if Assigned(Statement) then begin
     if (Statement^._Value <> '') then
-      Result:= Statement^._Value
+      Result:= Name
     else
       Result:='';
   end;
@@ -1338,9 +1329,8 @@ var
   I, DelimPos: integer;
   FunctionKind: TStatementKind;
   ParentClassName, ScopelessName: AnsiString;
-  FunctionClass, FriendStatement: PStatement;
+  FunctionClass: PStatement;
   startLine : integer;
-  Children:TList;
 
 begin
   IsValid := True;
@@ -1824,7 +1814,14 @@ begin
     Exit;
   end;
 
-  //fPreprocessor.Result.SaveToFile('f:\\result.txt');
+  {
+  with TStringList.Create do try
+    Text:=fPreprocessor.Result;
+    SaveToFile('f:\\result.txt');
+  finally
+    Free;
+  end;
+  }
   // Tokenize the preprocessed buffer file
   try
     fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
@@ -1847,6 +1844,7 @@ begin
   try
     repeat
     until not HandleStatement;
+    //Statements.DumpTo('f:\\statements.txt');
   finally
     fSkipList.Clear; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -2693,7 +2691,6 @@ end;
 
 function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
-  Node: PStatementNode;
   Statement: PStatement;
   GlobalStatement: PStatement;
   Children:TList;
@@ -2743,23 +2740,6 @@ begin
       end;
       CurrentClass := CurrentClass^._Parent;
     Until (not assigned(CurrentClass));
-
-    // try inheritance
-    {
-    Node := fStatementList.LastNode; // Start scanning backwards, because owner data is found there
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-      if Assigned(CurrentClass^._InheritanceList) and
-        (CurrentClass^._InheritanceList.IndexOf(Statement^._Parent) <> -1) then begin
-        // hide private stuff?
-        if SameStr(Statement^._Command, Phrase) then begin
-          result := Statement;
-          Exit;
-        end;
-      end;
-      Node := Node^.PrevNode;
-    end;
-    }
   end;
 
   Result := GlobalStatement;
@@ -2769,17 +2749,16 @@ function TCppParser.FindStatementOf(Phrase: AnsiString; CurrentClass: PStatement
 var
   //Node: PStatementNode;
   ParentWord, MemberWord, OperatorToken: AnsiString;
-  Statement, MemberStatement, TypedefStatement, VariableStatement, CurrentClassParent: PStatement;
+  Statement, MemberStatement, TypedefStatement, VariableStatement, CurrentClassType: PStatement;
   i: integer;
   Children: TList;
 begin
   Result := nil;
 
-  // We need to reuse this
-  if Assigned(CurrentClass) then
-    CurrentClassParent := CurrentClass^._Parent
-  else
-    CurrentClassParent := nil;
+  CurrentClassType := CurrentClass;
+  while assigned(CurrentClassType) and not (CurrentClassType._Kind = skClass) do begin
+    CurrentClassType:=CurrentClassType^._Parent;
+  end;
 
   // Get the FIRST class and member, surrounding the FIRST operator
   ParentWord := GetClass(Phrase);
@@ -2809,7 +2788,7 @@ begin
         if VariableStatement^._Kind = skClass then
           TypedefStatement := VariableStatement // a class statement is equal to its type
         else begin
-          TypedefStatement := FindTypeDefinitionOf(VariableStatement^._Type, CurrentClassParent);
+          TypedefStatement := FindTypeDefinitionOf(VariableStatement^._Type, CurrentClassType);
         end;
 
         // If we cannot find the type, stop here
@@ -3032,7 +3011,9 @@ begin
     case access of
       scsPublic: m_acc:=Statement^._ClassScope;
       scsProtected: m_acc:=scsProtected;
-      scsPrivate: m_acc:=scsPrivate
+      scsPrivate: m_acc:=scsPrivate;
+    else
+      m_acc:=scsPrivate;
     end;
     //inherit
     AddInheritedStatement(derived,Statement,m_acc);
