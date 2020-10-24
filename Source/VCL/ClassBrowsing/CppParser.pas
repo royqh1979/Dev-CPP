@@ -65,6 +65,7 @@ type
     fInvalidatedStatements: TList;
     fPendingDeclarations: TList;
     fMacroDefines : TList;
+    fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch 
    
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
@@ -183,6 +184,8 @@ type
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function FindLastOperator(const Phrase: AnsiString): integer;
+    procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
+    procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
   published
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
@@ -229,6 +232,7 @@ begin
   fSkipList:= -1;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
+  fLocked := False;
 end;
 
 destructor TCppParser.Destroy;
@@ -1003,6 +1007,10 @@ begin
   // Walk up to first new word (before first comma or ;)
   repeat
     OldType := OldType + fTokenizer[fIndex]^.Text + ' ';
+    if fTokenizer[fIndex]^.Text = '*' then begin // * is not part of type info
+      Inc(fIndex);
+      break;
+    end;
     Inc(fIndex);
   until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';']);
   OldType:= TrimRight(OldType);
@@ -1015,12 +1023,11 @@ begin
       if (fTokenizer[fIndex]^.Text[1] = '(') then begin // function define
         if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
           //valid function define
-          p:=ansiPos(' ',fTokenizer[fIndex]^.Text);
+          p:=LastDelimiter(' ',fTokenizer[fIndex]^.Text);
           if p = 0 then
             NewType := Copy(fTokenizer[fIndex]^.Text,2,Length(fTokenizer[fIndex]^.Text)-2)
           else
             NewType := Copy(fTokenizer[fIndex]^.Text,p+1,Length(fTokenizer[fIndex]^.Text)-p-1);
-
           AddStatement(
             GetLastCurrentClass,
             fCurrentFile,
@@ -2356,16 +2363,18 @@ begin
     if (ClosestStatement^._Kind in [skFunction, skConstructor, skDestructor]) and (ClosestStatement^._HasDefinition) and
       (ClosestStatement^._DefinitionLine = ClosestLine) then begin
 
-      // Preprocess the stream that contains the latest version of the current file (not on disk)
-      fPreprocessor.SetIncludesList(fIncludesList);
-      fPreprocessor.SetIncludePaths(fIncludePaths);
-      fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
-      fPreprocessor.SetScannedFileList(fScannedFiles);
-      fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
-      fPreprocessor.PreProcessStream(FileName, Stream);
+      if not fLocked then begin
+        // Preprocess the stream that contains the latest version of the current file (not on disk)
+        fPreprocessor.SetIncludesList(fIncludesList);
+        fPreprocessor.SetIncludePaths(fIncludePaths);
+        fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
+        fPreprocessor.SetScannedFileList(fScannedFiles);
+        fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
+        fPreprocessor.PreProcessStream(FileName, Stream);
 
-      // Tokenize the stream so we can find the start and end of the function body
-      fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+        // Tokenize the stream so we can find the start and end of the function body
+        fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+      end;
 
       // Find start of the function block and start from the opening brace
       FuncStartIndex := GetFuncStartLine(0, ClosestLine);
@@ -3073,6 +3082,25 @@ begin
     fStatementList.Add(Result);
 end;
 
+procedure TCppParser.Freeze(FileName:AnsiString;Stream: TMemoryStream);
+begin
+  // Preprocess the stream that contains the latest version of the current file (not on disk)
+  fPreprocessor.SetIncludesList(fIncludesList);
+  fPreprocessor.SetIncludePaths(fIncludePaths);
+  fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
+  fPreprocessor.SetScannedFileList(fScannedFiles);
+  fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
+  fPreprocessor.PreProcessStream(FileName, Stream);
+
+  // Tokenize the stream so we can find the start and end of the function body
+  fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+  fLocked := True;
+end;
+
+procedure TCppParser.UnFreeze();
+begin
+  fLocked := False;
+end;
 
 end.
 

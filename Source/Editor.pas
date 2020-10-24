@@ -76,8 +76,10 @@ type
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
     fFunctionTip: TCodeToolTip;
-
+    
     fUseUTF8: boolean;
+
+    fLastPressedIsIdChar: boolean;
     //fSingleQuoteCompleteState: TSymbolCompleteState;
     //fDoubleQuoteCompleteState: TSymbolCompleteState;
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
@@ -246,6 +248,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fLastPressedIsIdChar := False;
   // Set generic options
   fErrorLine := -1;
   fActiveLine := -1;
@@ -1208,8 +1211,12 @@ begin
 
   if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
    and (Key in fText.IdentChars) then begin
-    ShowCompletion(Key);
-  end;
+    if not  fLastPressedIsIdChar then
+      ShowCompletion(Key);
+    fLastPressedIsIdChar:=True;
+  end else
+    fLastPressedIsIdChar:=False;
+
   // Doing this here instead of in EditorKeyDown to be able to delete some key messages
   HandleSymbolCompletion(Key);
 
@@ -1334,6 +1341,8 @@ var
   attr: TSynHighlighterAttributes;
 begin
   fCompletionTimer.Enabled := False;
+  if fCompletionBox.Visible and (key <> '') then // already in search, don't do it again
+    Exit;
 
   // Position it at the top of the next line
   P := fText.RowColumnToPixels(fText.DisplayXY);
@@ -1992,6 +2001,7 @@ end;
     finally
       tmpList.Free;
     end;
+    fLastPressedIsIdChar := False;
   end;
 
   procedure TEditor.SaveFile(FileName:String);
@@ -2008,6 +2018,7 @@ end;
     finally
       tmpList.Free;
     end;
+    fLastPressedIsIdChar := False;
   end;
 
 end.
