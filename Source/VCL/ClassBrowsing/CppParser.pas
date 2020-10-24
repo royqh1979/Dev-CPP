@@ -1002,15 +1002,13 @@ begin
   end;
   // Walk up to first new word (before first comma or ;)
   repeat
-    OldType := fTokenizer[fIndex]^.Text;
+    OldType := OldType + fTokenizer[fIndex]^.Text + ' ';
     Inc(fIndex);
   until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';']);
+  OldType:= TrimRight(OldType);
 
-  if (fTokenizer[fIndex + 1]^.Text[1] = '(') then // function define, go to it
-    Inc(fIndex);
 
   // Add synonyms for old
-
   if (fIndex+1 < fTokenizer.Tokens.Count) and (OldType <> '') then begin
     repeat
       // Support multiword typedefs
