@@ -548,10 +548,13 @@ begin
         Inc(DrawPoint.X, fControlCanvas.TextWidth(st^._Args) + 3); // add some right padding
       end;
 
-      if st^._Type <> '' then
-        TypeText := st^._Type
+      if st^._Kind = skPreprocessor then
+        TypeText := st^._Value
       else
-        TypeText := fParser.StatementKindStr(st^._Kind);
+        if st^._Type <> '' then
+          TypeText := st^._Type
+        else
+          TypeText := fParser.StatementKindStr(st^._Kind);
 
       // Then draw node type to the right of the arguments
       if TypeText <> '' then begin

@@ -2897,8 +2897,8 @@ begin
   for i := 0 to fTempNodes.Count -1 do
   begin
     node := PStatementNode(fTempNodes[i]);
+    fMacroDefines.Remove(Node^.Data);
     fStatementList.Delete(Node);
-    //fMacroDefines.Remove(Node^.Data);
   end;
   fTempNodes.Clear;
 end;
