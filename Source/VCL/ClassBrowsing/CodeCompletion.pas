@@ -157,7 +157,6 @@ var
   I,t: integer;
   ScopeTypeStatement, Statement, TypeStatement: PStatement;
   Children : TList;
-  isThis: boolean;
   ScopeName : AnsiString;
   opType: TOperatorType;
 begin
@@ -254,23 +253,25 @@ begin
         //It's a var we should show its type's members
         TypeStatement := fParser.FindTypeDefinitionOf(Statement^._Type, ScopeTypeStatement);
         if Assigned(TypeStatement) then begin
-          isThis :=  SameStr(Statement^._Command,'this');
           Children := fParser.Statements.GetChildrenStatements(TypeStatement);
           if Assigned(Children) then begin
             for t:=0 to Children.Count-1 do begin
               ChildStatement := PStatement(Children[t]);
               if (SameStr(ChildStatement^._Command,'this')) then
                 Continue;
-              if (isThis) or
-                 (ChildStatement^._ClassScope in [scsPublic,scsNone]) or
-                 (// we are inside the classes friend
+              if (ChildStatement^._ClassScope in [scsPublic,scsNone]) or
+                 (//we are inside the classes friend
                     Assigned(TypeStatement^._Friends) and
                     (TypeStatement^._Friends.ValueOf(ScopeName)>=0)
                   ) or
                   (
                    (ChildStatement^._ClassScope =scsProtected) and
                     IsAncestor(ScopeTypeStatement, TypeStatement) // Is an ancestor of our scope class
+                   ) or (
+                     (ChildStatement^._ClassScope = scsPrivate) and
+                     (ScopeTypeStatement = TypeStatement) // Is an ancestor of our scope class
                    )
+
                   then
                 fFullCompletionStatementList.Add(ChildStatement);
             end;

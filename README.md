@@ -1,8 +1,7 @@
-# Dev-C++ 2020
-
-A fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp)
+Dev C++ 2020 is a fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp).
 
 Orwell Dev-C++ has stopped update since 2016, So I forked it. 
+
 It's intended to be used for eductional purposes.
 
 中文网站在这里 https://royqh.net/devcpp/
@@ -27,4 +26,4 @@ HighLights of News:
  * redirect STDIN to a data file while running or debuging ( to easy debug / need a patched gdb ) 
  * xege(graphics.h) and libturtle integration
  
-And dozens of fixes and changes, see News.txt  
+And lots of fixes and changes, see News.txt  

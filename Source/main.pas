@@ -596,6 +596,14 @@ type
     RemoveBreakpoint1: TMenuItem;
     actBreakPointPropInPane: TAction;
     Openprojectorfile1: TMenuItem;
+    Panel3: TPanel;
+    ToolBar8: TToolBar;
+    ToolButton13: TToolButton;
+    ToolButton14: TToolButton;
+    ToolButton15: TToolButton;
+    ToolButton16: TToolButton;
+    actBrowserSortAlphabetically: TAction;
+    actBrowserSortByType: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -870,6 +878,8 @@ type
     procedure actMsgCompilerCopyExecute(Sender: TObject);
     procedure actBreakPointPropInPaneExecute(Sender: TObject);
     procedure actRemoveBreakpointInPaneExecute(Sender: TObject);
+    procedure actBrowserSortByTypeExecute(Sender: TObject);
+    procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -4085,6 +4095,8 @@ begin
   try
     ClassBrowser.ShowFilter := TShowFilter(devClassBrowsing.ShowFilter);
     ClassBrowser.ShowInheritedMembers := devClassBrowsing.ShowInheritedMembers;
+    ClassBrowser.SortByType := devClassBrowsing.SortByType;
+    ClassBrowser.SortAlphabetically := devClassBrowsing.SortAlphabetically;
     ClassBrowser.TabVisible := LeftPageControl.ActivePageIndex = 1;
   finally
     ClassBrowser.EndUpdate;
@@ -4096,6 +4108,8 @@ begin
   actBrowserViewCurrent.Checked := ClassBrowser.ShowFilter = sfCurrent;
   actBrowserViewIncludes.Checked := ClassBrowser.ShowFilter = sfSystemFiles;
   actBrowserShowInherited.Checked := ClassBrowser.ShowInheritedMembers;
+  actBrowserSortByType.Checked := ClassBrowser.SortByType;
+  actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
 end;
 
 procedure TMainForm.ScanActiveProject;
@@ -4132,6 +4146,7 @@ begin
   if Assigned(e) then begin
     e.SetCaretPosAndActivate(Line, 1);
   end;
+  ClassBrowser.SetFocus;
 end;
 
 procedure TMainForm.CodeCompletionResize(Sender: TObject);
@@ -4276,7 +4291,8 @@ begin
     // Update focus so user can keep typing
     if e.Text.CanFocus then // TODO: can fail for some reason
       e.Text.SetFocus; // this should trigger then OnEnter even of the Text control
-
+    // Set classbrowser to current file
+    ClassBrowser.CurrentFile := e.FileName;
     // No editors are visible
   end else begin
     // Set title bar to current file
@@ -5400,9 +5416,9 @@ end;
 
 procedure TMainForm.actBrowserShowInheritedExecute(Sender: TObject);
 begin
-  actBrowserShowInherited.Checked := not actBrowserShowInherited.Checked;
-  devClassBrowsing.ShowInheritedMembers := actBrowserShowInherited.Checked;
-  ClassBrowser.ShowInheritedMembers := actBrowserShowInherited.Checked;
+  ClassBrowser.ShowInheritedMembers := not ClassBrowser.ShowInheritedMembers;
+  devClassBrowsing.ShowInheritedMembers := ClassBrowser.ShowInheritedMembers;
+  actBrowserShowInherited.Checked := ClassBrowser.ShowInheritedMembers;
   ClassBrowser.Refresh;
 end;
 
@@ -7328,6 +7344,25 @@ begin
       e.ToggleBreakPoint(LineNo);
     end;
   end;
+end;
+
+
+procedure TMainForm.actBrowserSortByTypeExecute(Sender: TObject);
+begin
+  ClassBrowser.SortByType := not ClassBrowser.SortByType;
+  devClassBrowsing.SortByType := ClassBrowser.SortByType;
+  actBrowserSortByType.Checked := ClassBrowser.SortByType;
+  ClassBrowser.UpdateView; // we must updateview here since write fsortbytype don't call updateview
+  ClassBrowser.Refresh;
+end;
+
+procedure TMainForm.actBrowserSortAlphabeticallyExecute(Sender: TObject);
+begin
+  ClassBrowser.SortAlphabetically := not ClassBrowser.SortAlphabetically;
+  devClassBrowsing.SortAlphabetically := ClassBrowser.SortAlphabetically;
+  actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
+  ClassBrowser.UpdateView; // we must updateview here since write fSortAlphabetically don't call updateview
+  ClassBrowser.Refresh;
 end;
 
 end.

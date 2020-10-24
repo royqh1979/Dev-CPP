@@ -122,6 +122,7 @@ begin
   M := TMemoryStream.Create;
   try
     Lines.SaveToStream(M);
+    CppParser.Freeze(Editor.FileName,M);  // freeze it so it will not reprocess file each search
     // get full phrase (such as s.name instead of name)
     phrase := Editor.GetWordAtPosition(oldCaretXY,wpInformation);
     // Find it's definition
@@ -164,6 +165,7 @@ begin
       Editor.Text.EndUpdate; // repaint once
     end;
   finally
+    CppParser.UnFreeze();
     M.Free;
     newLines.Free;
   end;

@@ -54,6 +54,8 @@ function type signatures (need macro expansion）
 
 const支持 (done)
 
+Classbrowser 显示/隐藏 继承成员； 按照字典序排序；按照private/protected/public排序
+
 
 
 

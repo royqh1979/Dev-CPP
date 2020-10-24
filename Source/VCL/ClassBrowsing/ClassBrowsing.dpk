@@ -33,7 +33,6 @@ requires
   vcl;
 
 contains
-  IntList in 'IntList.pas',
   StatementList in 'StatementList.pas',
   ClassBrowser in 'ClassBrowser.pas',
   CppParser in 'CppParser.pas',

@@ -1,3 +1,15 @@
+Version 6-beta5 October  2020
+  - fix: Select row in Class Browser
+  - fix: icons in Class Browser
+  - fix: Class Browser show nothing when view system headers
+  - fix: Show typedef / #define / enum in ClassBrowser
+  - fix: Class Browser won't scroll with mouse wheel
+  - fix: remove unused intlist  to reduce memory usage;
+  - fix: correctly parsing function type define
+  - fix: stop reparsing file when code completion finished but word not finish
+  - fix: rename symbol will only preprocess/tokenize file once
+  - fix: correctly show #define info
+
 Version 6-beta4 October  2020
   - fix: Left Panel tab names display error in windows xp sp3
   - fix: Tool Configuration Dialog size error
