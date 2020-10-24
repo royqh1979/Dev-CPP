@@ -39,7 +39,7 @@ type
     fIsSystemHeader: boolean;
     fCurrentFile: AnsiString;
     fCurrentClass: TList; // list of lists
-    fSkipList: TIntList;
+    fSkipList: integer;
     fClassScope: TStatementClassScope;
     fStatementList: TStatementList;
     fIncludesList: TList;
@@ -226,7 +226,7 @@ begin
   fPendingDeclarations := TList.Create;
   fMacroDefines := TList.Create;
   fCurrentClass := TList.Create;
-  fSkipList:=TIntList.Create;
+  fSkipList:= -1;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
 end;
@@ -239,7 +239,6 @@ begin
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
   FreeAndNil(fCurrentClass);
-  FreeAndNil(fSkipList);
   FreeAndNil(fProjectFiles);
 
   for i := 0 to fIncludesList.Count - 1 do
@@ -736,16 +735,13 @@ begin
 end;
 
 procedure TCppParser.CheckForSkipStatement;
-var
-  iSkip: integer;
 begin
-  iSkip := fSkipList.IndexOf(fIndex);
-  if iSkip >= 0 then begin // skip to next ';'
+  if fIndex = fSkipList then begin // skip to next ';'
     repeat
       Inc(fIndex);
     until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';']);
     Inc(fIndex); //skip ';'
-    fSkipList.Delete(iSkip);
+    fSkipList:=-1;
   end;
 end;
 
@@ -990,29 +986,69 @@ procedure TCppParser.HandleOtherTypedefs;
 var
   NewType, OldType: AnsiString;
   startLine: integer;
+  p:integer;
 begin
   startLine := fTokenizer[fIndex]^.Line;
   // Skip typedef word
   Inc(fIndex);
 
-  // Walk up to first new word (before first comma or ;)
-  while (fIndex + 1 < fTokenizer.Tokens.Count) and (not (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';'])) do begin
-    OldType := OldType + fTokenizer[fIndex]^.Text + ' ';
-    Inc(fIndex);
+  if fTokenizer[fIndex]^.Text[1] in ['(', ',', ';'] then begin // error typedef
+    //skip to ;
+    while (fIndex< fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] = ';') do
+      Inc(fIndex);
+    //skip ;
+    if (fIndex< fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ';') then
+      Inc(fIndex);
   end;
-  OldType := TrimRight(OldType);
+  // Walk up to first new word (before first comma or ;)
+  repeat
+    OldType := fTokenizer[fIndex]^.Text;
+    Inc(fIndex);
+  until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';']);
+
+  if (fTokenizer[fIndex + 1]^.Text[1] = '(') then // function define, go to it
+    Inc(fIndex);
 
   // Add synonyms for old
-  if (fIndex < fTokenizer.Tokens.Count) and (OldType <> '') then begin
+
+  if (fIndex+1 < fTokenizer.Tokens.Count) and (OldType <> '') then begin
     repeat
       // Support multiword typedefs
-      if (fIndex + 1 < fTokenizer.Tokens.Count) and
-        (fTokenizer[fIndex + 0]^.Text[1] = '(') and
-        (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
-        break; // TODO: do NOT handle function pointer defines
-      end else if not (fTokenizer[fIndex]^.Text[1] in [',', ';']) then begin
-        NewType := NewType + fTokenizer[fIndex]^.Text + ' '
+      if (fTokenizer[fIndex]^.Text[1] = '(') then begin // function define
+        if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
+          //valid function define
+          p:=ansiPos(' ',fTokenizer[fIndex]^.Text);
+          if p = 0 then
+            NewType := Copy(fTokenizer[fIndex]^.Text,2,Length(fTokenizer[fIndex]^.Text)-2)
+          else
+            NewType := Copy(fTokenizer[fIndex]^.Text,p+1,Length(fTokenizer[fIndex]^.Text)-p-1);
+
+          AddStatement(
+            GetLastCurrentClass,
+            fCurrentFile,
+            'typedef ' + OldType + ' ' + fTokenizer[fIndex]^.Text + ' ' + fTokenizer[fIndex + 1]^.Text, // do not override hint
+            OldType,
+            NewType,
+            fTokenizer[fIndex + 1]^.Text,
+            '',
+            startLine,
+            skTypedef,
+            GetScope,
+            fClassScope,
+            False, // check for declarations when we find an definition of a function
+            True,
+            nil,
+            False);
+         end;
+         NewType:='';
+         //skip to ',' or ';'
+         while (fIndex< fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] in [',', ';']) do
+            Inc(fIndex);
+      end else if not (fTokenizer[fIndex+1]^.Text[1] in [',', ';', '(']) then begin
+        NewType := NewType + fTokenizer[fIndex]^.Text + ' ';
+        Inc(fIndex);
       end else begin
+        NewType := NewType + fTokenizer[fIndex]^.Text + ' ';
         NewType := TrimRight(NewType);
         AddStatement(
           GetLastCurrentClass,
@@ -1032,11 +1068,13 @@ begin
           nil,
           False);
         NewType := '';
-        if fTokenizer[fIndex]^.Text[1] = ';' then
-          break;
+        Inc(fIndex);
       end;
-      Inc(fIndex);
-    until (fIndex >= fTokenizer.Tokens.Count);
+      if (fIndex>= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] = ';') then
+        break
+      else if fTokenizer[fIndex]^.Text[1] = ',' then
+        Inc(fIndex);
+    until (fIndex+1 >= fTokenizer.Tokens.Count);
   end;
 
   // Step over semicolon (saves one HandleStatement loop)
@@ -1231,7 +1269,7 @@ begin
 
       // When encountering names again after struct body scanning, skip it
       if (I + 1 < fTokenizer.Tokens.Count) and not (fTokenizer[I + 1]^.Text[1] in [';', '}']) then
-        fSkipList.Add(I + 1); // add first name to skip statement so that we can skip it until the next ;
+        fSkipList:=I+1; // add first name to skip statement so that we can skip it until the next ;
 
       // Add class/struct synonyms after close brace
       if (I + 1 < fTokenizer.Tokens.Count) and not (fTokenizer[I + 1]^.Text[1] in [';', '}']) then begin
@@ -1261,7 +1299,11 @@ begin
               end;
             end else begin
               Command := TrimRight(Command);
-              if Command <> '' then begin
+              if (Command <> '') and
+                (
+                  (not assigned(FirstSynonym)) or
+                  (not SameStr(Command,FirstSynonym^._Command))
+                ) then begin
                 if Assigned(FirstSynonym) then begin
                   SharedInheritance := TList.Create;
                   SharedInheritance.Assign(FirstSynonym^._InheritanceList);
@@ -1673,7 +1715,7 @@ begin
       '',
       //fTokenizer[fIndex]^.Line,
       startLine,
-      skTypedef,
+      skEnum,
       GetScope,
       fClassScope,
       False,
@@ -1825,12 +1867,13 @@ begin
   // Tokenize the token list
   fIndex := 0;
   fClassScope := scsNone;
+  fSkipList:=-1;
   try
     repeat
     until not HandleStatement;
     //Statements.DumpTo('f:\\statements.txt');
   finally
-    fSkipList.Clear; // remove data from memory, but reuse structures
+    //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;

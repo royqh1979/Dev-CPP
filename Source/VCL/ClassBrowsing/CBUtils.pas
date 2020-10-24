@@ -53,13 +53,13 @@ type
 
   TStatementKind = (
     skPreprocessor,
+    skEnum,
+    skTypedef,
     skClass,
     skFunction,
     skConstructor,
     skDestructor,
     skVariable,
-    skTypedef,
-    skEnum,
     skNamespace,
     skBlock,
     skUnknown
