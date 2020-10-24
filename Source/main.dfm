@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 369
-  Top = 376
+  Left = 688
+  Top = 168
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++ 2020'
   ClientHeight = 671
-  ClientWidth = 1185
+  ClientWidth = 1030
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -37,7 +37,7 @@ object MainForm: TMainForm
   object SplitterBottom: TSplitter
     Left = 0
     Top = 415
-    Width = 1185
+    Width = 1030
     Height = 6
     Cursor = crVSplit
     Align = alBottom
@@ -48,7 +48,7 @@ object MainForm: TMainForm
   object MessageControl: TPageControl
     Left = 0
     Top = 421
-    Width = 1185
+    Width = 1030
     Height = 225
     ActivePage = DebugSheet
     Align = alBottom
@@ -63,7 +63,7 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 1177
+        Width = 1022
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -108,7 +108,7 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 1177
+        Width = 1022
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -190,7 +190,7 @@ object MainForm: TMainForm
       object CompResGroupBox: TPanel
         Left = 192
         Top = 0
-        Width = 985
+        Width = 830
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -229,7 +229,7 @@ object MainForm: TMainForm
       object DebugViews: TPageControl
         Left = 465
         Top = 0
-        Width = 712
+        Width = 557
         Height = 196
         ActivePage = BreakpointsSheet
         Align = alClient
@@ -241,13 +241,13 @@ object MainForm: TMainForm
           object Panel2: TPanel
             Left = 0
             Top = 0
-            Width = 704
+            Width = 549
             Height = 162
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
             DesignSize = (
-              704
+              549
               162)
             object lblSendCommandGdb: TLabel
               Left = 5
@@ -259,7 +259,7 @@ object MainForm: TMainForm
             object edGdbCommand: TComboBox
               Left = 200
               Top = 4
-              Width = 504
+              Width = 349
               Height = 24
               Anchors = [akLeft, akTop, akRight]
               ItemHeight = 16
@@ -269,7 +269,7 @@ object MainForm: TMainForm
             object DebugOutput: TMemo
               Left = 0
               Top = 40
-              Width = 704
+              Width = 549
               Height = 122
               Align = alBottom
               Anchors = [akLeft, akTop, akRight, akBottom]
@@ -286,7 +286,7 @@ object MainForm: TMainForm
           object StackTrace: TListView
             Left = 0
             Top = 0
-            Width = 704
+            Width = 549
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -321,7 +321,7 @@ object MainForm: TMainForm
           object BreakpointsView: TListView
             Left = 0
             Top = 0
-            Width = 704
+            Width = 549
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -530,7 +530,7 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 1177
+        Width = 1022
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -580,7 +580,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 1185
+    Width = 1030
     Height = 64
     Align = alTop
     AutoDock = False
@@ -949,7 +949,7 @@ object MainForm: TMainForm
     object tbCompilers: TToolBar
       Left = 806
       Top = 2
-      Width = 350
+      Width = 130
       Height = 28
       ButtonHeight = 28
       Caption = 'tbCompilers'
@@ -960,7 +960,7 @@ object MainForm: TMainForm
       TabOrder = 6
       Wrapable = False
       DesignSize = (
-        350
+        130
         28)
       object cmbCompilers: TComboBox
         Left = 0
@@ -988,7 +988,7 @@ object MainForm: TMainForm
   object Statusbar: TStatusBar
     Left = 0
     Top = 646
-    Width = 1185
+    Width = 1030
     Height = 25
     Panels = <
       item
@@ -1018,7 +1018,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 238
     Height = 351
-    ActivePage = LeftProjectSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -1062,36 +1062,93 @@ object MainForm: TMainForm
     object LeftClassSheet: TTabSheet
       Caption = 'Classes'
       ImageIndex = -1
-      object ClassBrowser: TClassBrowser
+      object Panel3: TPanel
+        Left = 0
+        Top = 33
+        Width = 209
+        Height = 310
+        Align = alClient
+        Caption = 'Panel3'
+        TabOrder = 0
+        object ClassBrowser: TClassBrowser
+          Left = 1
+          Top = 1
+          Width = 207
+          Height = 308
+          Align = alClient
+          Color = clWhite
+          Images = dmMain.ClassImages
+          ReadOnly = True
+          Indent = 19
+          TabOrder = 0
+          PopupMenu = BrowserPopup
+          MultiSelectStyle = []
+          RowSelect = True
+          ShowLines = False
+          ShowFilter = sfAll
+          OnSelect = ClassBrowserSelect
+          Parser = CppParser
+          ItemImages.Globals = 0
+          ItemImages.Classes = 1
+          ItemImages.VariablePrivate = 2
+          ItemImages.VariableProtected = 3
+          ItemImages.VariablePublic = 4
+          ItemImages.MethodPrivate = 5
+          ItemImages.MethodProtected = 6
+          ItemImages.MethodPublic = 7
+          ItemImages.InheritedMethodProtected = 8
+          ItemImages.InheritedMethodPublic = 10
+          ItemImages.InheritedVariableProtected = 9
+          ItemImages.InheritedVariablePublic = 11
+          ItemImages.DefineImg = 12
+          ItemImages.EnumImg = 13
+          ItemImages.GlobalVarImg = 14
+          ItemImages.TypeImg = 15
+          ShowInheritedMembers = False
+          TabVisible = False
+          SortAlphabetically = True
+          SortByType = True
+        end
+      end
+      object ToolBar8: TToolBar
         Left = 0
         Top = 0
         Width = 209
-        Height = 343
-        Align = alClient
-        Color = clWhite
-        Images = dmMain.ClassImages
-        ReadOnly = True
-        Indent = 19
-        TabOrder = 0
-        PopupMenu = BrowserPopup
-        MultiSelectStyle = []
-        ShowFilter = sfAll
-        OnSelect = ClassBrowserSelect
-        Parser = CppParser
-        ItemImages.Globals = 0
-        ItemImages.Classes = 1
-        ItemImages.VariablePrivate = 2
-        ItemImages.VariableProtected = 3
-        ItemImages.VariablePublic = 4
-        ItemImages.MethodPrivate = 5
-        ItemImages.MethodProtected = 6
-        ItemImages.MethodPublic = 7
-        ItemImages.InheritedMethodProtected = 8
-        ItemImages.InheritedMethodPublic = 10
-        ItemImages.InheritedVariableProtected = 9
-        ItemImages.InheritedVariablePublic = 11
-        ShowInheritedMembers = False
-        TabVisible = False
+        Height = 33
+        ButtonHeight = 30
+        ButtonWidth = 30
+        Caption = 'ToolBar8'
+        EdgeInner = esNone
+        EdgeOuter = esNone
+        Flat = True
+        Images = dmMain.MenuImages_NewLook
+        TabOrder = 1
+        object ToolButton15: TToolButton
+          Left = 0
+          Top = 0
+          Action = actBrowserSortByType
+          Style = tbsCheck
+        end
+        object ToolButton16: TToolButton
+          Left = 30
+          Top = 0
+          Action = actBrowserSortAlphabetically
+          Style = tbsCheck
+        end
+        object ToolButton14: TToolButton
+          Left = 60
+          Top = 0
+          Width = 8
+          Caption = 'ToolButton14'
+          ImageIndex = 63
+          Style = tbsSeparator
+        end
+        object ToolButton13: TToolButton
+          Left = 68
+          Top = 0
+          Action = actBrowserShowInherited
+          Style = tbsCheck
+        end
       end
     end
     object WatchSheet: TTabSheet
@@ -1121,14 +1178,14 @@ object MainForm: TMainForm
   object PageControlPanel: TPanel
     Left = 242
     Top = 64
-    Width = 943
+    Width = 788
     Height = 351
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 943
+      Left = 788
       Top = 0
       Width = 0
       Height = 351
@@ -1139,7 +1196,7 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 943
+      Width = 788
       Height = 351
       Align = alClient
       HotTrack = True
@@ -1154,7 +1211,7 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 943
+      Left = 788
       Top = 0
       Width = 0
       Height = 351
@@ -1866,8 +1923,8 @@ object MainForm: TMainForm
   end
   object UnitPopup: TPopupMenu
     Images = dmMain.MenuImages_NewLook
-    Left = 11
-    Top = 135
+    Left = 139
+    Top = 191
     object RemoveFilefromprojectPopItem: TMenuItem
       Action = actUnitRemove
     end
@@ -1896,8 +1953,8 @@ object MainForm: TMainForm
   end
   object ProjectPopup: TPopupMenu
     Images = dmMain.MenuImages_NewLook
-    Left = 11
-    Top = 104
+    Left = 139
+    Top = 152
     object NewunitinprojectPopItem: TMenuItem
       Tag = 2
       Action = actProjectNew
@@ -2683,6 +2740,7 @@ object MainForm: TMainForm
     object actBrowserShowInherited: TAction
       Category = 'ClassBrowser'
       Caption = 'Show inherited members'
+      ImageIndex = 62
       OnExecute = actBrowserShowInheritedExecute
     end
     object actAttachProcess: TAction
@@ -2982,6 +3040,18 @@ object MainForm: TMainForm
       Category = 'Debug'
       OnExecute = actBreakPointPropInPaneExecute
     end
+    object actBrowserSortAlphabetically: TAction
+      Category = 'ClassBrowser'
+      Caption = 'actBrowserSortAlphabetically'
+      ImageIndex = 63
+      OnExecute = actBrowserSortAlphabeticallyExecute
+    end
+    object actBrowserSortByType: TAction
+      Category = 'ClassBrowser'
+      Caption = 'actBrowserSortByType'
+      ImageIndex = 64
+      OnExecute = actBrowserSortByTypeExecute
+    end
   end
   object MessagePopup: TPopupMenu
     Left = 339
@@ -3138,8 +3208,8 @@ object MainForm: TMainForm
   end
   object FolderPopup: TPopupMenu
     Images = dmMain.MenuImages_NewLook
-    Left = 12
-    Top = 168
+    Left = 124
+    Top = 224
     object Addfolder2: TMenuItem
       Action = actProjectNewFolder
     end

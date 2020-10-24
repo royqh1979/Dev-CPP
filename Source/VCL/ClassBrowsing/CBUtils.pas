@@ -52,6 +52,7 @@ type
 
 
   TStatementKind = (
+    skPreprocessor,
     skClass,
     skFunction,
     skConstructor,
@@ -59,7 +60,6 @@ type
     skVariable,
     skTypedef,
     skEnum,
-    skPreprocessor,
     skNamespace,
     skBlock,
     skUnknown
@@ -73,10 +73,10 @@ type
     );
 
   TStatementClassScope = (
-    scsPublic,
+    scsNone,
     scsPrivate,
     scsProtected,
-    scsNone
+    scsPublic
     );
 
   TOperatorType = (
@@ -103,13 +103,13 @@ type
     _DefinitionLine: integer; // definition
     _FileName: AnsiString; // declaration
     _DefinitionFileName: AnsiString; // definition
-    _Visible: boolean; // visible in class browser or not
     _Temporary: boolean; // statements to be deleted after parsing
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
+    _Inherited: boolean; // inherted member;
   end;
 
   PUsingNamespace =^TUsingNamespace;

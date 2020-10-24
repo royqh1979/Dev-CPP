@@ -80,7 +80,6 @@ type
       Kind: TStatementKind;
       Scope: TStatementScope;
       ClassScope: TStatementClassScope;
-      Visible: boolean;
       FindDeclaration: boolean;
       IsDefinition: boolean;
       isStatic: boolean): PStatement; // TODO: InheritanceList not supported
@@ -96,7 +95,6 @@ type
       Kind: TStatementKind;
       Scope: TStatementScope;
       ClassScope: TStatementClassScope;
-      Visible: boolean;
       FindDeclaration: boolean;
       IsDefinition: boolean;
       InheritanceList: TList;
@@ -410,7 +408,6 @@ function TCppParser.AddChildStatement(
   Kind: TStatementKind;
   Scope: TStatementScope;
   ClassScope: TStatementClassScope;
-  Visible: boolean;
   FindDeclaration: boolean;
   IsDefinition: boolean;
   isStatic: boolean): PStatement;
@@ -432,7 +429,6 @@ begin
         Kind,
         Scope,
         ClassScope,
-        Visible,
         FindDeclaration,
         IsDefinition,
         nil,
@@ -450,7 +446,6 @@ begin
       Kind,
       Scope,
       ClassScope,
-      Visible,
       FindDeclaration,
       IsDefinition,
       nil,
@@ -470,7 +465,6 @@ function TCppParser.AddStatement(
   Kind: TStatementKind;
   Scope: TStatementScope;
   ClassScope: TStatementClassScope;
-  Visible: boolean;
   FindDeclaration: boolean;
   IsDefinition: boolean;
   InheritanceList: TList;
@@ -500,13 +494,13 @@ var
       _DefinitionLine := Line;
       _FileName := FileName;
       _DefinitionFileName := FileName;
-      _Visible := Visible; // sets visibility in class browser
       _Temporary := fLaterScanning; // true if it's added by a function body scan
       _InProject := fIsProjectFile;
       _InSystemHeader := fIsSystemHeader;
       _Children := nil;
       _Friends := nil;
       _Static := isStatic;
+      _Inherited:= False;
     end;
     fStatementList.Add(Result);
   end;
@@ -1034,7 +1028,6 @@ begin
           GetScope,
           fClassScope,
           False,
-          False,
           True,
           nil,
           False);
@@ -1105,7 +1098,6 @@ begin
       skPreprocessor,
       ssGlobal,
       scsNone,
-      False, // not visible
       False,
       True,
       nil,
@@ -1167,7 +1159,6 @@ begin
             GetScope,
             fClassScope,
             False,
-            False,
             True,
             nil,
             False);
@@ -1213,7 +1204,6 @@ begin
               skClass,
               GetScope,
               fClassScope,
-              True,
               False,
               True,
               TList.Create,
@@ -1290,7 +1280,6 @@ begin
                   skClass,
                   GetScope,
                   fClassScope,
-                  True,
                   False,
                   True,
                   SharedInheritance,
@@ -1418,7 +1407,6 @@ begin
         FunctionKind,
         GetScope,
         fClassScope,
-        True,
         not IsDeclaration, // check for declarations when we find an definition of a function
         not IsDeclaration,
         nil,
@@ -1439,7 +1427,6 @@ begin
         FunctionKind,
         GetScope,
         fClassScope,
-        True,
         not IsDeclaration, // check for declarations when we find an definition of a function
         not IsDeclaration,
         IsStatic);
@@ -1625,7 +1612,6 @@ begin
           skVariable,
           GetScope,
           fClassScope,
-          True,
           False,
           True,
           IsStatic); // TODO: not supported to pass list
@@ -1691,7 +1677,6 @@ begin
       GetScope,
       fClassScope,
       False,
-      False,
       True,
       nil,
       False);
@@ -1724,7 +1709,6 @@ begin
         skEnum,
         GetScope,
         fClassScope,
-        False,
         False,
         True,
         nil,
@@ -2401,7 +2385,6 @@ begin
           ssClassLocal,
           scsPrivate,
           False,
-          False,
           True,
           nil,
           False);
@@ -2904,7 +2887,6 @@ begin
           ssLocal,
           scsNone,
           False,
-          False,
           True,
           nil,
           False);
@@ -3039,13 +3021,13 @@ begin
       _DefinitionLine := inherit^._DefinitionLine;
       _FileName := inherit^._FileName;
       _DefinitionFileName := inherit^._DefinitionFileName;
-      _Visible := inherit^._Visible; // sets visibility in class browser
       _Temporary := derived^._Temporary; // true if it's added by a function body scan
       _InProject := derived^._InProject;
       _InSystemHeader := derived^._InSystemHeader;
       _Children := nil; //Todo: inner class inheritance?
       _Friends := nil; // Friends are not inherited;
-      _Static := derived^._Static;
+      _Static := inherit^._Static;
+      _Inherited:=True;
     end;
     fStatementList.Add(Result);
 end;

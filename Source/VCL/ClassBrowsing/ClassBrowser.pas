@@ -48,6 +48,10 @@ type
     fInhMethodPublicImg: integer;
     fInhVariableProtectedImg: integer;
     fInhVariablePublicImg: integer;
+    fDefineImg: integer;
+    fEnumImg: integer;
+    fGlobalVarImg: integer;
+    fTypeImg: integer;
   published
     property Globals: integer read fGlobalsImg write fGlobalsImg;
     property Classes: integer read fClassesImg write fClassesImg;
@@ -61,6 +65,10 @@ type
     property InheritedMethodPublic: integer read fInhMethodPublicImg write fInhMethodPublicImg;
     property InheritedVariableProtected: integer read fInhVariableProtectedImg write fInhVariableProtectedImg;
     property InheritedVariablePublic: integer read fInhVariablePublicImg write fInhVariablePublicImg;
+    property DefineImg: integer read fDefineImg write fDefineImg;
+    property EnumImg: integer read fEnumImg write fEnumImg;
+    property GlobalVarImg: integer read fGlobalVarImg write fGlobalVarImg;
+    property TypeImg: integer read fTypeImg write fTypeImg;
   end;
 
   TShowFilter = (sfAll, sfProject, sfCurrent, sfSystemFiles);
@@ -81,8 +89,10 @@ type
     fUpdateCount: integer;
     fTabVisible: boolean;
     fLastSelection: AnsiString;
+    fSortAlphabetically: boolean;
+    fSortByType: boolean;
     procedure SetParser(Value: TCppParser);
-    procedure AddMembers(Node: TTreeNode; ParentStatementNode: PStatementNode);
+    procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages,
       DefaultDraw: Boolean);
@@ -117,6 +127,8 @@ type
     property BorderStyle;
     property MultiSelect;
     property MultiSelectStyle;
+    property RowSelect;
+    property ShowLines;
     property ShowFilter: TShowFilter read fShowFilter write SetShowFilter;
     property OnSelect: TMemberSelectEvent read fOnSelect write fOnSelect;
     property Parser: TCppParser read fParser write SetParser;
@@ -125,6 +137,8 @@ type
     property ProjectDir: AnsiString read fProjectDir write fProjectDir;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write SetShowInheritedMembers;
     property TabVisible: boolean read fTabVisible write SetTabVisible;
+    property SortAlphabetically: boolean read fSortAlphabetically write fSortAlphabetically;
+    property SortByType: boolean read fSortByType write fSortByType;
   end;
 
 const
@@ -165,7 +179,9 @@ begin
   fUpdateCount := 0;
   fTabVisible := true;
   RowSelect := true;
-  ShowLINES := False;
+  ShowLines := False;
+  fSortAlphabetically:= True;
+  fSortByType:=True ;
 
 end;
 
@@ -193,14 +209,17 @@ procedure TClassBrowser.SetNodeImages(Node: TTreeNode; Statement: PStatement);
 var
   bInherited: boolean;
 begin
-  bInherited := fShowInheritedMembers and Assigned(Node.Parent) and (PStatement(Node.Parent.Data) <>
-    PStatement(Node.Data)^._Parent);
+  bInherited := statement^._Inherited;
 
   case Statement^._Kind of
     skClass: begin
         Node.ImageIndex := fImagesRecord.Classes;
       end;
-    skVariable, skEnum: case Statement^._ClassScope of
+    skPreprocessor: begin
+        Node.ImageIndex := fImagesRecord.DefineImg;
+      end;
+    skEnum: begin
+        case Statement^._ClassScope of
         scsPrivate: Node.ImageIndex := fImagesRecord.VariablePrivate;
         scsProtected: if not bInherited then
             Node.ImageIndex := fImagesRecord.VariableProtected
@@ -210,7 +229,23 @@ begin
             Node.ImageIndex := fImagesRecord.VariablePublic
           else
             Node.ImageIndex := fImagesRecord.InheritedVariablePublic;
-        scsNone: Node.ImageIndex := fImagesRecord.VariablePublic;
+        scsNone: Node.ImageIndex := fImagesRecord.EnumImg;
+      end;
+    end;
+    skTypedef: begin
+        Node.ImageIndex := fImagesRecord.TypeImg;
+      end;
+    skVariable: case Statement^._ClassScope of
+        scsPrivate: Node.ImageIndex := fImagesRecord.VariablePrivate;
+        scsProtected: if not bInherited then
+            Node.ImageIndex := fImagesRecord.VariableProtected
+          else
+            Node.ImageIndex := fImagesRecord.InheritedVariableProtected;
+        scsPublic: if not bInherited then
+            Node.ImageIndex := fImagesRecord.VariablePublic
+          else
+            Node.ImageIndex := fImagesRecord.InheritedVariablePublic;
+        scsNone: Node.ImageIndex := fImagesRecord.GlobalVarImg;
       end;
     skFunction, skConstructor, skDestructor: case Statement^._ClassScope of
 
@@ -231,82 +266,62 @@ begin
   Node.StateIndex := Node.ImageIndex;
 end;
 
-procedure TClassBrowser.AddMembers(Node: TTreeNode; ParentStatementNode: PStatementNode);
+procedure TClassBrowser.AddMembers(Node: TTreeNode; ParentStatement: PStatement);
 var
-  CurStatementNode, StatementNode, StartNode: PStatementNode;
-  Statement, ParentStatement: PStatement;
+  Statement: PStatement;
   NewNode: TTreeNode;
-  bInherited: boolean;
+  Children: TList;
+  i:integer;
 
-  procedure AddStatementNode(StatementNode: PStatementNode);
+  procedure AddStatement(Statement: PStatement);
   begin
-    with StatementNode.Data^ do begin
-      NewNode := Items.AddChildObject(Node, _Command, Statement);
-      SetNodeImages(NewNode, Statement);
-      if _Kind = skClass then
-        AddMembers(NewNode, StatementNode);
-    end;
+    NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
+    SetNodeImages(NewNode, Statement);
+    if Statement^._Kind = skClass then
+      AddMembers(NewNode, Statement);
   end;
 begin
-  if (not fShowInheritedMembers) and Assigned(ParentStatementNode) then
-    StartNode := ParentStatementNode.NextNode // only check for members AFTER the parent statement
-  else
-    StartNode := fParser.Statements.FirstNode; // if showing inheritance, a big speed penalty
+  Children := fParser.Statements.GetChildrenStatements(ParentStatement);
 
-  // create folders that have this branch as parent
-  if ParentStatementNode <> nil then
-    ParentStatement := ParentStatementNode.Data
-  else
-    ParentStatement := nil;
-
-    // allow inheritance propagation, including MI
-    // Walk all the statements
-    bInherited := False;
-    StatementNode := StartNode;
-    while Assigned(StatementNode) do begin
-      Statement := StatementNode^.Data;
-      CurStatementNode := StatementNode; // remember current node
-      StatementNode := StatementNode^.NextNode; // step to next node up here BEFORE calls to continue
+  if Assigned(Children) then begin
+    for i:=0 to Children.Count-1 do begin
+      Statement := Children[i];
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
-        if not _Visible or _Temporary then
+        if _Temporary then
           Continue;
 
-        // Prevent infinite parent/child loops
-        if Statement = ParentStatement then
+        if _Inherited and not fShowInheritedMembers then // don't show inherited members
           Continue;
 
-        // Stop the current recurse when we run out of children
-        if _Parent <> ParentStatement then begin
-        {
-          bInherited := fShowInheritedMembers and (InheritanceStatements.IndexOf(_Parent) <> -1);
-          if not bInherited then
-            Continue;
-        }
+        if Statement = ParentStatement then // prevent infinite recursion
           Continue;
-        end;
 
-        // Only do inheritance checking when absolutely needed
-        case fShowFilter of
-          sfAll: begin // sfAll means all open files. not the system headers
+        if SameStr(_FileName,CurrentFile) then
+          AddStatement(Statement)
+        else begin
+          case fShowFilter of
+            sfAll: begin // sfAll means all open files. not the system headers
               if not _InSystemHeader then // do not show system headers
-                AddStatementNode(CurStatementNode);
+                AddStatement(Statement);
             end;
-          sfSystemFiles: begin
+            sfSystemFiles: begin
               if _InSystemHeader and IsIncluded(_FileName) then
-                AddStatementNode(CurStatementNode); // only show system header stuff
+                AddStatement(Statement); // only show system header stuff
             end;
-          sfCurrent: begin
+            sfCurrent: begin
               if not _InSystemHeader and IsIncluded(_FileName) then
-                AddStatementNode(CurStatementNode);
+                AddStatement(Statement);
             end;
-          sfProject: begin
-              if _InProject or bInherited then
-                AddStatementNode(CurStatementNode);
+            sfProject: begin
+              if _InProject then
+                AddStatement(Statement);
             end;
+          end;
         end;
       end;
     end;
+  end;
 end;
 
 procedure TClassBrowser.UpdateView;
@@ -394,19 +409,39 @@ begin
   EndUpdate;
 end;
 
-function CustomSortProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
+function CustomSortTypeProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
 begin
-  if (Node1.ImageIndex = 0) or (Node2.ImageIndex = 0) then
-    Result := Node1.ImageIndex - Node2.ImageIndex
+  if PStatement(Node1.Data)^._Static and (not PStatement(Node2.Data)^._Static) then
+    Result:=-1
+  else if (not PStatement(Node1.Data)^._Static) and PStatement(Node2.Data)^._Static then
+    Result:=1
   else
-    Result := Ord(PStatement(Node1.Data)^._Kind) - Ord(PStatement(Node2.Data)^._Kind);
-  if Result = 0 then
-    Result := StrIComp(PAnsiChar(Node1.Text), PAnsiChar(Node2.Text));
+    if Ord(PStatement(Node1.Data)^._ClassScope) <> Ord(PStatement(Node2.Data)^._ClassScope) then
+      Result := Ord(PStatement(Node1.Data)^._ClassScope) - Ord(PStatement(Node2.Data)^._ClassScope)
+    else
+      Result := Ord(PStatement(Node1.Data)^._Kind) - Ord(PStatement(Node2.Data)^._Kind);
+end;
+
+function CustomSortAlphaProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
+begin
+  Result := StrIComp(PAnsiChar(Node1.Text), PAnsiChar(Node2.Text));
 end;
 
 procedure TClassBrowser.Sort;
 begin
-  CustomSort(@CustomSortProc, 0);
+{
+  if sortByType and sortAlphabetically then
+    CustomSort(@CustomSortTypeAlphaProc, 0)
+  else
+    CustomSort(@CustomSortTypeProc, 0)
+  else
+    CustomSort(@CustomSortAlphaProc, 0);
+}
+  if sortAlphabetically then
+    CustomSort(@CustomSortAlphaProc, 0);
+  if sortByType then
+    CustomSort(@CustomSortTypeProc, 0);
+
 end;
 
 procedure TClassBrowser.Clear;

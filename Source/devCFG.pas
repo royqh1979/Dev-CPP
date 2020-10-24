@@ -218,6 +218,8 @@ type
   private
     fShowFilter: integer;
     fShowInheritedMembers: boolean;
+    fSortByType: boolean;
+    fSortAlphabetically: boolean;
   public
     constructor Create;
     procedure SettoDefaults;
@@ -226,6 +228,8 @@ type
   published
     property ShowFilter: integer read fShowFilter write fShowFilter;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write fShowInheritedMembers;
+    property SortByType : boolean read fSortByType write fSortByType;
+    property SortAlphabetically: boolean read fSortAlphabetically write fSortAlphabetically;
   end;
 
   //Options for Debugger
@@ -2606,6 +2610,8 @@ procedure TdevClassBrowsing.SettoDefaults;
 begin
   fShowFilter := 2; // sfCurrent
   fShowInheritedMembers := False;
+  fSortByType := False;
+  fSortAlphabetically := False;
 end;
 
 { TDevDebugger }
