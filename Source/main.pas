@@ -4146,6 +4146,7 @@ begin
   if Assigned(e) then begin
     e.SetCaretPosAndActivate(Line, 1);
   end;
+  ClassBrowser.SetFocus;
 end;
 
 procedure TMainForm.CodeCompletionResize(Sender: TObject);

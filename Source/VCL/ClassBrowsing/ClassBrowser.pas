@@ -24,7 +24,7 @@ interface
 uses
 {$IFDEF WIN32}
   Windows, Classes, SysUtils, IntList, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils;
+  CppParser, Forms, cbutils, Messages;
 {$ENDIF}
 {$IFDEF LINUX}
 Classes, SysUtils, QControls, QComCtrls, QForms, QGraphics,
