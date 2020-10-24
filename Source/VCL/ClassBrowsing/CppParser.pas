@@ -65,6 +65,7 @@ type
     fInvalidatedStatements: TList;
     fPendingDeclarations: TList;
     fMacroDefines : TList;
+    fTempNodes : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch 
    
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
@@ -233,6 +234,7 @@ begin
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
   fLocked := False;
+  fTempNodes := TList.Create;
 end;
 
 destructor TCppParser.Destroy;
@@ -244,6 +246,7 @@ begin
   FreeAndNil(fInvalidatedStatements);
   FreeAndNil(fCurrentClass);
   FreeAndNil(fProjectFiles);
+  FreeAndNil(fTempNodes);
 
   for i := 0 to fIncludesList.Count - 1 do
     Dispose(PFileIncludes(fIncludesList.Items[i]));
@@ -477,7 +480,7 @@ var
   OperatorPos: integer;
   NewKind: TStatementKind;
   NewType, NewCommand: AnsiString;
-
+  node: PStatementNode;
   function AddToList: PStatement;
   begin
     Result := New(PStatement);
@@ -505,7 +508,9 @@ var
       _Static := isStatic;
       _Inherited:= False;
     end;
-    fStatementList.Add(Result);
+    node:=fStatementList.Add(Result);
+    if (Result^._Temporary) then
+      fTempNodes.Add(node);
   end;
 begin
   // Move '*', '&' to type rather than cmd (it's in the way for code-completion)
@@ -2117,6 +2122,7 @@ begin
   if Filename = '' then
     Exit;
 
+  DeleteTemporaries; // do it before deleting invalid nodes, in case some temp nodes deleted by invalid and cause error (redelete) 
   // delete statements of file
   Node := fStatementList.FirstNode;
   while Assigned(Node) do begin
@@ -2884,20 +2890,17 @@ end;
 
 procedure TCppParser.DeleteTemporaries;
 var
-  Node, NextNode: PStatementNode;
-  Statement: PStatement;
+  node: PStatementNode;
+  i : integer;
 begin
-  // Remove every statement when Temporary = true
-  Node := fStatementList.FirstNode;
-  while Assigned(Node) do begin
-    NextNode := Node^.NextNode;
-    Statement := Node^.Data;
-    if Statement^._Temporary then begin
-      fMacroDefines.Remove(Statement);
-      fStatementList.Delete(Node);
-    end;
-    Node := NextNode;
+  // Remove every temp statement
+  for i := 0 to fTempNodes.Count -1 do
+  begin
+    node := PStatementNode(fTempNodes[i]);
+    fStatementList.Delete(Node);
+    //fMacroDefines.Remove(Node^.Data);
   end;
+  fTempNodes.Clear;
 end;
 
 procedure TCppParser.ScanMethodArgs(const ArgStr: AnsiString; const Filename: AnsiString; Line: Integer);
@@ -3053,6 +3056,8 @@ begin
 end;
 
 function TCppParser.AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
+var
+  node:PStatementNode;
 begin
   Result := new(PStatement);
   with Result^ do begin
@@ -3079,7 +3084,9 @@ begin
       _Static := inherit^._Static;
       _Inherited:=True;
     end;
-    fStatementList.Add(Result);
+    node:=fStatementList.Add(Result);
+    if Result^._Temporary then
+      fTempNodes.Add(node);
 end;
 
 procedure TCppParser.Freeze(FileName:AnsiString;Stream: TMemoryStream);

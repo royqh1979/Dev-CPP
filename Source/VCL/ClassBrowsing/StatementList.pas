@@ -48,7 +48,7 @@ type
     destructor Destroy; override;
     function FirstStatement: PStatement;
     function LastStatement: PStatement;
-    function Add(Data: PStatement): Integer;
+    function Add(Data: PStatement): PStatementNode;
     function DeleteFirst: Integer;
     function DeleteLast: Integer;
     function Delete(Node: PStatementNode): Integer; overload;
@@ -117,7 +117,7 @@ begin
   Inc(fCount);
 end;
 
-function TStatementList.Add(Data: PStatement): Integer;
+function TStatementList.Add(Data: PStatement): PStatementNode;
 var
   Node: PStatementNode;
   parent: PStatement;
@@ -126,7 +126,7 @@ begin
   Node := New(PStatementNode);
   Node^.Data := Data;
   OnNodeAdding(Node);
-  Result := fCount;
+  Result := Node;
   if Assigned(Data^._Parent) then begin
     parent := Data^._Parent;
     if not Assigned(parent^._Children) then
