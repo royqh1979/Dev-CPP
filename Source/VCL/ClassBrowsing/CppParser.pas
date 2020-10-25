@@ -1001,6 +1001,9 @@ begin
   // Skip typedef word
   Inc(fIndex);
 
+  if (fIndex>=fTokenizer.Tokens.Count) then
+    Exit;
+
   if fTokenizer[fIndex]^.Text[1] in ['(', ',', ';'] then begin // error typedef
     //skip to ;
     while (fIndex< fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] = ';') do
@@ -1881,7 +1884,7 @@ begin
   try
     repeat
     until not HandleStatement;
-    //Statements.DumpTo('f:\\statements.txt');
+   // Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -2324,18 +2327,14 @@ begin
             end;
         end;
       skFunction, skConstructor, skDestructor: begin
+          if SameFileName(Statement^._FileName, Filename) then begin
           // Check definition
-          if Statement^._HasDefinition and SameFileName(Statement^._DefinitionFileName, Filename) then begin
-            if (Statement^._DefinitionLine <= Row) and (Statement^._DefinitionLine > ClosestLine) then begin
+            if Statement^._HasDefinition and (Statement^._DefinitionLine <= Row) and (Statement^._DefinitionLine > ClosestLine) then begin
               ClosestStatement := Statement;
               ClosestLine := Statement^._DefinitionLine;
               InsideBody := Statement^._Line < Row;
-            end;
-          end;
-
-          // Check declaration
-          if SameFileName(Statement^._FileName, Filename) then begin
-            if (Statement^._Line <= Row) and (Statement^._Line > ClosestLine) then begin
+            end else if (Statement^._Line <= Row) and (Statement^._Line > ClosestLine) then begin
+              // Check declaration
               ClosestStatement := Statement;
               ClosestLine := Statement^._Line;
               InsideBody := True; // no body, so assume true
@@ -2377,7 +2376,6 @@ begin
         fPreprocessor.SetScannedFileList(fScannedFiles);
         fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
         fPreprocessor.PreProcessStream(FileName, Stream);
-
         // Tokenize the stream so we can find the start and end of the function body
         fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
       end;
@@ -3068,7 +3066,12 @@ begin
       _Args := inherit^._Args;
       _Value := inherit^._Value;
       _Kind := inherit^._Kind;
-      _InheritanceList := inherit^._InheritanceList;
+      if Assigned(inherit^._InheritanceList) then begin
+      // we should copy it, or we will got trouble when clear StatementList
+        _InheritanceList := TList.Create;
+        _InheritanceList.Assign(inherit^._InheritanceList);
+      end else
+        _InheritanceList := nil;
       _Scope := inherit^._Scope;
       _ClassScope := access;
       _HasDefinition := inherit^._HasDefinition;

@@ -1364,7 +1364,7 @@ begin
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
     if fText.Modified then begin
-      MainForm.CppParser.ParseFile(fFileName, InProject, False, True, M);
+      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
     end;
 
     // Scan the current function body

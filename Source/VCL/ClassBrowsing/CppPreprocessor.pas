@@ -42,7 +42,7 @@ type
   PFile = ^TFile;
   TFile = record
     Index: integer; // 0-based for programming convenience
-    FileName: AnsiString;
+    FileName: AnsiString; // Record filename, but not used now
     Buffer: TStringList; // do not concat them all
     Branches: integer; //branch levels;
   end;
@@ -52,6 +52,7 @@ type
     Name: AnsiString;
     Args: AnsiString;
     Value: AnsiString;
+    FileName: AnsiString;
     HardCoded: boolean; // if true, don't free memory (points to hard defines)
   end;
 
@@ -149,13 +150,13 @@ begin
     Dispose(PFile(fIncludes[i]));
   end;
   fIncludes.Free;
-  for I := 0 to fHardDefines.Count - 1 do
-    Dispose(PDefine(fHardDefines.Objects[i]));
-  fHardDefines.Free;
   for I := 0 to fDefines.Count - 1 do
     if not PDefine(fDefines.Objects[i])^.HardCoded then // has already been released
       Dispose(PDefine(fDefines.Objects[i]));
   fDefines.Free;
+  for I := 0 to fHardDefines.Count - 1 do
+    Dispose(PDefine(fHardDefines.Objects[i]));
+  fHardDefines.Free;
   fBranchResults.Free;
   fResult.Free;
   inherited Destroy;
@@ -450,6 +451,7 @@ begin
   Item^.Name := Name;
   Item^.Args := Args;
   Item^.Value := Value;
+  Item^.FileName := fFileName;
   Item^.HardCoded := HardCoded;
   if HardCoded then
     fHardDefines.AddObject(Name, Pointer(Item)) // uses TStringList too to be able to assign to fDefines easily
@@ -524,22 +526,29 @@ end;
 procedure TCppPreprocessor.ResetDefines;
 var
   I: integer;
+  define : PDefine;
 begin
-  // Assign hard list to soft list
-  for I := 0 to fDefines.Count - 1 do begin // remove memory first
-    if not PDefine(fDefines.Objects[i])^.HardCoded then // memory belongs to hardcoded list
-      Dispose(PDefine(fDefines.Objects[i]));
+   // todo how to decide which headers is not included anymore?
+  fDefines.Sorted := False;
+  I:=0;
+  while (fDefines.Count>0) and (I < fDefines.Count) do begin
+    define := PDefine(fDefines.Objects[i]);
+    if define^.HardCoded then begin //remove hard defines but don't remove node
+      fDefines.Delete(I);
+    end else if SameStr(fFileName, define^.FileName) then begin// remove defines of file to be reprocessed
+      Dispose(define);
+      fDefines.Delete(I);
+    end else
+      Inc(I);
   end;
 
-  // Assign does clear too
-  fDefines.Duplicates := dupAccept;
-  fDefines.Sorted := False;
-  try
-    fDefines.Assign(fHardDefines); // then assign
-  finally
-    fDefines.Duplicates := dupAccept;
-    fDefines.Sorted := True; // sort once
+  for i:=0 to fHardDefines.Count -1 do
+  begin
+    define := PDefine(fHardDefines.Objects[i]);
+    fDefines.AddObject(define^.Name,Pointer(define));
   end;
+
+  fDefines.Sorted := True;
 end;
 
 procedure TCppPreprocessor.HandlePreprocessor(const Value: AnsiString);
@@ -1032,6 +1041,7 @@ end;
 
 procedure TCppPreprocessor.PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
 begin
+  fFileName:=FileName;
   Reset;
   OpenInclude(FileName, Stream);
   PreprocessBuffer;
@@ -1039,6 +1049,7 @@ end;
 
 procedure TCppPreprocessor.PreprocessFile(const FileName: AnsiString);
 begin
+  fFileName:=FileName;
   Reset;
   OpenInclude(FileName, nil);
 //  fBuffer.SaveToFile('f:\\buffer.txt');

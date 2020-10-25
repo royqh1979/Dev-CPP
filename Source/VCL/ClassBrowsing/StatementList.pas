@@ -140,21 +140,22 @@ end;
 procedure TStatementList.DisposeNode(Node: PStatementNode);
 begin
   // remove it from parent's children
-  if Assigned(Node^.Data^._Parent) then begin
-    Node^.Data^._Parent._Children.remove(Node^.Data)
-  end else begin
-    fGlobalStatements.Remove(Node^.Data);
-  end;
-  if OwnsObjects then begin
-    if Assigned(PStatement(Node^.Data)^._InheritanceList) then
-      PStatement(Node^.Data)^._InheritanceList.Free;
-    if Assigned(PStatement(Node^.Data)^._Children) then
-      PStatement(Node^.Data)^._Children.Free;
-    if Assigned(PStatement(Node^.Data)^._Friends) then
-      PStatement(Node^.Data)^._Friends.Free;
-    Dispose(PStatement(Node^.Data));
-  end;
-  Dispose(Node);
+    if Assigned(Node^.Data^._Parent)  then begin
+      Node^.Data^._Parent^._Children.remove(Node^.Data);
+    end else begin
+      fGlobalStatements.Remove(Node^.Data);
+    end;
+
+    if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
+      if Assigned(PStatement(Node^.Data)^._InheritanceList) then
+        PStatement(Node^.Data)^._InheritanceList.Free;
+      if Assigned(PStatement(Node^.Data)^._Children) then
+        PStatement(Node^.Data)^._Children.Free;
+      if Assigned(PStatement(Node^.Data)^._Friends) then
+        PStatement(Node^.Data)^._Friends.Free;
+      Dispose(PStatement(Node^.Data));
+    end;
+  Dispose(PStatementNode(Node));
 end;
 
 procedure TStatementList.OnNodeDeleting(Node: PStatementNode);
@@ -272,7 +273,8 @@ begin
       NextNode := Node^.NextNode;
       // Do not call OnNodeDeleting, because all nodes will be cleared
       statement := PStatement(Node^.Data);
-      Add(Format('%s,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)]));
+      Add(Format('%s,%s,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)
+        ,statement^._FileName,statement^._Line,statement^._DefinitionFileName,statement^._DefinitionLine]));
       Node := NextNode;
     end;
     SaveToFile(Filename);

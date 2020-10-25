@@ -360,7 +360,7 @@ var
   I: integer;
   Dir: AnsiString;
 begin
-  Result := FileName;
+  Result := StringReplace(FileName,'/','\',[rfReplaceAll]);
 
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
   if StartsStr('c', Result) and not EndsStr('.h', Result) and not ContainsStr(Result, '.') then begin
