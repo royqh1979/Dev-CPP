@@ -1853,14 +1853,14 @@ begin
     Exit;
   end;
 
-
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
   finally
     Free;
   end;
-
+  }
   // Tokenize the preprocessed buffer file
   try
     fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
@@ -3066,7 +3066,12 @@ begin
       _Args := inherit^._Args;
       _Value := inherit^._Value;
       _Kind := inherit^._Kind;
-      _InheritanceList := inherit^._InheritanceList;
+      if Assigned(inherit^._InheritanceList) then begin
+      // we should copy it, or we will got trouble when clear StatementList
+        _InheritanceList := TList.Create;
+        _InheritanceList.Assign(inherit^._InheritanceList);
+      end else
+        _InheritanceList := nil;
       _Scope := inherit^._Scope;
       _ClassScope := access;
       _HasDefinition := inherit^._HasDefinition;

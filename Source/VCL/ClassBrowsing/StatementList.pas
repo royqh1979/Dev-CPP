@@ -140,21 +140,22 @@ end;
 procedure TStatementList.DisposeNode(Node: PStatementNode);
 begin
   // remove it from parent's children
-  if Assigned(Node^.Data^._Parent) then begin
-    Node^.Data^._Parent._Children.remove(Node^.Data)
-  end else begin
-    fGlobalStatements.Remove(Node^.Data);
-  end;
-  if OwnsObjects then begin
-    if Assigned(PStatement(Node^.Data)^._InheritanceList) then
-      PStatement(Node^.Data)^._InheritanceList.Free;
-    if Assigned(PStatement(Node^.Data)^._Children) then
-      PStatement(Node^.Data)^._Children.Free;
-    if Assigned(PStatement(Node^.Data)^._Friends) then
-      PStatement(Node^.Data)^._Friends.Free;
-    Dispose(PStatement(Node^.Data));
-  end;
-  Dispose(Node);
+    if Assigned(Node^.Data^._Parent)  then begin
+      Node^.Data^._Parent^._Children.remove(Node^.Data);
+    end else begin
+      fGlobalStatements.Remove(Node^.Data);
+    end;
+
+    if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
+      if Assigned(PStatement(Node^.Data)^._InheritanceList) then
+        PStatement(Node^.Data)^._InheritanceList.Free;
+      if Assigned(PStatement(Node^.Data)^._Children) then
+        PStatement(Node^.Data)^._Children.Free;
+      if Assigned(PStatement(Node^.Data)^._Friends) then
+        PStatement(Node^.Data)^._Friends.Free;
+      Dispose(PStatement(Node^.Data));
+    end;
+  Dispose(PStatementNode(Node));
 end;
 
 procedure TStatementList.OnNodeDeleting(Node: PStatementNode);

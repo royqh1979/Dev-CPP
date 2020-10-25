@@ -1017,6 +1017,7 @@ end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
     actCloseProjectExecute(Self);

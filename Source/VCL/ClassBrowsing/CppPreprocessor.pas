@@ -150,13 +150,13 @@ begin
     Dispose(PFile(fIncludes[i]));
   end;
   fIncludes.Free;
-  for I := 0 to fHardDefines.Count - 1 do
-    Dispose(PDefine(fHardDefines.Objects[i]));
-  fHardDefines.Free;
   for I := 0 to fDefines.Count - 1 do
     if not PDefine(fDefines.Objects[i])^.HardCoded then // has already been released
       Dispose(PDefine(fDefines.Objects[i]));
   fDefines.Free;
+  for I := 0 to fHardDefines.Count - 1 do
+    Dispose(PDefine(fHardDefines.Objects[i]));
+  fHardDefines.Free;
   fBranchResults.Free;
   fResult.Free;
   inherited Destroy;
