@@ -1,7 +1,8 @@
 Version 6-beta5.1 October  2020
+  - fix: crash when exit if Class B inheritanced Class A, and Class C inherited Class B
+  - fix: crash when typedef is the last symbol in file
   - fix: only update class browser when file is open/save, in case it refreshes frequently.
   - fix: #define in header files lost when reparsing files
-  - fix: crash when exit if Class B inheritanced Class A, and Class C inherited Class B
 
 Version 6-beta5 October  2020
   - fix: Select row in Class Browser
