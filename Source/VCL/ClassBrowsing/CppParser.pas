@@ -2377,7 +2377,6 @@ begin
         fPreprocessor.SetScannedFileList(fScannedFiles);
         fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
         fPreprocessor.PreProcessStream(FileName, Stream);
-
         // Tokenize the stream so we can find the start and end of the function body
         fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
       end;

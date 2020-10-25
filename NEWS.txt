@@ -1,3 +1,6 @@
+Version 6-beta5.1 October  2020
+  - fix: only update class browser when file is open/save, in case it refreshes frequently.
+
 Version 6-beta5 October  2020
   - fix: Select row in Class Browser
   - fix: icons in Class Browser

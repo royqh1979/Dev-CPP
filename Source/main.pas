@@ -1628,7 +1628,8 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  UpdateFileEncodingStatusPanel
+  RebuildClassesToolbar;
+  UpdateFileEncodingStatusPanel;
 end;
 
 procedure TMainForm.OpenFile(const FileName: AnsiString; OpenUseUTF8: boolean);
@@ -1695,6 +1696,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
+  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
@@ -2205,6 +2207,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
+  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.actCloseProjectExecute(Sender: TObject);
@@ -2269,6 +2272,7 @@ begin
     finally
       ClassBrowser.EndUpdate;
     end;
+    RebuildClassesToolbar;
   finally
     FileMonitor.EndUpdate;
   end;
@@ -4101,6 +4105,8 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
+  RebuildClassesToolbar;
+
 
   // Configure class browser actions
   actBrowserViewAll.Checked := ClassBrowser.ShowFilter = sfAll;
@@ -4763,6 +4769,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
+  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.lvBacktraceCustomDrawItem(Sender: TCustomListView;
@@ -5132,8 +5139,7 @@ begin
   // Loading...
   Screen.Cursor := crHourglass;
 
-  // Pause updating the class browser (which will be invalidated)
-  ClassBrowser.BeginUpdate;
+  //don't call classbrowser to beginupdate, CppParser will do it
 
   // Hide anything that uses the database (which will be invalidated)
   e := fEditorList.GetEditor;
@@ -5169,11 +5175,7 @@ var
 begin
   Screen.Cursor := crDefault;
 
-  // Done. Rebuild stuff that uses the database
-  RebuildClassesToolbar;
-
-  // The class browser can redraw again
-  ClassBrowser.EndUpdate;
+  //CppParser will call class browser to redraw, don't do it twice
 
   // do this work only if this was the last file scanned
   ParseTimeFloat := (GetTickCount - fParseStartTime) / 1000;
