@@ -309,14 +309,16 @@ begin
               if _InSystemHeader and IsIncluded(_FileName) then
                 AddStatement(Statement); // only show system header stuff
             end;
-            sfCurrent: begin
-              if not _InSystemHeader and IsIncluded(_FileName) then
-                AddStatement(Statement);
-            end;
             sfProject: begin
               if _InProject then
                 AddStatement(Statement);
             end;
+            {
+            sfCurrent: begin
+              if not _InSystemHeader and IsIncluded(_FileName) then
+                AddStatement(Statement);
+            end;
+            }
           end;
         end;
       end;
