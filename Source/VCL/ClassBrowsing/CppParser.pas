@@ -1853,14 +1853,14 @@ begin
     Exit;
   end;
 
-  {
+
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
   finally
     Free;
   end;
-  }
+
   // Tokenize the preprocessed buffer file
   try
     fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));

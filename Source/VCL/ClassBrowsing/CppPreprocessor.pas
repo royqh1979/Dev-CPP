@@ -68,7 +68,7 @@ type
     fHardDefines: TStringList; // set by "cpp -dM -E -xc NUL"
     fDefines: TStringList; // working set, editable
     fIncludes: TList; // list of files we've stepped into. last one is current file, first one is source file
-    fBranchResults: TIntList;
+    fBranchResults: TList;
     // list of branch results (boolean). last one is current branch, first one is outermost branch
     fIncludePaths: TStringList; // *pointer* to buffer of CppParser
     fProjectIncludePaths: TStringList;
@@ -137,7 +137,7 @@ begin
   fDefines := TStringList.Create;
   fDefines.Sorted := True;
   fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
-  fBranchResults := TIntList.Create;
+  fBranchResults := TList.Create;
   fResult := TStringList.Create;
 end;
 
@@ -298,14 +298,14 @@ end;
 function TCppPreprocessor.GetCurrentBranch: boolean;
 begin
   if fBranchResults.Count > 0 then
-    Result := boolean(fBranchResults[fBranchResults.Count - 1])
+    Result := boolean(Integer(fBranchResults[fBranchResults.Count - 1]))
   else
     Result := True;
 end;
 
 procedure TCppPreprocessor.SetCurrentBranch(value: boolean);
 begin
-  fBranchResults.Add(integer(value));
+  fBranchResults.Add(Pointer(integer(value)));
 end;
 
 procedure TCppPreprocessor.RemoveCurrentBranch;
@@ -907,7 +907,7 @@ begin
   if StartsStr('ifdef', Line) then begin
     // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then begin
+      if integer(fBranchResults[i]) = 0 then begin
         SetCurrentBranch(false);
         Exit;
       end;
@@ -920,7 +920,7 @@ begin
   end else if StartsStr('ifndef', Line) then begin
     // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then begin
+      if integer(fBranchResults[i]) = 0 then begin
         SetCurrentBranch(false);
         Exit;
       end;
@@ -933,7 +933,7 @@ begin
   end else if StartsStr('if', Line) then begin
     // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then begin
+      if integer(fBranchResults[i]) = 0 then begin
         SetCurrentBranch(false);
         Exit;
       end;
@@ -946,7 +946,7 @@ begin
   end else if StartsStr('else', Line) then begin
     // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then begin
+      if integer(fBranchResults[i]) = 0 then begin
         RemoveCurrentBranch;
         SetCurrentBranch(false);
         Exit;
@@ -957,7 +957,7 @@ begin
   end else if StartsStr('elif', Line) then begin
     // if a branch that is not at our level is false, current branch is false too;
     for I := 0 to fBranchResults.Count - 2 do
-      if fBranchResults[i] = 0 then begin
+      if integer(fBranchResults[i]) = 0 then begin
         RemoveCurrentBranch;
         SetCurrentBranch(false);
         Exit;
