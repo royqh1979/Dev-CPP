@@ -1853,13 +1853,15 @@ begin
     Exit;
   end;
 
-
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
   finally
     Free;
   end;
+  }
+  fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
   try
@@ -2977,7 +2979,7 @@ procedure TCppParser.GetSourcePair(const FName: AnsiString; var CFile, HFile: An
 begin
   cbutils.GetSourcePair(FName, CFile, HFile);
 end;
-
+{
 procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
 
   procedure RecursiveFind(const FileName: AnsiString);
@@ -3011,6 +3013,32 @@ begin
   List.Clear;
   List.Sorted := false;
   RecursiveFind(Filename);
+end;
+}
+//Since we have save all include files info, don't need to recursive find anymore
+procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
+var
+  I: integer;
+  P: PFileIncludes;
+  sl: TStrings;
+begin
+  if FileName = '' then
+    Exit;
+  List.Clear;
+  List.Sorted := false;
+  List.Add(FileName);
+
+  P := FindFileIncludes(FileName);
+  if Assigned(P) then begin
+    sl := TStringList.Create;
+    try
+      sl.CommaText := P^.IncludeFiles;
+      for I := 0 to sl.Count - 2 do // Last one is always an empty item
+        List.Add(sl[I]);
+    finally
+      sl.Free;
+    end;
+  end;
 end;
 
 procedure TCppParser.InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);

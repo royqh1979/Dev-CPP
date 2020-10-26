@@ -45,6 +45,7 @@ type
     FileName: AnsiString; // Record filename, but not used now
     Buffer: TStringList; // do not concat them all
     Branches: integer; //branch levels;
+    FileIncludes: PFileIncludes; // includes of this file
   end;
 
   PDefine = ^TDefine;
@@ -67,7 +68,7 @@ type
     fIncludesList: TList;
     fHardDefines: TStringList; // set by "cpp -dM -E -xc NUL"
     fDefines: TStringList; // working set, editable
-    fIncludes: TList; // list of files we've stepped into. last one is current file, first one is source file
+    fIncludes: TList; // stack of files we've stepped into. last one is current file, first one is source file
     fBranchResults: TList;
     // list of branch results (boolean). last one is current branch, first one is outermost branch
     fIncludePaths: TStringList; // *pointer* to buffer of CppParser
@@ -116,6 +117,9 @@ type
     procedure PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
     procedure PreprocessFile(const FileName: AnsiString);
     property Result: AnsiString read GetResult;
+
+    //debug procedures
+    procedure DumpIncludesListTo(FileName:ansiString);
   end;
 
 procedure Register;
@@ -186,7 +190,7 @@ end;
 
 procedure TCppPreprocessor.OpenInclude(const FileName: AnsiString; Stream: TMemoryStream = nil);
 var
-  FileItem: PFile;
+  FileItem,tempItem: PFile;
   IsSystemFile: boolean;
   IncludeLine: AnsiString;
   I: integer;
@@ -202,10 +206,16 @@ begin
   // The above is fixed by checking for duplicates.
   // The proper way would be to do backtracking of files we have FINISHED scanned.
   // These are not the same files as the ones in fScannedFiles. We have STARTED scanning these.
+  {
   if Assigned(fCurrentIncludes) then
     with fCurrentIncludes^ do
       if not ContainsText(IncludeFiles, FileName) then
         IncludeFiles := IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
+  }
+  for i:=0 to fIncludes.Count-1 do begin
+    tempItem := PFile(fIncludes[i]);
+    tempItem^.FileIncludes^.IncludeFiles := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
+  end;
 
   // Create and add new buffer/position
   FileItem := new(PFile);
@@ -214,18 +224,20 @@ begin
   FileItem^.Buffer := TStringList.Create;
   FileItem^.Branches := 0;
 
+  // Keep track of files we include here
+  // Only create new items for files we have NOT scanned yet
+  fCurrentIncludes := GetFileIncludesEntry(FileName);
+  if not Assigned(fCurrentIncludes) then begin // do NOT create a new item for a file that's already in the list
+    fCurrentIncludes := New(PFileIncludes);
+    fCurrentIncludes^.BaseFile := FileName;
+    fCurrentIncludes^.IncludeFiles := '';
+    fIncludesList.Add(fCurrentIncludes);
+  end;
+
+  FileItem^.FileIncludes := fCurrentIncludes;
+
   // Don't parse stuff we have already parsed
   if Assigned(Stream) or (FastIndexOf(fScannedFiles, FileName) = -1) then begin
-
-    // Keep track of files we include here
-    // Only create new items for files we have NOT scanned yet
-    fCurrentIncludes := GetFileIncludesEntry(FileName);
-    if not Assigned(fCurrentIncludes) then begin // do NOT create a new item for a file that's already in the list
-      fCurrentIncludes := New(PFileIncludes);
-      fCurrentIncludes^.BaseFile := FileName;
-      fCurrentIncludes^.IncludeFiles := '';
-      fIncludesList.Add(fCurrentIncludes);
-    end;
 
     // Parse ONCE
     if not Assigned(Stream) then
@@ -286,7 +298,8 @@ begin
       // Point to previous buffer and start past the include we walked into
 
       // Start augmenting previous include list again
-      fCurrentIncludes := GetFileIncludesEntry(fFileName);
+      //fCurrentIncludes := GetFileIncludesEntry(fFileName);
+      fCurrentIncludes := Includes[fIncludes.Count - 1]^.FileIncludes;
 
       // Update result file (we've left the previous file)
       fResult.Add('#include ' + Includes[fIncludes.Count - 1]^.FileName + ':' + IntToStr(Includes[fIncludes.Count -
@@ -1062,6 +1075,22 @@ end;
 function TCppPreprocessor.GetResult: AnsiString;
 begin
   Result := fResult.Text; // sloooow
+end;
+
+procedure TCppPreprocessor.DumpIncludesListTo(FileName:ansiString);
+var
+  i:integer;
+  FileIncludes:PFileIncludes;
+begin
+with TStringList.Create do try
+  for i:=0 to fIncludesList.Count -1 do begin
+    FileIncludes := PFileIncludes(fIncludesList[i]);
+    Add(FileIncludes^.BaseFile+' : '+FileIncludes.IncludeFiles);
+  end;
+  SaveToFile(FileName);
+finally
+  Free;
+end;
 end;
 
 end.
