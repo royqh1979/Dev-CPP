@@ -71,6 +71,7 @@ type
     procedure RemoveWatchVar(nodein: TTreeNode); overload;
     procedure RefreshWatchVars;
     procedure DeleteWatchVars(deleteparent: boolean);
+    procedure InvalidateAllVars();
 
     // Access
     property Executing: boolean read fExecuting write fExecuting;
@@ -196,6 +197,9 @@ begin
 end;
 
 procedure TDebugger.Stop;
+var
+  I:integer;
+  WatchVar:PWatchVar;
 begin
   if Executing then begin
     Executing := false;
@@ -224,6 +228,20 @@ begin
     MainForm.OnBacktraceReady;
 
     Application.HintHidePause := 2500;
+
+    WatchView.Items.BeginUpdate;
+    try
+      //Clear all watch values
+      for I := 0 to WatchVarList.Count - 1 do begin
+        WatchVar := PWatchVar(WatchVarList.Items[I]);
+        WatchVar^.Node.Text := WatchVar^.Name + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE];
+
+        // Delete now invalid children
+        WatchVar^.Node.DeleteChildren;
+      end;
+    finally
+    WatchView.Items.EndUpdate;
+    end;
   end;
 end;
 
@@ -372,12 +390,12 @@ begin
   // Add parent to list
   wparent := New(PWatchVar);
   wparent^.name := namein;
-  //	wparent^.value := 'Execute to evaluate';
+  //	wparent^.value := Lang[ID_MSG_EXECUTE_TO_EVALUATE];
   wparent^.gdbindex := -1; // filled by GDB
   WatchVarList.Add(wparent);
 
   // Add parent to GUI
-  parentnode := WatchView.Items.AddObject(nil, wparent^.name + ' = Execute to evaluate', wparent);
+  parentnode := WatchView.Items.AddObject(nil, wparent^.name + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE], wparent);
   parentnode.ImageIndex := 21;
   parentnode.SelectedIndex := 21;
 
@@ -454,12 +472,35 @@ begin
 
         // Leave parent node intact...
         wparent^.gdbindex := -1;
-        wparent^.node.Text := wparent^.name + ' = Execute to evaluate';
+        wparent^.node.Text := wparent^.name + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE];
       end;
     end;
   finally
     WatchView.Items.EndUpdate;
   end;
+end;
+
+procedure TDebugger.InvalidateAllVars();
+var
+  I:integer;
+  WatchVar:PWatchVar;
+begin
+{
+    WatchView.Items.BeginUpdate;
+    try
+      //Clear all watch values
+      for I := 0 to WatchVarList.Count - 1 do begin
+        WatchVar := PWatchVar(WatchVarList.Items[I]);
+        WatchVar^.Node.Text := WatchVar^.Name + ' = '+Lang[ID_MSG_NOT_FOUND_IN_CONTEXT];
+
+        // Delete now invalid children
+        WatchVar^.Node.DeleteChildren;
+        WatchVar^.gdbindex := -1
+      end;
+    finally
+      WatchView.Items.EndUpdate;
+    end;
+    }
 end;
 
 end.

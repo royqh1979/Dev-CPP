@@ -3856,20 +3856,24 @@ end;
 procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('next', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
 procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('step', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -3916,10 +3920,12 @@ procedure TMainForm.actContinueExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('continue', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -6431,10 +6437,12 @@ end;
 procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('finish', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -6445,11 +6453,13 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
+      fDebugger.InvalidateAllVars;
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
       fDebugger.SendCommand('backtrace', '');
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
+      //fDebugger.RefreshWatchVars;
     end;
   end;
 end;
@@ -7205,6 +7215,9 @@ begin
       // Load the registers...
       Debugger.SendCommand('info', 'registers');
       Debugger.SendCommand('disas','');
+      fDebugger.InvalidateAllVars;
+      Debugger.SendCommand('info display','');
+      //fDebugger.RefreshWatchVars;
     end;
   end;
 end;

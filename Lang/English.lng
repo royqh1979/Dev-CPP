@@ -918,6 +918,8 @@ Ver=1
 60029=The breakpoint is in effect only if the following expression evaluates to true (non-zero):
 60030=The editing file will be saved using UTF-8 encoding. <CR>This operation can't be reverted. <CR>Are you sure to continue?
 60031=Folder %s is not existing. <CR> Should we create it for you?
+60032=Execute to evaluate
+60033=Not found in current context
 
 61001=Cannot open file %s
 61002=Cannot save file %s
