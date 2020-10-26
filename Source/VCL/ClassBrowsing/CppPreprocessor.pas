@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF WIN32}
-  Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, IntList, cbutils;
+  Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils;
 {$ENDIF}
 {$IFDEF LINUX}
 Classes, SysUtils, StrUtils, QComCtrls;
