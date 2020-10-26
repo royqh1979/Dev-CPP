@@ -893,6 +893,8 @@ begin
 end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
+var
+  phrase:AnsiString;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
@@ -905,7 +907,10 @@ begin
       end;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName, False);
+      phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
+      if phrase = '' then
+        fLastPressedIsIdChar:=False;
+      fCompletionBox.Search(phrase, fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
@@ -1251,19 +1256,25 @@ begin
   // See if we can undo what has been inserted by HandleSymbolCompletion
   case (Key) of
     VK_CONTROL: begin
+        fLastPressedIsIdChar:=False;
         Reason := HandpointAllowed(p, Shift);
         if Reason <> hprNone then
           fText.Cursor := crHandPoint
         else
           fText.Cursor := crIBeam;
       end;
+    VK_RETURN: begin
+        fLastPressedIsIdChar:=False;    
+    end;
     VK_ESCAPE: begin // Update function tip
+        fLastPressedIsIdChar:=False;
         if ttoHideOnEsc in fFunctionTip.Options then begin
           fFunctionTip.ReleaseHandle;
           fFunctionTip.ForceHide := true;
         end;
       end;
     VK_DELETE: begin // remove completed character
+        fLastPressedIsIdChar:=False;
         if not fText.SelAvail then begin
           S := fText.LineText;
           if fText.CaretX < Length(S) then begin
@@ -1274,6 +1285,7 @@ begin
         end;
       end;
     VK_BACK: begin // remove completed character
+        fLastPressedIsIdChar:=False;
         if not fText.SelAvail then begin
           S := fText.LineText;
           if (fText.CaretX > 1) and (fText.CaretX <= Length(S)) then begin

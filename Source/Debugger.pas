@@ -485,7 +485,6 @@ var
   I:integer;
   WatchVar:PWatchVar;
 begin
-{
     WatchView.Items.BeginUpdate;
     try
       //Clear all watch values
@@ -500,7 +499,6 @@ begin
     finally
       WatchView.Items.EndUpdate;
     end;
-    }
 end;
 
 end.

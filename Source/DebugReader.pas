@@ -903,7 +903,10 @@ var
   WatchVar: PWatchVar;
 begin
   s := GetNextLine; // error text
-  if StartsStr('No symbol "', s) then begin
+  if StartsStr('Cannot find bounds of current function', s) then begin
+    //We have exited
+    HandleExit;
+  end else if StartsStr('No symbol "', s) then begin
     Tail := Pos('"', s);
     Head := RPos('"', s);
     WatchName := Copy(s, Tail + 1, Head - Tail - 1);
@@ -917,7 +920,7 @@ begin
 
         // Delete now invalid children
         WatchVar^.Node.DeleteChildren;
-        WatchVar^.gdbindex := -1
+        WatchVar^.gdbindex := -1;
 
         dorescanwatches := true;
         break;
