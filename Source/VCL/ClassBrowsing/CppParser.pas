@@ -66,7 +66,8 @@ type
     fPendingDeclarations: TList;
     fMacroDefines : TList;
     fTempNodes : TList;
-    fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch 
+    fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
+    fParsing: boolean;
    
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
@@ -219,6 +220,7 @@ end;
 constructor TCppParser.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fParsing:=False;
   fStatementList := TStatementList.Create; // owns the objects
   fIncludesList := TList.Create;
   fFilesToScan := TStringList.Create;
@@ -1940,34 +1942,41 @@ procedure TCppParser.ParseFileList;
 var
   I: integer;
 begin
-  if not fEnabled then
+  if fParsing then
     Exit;
-  if Assigned(fOnBusy) then
-    fOnBusy(Self);
-  if Assigned(fOnStartParsing) then
-    fOnStartParsing(Self);
+  fParsing:=True;
   try
-    // Support stopping of parsing when files closes unexpectedly
-    I := 0;
-    fFilesScannedCount := 0;
-    fFilesToScanCount := fFilesToScan.Count;
-    while I < fFilesToScan.Count do begin
-      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-      if Assigned(fOnTotalProgress) then
-        fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
-      if fScannedFiles.IndexOf(fFilesToScan[i]) = -1 then begin
-        InternalParse(fFilesToScan[i], True);
+    if not fEnabled then
+      Exit;
+    if Assigned(fOnBusy) then
+      fOnBusy(Self);
+    if Assigned(fOnStartParsing) then
+      fOnStartParsing(Self);
+    try
+      // Support stopping of parsing when files closes unexpectedly
+      I := 0;
+      fFilesScannedCount := 0;
+      fFilesToScanCount := fFilesToScan.Count;
+      while I < fFilesToScan.Count do begin
+        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+        if Assigned(fOnTotalProgress) then
+          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
+        if fScannedFiles.IndexOf(fFilesToScan[i]) = -1 then begin
+          InternalParse(fFilesToScan[i], True);
+        end;
+        Inc(I);
       end;
-      Inc(I);
+      fPendingDeclarations.Clear; // should be empty anyways
+      fFilesToScan.Clear;
+    finally
+      if Assigned(fOnEndParsing) then
+        fOnEndParsing(Self, fFilesScannedCount);
     end;
-    fPendingDeclarations.Clear; // should be empty anyways
-    fFilesToScan.Clear;
+    if Assigned(fOnUpdate) then
+      fOnUpdate(Self);
   finally
-    if Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, fFilesScannedCount);
+    fParsing:=False;
   end;
-  if Assigned(fOnUpdate) then
-    fOnUpdate(Self);
 end;
 
 function TCppParser.GetSystemHeaderFileName(const FileName: AnsiString): AnsiString;
@@ -2067,59 +2076,66 @@ var
   CFile, HFile: AnsiString;
   I: integer;
 begin
-  if not fEnabled then
+  if fParsing then
     Exit;
-  FName := FileName;
-  if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
-    Exit;
-  if UpdateView then
-    if Assigned(fOnBusy) then
-      fOnBusy(Self);
+  fParsing:=True;
+  try
+    if not fEnabled then
+      Exit;
+    FName := FileName;
+    if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
+      Exit;
+    if UpdateView then
+      if Assigned(fOnBusy) then
+        fOnBusy(Self);
 
-  // Always invalidate file pairs. If we don't, reparsing the header
-  // screws up the information inside the source file
-  GetSourcePair(FName, CFile, HFile);
-  fInvalidatedStatements.Clear;
-  InvalidateFile(CFile);
-  InvalidateFile(HFile);
+    // Always invalidate file pairs. If we don't, reparsing the header
+    // screws up the information inside the source file
+    GetSourcePair(FName, CFile, HFile);
+    fInvalidatedStatements.Clear;
+    InvalidateFile(CFile);
+    InvalidateFile(HFile);
 
-  if InProject then begin
+    if InProject then begin
     if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
       fProjectFiles.Add(CFile);
     if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
       fProjectFiles.Add(HFile);
-  end else begin
-    I := fProjectFiles.IndexOf(CFile);
-    if I <> -1 then
-      fProjectFiles.Delete(I);
-    I := fProjectFiles.IndexOf(HFile);
-    if I <> -1 then
-      fProjectFiles.Delete(I);
-  end;
+    end else begin
+      I := fProjectFiles.IndexOf(CFile);
+      if I <> -1 then
+        fProjectFiles.Delete(I);
+      I := fProjectFiles.IndexOf(HFile);
+      if I <> -1 then
+        fProjectFiles.Delete(I);
+    end;
 
-  // Parse from disk or stream
-  if Assigned(fOnStartParsing) then
-    fOnStartParsing(Self);
-  try
-    fFilesToScanCount := 0;
-    fFilesScannedCount := 0;
-    if not Assigned(Stream) then begin
-      if CFile = '' then
-        InternalParse(HFile, True) // headers should be parsed via include
-      else
-        InternalParse(CFile, True); // headers should be parsed via include
-    end else
-      InternalParse(FileName, True, Stream); // or from stream
-    fFilesToScan.Clear;
-    fPendingDeclarations.Clear; // should be empty anyways
-    ReProcessInheritance; // account for inherited statements that have dissappeared
+    // Parse from disk or stream
+    if Assigned(fOnStartParsing) then
+      fOnStartParsing(Self);
+    try
+      fFilesToScanCount := 0;
+      fFilesScannedCount := 0;
+      if not Assigned(Stream) then begin
+        if CFile = '' then
+          InternalParse(HFile, True) // headers should be parsed via include
+        else
+          InternalParse(CFile, True); // headers should be parsed via include
+      end else
+        InternalParse(FileName, True, Stream); // or from stream
+      fFilesToScan.Clear;
+      fPendingDeclarations.Clear; // should be empty anyways
+      ReProcessInheritance; // account for inherited statements that have dissappeared
+    finally
+      if Assigned(fOnEndParsing) then
+        fOnEndParsing(Self, 1);
+    end;
+    if UpdateView then
+      if Assigned(fOnUpdate) then
+        fOnUpdate(Self);
   finally
-    if Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, 1);
+    fParsing:=False;
   end;
-  if UpdateView then
-    if Assigned(fOnUpdate) then
-      fOnUpdate(Self);
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);

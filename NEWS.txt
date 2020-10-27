@@ -3,6 +3,8 @@ Version 6-beta6     November 2020
   - fix: Correct update watch var infos while debugging enters/exits functions
   - fix: don't show auto-code-completion suggestion when input a word and deleted it using backspace
   - fix: macro defined in included headers not correctly processed when change #includes in source file. 
+  - fix: CppParser error if first completion input too fast to finish parsing
+  - fix: classbrowser not update if open a file in project
 
 Version 6-beta5.1   October  2020
 

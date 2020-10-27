@@ -1214,19 +1214,20 @@ begin
   if not Assigned(fText.Highlighter) then
     Exit;
 
-  if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
-   and (Key in fText.IdentChars) then begin
-    if not  fLastPressedIsIdChar then
-      ShowCompletion(Key);
-    fLastPressedIsIdChar:=True;
-  end else
+  if (Key in fText.IdentChars) then begin
+    if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
+      if not fLastPressedIsIdChar then
+        ShowCompletion(Key);
+      fLastPressedIsIdChar:=True;
+    end
+  end else begin
     fLastPressedIsIdChar:=False;
+    // Doing this here instead of in EditorKeyDown to be able to delete some key messages
+    HandleSymbolCompletion(Key);
 
-  // Doing this here instead of in EditorKeyDown to be able to delete some key messages
-  HandleSymbolCompletion(Key);
-
-  // Spawn code completion window if we are allowed to
-  HandleCodeCompletion(Key);
+    // Spawn code completion window if we are allowed to
+    HandleCodeCompletion(Key);
+  end;
 end;
 
 procedure TEditor.EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1391,7 +1392,8 @@ begin
   // Filter the whole statement list
   if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)
     and (key = '') then //only one suggestion and it's not input while typing
-    CompletionInsert(); // if only have one suggestion, just use it 
+    CompletionInsert(); // if only have one suggestion, just use it
+
 end;
 
 procedure TEditor.DestroyCompletion;
