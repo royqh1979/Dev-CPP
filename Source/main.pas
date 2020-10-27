@@ -1629,7 +1629,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
+  //RebuildClassesToolbar;   //ScanActiveProject will do it
   UpdateFileEncodingStatusPanel;
 end;
 
@@ -2245,34 +2245,24 @@ begin
     // Remember it
     dmMain.AddtoHistory(fProject.FileName);
 
-    // Only update class browser once
-    ClassBrowser.BeginUpdate;
+    // Only update page control once
+    fEditorList.BeginUpdate;
     try
-      // Only update page control once
-      fEditorList.BeginUpdate;
-      try
-        FreeandNil(fProject);
-      finally
-        fEditorList.EndUpdate;
-      end;
-
-      // Clear project browser
-      ProjectView.Items.Clear;
-
-      // Clear error browser
-      ClearMessageControl;
-
-      // Clear class browser
-      ClassBrowser.ProjectDir := '';
-     // CppParser.Reset;
-      UpdateClassBrowsing;
-
-      // Because fProject was assigned during editor closing, force update trigger again
-      EditorPageControlLeft.OnChange(EditorPageControlLeft);
+      FreeandNil(fProject);
     finally
-      ClassBrowser.EndUpdate;
+      fEditorList.EndUpdate;
     end;
-    RebuildClassesToolbar;
+    // Clear project browser
+    ProjectView.Items.Clear;
+
+    // Clear error browser
+    ClearMessageControl;
+
+    // Because fProject was assigned during editor closing, force update trigger again
+    EditorPageControlLeft.OnChange(EditorPageControlLeft);
+
+    ClassBrowser.ProjectDir := '';
+    UpdateClassBrowsing;
   finally
     FileMonitor.EndUpdate;
   end;
@@ -4131,7 +4121,7 @@ var
   e: TEditor;
 begin
   with CppParser do begin
-    Reset;
+    UpdateClassBrowsing;
     if Assigned(fProject) then begin
       ProjectDir := fProject.Directory;
       for I := 0 to fProject.Units.Count - 1 do

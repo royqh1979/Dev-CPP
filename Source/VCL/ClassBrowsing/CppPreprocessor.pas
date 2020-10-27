@@ -1167,7 +1167,7 @@ begin
 //  fBuffer.SaveToFile('f:\\buffer.txt');
   PreprocessBuffer;
 //  fBuffer.SaveToFile('f:\\buffer.txt');
-//  fResult.SaveToFile('f:\\log.txt');
+  fResult.SaveToFile('f:\\log.txt');
   //fResult.SaveToFile('C:\TCppPreprocessorResult' + ExtractFileName(FileName) + '.txt');
 end;
 

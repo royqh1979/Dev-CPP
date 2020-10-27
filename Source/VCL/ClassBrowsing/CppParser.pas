@@ -1857,14 +1857,14 @@ begin
     Exit;
   end;
 
-  {
+
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
   finally
     Free;
   end;
-  }
+
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
@@ -1890,7 +1890,7 @@ begin
   try
     repeat
     until not HandleStatement;
-    //Statements.DumpTo('f:\\statements.txt');
+    Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -2111,10 +2111,10 @@ begin
     InvalidateFile(HFile);
 
     if InProject then begin
-    if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
-      fProjectFiles.Add(CFile);
-    if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
-      fProjectFiles.Add(HFile);
+      if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
+        fProjectFiles.Add(CFile);
+      if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
+        fProjectFiles.Add(HFile);
     end else begin
       I := fProjectFiles.IndexOf(CFile);
       if I <> -1 then
