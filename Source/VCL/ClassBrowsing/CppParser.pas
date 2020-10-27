@@ -248,8 +248,9 @@ begin
   FreeAndNil(fProjectFiles);
   FreeAndNil(fTempNodes);
 
-  for i := 0 to fIncludesList.Count - 1 do
+  for i := 0 to fIncludesList.Count - 1 do begin
     Dispose(PFileIncludes(fIncludesList.Items[i]));
+  end;
   FreeAndNil(fIncludesList);
 
   FreeAndNil(fStatementList);
@@ -1860,8 +1861,8 @@ begin
   finally
     Free;
   end;
-  }
-  fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+   }
+  //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
   try
@@ -1921,8 +1922,10 @@ begin
   fScannedFiles.Clear;
 
   // We don't include anything anymore
-  for I := fIncludesList.Count - 1 downto 0 do
+  for I := fIncludesList.Count - 1 downto 0 do begin
+    fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
     Dispose(PFileIncludes(fIncludesList[I]));
+  end;
   fIncludesList.Clear;
 
   fProjectFiles.Clear;
@@ -2152,8 +2155,10 @@ begin
 
   // remove its include files list
   P := FindFileIncludes(FileName, True);
-  if Assigned(P) then
+  if Assigned(P) then begin
+    fPreprocessor.InvalidDefinesInFile(FileName);
     Dispose(PFileIncludes(P));
+  end;
 end;
 
 procedure TCppParser.ReProcessInheritance;
@@ -3039,6 +3044,7 @@ begin
       sl.Free;
     end;
   end;
+  List.Sorted := True;
 end;
 
 procedure TCppParser.InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);

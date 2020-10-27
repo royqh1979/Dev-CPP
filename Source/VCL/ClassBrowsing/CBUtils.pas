@@ -34,6 +34,16 @@ const
   SourceExts: array[0..5] of AnsiString = ('.c', '.cpp', '.cc', '.cxx', '.c++', '.cp');
 
 type
+  //macro define
+  PDefine = ^TDefine;
+  TDefine = record
+    Name: AnsiString;
+    Args: AnsiString;
+    Value: AnsiString;
+    FileName: AnsiString;
+    HardCoded: boolean; // if true, don't free memory (points to hard defines)
+  end;
+
   PFileIncludes = ^TFileIncludes;
   TFileIncludes = record
     BaseFile: AnsiString;

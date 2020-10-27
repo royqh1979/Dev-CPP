@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF WIN32}
-  Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils;
+  Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils, iniFiles;
 {$ENDIF}
 {$IFDEF LINUX}
 Classes, SysUtils, StrUtils, QComCtrls;
@@ -48,15 +48,6 @@ type
     FileIncludes: PFileIncludes; // includes of this file
   end;
 
-  PDefine = ^TDefine;
-  TDefine = record
-    Name: AnsiString;
-    Args: AnsiString;
-    Value: AnsiString;
-    FileName: AnsiString;
-    HardCoded: boolean; // if true, don't free memory (points to hard defines)
-  end;
-
   TCppPreprocessor = class(TComponent)
   private
     fIndex: integer; // points to current file buffer. do not free
@@ -68,6 +59,8 @@ type
     fIncludesList: TList;
     fHardDefines: TStringList; // set by "cpp -dM -E -xc NUL"
     fDefines: TStringList; // working set, editable
+    fFileDefines: TStringHash; //dictionary to save defines for each headerfile; PDefine should be diposed here
+    fFileLists: TStringList; //aux list to help clear/free fFileDefines
     fIncludes: TList; // stack of files we've stepped into. last one is current file, first one is source file
     fBranchResults: TList;
     // list of branch results (boolean). last one is current branch, first one is outermost branch
@@ -76,6 +69,7 @@ type
     fScannedFiles: TStringList; // idem
     fParseSystem: boolean;
     fParseLocal: boolean;
+    fProcessed: TStringHash; // dictionary to save filename already processed
     procedure PreprocessBuffer;
     procedure SkipToEndOfPreprocessor;
     procedure SkipToPreprocessor;
@@ -100,6 +94,7 @@ type
     function GetResult: AnsiString;
     // include stuff
     function GetFileIncludesEntry(const FileName: AnsiString): PFileIncludes;
+    procedure AddDefinesInFile(const FileName:AnsiString);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -117,6 +112,7 @@ type
     procedure PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
     procedure PreprocessFile(const FileName: AnsiString);
     property Result: AnsiString read GetResult;
+    procedure InvalidDefinesInFile(const FileName:AnsiString);
 
     //debug procedures
     procedure DumpIncludesListTo(FileName:ansiString);
@@ -125,8 +121,6 @@ type
 procedure Register;
 
 implementation
-
-uses IniFiles;
 
 procedure Register;
 begin
@@ -139,6 +133,10 @@ begin
   fIncludes := TList.Create;
   fHardDefines := TStringList.Create;
   fDefines := TStringList.Create;
+  fProcessed := TStringHash.Create;
+  fFileDefines := TStringHash.Create;
+  fFileLists := TStringList.Create;
+  fFileLists.Sorted := True; 
   fDefines.Sorted := True;
   fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fBranchResults := TList.Create;
@@ -147,20 +145,40 @@ end;
 
 destructor TCppPreprocessor.Destroy;
 var
-  I: integer;
+  I,val,t: integer;
+  DefineList: TList;
+  FileName : AnsiString;
 begin
   for I := 0 to fIncludes.Count - 1 do begin
     PFile(fIncludes[i])^.Buffer.Free;
     Dispose(PFile(fIncludes[i]));
   end;
   fIncludes.Free;
-  for I := 0 to fDefines.Count - 1 do
+  //todo: how to delete defines of files not processed but scaned? fscannedfiles is in cppparser....
+  {
+  for I := 0 to fDefines.Count - 1 do begin
     if not PDefine(fDefines.Objects[i])^.HardCoded then // has already been released
       Dispose(PDefine(fDefines.Objects[i]));
+  end;
+  }
   fDefines.Free;
   for I := 0 to fHardDefines.Count - 1 do
     Dispose(PDefine(fHardDefines.Objects[i]));
+  fProcessed.Free;
   fHardDefines.Free;
+  for I:=0 to fFileLists.Count -1 do begin
+    FileName := fFileLists[I];
+    val := fFileDefines.ValueOf(FileName);
+    if (val>0) then begin
+      DefineList:=TList(val);
+      for t:=0 to DefineList.Count-1 do begin
+        dispose(PDefine(DefineList[t]));
+      end;
+      DefineList.Free;
+    end;
+  end;
+  fFileLists.Free;
+  fFileDefines.Free;
   fBranchResults.Free;
   fResult.Free;
   inherited Destroy;
@@ -180,12 +198,48 @@ begin
   fIncludes.Clear;
   fBranchResults.Clear;
   fCurrentIncludes := nil;
+  fProcessed.Clear;
   ResetDefines; // do not throw away hardcoded
 end;
 
 function TCppPreprocessor.GetInclude(index: integer): PFile;
 begin
   result := PFile(fIncludes[index]);
+end;
+
+procedure TCppPreprocessor.AddDefinesInFile(const FileName:AnsiString);
+var
+  FileIncludes:PFileIncludes;
+  i,value: integer;
+  DefineList:TList;
+  define:PDefine;
+  sl : TStringList;
+begin
+  if fProcessed.ValueOf(FileName) >0 then
+    Exit;
+  fProcessed.Add(FileName,1);
+  if FastIndexOf(fScannedFiles, FileName) = -1 then
+    Exit;
+  value := fFileDefines.ValueOf(FileName);
+  if value >0 then begin
+    DefineList := TList(value);
+    for i:=0 to DefineList.Count-1 do begin
+      define := PDefine(DefineList[I]);
+      if Assigned(define) then
+        fDefines.AddObject(define^.Name,Pointer(define));
+    end;
+  end;
+  FileIncludes:=GetFileIncludesEntry(FileName);
+  if Assigned(FileIncludes) then begin
+    sl := TStringList.Create;
+    try
+      sl.CommaText := FileIncludes^.IncludeFiles;
+      for I := 0 to sl.Count - 2 do // Last one is always an empty item
+        AddDefinesInFile(sl[I]);
+    finally
+      sl.Free;
+    end;
+  end;
 end;
 
 procedure TCppPreprocessor.OpenInclude(const FileName: AnsiString; Stream: TMemoryStream = nil);
@@ -252,6 +306,9 @@ begin
       end else if FileExists(FileName) then
         FileItem^.Buffer.LoadFromFile(FileName); // load it now
     end;
+  end else begin
+    //add defines of already parsed including headers;
+    AddDefinesInFile(FileName);
   end;
   fIncludes.Add(FileItem);
 
@@ -458,6 +515,8 @@ end;
 procedure TCppPreprocessor.AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
 var
   Item: PDefine;
+  val: integer;
+  DefineList:TList;
 begin
   // Do not check for duplicates. It's too slow
   Item := new(PDefine);
@@ -468,8 +527,18 @@ begin
   Item^.HardCoded := HardCoded;
   if HardCoded then
     fHardDefines.AddObject(Name, Pointer(Item)) // uses TStringList too to be able to assign to fDefines easily
-  else
+  else begin
+    val := fFileDefines.ValueOf(fFileName);
+    if val<0 then begin
+      DefineList := TList.Create;
+      fFileDefines.Add(fFileName, integer(DefineList));
+      fFileLists.Add(fFileName);
+    end else begin
+      DefineList := TList(val);
+    end;
+    DefineList.Add(Pointer(Item));
     fDefines.AddObject(Name, Pointer(Item)); // sort by name
+  end;
 end;
 
 //todo: expand macros in the macro define!
@@ -540,20 +609,29 @@ procedure TCppPreprocessor.ResetDefines;
 var
   I: integer;
   define : PDefine;
+  //DefineList: TList;
 begin
-   // todo how to decide which headers is not included anymore?
+{
+  value := fFileDefines.ValueOf(fFileName);
+  if value >0 then begin
+    DefineList := TList(value);
+    DefineList.Clear;
+    DefineList.Free;
+  end;
+  }
   fDefines.Sorted := False;
+  fDefines.Clear;
+  {
   I:=0;
   while (fDefines.Count>0) and (I < fDefines.Count) do begin
     define := PDefine(fDefines.Objects[i]);
-    if define^.HardCoded then begin //remove hard defines but don't remove node
-      fDefines.Delete(I);
-    end else if SameStr(fFileName, define^.FileName) then begin// remove defines of file to be reprocessed
-      Dispose(define);
-      fDefines.Delete(I);
-    end else
-      Inc(I);
+
+    if SameStr(fFileName, define^.FileName) then begin// dispose defines of file to be reprocessed
+      Dispose(PDefine(define));
+    end;
+    fDefines.Delete(I);
   end;
+  }
 
   for i:=0 to fHardDefines.Count -1 do
   begin
@@ -589,7 +667,8 @@ procedure TCppPreprocessor.HandleUndefine(const Line: AnsiString);
 var
   Define: PDefine;
   Name: AnsiString;
-  Index: integer;
+  Index,value: integer;
+  DefineList:TList;
 begin
   // Remove undef
   Name := TrimLeft(Copy(Line, Length('undef') + 1, MaxInt));
@@ -597,8 +676,16 @@ begin
   // Remove from soft list only
   Define := GetDefine(Name, Index);
   if Assigned(Define) then begin
+    value := fFileDefines.ValueOf(Define^.FileName);
+    if value>0 then begin
+       DefineList:=TList(value);
+       DefineList.Remove(Pointer(Define));
+       Dispose(PDefine(Define));
+    end;
+    {
     if not Define^.HardCoded then // memory belongs to hardcoded list
-      Dispose(Define);
+      Dispose(PDefine(Define));
+    }
     fDefines.Delete(Index);
   end;
 end;
@@ -1082,16 +1169,35 @@ var
   i:integer;
   FileIncludes:PFileIncludes;
 begin
-with TStringList.Create do try
-  for i:=0 to fIncludesList.Count -1 do begin
-    FileIncludes := PFileIncludes(fIncludesList[i]);
-    Add(FileIncludes^.BaseFile+' : '+FileIncludes.IncludeFiles);
+  with TStringList.Create do try
+    for i:=0 to fIncludesList.Count -1 do begin
+      FileIncludes := PFileIncludes(fIncludesList[i]);
+      Add(FileIncludes^.BaseFile+' : '+FileIncludes.IncludeFiles);
+    end;
+    SaveToFile(FileName);
+  finally
+    Free;
   end;
-  SaveToFile(FileName);
-finally
-  Free;
 end;
+
+procedure TCppPreprocessor.InvalidDefinesInFile(const FileName:AnsiString);
+var
+  i,val:integer;
+  DefineList:TList;
+  define: PDefine;
+begin
+  val := fFileDefines.ValueOf(FileName);
+  if val>0 then begin
+    DefineList := TList(val);
+    for i:=0 to DefineList.Count-1 do begin
+      define:=PDefine(DefineList[i]);
+      Dispose(PDefine(define));
+    end;
+    DefineList.Free;
+    fFileDefines.Remove(FileName);
+  end;
 end;
+
 
 end.
 

@@ -4091,9 +4091,9 @@ begin
       CppParser.ResetDefines;
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
-
       // add a dev-cpp's own macro
       CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY 1');
+
     end;
 
   // Configure code completion
