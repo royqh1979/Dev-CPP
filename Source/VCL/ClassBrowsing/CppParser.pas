@@ -1910,10 +1910,21 @@ var
 begin
   if Assigned(fOnBusy) then
     fOnBusy(Self);
-
+  if Assigned(fPreprocessor) then
+    fPreprocessor.Clear;
+    
+  fParsing:=False;
+  fSkipList := -1;
+  fLocked:=False;
+  fParseLocalHeaders := False;
+  fParseGlobalHeaders := False;
   //remove all macrodefines;
   fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
+  fInvalidatedStatements.Clear;
+  fCurrentClass.Clear;
+  fProjectFiles.Clear;
+  fTempNodes.Clear;
   fFilesToScan.Clear;
   if Assigned(fTokenizer) then
     fTokenizer.Reset;
@@ -1926,11 +1937,14 @@ begin
 
   // We don't include anything anymore
   for I := fIncludesList.Count - 1 downto 0 do begin
-    fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
+    //fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
     PFileIncludes(fIncludesList[I])^.IncludeFiles.Free;
     Dispose(PFileIncludes(fIncludesList[I]));
   end;
   fIncludesList.Clear;
+
+  fProjectIncludePaths.Clear;
+  fIncludePaths.Clear;
 
   fProjectFiles.Clear;
 

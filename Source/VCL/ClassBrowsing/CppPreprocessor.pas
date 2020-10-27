@@ -98,6 +98,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Clear;
     procedure AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
     procedure GetDefineParts(const Input: AnsiString; var Name, Args, Value: AnsiString);
     procedure AddDefineByLine(const Line: AnsiString; HardCoded: boolean);
@@ -143,7 +144,7 @@ begin
   fResult := TStringList.Create;
 end;
 
-destructor TCppPreprocessor.Destroy;
+procedure TCppPreprocessor.Clear;
 var
   I,val,t: integer;
   DefineList: TList;
@@ -153,19 +154,12 @@ begin
     PFile(fIncludes[i])^.Buffer.Free;
     Dispose(PFile(fIncludes[i]));
   end;
-  fIncludes.Free;
-  //todo: how to delete defines of files not processed but scaned? fscannedfiles is in cppparser....
-  {
-  for I := 0 to fDefines.Count - 1 do begin
-    if not PDefine(fDefines.Objects[i])^.HardCoded then // has already been released
-      Dispose(PDefine(fDefines.Objects[i]));
-  end;
-  }
-  fDefines.Free;
+  fIncludes.Clear;
+  fDefines.Clear;
   for I := 0 to fHardDefines.Count - 1 do
     Dispose(PDefine(fHardDefines.Objects[i]));
-  fProcessed.Free;
-  fHardDefines.Free;
+  fProcessed.Clear;
+  fHardDefines.Clear;
   for I:=0 to fFileLists.Count -1 do begin
     FileName := fFileLists[I];
     val := fFileDefines.ValueOf(FileName);
@@ -177,6 +171,19 @@ begin
       DefineList.Free;
     end;
   end;
+  fFileLists.Clear;
+  fFileDefines.Clear;
+  fBranchResults.Clear;
+  fResult.Clear;
+end;
+
+destructor TCppPreprocessor.Destroy;
+begin
+  Clear;
+  fIncludes.Free;
+  fDefines.Free;
+  fProcessed.Free;
+  fHardDefines.Free;
   fFileLists.Free;
   fFileDefines.Free;
   fBranchResults.Free;
@@ -1204,6 +1211,7 @@ begin
     end;
     DefineList.Free;
     fFileDefines.Remove(FileName);
+    fFileLists.Delete(fFileLists.IndexOf(FileName));
   end;
 end;
 

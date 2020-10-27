@@ -2264,7 +2264,8 @@ begin
 
       // Clear class browser
       ClassBrowser.ProjectDir := '';
-      CppParser.Reset;
+     // CppParser.Reset;
+      UpdateClassBrowsing;
 
       // Because fProject was assigned during editor closing, force update trigger again
       EditorPageControlLeft.OnChange(EditorPageControlLeft);
@@ -4057,6 +4058,7 @@ var
   I: integer;
 begin
   // Configure parser
+  CppPreprocessor.Clear;
   CppParser.Reset;
   CppParser.Tokenizer := CppTokenizer;
   CppParser.Preprocessor := CppPreprocessor;
@@ -4086,7 +4088,7 @@ begin
       for I := 0 to DefInclude.Count - 1 do // Add default include dirs last, just like gcc does
         CppParser.AddIncludePath(DefInclude[I]); // TODO: retrieve those directories in devcfg
       // Set defines
-      CppParser.ResetDefines;
+      //CppParser.ResetDefines;
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
       // add a dev-cpp's own macro
