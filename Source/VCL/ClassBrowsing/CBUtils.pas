@@ -47,7 +47,7 @@ type
   PFileIncludes = ^TFileIncludes;
   TFileIncludes = record
     BaseFile: AnsiString;
-    IncludeFiles: AnsiString; // "file","file" etc
+    IncludeFiles: TStringList; // "file","file" etc
   end;
 
   TSkipType = (

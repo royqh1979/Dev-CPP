@@ -231,14 +231,9 @@ begin
   end;
   FileIncludes:=GetFileIncludesEntry(FileName);
   if Assigned(FileIncludes) then begin
-    sl := TStringList.Create;
-    try
-      sl.CommaText := FileIncludes^.IncludeFiles;
-      for I := 0 to sl.Count - 2 do // Last one is always an empty item
-        AddDefinesInFile(sl[I]);
-    finally
-      sl.Free;
-    end;
+    sl := FileIncludes^.IncludeFiles;
+    for I := 0 to sl.Count - 1 do 
+      AddDefinesInFile(sl[I]);
   end;
 end;
 
@@ -247,7 +242,8 @@ var
   FileItem,tempItem: PFile;
   IsSystemFile: boolean;
   IncludeLine: AnsiString;
-  I: integer;
+  I,t: integer;
+  FileIncludes:PFileIncludes;
 begin
   // Backup old position if we're entering a new file
   if fIncludes.Count > 0 then begin
@@ -268,7 +264,8 @@ begin
   }
   for i:=0 to fIncludes.Count-1 do begin
     tempItem := PFile(fIncludes[i]);
-    tempItem^.FileIncludes^.IncludeFiles := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
+    tempItem^.FileIncludes^.IncludeFiles.Add(FileName);
+    // := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
   end;
 
   // Create and add new buffer/position
@@ -278,13 +275,14 @@ begin
   FileItem^.Buffer := TStringList.Create;
   FileItem^.Branches := 0;
 
+
   // Keep track of files we include here
   // Only create new items for files we have NOT scanned yet
   fCurrentIncludes := GetFileIncludesEntry(FileName);
   if not Assigned(fCurrentIncludes) then begin // do NOT create a new item for a file that's already in the list
     fCurrentIncludes := New(PFileIncludes);
     fCurrentIncludes^.BaseFile := FileName;
-    fCurrentIncludes^.IncludeFiles := '';
+    fCurrentIncludes^.IncludeFiles := TStringList.Create;
     fIncludesList.Add(fCurrentIncludes);
   end;
 
@@ -309,6 +307,13 @@ begin
   end else begin
     //add defines of already parsed including headers;
     AddDefinesInFile(FileName);
+    FileIncludes:=GetFileIncludesEntry(FileName);
+    for i:=0 to fIncludes.Count-1 do begin
+      tempItem := PFile(fIncludes[i]);
+      for t:=0 to FileIncludes^.IncludeFiles.Count -1 do begin
+        PFileIncludes(tempItem^.FileIncludes)^.IncludeFiles.Add(FileIncludes^.IncludeFiles[t]);
+      end;
+    end;
   end;
   fIncludes.Add(FileItem);
 
@@ -355,7 +360,7 @@ begin
       // Point to previous buffer and start past the include we walked into
 
       // Start augmenting previous include list again
-      //fCurrentIncludes := GetFileIncludesEntry(fFileName);
+      fCurrentIncludes := GetFileIncludesEntry(fFileName);
       fCurrentIncludes := Includes[fIncludes.Count - 1]^.FileIncludes;
 
       // Update result file (we've left the previous file)
@@ -1167,12 +1172,16 @@ end;
 procedure TCppPreprocessor.DumpIncludesListTo(FileName:ansiString);
 var
   i:integer;
+  t:integer;
   FileIncludes:PFileIncludes;
 begin
   with TStringList.Create do try
     for i:=0 to fIncludesList.Count -1 do begin
       FileIncludes := PFileIncludes(fIncludesList[i]);
-      Add(FileIncludes^.BaseFile+' : '+FileIncludes.IncludeFiles);
+      Add(FileIncludes^.BaseFile+' : ');
+      for t:=0 to FileIncludes^.IncludeFiles.Count-1 do begin
+        Add(#9+FileIncludes^.IncludeFiles[t]);
+      end;
     end;
     SaveToFile(FileName);
   finally

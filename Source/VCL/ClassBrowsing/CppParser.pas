@@ -249,7 +249,8 @@ begin
   FreeAndNil(fTempNodes);
 
   for i := 0 to fIncludesList.Count - 1 do begin
-    Dispose(PFileIncludes(fIncludesList.Items[i]));
+    PFileIncludes(fIncludesList[i])^.IncludeFiles.Free;
+    Dispose(PFileIncludes(fIncludesList[i]));
   end;
   FreeAndNil(fIncludesList);
 
@@ -1861,7 +1862,7 @@ begin
   finally
     Free;
   end;
-   }
+  }
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
@@ -1887,7 +1888,7 @@ begin
   try
     repeat
     until not HandleStatement;
-   // Statements.DumpTo('f:\\statements.txt');
+    //Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -1924,6 +1925,7 @@ begin
   // We don't include anything anymore
   for I := fIncludesList.Count - 1 downto 0 do begin
     fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
+    PFileIncludes(fIncludesList[I])^.IncludeFiles.Free;
     Dispose(PFileIncludes(fIncludesList[I]));
   end;
   fIncludesList.Clear;
@@ -2157,8 +2159,11 @@ begin
   P := FindFileIncludes(FileName, True);
   if Assigned(P) then begin
     fPreprocessor.InvalidDefinesInFile(FileName);
+    PFileIncludes(P)^.IncludeFiles.Free;
     Dispose(PFileIncludes(P));
   end;
+
+  //Statements.DumpTo('f:\\after.txt');
 end;
 
 procedure TCppParser.ReProcessInheritance;
@@ -3035,14 +3040,9 @@ begin
 
   P := FindFileIncludes(FileName);
   if Assigned(P) then begin
-    sl := TStringList.Create;
-    try
-      sl.CommaText := P^.IncludeFiles;
-      for I := 0 to sl.Count - 2 do // Last one is always an empty item
+    sl := P^.IncludeFiles;
+    for I := 0 to sl.Count - 1 do // Last one is always an empty item
         List.Add(sl[I]);
-    finally
-      sl.Free;
-    end;
   end;
   List.Sorted := True;
 end;
