@@ -141,6 +141,8 @@ type
     function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
+    function GetIncompleteClass(const Command: AnsiString): PStatement;
+    procedure ReProcessInheritance;
   public
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
@@ -165,7 +167,6 @@ type
       boolean = True; Stream: TMemoryStream = nil);
     function StatementKindStr(Value: TStatementKind): AnsiString;
     function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
-    function GetIncompleteClass(const Command: AnsiString): PStatement;
     function FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
       PStatement;
     procedure Reset;
@@ -174,7 +175,6 @@ type
     procedure AddIncludePath(const Value: AnsiString);
     procedure AddProjectIncludePath(const Value: AnsiString);
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
-    procedure ReProcessInheritance;
     function PrettyPrintStatement(Statement: PStatement): AnsiString;
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
@@ -2280,6 +2280,8 @@ var
   Node: PStatementNode;
   Statement: PStatement;
 begin
+  if fParsing then
+    Exit;
   // fills List with a list of all the known classes
   List.Clear;
   Node := fStatementList.LastNode;
@@ -2334,6 +2336,8 @@ var
   InsideBody: Boolean;
 begin
   Result := nil;
+  if fParsing then
+    Exit;
   if (fTokenizer = nil) or (fPreprocessor = nil) then
     Exit;
   DeleteTemporaries;
@@ -2702,6 +2706,9 @@ var
   i:integer;
   Children: TList;
 begin
+  Result := nil;
+  if fParsing then
+    Exit;
   // Remove pointer stuff from type
   s := aType; // 'Type' is a keyword
   position := Length(s);
@@ -2761,7 +2768,9 @@ var
   Children:TList;
   i:integer;
 begin
-
+  Result := nil;
+  if fParsing then
+    Exit;
   GlobalStatement:=nil;
   // Check local variables
   Children := Statements.GetChildrenStatements(nil);
@@ -2819,7 +2828,8 @@ var
   Children: TList;
 begin
   Result := nil;
-
+  if fParsing then
+    Exit;
   CurrentClassType := CurrentClass;
   while assigned(CurrentClassType) and not (CurrentClassType._Kind = skClass) do begin
     CurrentClassType:=CurrentClassType^._Parent;
@@ -3051,6 +3061,8 @@ begin
   if FileName = '' then
     Exit;
   List.Clear;
+  if fParsing then
+    Exit;
   List.Sorted := false;
   List.Add(FileName);
 
