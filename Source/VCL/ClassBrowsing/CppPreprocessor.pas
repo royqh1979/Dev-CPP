@@ -102,7 +102,7 @@ type
     procedure GetDefineParts(const Input: AnsiString; var Name, Args, Value: AnsiString);
     procedure AddDefineByLine(const Line: AnsiString; HardCoded: boolean);
     function GetDefine(const Name: AnsiString; var Index: integer): PDefine;
-    procedure Reset;
+    procedure Reset; //reset but don't clear generated defines
     procedure ResetDefines;
     procedure SetScanOptions(ParseSystem, ParseLocal: boolean);
     procedure SetIncludePaths(var List: TStringList);
@@ -360,7 +360,7 @@ begin
       // Point to previous buffer and start past the include we walked into
 
       // Start augmenting previous include list again
-      fCurrentIncludes := GetFileIncludesEntry(fFileName);
+      //fCurrentIncludes := GetFileIncludesEntry(fFileName);
       fCurrentIncludes := Includes[fIncludes.Count - 1]^.FileIncludes;
 
       // Update result file (we've left the previous file)
