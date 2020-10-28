@@ -929,6 +929,7 @@ type
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
   public
+    procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
     procedure ScanActiveProject;
     procedure UpdateCompilerList;
@@ -2263,6 +2264,8 @@ begin
 
     ClassBrowser.ProjectDir := '';
     UpdateClassBrowsing;
+
+    UpdateClassBrowserForEditor(EditorList.GetEditor());
   finally
     FileMonitor.EndUpdate;
   end;
@@ -4120,25 +4123,24 @@ var
   I: integer;
   e: TEditor;
 begin
-  with CppParser do begin
-    UpdateClassBrowsing;
-    if Assigned(fProject) then begin
-      ProjectDir := fProject.Directory;
-      for I := 0 to fProject.Units.Count - 1 do
-        AddFileToScan(fProject.Units[I].FileName, True);
-      ClearProjectIncludePaths;
-      for I := 0 to fProject.Options.Includes.Count - 1 do
-        AddProjectIncludePath(fProject.Options.Includes[I]);
-    end else begin
-      e := fEditorList.GetEditor;
-      if Assigned(e) then begin
-        ProjectDir := ExtractFilePath(e.FileName);
-        AddFileToScan(e.FileName);
-      end else
-        ProjectDir := '';
-    end;
-    ParseFileList;
+  //UpdateClassBrowsing;
+  if Assigned(fProject) then begin
+    CppParser.ProjectDir := fProject.Directory;
+    CppParser.ClearProjectFiles;
+    for I := 0 to fProject.Units.Count - 1 do
+      CppParser.AddFileToScan(fProject.Units[I].FileName, True);
+    CppParser.ClearProjectIncludePaths;
+    for I := 0 to fProject.Options.Includes.Count - 1 do
+      CppParser.AddProjectIncludePath(fProject.Options.Includes[I]);
+  end else begin
+    e := fEditorList.GetEditor;
+    if Assigned(e) then begin
+      CppParser.ProjectDir := ExtractFilePath(e.FileName);
+      CppParser.AddFileToScan(e.FileName);
+    end else
+      CppParser.ProjectDir := '';
   end;
+  CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -4295,7 +4297,8 @@ begin
     if e.Text.CanFocus then // TODO: can fail for some reason
       e.Text.SetFocus; // this should trigger then OnEnter even of the Text control
     // Set classbrowser to current file
-    ClassBrowser.CurrentFile := e.FileName;
+    UpdateClassBrowserForEditor(e);
+//    ClassBrowser.CurrentFile := e.FileName;
     // No editors are visible
   end else begin
     // Set title bar to current file
@@ -4588,6 +4591,17 @@ begin
   end;
 end;
 
+procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
+begin
+  if Assigned(e) then begin
+    if (e.FileName <> '') and (CppParser.ScannedFiles.IndexOf(e.FileName) = -1) then begin
+      CppParser.ParseFile(e.FileName,e.InProject);
+    end;
+    ClassBrowser.CurrentFile := e.FileName
+  end else
+    ClassBrowser.CurrentFile := '';
+end;
+
 procedure TMainForm.actBrowserViewAllExecute(Sender: TObject);
 var
   e: TEditor;
@@ -4598,10 +4612,7 @@ begin
   actBrowserViewCurrent.Checked := False;
   actBrowserViewIncludes.Checked := False;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4615,10 +4626,7 @@ begin
   actBrowserViewCurrent.Checked := False;
   actBrowserViewIncludes.Checked := False;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4632,10 +4640,7 @@ begin
   actBrowserViewCurrent.Checked := True;
   actBrowserViewIncludes.Checked := False;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4649,10 +4654,7 @@ begin
   actBrowserViewCurrent.Checked := False;
   actBrowserViewIncludes.Checked := True;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 

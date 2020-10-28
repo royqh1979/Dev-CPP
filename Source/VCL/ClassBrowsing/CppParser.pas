@@ -172,6 +172,7 @@ type
     procedure Reset;
     procedure ClearIncludePaths;
     procedure ClearProjectIncludePaths;
+    procedure ClearProjectFiles;
     procedure AddIncludePath(const Value: AnsiString);
     procedure AddProjectIncludePath(const Value: AnsiString);
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
@@ -1857,13 +1858,14 @@ begin
     Exit;
   end;
 
-
+   {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
   finally
     Free;
   end;
+  }
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
@@ -1890,7 +1892,7 @@ begin
   try
     repeat
     until not HandleStatement;
-    Statements.DumpTo('f:\\statements.txt');
+    //Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -2054,6 +2056,11 @@ end;
 procedure TCppParser.ClearProjectIncludePaths;
 begin
   fProjectIncludePaths.Clear;
+end;
+
+procedure TCppParser.ClearProjectFiles;
+begin
+  fProjectFiles.Clear;
 end;
 
 procedure TCppParser.ResetDefines;
