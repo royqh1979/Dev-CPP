@@ -11,7 +11,8 @@ Version 6-beta6     November 2020
   - fix: write to log file when some error happens
   - fix: check if compiler(gcc or g++) exists before compile
   - fix: add debug toolbar
- - fix: dev-c++ will not find windows infinitely if there is already an instance runnning (this only happens when debugging dev-c++ in delphi)
+  - fix: dev-c++ will not find windows infinitely if there is already an instance runnning (this only happens when debugging dev-c++ in delphi)
+  - fix: add icons for static functions/vars and global functions
 
 Version 6-beta5.1   October  2020
 
