@@ -262,7 +262,7 @@ object MainForm: TMainForm
               Width = 506
               Height = 24
               Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 0
+              ItemHeight = 16
               TabOrder = 0
               OnKeyPress = edGdbCommandKeyPress
             end
@@ -658,7 +658,7 @@ object MainForm: TMainForm
     object tbCompile: TToolBar
       Left = 543
       Top = 2
-      Width = 250
+      Width = 113
       Height = 28
       ButtonHeight = 28
       ButtonWidth = 28
@@ -691,50 +691,6 @@ object MainForm: TMainForm
         Left = 84
         Top = 0
         Action = actRebuild
-      end
-      object ToolButton2: TToolButton
-        Left = 112
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton2'
-        ImageIndex = 33
-        Style = tbsSeparator
-      end
-      object DebugBtn: TToolButton
-        Left = 120
-        Top = 0
-        Action = actDebug
-      end
-      object ToolButton3: TToolButton
-        Left = 148
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton3'
-        ImageIndex = 49
-        Style = tbsSeparator
-      end
-      object StopBtn: TToolButton
-        Left = 156
-        Top = 0
-        Action = actStopExecute
-      end
-      object ToolButton5: TToolButton
-        Left = 184
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton5'
-        ImageIndex = 48
-        Style = tbsSeparator
-      end
-      object ProfileBtn: TToolButton
-        Left = 192
-        Top = 0
-        Action = actProfile
-      end
-      object ProfilingInforBtn: TToolButton
-        Left = 220
-        Top = 0
-        Action = actDeleteProfile
       end
     end
     object tbProject: TToolBar
@@ -887,7 +843,7 @@ object MainForm: TMainForm
       end
     end
     object tbClasses: TToolBar
-      Left = 109
+      Left = 292
       Top = 34
       Width = 700
       Height = 28
@@ -897,7 +853,7 @@ object MainForm: TMainForm
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
-      TabOrder = 7
+      TabOrder = 8
       Wrapable = False
       object cmbClasses: TComboBox
         Left = 0
@@ -947,7 +903,7 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 806
+      Left = 669
       Top = 2
       Width = 339
       Height = 28
@@ -982,6 +938,50 @@ object MainForm: TMainForm
         TabOrder = 0
         OnChange = cmbCompilersChange
         OnDropDown = cmbGenericDropDown
+      end
+    end
+    object tbDebug: TToolBar
+      Left = 109
+      Top = 34
+      Width = 170
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
+      Caption = 'tbDebug'
+      EdgeInner = esNone
+      EdgeOuter = esNone
+      Flat = True
+      Images = dmMain.MenuImages_NewLook
+      TabOrder = 7
+      object ToolButton17: TToolButton
+        Left = 0
+        Top = 0
+        Action = actDebug
+      end
+      object ToolButton2: TToolButton
+        Left = 28
+        Top = 0
+        Action = actStepOver
+      end
+      object ToolButton3: TToolButton
+        Left = 56
+        Top = 0
+        Action = actStepInto
+      end
+      object ToolButton5: TToolButton
+        Left = 84
+        Top = 0
+        Action = actStepOut
+      end
+      object ToolButton18: TToolButton
+        Left = 112
+        Top = 0
+        Action = actContinue
+      end
+      object ToolButton19: TToolButton
+        Left = 140
+        Top = 0
+        Action = actStopExecute
       end
     end
   end

@@ -1010,7 +1010,7 @@ const
   ID_ERR_RENAMEDDELETED                 = 61020;
   ID_ERR_RENAMEDDELETEDKEEP             = 61021;
   ID_ERR_ERRORLAUNCHINGGDB              = 61022;
-  ID_ERR_GDBNOUTFOUND                   = 61023;
+  ID_ERR_BINDIR_NOT_SET                 = 61023;
   ID_ERR_WRITEGDB                       = 61024;
   ID_ERR_FILEMODIFIED               = 61025;
   ID_ERR_NOT_IDENTIFIER             = 61026;
@@ -1019,6 +1019,8 @@ const
   ID_ERR_STATEMENT_EXISTING         = 61029;
   ID_ERR_CREATEFOLDER                  =61030;
   ID_ERR_IS_KEYWORD                = 61031;
+  ID_ERR_GDBNOTEXIST               = 61032;
+  ID_ERR_COMPILER_NOT_EXISTS       = 61033;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;

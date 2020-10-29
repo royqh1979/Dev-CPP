@@ -124,7 +124,6 @@ type
     CompileBtn: TToolButton;
     RunBtn: TToolButton;
     CompileAndRunBtn: TToolButton;
-    DebugBtn: TToolButton;
     RebuildAllBtn: TToolButton;
     tbProject: TToolBar;
     AddToProjectBtn: TToolButton;
@@ -385,9 +384,6 @@ type
     actGotoDeclEditor: TAction;
     actGotoImplEditor: TAction;
     ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ProfileBtn: TToolButton;
-    ProfilingInforBtn: TToolButton;
     CompResGroupBox: TPanel;
     LogOutput: TMemo;
     N64: TMenuItem;
@@ -428,14 +424,11 @@ type
     actSearchAgain: TAction;
     actSearchAgain1: TMenuItem;
     N75: TMenuItem;
-    ToolButton3: TToolButton;
     SplitterBottom: TSplitter;
     N76: TMenuItem;
     N12: TMenuItem;
     Abortcompilation1: TMenuItem;
     oggleBreakpoint1: TMenuItem;
-    StopBtn: TToolButton;
-    ToolButton5: TToolButton;
     actRevSearchAgain: TAction;
     SearchAgainBackwards1: TMenuItem;
     actDeleteLine: TAction;
@@ -604,6 +597,13 @@ type
     ToolButton16: TToolButton;
     actBrowserSortAlphabetically: TAction;
     actBrowserSortByType: TAction;
+    tbDebug: TToolBar;
+    ToolButton17: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton3: TToolButton;
+    ToolButton5: TToolButton;
+    ToolButton18: TToolButton;
+    ToolButton19: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);

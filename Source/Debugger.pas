@@ -136,17 +136,25 @@ begin
   sa.bInheritHandle := true;
 
   // Create the child output pipe.
-  if not CreatePipe(fOutputread, fOutputwrite, @sa, 0) then
+  if not CreatePipe(fOutputread, fOutputwrite, @sa, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Create Child output Pipe failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
-  if not SetHandleInformation(fOutputread, HANDLE_FLAG_INHERIT, 0) then
+  end;
+  if not SetHandleInformation(fOutputread, HANDLE_FLAG_INHERIT, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Set Child output Pipe handle flag failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
+  end;
 
 
   // Create the child input pipe.
-  if not CreatePipe(fInputread, fInputwrite, @sa, 0) then
+  if not CreatePipe(fInputread, fInputwrite, @sa, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Create Child input Pipe failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
-  if not SetHandleInformation(fInputwrite, HANDLE_FLAG_INHERIT, 0) then
+  end;
+  if not SetHandleInformation(fInputwrite, HANDLE_FLAG_INHERIT, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Set Child iutput Pipe handle failed %s',[SysErrorMessage(GetLastError)]));
     Exit;
+  end;
 
   // Set up the start up info struct.
   FillChar(si, sizeof(TStartupInfo), 0);
@@ -157,26 +165,32 @@ begin
   si.hStdError := fOutputwrite;
   si.wShowWindow := SW_HIDE;
 
-  // Use the GDB provided in the project if needed
-  CompilerSet := devCompilerSets.CompilationSet;
+  try
+    // Use the GDB provided in the project if needed
+    CompilerSet := devCompilerSets.CompilationSet;
 
-  // Assume it's present in the first bin dir
-  if CompilerSet.BinDir.Count > 0 then begin
-    GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
-    GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
-    try
-      if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
-       MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
-        [mbOK], 0);
-       Executing := false;
+    // Assume it's present in the first bin dir
+    if CompilerSet.BinDir.Count > 0 then begin
+      GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
+      if not FileExists(GDBFile) then begin
+        LogError('Debugger.pas TDebugger.Start',Format('Can''t find GDB in : %s',[GDBFile]));
+        MessageDlg(Lang[ID_ERR_GDBNOTEXIST], mtError, [mbOK], 0);
         Exit;
-    end;
+      end;
+      GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
+      if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
+        LogError('Debugger.pas TDebugger.Start',Format('Create GDB process failed: %s',[SysErrorMessage(GetLastError)]));
+        MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
+        [mbOK], 0);
+        Executing := false;
+        Exit;
+      end;
+    end else
+      MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
+  finally
     CloseHandle(fOutputWrite);
     CloseHandle(fInputRead);
-    finally
-    end;
-  end else
-    MessageDlg(Lang[ID_ERR_GDBNOUTFOUND], mtError, [mbOK], 0);
+  end;
 
   fProcessID := pi.hProcess;
 

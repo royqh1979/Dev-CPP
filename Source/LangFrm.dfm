@@ -244,18 +244,18 @@ object LangForm: TLangForm
         Left = 75
         Top = 29
         Width = 268
-        Height = 36
+        Height = 34
         AutoComplete = False
         Style = csOwnerDrawVariable
-        ItemHeight = 30
+        ItemHeight = 28
         Sorted = True
         TabOrder = 2
         OnChange = FontChange
         OnDrawItem = cmbFontDrawItem
       end
       object tbExample: TToolBar
-        Left = 8
-        Top = 130
+        Left = 40
+        Top = 186
         Width = 250
         Height = 64
         Align = alNone

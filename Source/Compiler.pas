@@ -640,8 +640,15 @@ resourcestring
   cMakeLine = '%s -f "%s" all';
 var
   cmdline: AnsiString;
-  s: AnsiString;
+  //s: AnsiString;
+  compilerName: AnsiString;
 begin
+  if fCompilerSet.BinDir.Count < 1 then begin
+    LogError('Compiler.pas TCompiler.Compile:', 'Active compiler set''s bin directory is not set!');
+    MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
+    Exit;
+  end;
+  
   case Target of
     ctFile: begin
         InitProgressForm;
@@ -667,75 +674,80 @@ begin
         // Determine command line to execute
         case GetFileTyp(fSourceFile) of
           utResSrc: begin
-              s := fCompilerSet.windresName;
+              compilerName := fCompilerSet.windresName;
               if fCheckSyntax then
-                cmdline := Format(cResourceCmdLine, [s, fSourceFile, 'nul'])
+                cmdline := Format(cResourceCmdLine, [compilerName, fSourceFile, 'nul'])
               else
-                cmdline := Format(cResourceCmdLine, [s, fSourceFile, ChangeFileExt(fSourceFile, OBJ_EXT)]);
+                cmdline := Format(cResourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, OBJ_EXT)]);
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGRES]);
               DoLogEntry('--------');
-              DoLogEntry(Format(Lang[ID_LOG_WINDRESNAME], [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + s]));
+              DoLogEntry(Format(Lang[ID_LOG_WINDRESNAME], [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
               DoLogEntry(Format(Lang[ID_LOG_COMMAND], [cmdLine]));
             end;
           utcSrc: begin
-              s := fCompilerSet.gccName;
+              compilerName := fCompilerSet.gccName;
               if fCheckSyntax then
-                cmdline := Format(cSyntaxCmdLine, [s, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams])
+                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams])
               else
-                cmdline := Format(cSourceCmdLine, [s, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
+                cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
                   fIncludesParams, fLibrariesParams]);
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGCSRC]);
               DoLogEntry('--------');
               DoLogEntry(Format(Lang[ID_LOG_GCCNAME],
-                [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + s]));
+                [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
               DoLogEntry(Format(Lang[ID_LOG_COMMAND], [cmdLine]));
             end;
           utCppSrc: begin
-              s := fCompilerSet.gppName;
+              compilerName := fCompilerSet.gppName;
               if fCheckSyntax then
-                cmdline := Format(cSyntaxCmdLine, [s, fSourceFile, fCppCompileParams, fCppIncludesParams,
+                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCppCompileParams, fCppIncludesParams,
                   fLibrariesParams])
               else
-                cmdline := Format(cSourceCmdLine, [s, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
+                cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGCPPSRC]);
               DoLogEntry('--------');
               DoLogEntry(Format(Lang[ID_LOG_GPPNAME],
-                [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + s]));
+                [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
               DoLogEntry(Format(Lang[ID_LOG_COMMAND], [cmdLine]));
             end;
           utcHead, utcppHead: begin // any header files
-              s := fCompilerSet.gppName;
+              compilerName := fCompilerSet.gppName;
               if fCheckSyntax then
-                cmdline := Format(cSyntaxCmdLine, [s, fSourceFile, fCppCompileParams, fCppIncludesParams,
+                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCppCompileParams, fCppIncludesParams,
                   fLibrariesParams])
               else
-                cmdline := Format(cHeaderCmdLine, [s, fSourceFile, fCompileParams, fIncludesParams,
+                cmdline := Format(cHeaderCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams,
                   fLibrariesParams]);
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGHEADER]);
               DoLogEntry('--------');
               DoLogEntry(Format(Lang[ID_LOG_GCCNAME],
-                [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + s]));
+                [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
               DoLogEntry(Format(Lang[ID_LOG_COMMAND], [cmdLine]));
             end;
         else begin
-            s := fCompilerSet.gppName;
+            compilerName := fCompilerSet.gppName;
             if fCheckSyntax then
-              cmdline := Format(cSyntaxCmdLine, [s, fSourceFile, fCppCompileParams, fCppIncludesParams,
+              cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCppCompileParams, fCppIncludesParams,
                 fLibrariesParams])
             else
-              cmdline := Format(cHeaderCmdLine, [s, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams]);
+              cmdline := Format(cHeaderCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams]);
 
             DoLogEntry(Lang[ID_LOG_PROCESSINGUNKNOWN]);
             DoLogEntry('--------');
             DoLogEntry(Format(Lang[ID_LOG_GCCNAME],
-              [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + s]));
+              [IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
             DoLogEntry(Format(Lang[ID_LOG_COMMAND], [cmdLine]));
           end;
+        end;
+        if not FileExists(IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName) then begin
+          LogError('Compiler.pas TCompiler.Compile:',Format('The compiler execuatble ''%s'' doesn''t exist',[IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
+          MessageDlg(Format(Lang[ID_ERR_COMPILER_NOT_EXISTS],[compilerName]), mtError, [mbOK], 0);
+          Exit;
         end;
 
         // Execute it

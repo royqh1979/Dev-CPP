@@ -8,6 +8,10 @@ Version 6-beta6     November 2020
   - fix: some chinese translations
   - fix: correctly update classbrowser when close a project
   - fix: redirect stdin to file doesn't work in windows xp
+  - fix: write to log file when some error happens
+  - fix: check if compiler(gcc or g++) exists before compile
+  - fix: add debug toolbar
+ - fix: dev-c++ will not find windows infinitely if there is already an instance runnning (this only happens when debugging dev-c++ in delphi)
 
 Version 6-beta5.1   October  2020
 

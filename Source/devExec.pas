@@ -117,16 +117,6 @@ begin
     sa.lpSecurityDescriptor := nil;
     sa.bInheritHandle := true;
 
-    {
-    // Create the child input pipe.
-    if not CreatePipe(InputRead, InputWrite, @sa, 0) then begin
-      SetEvent(StartupEvent);
-      Exit;
-    end;
-    // child don't use fInputWrite, so don't let child inherit it
-    if not SetHandleInformation(InputWrite, HANDLE_FLAG_INHERIT, 0) then
-      Exit;
-    }
     InputWrite := CreateNamedPipe(
           pAnsiChar(Pipename),             // pipe name
           PIPE_ACCESS_OUTBOUND,       // read/write access
@@ -139,14 +129,7 @@ begin
           0,                        // client time-out
           nil);                    // default security attribute
     if InputWrite = INVALID_HANDLE_VALUE then begin
-    {
-      with TStringList.Create do try
-        Add('Create Input Pipe Failed:'+SysErrorMessage(GetLastError));
-        SaveToFile('f:\\log.txt');
-      finally
-        Free;
-      end;
-    }
+      LogError('devExec.pas TExecThread.ExecAndWait',Format('Create named pipe failed: %s',[SysErrorMessage(GetLastError)]));
       Exit;
     end;
     InputRead := CreateFile(
@@ -158,14 +141,7 @@ begin
          0,              // default attributes
          0);
     if InputRead = INVALID_HANDLE_VALUE then begin
-    {
-      with TStringList.Create do try
-        Add('Create File on Input Pipe Failed:'+SysErrorMessage(GetLastError));
-        SaveToFile('f:\\log.txt');
-      finally
-        Free;
-      end;
-    }
+      LogError('Debugger.pas TExecThread.ExecAndWait',Format('Create File on Input Pipe Failed: %s',[SysErrorMessage(GetLastError)]));
       Exit;
     end;
     StartupInfo.dwFlags := StartupInfo.dwFlags or STARTF_USESTDHANDLES;
@@ -185,15 +161,7 @@ begin
     SetEvent(StartupEvent);
     WaitForSingleObject(ProcessInfo.hProcess, fTimeOut);
   end else begin
-  {
-    with TStringList.Create do try
-      Add('"' + fFile + '" ' + params);
-      Add('CreateProcess Failed:'+SysErrorMessage(GetLastError));
-      SaveToFile('f:\\log.txt');
-    finally
-      Free;
-    end;
-  }
+    LogError('devExec.pas TExecThread.ExecAndWait',Format('Create named pipe failed: %s',[SysErrorMessage(GetLastError)]));
     SetEvent(StartupEvent);
   end;
 
@@ -284,6 +252,7 @@ begin
     nil, OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 
   if FileHandle = INVALID_HANDLE_VALUE then begin
+    LogError('devExec.pas TPipeInputThread.PipeInput',Format('Open InputFile Failed: %s',[SysErrorMessage(GetLastError)]));
     MessageDlg('Open InputFile Failed:'+SysErrorMessage(GetLastError), mtError, [mbOK], 0);
     Exit;
   end;
@@ -291,6 +260,7 @@ begin
   try
     while True do begin
       if not ReadFile(FileHandle,buffer^,BufSize,bytesRead,nil) then begin
+        LogError('devExec.pas TPipeInputThread.PipeInput',Format('Read InputFile Failed: %s',[SysErrorMessage(GetLastError)]));
         MessageDlg('Read InputFile Failed:'+SysErrorMessage(GetLastError), mtError, [mbOK], 0);
         Exit;
       end;

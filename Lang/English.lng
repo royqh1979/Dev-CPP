@@ -943,7 +943,7 @@ Ver=1
 61020=%s has been renamed or deleted...
 61021=%s has been renamed or deleted. Keep this file in editor?
 61022=Error launching<CR><CR>%s<CR><CR>%s
-61023=Error launching debugger: no executable directory provided
+61023=Active compiler set Error: no executable directory provided
 61024=Error writing to GDB
 61025=Source file has unsaved modifications. Save it before continue?
 61026='%s' is not a valid identifier!
@@ -952,6 +952,8 @@ Ver=1
 61029=%s has been defined in %s:%d..
 61030=Failed to create folder %s .
 61031='%s' is a C/C++ key word.
+61032=GDB executable '%s' not exists.
+61033=Compiler executalbe '%s' not exists.
 
 
 62001=Untitled
