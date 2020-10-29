@@ -141,9 +141,8 @@ Item0=C:\Program Files (x86)\Dev-Cpp\Source\VCL\SynEdit\Source\;C:\Program Files
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=2
-Item0=VCL\ClassBrowsing;VCL\DevCpp\devFileMonitor;VCL\DevCpp\devShortcuts;VCL\DevCpp\CompOptionsList;VCL\SynEdit\Source
-Item1=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
+Count=1
+Item0=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
 [HistoryLists\hlUnitOutputDirectory]
 Count=1
 Item0=Units

@@ -13,6 +13,7 @@ Version 6-beta6     November 2020
   - fix: add debug toolbar
   - fix: dev-c++ will not find windows infinitely if there is already an instance runnning (this only happens when debugging dev-c++ in delphi)
   - fix: add icons for static functions/vars and global functions
+  - fix: change icon of add watch
 
 Version 6-beta5.1   October  2020
 

@@ -1103,6 +1103,9 @@ object MainForm: TMainForm
           ItemImages.DefineImg = 12
           ItemImages.EnumImg = 13
           ItemImages.GlobalVarImg = 14
+          ItemImages.StaticVarImg = 18
+          ItemImages.GlobalFuncImg = 16
+          ItemImages.StaticFuncImg = 17
           ItemImages.TypeImg = 15
           ShowInheritedMembers = False
           TabVisible = False
@@ -2480,7 +2483,7 @@ object MainForm: TMainForm
     object actAddWatch: TAction
       Category = 'Debug'
       Caption = 'Add &Watch...'
-      ImageIndex = 21
+      ImageIndex = 65
       OnExecute = actAddWatchExecute
       OnUpdate = actUpdatePageCount
     end

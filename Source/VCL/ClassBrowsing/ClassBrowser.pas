@@ -252,7 +252,7 @@ begin
           else
             Node.ImageIndex := fImagesRecord.InheritedVariablePublic;
         scsNone: begin
-          if Statemnet^._Static then
+          if Statement^._Static then
             Node.ImageIndex := fImagesRecord.StaticVarImg
           else
             Node.ImageIndex := fImagesRecord.GlobalVarImg;
@@ -270,7 +270,7 @@ begin
           else
             Node.ImageIndex := fImagesRecord.InheritedMethodPublic;
         scsNone: begin
-          if Statemnet^._Static then
+          if Statement^._Static then
             Node.ImageIndex := fImagesRecord.StaticFuncImg
           else
             Node.ImageIndex := fImagesRecord.GlobalFuncImg;
