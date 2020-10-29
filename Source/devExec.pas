@@ -290,7 +290,6 @@ begin
   GetMem(buffer,BufSize+10);
   try
     while True do begin
-      //TODO: can read nothing in Windows XP in vmware, don't know why
       if not ReadFile(FileHandle,buffer^,BufSize,bytesRead,nil) then begin
         MessageDlg('Read InputFile Failed:'+SysErrorMessage(GetLastError), mtError, [mbOK], 0);
         Exit;
