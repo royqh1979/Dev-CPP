@@ -7,6 +7,8 @@ Version 6-beta6     November 2020
   - fix: classbrowser not update if open a file in project
   - fix: some chinese translations
   - fix: correctly update classbrowser when close a project
+  - fix: redirect stdin to file doesn't work in windows xp
+
 Version 6-beta5.1   October  2020
 
   - fix: crash when exit if Class B inheritanced Class A, and Class C inherited Class B

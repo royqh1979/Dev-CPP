@@ -91,8 +91,9 @@ DWORD ExecuteCommand(string& command,bool reInp) {
 	memset(&si,0,sizeof(si));
 	si.cb = sizeof(si);
 	memset(&pi,0,sizeof(pi));
+
 	
-	if(!CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, false, 0, NULL, NULL, &si, &pi)) {
+	if(!CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, true, 0, NULL, NULL, &si, &pi)) {
 		printf("\n--------------------------------");
 		printf("\nFailed to execute \"%s\":",command.c_str());
 		printf("\nError %lu: %s\n",GetLastError(),GetErrorMessage().c_str());
