@@ -179,6 +179,11 @@ function SelectDirectory(const Caption: string; const Root: WideString;
 
 function IsIdentifier(const s:string):boolean;
 
+procedure AppendToFile(filename:AnsiString; text:AnsiString);overload;
+procedure AppendToFile(filename:AnsiString; strings:TStrings);overload;
+procedure LogError(source:AnsiString; msg:AnsiString);
+
+
 implementation
 
 uses
@@ -1467,6 +1472,8 @@ begin
   result := 0;
 end;
 
+
+
 function SelectDirectory(const Caption: string; const Root: WideString;
   var Directory: string): Boolean;
 var
@@ -1526,6 +1533,38 @@ begin
       ShellMalloc.Free(Buffer);
     end;
   end;
+end;
+
+
+procedure AppendToFile(filename:AnsiString; text:AnsiString);
+var
+  fs:TFileStream;
+  mode: integer;
+begin
+  mode := fmOpenWrite;
+  if not FileExists(filename) then
+    mode := mode or fmCreate;
+  fs:=TFileStream.Create(filename,mode);
+  try
+    fs.Seek(0,soEnd);
+    fs.Write(text[1], Length(text)*sizeof(AnsiChar));
+  finally
+    fs.Free;
+  end;
+end;
+
+procedure AppendToFile(filename:AnsiString; strings:TStrings);
+begin
+  if not Assigned(Strings) then
+    Exit;
+  AppendToFile(filename,strings.Text+#13#10);
+end;
+
+procedure LogError(source:AnsiString; msg:AnsiString);
+begin
+  AppendToFile(devDirs.config + DEV_ERROR_LOG_FILE,
+    Format('%s %s: %s'#13#10,[FormatDateTime('yyyy/mm/dd tt',Now),source,msg]));
+
 end;
 
 end.

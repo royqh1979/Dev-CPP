@@ -43,6 +43,7 @@ const
   DEV_CLASSFOLDERS_FILE = 'classfolders.ini';
   DEV_CODEINS_FILE = 'codeinsertion.ini';
   DEV_WEBMIRRORS_FILE = 'webmirrors.ini';
+  DEV_ERROR_LOG_FILE = 'devcpp-errors.log';
   DEV_TOOLS_FILE = 'tools.ini';
 
   // make stuff
