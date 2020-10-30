@@ -1,4 +1,10 @@
+Version 6-beta6.1     November 2020
+
+  - fix: When closed, Dev-C++ doesn't really exist
+  - fix: Debug Console support editing in command line
+
 Version 6-beta6     November 2020
+
   - fix: while debugging, switch functions in call stack windows will also update watch expressions(variables).
   - fix: Correct update watch var infos while debugging enters/exits functions
   - fix: don't show auto-code-completion suggestion when input a word and deleted it using backspace
