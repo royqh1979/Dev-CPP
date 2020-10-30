@@ -1,0 +1,3 @@
+gdb source from https://osdn.net/projects/mingw/releases/73502
+
+../configure --build=mingw32 --without-libunwind-ia64 --without-babeltrace --without-intel-pt --without-python --without-guile --disable-source-highlight LDFLAGS=-static 
