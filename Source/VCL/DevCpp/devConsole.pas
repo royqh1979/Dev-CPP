@@ -40,6 +40,8 @@ type
     fHistorySize: integer;
     fCurrentHistoryIndex: integer;
 
+    function getNormalizedCaretPos():TPoint;
+
     procedure setInputEnabled(enabled:boolean);
     procedure setCurrentCommand(command:AnsiString);
   protected
@@ -118,7 +120,19 @@ end;
 
 destructor TDevConsole.Destroy;
 begin
-  fCommandHistory.Clear;
+  fCommandHistory.Free;
+  inherited;
+end;
+
+function TDevConsole.getNormalizedCaretPos():TPoint;
+begin
+  Result:=Self.CaretPos;
+  if Result.X < Length(fPrompt) then
+    Result.X:=Length(fPrompt);
+  if Result.X > Length(fPrompt)+Length(fCurrentCommand) then
+    Result.X:= Length(fPrompt)+Length(fCurrentCommand);
+  if Result.Y <> Lines.Count-1 then
+    Result.Y := Lines.Count-1;
 end;
 
 procedure TDevConsole.KeyDown(var Key: Word; Shift: TShiftState);
@@ -140,9 +154,8 @@ begin
         OnEnter(self);
     end;
     VK_BACK: begin
-      pos:=Self.CaretPos;
       if fCurrentCommand<>'' then begin
-        pos:=Self.CaretPos;
+        pos:=getNormalizedCaretPos;
         x:=pos.X-Length(fPrompt);
         Delete(fCurrentCommand,x,1);
         Update;
@@ -152,9 +165,8 @@ begin
       end;
     end;
     VK_DELETE: begin
-      pos:=Self.CaretPos;
       if fCurrentCommand<>'' then begin
-        pos:=Self.CaretPos;
+        pos:=getNormalizedCaretPos;
         x:=pos.X-Length(fPrompt);
         Delete(fCurrentCommand,x+1,1);
         Update;
@@ -165,17 +177,19 @@ begin
     end;
     VK_LEFT: begin
       Key:=0;  // eat it
-      pos:=Self.CaretPos;
+      pos:=getNormalizedCaretPos;
       dec(pos.X);
-      if pos.X>=Length(fPrompt) then
-        Self.CaretPos:=pos;
+      if pos.X<Length(fPrompt) then
+        pos.X:=Length(fPrompt);
+      Self.CaretPos:=pos;
     end;
     VK_RIGHT: begin
       Key:=0;  // eat it
-      pos:=Self.CaretPos;
+      pos:=getNormalizedCaretPos;
       inc(pos.X);
-      if (Lines.Count>0) and (pos.X <= Length(Lines[Lines.Count-1])) then
-        Self.CaretPos:=pos;
+      if Result.X > Length(fPrompt)+Length(fCurrentCommand) then
+        Result.X:= Length(fPrompt)+Length(fCurrentCommand);
+      Self.CaretPos:=pos;
     end;
     VK_UP: begin
       Key:=0;
@@ -201,6 +215,18 @@ begin
         Update;
       end;
     end;
+    VK_HOME: begin
+      Key:=0;  // eat it
+      pos:=getNormalizedCaretPos;
+      pos.X:=Length(fPrompt);
+      Self.CaretPos:=pos;
+    end;
+    VK_END: begin
+      Key:=0;  // eat it
+      pos:=getNormalizedCaretPos;
+      pos.X:=Length(fPrompt)+Length(fCurrentCommand);
+      Self.CaretPos:=pos;
+    end;
     else begin
       Key:=0;  // eat it
     end;
@@ -209,14 +235,21 @@ end;
 
 
 procedure TDevConsole.KeyPress(var Key:char);
+var
+  pos:TPoint;
+    x:integer;
 begin
   //inherited KeyPress(Key);
   if not fInputEnabled then
     Exit;
   if (ord(key)<32) then //ignore all non-visible keys
-    Exit; 
-  fCurrentCommand := fCurrentCommand + Key;
+    Exit;
+  pos:=getNormalizedCaretPos;
+  x:=pos.X-Length(fPrompt);
+  Insert(key,fCurrentCommand,x+1);
   Update;
+  inc(pos.X);
+  Self.CaretPos:=pos;
 end;
 
 
