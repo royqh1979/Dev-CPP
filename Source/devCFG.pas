@@ -2634,8 +2634,8 @@ end;
 
 procedure TdevDebugger.SettoDefaults;
 begin
-  fShowCommandLog := True;
-  fShowAnnotations := True;
+  fShowCommandLog := False;
+  fShowAnnotations := False;
 end;
 
 { TdevRefactorer }

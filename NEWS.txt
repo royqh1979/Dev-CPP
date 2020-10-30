@@ -15,6 +15,7 @@ Version 6-beta6     November 2020
   - fix: add icons for static functions/vars and global functions
   - fix: change icon of add watch
   - fix: now debug output console is really like a console
+  - fix: Show Debug Command and Show Debug Annotations are disabled by default
 
 Version 6-beta5.1   October  2020
 
