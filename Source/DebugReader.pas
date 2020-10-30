@@ -297,6 +297,9 @@ begin
   end else if not assigned(fCurrentCmd) then begin //this is gdb's first prompt
     MainForm.DebugOutput.Lines.Add('(gdb)');
   end;
+  MainForm.DebugOutput.InputEnabled:=True;
+  MainForm.DebugOutput.CurrentCommand:='';
+
 
   // Some part of the CPU form has been updated
   if Assigned(CPUForm) and not doreceivedsignal then begin

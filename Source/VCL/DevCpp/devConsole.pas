@@ -35,6 +35,10 @@ type
   private
     fCurrentCommand : AnsiString;
     fInputEnabled : boolean;
+    fPrompt: AnsiString;
+    fCommandHistory: TStringList;
+    fHistorySize: integer;
+    fCurrentHistoryIndex: integer;
 
     procedure setInputEnabled(enabled:boolean);
     procedure setCurrentCommand(command:AnsiString);
@@ -43,8 +47,13 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Update; override;
-    procedure Clear; override;
+    procedure Clear; override; 
+    property CurrentCommand: AnsiString read fCurrentCommand write SetCurrentCommand;
+    property InputEnabled: boolean read fInputEnabled write SetInputEnabled;
+    property Prompt: AnsiString read fPrompt write fPrompt;
+    property HistorySize: integer read fHistorySize write fHistorySize;
   published
     property Align;
     property Alignment;
@@ -81,8 +90,6 @@ type
     property TabStop;
     property Visible;
     property OnEnter;
-    property CurrentCommand: AnsiString read fCurrentCommand write SetCurrentCommand;
-    property InputEnabled: boolean read fInputEnabled write SetInputEnabled;
   end;
 
 procedure Register;
@@ -104,18 +111,98 @@ begin
   WantReturns := True;
   ReadOnly := True;
   fCurrentCommand:='';
+  fCommandHistory:=TStringList.Create;
+  fHistorySize:=100;
+  fCurrentHistoryIndex:=-1;
 end;
-procedure TDevConsole.KeyDown(var Key: Word; Shift: TShiftState);
+
+destructor TDevConsole.Destroy;
 begin
-  inherited KeyDown(Key,Shift);
+  fCommandHistory.Clear;
+end;
+
+procedure TDevConsole.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  pos:TPoint;
+  x:integer;
+begin
+  //inherited KeyDown(Key,Shift);
   if not fInputEnabled then
     Exit;
   case(key) of
+    VK_RETURN: begin
+      fCommandHistory.Add(fCurrentCommand);
+      fCurrentHistoryIndex:=-1;      
+      if fCommandHistory.Count > fHistorySize then begin
+        fCommandHistory.Delete(0); // remove oldest command
+      end;
+      if assigned(OnEnter) then
+        OnEnter(self);
+    end;
     VK_BACK: begin
+      pos:=Self.CaretPos;
       if fCurrentCommand<>'' then begin
-        fCurrentCommand:=Copy(fCurrentCommand,1,Length(fCurrentCommand)-1);
+        pos:=Self.CaretPos;
+        x:=pos.X-Length(fPrompt);
+        Delete(fCurrentCommand,x,1);
+        Update;
+        if x>0 then
+          dec(pos.X);
+        Self.CaretPos:=pos;
+      end;
+    end;
+    VK_DELETE: begin
+      pos:=Self.CaretPos;
+      if fCurrentCommand<>'' then begin
+        pos:=Self.CaretPos;
+        x:=pos.X-Length(fPrompt);
+        Delete(fCurrentCommand,x+1,1);
+        Update;
+        if (x>Length(fCurrentCommand)) then
+          dec(pos.X);
+        Self.CaretPos:=pos;
+      end;
+    end;
+    VK_LEFT: begin
+      Key:=0;  // eat it
+      pos:=Self.CaretPos;
+      dec(pos.X);
+      if pos.X>=Length(fPrompt) then
+        Self.CaretPos:=pos;
+    end;
+    VK_RIGHT: begin
+      Key:=0;  // eat it
+      pos:=Self.CaretPos;
+      inc(pos.X);
+      if (Lines.Count>0) and (pos.X <= Length(Lines[Lines.Count-1])) then
+        Self.CaretPos:=pos;
+    end;
+    VK_UP: begin
+      Key:=0;
+      if fCommandHistory.Count>0 then begin
+        if fCurrentHistoryIndex = -1 then
+          fCurrentHistoryIndex:=fCommandHistory.Count;      
+        dec(fCurrentHistoryIndex);
+        if fCurrentHistoryIndex<0 then
+          fCurrentHistoryIndex:=0;
+        fCurrentCommand:=fCommandHistory[fCurrentHistoryIndex];
         Update;
       end;
+    end;
+    VK_DOWN: begin
+      Key:=0;
+      if fCommandHistory.Count>0 then begin
+        if fCurrentHistoryIndex = -1 then
+          fCurrentHistoryIndex:=fCommandHistory.Count-2;
+        inc(fCurrentHistoryIndex);
+        if (fCurrentHistoryIndex>=fCommandHistory.Count) then
+          fCurrentHistoryIndex:=fCommandHistory.Count-1;
+        fCurrentCommand:=fCommandHistory[fCurrentHistoryIndex];
+        Update;
+      end;
+    end;
+    else begin
+      Key:=0;  // eat it
     end;
   end;
 end;
@@ -123,9 +210,11 @@ end;
 
 procedure TDevConsole.KeyPress(var Key:char);
 begin
-  inherited KeyPress(Key);
+  //inherited KeyPress(Key);
   if not fInputEnabled then
     Exit;
+  if (ord(key)<32) then //ignore all non-visible keys
+    Exit; 
   fCurrentCommand := fCurrentCommand + Key;
   Update;
 end;
@@ -147,7 +236,9 @@ end;
 procedure TDevConsole.Update;
 begin
   if Lines.Count>0 then begin
-    Lines[Lines.Count-1]:='(gdb)'+fCurrentCommand;
+    Lines[Lines.Count-1]:=fPrompt+fCurrentCommand;
+  end else begin
+    Lines.Add(fPrompt+fCurrentCommand);
   end;
   inherited;
 end;

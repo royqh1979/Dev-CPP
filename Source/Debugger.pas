@@ -129,6 +129,7 @@ var
   CompilerSet: TdevCompilerSet;
 begin
   Executing := true;
+  MainForm.DebugOutput.Prompt:='(gdb)';
 
   // Set up the security attributes struct.
   sa.nLength := sizeof(TSecurityAttributes);
@@ -261,6 +262,7 @@ end;
 
 procedure TDebugger.SendCommand(const Command, Params: AnsiString; ViewInUI: boolean);
 begin
+  MainForm.DebugOutput.InputEnabled:=False;
   if Executing then
     fReader.PostCommand(command,params,viewInUI);
 end;

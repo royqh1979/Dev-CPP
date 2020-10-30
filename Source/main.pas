@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer;
+  RenameFrm, Refactorer, devConsole;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -396,9 +396,7 @@ type
     actGoto: TAction;
     TEXItem: TMenuItem;
     actExportTex: TAction;
-    lblSendCommandGdb: TLabel;
-    edGdbCommand: TComboBox;
-    DebugOutput: TMemo;
+    DebugOutput: TDevConsole;
     EvaluateInput: TComboBox;
     lblEvaluate: TLabel;
     EvalOutput: TMemo;
@@ -750,7 +748,6 @@ type
     procedure ProjectViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure actImportMSVCExecute(Sender: TObject);
     procedure ViewCPUItemClick(Sender: TObject);
-    procedure edGdbCommandKeyPress(Sender: TObject; var Key: Char);
     procedure actExecParamsExecute(Sender: TObject);
     procedure DevCppDDEServerExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure actShowTipsExecute(Sender: TObject);
@@ -880,6 +877,7 @@ type
     procedure actRemoveBreakpointInPaneExecute(Sender: TObject);
     procedure actBrowserSortByTypeExecute(Sender: TObject);
     procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
+    procedure DebugOutputEnter(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1429,7 +1427,6 @@ begin
   ResourceOutput.Columns[3].Caption := Lang[ID_COL_MSG];
 
   // Debug Tab
-  lblSendCommandGdb.Caption := Lang[ID_DEB_SENDGDBCOMMAND];
   lblEvaluate.Caption := Lang[ID_DEB_EVALUATE];
   WatchSheet.Caption := Lang[ID_DEB_WATCH];
   DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
@@ -3540,10 +3537,7 @@ begin
         if EvaluateInput.Focused then begin
           Clipboard.AsText := EvaluateInput.SelText;
           EvaluateInput.SelText := '';
-        end else if edGDBcommand.Focused then begin
-          Clipboard.AsText := edGDBCommand.SelText;
-          edGDBCommand.SelText := '';
-        end;
+        end ;
       end;
   end;
 end;
@@ -3564,8 +3558,6 @@ begin
           Clipboard.AsText := EvaluateInput.SelText
         else if EvalOutput.Focused then
           EvalOutput.CopyToClipboard
-        else if edGDBcommand.Focused then
-          Clipboard.AsText := edGDBCommand.SelText
         else if DebugOutput.Focused then
           DebugOutput.CopyToClipboard;
       end;
@@ -3596,8 +3588,6 @@ begin
           Clipboard.AsText := EvaluateInput.Text
         else if EvalOutput.Focused then
           Clipboard.AsText := EvalOutput.Text
-        else if edGDBcommand.Focused then
-          Clipboard.AsText := edGDBcommand.Text
         else if DebugOutput.Focused then
           Clipboard.AsText := DebugOutput.Text
       end;
@@ -3614,9 +3604,7 @@ begin
   case MessageControl.ActivePageIndex of
     3: begin
         if EvaluateInput.Focused then
-          EvaluateInput.SelText := ClipBoard.AsText
-        else if edGDBcommand.Focused then
-          edGdbCommand.SelText := ClipBoard.AsText
+          EvaluateInput.SelText := ClipBoard.AsText;
       end;
   end;
 end;
@@ -3631,8 +3619,6 @@ begin
     3: begin
         if EvaluateInput.Focused then
           EvaluateInput.SelectAll
-        else if edGdbCommand.Focused then
-          edGdbCommand.SelectAll
         else if EvalOutput.Focused then
           EvalOutput.SelectAll
         else if DebugOutput.Focused then
@@ -3724,8 +3710,6 @@ begin
           EvaluateInput.Clear
         else if EvalOutput.Focused then
           EvalOutput.Clear
-        else if edGDBcommand.Focused then
-          edGDBcommand.Clear
         else if DebugOutput.Focused then
           DebugOutput.Clear;
       end;
@@ -4996,36 +4980,6 @@ begin
   CPUForm.Show;
   Debugger.SendCommand('info', 'registers');
   Debugger.SendCommand('disas','');
-end;
-
-procedure TMainForm.edGdbCommandKeyPress(Sender: TObject; var Key: Char);
-var
-  s:string;
-begin
-  if fDebugger.Executing then begin
-    if Key = Chr(VK_RETURN) then begin
-      s:=Trim(edGDBCommand.Text);
-      if Length(s) > 0 then begin
-      
-        //User shouldn't quit the gdb in command line
-        if SameText(s,'quit') then
-          Exit;
-
-        // Disable key, but make sure not to remove selected text
-        EvaluateInput.SelStart := 0;
-        EvaluateInput.SelLength := 0;
-        Key := #0;
-
-        fDebugger.SendCommand(s, '',true);
-
-        if edGDBCommand.Items.IndexOf(edGDBCommand.Text) = -1 then
-          edGDBCommand.AddItem(edGDBCommand.Text, nil);
-      end;
-    end;
-
-    // View command examples only when edit is empty or when the UI itself added the current command
-    fDebugger.CommandChanged := true;
-  end;
 end;
 
 procedure TMainForm.CheckForDLLProfiling;
@@ -7371,6 +7325,33 @@ begin
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
   ClassBrowser.UpdateView; // we must updateview here since write fSortAlphabetically don't call updateview
   ClassBrowser.Refresh;
+end;
+
+procedure TMainForm.DebugOutputEnter(Sender: TObject);
+var
+  s:string;
+begin
+  if not fDebugger.Executing then
+    Exit;
+  s:=Trim(DebugOutput.CurrentCommand);
+  if Length(s) > 0 then begin
+
+    //User shouldn't quit the gdb in command line
+    if SameText(s,'quit') then
+       Exit;
+
+       {
+    // Disable key, but make sure not to remove selected text
+    EvaluateInput.SelStart := 0;
+        EvaluateInput.SelLength := 0;
+        }
+
+    fDebugger.SendCommand(s, '',true);
+
+  end;
+
+  // View command examples only when edit is empty or when the UI itself added the current command
+  fDebugger.CommandChanged := true;
 end;
 
 end.

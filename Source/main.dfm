@@ -231,7 +231,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 714
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
@@ -246,37 +246,16 @@ object MainForm: TMainForm
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
-            DesignSize = (
-              706
-              162)
-            object lblSendCommandGdb: TLabel
-              Left = 5
-              Top = 9
-              Width = 144
-              Height = 16
-              Caption = 'Send command to GDB:'
-            end
-            object edGdbCommand: TComboBox
-              Left = 200
-              Top = 4
-              Width = 506
-              Height = 24
-              Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 16
-              TabOrder = 0
-              OnKeyPress = edGdbCommandKeyPress
-            end
-            object DebugOutput: TMemo
+            object DebugOutput: TDevConsole
               Left = 0
-              Top = 40
+              Top = 0
               Width = 706
-              Height = 122
-              Align = alBottom
-              Anchors = [akLeft, akTop, akRight, akBottom]
+              Height = 162
+              Align = alClient
               PopupMenu = DebugOutputPopup
-              ReadOnly = True
               ScrollBars = ssVertical
-              TabOrder = 1
+              TabOrder = 0
+              OnEnter = DebugOutputEnter
             end
           end
         end
