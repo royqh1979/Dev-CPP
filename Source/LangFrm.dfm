@@ -244,132 +244,141 @@ object LangForm: TLangForm
         Left = 75
         Top = 29
         Width = 268
-        Height = 36
+        Height = 34
         AutoComplete = False
         Style = csOwnerDrawVariable
-        ItemHeight = 30
+        ItemHeight = 28
         Sorted = True
         TabOrder = 2
         OnChange = FontChange
         OnDrawItem = cmbFontDrawItem
       end
-      object tbExample: TToolBar
+      object Panel1: TPanel
         Left = 8
-        Top = 130
-        Width = 250
-        Height = 64
-        Align = alNone
-        AutoSize = True
-        BorderWidth = 5
-        Caption = 'Main'
-        DragKind = dkDock
-        EdgeBorders = []
-        Flat = True
-        Images = dmMain.MenuImages_NewLook
-        ParentShowHint = False
-        ShowHint = True
+        Top = 176
+        Width = 345
+        Height = 89
+        BevelOuter = bvNone
         TabOrder = 3
-        object NewFileBtn: TToolButton
+        object tbExample: TToolBar
           Left = 0
           Top = 0
-          Caption = '&Source File'
-          ImageIndex = 1
-        end
-        object OpenBtn: TToolButton
-          Left = 23
-          Top = 0
-          ImageIndex = 4
-        end
-        object SaveUnitBtn: TToolButton
-          Left = 46
-          Top = 0
-          ImageIndex = 6
-        end
-        object SaveAllBtn: TToolButton
-          Left = 69
-          Top = 0
-          ImageIndex = 8
-        end
-        object CloseBtn: TToolButton
-          Left = 92
-          Top = 0
-          ImageIndex = 9
-        end
-        object PrintBtn: TToolButton
-          Left = 115
-          Top = 0
-          ImageIndex = 10
-        end
-        object UndoBtn: TToolButton
-          Left = 138
-          Top = 0
-          ImageIndex = 13
-        end
-        object RedoBtn: TToolButton
-          Left = 161
-          Top = 0
-          ImageIndex = 14
-        end
-        object FindBtn: TToolButton
-          Left = 184
-          Top = 0
-          ImageIndex = 21
-        end
-        object ReplaceBtn: TToolButton
-          Left = 207
-          Top = 0
-          ImageIndex = 22
-          Wrap = True
-        end
-        object FindNextBtn: TToolButton
-          Left = 0
-          Top = 22
-          ImageIndex = 44
-        end
-        object GotoLineBtn: TToolButton
-          Left = 23
-          Top = 22
-          ImageIndex = 24
-        end
-        object CompileBtn: TToolButton
-          Left = 46
-          Top = 22
-          ImageIndex = 28
-        end
-        object RunBtn: TToolButton
-          Left = 69
-          Top = 22
-          ImageIndex = 31
-        end
-        object CompileAndRunBtn: TToolButton
-          Left = 92
-          Top = 22
-          ImageIndex = 33
-        end
-        object RebuildAllBtn: TToolButton
-          Left = 115
-          Top = 22
-          ImageIndex = 30
-        end
-        object DebugBtn: TToolButton
-          Left = 138
-          Top = 22
-          ImageIndex = 32
-        end
-        object ProfileBtn: TToolButton
-          Left = 161
-          Top = 22
-          ImageIndex = 43
-        end
-        object ProfilingInforBtn: TToolButton
-          Left = 184
-          Top = 22
-          ImageIndex = 47
-        end
-        object InsertBtn: TToolButton
-          Left = 207
-          Top = 22
-          ImageIndex = 18
+          Width = 345
+          Height = 89
+          Align = alClient
+          AutoSize = True
+          Caption = 'Main'
+          DragKind = dkDock
+          EdgeBorders = []
+          EdgeInner = esLowered
+          EdgeOuter = esRaised
+          Flat = True
+          Images = dmMain.MenuImages_NewLook
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          object NewFileBtn: TToolButton
+            Left = 0
+            Top = 0
+            Caption = '&Source File'
+            ImageIndex = 1
+          end
+          object OpenBtn: TToolButton
+            Left = 23
+            Top = 0
+            ImageIndex = 4
+          end
+          object SaveUnitBtn: TToolButton
+            Left = 46
+            Top = 0
+            ImageIndex = 6
+          end
+          object SaveAllBtn: TToolButton
+            Left = 69
+            Top = 0
+            ImageIndex = 8
+          end
+          object CloseBtn: TToolButton
+            Left = 92
+            Top = 0
+            ImageIndex = 9
+          end
+          object PrintBtn: TToolButton
+            Left = 115
+            Top = 0
+            ImageIndex = 10
+          end
+          object UndoBtn: TToolButton
+            Left = 138
+            Top = 0
+            ImageIndex = 13
+          end
+          object RedoBtn: TToolButton
+            Left = 161
+            Top = 0
+            ImageIndex = 14
+          end
+          object FindBtn: TToolButton
+            Left = 184
+            Top = 0
+            ImageIndex = 21
+          end
+          object ReplaceBtn: TToolButton
+            Left = 207
+            Top = 0
+            ImageIndex = 22
+            Wrap = True
+          end
+          object FindNextBtn: TToolButton
+            Left = 0
+            Top = 22
+            ImageIndex = 44
+          end
+          object GotoLineBtn: TToolButton
+            Left = 23
+            Top = 22
+            ImageIndex = 24
+          end
+          object CompileBtn: TToolButton
+            Left = 46
+            Top = 22
+            ImageIndex = 28
+          end
+          object RunBtn: TToolButton
+            Left = 69
+            Top = 22
+            ImageIndex = 31
+          end
+          object CompileAndRunBtn: TToolButton
+            Left = 92
+            Top = 22
+            ImageIndex = 33
+          end
+          object RebuildAllBtn: TToolButton
+            Left = 115
+            Top = 22
+            ImageIndex = 30
+          end
+          object DebugBtn: TToolButton
+            Left = 138
+            Top = 22
+            ImageIndex = 32
+          end
+          object ProfileBtn: TToolButton
+            Left = 161
+            Top = 22
+            ImageIndex = 43
+          end
+          object ProfilingInforBtn: TToolButton
+            Left = 184
+            Top = 22
+            ImageIndex = 47
+          end
+          object InsertBtn: TToolButton
+            Left = 207
+            Top = 22
+            ImageIndex = 18
+          end
         end
       end
     end

@@ -71,6 +71,7 @@ type
     procedure RemoveWatchVar(nodein: TTreeNode); overload;
     procedure RefreshWatchVars;
     procedure DeleteWatchVars(deleteparent: boolean);
+    procedure InvalidateAllVars();
 
     // Access
     property Executing: boolean read fExecuting write fExecuting;
@@ -128,6 +129,7 @@ var
   CompilerSet: TdevCompilerSet;
 begin
   Executing := true;
+  MainForm.DebugOutput.Prompt:='(gdb)';
 
   // Set up the security attributes struct.
   sa.nLength := sizeof(TSecurityAttributes);
@@ -135,17 +137,25 @@ begin
   sa.bInheritHandle := true;
 
   // Create the child output pipe.
-  if not CreatePipe(fOutputread, fOutputwrite, @sa, 0) then
+  if not CreatePipe(fOutputread, fOutputwrite, @sa, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Create Child output Pipe failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
-  if not SetHandleInformation(fOutputread, HANDLE_FLAG_INHERIT, 0) then
+  end;
+  if not SetHandleInformation(fOutputread, HANDLE_FLAG_INHERIT, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Set Child output Pipe handle flag failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
+  end;
 
 
   // Create the child input pipe.
-  if not CreatePipe(fInputread, fInputwrite, @sa, 0) then
+  if not CreatePipe(fInputread, fInputwrite, @sa, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Create Child input Pipe failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
-  if not SetHandleInformation(fInputwrite, HANDLE_FLAG_INHERIT, 0) then
+  end;
+  if not SetHandleInformation(fInputwrite, HANDLE_FLAG_INHERIT, 0) then begin
+    LogError('Debugger.pas TDebugger.Start',Format('Set Child iutput Pipe handle failed %s',[SysErrorMessage(GetLastError)]));
     Exit;
+  end;
 
   // Set up the start up info struct.
   FillChar(si, sizeof(TStartupInfo), 0);
@@ -156,26 +166,32 @@ begin
   si.hStdError := fOutputwrite;
   si.wShowWindow := SW_HIDE;
 
-  // Use the GDB provided in the project if needed
-  CompilerSet := devCompilerSets.CompilationSet;
+  try
+    // Use the GDB provided in the project if needed
+    CompilerSet := devCompilerSets.CompilationSet;
 
-  // Assume it's present in the first bin dir
-  if CompilerSet.BinDir.Count > 0 then begin
-    GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
-    GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
-    try
-      if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
-       MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
-        [mbOK], 0);
-       Executing := false;
+    // Assume it's present in the first bin dir
+    if CompilerSet.BinDir.Count > 0 then begin
+      GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
+      if not FileExists(GDBFile) then begin
+        LogError('Debugger.pas TDebugger.Start',Format('Can''t find GDB in : %s',[GDBFile]));
+        MessageDlg(Lang[ID_ERR_GDBNOTEXIST], mtError, [mbOK], 0);
         Exit;
-    end;
+      end;
+      GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
+      if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
+        LogError('Debugger.pas TDebugger.Start',Format('Create GDB process failed: %s',[SysErrorMessage(GetLastError)]));
+        MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
+        [mbOK], 0);
+        Executing := false;
+        Exit;
+      end;
+    end else
+      MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
+  finally
     CloseHandle(fOutputWrite);
     CloseHandle(fInputRead);
-    finally
-    end;
-  end else
-    MessageDlg(Lang[ID_ERR_GDBNOUTFOUND], mtError, [mbOK], 0);
+  end;
 
   fProcessID := pi.hProcess;
 
@@ -196,6 +212,9 @@ begin
 end;
 
 procedure TDebugger.Stop;
+var
+  I:integer;
+  WatchVar:PWatchVar;
 begin
   if Executing then begin
     Executing := false;
@@ -224,11 +243,26 @@ begin
     MainForm.OnBacktraceReady;
 
     Application.HintHidePause := 2500;
+
+    WatchView.Items.BeginUpdate;
+    try
+      //Clear all watch values
+      for I := 0 to WatchVarList.Count - 1 do begin
+        WatchVar := PWatchVar(WatchVarList.Items[I]);
+        WatchVar^.Node.Text := WatchVar^.Name + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE];
+
+        // Delete now invalid children
+        WatchVar^.Node.DeleteChildren;
+      end;
+    finally
+    WatchView.Items.EndUpdate;
+    end;
   end;
 end;
 
 procedure TDebugger.SendCommand(const Command, Params: AnsiString; ViewInUI: boolean);
 begin
+  MainForm.DebugOutput.InputEnabled:=False;
   if Executing then
     fReader.PostCommand(command,params,viewInUI);
 end;
@@ -372,12 +406,12 @@ begin
   // Add parent to list
   wparent := New(PWatchVar);
   wparent^.name := namein;
-  //	wparent^.value := 'Execute to evaluate';
+  //	wparent^.value := Lang[ID_MSG_EXECUTE_TO_EVALUATE];
   wparent^.gdbindex := -1; // filled by GDB
   WatchVarList.Add(wparent);
 
   // Add parent to GUI
-  parentnode := WatchView.Items.AddObject(nil, wparent^.name + ' = Execute to evaluate', wparent);
+  parentnode := WatchView.Items.AddObject(nil, wparent^.name + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE], wparent);
   parentnode.ImageIndex := 21;
   parentnode.SelectedIndex := 21;
 
@@ -454,12 +488,33 @@ begin
 
         // Leave parent node intact...
         wparent^.gdbindex := -1;
-        wparent^.node.Text := wparent^.name + ' = Execute to evaluate';
+        wparent^.node.Text := wparent^.name + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE];
       end;
     end;
   finally
     WatchView.Items.EndUpdate;
   end;
+end;
+
+procedure TDebugger.InvalidateAllVars();
+var
+  I:integer;
+  WatchVar:PWatchVar;
+begin
+    WatchView.Items.BeginUpdate;
+    try
+      //Clear all watch values
+      for I := 0 to WatchVarList.Count - 1 do begin
+        WatchVar := PWatchVar(WatchVarList.Items[I]);
+        WatchVar^.Node.Text := WatchVar^.Name + ' = '+Lang[ID_MSG_NOT_FOUND_IN_CONTEXT];
+
+        // Delete now invalid children
+        WatchVar^.Node.DeleteChildren;
+        WatchVar^.gdbindex := -1
+      end;
+    finally
+      WatchView.Items.EndUpdate;
+    end;
 end;
 
 end.

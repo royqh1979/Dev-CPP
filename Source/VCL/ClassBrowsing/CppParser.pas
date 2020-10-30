@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF WIN32}
-  Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, IntList, CppTokenizer, CppPreprocessor,
+  Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
   cbutils;
 {$ENDIF}
 {$IFDEF LINUX}
@@ -66,7 +66,8 @@ type
     fPendingDeclarations: TList;
     fMacroDefines : TList;
     fTempNodes : TList;
-    fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch 
+    fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
+    fParsing: boolean;
    
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
@@ -140,6 +141,8 @@ type
     function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
+    function GetIncompleteClass(const Command: AnsiString): PStatement;
+    procedure ReProcessInheritance;
   public
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
@@ -164,16 +167,15 @@ type
       boolean = True; Stream: TMemoryStream = nil);
     function StatementKindStr(Value: TStatementKind): AnsiString;
     function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
-    function GetIncompleteClass(const Command: AnsiString): PStatement;
     function FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
       PStatement;
     procedure Reset;
     procedure ClearIncludePaths;
     procedure ClearProjectIncludePaths;
+    procedure ClearProjectFiles;
     procedure AddIncludePath(const Value: AnsiString);
     procedure AddProjectIncludePath(const Value: AnsiString);
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
-    procedure ReProcessInheritance;
     function PrettyPrintStatement(Statement: PStatement): AnsiString;
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
@@ -219,6 +221,7 @@ end;
 constructor TCppParser.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fParsing:=False;
   fStatementList := TStatementList.Create; // owns the objects
   fIncludesList := TList.Create;
   fFilesToScan := TStringList.Create;
@@ -248,8 +251,10 @@ begin
   FreeAndNil(fProjectFiles);
   FreeAndNil(fTempNodes);
 
-  for i := 0 to fIncludesList.Count - 1 do
-    Dispose(PFileIncludes(fIncludesList.Items[i]));
+  for i := 0 to fIncludesList.Count - 1 do begin
+    PFileIncludes(fIncludesList[i])^.IncludeFiles.Free;
+    Dispose(PFileIncludes(fIncludesList[i]));
+  end;
   FreeAndNil(fIncludesList);
 
   FreeAndNil(fStatementList);
@@ -1853,7 +1858,7 @@ begin
     Exit;
   end;
 
-  {
+   {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
@@ -1861,6 +1866,9 @@ begin
     Free;
   end;
   }
+
+  //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+
   // Tokenize the preprocessed buffer file
   try
     fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
@@ -1884,7 +1892,7 @@ begin
   try
     repeat
     until not HandleStatement;
-   // Statements.DumpTo('f:\\statements.txt');
+    //Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -1904,10 +1912,21 @@ var
 begin
   if Assigned(fOnBusy) then
     fOnBusy(Self);
-
+  if Assigned(fPreprocessor) then
+    fPreprocessor.Clear;
+    
+  fParsing:=False;
+  fSkipList := -1;
+  fLocked:=False;
+  fParseLocalHeaders := False;
+  fParseGlobalHeaders := False;
   //remove all macrodefines;
   fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
+  fInvalidatedStatements.Clear;
+  fCurrentClass.Clear;
+  fProjectFiles.Clear;
+  fTempNodes.Clear;
   fFilesToScan.Clear;
   if Assigned(fTokenizer) then
     fTokenizer.Reset;
@@ -1919,9 +1938,15 @@ begin
   fScannedFiles.Clear;
 
   // We don't include anything anymore
-  for I := fIncludesList.Count - 1 downto 0 do
+  for I := fIncludesList.Count - 1 downto 0 do begin
+    //fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
+    PFileIncludes(fIncludesList[I])^.IncludeFiles.Free;
     Dispose(PFileIncludes(fIncludesList[I]));
+  end;
   fIncludesList.Clear;
+
+  fProjectIncludePaths.Clear;
+  fIncludePaths.Clear;
 
   fProjectFiles.Clear;
 
@@ -1933,34 +1958,41 @@ procedure TCppParser.ParseFileList;
 var
   I: integer;
 begin
-  if not fEnabled then
+  if fParsing then
     Exit;
-  if Assigned(fOnBusy) then
-    fOnBusy(Self);
-  if Assigned(fOnStartParsing) then
-    fOnStartParsing(Self);
+  fParsing:=True;
   try
-    // Support stopping of parsing when files closes unexpectedly
-    I := 0;
-    fFilesScannedCount := 0;
-    fFilesToScanCount := fFilesToScan.Count;
-    while I < fFilesToScan.Count do begin
-      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-      if Assigned(fOnTotalProgress) then
-        fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
-      if fScannedFiles.IndexOf(fFilesToScan[i]) = -1 then begin
-        InternalParse(fFilesToScan[i], True);
+    if not fEnabled then
+      Exit;
+    if Assigned(fOnBusy) then
+      fOnBusy(Self);
+    if Assigned(fOnStartParsing) then
+      fOnStartParsing(Self);
+    try
+      // Support stopping of parsing when files closes unexpectedly
+      I := 0;
+      fFilesScannedCount := 0;
+      fFilesToScanCount := fFilesToScan.Count;
+      while I < fFilesToScan.Count do begin
+        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+        if Assigned(fOnTotalProgress) then
+          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
+        if fScannedFiles.IndexOf(fFilesToScan[i]) = -1 then begin
+          InternalParse(fFilesToScan[i], True);
+        end;
+        Inc(I);
       end;
-      Inc(I);
+      fPendingDeclarations.Clear; // should be empty anyways
+      fFilesToScan.Clear;
+    finally
+      if Assigned(fOnEndParsing) then
+        fOnEndParsing(Self, fFilesScannedCount);
     end;
-    fPendingDeclarations.Clear; // should be empty anyways
-    fFilesToScan.Clear;
+    if Assigned(fOnUpdate) then
+      fOnUpdate(Self);
   finally
-    if Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, fFilesScannedCount);
+    fParsing:=False;
   end;
-  if Assigned(fOnUpdate) then
-    fOnUpdate(Self);
 end;
 
 function TCppParser.GetSystemHeaderFileName(const FileName: AnsiString): AnsiString;
@@ -2026,6 +2058,11 @@ begin
   fProjectIncludePaths.Clear;
 end;
 
+procedure TCppParser.ClearProjectFiles;
+begin
+  fProjectFiles.Clear;
+end;
+
 procedure TCppParser.ResetDefines;
 begin
   if Assigned(fPreprocessor) then
@@ -2060,59 +2097,66 @@ var
   CFile, HFile: AnsiString;
   I: integer;
 begin
-  if not fEnabled then
+  if fParsing then
     Exit;
-  FName := FileName;
-  if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
-    Exit;
-  if UpdateView then
-    if Assigned(fOnBusy) then
-      fOnBusy(Self);
-
-  // Always invalidate file pairs. If we don't, reparsing the header
-  // screws up the information inside the source file
-  GetSourcePair(FName, CFile, HFile);
-  fInvalidatedStatements.Clear;
-  InvalidateFile(CFile);
-  InvalidateFile(HFile);
-
-  if InProject then begin
-    if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
-      fProjectFiles.Add(CFile);
-    if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
-      fProjectFiles.Add(HFile);
-  end else begin
-    I := fProjectFiles.IndexOf(CFile);
-    if I <> -1 then
-      fProjectFiles.Delete(I);
-    I := fProjectFiles.IndexOf(HFile);
-    if I <> -1 then
-      fProjectFiles.Delete(I);
-  end;
-
-  // Parse from disk or stream
-  if Assigned(fOnStartParsing) then
-    fOnStartParsing(Self);
+  fParsing:=True;
   try
-    fFilesToScanCount := 0;
-    fFilesScannedCount := 0;
-    if not Assigned(Stream) then begin
-      if CFile = '' then
-        InternalParse(HFile, True) // headers should be parsed via include
-      else
-        InternalParse(CFile, True); // headers should be parsed via include
-    end else
-      InternalParse(FileName, True, Stream); // or from stream
-    fFilesToScan.Clear;
-    fPendingDeclarations.Clear; // should be empty anyways
-    ReProcessInheritance; // account for inherited statements that have dissappeared
+    if not fEnabled then
+      Exit;
+    FName := FileName;
+    if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
+      Exit;
+    if UpdateView then
+      if Assigned(fOnBusy) then
+        fOnBusy(Self);
+
+    // Always invalidate file pairs. If we don't, reparsing the header
+    // screws up the information inside the source file
+    GetSourcePair(FName, CFile, HFile);
+    fInvalidatedStatements.Clear;
+    InvalidateFile(CFile);
+    InvalidateFile(HFile);
+
+    if InProject then begin
+      if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
+        fProjectFiles.Add(CFile);
+      if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
+        fProjectFiles.Add(HFile);
+    end else begin
+      I := fProjectFiles.IndexOf(CFile);
+      if I <> -1 then
+        fProjectFiles.Delete(I);
+      I := fProjectFiles.IndexOf(HFile);
+      if I <> -1 then
+        fProjectFiles.Delete(I);
+    end;
+
+    // Parse from disk or stream
+    if Assigned(fOnStartParsing) then
+      fOnStartParsing(Self);
+    try
+      fFilesToScanCount := 0;
+      fFilesScannedCount := 0;
+      if not Assigned(Stream) then begin
+        if CFile = '' then
+          InternalParse(HFile, True) // headers should be parsed via include
+        else
+          InternalParse(CFile, True); // headers should be parsed via include
+      end else
+        InternalParse(FileName, True, Stream); // or from stream
+      fFilesToScan.Clear;
+      fPendingDeclarations.Clear; // should be empty anyways
+      ReProcessInheritance; // account for inherited statements that have dissappeared
+    finally
+      if Assigned(fOnEndParsing) then
+        fOnEndParsing(Self, 1);
+    end;
+    if UpdateView then
+      if Assigned(fOnUpdate) then
+        fOnUpdate(Self);
   finally
-    if Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, 1);
+    fParsing:=False;
   end;
-  if UpdateView then
-    if Assigned(fOnUpdate) then
-      fOnUpdate(Self);
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
@@ -2150,8 +2194,13 @@ begin
 
   // remove its include files list
   P := FindFileIncludes(FileName, True);
-  if Assigned(P) then
+  if Assigned(P) then begin
+    fPreprocessor.InvalidDefinesInFile(FileName);
+    PFileIncludes(P)^.IncludeFiles.Free;
     Dispose(PFileIncludes(P));
+  end;
+
+  //Statements.DumpTo('f:\\after.txt');
 end;
 
 procedure TCppParser.ReProcessInheritance;
@@ -2252,6 +2301,8 @@ var
   Node: PStatementNode;
   Statement: PStatement;
 begin
+  if fParsing then
+    Exit;
   // fills List with a list of all the known classes
   List.Clear;
   Node := fStatementList.LastNode;
@@ -2306,6 +2357,8 @@ var
   InsideBody: Boolean;
 begin
   Result := nil;
+  if fParsing then
+    Exit;
   if (fTokenizer = nil) or (fPreprocessor = nil) then
     Exit;
   DeleteTemporaries;
@@ -2674,6 +2727,9 @@ var
   i:integer;
   Children: TList;
 begin
+  Result := nil;
+  if fParsing then
+    Exit;
   // Remove pointer stuff from type
   s := aType; // 'Type' is a keyword
   position := Length(s);
@@ -2733,7 +2789,9 @@ var
   Children:TList;
   i:integer;
 begin
-
+  Result := nil;
+  if fParsing then
+    Exit;
   GlobalStatement:=nil;
   // Check local variables
   Children := Statements.GetChildrenStatements(nil);
@@ -2791,7 +2849,8 @@ var
   Children: TList;
 begin
   Result := nil;
-
+  if fParsing then
+    Exit;
   CurrentClassType := CurrentClass;
   while assigned(CurrentClassType) and not (CurrentClassType._Kind = skClass) do begin
     CurrentClassType:=CurrentClassType^._Parent;
@@ -2977,7 +3036,7 @@ procedure TCppParser.GetSourcePair(const FName: AnsiString; var CFile, HFile: An
 begin
   cbutils.GetSourcePair(FName, CFile, HFile);
 end;
-
+{
 procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
 
   procedure RecursiveFind(const FileName: AnsiString);
@@ -3011,6 +3070,30 @@ begin
   List.Clear;
   List.Sorted := false;
   RecursiveFind(Filename);
+end;
+}
+//Since we have save all include files info, don't need to recursive find anymore
+procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
+var
+  I: integer;
+  P: PFileIncludes;
+  sl: TStrings;
+begin
+  if FileName = '' then
+    Exit;
+  List.Clear;
+  if fParsing then
+    Exit;
+  List.Sorted := false;
+  List.Add(FileName);
+
+  P := FindFileIncludes(FileName);
+  if Assigned(P) then begin
+    sl := P^.IncludeFiles;
+    for I := 0 to sl.Count - 1 do // Last one is always an empty item
+        List.Add(sl[I]);
+  end;
+  List.Sorted := True;
 end;
 
 procedure TCppParser.InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);

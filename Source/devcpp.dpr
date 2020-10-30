@@ -102,7 +102,8 @@ begin
   // If we are able to find a previous instance, activate that one instead
   PrevInstance := GetPreviousInstance;
   if PrevInstance <> 0 then begin
-    SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
+    if PrevInstance <> INVALID_HANDLE_VALUE then
+      SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
     Exit;
   end;
 

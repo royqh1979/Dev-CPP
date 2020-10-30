@@ -168,6 +168,7 @@ type
     property BreakPointFile: AnsiString read fBreakPointFile;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property CommandRunning: boolean read fCmdRunning;
+
     procedure PostCommand(const Command, Params: AnsiString; ViewInUI: boolean);
   end;
 
@@ -296,6 +297,9 @@ begin
   end else if not assigned(fCurrentCmd) then begin //this is gdb's first prompt
     MainForm.DebugOutput.Lines.Add('(gdb)');
   end;
+  MainForm.DebugOutput.InputEnabled:=True;
+  MainForm.DebugOutput.CurrentCommand:='';
+
 
   // Some part of the CPU form has been updated
   if Assigned(CPUForm) and not doreceivedsignal then begin
@@ -314,6 +318,8 @@ begin
     MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine); // set active line
     MainForm.Debugger.RefreshWatchVars; // update variable information
   end;
+
+
 
   if doreceivedsignal then begin
     SignalDialog := CreateMessageDialog(fSignal, mtError, [mbOk]);
@@ -900,7 +906,10 @@ var
   WatchVar: PWatchVar;
 begin
   s := GetNextLine; // error text
-  if StartsStr('No symbol "', s) then begin
+  if StartsStr('Cannot find bounds of current function', s) then begin
+    //We have exited
+    HandleExit;
+  end else if StartsStr('No symbol "', s) then begin
     Tail := Pos('"', s);
     Head := RPos('"', s);
     WatchName := Copy(s, Tail + 1, Head - Tail - 1);
@@ -910,10 +919,11 @@ begin
       WatchVar := PWatchVar(WatchVarList.Items[I]);
       if SameStr(WatchVar^.name, WatchName) then begin
 
-        WatchVar^.Node.Text := WatchVar^.Name + ' = Not found in current context';
+        WatchVar^.Node.Text := WatchVar^.Name + ' = '+Lang[ID_MSG_NOT_FOUND_IN_CONTEXT];
 
         // Delete now invalid children
         WatchVar^.Node.DeleteChildren;
+        WatchVar^.gdbindex := -1;
 
         dorescanwatches := true;
         break;

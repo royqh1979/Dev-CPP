@@ -23,7 +23,7 @@ interface
 
 uses
 {$IFDEF WIN32}
-  Windows, Classes, SysUtils, IntList, StatementList, Controls, ComCtrls, Graphics,
+  Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
   CppParser, Forms, cbutils, Messages;
 {$ENDIF}
 {$IFDEF LINUX}
@@ -51,6 +51,9 @@ type
     fDefineImg: integer;
     fEnumImg: integer;
     fGlobalVarImg: integer;
+    fStaticVarImg: integer;
+    fGlobalFuncImg: integer;
+    fStaticFuncImg: integer;
     fTypeImg: integer;
   published
     property Globals: integer read fGlobalsImg write fGlobalsImg;
@@ -68,6 +71,9 @@ type
     property DefineImg: integer read fDefineImg write fDefineImg;
     property EnumImg: integer read fEnumImg write fEnumImg;
     property GlobalVarImg: integer read fGlobalVarImg write fGlobalVarImg;
+    property StaticVarImg: integer read fStaticVarImg write fStaticVarImg;
+    property GlobalFuncImg: integer read fGlobalFuncImg write fGlobalFuncImg;
+    property StaticFuncImg: integer read fStaticFuncImg write fStaticFuncImg;
     property TypeImg: integer read fTypeImg write fTypeImg;
   end;
 
@@ -245,7 +251,12 @@ begin
             Node.ImageIndex := fImagesRecord.VariablePublic
           else
             Node.ImageIndex := fImagesRecord.InheritedVariablePublic;
-        scsNone: Node.ImageIndex := fImagesRecord.GlobalVarImg;
+        scsNone: begin
+          if Statement^._Static then
+            Node.ImageIndex := fImagesRecord.StaticVarImg
+          else
+            Node.ImageIndex := fImagesRecord.GlobalVarImg;
+        end;
       end;
     skFunction, skConstructor, skDestructor: case Statement^._ClassScope of
 
@@ -258,7 +269,12 @@ begin
             Node.ImageIndex := fImagesRecord.MethodPublic
           else
             Node.ImageIndex := fImagesRecord.InheritedMethodPublic;
-        scsNone: Node.ImageIndex := fImagesRecord.MethodPublic;
+        scsNone: begin
+          if Statement^._Static then
+            Node.ImageIndex := fImagesRecord.StaticFuncImg
+          else
+            Node.ImageIndex := fImagesRecord.GlobalFuncImg;
+        end;
       end;
   end;
 

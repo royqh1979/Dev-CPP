@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer;
+  RenameFrm, Refactorer, devConsole;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -124,7 +124,6 @@ type
     CompileBtn: TToolButton;
     RunBtn: TToolButton;
     CompileAndRunBtn: TToolButton;
-    DebugBtn: TToolButton;
     RebuildAllBtn: TToolButton;
     tbProject: TToolBar;
     AddToProjectBtn: TToolButton;
@@ -385,9 +384,6 @@ type
     actGotoDeclEditor: TAction;
     actGotoImplEditor: TAction;
     ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ProfileBtn: TToolButton;
-    ProfilingInforBtn: TToolButton;
     CompResGroupBox: TPanel;
     LogOutput: TMemo;
     N64: TMenuItem;
@@ -400,9 +396,7 @@ type
     actGoto: TAction;
     TEXItem: TMenuItem;
     actExportTex: TAction;
-    lblSendCommandGdb: TLabel;
-    edGdbCommand: TComboBox;
-    DebugOutput: TMemo;
+    DebugOutput: TDevConsole;
     EvaluateInput: TComboBox;
     lblEvaluate: TLabel;
     EvalOutput: TMemo;
@@ -428,14 +422,11 @@ type
     actSearchAgain: TAction;
     actSearchAgain1: TMenuItem;
     N75: TMenuItem;
-    ToolButton3: TToolButton;
     SplitterBottom: TSplitter;
     N76: TMenuItem;
     N12: TMenuItem;
     Abortcompilation1: TMenuItem;
     oggleBreakpoint1: TMenuItem;
-    StopBtn: TToolButton;
-    ToolButton5: TToolButton;
     actRevSearchAgain: TAction;
     SearchAgainBackwards1: TMenuItem;
     actDeleteLine: TAction;
@@ -604,6 +595,13 @@ type
     ToolButton16: TToolButton;
     actBrowserSortAlphabetically: TAction;
     actBrowserSortByType: TAction;
+    tbDebug: TToolBar;
+    ToolButton17: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton3: TToolButton;
+    ToolButton5: TToolButton;
+    ToolButton18: TToolButton;
+    ToolButton19: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -750,7 +748,6 @@ type
     procedure ProjectViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure actImportMSVCExecute(Sender: TObject);
     procedure ViewCPUItemClick(Sender: TObject);
-    procedure edGdbCommandKeyPress(Sender: TObject; var Key: Char);
     procedure actExecParamsExecute(Sender: TObject);
     procedure DevCppDDEServerExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure actShowTipsExecute(Sender: TObject);
@@ -880,6 +877,7 @@ type
     procedure actRemoveBreakpointInPaneExecute(Sender: TObject);
     procedure actBrowserSortByTypeExecute(Sender: TObject);
     procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
+    procedure DebugOutputEnter(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -929,6 +927,7 @@ type
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
   public
+    procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
     procedure ScanActiveProject;
     procedure UpdateCompilerList;
@@ -1428,7 +1427,6 @@ begin
   ResourceOutput.Columns[3].Caption := Lang[ID_COL_MSG];
 
   // Debug Tab
-  lblSendCommandGdb.Caption := Lang[ID_DEB_SENDGDBCOMMAND];
   lblEvaluate.Caption := Lang[ID_DEB_EVALUATE];
   WatchSheet.Caption := Lang[ID_DEB_WATCH];
   DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
@@ -1629,7 +1627,7 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
+  //RebuildClassesToolbar;   //ScanActiveProject will do it
   UpdateFileEncodingStatusPanel;
 end;
 
@@ -1662,9 +1660,7 @@ begin
   e.Activate;
   UpdateFileEncodingStatusPanel;
 
-  // Parse it after is has been shown so the user will not see random unpainted stuff for a while.
   if not Assigned(fProject) then begin
-    CppParser.ParseFile(e.FileName, e.InProject, True);
     LeftPageControl.ActivePage := LeftClassSheet;
   end;
 end;
@@ -2247,33 +2243,26 @@ begin
     // Remember it
     dmMain.AddtoHistory(fProject.FileName);
 
-    // Only update class browser once
-    ClassBrowser.BeginUpdate;
+    // Only update page control once
+    fEditorList.BeginUpdate;
     try
-      // Only update page control once
-      fEditorList.BeginUpdate;
-      try
-        FreeandNil(fProject);
-      finally
-        fEditorList.EndUpdate;
-      end;
-
-      // Clear project browser
-      ProjectView.Items.Clear;
-
-      // Clear error browser
-      ClearMessageControl;
-
-      // Clear class browser
-      ClassBrowser.ProjectDir := '';
-      CppParser.Reset;
-
-      // Because fProject was assigned during editor closing, force update trigger again
-      EditorPageControlLeft.OnChange(EditorPageControlLeft);
+      FreeandNil(fProject);
     finally
-      ClassBrowser.EndUpdate;
+      fEditorList.EndUpdate;
     end;
-    RebuildClassesToolbar;
+    // Clear project browser
+    ProjectView.Items.Clear;
+
+    // Clear error browser
+    ClearMessageControl;
+
+    // Because fProject was assigned during editor closing, force update trigger again
+    EditorPageControlLeft.OnChange(EditorPageControlLeft);
+
+    ClassBrowser.ProjectDir := '';
+    UpdateClassBrowsing;
+
+    UpdateClassBrowserForEditor(EditorList.GetEditor());
   finally
     FileMonitor.EndUpdate;
   end;
@@ -3548,10 +3537,7 @@ begin
         if EvaluateInput.Focused then begin
           Clipboard.AsText := EvaluateInput.SelText;
           EvaluateInput.SelText := '';
-        end else if edGDBcommand.Focused then begin
-          Clipboard.AsText := edGDBCommand.SelText;
-          edGDBCommand.SelText := '';
-        end;
+        end ;
       end;
   end;
 end;
@@ -3572,8 +3558,6 @@ begin
           Clipboard.AsText := EvaluateInput.SelText
         else if EvalOutput.Focused then
           EvalOutput.CopyToClipboard
-        else if edGDBcommand.Focused then
-          Clipboard.AsText := edGDBCommand.SelText
         else if DebugOutput.Focused then
           DebugOutput.CopyToClipboard;
       end;
@@ -3604,8 +3588,6 @@ begin
           Clipboard.AsText := EvaluateInput.Text
         else if EvalOutput.Focused then
           Clipboard.AsText := EvalOutput.Text
-        else if edGDBcommand.Focused then
-          Clipboard.AsText := edGDBcommand.Text
         else if DebugOutput.Focused then
           Clipboard.AsText := DebugOutput.Text
       end;
@@ -3622,9 +3604,7 @@ begin
   case MessageControl.ActivePageIndex of
     3: begin
         if EvaluateInput.Focused then
-          EvaluateInput.SelText := ClipBoard.AsText
-        else if edGDBcommand.Focused then
-          edGdbCommand.SelText := ClipBoard.AsText
+          EvaluateInput.SelText := ClipBoard.AsText;
       end;
   end;
 end;
@@ -3639,8 +3619,6 @@ begin
     3: begin
         if EvaluateInput.Focused then
           EvaluateInput.SelectAll
-        else if edGdbCommand.Focused then
-          edGdbCommand.SelectAll
         else if EvalOutput.Focused then
           EvalOutput.SelectAll
         else if DebugOutput.Focused then
@@ -3732,8 +3710,6 @@ begin
           EvaluateInput.Clear
         else if EvalOutput.Focused then
           EvalOutput.Clear
-        else if edGDBcommand.Focused then
-          edGDBcommand.Clear
         else if DebugOutput.Focused then
           DebugOutput.Clear;
       end;
@@ -3856,20 +3832,24 @@ end;
 procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('next', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
 procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('step', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -3916,10 +3896,12 @@ procedure TMainForm.actContinueExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
     RemoveActiveBreakpoints;
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('continue', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -4053,6 +4035,7 @@ var
   I: integer;
 begin
   // Configure parser
+  CppPreprocessor.Clear;
   CppParser.Reset;
   CppParser.Tokenizer := CppTokenizer;
   CppParser.Preprocessor := CppPreprocessor;
@@ -4082,12 +4065,12 @@ begin
       for I := 0 to DefInclude.Count - 1 do // Add default include dirs last, just like gcc does
         CppParser.AddIncludePath(DefInclude[I]); // TODO: retrieve those directories in devcfg
       // Set defines
-      CppParser.ResetDefines;
+      //CppParser.ResetDefines;
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
-
       // add a dev-cpp's own macro
       CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY 1');
+
     end;
 
   // Configure code completion
@@ -4124,25 +4107,24 @@ var
   I: integer;
   e: TEditor;
 begin
-  with CppParser do begin
-    Reset;
-    if Assigned(fProject) then begin
-      ProjectDir := fProject.Directory;
-      for I := 0 to fProject.Units.Count - 1 do
-        AddFileToScan(fProject.Units[I].FileName, True);
-      ClearProjectIncludePaths;
-      for I := 0 to fProject.Options.Includes.Count - 1 do
-        AddProjectIncludePath(fProject.Options.Includes[I]);
-    end else begin
-      e := fEditorList.GetEditor;
-      if Assigned(e) then begin
-        ProjectDir := ExtractFilePath(e.FileName);
-        AddFileToScan(e.FileName);
-      end else
-        ProjectDir := '';
-    end;
-    ParseFileList;
+  //UpdateClassBrowsing;
+  if Assigned(fProject) then begin
+    CppParser.ProjectDir := fProject.Directory;
+    CppParser.ClearProjectFiles;
+    for I := 0 to fProject.Units.Count - 1 do
+      CppParser.AddFileToScan(fProject.Units[I].FileName, True);
+    CppParser.ClearProjectIncludePaths;
+    for I := 0 to fProject.Options.Includes.Count - 1 do
+      CppParser.AddProjectIncludePath(fProject.Options.Includes[I]);
+  end else begin
+    e := fEditorList.GetEditor;
+    if Assigned(e) then begin
+      CppParser.ProjectDir := ExtractFilePath(e.FileName);
+      CppParser.AddFileToScan(e.FileName);
+    end else
+      CppParser.ProjectDir := '';
   end;
+  CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -4299,7 +4281,8 @@ begin
     if e.Text.CanFocus then // TODO: can fail for some reason
       e.Text.SetFocus; // this should trigger then OnEnter even of the Text control
     // Set classbrowser to current file
-    ClassBrowser.CurrentFile := e.FileName;
+    UpdateClassBrowserForEditor(e);
+//    ClassBrowser.CurrentFile := e.FileName;
     // No editors are visible
   end else begin
     // Set title bar to current file
@@ -4592,6 +4575,17 @@ begin
   end;
 end;
 
+procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
+begin
+  if Assigned(e) then begin
+    if (e.FileName <> '') and (CppParser.ScannedFiles.IndexOf(e.FileName) = -1) then begin
+      CppParser.ParseFile(e.FileName,e.InProject);
+    end;
+    ClassBrowser.CurrentFile := e.FileName
+  end else
+    ClassBrowser.CurrentFile := '';
+end;
+
 procedure TMainForm.actBrowserViewAllExecute(Sender: TObject);
 var
   e: TEditor;
@@ -4602,10 +4596,7 @@ begin
   actBrowserViewCurrent.Checked := False;
   actBrowserViewIncludes.Checked := False;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4619,10 +4610,7 @@ begin
   actBrowserViewCurrent.Checked := False;
   actBrowserViewIncludes.Checked := False;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4636,10 +4624,7 @@ begin
   actBrowserViewCurrent.Checked := True;
   actBrowserViewIncludes.Checked := False;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4653,10 +4638,7 @@ begin
   actBrowserViewCurrent.Checked := False;
   actBrowserViewIncludes.Checked := True;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    ClassBrowser.CurrentFile := e.FileName
-  else
-    ClassBrowser.CurrentFile := '';
+  UpdateClassBrowserForEditor(e);
   devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
@@ -4998,36 +4980,6 @@ begin
   CPUForm.Show;
   Debugger.SendCommand('info', 'registers');
   Debugger.SendCommand('disas','');
-end;
-
-procedure TMainForm.edGdbCommandKeyPress(Sender: TObject; var Key: Char);
-var
-  s:string;
-begin
-  if fDebugger.Executing then begin
-    if Key = Chr(VK_RETURN) then begin
-      s:=Trim(edGDBCommand.Text);
-      if Length(s) > 0 then begin
-      
-        //User shouldn't quit the gdb in command line
-        if SameText(s,'quit') then
-          Exit;
-
-        // Disable key, but make sure not to remove selected text
-        EvaluateInput.SelStart := 0;
-        EvaluateInput.SelLength := 0;
-        Key := #0;
-
-        fDebugger.SendCommand(s, '',true);
-
-        if edGDBCommand.Items.IndexOf(edGDBCommand.Text) = -1 then
-          edGDBCommand.AddItem(edGDBCommand.Text, nil);
-      end;
-    end;
-
-    // View command examples only when edit is empty or when the UI itself added the current command
-    fDebugger.CommandChanged := true;
-  end;
 end;
 
 procedure TMainForm.CheckForDLLProfiling;
@@ -6431,10 +6383,12 @@ end;
 procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('finish', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -6445,11 +6399,13 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
+      fDebugger.InvalidateAllVars;
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
       fDebugger.SendCommand('backtrace', '');
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
+      //fDebugger.RefreshWatchVars;
     end;
   end;
 end;
@@ -7205,6 +7161,9 @@ begin
       // Load the registers...
       Debugger.SendCommand('info', 'registers');
       Debugger.SendCommand('disas','');
+      fDebugger.InvalidateAllVars;
+      Debugger.SendCommand('info display','');
+      //fDebugger.RefreshWatchVars;
     end;
   end;
 end;
@@ -7366,6 +7325,33 @@ begin
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
   ClassBrowser.UpdateView; // we must updateview here since write fSortAlphabetically don't call updateview
   ClassBrowser.Refresh;
+end;
+
+procedure TMainForm.DebugOutputEnter(Sender: TObject);
+var
+  s:string;
+begin
+  if not fDebugger.Executing then
+    Exit;
+  s:=Trim(DebugOutput.CurrentCommand);
+  if Length(s) > 0 then begin
+
+    //User shouldn't quit the gdb in command line
+    if SameText(s,'quit') then
+       Exit;
+
+       {
+    // Disable key, but make sure not to remove selected text
+    EvaluateInput.SelStart := 0;
+        EvaluateInput.SelLength := 0;
+        }
+
+    fDebugger.SendCommand(s, '',true);
+
+  end;
+
+  // View command examples only when edit is empty or when the UI itself added the current command
+  fDebugger.CommandChanged := true;
 end;
 
 end.

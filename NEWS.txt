@@ -1,9 +1,33 @@
-Version 6-beta5.1 October  2020
+Version 6-beta6     November 2020
+  - fix: while debugging, switch functions in call stack windows will also update watch expressions(variables).
+  - fix: Correct update watch var infos while debugging enters/exits functions
+  - fix: don't show auto-code-completion suggestion when input a word and deleted it using backspace
+  - fix: macro defined in included headers not correctly processed when change #includes in source file. 
+  - fix: CppParser error if first completion input too fast to finish parsing
+  - fix: classbrowser not update if open a file in project
+  - fix: some chinese translations
+  - fix: correctly update classbrowser when close a project
+  - fix: redirect stdin to file doesn't work in windows xp
+  - fix: write to log file when some error happens
+  - fix: check if compiler(gcc or g++) exists before compile
+  - fix: add debug toolbar
+  - fix: dev-c++ will not find windows infinitely if there is already an instance runnning (this only happens when debugging dev-c++ in delphi)
+  - fix: add icons for static functions/vars and global functions
+  - fix: change icon of add watch
+  - fix: now debug output console is really like a console
+  - fix: Show Debug Command and Show Debug Annotations are disabled by default
+  - fix: buttons display error in First Run Wizard under windows XP
+  - fix: can't clear dev-c++ settings under windows xp
+
+Version 6-beta5.1   October  2020
+
+  - fix: crash when exit if Class B inheritanced Class A, and Class C inherited Class B
+  - fix: crash when typedef is the last symbol in file
   - fix: only update class browser when file is open/save, in case it refreshes frequently.
   - fix: #define in header files lost when reparsing files
-  - fix: crash when exit if Class B inheritanced Class A, and Class C inherited Class B
 
-Version 6-beta5 October  2020
+Version 6-beta5     October  2020
+
   - fix: Select row in Class Browser
   - fix: icons in Class Browser
   - fix: Class Browser show nothing when view system headers
@@ -15,7 +39,8 @@ Version 6-beta5 October  2020
   - fix: rename symbol will only preprocess/tokenize file once
   - fix: correctly show #define info
 
-Version 6-beta4 October  2020
+Version 6-beta4     October  2020
+
   - fix: Left Panel tab names display error in windows xp sp3
   - fix: Tool Configuration Dialog size error
   - fix: can't correctly show project file encoding in status bar
@@ -37,7 +62,8 @@ Version 6-beta4 October  2020
   - enhancement: Add _children to TStatement, to speedup symbol lookup
   - enhancement: use TStringHash to check if token text is a key word, speed parsing.
 
-Version 6-beta3 October  2020
+Version 6-beta3     October  2020
+
   - fix: Text blur in Window High DPI (Environment Option -> Fix High DPI then Exit)
   - fix: gcc error output parsing error
   - fix: shouldn't jump to .o file when click in Compiler Output 
@@ -54,7 +80,8 @@ Version 6-beta3 October  2020
   - enhancement: context menu for breakpoints list in Debug panel
   - enhancement: empty macro defines don't show in variable/function type infos
   
-Version 6-beta2 October  2020
+Version 6-beta2     October  2020
+
   - fix: Debug menuitem captions
   - fix: gray debug\run buttons while a program is running or debugging. 
   - enhancement: redesign debug views
@@ -62,7 +89,8 @@ Version 6-beta2 October  2020
   - enhancement: add icons for indent/unindent buttons
   - enhancement: when parsing definitions, add a MACRO define '_EGE_FOR_AUTO_CODE_COMPLETETION_ONLY_'. EGE use to stop include windows.h (so can show less non-using code suggestions from windows.h).
 
-Version 6-beta1 October  2020
+Version 6-beta1     October  2020
+
   - version: upgrade to version 6, since we have made so many changes & enhancements.
   - fix: font size in auto completion box
   - fix: export HTML correctly setting the charset name
@@ -73,7 +101,8 @@ Version 6-beta1 October  2020
   - use self implementation of rename instead of clang-rename
   - add more about information
   
-Version 5.13-beta5 October  2020
+Version 5.13-beta5  October  2020
+
   - fix: crash when encounter } and have blank lines before it
   - fix: Code completion while typing, if variable name have only one suggestion it will auto use it, that's not right.
   - fix: can't correctly skip ')' when there is a string before it.
@@ -84,7 +113,8 @@ Version 5.13-beta5 October  2020
   - change: regroup menuitems ( to highlight debug)
   - redesign debug pane
 
-Version 5.13-beta4    October  2020
+Version 5.13-beta4      October  2020
+
   - fix: auto code completion error when input ( as the end of
   - fix: crash when encounter } start in line
   - enhancement: code completion suggestion while inputing;
@@ -93,6 +123,7 @@ Version 5.13-beta4    October  2020
   - add: auto detect if a file is UTF-8 encoded. If so, open it use UTF8.
 
 Version 5.13-beta3
+
   - fix: English label error for step out button.
   - fix: not release handles used by gdb subprocess.
   - fix: Disallow user to input 'quit' command in the output windows to quit gdb.
@@ -104,6 +135,7 @@ Version 5.13-beta3
   - change: hide debug output of btns
 
 Version 5.13-beta2
+
   - fix: graphics.h & libturtle project templates
   - fix: multi language support for rename symbol
   - fix: parameters are in effect when run the compiled project program
@@ -115,9 +147,11 @@ Version 5.13-beta2
   
 
 Version 5.13-beta1
+
   - add: project UTF-8 support ( save/load utf8 option for project files, compile utf8 files)
 
 Version 5.13-alpha3
+
   - fix: disable/enable custom link/compiler options text with the checkbox in the compiler options dialog
   - fix: redo auto complete symboles: {} () [] "" '' , auto overwrite right matching symbols. (like jetbrains IDE). User Experience is much better.
   - fix: input a '}' will remove all indent whitespaces;
@@ -126,6 +160,7 @@ Version 5.13-alpha3
   - change: choose alt+/ or ctrl+space as the shortcut for code completion suggestion  
 
 Version 5.13-alpha2
+
   - fix: status bar message too long to display
   - fix: crash when try to debug using release compiler set
   - fix: register info parsing error in cpu window(debug)
@@ -139,6 +174,7 @@ Version 5.13-alpha2
   - add: if no breakpoints is set, gdb will stop at the beginning of the main function.
  
 Version 5.13-alpha1
+
  - fix: Start Debug button is still enable while debuging; 
  - change: notify user before start the Debugger if execution file is old than the source file
  - change: better gdb output format
@@ -147,15 +183,18 @@ Version 5.13-alpha1
  - add: two new options for debug in environment option dialog; 
 
 Version 5.12.4
+
  - fix: project won't rebuild when only header file is changed. Use gcc -MM to generate Makefile targets (and get header dependencies)
  - fix: crash at close when debugging
 - change: show gdb command in debug log window
 - add two options for debug( option dialog is yet to do) : ShowComandLog (show gdb command in debug window)/ ShowAnnotation (show gdb annotations in debug log window)
 
 Version 5.12.3 19 September 2020
+
  - fix rename errors
 
 Version 5.12 - 9 September 2020
+
 - Upgraded the default compiler to GCC 9.2.0
 - Add Rename Symbol function (In Refactor menu, using clang-rename)
 - Use the Debug profile as the default compiler profile

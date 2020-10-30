@@ -94,10 +94,10 @@ OutputDir=..
 UnitOutputDir=Units
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
+SearchPath=VCL\ClassBrowsing;VCL\DevCpp;VCL\DevCpp\devFileMonitor;VCL\DevCpp\devShortcuts;VCL\DevCpp\CompOptionsList;VCL\SynEdit\Source
 Packages=vcl;rtl;vclactnband;vclx;vcldb;dbrtl;dbexpress;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;dsnap;VclSmp;dbxcds;soaprtl;vclshlctrls;SynEdit_R7
 Conditionals=
-DebugSourceDirs=C:\Program Files (x86)\Dev-Cpp\Source\VCL\SynEdit\Source\;C:\Program Files (x86)\Dev-Cpp\Source\VCL\ClassBrowsing\
+DebugSourceDirs=
 UsePackages=0
 [Parameters]
 RunParams=
@@ -112,9 +112,9 @@ RootDir=
 [Version Info]
 IncludeVerInfo=1
 AutoIncBuild=0
-MajorVer=5
-MinorVer=12
-Release=3
+MajorVer=6
+MinorVer=0
+Release=0
 Build=0
 Debug=0
 PreRelease=0
@@ -126,7 +126,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=Bloodshed Software
 FileDescription=Dev-C++ IDE
-FileVersion=5.12.3.0
+FileVersion=6.0.0.0
 InternalName=devcpp.exe
 LegalCopyright=Copyright Bloodshed Software
 LegalTrademarks=

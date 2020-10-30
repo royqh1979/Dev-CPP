@@ -127,6 +127,7 @@ var
   UniqueMutex: THandle;
   ThisModuleFileName: AnsiString;
   Buffer: array[0..511] of char;
+  counter:integer;
 begin
   Result := 0;
 
@@ -144,12 +145,18 @@ begin
     // At this point, the program that created the mutex might not have created its MainForm yet
     // Temporary fix: try to find the MainForm handle every 100ms
 
+    counter :=0;
     while True do begin
       if not EnumWindows(@GetPreviousInstanceCallback, Integer(PAnsiString(@ThisModuleFileName))) then begin
         Result := PreviousInstance;
         Exit;
       end;
       Sleep(100);
+      inc(counter);
+      if counter>150 then begin // we wait at most 15s , or we quit
+        Result:=INVALID_HANDLE_VALUE;
+        Exit;
+      end;
     end;
   end;
 end;

@@ -179,6 +179,11 @@ function SelectDirectory(const Caption: string; const Root: WideString;
 
 function IsIdentifier(const s:string):boolean;
 
+procedure AppendToFile(filename:AnsiString; text:AnsiString);overload;
+procedure AppendToFile(filename:AnsiString; strings:TStrings);overload;
+procedure LogError(source:AnsiString; msg:AnsiString);
+
+
 implementation
 
 uses
@@ -535,6 +540,7 @@ begin
   // Create the child output pipe
   if not CreatePipe(hOutputReadTmp, hOutputWrite, @sa, 0) then begin
     Result := 'CreatePipe 1 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit; // its of no use to continue. quit
   end;
 
@@ -545,12 +551,14 @@ begin
     GetCurrentProcess(), @hErrorWrite,
     0, true, DUPLICATE_SAME_ACCESS) then begin
     Result := 'DuplicateHandle 1 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
   // Create the child input pipe
   if not CreatePipe(hInputRead, hInputWriteTmp, @sa, 0) then begin
     Result := 'CreatePipe 2 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
@@ -562,6 +570,7 @@ begin
     GetCurrentProcess(), @hOutputRead,
     0, false, DUPLICATE_SAME_ACCESS) then begin
     Result := 'DuplicateHandle 2 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
@@ -569,6 +578,7 @@ begin
     GetCurrentProcess(), @hInputWrite,
     0, false, DUPLICATE_SAME_ACCESS) then begin
     Result := 'DuplicateHandle 3 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
@@ -576,10 +586,12 @@ begin
   // inherited.
   if not CloseHandle(hOutputReadTmp) then begin
     Result := 'CloseHandle 1 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
   if not CloseHandle(hInputWriteTmp) then begin
     Result := 'CloseHandle 2 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
@@ -594,12 +606,14 @@ begin
   // Launch the process that we want to redirect.
   if not CreateProcess(nil, PAnsiChar(Cmd), nil, nil, true, 0, nil, PAnsiChar(WorkDir), si, pi) then begin
     Result := 'CreateProcess error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
   // Close any unnecessary handles.
   if not CloseHandle(pi.hThread) then begin
     Result := 'CloseHandle 3 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
@@ -609,14 +623,17 @@ begin
   // not close when the child process exits and the ReadFile will hang.
   if not CloseHandle(hOutputWrite) then begin
     Result := 'CloseHandle 4 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
   if not CloseHandle(hInputRead) then begin
     Result := 'CloseHandle 5 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
   if not CloseHandle(hErrorWrite) then begin
     Result := 'CloseHandle 6 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 
@@ -655,14 +672,17 @@ begin
   // Close handles we don't need anymore.
   if not CloseHandle(hOutputRead) then begin
     Result := 'CloseHandle 7 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
   if not CloseHandle(hInputWrite) then begin
     Result := 'CloseHandle 8 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
   if not CloseHandle(pi.hProcess) then begin // TODO: shouldn't we terminate it?
     Result := 'CloseHandle 9 error: ' + SysErrorMessage(GetLastError);
+    LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
 end;
@@ -1467,6 +1487,8 @@ begin
   result := 0;
 end;
 
+
+
 function SelectDirectory(const Caption: string; const Root: WideString;
   var Directory: string): Boolean;
 var
@@ -1526,6 +1548,38 @@ begin
       ShellMalloc.Free(Buffer);
     end;
   end;
+end;
+
+
+procedure AppendToFile(filename:AnsiString; text:AnsiString);
+var
+  fs:TFileStream;
+  mode: integer;
+begin
+  mode := fmOpenWrite;
+  if not FileExists(filename) then
+    mode := mode or fmCreate;
+  fs:=TFileStream.Create(filename,mode);
+  try
+    fs.Seek(0,soEnd);
+    fs.Write(text[1], Length(text)*sizeof(AnsiChar));
+  finally
+    fs.Free;
+  end;
+end;
+
+procedure AppendToFile(filename:AnsiString; strings:TStrings);
+begin
+  if not Assigned(Strings) then
+    Exit;
+  AppendToFile(filename,strings.Text+#13#10);
+end;
+
+procedure LogError(source:AnsiString; msg:AnsiString);
+begin
+  AppendToFile(IncludeTrailingPathDelimiter(devDirs.config) + DEV_ERROR_LOG_FILE,
+    Format('%s %s: %s'#13#10,[FormatDateTime('yyyy/mm/dd tt',Now),source,msg]));
+
 end;
 
 end.

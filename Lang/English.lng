@@ -918,6 +918,8 @@ Ver=1
 60029=The breakpoint is in effect only if the following expression evaluates to true (non-zero):
 60030=The editing file will be saved using UTF-8 encoding. <CR>This operation can't be reverted. <CR>Are you sure to continue?
 60031=Folder %s is not existing. <CR> Should we create it for you?
+60032=Execute to evaluate
+60033=Not found in current context
 
 61001=Cannot open file %s
 61002=Cannot save file %s
@@ -941,7 +943,7 @@ Ver=1
 61020=%s has been renamed or deleted...
 61021=%s has been renamed or deleted. Keep this file in editor?
 61022=Error launching<CR><CR>%s<CR><CR>%s
-61023=Error launching debugger: no executable directory provided
+61023=Active compiler set Error: no executable directory provided
 61024=Error writing to GDB
 61025=Source file has unsaved modifications. Save it before continue?
 61026='%s' is not a valid identifier!
@@ -950,6 +952,8 @@ Ver=1
 61029=%s has been defined in %s:%d..
 61030=Failed to create folder %s .
 61031='%s' is a C/C++ key word.
+61032=GDB executable '%s' not exists.
+61033=Compiler executalbe '%s' not exists.
 
 
 62001=Untitled

@@ -385,6 +385,8 @@ begin
   // Allow the user to start typing right away
   fTabSheet.PageControl.ActivePage := fTabSheet;
   fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  if fFileName <> '' then
+    MainForm.CppParser.ParseFile(fFileName,fInProject);
   MainForm.UpdateFileEncodingStatusPanel;
 end;
 
@@ -529,7 +531,8 @@ begin
   MainForm.UpdateAppTitle;
 
   // Set classbrowser to current file
-  MainForm.ClassBrowser.CurrentFile := fFileName;
+  MainForm.UpdateClassBrowserForEditor(self);
+//  MainForm.ClassBrowser.CurrentFile := fFileName;
 
   // Set compiler selector to current file
   MainForm.UpdateCompilerList;
@@ -893,6 +896,8 @@ begin
 end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
+var
+  phrase:AnsiString;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
@@ -905,7 +910,10 @@ begin
       end;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName, False);
+      phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
+      if phrase = '' then
+        fLastPressedIsIdChar:=False;
+      fCompletionBox.Search(phrase, fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
@@ -1209,19 +1217,20 @@ begin
   if not Assigned(fText.Highlighter) then
     Exit;
 
-  if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
-   and (Key in fText.IdentChars) then begin
-    if not  fLastPressedIsIdChar then
-      ShowCompletion(Key);
-    fLastPressedIsIdChar:=True;
-  end else
+  if (Key in fText.IdentChars) then begin
+    if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
+      if not fLastPressedIsIdChar then
+        ShowCompletion(Key);
+      fLastPressedIsIdChar:=True;
+    end
+  end else begin
     fLastPressedIsIdChar:=False;
+    // Doing this here instead of in EditorKeyDown to be able to delete some key messages
+    HandleSymbolCompletion(Key);
 
-  // Doing this here instead of in EditorKeyDown to be able to delete some key messages
-  HandleSymbolCompletion(Key);
-
-  // Spawn code completion window if we are allowed to
-  HandleCodeCompletion(Key);
+    // Spawn code completion window if we are allowed to
+    HandleCodeCompletion(Key);
+  end;
 end;
 
 procedure TEditor.EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1251,19 +1260,25 @@ begin
   // See if we can undo what has been inserted by HandleSymbolCompletion
   case (Key) of
     VK_CONTROL: begin
+        fLastPressedIsIdChar:=False;
         Reason := HandpointAllowed(p, Shift);
         if Reason <> hprNone then
           fText.Cursor := crHandPoint
         else
           fText.Cursor := crIBeam;
       end;
+    VK_RETURN: begin
+        fLastPressedIsIdChar:=False;    
+    end;
     VK_ESCAPE: begin // Update function tip
+        fLastPressedIsIdChar:=False;
         if ttoHideOnEsc in fFunctionTip.Options then begin
           fFunctionTip.ReleaseHandle;
           fFunctionTip.ForceHide := true;
         end;
       end;
     VK_DELETE: begin // remove completed character
+        fLastPressedIsIdChar:=False;
         if not fText.SelAvail then begin
           S := fText.LineText;
           if fText.CaretX < Length(S) then begin
@@ -1274,6 +1289,7 @@ begin
         end;
       end;
     VK_BACK: begin // remove completed character
+        fLastPressedIsIdChar:=False;
         if not fText.SelAvail then begin
           S := fText.LineText;
           if (fText.CaretX > 1) and (fText.CaretX <= Length(S)) then begin
@@ -1379,7 +1395,8 @@ begin
   // Filter the whole statement list
   if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)
     and (key = '') then //only one suggestion and it's not input while typing
-    CompletionInsert(); // if only have one suggestion, just use it 
+    CompletionInsert(); // if only have one suggestion, just use it
+
 end;
 
 procedure TEditor.DestroyCompletion;

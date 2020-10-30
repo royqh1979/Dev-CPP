@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Dev-C++ 2020';
-  DEVCPP_VERSION = '6-beta5.1';
+  DEVCPP_VERSION = '6-beta6';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
@@ -43,6 +43,7 @@ const
   DEV_CLASSFOLDERS_FILE = 'classfolders.ini';
   DEV_CODEINS_FILE = 'codeinsertion.ini';
   DEV_WEBMIRRORS_FILE = 'webmirrors.ini';
+  DEV_ERROR_LOG_FILE = 'devcpp-errors.log';
   DEV_TOOLS_FILE = 'tools.ini';
 
   // make stuff

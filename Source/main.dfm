@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 688
-  Top = 168
+  Left = 475
+  Top = 193
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++ 2020'
   ClientHeight = 671
-  ClientWidth = 1030
+  ClientWidth = 1187
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -37,7 +37,7 @@ object MainForm: TMainForm
   object SplitterBottom: TSplitter
     Left = 0
     Top = 415
-    Width = 1030
+    Width = 1187
     Height = 6
     Cursor = crVSplit
     Align = alBottom
@@ -48,7 +48,7 @@ object MainForm: TMainForm
   object MessageControl: TPageControl
     Left = 0
     Top = 421
-    Width = 1030
+    Width = 1187
     Height = 225
     ActivePage = DebugSheet
     Align = alBottom
@@ -63,7 +63,7 @@ object MainForm: TMainForm
       object CompilerOutput: TListView
         Left = 0
         Top = 0
-        Width = 1022
+        Width = 1179
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -108,7 +108,7 @@ object MainForm: TMainForm
       object ResourceOutput: TListView
         Left = 0
         Top = 0
-        Width = 1022
+        Width = 1179
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -190,7 +190,7 @@ object MainForm: TMainForm
       object CompResGroupBox: TPanel
         Left = 192
         Top = 0
-        Width = 830
+        Width = 987
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -229,9 +229,9 @@ object MainForm: TMainForm
       object DebugViews: TPageControl
         Left = 465
         Top = 0
-        Width = 557
+        Width = 714
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
@@ -241,42 +241,21 @@ object MainForm: TMainForm
           object Panel2: TPanel
             Left = 0
             Top = 0
-            Width = 549
+            Width = 706
             Height = 162
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
-            DesignSize = (
-              549
-              162)
-            object lblSendCommandGdb: TLabel
-              Left = 5
-              Top = 9
-              Width = 144
-              Height = 16
-              Caption = 'Send command to GDB:'
-            end
-            object edGdbCommand: TComboBox
-              Left = 200
-              Top = 4
-              Width = 349
-              Height = 24
-              Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 0
-              TabOrder = 0
-              OnKeyPress = edGdbCommandKeyPress
-            end
-            object DebugOutput: TMemo
+            object DebugOutput: TDevConsole
               Left = 0
-              Top = 40
-              Width = 549
-              Height = 122
-              Align = alBottom
-              Anchors = [akLeft, akTop, akRight, akBottom]
+              Top = 0
+              Width = 706
+              Height = 162
+              Align = alClient
               PopupMenu = DebugOutputPopup
-              ReadOnly = True
               ScrollBars = ssVertical
-              TabOrder = 1
+              TabOrder = 0
+              OnEnter = DebugOutputEnter
             end
           end
         end
@@ -286,7 +265,7 @@ object MainForm: TMainForm
           object StackTrace: TListView
             Left = 0
             Top = 0
-            Width = 549
+            Width = 706
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -321,7 +300,7 @@ object MainForm: TMainForm
           object BreakpointsView: TListView
             Left = 0
             Top = 0
-            Width = 549
+            Width = 706
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -530,7 +509,7 @@ object MainForm: TMainForm
       object FindOutput: TListView
         Left = 0
         Top = 0
-        Width = 1022
+        Width = 1179
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -580,7 +559,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 1030
+    Width = 1187
     Height = 64
     Align = alTop
     AutoDock = False
@@ -658,7 +637,7 @@ object MainForm: TMainForm
     object tbCompile: TToolBar
       Left = 543
       Top = 2
-      Width = 250
+      Width = 113
       Height = 28
       ButtonHeight = 28
       ButtonWidth = 28
@@ -691,50 +670,6 @@ object MainForm: TMainForm
         Left = 84
         Top = 0
         Action = actRebuild
-      end
-      object ToolButton2: TToolButton
-        Left = 112
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton2'
-        ImageIndex = 33
-        Style = tbsSeparator
-      end
-      object DebugBtn: TToolButton
-        Left = 120
-        Top = 0
-        Action = actDebug
-      end
-      object ToolButton3: TToolButton
-        Left = 148
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton3'
-        ImageIndex = 49
-        Style = tbsSeparator
-      end
-      object StopBtn: TToolButton
-        Left = 156
-        Top = 0
-        Action = actStopExecute
-      end
-      object ToolButton5: TToolButton
-        Left = 184
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton5'
-        ImageIndex = 48
-        Style = tbsSeparator
-      end
-      object ProfileBtn: TToolButton
-        Left = 192
-        Top = 0
-        Action = actProfile
-      end
-      object ProfilingInforBtn: TToolButton
-        Left = 220
-        Top = 0
-        Action = actDeleteProfile
       end
     end
     object tbProject: TToolBar
@@ -887,7 +822,7 @@ object MainForm: TMainForm
       end
     end
     object tbClasses: TToolBar
-      Left = 109
+      Left = 292
       Top = 34
       Width = 700
       Height = 28
@@ -897,7 +832,7 @@ object MainForm: TMainForm
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
-      TabOrder = 7
+      TabOrder = 8
       Wrapable = False
       object cmbClasses: TComboBox
         Left = 0
@@ -947,9 +882,9 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 806
+      Left = 669
       Top = 2
-      Width = 130
+      Width = 339
       Height = 28
       ButtonHeight = 28
       Caption = 'tbCompilers'
@@ -960,12 +895,12 @@ object MainForm: TMainForm
       TabOrder = 6
       Wrapable = False
       DesignSize = (
-        130
+        339
         28)
       object cmbCompilers: TComboBox
         Left = 0
         Top = 0
-        Width = 345
+        Width = 337
         Height = 28
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -984,11 +919,55 @@ object MainForm: TMainForm
         OnDropDown = cmbGenericDropDown
       end
     end
+    object tbDebug: TToolBar
+      Left = 109
+      Top = 34
+      Width = 170
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
+      Caption = 'tbDebug'
+      EdgeInner = esNone
+      EdgeOuter = esNone
+      Flat = True
+      Images = dmMain.MenuImages_NewLook
+      TabOrder = 7
+      object ToolButton17: TToolButton
+        Left = 0
+        Top = 0
+        Action = actDebug
+      end
+      object ToolButton2: TToolButton
+        Left = 28
+        Top = 0
+        Action = actStepOver
+      end
+      object ToolButton3: TToolButton
+        Left = 56
+        Top = 0
+        Action = actStepInto
+      end
+      object ToolButton5: TToolButton
+        Left = 84
+        Top = 0
+        Action = actStepOut
+      end
+      object ToolButton18: TToolButton
+        Left = 112
+        Top = 0
+        Action = actContinue
+      end
+      object ToolButton19: TToolButton
+        Left = 140
+        Top = 0
+        Action = actStopExecute
+      end
+    end
   end
   object Statusbar: TStatusBar
     Left = 0
     Top = 646
-    Width = 1030
+    Width = 1187
     Height = 25
     Panels = <
       item
@@ -1103,6 +1082,9 @@ object MainForm: TMainForm
           ItemImages.DefineImg = 12
           ItemImages.EnumImg = 13
           ItemImages.GlobalVarImg = 14
+          ItemImages.StaticVarImg = 18
+          ItemImages.GlobalFuncImg = 16
+          ItemImages.StaticFuncImg = 17
           ItemImages.TypeImg = 15
           ShowInheritedMembers = False
           TabVisible = False
@@ -1178,14 +1160,14 @@ object MainForm: TMainForm
   object PageControlPanel: TPanel
     Left = 242
     Top = 64
-    Width = 788
+    Width = 945
     Height = 351
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 788
+      Left = 945
       Top = 0
       Width = 0
       Height = 351
@@ -1196,7 +1178,7 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 788
+      Width = 945
       Height = 351
       Align = alClient
       HotTrack = True
@@ -1211,7 +1193,7 @@ object MainForm: TMainForm
       OnMouseMove = EditorPageControlMouseMove
     end
     object EditorPageControlRight: TPageControl
-      Left = 788
+      Left = 945
       Top = 0
       Width = 0
       Height = 351
@@ -2480,7 +2462,7 @@ object MainForm: TMainForm
     object actAddWatch: TAction
       Category = 'Debug'
       Caption = 'Add &Watch...'
-      ImageIndex = 21
+      ImageIndex = 65
       OnExecute = actAddWatchExecute
       OnUpdate = actUpdatePageCount
     end
