@@ -66,6 +66,7 @@ type
     DebugBtn: TToolButton;
     ProfileBtn: TToolButton;
     ProfilingInforBtn: TToolButton;
+    Panel1: TPanel;
     procedure OkBtnClick(Sender: TObject);
     procedure ColorChange(Sender: TObject);
     procedure FormShow(Sender: TObject);

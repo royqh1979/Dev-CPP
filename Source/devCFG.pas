@@ -867,13 +867,14 @@ procedure RemoveOptionsDir(const Directory: AnsiString);
 var
   fostruct: SHFILEOPSTRUCT;
   DirFrom, DirTo: array[0..MAX_PATH] of char;
+  errorcode: integer;
 begin
   // Copy and delete
   FillChar(DirFrom, Sizeof(DirFrom), 0);
-  StrPCopy(DirFrom, Directory);
+  StrPCopy(DirFrom, ExcludeTrailingBackslash(Directory));
 
   FillChar(DirTo, Sizeof(DirFrom), 0);
-  StrPCopy(DirTo, ExcludeTrailingBackslash(Directory) + 'Backup' + pd);
+  StrPCopy(DirTo, ExcludeTrailingBackslash(ExcludeTrailingBackslash(Directory) + 'Backup' + pd));
 
   FillChar(fostruct, Sizeof(fostruct), 0);
   with fostruct do begin
@@ -883,7 +884,11 @@ begin
     wFunc := FO_COPY;
     fFlags := FOF_ALLOWUNDO or FOF_SILENT or FOF_NOCONFIRMATION;
   end;
-  SHFileOperation(fostruct);
+  errorcode:=SHFileOperation(fostruct);
+  if errorcode<>0 then begin
+    LogError('devCFG.pas RemoveOptionsDir',Format('Copy directory from "%s" to "%s" failed: %d',[
+      DirFrom,DirTo,errorcode]));
+  end;
 
   FillChar(fostruct, Sizeof(fostruct), 0);
   with fostruct do begin
@@ -892,7 +897,11 @@ begin
     wFunc := FO_DELETE;
     fFlags := FOF_ALLOWUNDO or FOF_SILENT or FOF_NOCONFIRMATION;
   end;
-  SHFileOperation(fostruct);
+  errorcode:=SHFileOperation(fostruct);
+  if errorcode<>0 then begin
+    LogError('devCFG.pas RemoveOptionsDir',Format('Remove directory "%s" failed: %d',[
+      DirFrom,errorcode]));
+  end;
 end;
 
 var

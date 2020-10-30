@@ -16,6 +16,8 @@ Version 6-beta6     November 2020
   - fix: change icon of add watch
   - fix: now debug output console is really like a console
   - fix: Show Debug Command and Show Debug Annotations are disabled by default
+  - fix: buttons display error in First Run Wizard under windows XP
+  - fix: can't clear dev-c++ settings under windows xp
 
 Version 6-beta5.1   October  2020
 
