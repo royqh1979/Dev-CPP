@@ -128,7 +128,6 @@ type
     tbProject: TToolBar;
     AddToProjectBtn: TToolButton;
     RemoveFromProjectBtn: TToolButton;
-    ToolButton20: TToolButton;
     ProjectOptionsBtn: TToolButton;
     CloseSheet: TTabSheet;
     SaveAllBtn: TToolButton;
@@ -559,7 +558,6 @@ type
     ToolBar2: TToolBar;
     ToolButton6: TToolButton;
     ToolBar3: TToolBar;
-    ToolButton8: TToolButton;
     ToolBar4: TToolBar;
     ToolButton9: TToolButton;
     ToolBar5: TToolBar;
@@ -567,7 +565,6 @@ type
     ToolBar6: TToolBar;
     ToolButton11: TToolButton;
     ToolBar7: TToolBar;
-    ToolButton12: TToolButton;
     Panel1: TPanel;
     Splitter1: TSplitter;
     WatchSheet: TTabSheet;
@@ -602,6 +599,8 @@ type
     ToolButton5: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
+    ToolButton21: TToolButton;
+    ToolButton22: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -926,6 +925,7 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
+    procedure OnClassBrowserUpdated(sender:TObject);
   public
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -1627,7 +1627,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  //RebuildClassesToolbar;   //ScanActiveProject will do it
   UpdateFileEncodingStatusPanel;
 end;
 
@@ -1693,7 +1692,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
@@ -2204,7 +2202,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.actCloseProjectExecute(Sender: TObject);
@@ -4089,8 +4086,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
-
 
   // Configure class browser actions
   actBrowserViewAll.Checked := ClassBrowser.ShowFilter = sfAll;
@@ -4752,7 +4747,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.lvBacktraceCustomDrawItem(Sender: TCustomListView;
@@ -5574,11 +5568,18 @@ begin
   end
 end;
 
+procedure TMainForm.OnClassBrowserUpdated(sender:TObject);
+begin
+  RebuildClassesToolbar;
+end;
+
 procedure TMainForm.RebuildClassesToolbar;
 var
-  Node: PStatementNode;
   Statement: PStatement;
   OldSelection: AnsiString;
+  e:TEditor;
+  Children:TList;
+  i:integer;
 begin
   OldSelection := cmbClasses.Text;
 
@@ -5589,13 +5590,26 @@ begin
     // Add globals list
     cmbClasses.Items.AddObject('(globals)', nil);
 
-    // Add all classes inside the current project
-    Node := CppParser.Statements.FirstNode;
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-      if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
-        cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
-      Node := Node^.NextNode;
+    Children:= CppParser.Statements.GetChildrenStatements(nil);
+    if (Assigned(Children)) then begin
+      if Assigned(fProject) then begin // skClass equals struct + typedef struct + class
+        // Add all classes inside the current project
+        for i:=0 to Children.Count-1 do begin
+          Statement := PStatement(Children[i]);
+          if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
+            cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
+        end;
+      end else begin
+        e:=EditorList.GetEditor();
+        if Assigned(e) then begin
+          // Add all classes inside the current file
+          for i:=0 to Children.Count-1 do begin
+            Statement := PStatement(Children[i]);
+            if (Statement^._FileName=e.FileName) and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
+              cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
+          end;
+        end;
+      end;
     end;
 
     // if we can't find the old selection anymore (-> -1), default to 0 (globals)
@@ -5613,16 +5627,31 @@ var
   var
     i:integer;
     children: TList;
+    e:TEditor;
   begin
     children := CppParser.Statements.GetChildrenStatements(ParentStatement);
     if Assigned(Children) then begin
-      for i:=0 to Children.Count-1 do
-      begin
-        Statement := PStatement(Children[i]);
-        if  Statement^._InProject and (Statement^._Kind = AddKind) then
-          cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
-            ' : ' + Statement^._Type,
-            Pointer(Statement));
+      if Assigned(fProject) then begin
+        for i:=0 to Children.Count-1 do
+        begin
+          Statement := PStatement(Children[i]);
+          if  Statement^._InProject and (Statement^._Kind = AddKind) then
+            cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+              ' : ' + Statement^._Type,
+              Pointer(Statement));
+        end;
+      end else begin
+        e:=EditorList.GetEditor();
+        if Assigned(e) then begin
+          for i:=0 to Children.Count-1 do
+          begin
+            Statement := PStatement(Children[i]);
+            if  (Statement^._FileName=e.FileName) and (Statement^._Kind = AddKind) then
+              cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+                ' : ' + Statement^._Type,
+                Pointer(Statement));
+          end;
+        end;
       end;
     end;
   end;
@@ -5639,10 +5668,13 @@ begin
     else
       Exit; // -1?
 
+
     // Show functions that belong to this scope or class/struct
     AddStatementKind(skConstructor);
     AddStatementKind(skDestructor);
     AddStatementKind(skFunction);
+
+    
   finally
     cmbMembers.Items.EndUpdate;
   end;
@@ -6269,6 +6301,7 @@ begin
 
   // Configure parser, code completion, class browser
   UpdateClassBrowsing;
+  ClassBrowser.OnUpdated := OnClassBrowserUpdated;
 
   // Showing for the first time? Maximize
   if devData.First then

@@ -187,8 +187,8 @@ begin
       Key:=0;  // eat it
       pos:=getNormalizedCaretPos;
       inc(pos.X);
-      if Result.X > Length(fPrompt)+Length(fCurrentCommand) then
-        Result.X:= Length(fPrompt)+Length(fCurrentCommand);
+      if pos.X > Length(fPrompt)+Length(fCurrentCommand) then
+        pos.X:= Length(fPrompt)+Length(fCurrentCommand);
       Self.CaretPos:=pos;
     end;
     VK_UP: begin
