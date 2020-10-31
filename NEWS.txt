@@ -2,6 +2,7 @@ Version 6-beta7    November 2020
   
   - fix: change icons for run/complie&run/replace
   - fix: make class members dropdown list in toolbar work
+  - fix: Source file reparsed 3 times each time open
 
 Version 6-beta6.1     November 2020
 
