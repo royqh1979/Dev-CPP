@@ -1,4 +1,4 @@
-Dev C++ 2020 is a fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp).
+Red Panda Dev C++ （小熊猫Dev-C++） is a fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp).
 
 Orwell Dev-C++ has stopped update since 2016, So I forked it. 
 
