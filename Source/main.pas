@@ -601,6 +601,8 @@ type
     ToolButton19: TToolButton;
     ToolButton21: TToolButton;
     ToolButton22: TToolButton;
+    actOpenConsole: TAction;
+    OpenShellHere1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -877,6 +879,7 @@ type
     procedure actBrowserSortByTypeExecute(Sender: TObject);
     procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
     procedure DebugOutputEnter(Sender: TObject);
+    procedure actOpenConsoleExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1392,6 +1395,7 @@ begin
   actCloseAllButThis.Caption := Lang[ID_POP_CLOSEALLBUTTHIS];
   actOpenFolder.Caption := Lang[ID_POP_OPENCONTAINING];
   actAddToDo.Caption := Lang[ID_POP_ADDTODOITEM];
+  actOpenConsole.Caption := Lang[ID_POP_OPEN_CONSOLE];
 
   // Class Browser Popup
   actBrowserGotoDeclaration.Caption := Lang[ID_POP_GOTODECL];
@@ -7384,6 +7388,54 @@ begin
 
   // View command examples only when edit is empty or when the UI itself added the current command
   fDebugger.CommandChanged := true;
+end;
+
+procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+var
+  e: TEditor;
+  Folder: AnsiString;
+  buffer: PChar;
+  size,ret,i: integer;
+  path:AnsiString;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    Folder := ExtractFilePath(e.FileName);
+    if Folder <> '' then begin
+      ret:=GetEnvironmentVariable(PChar('PATH'),nil,0);
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Get size of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      size:=ret;
+      buffer:=AllocMem(size*sizeof(Char));
+      try
+        ret:=GetEnvironmentVariable('PATH',buffer,size);
+        if ret = 0 then begin
+          LogError('main.pas TMainForm.actOpenConsoleExecute',
+            Format('Get content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+          Exit;
+        end;
+        path:=String(buffer);
+      finally
+        FreeMem(buffer);
+      end;
+      if Assigned(devCompilerSets.CompilationSet) then begin
+        for i:=0 to devCompilerSets.CompilationSet.BinDir.Count-1 do begin
+          path:=path+';'+devCompilerSets.CompilationSet.BinDir[i];
+        end;
+      end;
+      path:=path+';'+devDirs.Exec;
+      ret := integer(SetEnvironmentVariable(PChar('PATH'),pChar(path)));
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+    end;
+  end;
 end;
 
 end.

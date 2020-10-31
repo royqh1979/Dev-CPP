@@ -2,8 +2,7 @@ Version 6-beta7    November 2020
   
   - fix: change icons for run/complie&run/replace
   - fix: make class members dropdown list in toolbar work
-  - fix: Source file reparsed 3 times each time open
-  - fix: don't reparse file when closing Dev-C++ and a project is opened
+  - add: open console from current file's folder
 
 Version 6-beta6.1     November 2020
 

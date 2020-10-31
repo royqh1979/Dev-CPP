@@ -1846,6 +1846,9 @@ object MainForm: TMainForm
     object actOpenFolder1: TMenuItem
       Action = actOpenFolder
     end
+    object OpenShellHere1: TMenuItem
+      Action = actOpenConsole
+    end
     object N16: TMenuItem
       Caption = '-'
     end
@@ -3046,6 +3049,13 @@ object MainForm: TMainForm
       Caption = 'actBrowserSortByType'
       ImageIndex = 64
       OnExecute = actBrowserSortByTypeExecute
+    end
+    object actOpenConsole: TAction
+      Category = 'File'
+      Caption = 'Open Shell Here'
+      ImageIndex = 38
+      OnExecute = actOpenConsoleExecute
+      OnUpdate = actUpdatePageCount
     end
   end
   object MessagePopup: TPopupMenu
