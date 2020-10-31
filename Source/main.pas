@@ -4276,7 +4276,7 @@ begin
     if e.Text.CanFocus then // TODO: can fail for some reason
       e.Text.SetFocus; // this should trigger then OnEnter even of the Text control
     // Set classbrowser to current file
-    UpdateClassBrowserForEditor(e);
+    //UpdateClassBrowserForEditor(e);
 //    ClassBrowser.CurrentFile := e.FileName;
     // No editors are visible
   end else begin
@@ -4573,8 +4573,8 @@ end;
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
   if Assigned(e) then begin
-    if (e.FileName <> '') and (CppParser.ScannedFiles.IndexOf(e.FileName) = -1) then begin
-      CppParser.ParseFile(e.FileName,e.InProject);
+    if (e.FileName <> '') then begin
+      CppParser.ParseFile(e.FileName,e.InProject,True);
     end;
     ClassBrowser.CurrentFile := e.FileName
   end else
@@ -5589,19 +5589,18 @@ begin
 
     // Add globals list
     cmbClasses.Items.AddObject('(globals)', nil);
-
-    Children:= CppParser.Statements.GetChildrenStatements(nil);
-    if (Assigned(Children)) then begin
-      if Assigned(fProject) then begin // skClass equals struct + typedef struct + class
-        // Add all classes inside the current project
-        for i:=0 to Children.Count-1 do begin
-          Statement := PStatement(Children[i]);
-          if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
-            cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
-        end;
-      end else begin
-        e:=EditorList.GetEditor();
-        if Assigned(e) then begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) then begin
+      Children:= CppParser.Statements.GetChildrenStatements(nil);
+      if (Assigned(Children)) then begin
+        if e.InProject then begin // skClass equals struct + typedef struct + class
+          // Add all classes inside the current project
+          for i:=0 to Children.Count-1 do begin
+            Statement := PStatement(Children[i]);
+            if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
+              cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
+          end;
+        end else begin
           // Add all classes inside the current file
           for i:=0 to Children.Count-1 do begin
             Statement := PStatement(Children[i]);
@@ -5611,23 +5610,22 @@ begin
         end;
       end;
     end;
-
-    // if we can't find the old selection anymore (-> -1), default to 0 (globals)
-    cmbClasses.ItemIndex := max(0, cmbClasses.Items.IndexOf(OldSelection));
-    cmbClassesChange(cmbClasses);
   finally
     cmbClasses.Items.EndUpdate;
   end;
+  // if we can't find the old selection anymore (-> -1), default to 0 (globals)
+  cmbClasses.ItemIndex := max(0, cmbClasses.Items.IndexOf(OldSelection));
+  cmbClassesChange(cmbClasses);
 end;
 
 procedure TMainForm.cmbClassesChange(Sender: TObject);
 var
   Statement, ParentStatement: PStatement;
+  e:TEditor;
   procedure AddStatementKind(AddKind: TStatementKind);
   var
     i:integer;
     children: TList;
-    e:TEditor;
   begin
     children := CppParser.Statements.GetChildrenStatements(ParentStatement);
     if Assigned(Children) then begin
@@ -5659,6 +5657,9 @@ begin
   cmbMembers.Items.BeginUpdate;
   try
     cmbMembers.Clear;
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
 
     // Select what parent we need to display info for
     if cmbClasses.ItemIndex > 0 then
@@ -5674,7 +5675,7 @@ begin
     AddStatementKind(skDestructor);
     AddStatementKind(skFunction);
 
-    
+
   finally
     cmbMembers.Items.EndUpdate;
   end;
