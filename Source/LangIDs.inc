@@ -256,6 +256,7 @@ const
   ID_POP_OPENCONTAINING                 = 12017;
   ID_POP_CLOSEALLBUTTHIS                = 12018;
   ID_POP_ADDTODOITEM                    = 12019;
+  ID_POP_OPEN_CONSOLE                   = 12020;
 
   // message control
   ID_SHEET_COMP                         = 13001;

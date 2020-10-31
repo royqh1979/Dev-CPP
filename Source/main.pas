@@ -128,7 +128,6 @@ type
     tbProject: TToolBar;
     AddToProjectBtn: TToolButton;
     RemoveFromProjectBtn: TToolButton;
-    ToolButton20: TToolButton;
     ProjectOptionsBtn: TToolButton;
     CloseSheet: TTabSheet;
     SaveAllBtn: TToolButton;
@@ -559,7 +558,6 @@ type
     ToolBar2: TToolBar;
     ToolButton6: TToolButton;
     ToolBar3: TToolBar;
-    ToolButton8: TToolButton;
     ToolBar4: TToolBar;
     ToolButton9: TToolButton;
     ToolBar5: TToolBar;
@@ -567,7 +565,6 @@ type
     ToolBar6: TToolBar;
     ToolButton11: TToolButton;
     ToolBar7: TToolBar;
-    ToolButton12: TToolButton;
     Panel1: TPanel;
     Splitter1: TSplitter;
     WatchSheet: TTabSheet;
@@ -602,6 +599,10 @@ type
     ToolButton5: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
+    ToolButton21: TToolButton;
+    ToolButton22: TToolButton;
+    actOpenConsole: TAction;
+    OpenShellHere1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -878,6 +879,7 @@ type
     procedure actBrowserSortByTypeExecute(Sender: TObject);
     procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
     procedure DebugOutputEnter(Sender: TObject);
+    procedure actOpenConsoleExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -898,6 +900,7 @@ type
     fLogOutputRawData: TStringList;
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
+    fQuitting: boolean ;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -926,6 +929,7 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
+    procedure OnClassBrowserUpdated(sender:TObject);
   public
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -1016,11 +1020,12 @@ end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  fQuitting:=True;
   CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
     actCloseProjectExecute(Self);
-    
+
   if Assigned(fProject) then begin
     Action := caNone;
     Exit;
@@ -1390,6 +1395,7 @@ begin
   actCloseAllButThis.Caption := Lang[ID_POP_CLOSEALLBUTTHIS];
   actOpenFolder.Caption := Lang[ID_POP_OPENCONTAINING];
   actAddToDo.Caption := Lang[ID_POP_ADDTODOITEM];
+  actOpenConsole.Caption := Lang[ID_POP_OPEN_CONSOLE];
 
   // Class Browser Popup
   actBrowserGotoDeclaration.Caption := Lang[ID_POP_GOTODECL];
@@ -1627,7 +1633,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  //RebuildClassesToolbar;   //ScanActiveProject will do it
   UpdateFileEncodingStatusPanel;
 end;
 
@@ -1693,7 +1698,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
@@ -2204,7 +2208,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.actCloseProjectExecute(Sender: TObject);
@@ -2259,10 +2262,11 @@ begin
     // Because fProject was assigned during editor closing, force update trigger again
     EditorPageControlLeft.OnChange(EditorPageControlLeft);
 
-    ClassBrowser.ProjectDir := '';
-    UpdateClassBrowsing;
-
-    UpdateClassBrowserForEditor(EditorList.GetEditor());
+    if not fQuitting then begin
+      ClassBrowser.ProjectDir := '';
+      UpdateClassBrowsing;
+      UpdateClassBrowserForEditor(EditorList.GetEditor());
+    end;
   finally
     FileMonitor.EndUpdate;
   end;
@@ -4035,7 +4039,6 @@ var
   I: integer;
 begin
   // Configure parser
-  CppPreprocessor.Clear;
   CppParser.Reset;
   CppParser.Tokenizer := CppTokenizer;
   CppParser.Preprocessor := CppPreprocessor;
@@ -4089,8 +4092,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
-
 
   // Configure class browser actions
   actBrowserViewAll.Checked := ClassBrowser.ShowFilter = sfAll;
@@ -4281,7 +4282,7 @@ begin
     if e.Text.CanFocus then // TODO: can fail for some reason
       e.Text.SetFocus; // this should trigger then OnEnter even of the Text control
     // Set classbrowser to current file
-    UpdateClassBrowserForEditor(e);
+    //UpdateClassBrowserForEditor(e);
 //    ClassBrowser.CurrentFile := e.FileName;
     // No editors are visible
   end else begin
@@ -4578,8 +4579,8 @@ end;
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
   if Assigned(e) then begin
-    if (e.FileName <> '') and (CppParser.ScannedFiles.IndexOf(e.FileName) = -1) then begin
-      CppParser.ParseFile(e.FileName,e.InProject);
+    if (e.FileName <> '') then begin
+      CppParser.ParseFile(e.FileName,e.InProject,True);
     end;
     ClassBrowser.CurrentFile := e.FileName
   end else
@@ -4752,7 +4753,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-  RebuildClassesToolbar;
 end;
 
 procedure TMainForm.lvBacktraceCustomDrawItem(Sender: TCustomListView;
@@ -5574,11 +5574,18 @@ begin
   end
 end;
 
+procedure TMainForm.OnClassBrowserUpdated(sender:TObject);
+begin
+  RebuildClassesToolbar;
+end;
+
 procedure TMainForm.RebuildClassesToolbar;
 var
-  Node: PStatementNode;
   Statement: PStatement;
   OldSelection: AnsiString;
+  e:TEditor;
+  Children:TList;
+  i:integer;
 begin
   OldSelection := cmbClasses.Text;
 
@@ -5588,27 +5595,39 @@ begin
 
     // Add globals list
     cmbClasses.Items.AddObject('(globals)', nil);
-
-    // Add all classes inside the current project
-    Node := CppParser.Statements.FirstNode;
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-      if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
-        cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
-      Node := Node^.NextNode;
+    e:=EditorList.GetEditor();
+    if Assigned(e) then begin
+      Children:= CppParser.Statements.GetChildrenStatements(nil);
+      if (Assigned(Children)) then begin
+        if e.InProject then begin // skClass equals struct + typedef struct + class
+          // Add all classes inside the current project
+          for i:=0 to Children.Count-1 do begin
+            Statement := PStatement(Children[i]);
+            if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
+              cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
+          end;
+        end else begin
+          // Add all classes inside the current file
+          for i:=0 to Children.Count-1 do begin
+            Statement := PStatement(Children[i]);
+            if (Statement^._FileName=e.FileName) and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
+              cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
+          end;
+        end;
+      end;
     end;
-
-    // if we can't find the old selection anymore (-> -1), default to 0 (globals)
-    cmbClasses.ItemIndex := max(0, cmbClasses.Items.IndexOf(OldSelection));
-    cmbClassesChange(cmbClasses);
   finally
     cmbClasses.Items.EndUpdate;
   end;
+  // if we can't find the old selection anymore (-> -1), default to 0 (globals)
+  cmbClasses.ItemIndex := max(0, cmbClasses.Items.IndexOf(OldSelection));
+  cmbClassesChange(cmbClasses);
 end;
 
 procedure TMainForm.cmbClassesChange(Sender: TObject);
 var
   Statement, ParentStatement: PStatement;
+  e:TEditor;
   procedure AddStatementKind(AddKind: TStatementKind);
   var
     i:integer;
@@ -5616,13 +5635,22 @@ var
   begin
     children := CppParser.Statements.GetChildrenStatements(ParentStatement);
     if Assigned(Children) then begin
-      for i:=0 to Children.Count-1 do
-      begin
-        Statement := PStatement(Children[i]);
-        if  Statement^._InProject and (Statement^._Kind = AddKind) then
-          cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
-            ' : ' + Statement^._Type,
-            Pointer(Statement));
+      if e.InProject then begin
+        for i:=0 to Children.Count-1 do begin
+          Statement := PStatement(Children[i]);
+          if  Statement^._InProject and (Statement^._Kind = AddKind) then
+            cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+              ' : ' + Statement^._Type,
+              Pointer(Statement));
+        end;
+      end else begin
+        for i:=0 to Children.Count-1 do begin
+          Statement := PStatement(Children[i]);
+          if  (Statement^._FileName=e.FileName) and (Statement^._Kind = AddKind) then
+            cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+              ' : ' + Statement^._Type,
+              Pointer(Statement));
+        end;
       end;
     end;
   end;
@@ -5630,6 +5658,9 @@ begin
   cmbMembers.Items.BeginUpdate;
   try
     cmbMembers.Clear;
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
 
     // Select what parent we need to display info for
     if cmbClasses.ItemIndex > 0 then
@@ -5639,10 +5670,13 @@ begin
     else
       Exit; // -1?
 
+
     // Show functions that belong to this scope or class/struct
     AddStatementKind(skConstructor);
     AddStatementKind(skDestructor);
     AddStatementKind(skFunction);
+
+
   finally
     cmbMembers.Items.EndUpdate;
   end;
@@ -6088,6 +6122,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  fQuitting:=False;
   fFirstShow := true;
 
   // Backup PATH variable
@@ -6269,6 +6304,7 @@ begin
 
   // Configure parser, code completion, class browser
   UpdateClassBrowsing;
+  ClassBrowser.OnUpdated := OnClassBrowserUpdated;
 
   // Showing for the first time? Maximize
   if devData.First then
@@ -7352,6 +7388,54 @@ begin
 
   // View command examples only when edit is empty or when the UI itself added the current command
   fDebugger.CommandChanged := true;
+end;
+
+procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+var
+  e: TEditor;
+  Folder: AnsiString;
+  buffer: PChar;
+  size,ret,i: integer;
+  path:AnsiString;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    Folder := ExtractFilePath(e.FileName);
+    if Folder <> '' then begin
+      ret:=GetEnvironmentVariable(PChar('PATH'),nil,0);
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Get size of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      size:=ret;
+      buffer:=AllocMem(size*sizeof(Char));
+      try
+        ret:=GetEnvironmentVariable('PATH',buffer,size);
+        if ret = 0 then begin
+          LogError('main.pas TMainForm.actOpenConsoleExecute',
+            Format('Get content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+          Exit;
+        end;
+        path:=String(buffer);
+      finally
+        FreeMem(buffer);
+      end;
+      if Assigned(devCompilerSets.CompilationSet) then begin
+        for i:=0 to devCompilerSets.CompilationSet.BinDir.Count-1 do begin
+          path:=path+';'+devCompilerSets.CompilationSet.BinDir[i];
+        end;
+      end;
+      path:=path+';'+devDirs.Exec;
+      ret := integer(SetEnvironmentVariable(PChar('PATH'),pChar(path)));
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+    end;
+  end;
 end;
 
 end.

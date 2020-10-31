@@ -385,8 +385,12 @@ begin
   // Allow the user to start typing right away
   fTabSheet.PageControl.ActivePage := fTabSheet;
   fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  
+  //don't need to reparse here, in EditorEnter event handler we will do it
+  {
   if fFileName <> '' then
     MainForm.CppParser.ParseFile(fFileName,fInProject);
+  }
   MainForm.UpdateFileEncodingStatusPanel;
 end;
 
@@ -530,7 +534,7 @@ begin
   // Set title bar to current file
   MainForm.UpdateAppTitle;
 
-  // Set classbrowser to current file
+  // Set classbrowser to current file (and refresh)
   MainForm.UpdateClassBrowserForEditor(self);
 //  MainForm.ClassBrowser.CurrentFile := fFileName;
 

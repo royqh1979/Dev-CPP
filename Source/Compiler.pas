@@ -372,9 +372,11 @@ begin
 
       //roy
       if GetFileTyp(ShortFileName) = utcSrc then begin
-        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gccName, ShortFileName, '-MM'])
+        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gccName, ShortFileName, '-MM '])
+        cmdline := cmdline + StringReplace(fIncludesParams, '\', '/', [rfReplaceAll]));
       end else begin
-        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gppName, ShortFileName, '-MM'])
+        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gppName, ShortFileName, '-MM '])
+        cmdline := cmdline + StringReplace(fCppIncludesParams, '\', '/', [rfReplaceAll]));
       end;
       DoLogEntry(cmdline);
       objStr := RunAndGetOutput(cmdline, ExtractFileDir(MakeFile), nil, nil, False);

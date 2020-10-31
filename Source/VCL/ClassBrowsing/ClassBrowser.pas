@@ -97,6 +97,7 @@ type
     fLastSelection: AnsiString;
     fSortAlphabetically: boolean;
     fSortByType: boolean;
+    fOnUpdated: TNotifyEvent;
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
@@ -121,6 +122,7 @@ type
     procedure Clear;
     procedure BeginUpdate;
     procedure EndUpdate;
+    property OnUpdated: TNotifyEvent read fOnUpdated write fOnUpdated;
   published
     property Align;
     property Font;
@@ -188,7 +190,7 @@ begin
   ShowLines := False;
   fSortAlphabetically:= True;
   fSortByType:=True ;
-
+  fOnUpdated:=nil;
 end;
 
 destructor TClassBrowser.Destroy;
@@ -346,6 +348,11 @@ procedure TClassBrowser.UpdateView;
 begin
   if not Assigned(fParser) then
     Exit;
+  if not fParser.Enabled then begin
+    Clear;
+    Exit;
+  end;
+
   if fUpdateCount <> 0 then
     Exit;
   if not Visible or not TabVisible then
@@ -372,6 +379,8 @@ begin
   finally
     Items.EndUpdate; // calls repaint when needed
   end;
+  if Assigned(fOnUpdated) then
+    fOnUpdated(Self);
 end;
 
 procedure TClassBrowser.OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

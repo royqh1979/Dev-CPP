@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 475
-  Top = 193
+  Left = 518
+  Top = 220
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -822,7 +822,7 @@ object MainForm: TMainForm
       end
     end
     object tbClasses: TToolBar
-      Left = 292
+      Left = 328
       Top = 34
       Width = 700
       Height = 28
@@ -922,7 +922,7 @@ object MainForm: TMainForm
     object tbDebug: TToolBar
       Left = 109
       Top = 34
-      Width = 170
+      Width = 206
       Height = 28
       ButtonHeight = 28
       ButtonWidth = 28
@@ -961,6 +961,19 @@ object MainForm: TMainForm
         Left = 140
         Top = 0
         Action = actStopExecute
+      end
+      object ToolButton22: TToolButton
+        Left = 168
+        Top = 0
+        Width = 8
+        Caption = 'ToolButton22'
+        ImageIndex = 66
+        Style = tbsSeparator
+      end
+      object ToolButton21: TToolButton
+        Left = 176
+        Top = 0
+        Action = actAddWatch
       end
     end
   end
@@ -1833,6 +1846,9 @@ object MainForm: TMainForm
     object actOpenFolder1: TMenuItem
       Action = actOpenFolder
     end
+    object OpenShellHere1: TMenuItem
+      Action = actOpenConsole
+    end
     object N16: TMenuItem
       Caption = '-'
     end
@@ -2212,7 +2228,7 @@ object MainForm: TMainForm
       Tag = 3
       Category = 'Search'
       Caption = '&Replace'
-      ImageIndex = 22
+      ImageIndex = 66
       ShortCut = 16466
       OnExecute = actReplaceExecute
       OnUpdate = actUpdateEmptyEditorFindForm
@@ -3033,6 +3049,13 @@ object MainForm: TMainForm
       Caption = 'actBrowserSortByType'
       ImageIndex = 64
       OnExecute = actBrowserSortByTypeExecute
+    end
+    object actOpenConsole: TAction
+      Category = 'File'
+      Caption = 'Open Shell Here'
+      ImageIndex = 38
+      OnExecute = actOpenConsoleExecute
+      OnUpdate = actUpdatePageCount
     end
   end
   object MessagePopup: TPopupMenu
