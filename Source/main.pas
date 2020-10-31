@@ -897,6 +897,7 @@ type
     fLogOutputRawData: TStringList;
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
+    fQuitting: boolean ;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1016,11 +1017,12 @@ end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  fQuitting:=True;
   CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
     actCloseProjectExecute(Self);
-    
+
   if Assigned(fProject) then begin
     Action := caNone;
     Exit;
@@ -2256,10 +2258,11 @@ begin
     // Because fProject was assigned during editor closing, force update trigger again
     EditorPageControlLeft.OnChange(EditorPageControlLeft);
 
-    ClassBrowser.ProjectDir := '';
-    UpdateClassBrowsing;
-
-    UpdateClassBrowserForEditor(EditorList.GetEditor());
+    if not fQuitting then begin
+      ClassBrowser.ProjectDir := '';
+      UpdateClassBrowsing;
+      UpdateClassBrowserForEditor(EditorList.GetEditor());
+    end;
   finally
     FileMonitor.EndUpdate;
   end;
@@ -4032,7 +4035,6 @@ var
   I: integer;
 begin
   // Configure parser
-  CppPreprocessor.Clear;
   CppParser.Reset;
   CppParser.Tokenizer := CppTokenizer;
   CppParser.Preprocessor := CppPreprocessor;
@@ -5629,9 +5631,8 @@ var
   begin
     children := CppParser.Statements.GetChildrenStatements(ParentStatement);
     if Assigned(Children) then begin
-      if Assigned(fProject) then begin
-        for i:=0 to Children.Count-1 do
-        begin
+      if e.InProject then begin
+        for i:=0 to Children.Count-1 do begin
           Statement := PStatement(Children[i]);
           if  Statement^._InProject and (Statement^._Kind = AddKind) then
             cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
@@ -5639,16 +5640,12 @@ var
               Pointer(Statement));
         end;
       end else begin
-        e:=EditorList.GetEditor();
-        if Assigned(e) then begin
-          for i:=0 to Children.Count-1 do
-          begin
-            Statement := PStatement(Children[i]);
-            if  (Statement^._FileName=e.FileName) and (Statement^._Kind = AddKind) then
-              cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
-                ' : ' + Statement^._Type,
-                Pointer(Statement));
-          end;
+        for i:=0 to Children.Count-1 do begin
+          Statement := PStatement(Children[i]);
+          if  (Statement^._FileName=e.FileName) and (Statement^._Kind = AddKind) then
+            cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+              ' : ' + Statement^._Type,
+              Pointer(Statement));
         end;
       end;
     end;
@@ -6121,6 +6118,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  fQuitting:=False;
   fFirstShow := true;
 
   // Backup PATH variable

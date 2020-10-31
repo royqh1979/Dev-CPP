@@ -534,7 +534,7 @@ begin
   // Set title bar to current file
   MainForm.UpdateAppTitle;
 
-  // Set classbrowser to current file
+  // Set classbrowser to current file (and refresh)
   MainForm.UpdateClassBrowserForEditor(self);
 //  MainForm.ClassBrowser.CurrentFile := fFileName;
 

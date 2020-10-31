@@ -348,6 +348,11 @@ procedure TClassBrowser.UpdateView;
 begin
   if not Assigned(fParser) then
     Exit;
+  if not fParser.Enabled then begin
+    Clear;
+    Exit;
+  end;
+
   if fUpdateCount <> 0 then
     Exit;
   if not Visible or not TabVisible then
