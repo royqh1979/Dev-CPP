@@ -6,6 +6,7 @@ Version 6.0    November 2020
   - fix: makefile generation error if #included header file is not in system include dirs
 
   - fix: class browser updated correctly when project is closed
+  - fix: typedef functions parsing error
 
 Version 6-beta6.1     November 2020
 

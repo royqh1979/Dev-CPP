@@ -102,7 +102,6 @@ type
       IsDefinition: boolean;
       InheritanceList: TList;
       isStatic: boolean): PStatement;
-    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetLastCurrentClass: PStatement; // gets last item from lastt level
     function GetCurrentClassLevel: TList;
@@ -144,6 +143,7 @@ type
     function GetIncompleteClass(const Command: AnsiString): PStatement;
     procedure ReProcessInheritance;
   public
+    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure AddHardDefineByLine(const Line: AnsiString);
@@ -1020,12 +1020,16 @@ begin
   // Walk up to first new word (before first comma or ;)
   repeat
     OldType := OldType + fTokenizer[fIndex]^.Text + ' ';
+    {
     if fTokenizer[fIndex]^.Text = '*' then begin // * is not part of type info
       Inc(fIndex);
       break;
     end;
+    }
     Inc(fIndex);
-  until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';']);
+  until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in [',', ';'])
+    or (fIndex + 2 >= fTokenizer.Tokens.Count) or
+      ((fTokenizer[fIndex + 1]^.Text[1]='(') and (fTokenizer[fIndex + 2]^.Text[1] in [',', ';']));
   OldType:= TrimRight(OldType);
 
 
@@ -1033,14 +1037,15 @@ begin
   if (fIndex+1 < fTokenizer.Tokens.Count) and (OldType <> '') then begin
     repeat
       // Support multiword typedefs
-      if (fTokenizer[fIndex]^.Text[1] = '(') then begin // function define
-        if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
+      if (fTokenizer[fIndex + 2]^.Text[1] in [',', ';']) then begin // function define
+        if (fIndex + 2 < fTokenizer.Tokens.Count) and (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
           //valid function define
-          p:=LastDelimiter(' ',fTokenizer[fIndex]^.Text);
-          if p = 0 then
-            NewType := Copy(fTokenizer[fIndex]^.Text,2,Length(fTokenizer[fIndex]^.Text)-2)
-          else
-            NewType := Copy(fTokenizer[fIndex]^.Text,p+1,Length(fTokenizer[fIndex]^.Text)-p-1);
+          NewType:=TrimRight(fTokenizer[fIndex]^.Text);
+          NewType:=Copy(NewType,2,Length(NewType)-2); //remove '(' and ')';
+          NewType:=TrimRight(NewType);
+          p:=LastDelimiter(' ',NewType);
+          if p <> 0 then
+            NewType := Copy(NewType,p+1,Length(NewType)-p);
           AddStatement(
             GetLastCurrentClass,
             fCurrentFile,
@@ -1060,8 +1065,11 @@ begin
          end;
          NewType:='';
          //skip to ',' or ';'
+         Inc(fIndex,2);
+         {
          while (fIndex< fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] in [',', ';']) do
             Inc(fIndex);
+         }
       end else if not (fTokenizer[fIndex+1]^.Text[1] in [',', ';', '(']) then begin
         NewType := NewType + fTokenizer[fIndex]^.Text + ' ';
         Inc(fIndex);
@@ -2183,7 +2191,7 @@ begin
         fInvalidatedStatements.Add(Statement);
 
       fMacroDefines.Remove(Statement);
-      fStatementList.Delete(Node);
+      fStatementList.DeleteNode(Node);
     end;
     Node := NextNode;
   end;
@@ -2956,7 +2964,7 @@ begin
   begin
     node := PStatementNode(fTempNodes[i]);
     fMacroDefines.Remove(Node^.Data);
-    fStatementList.Delete(Node);
+    fStatementList.DeleteNode(Node);
   end;
   fTempNodes.Clear;
 end;
@@ -3085,13 +3093,14 @@ begin
   List.Clear;
   if fParsing then
     Exit;
-  List.Sorted := false;
+  List.Sorted := True;
   List.Add(FileName);
 
   P := FindFileIncludes(FileName);
   if Assigned(P) then begin
     sl := P^.IncludeFiles;
     for I := 0 to sl.Count - 1 do // Last one is always an empty item
+      if List.IndexOf(sl[I])=-1 then
         List.Add(sl[I]);
   end;
   List.Sorted := True;

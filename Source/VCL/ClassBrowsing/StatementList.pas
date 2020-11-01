@@ -51,8 +51,8 @@ type
     function Add(Data: PStatement): PStatementNode;
     function DeleteFirst: Integer;
     function DeleteLast: Integer;
-    function Delete(Node: PStatementNode): Integer; overload;
-    function Delete(Data: PStatement): Integer; overload;
+    function DeleteStatement(Data: PStatement): Integer; overload;
+    function DeleteNode(Node: PStatementNode): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
     procedure DumpTo(Filename:AnsiString);
@@ -140,21 +140,21 @@ end;
 procedure TStatementList.DisposeNode(Node: PStatementNode);
 begin
   // remove it from parent's children
-    if Assigned(Node^.Data^._Parent)  then begin
-      Node^.Data^._Parent^._Children.remove(Node^.Data);
-    end else begin
-      fGlobalStatements.Remove(Node^.Data);
-    end;
+  if Assigned(Node^.Data^._Parent) then begin
+    Node^.Data^._Parent^._Children.remove(Node^.Data);
+  end else begin
+    fGlobalStatements.Remove(Node^.Data);
+  end;
 
-    if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
-      if Assigned(PStatement(Node^.Data)^._InheritanceList) then
-        PStatement(Node^.Data)^._InheritanceList.Free;
-      if Assigned(PStatement(Node^.Data)^._Children) then
-        PStatement(Node^.Data)^._Children.Free;
-      if Assigned(PStatement(Node^.Data)^._Friends) then
-        PStatement(Node^.Data)^._Friends.Free;
-      Dispose(PStatement(Node^.Data));
-    end;
+  if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
+    if Assigned(PStatement(Node^.Data)^._InheritanceList) then
+      PStatement(Node^.Data)^._InheritanceList.Free;
+    if Assigned(PStatement(Node^.Data)^._Children) then
+      PStatement(Node^.Data)^._Children.Free;
+    if Assigned(PStatement(Node^.Data)^._Friends) then
+      PStatement(Node^.Data)^._Friends.Free;
+    Dispose(PStatement(Node^.Data));
+  end;
   Dispose(PStatementNode(Node));
 end;
 
@@ -186,15 +186,15 @@ end;
 
 function TStatementList.DeleteFirst: Integer;
 begin
-  Result := Delete(fFirstNode);
+  Result := DeleteNode(fFirstNode);
 end;
 
 function TStatementList.DeleteLast: Integer;
 begin
-  Result := Delete(fLastNode);
+  Result := DeleteNode(fLastNode);
 end;
 
-function TStatementList.Delete(Node: PStatementNode): Integer;
+function TStatementList.DeleteNode(Node: PStatementNode): Integer;
 begin
   if Assigned(Node) then begin
     OnNodeDeleting(Node); // updates information about linked list
@@ -203,7 +203,7 @@ begin
   Result := fCount;
 end;
 
-function TStatementList.Delete(Data: PStatement): Integer;
+function TStatementList.DeleteStatement(Data: PStatement): Integer;
 var
   Node: PStatementNode;
 begin

@@ -1097,6 +1097,9 @@ begin
   FileName := cbutils.GetHeaderFileName(Includes[fIncludes.Count - 1]^.FileName, Line, fIncludePaths,
     fProjectIncludePaths);
 
+  if FileName = '' then
+    Exit;
+
   // And open a new entry
   OpenInclude(FileName);
 end;

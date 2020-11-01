@@ -335,7 +335,7 @@ begin
     if FileExists(FileName) then begin // the file must exist
       FilePath := ExtractFileDir(FileName); // also extracts last \
       for I := 0 to IncludePaths.Count - 1 do begin
-        if FilePath = IncludePaths[I] then begin // and its path
+        if StartsText(IncludePaths[I],FilePath) then begin
           Result := true;
           Exit;
         end;
@@ -414,7 +414,8 @@ begin
       Exit;
     end;
 
-  Result := FileName; // signifies failure
+  //Result := FileName; // signifies failure
+  Result := ''; //not found, don't use it
 end;
 
 function GetHeaderFileName(const RelativeTo, Line: AnsiString; IncludePaths, ProjectIncludePaths: TStringList):
