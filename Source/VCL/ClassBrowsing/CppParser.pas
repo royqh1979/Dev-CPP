@@ -225,10 +225,15 @@ begin
   fStatementList := TStatementList.Create; // owns the objects
   fIncludesList := TList.Create;
   fFilesToScan := TStringList.Create;
+  fFilesToScan.Sorted := True;
   fScannedFiles := TStringList.Create;
+  fScannedFiles.Sorted := True;
   fIncludePaths := TStringList.Create;
+  fIncludePaths.Sorted := True;
   fProjectIncludePaths := TStringList.Create;
+  fProjectIncludePaths.Sorted := True;
   fProjectFiles := TStringList.Create;
+  fProjectFiles.Sorted := True;
   fInvalidatedStatements := TList.Create;
   fPendingDeclarations := TList.Create;
   fMacroDefines := TList.Create;
@@ -1120,7 +1125,7 @@ begin
     if DelimPos > 3 then begin // ignore full file name stuff
       fCurrentFile := Copy(S, 1, DelimPos - 1);
       fIsSystemHeader := IsSystemHeaderFile(fCurrentFile);
-      fIsProjectFile := fProjectFiles.IndexOf(fCurrentFile) <> -1;
+      fIsProjectFile := FastIndexOf(fProjectFiles,fCurrentFile) <> -1;
       fIsHeader := IsHfile(fCurrentFile);
 
       // Mention progress to user if we enter a NEW file
@@ -1901,7 +1906,7 @@ begin
   try
     repeat
     until not HandleStatement;
-    Statements.DumpTo('f:\\statements.txt');
+    //Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;
@@ -1986,7 +1991,7 @@ begin
         Inc(fFilesScannedCount); // progress is mentioned before scanning begins
         if Assigned(fOnTotalProgress) then
           fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
-        if fScannedFiles.IndexOf(fFilesToScan[i]) = -1 then begin
+        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
           InternalParse(fFilesToScan[i], True);
         end;
         Inc(I);
@@ -2030,12 +2035,12 @@ begin
 
   // Update project listing
   if InProject then
-    if fProjectFiles.IndexOf(Value) = -1 then
+    if FastIndexOf(fProjectFiles,Value) = -1 then
       fProjectFiles.Add(Value);
 
   // Only parse given file
-  if fFilesToScan.IndexOf(Value) = -1 then // check scheduled files
-    if fScannedFiles.IndexOf(Value) = -1 then // check files already parsed
+  if FastIndexOf(fFilesToScan,Value) = -1 then // check scheduled files
+    if FastIndexOf(fScannedFiles,Value) = -1 then // check files already parsed
       fFilesToScan.Add(Value);
 end;
 
@@ -2044,7 +2049,7 @@ var
   S: AnsiString;
 begin
   S := AnsiDequotedStr(Value, '"');
-  if fIncludePaths.IndexOf(S) = -1 then
+  if FastIndexOf(fIncludePaths,S) = -1 then
     fIncludePaths.Add(S);
 end;
 
@@ -2053,7 +2058,7 @@ var
   S: AnsiString;
 begin
   S := AnsiDequotedStr(Value, '"');
-  if fProjectIncludePaths.IndexOf(S) = -1 then
+  if FastIndexOf(fProjectIncludePaths,S) = -1 then
     fProjectIncludePaths.Add(S);
 end;
 
@@ -2113,7 +2118,7 @@ begin
     if not fEnabled then
       Exit;
     FName := FileName;
-    if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
+    if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then
       Exit;
     if UpdateView then
       if Assigned(fOnBusy) then
@@ -2127,15 +2132,15 @@ begin
     InvalidateFile(HFile);
 
     if InProject then begin
-      if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
+      if (CFile <> '') and (FastIndexOf(fProjectFiles,CFile) = -1) then
         fProjectFiles.Add(CFile);
-      if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
+      if (HFile <> '') and (FastIndexOf(fProjectFiles,HFile) = -1) then
         fProjectFiles.Add(HFile);
     end else begin
-      I := fProjectFiles.IndexOf(CFile);
+      I := FastIndexOf(fProjectFiles,CFile);
       if I <> -1 then
         fProjectFiles.Delete(I);
-      I := fProjectFiles.IndexOf(HFile);
+      I := FastIndexOf(fProjectFiles,HFile);
       if I <> -1 then
         fProjectFiles.Delete(I);
     end;
@@ -2197,7 +2202,7 @@ begin
   end;
 
   // delete it from scannedfiles
-  I := fScannedFiles.IndexOf(FileName);
+  I := FastIndexOf(fScannedFiles,FileName);
   if I <> -1 then
     fScannedFiles.Delete(I);
 
@@ -2251,7 +2256,7 @@ begin
 
     // Reparse every file that contains invalidated IDs
     for I := 0 to sl.Count - 1 do
-      ParseFile(sl[I], fProjectFiles.IndexOf(sl[I]) <> -1, False, False);
+      ParseFile(sl[I], FastIndexOf(fProjectFiles,sl[I]) <> -1, False, False);
     //InternalParse(sl[I], True, nil); // TODO: do not notify user
   finally
     sl.Free;
@@ -2457,7 +2462,7 @@ begin
       // Set current file manually because we aren't parsing whole files
       fCurrentFile := Filename;
       fIsSystemHeader := IsSystemHeaderFile(fCurrentFile);
-      fIsProjectFile := fProjectFiles.IndexOf(fCurrentFile) <> -1;
+      fIsProjectFile := FastIndexOf(fProjectFiles,fCurrentFile) <> -1;
       fIsHeader := IsHfile(fCurrentFile);
 
       // We've found the function body. Scan it
@@ -3093,15 +3098,14 @@ begin
   List.Clear;
   if fParsing then
     Exit;
-  List.Sorted := True;
+  List.Sorted := False;
   List.Add(FileName);
 
   P := FindFileIncludes(FileName);
   if Assigned(P) then begin
     sl := P^.IncludeFiles;
     for I := 0 to sl.Count - 1 do // Last one is always an empty item
-      if List.IndexOf(sl[I])=-1 then
-        List.Add(sl[I]);
+      List.Add(sl[I]);
   end;
   List.Sorted := True;
 end;

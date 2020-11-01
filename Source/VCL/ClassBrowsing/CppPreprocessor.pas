@@ -271,7 +271,8 @@ begin
   }
   for i:=0 to fIncludes.Count-1 do begin
     tempItem := PFile(fIncludes[i]);
-    tempItem^.FileIncludes^.IncludeFiles.Add(FileName);
+    if FastIndexOf(tempItem^.FileIncludes^.IncludeFiles,FileName)=-1 then
+      tempItem^.FileIncludes^.IncludeFiles.Add(FileName);
     // := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
   end;
 
@@ -290,6 +291,7 @@ begin
     fCurrentIncludes := New(PFileIncludes);
     fCurrentIncludes^.BaseFile := FileName;
     fCurrentIncludes^.IncludeFiles := TStringList.Create;
+    fCurrentIncludes^.IncludeFiles.Sorted:=True;
     fIncludesList.Add(fCurrentIncludes);
   end;
 
@@ -517,7 +519,7 @@ end;
 
 function TCppPreprocessor.GetDefine(const Name: AnsiString; var Index: integer): PDefine;
 begin
-  Index := fDefines.IndexOf(Name); // use sorted searching. is really fast
+  Index := FastIndexOf(fDefines,Name); // use sorted searching. is really fast
   if Index <> -1 then
     Result := PDefine(fDefines.Objects[Index])
   else
@@ -1214,7 +1216,7 @@ begin
     end;
     DefineList.Free;
     fFileDefines.Remove(FileName);
-    fFileLists.Delete(fFileLists.IndexOf(FileName));
+    fFileLists.Delete(FastIndexOf(fFileLists,FileName));
   end;
 end;
 

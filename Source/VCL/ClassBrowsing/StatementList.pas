@@ -249,7 +249,6 @@ procedure TStatementList.Clear;
 var
   Node, NextNode: PStatementNode;
 begin
-  DumpTo('f:\\statements-before.txt');
   // Search all nodes
   Node := fFirstNode;
   while Assigned(Node) do begin
