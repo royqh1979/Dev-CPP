@@ -138,6 +138,10 @@ begin
 end;
 
 procedure TStatementList.DisposeNode(Node: PStatementNode);
+var
+  Children:TList;
+  i :integer;
+  child:PStatement;
 begin
   // remove it from parent's children
   if Assigned(Node^.Data^._Parent) then begin
@@ -149,8 +153,14 @@ begin
   if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then
       PStatement(Node^.Data)^._InheritanceList.Free;
-    if Assigned(PStatement(Node^.Data)^._Children) then
-      PStatement(Node^.Data)^._Children.Free;
+    if Assigned(PStatement(Node^.Data)^._Children) then begin
+      Children := PStatement(Node^.Data)^._Children;
+      for i:=0 to Children.Count-1 do begin
+        child:=PStatement(Children[i]);
+        child^._Parent:=nil;
+      end;
+      Children.Free;
+    end;
     if Assigned(PStatement(Node^.Data)^._Friends) then
       PStatement(Node^.Data)^._Friends.Free;
     Dispose(PStatement(Node^.Data));
@@ -239,6 +249,7 @@ procedure TStatementList.Clear;
 var
   Node, NextNode: PStatementNode;
 begin
+  DumpTo('f:\\statements-before.txt');
   // Search all nodes
   Node := fFirstNode;
   while Assigned(Node) do begin

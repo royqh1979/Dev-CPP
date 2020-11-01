@@ -1901,7 +1901,7 @@ begin
   try
     repeat
     until not HandleStatement;
-    //Statements.DumpTo('f:\\statements.txt');
+    Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentClass.Clear;

@@ -7,6 +7,7 @@ Version 6.0    November 2020
 
   - fix: class browser updated correctly when project is closed
   - fix: typedef functions parsing error
+  - fix: when clear Parser's statementlist, delete a parent before it's children will cause Dev-C++ to crash
 
 Version 6-beta6.1     November 2020
 
