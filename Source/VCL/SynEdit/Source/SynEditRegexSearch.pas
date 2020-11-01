@@ -42,13 +42,12 @@ unit SynEditRegexSearch;
 interface
 
 uses
+  regexpr,
 {$IFDEF SYN_CLX}
   QSynEditTypes,
-  QSynRegExpr,
   QSynEditMiscClasses,
 {$ELSE}
   SynEditTypes,
-  SynRegExpr,
   SynEditMiscClasses,
 {$ENDIF}
   Classes;

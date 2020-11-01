@@ -1,9 +1,17 @@
-Version 6-beta7    November 2020
+Version 6.0    November 2020
   
   - fix: change icons for run/complie&run/replace
   - fix: make class members dropdown list in toolbar work
   - add: open console from current file's folder
   - fix: makefile generation error if #included header file is not in system include dirs
+
+  - fix: use Parsed #include info to generate dependent list in Makefile, instead of "gcc -MM"
+  - fix: class browser updated correctly when project is closed
+  - fix: typedef functions parsing error
+  - fix: when clear Parser's statementlist, delete a parent before it's children will cause Dev-C++ to crash
+  - fix: use fastindexof to search in stringlists, improve search speed
+  - fix: search using regular expression
+  - fix: Dev-C++ hangs when make project and ld.exe have errors
 
 Version 6-beta6.1     November 2020
 

@@ -648,6 +648,7 @@ const
   ID_ENV_RIGHT                          = 38065;
   ID_ENV_RESETDEV                       = 38066;
   ID_ENV_OPTIONSDIRHINT                 = 38067;
+  ID_FIND_REGEXP                        = 38068;
 
   // Goto function form
   ID_GF_TEXT                            = 40001;

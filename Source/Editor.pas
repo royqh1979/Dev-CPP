@@ -89,7 +89,7 @@ type
     procedure EditorDblClick(Sender: TObject);
     procedure EditorClick(Sender: TObject);
     procedure EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
-    procedure EditorReplaceText(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column: integer; var Action:
+    procedure EditorReplaceText(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column, wordlen: integer; var Action:
       TSynReplaceAction);
     procedure EditorDropFiles(Sender: TObject; x, y: integer; aFiles: TStrings);
     procedure EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -501,7 +501,7 @@ begin
   end;
 end;
 
-procedure TEditor.EditorReplaceText(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column: integer; var
+procedure TEditor.EditorReplaceText(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column, wordlen: integer; var
   Action: TSynReplaceAction);
 var
   pt: TPoint;

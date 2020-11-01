@@ -930,6 +930,7 @@ type
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
     procedure OnClassBrowserUpdated(sender:TObject);
+    procedure CloseProject(RefreshEditor:boolean);
   public
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -944,7 +945,7 @@ type
     procedure OpenProject(const s: AnsiString);
     procedure GotoBreakpoint(const FileName: AnsiString; Line: integer);
     procedure RemoveActiveBreakpoints;
-    procedure AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
+    procedure AddFindOutputItem(const line, col, filename, msg:AnsiString;wordlen:integer);
     procedure EditorSaveTimer(sender: TObject);
     procedure OnInputEvalReady(const evalvalue: AnsiString);
     procedure SetStatusbarLineCol;
@@ -1024,7 +1025,8 @@ begin
   CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
-    actCloseProjectExecute(Self);
+    CloseProject(False);
+//    actCloseProjectExecute(Self);
 
   if Assigned(fProject) then begin
     Action := caNone;
@@ -1605,7 +1607,7 @@ begin
     else
       s2 := fProject.Name;
     if MessageDlg(format(Lang[ID_MSG_CLOSEPROJECTPROMPT], [s2]), mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-      actCloseProject.Execute
+      CloseProject(False)
     else
       exit;
   end;
@@ -1700,13 +1702,13 @@ begin
   end;
 end;
 
-procedure TMainForm.AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
+procedure TMainForm.AddFindOutputItem(const line, col, filename, msg: AnsiString; wordlen:integer);
 var
   ListItem: TListItem;
 begin
   ListItem := FindOutput.Items.Add;
   ListItem.Caption := '';
-  ListItem.Data := Pointer(Length(keyword));
+  ListItem.Data := Pointer(wordlen);
   ListItem.SubItems.Add(line);
   ListItem.SubItems.Add(col);
   ListItem.SubItems.Add(filename);
@@ -2052,6 +2054,18 @@ begin
     rbCpp.Checked := devData.DefCpp;
     rbC.Checked := not rbCpp.Checked;
     if ShowModal = mrOk then begin
+      //Create the project folder
+      if not DirectoryExists(edProjectLocation.Text) then begin
+        if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
+            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+          Exit;
+        if not CreateDir(edProjectLocation.Text) then begin
+          MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
+            mtError, [mbOK], 0);
+          Exit;
+        end;
+      end;
+
       if cbDefault.Checked then
         devData.DefCpp := rbCpp.Checked;
 
@@ -2064,21 +2078,9 @@ begin
 
         // Ask if the user wants to close the current one. If not, abort
         if MessageDlg(format(Lang[ID_MSG_CLOSECREATEPROJECT], [s]), mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-          actCloseProject.Execute
+          CloseProject(False)
         else
           Exit;
-      end;
-
-      //Create the project folder
-      if not DirectoryExists(edProjectLocation.Text) then begin
-        if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
-            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
-          Exit;
-        if not CreateDir(edProjectLocation.Text) then begin
-          MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
-            mtError, [mbOK], 0);
-          Exit;
-        end;
       end;
 
       s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
@@ -2095,6 +2097,7 @@ begin
           Free
         end;
       end;
+
 
       // Create an empty project
       fProject := TProject.Create(s, edProjectName.Text);
@@ -2210,9 +2213,10 @@ begin
   end;
 end;
 
-procedure TMainForm.actCloseProjectExecute(Sender: TObject);
+procedure  TMainForm.CloseProject(RefreshEditor:boolean);
 var
   s: AnsiString;
+  e:TEditor;
 begin
   // Stop executing program
   actStopExecuteExecute(Self);
@@ -2243,6 +2247,19 @@ begin
     end else
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
+    if not fQuitting and RefreshEditor then begin
+      //reset Class browsing
+      LeftPageControl.ActivePage := LeftClassSheet;
+      UpdateClassBrowsing;
+      ClassBrowser.ProjectDir := '';
+      //UpdateClassBrowserForEditor(EditorList.GetEditor());
+
+      e:=EditorList.GetEditor();
+      if Assigned(e) and not e.InProject then begin
+        UpdateClassBrowserForEditor(e);
+      end;
+    end;
+
     // Remember it
     dmMain.AddtoHistory(fProject.FileName);
 
@@ -2259,17 +2276,21 @@ begin
     // Clear error browser
     ClearMessageControl;
 
-    // Because fProject was assigned during editor closing, force update trigger again
-    EditorPageControlLeft.OnChange(EditorPageControlLeft);
-
-    if not fQuitting then begin
-      ClassBrowser.ProjectDir := '';
-      UpdateClassBrowsing;
-      UpdateClassBrowserForEditor(EditorList.GetEditor());
+    if not fQuitting and RefreshEditor then begin
+      // Because fProject was assigned during editor closing, force update trigger again
+      EditorPageControlLeft.OnChange(EditorPageControlLeft);
     end;
+
   finally
     FileMonitor.EndUpdate;
   end;
+
+end;
+
+
+procedure TMainForm.actCloseProjectExecute(Sender: TObject);
+begin
+  CloseProject(True);
 end;
 
 procedure TMainForm.actExportHTMLExecute(Sender: TObject);
@@ -4088,7 +4109,7 @@ begin
     ClassBrowser.ShowInheritedMembers := devClassBrowsing.ShowInheritedMembers;
     ClassBrowser.SortByType := devClassBrowsing.SortByType;
     ClassBrowser.SortAlphabetically := devClassBrowsing.SortAlphabetically;
-    ClassBrowser.TabVisible := LeftPageControl.ActivePageIndex = 1;
+    ClassBrowser.TabVisible := LeftPageControl.ActivePage = LeftClassSheet;
   finally
     ClassBrowser.EndUpdate;
   end;
@@ -4578,13 +4599,19 @@ end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
-  if Assigned(e) then begin
-    if (e.FileName <> '') then begin
-      CppParser.ParseFile(e.FileName,e.InProject,True);
+  ClassBrowser.BeginUpdate;
+  try
+    if Assigned(e) then begin
+      ClassBrowser.CurrentFile := e.FileName;
+      if (e.FileName <> '') then begin
+        CppParser.ParseFile(e.FileName,e.InProject,True);
+      end;
+    end else begin
+      ClassBrowser.CurrentFile := '';
     end;
-    ClassBrowser.CurrentFile := e.FileName
-  end else
-    ClassBrowser.CurrentFile := '';
+  finally
+    ClassBrowser.EndUpdate;
+  end;
 end;
 
 procedure TMainForm.actBrowserViewAllExecute(Sender: TObject);

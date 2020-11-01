@@ -66,7 +66,8 @@ const
 
 type
   TSynSearchOption = (ssoMatchCase, ssoWholeWord, ssoBackwards,
-    ssoEntireScope, ssoSelectedOnly, ssoReplace, ssoReplaceAll, ssoPrompt);
+    ssoEntireScope, ssoSelectedOnly, ssoReplace, ssoReplaceAll, ssoPrompt,
+    ssoRegExp);
   TSynSearchOptions = set of TSynSearchOption;
 
   TSynIdentChars = set of char;

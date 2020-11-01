@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 518
-  Top = 220
+  Left = 380
+  Top = 210
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = DebugSheet
+    ActivePage = FindSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
@@ -2532,7 +2532,6 @@ object MainForm: TMainForm
     object actConfigdevShortcuts: TAction
       Category = 'Tools'
       Caption = 'Configure &Shortcuts'
-      ImageIndex = 31
       OnExecute = actConfigdevShortcutsExecute
     end
     object actComment: TAction

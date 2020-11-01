@@ -102,7 +102,6 @@ type
       IsDefinition: boolean;
       InheritanceList: TList;
       isStatic: boolean): PStatement;
-    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetLastCurrentClass: PStatement; // gets last item from lastt level
     function GetCurrentClassLevel: TList;
@@ -144,6 +143,7 @@ type
     function GetIncompleteClass(const Command: AnsiString): PStatement;
     procedure ReProcessInheritance;
   public
+    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure AddHardDefineByLine(const Line: AnsiString);
@@ -225,10 +225,15 @@ begin
   fStatementList := TStatementList.Create; // owns the objects
   fIncludesList := TList.Create;
   fFilesToScan := TStringList.Create;
+  fFilesToScan.Sorted := True;
   fScannedFiles := TStringList.Create;
+  fScannedFiles.Sorted := True;
   fIncludePaths := TStringList.Create;
+  fIncludePaths.Sorted := True;
   fProjectIncludePaths := TStringList.Create;
+  fProjectIncludePaths.Sorted := True;
   fProjectFiles := TStringList.Create;
+  fProjectFiles.Sorted := True;
   fInvalidatedStatements := TList.Create;
   fPendingDeclarations := TList.Create;
   fMacroDefines := TList.Create;
@@ -1020,12 +1025,16 @@ begin
   // Walk up to first new word (before first comma or ;)
   repeat
     OldType := OldType + fTokenizer[fIndex]^.Text + ' ';
+    {
     if fTokenizer[fIndex]^.Text = '*' then begin // * is not part of type info
       Inc(fIndex);
       break;
     end;
+    }
     Inc(fIndex);
-  until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';']);
+  until (fIndex + 1 >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex + 1]^.Text[1] in [',', ';'])
+    or (fIndex + 2 >= fTokenizer.Tokens.Count) or
+      ((fTokenizer[fIndex + 1]^.Text[1]='(') and (fTokenizer[fIndex + 2]^.Text[1] in [',', ';']));
   OldType:= TrimRight(OldType);
 
 
@@ -1033,14 +1042,15 @@ begin
   if (fIndex+1 < fTokenizer.Tokens.Count) and (OldType <> '') then begin
     repeat
       // Support multiword typedefs
-      if (fTokenizer[fIndex]^.Text[1] = '(') then begin // function define
-        if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
+      if (fTokenizer[fIndex + 2]^.Text[1] in [',', ';']) then begin // function define
+        if (fIndex + 2 < fTokenizer.Tokens.Count) and (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
           //valid function define
-          p:=LastDelimiter(' ',fTokenizer[fIndex]^.Text);
-          if p = 0 then
-            NewType := Copy(fTokenizer[fIndex]^.Text,2,Length(fTokenizer[fIndex]^.Text)-2)
-          else
-            NewType := Copy(fTokenizer[fIndex]^.Text,p+1,Length(fTokenizer[fIndex]^.Text)-p-1);
+          NewType:=TrimRight(fTokenizer[fIndex]^.Text);
+          NewType:=Copy(NewType,2,Length(NewType)-2); //remove '(' and ')';
+          NewType:=TrimRight(NewType);
+          p:=LastDelimiter(' ',NewType);
+          if p <> 0 then
+            NewType := Copy(NewType,p+1,Length(NewType)-p);
           AddStatement(
             GetLastCurrentClass,
             fCurrentFile,
@@ -1060,8 +1070,11 @@ begin
          end;
          NewType:='';
          //skip to ',' or ';'
+         Inc(fIndex,2);
+         {
          while (fIndex< fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] in [',', ';']) do
             Inc(fIndex);
+         }
       end else if not (fTokenizer[fIndex+1]^.Text[1] in [',', ';', '(']) then begin
         NewType := NewType + fTokenizer[fIndex]^.Text + ' ';
         Inc(fIndex);
@@ -1112,7 +1125,7 @@ begin
     if DelimPos > 3 then begin // ignore full file name stuff
       fCurrentFile := Copy(S, 1, DelimPos - 1);
       fIsSystemHeader := IsSystemHeaderFile(fCurrentFile);
-      fIsProjectFile := fProjectFiles.IndexOf(fCurrentFile) <> -1;
+      fIsProjectFile := FastIndexOf(fProjectFiles,fCurrentFile) <> -1;
       fIsHeader := IsHfile(fCurrentFile);
 
       // Mention progress to user if we enter a NEW file
@@ -1858,7 +1871,8 @@ begin
     Exit;
   end;
 
-   {
+
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
@@ -1977,7 +1991,7 @@ begin
         Inc(fFilesScannedCount); // progress is mentioned before scanning begins
         if Assigned(fOnTotalProgress) then
           fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
-        if fScannedFiles.IndexOf(fFilesToScan[i]) = -1 then begin
+        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
           InternalParse(fFilesToScan[i], True);
         end;
         Inc(I);
@@ -2021,12 +2035,12 @@ begin
 
   // Update project listing
   if InProject then
-    if fProjectFiles.IndexOf(Value) = -1 then
+    if FastIndexOf(fProjectFiles,Value) = -1 then
       fProjectFiles.Add(Value);
 
   // Only parse given file
-  if fFilesToScan.IndexOf(Value) = -1 then // check scheduled files
-    if fScannedFiles.IndexOf(Value) = -1 then // check files already parsed
+  if FastIndexOf(fFilesToScan,Value) = -1 then // check scheduled files
+    if FastIndexOf(fScannedFiles,Value) = -1 then // check files already parsed
       fFilesToScan.Add(Value);
 end;
 
@@ -2035,7 +2049,7 @@ var
   S: AnsiString;
 begin
   S := AnsiDequotedStr(Value, '"');
-  if fIncludePaths.IndexOf(S) = -1 then
+  if FastIndexOf(fIncludePaths,S) = -1 then
     fIncludePaths.Add(S);
 end;
 
@@ -2044,7 +2058,7 @@ var
   S: AnsiString;
 begin
   S := AnsiDequotedStr(Value, '"');
-  if fProjectIncludePaths.IndexOf(S) = -1 then
+  if FastIndexOf(fProjectIncludePaths,S) = -1 then
     fProjectIncludePaths.Add(S);
 end;
 
@@ -2104,7 +2118,7 @@ begin
     if not fEnabled then
       Exit;
     FName := FileName;
-    if OnlyIfNotParsed and (fScannedFiles.IndexOf(FName) <> -1) then
+    if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then
       Exit;
     if UpdateView then
       if Assigned(fOnBusy) then
@@ -2118,15 +2132,15 @@ begin
     InvalidateFile(HFile);
 
     if InProject then begin
-      if (CFile <> '') and (fProjectFiles.IndexOf(CFile) = -1) then
+      if (CFile <> '') and (FastIndexOf(fProjectFiles,CFile) = -1) then
         fProjectFiles.Add(CFile);
-      if (HFile <> '') and (fProjectFiles.IndexOf(HFile) = -1) then
+      if (HFile <> '') and (FastIndexOf(fProjectFiles,HFile) = -1) then
         fProjectFiles.Add(HFile);
     end else begin
-      I := fProjectFiles.IndexOf(CFile);
+      I := FastIndexOf(fProjectFiles,CFile);
       if I <> -1 then
         fProjectFiles.Delete(I);
-      I := fProjectFiles.IndexOf(HFile);
+      I := FastIndexOf(fProjectFiles,HFile);
       if I <> -1 then
         fProjectFiles.Delete(I);
     end;
@@ -2182,13 +2196,13 @@ begin
         fInvalidatedStatements.Add(Statement);
 
       fMacroDefines.Remove(Statement);
-      fStatementList.Delete(Node);
+      fStatementList.DeleteNode(Node);
     end;
     Node := NextNode;
   end;
 
   // delete it from scannedfiles
-  I := fScannedFiles.IndexOf(FileName);
+  I := FastIndexOf(fScannedFiles,FileName);
   if I <> -1 then
     fScannedFiles.Delete(I);
 
@@ -2242,7 +2256,7 @@ begin
 
     // Reparse every file that contains invalidated IDs
     for I := 0 to sl.Count - 1 do
-      ParseFile(sl[I], fProjectFiles.IndexOf(sl[I]) <> -1, False, False);
+      ParseFile(sl[I], FastIndexOf(fProjectFiles,sl[I]) <> -1, False, False);
     //InternalParse(sl[I], True, nil); // TODO: do not notify user
   finally
     sl.Free;
@@ -2448,7 +2462,7 @@ begin
       // Set current file manually because we aren't parsing whole files
       fCurrentFile := Filename;
       fIsSystemHeader := IsSystemHeaderFile(fCurrentFile);
-      fIsProjectFile := fProjectFiles.IndexOf(fCurrentFile) <> -1;
+      fIsProjectFile := FastIndexOf(fProjectFiles,fCurrentFile) <> -1;
       fIsHeader := IsHfile(fCurrentFile);
 
       // We've found the function body. Scan it
@@ -2955,7 +2969,7 @@ begin
   begin
     node := PStatementNode(fTempNodes[i]);
     fMacroDefines.Remove(Node^.Data);
-    fStatementList.Delete(Node);
+    fStatementList.DeleteNode(Node);
   end;
   fTempNodes.Clear;
 end;
@@ -3084,14 +3098,14 @@ begin
   List.Clear;
   if fParsing then
     Exit;
-  List.Sorted := false;
+  List.Sorted := False;
   List.Add(FileName);
 
   P := FindFileIncludes(FileName);
   if Assigned(P) then begin
     sl := P^.IncludeFiles;
     for I := 0 to sl.Count - 1 do // Last one is always an empty item
-        List.Add(sl[I]);
+      List.Add(sl[I]);
   end;
   List.Sorted := True;
 end;

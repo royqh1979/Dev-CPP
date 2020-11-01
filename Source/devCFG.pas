@@ -620,6 +620,7 @@ type
     fOriginEntireScope: boolean; // false == from cursor
     fSearchWhere: integer; // 0 == project files, 1 == open files, 2 == current file
     fDirBackward: boolean;
+    fRegExp: boolean; //use regular expression
 
     // Floating windows
     fProjectFloat: boolean;
@@ -736,7 +737,7 @@ type
     property OriginEntireScope: boolean read fOriginEntireScope write fOriginEntireScope;
     property SearchWhere: integer read fSearchWhere write fSearchWhere;
     property DirBackward: boolean read fDirBackward write fDirBackward;
-
+    property RegExp: boolean read fRegExp write fRegExp;
     // Floating windows
     property ProjectFloat: boolean read fProjectFloat write fProjectFloat;
     property MessageFloat: boolean read fMessageFloat write fMessageFloat;
@@ -1042,6 +1043,7 @@ begin
   fOriginEntireScope := false;
   fSearchWhere := 1;
   fDirBackward := false;
+  fRegExp := false;
 
   // Floating windows
   fMessageFloat := false;

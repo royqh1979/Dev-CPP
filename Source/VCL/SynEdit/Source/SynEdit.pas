@@ -143,7 +143,7 @@ type
     var Command: TSynEditorCommand; var AChar: char; Data: pointer) of object;
 
   TReplaceTextEvent = procedure(Sender: TObject; const ASearch, AReplace:
-    string; Line, Column: integer; var Action: TSynReplaceAction) of object;
+    string; Line, Column, wordlen: integer;  var Action: TSynReplaceAction) of object;
 
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: integer;
     var Special: boolean; var FG, BG: TColor) of object;
@@ -616,7 +616,7 @@ type
     procedure DoOnProcessCommand(var Command: TSynEditorCommand;
       var AChar: char; Data: pointer); virtual;
     function DoOnReplaceText(const ASearch, AReplace: string;
-      Line, Column: integer): TSynReplaceAction; virtual;
+      Line, Column, wordlen: integer): TSynReplaceAction; virtual;
     function DoOnSpecialLineColors(Line: integer;
       var Foreground, Background: TColor): boolean; virtual;
     procedure DoOnStatusChange(Changes: TSynStatusChanges); virtual;
@@ -7833,7 +7833,7 @@ begin
         // Prompt and replace or replace all.  If user chooses to replace
         // all after prompting, turn off prompting.
         if bPrompt and Assigned(fOnReplaceText) then begin
-          nAction := DoOnReplaceText(ASearch, AReplace, ptCurrent.Line, nFound);
+          nAction := DoOnReplaceText(ASearch, AReplace, ptCurrent.Line, nFound, nSearchLen);
           if nAction = raCancel then
             exit;
         end else
@@ -9538,11 +9538,11 @@ begin
 end;
 
 function TCustomSynEdit.DoOnReplaceText(const ASearch, AReplace: string;
-  Line, Column: integer): TSynReplaceAction;
+  Line, Column,wordlen: integer): TSynReplaceAction;
 begin
   Result := raCancel;
   if Assigned(fOnReplaceText) then
-    fOnReplaceText(Self, ASearch, AReplace, Line, Column, Result);
+    fOnReplaceText(Self, ASearch, AReplace, Line, Column,wordlen, Result);
 end;
 
 procedure TCustomSynEdit.DoOnStatusChange(Changes: TSynStatusChanges);

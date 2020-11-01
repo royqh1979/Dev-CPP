@@ -347,9 +347,11 @@ procedure TCompiler.WriteMakeObjFilesRules(var F: TextFile);
 resourcestring
   cSyntaxCmdLine = '%s "%s" %s';
 var
-  i: integer;
-  cmdline,FileName, ShortFileName, objStr,ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: AnsiString;
+  i,j: integer;
+  FileName, ShortFileName, objStr,ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: AnsiString;
   encodingStr: AnsiString;
+  fileIncludes: TStringList;
+  headerName: AnsiString;
 begin
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
@@ -369,20 +371,29 @@ begin
     // Only process source files
     if GetFileTyp(ShortFileName) in [utcSrc, utcppSrc] then begin
       Writeln(F);
-
-      //roy
-      if GetFileTyp(ShortFileName) = utcSrc then begin
-        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gccName, ShortFileName, '-MM '])
-        cmdline := cmdline + StringReplace(fIncludesParams, '\', '/', [rfReplaceAll]));
+      objStr:=ShortFileName+': ';
+      if MainForm.CppParser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
+        fileIncludes := TStringList.Create;
+        try
+          MainForm.CppParser.GetFileIncludes(FileName,fileIncludes);
+          for j:=0 to fileIncludes.Count-1 do begin
+            headerName := fileIncludes[j];
+            if headerName = FileName then
+              continue;
+            if not MainForm.CppParser.IsSystemHeaderFile(headerName) then begin
+              objStr := objStr + ' ' + ExtractRelativePath(Makefile,headerName);
+            end;
+          end;
+        finally
+          fileIncludes.Free;
+        end;
       end else begin
-        cmdline := Format(cSyntaxCmdLine, [fCompilerSet.gppName, ShortFileName, '-MM '])
-        cmdline := cmdline + StringReplace(fCppIncludesParams, '\', '/', [rfReplaceAll]));
+        for j := 0 to pred(fProject.Units.Count) do begin
+          if GetFileTyp(fProject.Units[j].FileName) in [utcHead, utcppHead] then begin  // or  we simply use unit headers
+              objStr := objStr + ' ' + ExtractRelativePath(Makefile,fProject.Units[j].FileName);
+          end;
+        end;
       end;
-      DoLogEntry(cmdline);
-      objStr := RunAndGetOutput(cmdline, ExtractFileDir(MakeFile), nil, nil, False);
-      DoLogEntry(cmdline);
-      DoLogEntry(objStr);
-      DoLogEntry('---------------');
 
       if fProject.Options.ObjectOutput <> '' then begin
         ObjFileName := IncludeTrailingPathDelimiter(fProject.Options.ObjectOutput) +
@@ -398,7 +409,9 @@ begin
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
       end;
 
-      Write(F,ObjStr);
+      objStr:=objStr;
+
+      Writeln(F,ObjStr);
 
       // Write custom build command
       if fProject.Units[i].OverrideBuildCmd and (fProject.Units[i].BuildCmd <> '') then begin
@@ -1080,7 +1093,9 @@ var
       if delim > 0 then begin
         OFile := Copy(OMsg, 1, delim - 1);
         Delete(OMsg, 1, delim);
-      end;
+      end else
+        Exit;
+        
       if not EndsText('ld.exe',OFile) then // it's not a ld.exe output, stop parsing
         break;
     end;
