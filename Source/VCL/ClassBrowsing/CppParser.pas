@@ -1858,7 +1858,8 @@ begin
     Exit;
   end;
 
-   {
+
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\result.txt');
