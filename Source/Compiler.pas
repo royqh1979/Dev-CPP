@@ -1093,7 +1093,9 @@ var
       if delim > 0 then begin
         OFile := Copy(OMsg, 1, delim - 1);
         Delete(OMsg, 1, delim);
-      end;
+      end else
+        Exit;
+        
       if not EndsText('ld.exe',OFile) then // it's not a ld.exe output, stop parsing
         break;
     end;
