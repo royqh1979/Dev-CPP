@@ -29,7 +29,8 @@ package SynEdit_R7;
 requires
   vcl,
   vcldb,
-  vclx;
+  vclx,
+  rtl;
 
 contains
   SynTextDrawer in '..\Source\SynTextDrawer.pas',
@@ -128,6 +129,8 @@ contains
   SynHighlighterDOT in '..\Source\SynHighlighterDOT.pas',
   SynHighlighterVrml97 in '..\Source\SynHighlighterVrml97.pas',
   SynHighlighterEiffel in '..\Source\SynHighlighterEiffel.pas',
-  SynEditCodeFolding in '..\Source\SynEditCodeFolding.pas';
+  SynEditCodeFolding in '..\Source\SynEditCodeFolding.pas',
+  regexpr in '..\Source\regexpr.pas',
+  regexpr_unicodedata in '..\Source\regexpr_unicodedata.pas';
 
 end.

@@ -10,6 +10,7 @@ Version 6.0    November 2020
   - fix: typedef functions parsing error
   - fix: when clear Parser's statementlist, delete a parent before it's children will cause Dev-C++ to crash
   - fix: use fastindexof to search in stringlists, improve search speed
+  - fix: search using regular expression
 
 Version 6-beta6.1     November 2020
 
