@@ -945,7 +945,7 @@ type
     procedure OpenProject(const s: AnsiString);
     procedure GotoBreakpoint(const FileName: AnsiString; Line: integer);
     procedure RemoveActiveBreakpoints;
-    procedure AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
+    procedure AddFindOutputItem(const line, col, filename, msg:AnsiString;wordlen:integer);
     procedure EditorSaveTimer(sender: TObject);
     procedure OnInputEvalReady(const evalvalue: AnsiString);
     procedure SetStatusbarLineCol;
@@ -1702,13 +1702,13 @@ begin
   end;
 end;
 
-procedure TMainForm.AddFindOutputItem(const line, col, filename, msg, keyword: AnsiString);
+procedure TMainForm.AddFindOutputItem(const line, col, filename, msg: AnsiString; wordlen:integer);
 var
   ListItem: TListItem;
 begin
   ListItem := FindOutput.Items.Add;
   ListItem.Caption := '';
-  ListItem.Data := Pointer(Length(keyword));
+  ListItem.Data := Pointer(wordlen);
   ListItem.SubItems.Add(line);
   ListItem.SubItems.Add(col);
   ListItem.SubItems.Add(filename);

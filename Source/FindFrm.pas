@@ -23,7 +23,8 @@ interface
 
 uses
   Windows, Messages, editor, SysUtils, Classes, Graphics, Controls, Forms,
-  SynEdit, StdCtrls, SynEditTypes, SynEditSearch, Clipbrd, ComCtrls, Menus;
+  SynEdit, StdCtrls, SynEditTypes, SynEditSearch, Clipbrd, ComCtrls, Menus,
+  SynEditRegexSearch;
 
 type
   TFindAction = (faFind, faFindFiles, faReplace, faReplaceFiles);
@@ -58,6 +59,7 @@ type
     N1: TMenuItem;
     FindSelAll: TMenuItem;
     rbCurFile: TRadioButton;
+    cbRegExp: TCheckBox;
     procedure btnExecuteClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnCancelClick(Sender: TObject);
@@ -78,10 +80,11 @@ type
     fCurFile: AnsiString;
     fTabIndex: integer;
     fSearchEngine: TSynEditSearch;
+    fRegExpSearchEngine: TSynEditRegexSearch;
     fTempSynEdit: TSynEdit;
     procedure LoadText;
-    procedure FindAllAction(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column: integer; var Action:
-      TSynReplaceAction);
+    procedure FindAllAction(Sender: TObject; const aSearch, aReplace: AnsiString;
+      Line, Column, wordlen: integer; var Action:  TSynReplaceAction);
     function Execute(editor: TSynEdit; action: TFindAction): integer;
   public
     property TabIndex: integer read fTabIndex write fTabIndex;
@@ -143,7 +146,10 @@ begin
     editor.OnReplaceText := FindAllAction;
 
   // Swap search engire for ours
-  editor.SearchEngine := fSearchEngine;
+  if (ssoRegExp in fSearchOptions) then
+    editor.SearchEngine := fRegExpSearchEngine
+  else
+    editor.SearchEngine := fSearchEngine;
   result := editor.SearchReplace(cboFindText.Text, cboReplaceText.Text, fSearchOptions);
 
   // Don't touch editors which we are only scanning
@@ -200,6 +206,8 @@ begin
   fSearchOptions := [];
 
   // Apply options
+  if cbRegExp.Checked then
+    Include(fSearchOptions, ssoRegExp);
   if cbMatchCase.Checked then
     Include(fSearchOptions, ssoMatchCase);
   if cbWholeWord.Checked then
@@ -359,8 +367,8 @@ begin
   end;
 end;
 
-procedure TFindForm.FindAllAction(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column: integer; var
-  Action: TSynReplaceAction);
+procedure TFindForm.FindAllAction(Sender: TObject; const aSearch, aReplace: AnsiString;
+  Line, Column,wordlen: integer; var Action: TSynReplaceAction);
 var
   p: TBufferCoord;
   q: TDisplayCoord;
@@ -371,7 +379,7 @@ begin
 
   // Convert to display coords
   MainForm.AddFindOutputItem(IntToStr(Line), IntToStr(Column), fCurFile, TCustomSynEdit(Sender).Lines[Line - 1],
-    aSearch);
+    wordlen);
   action := raSkip;
 end;
 
@@ -381,6 +389,7 @@ begin
   devData.CaseSensitive := cbMatchCase.Checked;
   devData.Wholewords := cbWholeWord.Checked;
   devData.PromptReplace := cbPrompt.Checked;
+  devData.RegExp := cbRegExp.Checked;
 
   devData.ScopeIsSelected := rbSelectedOnly.Checked;
   devData.DirBackward := rbBackward.Checked;
@@ -461,6 +470,7 @@ begin
   cbMatchCase.Caption := Lang[ID_FIND_CASE];
   cbWholeWord.Caption := Lang[ID_FIND_WWORD];
   cbPrompt.Caption := Lang[ID_FIND_PROMPTREPLACE];
+  cbRegExp.Caption := Lang[ID_FIND_REGEXP];
 
   grpWhere.Caption := Lang[ID_FIND_GRP_WHERE];
   rbProjectFiles.Caption := Lang[ID_FIND_PRJFILES];
@@ -494,6 +504,7 @@ begin
   LoadText;
 
   fSearchEngine := TSynEditSearch.Create(Self);
+  fRegExpSearchEngine := TSynEditRegexSearch.Create(Self);
 
   // Create a temporary editor for closed file searching
   fTempSynEdit := TSynEdit.Create(Self);
@@ -510,6 +521,7 @@ begin
   cbMatchCase.Checked := devData.CaseSensitive;
   cbWholeWord.Checked := devData.Wholewords;
   cbPrompt.Checked := devData.PromptReplace;
+  cbRegExp.Checked := devData.RegExp;
 
   rbSelectedOnly.Checked := devData.ScopeIsSelected;
   rbBackward.Checked := devData.DirBackward;
@@ -563,6 +575,7 @@ end;
 
 procedure TFindForm.FormDestroy(Sender: TObject);
 begin
+  fRegExpSearchEngine.Free;
   fSearchEngine.Free;
   fTempSynEdit.Free;
 end;

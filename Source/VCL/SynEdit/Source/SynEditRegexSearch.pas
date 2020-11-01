@@ -42,13 +42,12 @@ unit SynEditRegexSearch;
 interface
 
 uses
+  regexpr,
 {$IFDEF SYN_CLX}
   QSynEditTypes,
-  QSynRegExpr,
   QSynEditMiscClasses,
 {$ELSE}
   SynEditTypes,
-  SynRegExpr,
   SynEditMiscClasses,
 {$ENDIF}
   Classes;
@@ -88,6 +87,7 @@ constructor TSynEditRegexSearch.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   fRegex := TRegExpr.Create;
+  fRegex
   fPositions := TList.Create;
   fLengths := TList.Create;
 end;

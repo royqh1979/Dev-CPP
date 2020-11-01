@@ -1,4 +1,4 @@
-﻿unit regexpr;
+Unit regexpr;
 
 {
   TRegExpr class library
@@ -75,7 +75,7 @@ interface
   {$INLINE ON}
 {$ENDIF}
 // ======== Define options for TRegExpr engine
-{$DEFINE Unicode} // Use WideChar for characters and UnicodeString/WideString for strings
+{ off $DEFINE Unicode} // Use WideChar for characters and UnicodeString/WideString for strings
 { off $DEFINE UnicodeEx} // Support Unicode >0xFFFF, e.g. emoji, e.g. "." must find 2 WideChars of 1 emoji
 { off $DEFINE UseWordChars} // Use WordChars property, otherwise fixed list 'a'..'z','A'..'Z','0'..'9','_'
 { off $DEFINE UseSpaceChars} // Use SpaceChars property, otherwise fixed list
@@ -911,12 +911,12 @@ begin
 end;
 
 {$IFDEF FastUnicodeData}
-function _UpperCase(Ch: REChar): REChar; inline;
+function _UpperCase(Ch: REChar): REChar;
 begin
   Result := CharUpperArray[Ord(Ch)];
 end;
 
-function _LowerCase(Ch: REChar): REChar; inline;
+function _LowerCase(Ch: REChar): REChar; 
 begin
   Result := CharLowerArray[Ord(Ch)];
 end;
@@ -6459,18 +6459,30 @@ end;
 function TRegExpr.DumpCheckerIndex(N: byte): RegExprString;
 begin
   Result := '?';
-  if N = CheckerIndex_Word then Exit('\w');
-  if N = CheckerIndex_NotWord then Exit('\W');
-  if N = CheckerIndex_Digit then Exit('\d');
-  if N = CheckerIndex_NotDigit then Exit('\D');
-  if N = CheckerIndex_Space then Exit('\s');
-  if N = CheckerIndex_NotSpace then Exit('\S');
-  if N = CheckerIndex_HorzSep then Exit('\h');
-  if N = CheckerIndex_NotHorzSep then Exit('\H');
-  if N = CheckerIndex_VertSep then Exit('\v');
-  if N = CheckerIndex_NotVertSep then Exit('\V');
-  if N = CheckerIndex_LowerAZ then Exit('az');
-  if N = CheckerIndex_UpperAZ then Exit('AZ');
+  if N = CheckerIndex_Word then
+    Result:='\w'
+  else if N = CheckerIndex_NotWord then
+    Result:='\W'
+  else if N = CheckerIndex_Digit then
+    Result:='\d'
+  else if N = CheckerIndex_NotDigit then
+    Result:='\D'
+  else if N = CheckerIndex_Space then
+    Result:='\s'
+  else if N = CheckerIndex_NotSpace then
+    Result:='\S'
+  else if N = CheckerIndex_HorzSep then
+    Result:='\h'
+  else if N = CheckerIndex_NotHorzSep then
+    Result:='\H'
+  else if N = CheckerIndex_VertSep then
+    Result:='\v'
+  else if N = CheckerIndex_NotVertSep then
+    Result:='\V'
+  else if N = CheckerIndex_LowerAZ then
+    Result:='az'
+  else if N = CheckerIndex_UpperAZ then
+    Result:='AZ';
 end;
 
 function TRegExpr.DumpCategoryChars(ch, ch2: REChar; Positive: boolean): RegExprString;
