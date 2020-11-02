@@ -4,6 +4,8 @@ Orwell Dev-C++ has stopped update since 2016, So I forked it.
 
 It's intended to be used for eductional purposes.
 
+Website: https://royqh.net/devcpp-en/
+
 中文网站在这里 https://royqh.net/devcpp/
 
 HighLights of News:
