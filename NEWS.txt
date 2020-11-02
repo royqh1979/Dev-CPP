@@ -13,6 +13,8 @@ Version 6.0    November 2020
   - fix: search using regular expression
   - fix: Dev-C++ hangs when make project and ld.exe have errors
 
+
+
 Version 6-beta6.1     November 2020
 
   - fix: When closed, Dev-C++ doesn't really exist
