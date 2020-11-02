@@ -7230,8 +7230,8 @@ begin
       Debugger.SendCommand('info', 'registers');
       Debugger.SendCommand('disas','');
       fDebugger.InvalidateAllVars;
-      Debugger.SendCommand('info display','');
-      //fDebugger.RefreshWatchVars;
+      //Debugger.SendCommand('display','');
+      fDebugger.RefreshWatchVars;
     end;
   end;
 end;

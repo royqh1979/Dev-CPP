@@ -14,6 +14,7 @@ Version 6.0    November 2020
   - fix: Dev-C++ hangs when make project and ld.exe have errors
  
   - fix: member Suggestion failed when a var is defined using (Type * var) instead of (Type* var);
+  - fix: update watch when switch functions in Call Stack Panel
 
 
 
