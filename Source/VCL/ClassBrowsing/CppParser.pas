@@ -2747,7 +2747,7 @@ begin
   // Remove pointer stuff from type
   s := aType; // 'Type' is a keyword
   position := Length(s);
-  while (position > 0) and (s[position] in ['*', '&']) do
+  while (position > 0) and (s[position] in ['*',' ','&']) do
     Dec(position);
   if position <> Length(s) then
     Delete(s, position + 1, Length(s) - 1);
