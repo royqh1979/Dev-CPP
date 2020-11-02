@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = FindSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
@@ -231,7 +231,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 714
         Height = 196
-        ActivePage = DebugConsoleSheet
+        ActivePage = CallStackSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0

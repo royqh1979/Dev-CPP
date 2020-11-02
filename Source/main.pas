@@ -2054,20 +2054,6 @@ begin
     rbCpp.Checked := devData.DefCpp;
     rbC.Checked := not rbCpp.Checked;
     if ShowModal = mrOk then begin
-      //Create the project folder
-      if not DirectoryExists(edProjectLocation.Text) then begin
-        if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
-            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
-          Exit;
-        if not CreateDir(edProjectLocation.Text) then begin
-          MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
-            mtError, [mbOK], 0);
-          Exit;
-        end;
-      end;
-
-      if cbDefault.Checked then
-        devData.DefCpp := rbCpp.Checked;
 
       // Take care of the currently opened project
       if Assigned(fProject) then begin
@@ -2082,6 +2068,25 @@ begin
         else
           Exit;
       end;
+
+      //Create the project folder
+      if not DirectoryExists(edProjectLocation.Text) then begin
+        if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
+            mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+          Exit;
+        if not CreateDir(edProjectLocation.Text) then begin
+          MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
+            mtError, [mbOK], 0);
+          LogError('main.pas TMainForm.actNewProjectExecute',
+            Format('Create Dir ''%s'' failed:%s',[edProjectLocation.Text,SysErrorMessage(GetLastError)]));
+          Exit;
+        end;
+      end;
+
+      if cbDefault.Checked then
+        devData.DefCpp := rbCpp.Checked;
+
+
 
       s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
 
@@ -7225,8 +7230,8 @@ begin
       Debugger.SendCommand('info', 'registers');
       Debugger.SendCommand('disas','');
       fDebugger.InvalidateAllVars;
-      Debugger.SendCommand('info display','');
-      //fDebugger.RefreshWatchVars;
+      //Debugger.SendCommand('display','');
+      fDebugger.RefreshWatchVars;
     end;
   end;
 end;
