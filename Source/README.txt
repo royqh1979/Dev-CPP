@@ -1,6 +1,10 @@
 1. Compiling devcpp.exe
 
 The main executable devcpp.exe can be built using the following steps:
+    1) patch the delphi 7 vcl:
+       Source\VCL\patch
+       compile the StdCtrls.pas and replace the StdCtrls.dcu in delphi's Lib folder with it
+       (it fixes the problem that press alt will cause buttons in dialogs to disapear in windows with themes)
 
 	1) Compile and install the following package(s):
 		Source\VCL\DevCpp\DevCpp.dpk
