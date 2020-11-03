@@ -1,0 +1,78 @@
+--- old/StdCtrls.pas	2004-06-02 20:13:04.000000000 +0800
++++ new/StdCtrls.pas	2020-11-03 15:22:47.710274000 +0800
+@@ -3417,23 +3417,27 @@
+ procedure TButtonControl.CNCtlColorStatic(var Message: TWMCtlColorStatic);
+ begin
+   with ThemeServices do
++	{
+     if ThemesEnabled then
+     begin
+       DrawParentBackground(Handle, Message.ChildDC, nil, False);
+-      { Return an empty brush to prevent Windows from overpainting we just have created. }
++      // Return an empty brush to prevent Windows from overpainting we just have created. 
+       Message.Result := GetStockObject(NULL_BRUSH);
+     end
+     else
++	}
+       inherited;
+ end;
+ 
+ procedure TButtonControl.WMEraseBkGnd(var Message: TWMEraseBkGnd);
+ begin
+   { Under theme services the background is drawn in CN_CTLCOLORSTATIC. }
++  {
+   if ThemeServices.ThemesEnabled then
+     Message.Result := 1
+   else
+-    inherited;
++  }
++  inherited;
+ end;
+ 
+ procedure TButtonControl.CreateParams(var Params: TCreateParams);
+@@ -3561,22 +3565,26 @@
+ 
+ procedure TButton.WMEraseBkgnd(var Message: TWMEraseBkgnd);
+ begin
++{
+   if ThemeServices.ThemesEnabled then
+     Message.Result := 1
+   else
++  }
+     DefaultHandler(Message);
+ end;
+ 
+ procedure TButton.CNCtlColorBtn(var Message: TWMCtlColorBtn);
+ begin
+   with ThemeServices do
++  {
+     if ThemesEnabled then
+     begin
+       DrawParentBackground(Handle, Message.ChildDC, nil, False);
+-      { Return an empty brush to prevent Windows from overpainting we just have created. }
++      // Return an empty brush to prevent Windows from overpainting we just have created. 
+       Message.Result := GetStockObject(NULL_BRUSH);
+     end
+     else
++	}
+       inherited;
+ end;
+ 
+@@ -5095,14 +5103,16 @@
+   var Message: TWMCtlColorStatic);
+ begin
+   with ThemeServices do
++  {
+     if ThemesEnabled and Transparent then
+     begin
+       SetBkMode(Message.ChildDC, Windows.TRANSPARENT);
+       DrawParentBackground(Handle, Message.ChildDC, nil, False);
+-      { Return an empty brush to prevent Windows from overpainting what we just have created. }
++      // Return an empty brush to prevent Windows from overpainting what we just have created. 
+       Message.Result := GetStockObject(NULL_BRUSH);
+     end
+     else
++	}
+       inherited;
+ end;
+ 
