@@ -177,7 +177,7 @@ begin
       end;
       VK_LEFT,VK_RIGHT,VK_HOME,VK_END: begin
         if Assigned(fOwner) and Assigned(fOwner.OnKeyDown) then
-          fOwner.OnKeyDown(self, code, Empty );
+          fOwner.OnKeyDown(self, code, [] );
       end;
     end;
   end;
