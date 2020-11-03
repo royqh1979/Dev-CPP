@@ -4,7 +4,7 @@ object AboutForm: TAboutForm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Dev-C++ :-)'
-  ClientHeight = 791
+  ClientHeight = 812
   ClientWidth = 552
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12189,7 +12189,7 @@ object AboutForm: TAboutForm
   end
   object btnOk: TBitBtn
     Left = 445
-    Top = 752
+    Top = 768
     Width = 100
     Height = 33
     Caption = '&OK'
@@ -12939,19 +12939,19 @@ object AboutForm: TAboutForm
     Left = 11
     Top = 360
     Width = 534
-    Height = 385
+    Height = 401
     Caption = 'Web sites / email : '
     TabOrder = 2
     object lblBlood: TLabel
       Left = 21
-      Top = 288
+      Top = 304
       Width = 194
       Height = 20
       Caption = 'Bloodshed Software Website:'
     end
     object lblBloodURL: TLabel
       Left = 245
-      Top = 288
+      Top = 304
       Width = 148
       Height = 16
       Cursor = crHandPoint
@@ -12974,7 +12974,7 @@ object AboutForm: TAboutForm
     object lblMinGWURL: TLabel
       Left = 245
       Top = 147
-      Width = 123
+      Width = 144
       Height = 16
       Cursor = crHandPoint
       Caption = 'http://www.mingw.org'
@@ -12982,20 +12982,20 @@ object AboutForm: TAboutForm
       Font.Color = clBlue
       Font.Height = -15
       Font.Name = 'MS Sans Serif'
-      Font.Style = [fsUnderline]
+      Font.Style = [fsBold, fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object lblDiscussion: TLabel
       Left = 21
-      Top = 312
+      Top = 328
       Width = 183
       Height = 20
       Caption = 'Dev-C++ Discussion Forum:'
     end
     object lblDiscussionURL: TLabel
       Left = 245
-      Top = 312
+      Top = 328
       Width = 189
       Height = 16
       Cursor = crHandPoint
@@ -13010,14 +13010,14 @@ object AboutForm: TAboutForm
     end
     object lblMailing: TLabel
       Left = 21
-      Top = 336
+      Top = 352
       Width = 183
       Height = 20
       Caption = 'Dev-C++ Users Mailing List:'
     end
     object lblMailingURL: TLabel
       Left = 245
-      Top = 336
+      Top = 352
       Width = 243
       Height = 16
       Cursor = crHandPoint
@@ -13032,14 +13032,14 @@ object AboutForm: TAboutForm
     end
     object lblResources: TLabel
       Left = 21
-      Top = 360
+      Top = 376
       Width = 157
       Height = 20
       Caption = 'Dev-C++ Resource Site:'
     end
     object lblResourcesURL: TLabel
       Left = 245
-      Top = 360
+      Top = 376
       Width = 179
       Height = 16
       Cursor = crHandPoint
@@ -13054,14 +13054,14 @@ object AboutForm: TAboutForm
     end
     object lblBlog: TLabel
       Left = 21
-      Top = 229
+      Top = 245
       Width = 34
       Height = 20
       Caption = 'Blog:'
     end
     object lblBlogURL: TLabel
       Left = 245
-      Top = 229
+      Top = 245
       Width = 198
       Height = 16
       Cursor = crHandPoint
@@ -13076,21 +13076,21 @@ object AboutForm: TAboutForm
     end
     object bvNew: TBevel
       Left = 21
-      Top = 176
+      Top = 174
       Width = 492
       Height = 3
       Shape = bsBottomLine
     end
     object lblSubreddit: TLabel
       Left = 21
-      Top = 205
+      Top = 221
       Width = 68
       Height = 20
       Caption = 'Subreddit:'
     end
     object lblSubredditURL: TLabel
       Left = 245
-      Top = 205
+      Top = 221
       Width = 187
       Height = 16
       Cursor = crHandPoint
@@ -13105,14 +13105,14 @@ object AboutForm: TAboutForm
     end
     object lblRepository: TLabel
       Left = 21
-      Top = 53
+      Top = 101
       Width = 74
       Height = 20
       Caption = 'Repository:'
     end
     object lblRepositoryURL: TLabel
       Left = 245
-      Top = 181
+      Top = 197
       Width = 211
       Height = 16
       Cursor = crHandPoint
@@ -13127,10 +13127,10 @@ object AboutForm: TAboutForm
     end
     object lblPost4992: TLabel
       Left = 21
-      Top = 32
-      Width = 41
+      Top = 176
+      Width = 116
       Height = 20
-      Caption = '> 5.11'
+      Caption = '<= 5.11 (old stuff)'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -15
@@ -13153,7 +13153,7 @@ object AboutForm: TAboutForm
     end
     object lblPre4992: TLabel
       Left = 21
-      Top = 264
+      Top = 280
       Width = 130
       Height = 20
       Caption = '<= 4.9.9.2 (old stuff)'
@@ -13166,22 +13166,22 @@ object AboutForm: TAboutForm
     end
     object bvCompilers: TBevel
       Left = 21
-      Top = 256
+      Top = 272
       Width = 492
       Height = 3
       Shape = bsBottomLine
     end
     object Label1: TLabel
       Left = 21
-      Top = 181
+      Top = 197
       Width = 74
       Height = 20
       Caption = 'Repository:'
     end
     object Label2: TLabel
       Left = 245
-      Top = 53
-      Width = 230
+      Top = 109
+      Width = 267
       Height = 16
       Cursor = crHandPoint
       Caption = 'https://github.com/royqh1979/Dev-CPP'
@@ -13189,7 +13189,7 @@ object AboutForm: TAboutForm
       Font.Color = clBlue
       Font.Height = -15
       Font.Name = 'MS Sans Serif'
-      Font.Style = [fsUnderline]
+      Font.Style = [fsBold, fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
@@ -13202,8 +13202,8 @@ object AboutForm: TAboutForm
     end
     object Label3: TLabel
       Left = 245
-      Top = 77
-      Width = 274
+      Top = 80
+      Width = 321
       Height = 16
       Cursor = crHandPoint
       Caption = 'https://sourceforge.net/projects/dev-cpp-2020/'
@@ -13211,36 +13211,36 @@ object AboutForm: TAboutForm
       Font.Color = clBlue
       Font.Height = -15
       Font.Name = 'MS Sans Serif'
-      Font.Style = [fsUnderline]
+      Font.Style = [fsBold, fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
     object Label4: TLabel
       Left = 21
-      Top = 101
-      Width = 64
+      Top = 53
+      Width = 56
       Height = 20
-      Caption = #20013#25991#31449#28857
+      Caption = 'Website:'
     end
     object Label5: TLabel
       Left = 245
-      Top = 101
-      Width = 148
+      Top = 53
+      Width = 196
       Height = 16
       Cursor = crHandPoint
-      Caption = 'https://royqh.net/devcpp/'
+      Caption = 'https://royqh.net/devcpp-en/'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
       Font.Height = -15
       Font.Name = 'MS Sans Serif'
-      Font.Style = [fsUnderline]
+      Font.Style = [fsBold, fsUnderline]
       ParentFont = False
       OnClick = URLLabelClick
     end
   end
   object btnAuthors: TBitBtn
     Left = 324
-    Top = 752
+    Top = 768
     Width = 111
     Height = 33
     Caption = '&Authors'
@@ -13278,7 +13278,7 @@ object AboutForm: TAboutForm
   end
   object btnUpdateCheck: TBitBtn
     Left = 11
-    Top = 752
+    Top = 768
     Width = 246
     Height = 33
     Caption = '&Check for updates'

@@ -480,7 +480,6 @@ type
     actFormatCurrentFile: TAction;
     actFormatOptions: TAction;
     actRunTests: TAction;
-    DonateItem: TMenuItem;
     actDonate: TAction;
     actRenameSymbol: TAction;
     RefactorMenu: TMenuItem;

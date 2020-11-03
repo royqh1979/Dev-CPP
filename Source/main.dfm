@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 380
-  Top = 210
+  Left = 329
+  Top = 184
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1810,9 +1810,6 @@ object MainForm: TMainForm
       object AboutDevCppItem: TMenuItem
         Tag = 18
         Action = actAbout
-      end
-      object DonateItem: TMenuItem
-        Action = actDonate
       end
     end
   end
