@@ -99,6 +99,8 @@ type
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
+    procedure CompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
     procedure CompletionInsert(appendFunc:boolean=False);
     procedure CompletionTimer(Sender: TObject);
     function FunctionTipAllowed: boolean;
@@ -899,6 +901,14 @@ begin
   fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
 end;
 
+procedure TEditor.CompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  fCompletionBox.Hide;
+  //Send the key to the SynEdit
+  PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
@@ -1395,6 +1405,7 @@ begin
 
   // Redirect key presses to completion box if applicable
   fCompletionBox.OnKeyPress := CompletionKeyPress;
+  fCompletionBox.OnKeyDown := CompletionKeyDown;
 
   // Filter the whole statement list
   if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)

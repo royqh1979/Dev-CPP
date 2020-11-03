@@ -17,6 +17,8 @@ Version 6.0    November 2020
   - fix: update watch when switch functions in Call Stack Panel
   - fix: when dialogs is open, press Alt will cause buttons on it to disappear
 
+  - fix: update some chinese translations
+  - change: Press LEFT/RIGHT/HOME/END will close Code Suggestion and move the cursor in the current line
 
 
 

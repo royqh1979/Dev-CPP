@@ -49,6 +49,7 @@ type
     fEnabled: boolean;
     fShowCount: integer;
     fOnKeyPress: TKeyPressEvent;
+    fOnKeyDown: TKeyEvent;
     fOnResize: TNotifyEvent;
     fOnlyGlobals: boolean;
     fCurrentStatement: PStatement;
@@ -82,6 +83,7 @@ type
     property MaxWidth: integer read fMaxWidth write fMaxWidth;
     property MaxHeight: integer read fMaxHeight write fMaxHeight;
     property FontSize: integer read fFontSize write fFontSize;
+    property OnKeyDown: TKeyEvent read fOnKeyDown write fOnKeyDown;
     property OnKeyPress: TKeyPressEvent read fOnKeyPress write fOnKeyPress;
     property OnResize: TNotifyEvent read fOnResize write fOnResize;
     property OnlyGlobals: boolean read fOnlyGlobals write fOnlyGlobals;

@@ -3,14 +3,14 @@ object CodeComplForm: TCodeComplForm
   Top = 293
   BorderIcons = []
   BorderStyle = bsNone
-  ClientHeight = 286
-  ClientWidth = 472
+  ClientHeight = 322
+  ClientWidth = 531
   Color = clBtnFace
   Constraints.MinHeight = 128
   Constraints.MinWidth = 256
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -13
+  Font.Height = -16
   Font.Name = 'Courier New'
   Font.Style = []
   FormStyle = fsStayOnTop
@@ -19,13 +19,13 @@ object CodeComplForm: TCodeComplForm
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 16
+  PixelsPerInch = 120
+  TextHeight = 18
   object lbCompletion: TListBox
     Left = 0
     Top = 0
-    Width = 472
-    Height = 286
+    Width = 531
+    Height = 322
     Style = lbOwnerDrawFixed
     AutoComplete = False
     Align = alClient
@@ -35,7 +35,7 @@ object CodeComplForm: TCodeComplForm
     ExtendedSelect = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -15
     Font.Name = 'Courier New'
     Font.Style = []
     ItemHeight = 16

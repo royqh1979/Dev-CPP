@@ -165,13 +165,22 @@ end;
 procedure TCodeComplForm.lbCompletionWindowProc(var Message: TMessage);
 var
   ch:Char;
+  code:Word;
 begin
-  if Message.Msg = CN_KEYDOWN then
-    if TWMKey(Message).CharCode = VK_TAB then begin
-      ch := #9;
-      lbCompletionKeyPress(lbCompletion, ch);
-      Exit;
-   end;
+  if Message.Msg = CN_KEYDOWN then begin
+    code := TWMKey(Message).CharCode;
+    case code of
+      VK_TAB: begin
+        ch := #9;
+        lbCompletionKeyPress(lbCompletion, ch);
+        Exit;
+      end;
+      VK_LEFT,VK_RIGHT,VK_HOME,VK_END: begin
+        if Assigned(fOwner) and Assigned(fOwner.OnKeyDown) then
+          fOwner.OnKeyDown(self, code, Empty );
+      end;
+    end;
+  end;
   if Assigned(FOldWndProc) then
     FOldWndProc(Message);
   if Message.Msg = WM_GETDLGCODE then
