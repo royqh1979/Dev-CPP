@@ -1,4 +1,4 @@
-Red Panda Dev C++ （小熊猫Dev-C++，old name Dev-C++ 2000） is a fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp).
+Red Panda Dev C++ （小熊猫Dev-C++，old name Dev-C++ 2000） is a fork of Orwell Dev-C++.
 
 Orwell Dev-C++ has stopped update since 2016, So I forked it. 
 
