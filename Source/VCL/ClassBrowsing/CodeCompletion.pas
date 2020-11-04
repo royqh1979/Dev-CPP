@@ -196,6 +196,8 @@ begin
       // Find last operator
       Delete(Phrase, I, MaxInt);
 
+      Delete(Phrase,1,LastDelimiter(':',Phrase)); // remove namespace infos...
+
       // Add statements of all the text before the last operator
       Statement := fParser.FindStatementOf(Phrase, fCurrentStatement);
       if not Assigned(Statement) then begin // maybe a namespace name, give it all global definitions except macros (we can only do this now)

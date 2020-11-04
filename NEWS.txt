@@ -19,7 +19,7 @@ Version 6.0    November 2020
 
   - fix: update some chinese translations
   - change: Press LEFT/RIGHT/HOME/END will close Code Suggestion and move the cursor in the current line
-
+  - fix: ignore namespace qualify info in identifiers. This makes auto suggestion work (but not perfect) for qualified names.
 
 
 Version 6-beta6.1     November 2020
