@@ -1370,6 +1370,8 @@ var
   s: AnsiString;
   attr: TSynHighlighterAttributes;
 begin
+  fText.ReadOnly := True;
+  try
   fCompletionTimer.Enabled := False;
   if fCompletionBox.Visible and (key <> '') then // already in search, don't do it again
     Exit;
@@ -1411,7 +1413,9 @@ begin
   if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)
     and (key = '') then //only one suggestion and it's not input while typing
     CompletionInsert(); // if only have one suggestion, just use it
-
+  finally
+    fText.ReadOnly := False;
+  end;
 end;
 
 procedure TEditor.DestroyCompletion;
