@@ -285,6 +285,8 @@ begin
     fCurrentIncludes^.BaseFile := FileName;
     fCurrentIncludes^.IncludeFiles := TStringList.Create;
     fCurrentIncludes^.IncludeFiles.Sorted:=True;
+    fCurrentIncludes^.Usings := TStringList.Create;
+    fCurrentIncludes^.Usings.Sorted:=True;
     fIncludesList.Add(fCurrentIncludes);
   end;
 

@@ -38,7 +38,7 @@ type
     fIsHeader: boolean;
     fIsSystemHeader: boolean;
     fCurrentFile: AnsiString;
-    fCurrentClass: TList; // list of lists
+    fCurrentScope: TList; // list of lists
     fSkipList: integer;
     fClassScope: TStatementClassScope;
     fStatementList: TStatementList;
@@ -68,7 +68,8 @@ type
     fTempNodes : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
-   
+    fNamespaces :TStringList;
+
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -103,16 +104,18 @@ type
       InheritanceList: TList;
       isStatic: boolean): PStatement;
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
-    function GetLastCurrentClass: PStatement; // gets last item from lastt level
-    function GetCurrentClassLevel: TList;
-    function IsInCurrentClassLevel(const Command: AnsiString): PStatement;
-    procedure AddSoloClassLevel(Statement: PStatement); // adds new solo level
-    procedure AddMultiClassLevel(StatementList: TList); // adds new multi level
-    procedure RemoveClassLevel; // removes level
+    function GetLastCurrentScope: PStatement; // gets last item from last level
+    function GetCurrentScopeLevel: TList;
+    function IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
+    procedure AddSoloScopeLevel(Statement: PStatement); // adds new solo level
+    procedure AddMultiScopeLevel(StatementList: TList); // adds new multi level
+    procedure RemoveScopeLevel; // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
+    function CheckForNamespace: boolean;
+    function CheckForUsing: boolean;
 
     function CheckForTypedef: boolean;
     function CheckForTypedefEnum: boolean;
@@ -133,6 +136,8 @@ type
     procedure HandleKeyword;
     procedure HandleVar;
     procedure HandleEnum;
+    procedure HandleNamespace;
+    procedure HandleUsing;
     function HandleStatement: boolean;
     procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
     procedure DeleteTemporaries;
@@ -237,31 +242,41 @@ begin
   fInvalidatedStatements := TList.Create;
   fPendingDeclarations := TList.Create;
   fMacroDefines := TList.Create;
-  fCurrentClass := TList.Create;
+  fCurrentScope := TList.Create;
   fSkipList:= -1;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
   fLocked := False;
   fTempNodes := TList.Create;
+  fNamespaces := TStringList.Create;
+  fNamespaces.Sorted := True;
 end;
 
 destructor TCppParser.Destroy;
 var
   i: Integer;
+  namespaceList: TList;
 begin
   FreeAndNil(fMacroDefines);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
-  FreeAndNil(fCurrentClass);
+  FreeAndNil(fCurrentScope);
   FreeAndNil(fProjectFiles);
   FreeAndNil(fTempNodes);
 
   for i := 0 to fIncludesList.Count - 1 do begin
     PFileIncludes(fIncludesList[i])^.IncludeFiles.Free;
+    PFileIncludes(fIncludesList[i])^.Usings.Free;
     Dispose(PFileIncludes(fIncludesList[i]));
   end;
   FreeAndNil(fIncludesList);
 
+  for i:=0 to fNamespaces.Count-1 do begin
+    namespaceList := TList(fNamespaces.Objects[i]);
+    namespaceList.Free;
+  end;
+  FreeAndNil(fNamespaces);
+  
   FreeAndNil(fStatementList);
   FreeAndNil(fFilesToScan);
   FreeAndNil(fScannedFiles);
@@ -492,6 +507,9 @@ var
   NewType, NewCommand: AnsiString;
   node: PStatementNode;
   function AddToList: PStatement;
+  var
+    i: integer;
+    NamespaceList: TList;
   begin
     Result := New(PStatement);
     with Result^ do begin
@@ -517,10 +535,28 @@ var
       _Friends := nil;
       _Static := isStatic;
       _Inherited:= False;
+      if Assigned(Parent) then
+        _FullName := Parent^._FullName + '::'+NewCommand
+      else
+        _FullName := NewCommand;
+      _Usings:=TStringList.Create;
+      _Usings.Sorted:=True;
+      _Usings.Add('std');
     end;
     node:=fStatementList.Add(Result);
     if (Result^._Temporary) then
       fTempNodes.Add(node);
+    if (Result^._Kind = skNamespace) then begin
+      i:=FastIndexOf(fNamespaces,FileName);
+      if (i<>-1) then
+        NamespaceList := TList(fNamespaces.objects[i])
+      else begin
+        NamespaceList := TList.Create;
+        NamespaceList.Sorted:=True;
+        fNamespaces.AddObject(Result^._FullName,NamespaceList);
+      end;
+      NamespaceList.Add(result);
+    end;
   end;
 begin
   // Move '*', '&' to type rather than cmd (it's in the way for code-completion)
@@ -566,45 +602,66 @@ begin
   end;
 end;
 
-function TCppParser.GetLastCurrentClass: PStatement;
+function TCppParser.GetLastCurrentScope: PStatement;
 var
-  CurrentClassLevel: TList;
+  CurrentScope: TList;
+  t:integer;
 begin
-  if fCurrentClass.Count = 0 then begin
+  if fCurrentScope.Count = 0 then begin
     Result := nil;
     Exit;
   end;
 
-  // Get current classes at same level
-  CurrentClassLevel := fCurrentClass[fCurrentClass.Count - 1];
+  Result := nil;
+  t:=fCurrentScope.Count - 1;
+  while t>=0 do begin
+    // Get current classes at same level
+    CurrentScope := fCurrentScope[t];
 
-  // Pick last one
-  if CurrentClassLevel.Count > 0 then
-    Result := CurrentClassLevel[CurrentClassLevel.Count - 1]
-  else
-    Result := nil;
+    // Pick last none null one
+    if CurrentScope.Count > 0 then begin
+      Result := CurrentScope[CurrentScope.Count -1];
+      break;
+    end;
+    dec(t);
+  end;
 end;
 
-function TCppParser.GetCurrentClassLevel: TList;
+function TCppParser.GetCurrentScopeLevel: TList;
+var
+  t:integer;
+  scope: TList;
 begin
-  if fCurrentClass.Count = 0 then begin
+  if fCurrentScope.Count = 0 then begin
     Result := nil;
     Exit;
   end;
-  Result := fCurrentClass[fCurrentClass.Count - 1];
+  Result := nil;
+  t:=fCurrentScope.Count - 1;
+  while t>=0 do begin
+    // Get current classes at same level
+    Scope := fCurrentScope[t];
+
+    // Pick last none null one
+    if Scope.Count > 0 then begin
+      Result := Scope;
+      break;
+    end;
+    dec(t);
+  end;
 end;
 
-function TCppParser.IsInCurrentClassLevel(const Command: AnsiString): PStatement;
+function TCppParser.IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
 var
-  CurrentClassLevel: TList;
+  CurrentScopeLevel: TList;
   I: integer;
   Statement: PStatement;
 begin
   Result := nil;
-  CurrentClassLevel := GetCurrentClassLevel;
-  if Assigned(CurrentClassLevel) then begin
-    for I := 0 to CurrentClassLevel.Count - 1 do begin
-      Statement := CurrentClassLevel[i];
+  CurrentScopeLevel := GetCurrentScopeLevel;
+  if Assigned(CurrentScopeLevel) then begin
+    for I := 0 to CurrentScopeLevel.Count - 1 do begin
+      Statement := CurrentScopeLevel[i];
       if Assigned(Statement) and SameStr(Command, Statement^._Command) then begin
         Result := Statement;
         Break;
@@ -613,25 +670,28 @@ begin
   end;
 end;
 
-procedure TCppParser.AddSoloClassLevel(Statement: PStatement);
+procedure TCppParser.AddSoloScopeLevel(Statement: PStatement);
 var
   NewLevel: TList;
 begin
   // Add class list
   NewLevel := TList.Create;
-  NewLevel.Add(Statement);
-  fCurrentClass.Add(NewLevel);
+  if Assigned(Statement) then
+    NewLevel.Add(Statement);
+  fCurrentScope.Add(NewLevel);
 
   // Set new scope
-  if Statement = nil then begin
+  if not Assigned(Statement) then
     fClassScope := scsNone // {}, namespace or class that doesn't exist
-  end else if Statement^._Type = 'class' then
+  else if Statement^._Kind = skNamespace then
+    fClassScope := scsNone
+  else if Statement^._Type = 'class' then
     fClassScope := scsPrivate // classes are private by default
   else
     fClassScope := scsPublic; // structs are public by default
 end;
 
-procedure TCppParser.AddMultiClassLevel(StatementList: TList);
+procedure TCppParser.AddMultiScopeLevel(StatementList: TList);
 var
   Statement: PStatement;
   ListCopy: TList;
@@ -639,7 +699,7 @@ begin
   // Add list to list
   ListCopy := TList.Create;
   ListCopy.Assign(StatementList);
-  fCurrentClass.Add(ListCopy);
+  fCurrentScope.Add(ListCopy);
 
   // Check scope of first one
   if StatementList.Count > 0 then
@@ -648,32 +708,38 @@ begin
     Statement := nil;
 
   // Set new scope
-  if Statement = nil then begin
+  if Statement = nil then
     fClassScope := scsNone // {}, namespace or class that doesn't exist
-  end else if Statement^._Type = 'class' then
+  else if Statement^._Kind = skNamespace then
+    fClassScope := scsNone
+  else if Statement^._Type = 'class' then
     fClassScope := scsPrivate // classes are private by default
   else
     fClassScope := scsPublic; // structs are public by default
 end;
 
-procedure TCppParser.RemoveClassLevel;
+procedure TCppParser.RemoveScopeLevel;
 var
   CurrentLevel: TList;
-  CurrentClass: PStatement;
+  CurrentScope: PStatement;
 begin
   // Remove class list
-  if fCurrentClass.Count = 0 then
+  if fCurrentScope.Count = 0 then
     Exit; // TODO: should be an exception
-  TList(fCurrentClass[fCurrentClass.Count - 1]).Free;
-  fCurrentClass.Delete(fCurrentClass.Count - 1);
+  TList(fCurrentScope[fCurrentScope.Count - 1]).Free;
+  fCurrentScope.Delete(fCurrentScope.Count - 1);
 
   // Set new scope
-  CurrentLevel := GetCurrentClassLevel;
+  CurrentLevel := GetCurrentScopeLevel;
   if not Assigned(CurrentLevel) then begin
     fClassScope := scsNone // no classes or structs remaining
   end else begin
-    CurrentClass := GetLastCurrentClass;
-    if Assigned(CurrentClass) and (CurrentClass^._Type = 'class') then
+    CurrentScope := GetLastCurrentScope;
+    if not Assigned(CurrentScope) then
+      fClassScope := scsNone
+    else if CurrentScope^._Kind = skNamespace then
+      fClassScope := scsNone
+    else if (CurrentScope^._Type = 'class') then
       fClassScope := scsPrivate // classes are private by default
     else
       fClassScope := scsPublic;
@@ -729,7 +795,7 @@ end;
 
 function TCppParser.GetScope: TStatementScope;
 var
-  CurrentClass: PStatement;
+  CurrentScope: PStatement;
 begin
   // We are scanning function bodies
   if fLaterScanning then begin
@@ -738,17 +804,14 @@ begin
   end;
 
   // Don't blindly trust levels. Namespaces and externs can have levels too
-  CurrentClass := GetLastCurrentClass;
+  CurrentScope := GetLastCurrentScope;
 
   // Invalid class or namespace/extern
-  if CurrentClass = nil then
+  if not Assigned(CurrentScope) or (CurrentScope^._Kind = skNamespace) then
     Result := ssGlobal
-
     // We are inside a class body
-  else if Assigned(CurrentClass) then
+  else if (CurrentScope^._Kind = skClass) then
     Result := ssClassLocal
-
-    // Everything else
   else
     Result := ssLocal;
 end;
@@ -805,6 +868,16 @@ begin
     SameStr(fTokenizer[fIndex + 1]^.Text, 'union'));
 end;
 
+function TCppParser.CheckForNamespace: boolean;
+begin
+  Result := SameStr(fTokenizer[fIndex]^.Text, 'namespace');
+end;
+
+function TCppParser.CheckForUsing: boolean;
+begin
+  Result := SameStr(fTokenizer[fIndex]^.Text, 'using');
+end;
+
 function TCppParser.CheckForStructs: boolean;
 var
   I: integer;
@@ -839,7 +912,7 @@ end;
 function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;
   var isStatic:boolean;var IsFriend:boolean): boolean;
 var
-  CurrentClassLevel: TList;
+  CurrentScopeLevel: TList;
   fIndexBackup, DelimPos: integer;
   bTypeOK, bNameOK, bArgsOK: boolean;
   s:AnsiString;
@@ -891,12 +964,12 @@ begin
 
       // Are we inside a class body?
       if not bTypeOK then begin
-        CurrentClassLevel := GetCurrentClassLevel;
-        if Assigned(CurrentClassLevel) then begin
+        CurrentScopeLevel := GetCurrentScopeLevel;
+        if Assigned(CurrentScopeLevel) then begin
           sType := fTokenizer[fIndex]^.Text;
           if sType[1] = '~' then
             Delete(sType, 1, 1);
-          bTypeOK := Assigned(IsInCurrentClassLevel(sType)); // constructor/destructor
+          bTypeOK := Assigned(IsInCurrentScopeLevel(sType)); // constructor/destructor
         end;
       end;
       break;
@@ -1052,7 +1125,7 @@ begin
           if p <> 0 then
             NewType := Copy(NewType,p+1,Length(NewType)-p);
           AddStatement(
-            GetLastCurrentClass,
+            GetLastCurrentScope,
             fCurrentFile,
             'typedef ' + OldType + ' ' + fTokenizer[fIndex]^.Text + ' ' + fTokenizer[fIndex + 1]^.Text, // do not override hint
             OldType,
@@ -1082,7 +1155,7 @@ begin
         NewType := NewType + fTokenizer[fIndex]^.Text + ' ';
         NewType := TrimRight(NewType);
         AddStatement(
-          GetLastCurrentClass,
+          GetLastCurrentScope,
           fCurrentFile,
           'typedef ' + OldType + ' ' + NewType, // override hint
           OldType,
@@ -1176,6 +1249,116 @@ begin
   Inc(fIndex);
 end;
 
+procedure TCppParser.HandleUsing;
+var
+  startLine: integer;
+  scopeStatement: PStatement;
+  usingName,fullname: AnsiString;
+  usingList : TStringList;
+  i,t : integer;
+  tempItem:PFile;
+  fileInfo:PFileIncludes;
+begin
+  if fCurrentFile='' then begin
+    //skip to ;
+    while (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex].Text<>';') do
+      inc(fIndex);
+    exit;
+  end;
+
+  startLine := fTokenizer[fIndex]^.Line;
+  Inc(fIndex); //skip 'using'
+
+  //todo: handle using std:vector;
+  if (fIndex+2>=fTokenizer.Tokens.Count) or not (fTokenizer[fIndex].Text = 'namespace') then
+    Exit;
+  Inc(fIndex);  // skip namespace
+  scopeStatement:=GetLastCurrentScope;
+
+  usingName := fTokenizer[fIndex]^.Text;
+  inc(fIndex);
+
+  if Assigned(scopeStatement) then begin
+    usingList := scopeStatement^._Usings;
+    fullname := scopeStatement^._FullName + '::' + usingName;
+  end else begin
+    fileInfo:=FindFileIncludes(fCurrentFile);
+    if not Assigned(fileInfo) then
+      Exit;
+    usingList:=fileInfo.Usings;
+    fullname := usingName;
+  end;
+  i:=FastIndexOf(fNamespaces, fullname);
+  if (i=-1) and Assigned(scopeStatement) then begin //assume it's a global namespace, try agin
+    fullname := usingName;
+    i:=FastIndexOf(fNamespaces, fullname);
+  end;
+  if (i<>-1) and (FastIndexOf(usingList,fullname)=-1) then
+    usingList.Add(fullname);
+end;
+
+procedure TCppParser.HandleNamespace;
+var
+  Command, aliasName: AnsiString;
+  NamespaceStatement: PStatement;
+  startLine: integer;
+begin
+  startLine := fTokenizer[fIndex]^.Line;
+  Inc(fIndex); //skip 'namespace'
+
+
+  if (fTokenizer[fIndex]^.Text[1] in [';', '=', '{']) then begin
+    //wrong namespace define, stop handling
+    Exit;
+  end;
+  Command := fTokenizer[fIndex]^.Text;
+  inc(fIndex);
+  if (fIndex>=fTokenizer.Tokens.Count) then
+    Exit;
+  if (fIndex+2<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '=') then begin
+    aliasName:=fTokenizer[fIndex+1].Text;
+    //namespace alias
+    AddStatement(
+      GetLastCurrentScope,
+      fCurrentFile,
+      '', // do not override hint
+      aliasName, // name of the alias namespace
+      Command, // command
+      '', // args
+      '', // values
+      //fTokenizer[fIndex]^.Line,
+      startLine,
+      skNamespaceAlias,
+      GetScope,
+      fClassScope,
+      False,
+      True,
+      nil,
+      False);
+    inc(fIndex,2); //skip ;
+  end else if (fTokenizer[fIndex]^.Text[1] = '{') then begin
+    NamespaceStatement := AddStatement(
+      GetLastCurrentScope,
+      fCurrentFile,
+      '', // do not override hint
+      '', // type
+      Command, // command
+      '', // args
+      '', // values
+      startLine,
+      skNamespace,
+      GetScope,
+      fClassScope,
+      False,
+      True,
+      nil, //inheritance
+      False);
+    AddSoloScopeLevel(NamespaceStatement);
+    // Step over {
+    Inc(fIndex);
+  end;
+end;
+
 procedure TCppParser.HandleStructs(IsTypedef: boolean = False);
 var
   Command, Prefix, OldType, NewType: AnsiString;
@@ -1183,7 +1366,7 @@ var
   IsStruct: boolean;
   IsFriend: boolean;
   ParentStatement,FirstSynonym, LastStatement: PStatement;
-  SharedInheritance, NewClassLevel: TList;
+  SharedInheritance, NewScopeLevel: TList;
   startLine: integer;
 begin
   IsFriend := False;
@@ -1215,7 +1398,7 @@ begin
         if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in [',', ';']) then begin
           NewType := fTokenizer[fIndex]^.Text;
           AddStatement(
-            GetLastCurrentClass,
+            GetLastCurrentScope,
             fCurrentFile,
             'typedef ' + Prefix + ' ' + OldType + ' ' + NewType, // override hint
             OldType,
@@ -1238,7 +1421,7 @@ begin
       // Forward declaration, struct Foo. Don't mention in class browser
     end else begin
       if IsFriend then begin
-        ParentStatement := GetLastCurrentClass;
+        ParentStatement := GetLastCurrentScope;
         if Assigned(ParentStatement) then begin
           if not Assigned(ParentStatement^._Friends) then
             ParentStatement^._Friends:=TStringHash.Create;
@@ -1261,7 +1444,7 @@ begin
           Command := fTokenizer[fIndex]^.Text;
           if Command <> '' then begin
             FirstSynonym := AddStatement(
-              GetLastCurrentClass,
+              GetLastCurrentScope,
               fCurrentFile,
               '', // do not override hint
               Prefix, // type
@@ -1305,11 +1488,11 @@ begin
       // Add class/struct synonyms after close brace
       if (I + 1 < fTokenizer.Tokens.Count) and not (fTokenizer[I + 1]^.Text[1] in [';', '}']) then begin
         Command := '';
-        NewClassLevel := TList.Create;
+        NewScopeLevel := TList.Create;
         try
           // Add synonym before opening brace
           if Assigned(FirstSynonym) then
-            NewClassLevel.Add(FirstSynonym);
+            NewScopeLevel.Add(FirstSynonym);
           repeat
             Inc(I);
 
@@ -1341,7 +1524,7 @@ begin
                 end else
                   SharedInheritance := nil;
                 LastStatement := AddStatement(
-                  GetLastCurrentClass,
+                  GetLastCurrentScope,
                   fCurrentFile,
                   '', // do not override hint
                   Prefix,
@@ -1357,27 +1540,27 @@ begin
                   True,
                   SharedInheritance,
                   False); // all synonyms inherit from the same statements
-                NewClassLevel.Add(LastStatement);
+                NewScopeLevel.Add(LastStatement);
                 Command := '';
               end;
             end;
           until (I >= fTokenizer.Tokens.Count - 1) or (fTokenizer[I]^.Text[1] in ['{', ';']);
 
           // Set current class level
-          AddMultiClassLevel(NewClassLevel);
+          AddMultiScopeLevel(NewScopeLevel);
         finally
-          NewClassLevel.Free;
+          NewScopeLevel.Free;
         end;
 
         // Nothing worth mentioning after closing brace
         // Proceed to set first synonym as current class
       end else if Assigned(FirstSynonym) then
-        AddSoloClassLevel(FirstSynonym);
+        AddSoloScopeLevel(FirstSynonym);
 
       // Classes do not have synonyms after the brace
       // Proceed to set first synonym as current class
     end else
-      AddSoloClassLevel(FirstSynonym);
+      AddSoloScopeLevel(FirstSynonym);
 
     // Step over {
     if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '{') then
@@ -1405,7 +1588,7 @@ begin
     Inc(fIndex);
 
   // Check if this is a prototype
-  FunctionClass := GetLastCurrentClass;
+  FunctionClass := GetLastCurrentScope;
   if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] in [';', '}']) then begin // prototype
     IsDeclaration := True;
     {
@@ -1488,7 +1671,7 @@ begin
       // For function declarations, any given statement can belong to multiple typedef names
     else
       AddChildStatement(
-        GetCurrentClassLevel,
+        GetCurrentScopeLevel,
         fCurrentFile,
         '', // do not override hint
         sType,
@@ -1674,7 +1857,7 @@ begin
 
         // Add a statement for every struct we are in
         AddChildStatement(
-          GetCurrentClassLevel,
+          GetCurrentScopeLevel,
           fCurrentFile,
           '', // do not override hint
           LastType,
@@ -1737,7 +1920,7 @@ begin
   // Add statement for enum name too
   if EnumName <> '' then
     AddStatement(
-      GetLastCurrentClass,
+      GetLastCurrentScope,
       fCurrentFile,
       '', // do not override hint
       'enum',
@@ -1770,7 +1953,7 @@ begin
         Args := '';
       end;
       AddStatement(
-        GetLastCurrentClass,
+        GetLastCurrentScope,
         fCurrentFile,
         LastType + ' ' + fTokenizer[fIndex]^.Text, // override hint
         LastType,
@@ -1801,10 +1984,10 @@ var
   isStatic,isFriend: boolean;
 begin
   if fTokenizer[fIndex]^.Text[1] = '{' then begin
-    AddSoloClassLevel(nil);
+    AddSoloScopeLevel(nil);
     Inc(fIndex);
   end else if fTokenizer[fIndex]^.Text[1] = '}' then begin
-    RemoveClassLevel;
+    RemoveScopeLevel;
     Inc(fIndex);
   end else if CheckForPreprocessor then begin
     HandlePreprocessor;
@@ -1823,6 +2006,8 @@ begin
       HandleEnum;
     end else
       HandleOtherTypedefs; // typedef Foo Bar
+  end else if CheckForNamespace then begin
+    HandleNamespace;
   end else if CheckForStructs then begin
     HandleStructs(False);
   end else if CheckForMethod(S1, S2, S3, isStatic, isFriend) then begin
@@ -1909,7 +2094,7 @@ begin
     //Statements.DumpTo('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
-    fCurrentClass.Clear;
+    fCurrentScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
     if (not ManualUpdate) and Assigned(fOnEndParsing) then
@@ -1923,6 +2108,7 @@ end;
 procedure TCppParser.Reset;
 var
   I: integer;
+  namespaceList:TList;
 begin
   if Assigned(fOnBusy) then
     fOnBusy(Self);
@@ -1934,11 +2120,12 @@ begin
   fLocked:=False;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
+
   //remove all macrodefines;
   fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
   fInvalidatedStatements.Clear;
-  fCurrentClass.Clear;
+  fCurrentScope.Clear;
   fProjectFiles.Clear;
   fTempNodes.Clear;
   fFilesToScan.Clear;
@@ -1955,9 +2142,16 @@ begin
   for I := fIncludesList.Count - 1 downto 0 do begin
     //fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
     PFileIncludes(fIncludesList[I])^.IncludeFiles.Free;
+    PFileIncludes(fIncludesList[I])^.Usings.Free;
     Dispose(PFileIncludes(fIncludesList[I]));
   end;
   fIncludesList.Clear;
+
+  for i:=0 to fNamespaces.Count-1 do begin
+    namespaceList := TList(fNamespaces.Objects[i]);
+    namespaceList.Free;
+  end;
+  fNamespaces.Clear;
 
   fProjectIncludePaths.Clear;
   fIncludePaths.Clear;
@@ -2175,15 +2369,34 @@ end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
 var
-  I: integer;
+  I,j: integer;
   P: PFileIncludes;
   Node, NextNode: PStatementNode;
   Statement: PStatement;
+  namespaceList:TList;
 begin
   if Filename = '' then
     Exit;
 
-  DeleteTemporaries; // do it before deleting invalid nodes, in case some temp nodes deleted by invalid and cause error (redelete) 
+  i:=0;
+  while (i<fNamespaces.Count) do begin
+    namespaceList := TList(fNamespaces.Objects[i]);
+    j:=0;
+    while (j<namespaceList.Count) do begin
+      Statement:=PStatement(namespaceList[j]);
+      if SameText(Statement^._FileName, FileName) or SameText(Statement^._DefinitionFileName, FileName) then begin
+        namespaceList.Delete(j)
+      end else
+        inc(j);
+    end;
+    if namespaceList.Count = 0 then begin
+      fNamespaces.Delete(i);
+      namespaceList.Free;
+    end else
+      inc(i);
+  end;
+
+  DeleteTemporaries; // do it before deleting invalid nodes, in case some temp nodes deleted by invalid and cause error (redelete)
   // delete statements of file
   Node := fStatementList.FirstNode;
   while Assigned(Node) do begin
@@ -2211,6 +2424,7 @@ begin
   if Assigned(P) then begin
     fPreprocessor.InvalidDefinesInFile(FileName);
     PFileIncludes(P)^.IncludeFiles.Free;
+    PFileIncludes(P)^.Usings.Free;    
     Dispose(PFileIncludes(P));
   end;
 
@@ -2471,12 +2685,12 @@ begin
       fLaterScanning := True;
       repeat
         if fTokenizer[fIndex]^.Text[1] = '{' then begin
-          AddSoloClassLevel(nil);
+          AddSoloScopeLevel(nil);
           Inc(fIndex);
         end else if fTokenizer[fIndex]^.Text[1] = '}' then begin
-          RemoveClassLevel;
+          RemoveScopeLevel;
           Inc(fIndex);
-          if fCurrentClass.Count = 0 then
+          if fCurrentScope.Count = 0 then
             Break; // we've gone out of scope
         end else if CheckForPreprocessor then begin
           HandlePreprocessor;
@@ -2962,8 +3176,27 @@ end;
 procedure TCppParser.DeleteTemporaries;
 var
   node: PStatementNode;
-  i : integer;
+  i,j : integer;
+  namespaceList : TList;
+  Statement:PStatement;
 begin
+  i:=0;
+  while (i<fNamespaces.Count) do begin
+    namespaceList := TList(fNamespaces.Objects[i]);
+    j:=0;
+    while (j<namespaceList.Count) do begin
+      Statement:=PStatement(namespaceList[j]);
+      if Statement^._Temporary then begin
+        namespaceList.Delete(j)
+      end else
+        inc(j);
+    end;
+    if namespaceList.Count = 0 then begin
+      fNamespaces.Delete(i);
+      namespaceList.Free;
+    end else
+      inc(i);
+  end;
   // Remove every temp statement
   for i := 0 to fTempNodes.Count -1 do
   begin

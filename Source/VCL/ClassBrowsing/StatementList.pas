@@ -163,6 +163,7 @@ begin
     end;
     if Assigned(PStatement(Node^.Data)^._Friends) then
       PStatement(Node^.Data)^._Friends.Free;
+    PStatement(Node^.Data)^._Usings.Free;
     Dispose(PStatement(Node^.Data));
   end;
   Dispose(PStatementNode(Node));

@@ -48,6 +48,7 @@ type
   TFileIncludes = record
     BaseFile: AnsiString;
     IncludeFiles: TStringList; // "file","file" etc
+    Usings: TStringList; // namespaces it usings
   end;
 
   TSkipType = (
@@ -71,6 +72,7 @@ type
     skDestructor,
     skVariable,
     skNamespace,
+    skNamespaceAlias,
     skBlock,
     skUnknown
     );
@@ -120,6 +122,8 @@ type
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
     _Inherited: boolean; // inherted member;
+    _FullName: AnsiString; // fullname(including class and namespace)
+    _Usings: TStringList;
   end;
 
   PUsingNamespace =^TUsingNamespace;
@@ -630,7 +634,7 @@ begin
   CppKeywords.Add('new',Ord(skToSemicolon));
   CppKeywords.Add('return',Ord(skToSemicolon));
   CppKeywords.Add('throw',Ord(skToSemicolon));
-  CppKeywords.Add('using',Ord(skToSemicolon)); //won't use it
+//  CppKeywords.Add('using',Ord(skToSemicolon)); //won't use it
 
   // Skip to :
   CppKeywords.Add('case',Ord(skToColon));
@@ -650,7 +654,7 @@ begin
   CppKeywords.Add('asm',Ord(skToRightBrace));
   CppKeywords.Add('catch',Ord(skToLeftBrace));
   CppKeywords.Add('do',Ord(skToLeftBrace));
-  CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
+  //CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
   CppKeywords.Add('try',Ord(skToLeftBrace));
 
   // wont handle
@@ -701,6 +705,9 @@ begin
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
+  // namespace
+  CppKeywords.Add('namespace',Ord(skNone));
+  CppKeywords.Add('using',Ord(skNone));
 
 
   // nullptr is value

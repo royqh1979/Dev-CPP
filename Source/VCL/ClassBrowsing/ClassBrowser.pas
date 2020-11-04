@@ -220,6 +220,9 @@ begin
   bInherited := statement^._Inherited;
 
   case Statement^._Kind of
+    skNamespace: begin
+        Node.ImageIndex := fImagesRecord.Classes;
+      end;
     skClass: begin
         Node.ImageIndex := fImagesRecord.Classes;
       end;
@@ -295,7 +298,7 @@ var
   begin
     NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
     SetNodeImages(NewNode, Statement);
-    if Statement^._Kind = skClass then
+    if Statement^._Kind in [skClass,skNamespace] then
       AddMembers(NewNode, Statement);
   end;
 begin
