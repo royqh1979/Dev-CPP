@@ -147,6 +147,7 @@ type
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
     function GetIncompleteClass(const Command: AnsiString): PStatement;
     procedure ReProcessInheritance;
+    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean=False; isLocal:boolean=False):PStatement;
   public
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;
@@ -154,6 +155,7 @@ type
     procedure AddHardDefineByLine(const Line: AnsiString);
     procedure InvalidateFile(const FileName: AnsiString);
     procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
+    procedure GetFileUsings(const Filename: AnsiString; var List: TStringList);    
     function IsCfile(const Filename: AnsiString): boolean;
     function IsHfile(const Filename: AnsiString): boolean;
     procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
@@ -185,13 +187,14 @@ type
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement; overload;
-    function FindStatementOf(Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
+    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
     function FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
     function FindTypeDefinitionOf(const aType: AnsiString; CurrentClass: PStatement): PStatement;
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function FindLastOperator(const Phrase: AnsiString): integer;
+    function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace) 
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
   published
@@ -552,7 +555,6 @@ var
         NamespaceList := TList(fNamespaces.objects[i])
       else begin
         NamespaceList := TList.Create;
-        NamespaceList.Sorted:=True;
         fNamespaces.AddObject(Result^._FullName,NamespaceList);
       end;
       NamespaceList.Add(result);
@@ -1251,12 +1253,10 @@ end;
 
 procedure TCppParser.HandleUsing;
 var
-  startLine: integer;
   scopeStatement: PStatement;
   usingName,fullname: AnsiString;
   usingList : TStringList;
-  i,t : integer;
-  tempItem:PFile;
+  i: integer;
   fileInfo:PFileIncludes;
 begin
   if fCurrentFile='' then begin
@@ -1266,7 +1266,6 @@ begin
     exit;
   end;
 
-  startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip 'using'
 
   //todo: handle using std:vector;
@@ -2008,6 +2007,8 @@ begin
       HandleOtherTypedefs; // typedef Foo Bar
   end else if CheckForNamespace then begin
     HandleNamespace;
+  end else if CheckForUsing then begin
+    HandleUsing;
   end else if CheckForStructs then begin
     HandleStructs(False);
   end else if CheckForMethod(S1, S2, S3, isStatic, isFriend) then begin
@@ -2825,6 +2826,18 @@ begin
   end;
 end;
 
+function TCppParser.FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
+var
+  i:integer;
+begin
+  i:=FastIndexOf(fNamespaces,name);
+  if i = -1 then
+    Result:=nil
+  else
+    Result:=TList(fNamespaces.objects[i]);
+end;
+
+
 function TCppParser.FindLastOperator(const Phrase: AnsiString): integer;
 var
   I: integer;
@@ -3010,16 +3023,93 @@ begin
   Result := nil;
 end;
 
+function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean; isLocal:boolean):PStatement;
+var
+  ChildStatement: PStatement;
+  Children : TList;
+  i:integer;
+begin
+  Result := nil;
+  Children := Statements.GetChildrenStatements(ScopeStatement);
+  if not Assigned(Children) then
+    Exit;
+  for i:=0 to Children.Count-1 do begin
+    ChildStatement:=PStatement(Children[i]);
+    if SameStr(ChildStatement^._Command, Phrase) and
+      (not isVariable or
+        ( (ChildStatement^._Kind = skVariable) and
+          ( ((ChildStatement^._Scope = ssLocal) and (isLocal)) or
+             ((ChildStatement^._Scope = ssGlobal) and (not isLocal))
+          )
+        )
+      ) then begin
+      Result:=ChildStatement;
+      Exit;
+    end;
+  end;
+end;
+
 function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
   Statement: PStatement;
-  GlobalStatement: PStatement;
+  namespaceStatement,scopeStatement: PStatement;
   Children:TList;
-  i:integer;
+  i,t,k:integer;
+  namespacename: AnsiString;
+  UsingNames:TStringList;
 begin
   Result := nil;
   if fParsing then
     Exit;
+
+  //Find in local members
+  Result:=FindMemberOfStatement(Phrase,nil,True,True);
+  if Assigned(Result) then
+    Exit;
+  scopeStatement := CurrentClass;
+  // repeat until reach global
+  while Assigned(scopeStatement) do begin
+    //search members of current scope
+    Result:=FindMemberOfStatement(Phrase,scopeStatement,True);
+    if Assigned(Result) then
+      Exit;
+    // search members of all usings (in current scope )
+    for t:=0 to scopeStatement^._Usings.Count-1 do begin
+      namespaceName := scopeStatement^._Usings[t];
+      namespaceStatementsList:=FindNamespace(namespaceName);
+      if not Assigned(namespaceStatementsList) then
+        continue;
+      for k:=0 to namespaceStatementsList.Count-1 do begin
+        namespaceStatement:=PStatement(namespaceStatementsList[k]);
+        Result:=FindMemberOfStatement(Phrase,namespaceStatement,True);
+        if Assigned(Result) then
+          Exit;
+      end;
+    end;
+    scopeStatement:=scopeStatement^._Parent;
+  end;
+
+  // Search all global members
+  Result:=FindMemberOfStatement(Phrase,nil,True);
+  if Assigned(Result) then
+    Exit;
+  UsingNames := TStringList.Create;
+  FindFileUsings(
+  try
+    // Search members of all fusings
+    for t:=0 to fUsings.Count-1 do begin
+      namespaceName := fUsings[t];
+      namespaceStatementsList:=fParser.FindNamespace(namespaceName);
+    if not Assigned(namespaceStatementsList) then
+      continue;
+    for k:=0 to namespaceStatementsList.Count-1 do begin
+      namespaceStatement:=PStatement(namespaceStatementsList[k]);
+      AddChildren(namespaceStatement);
+    end;
+  end;
+  finally
+    UsingNames.Free;
+  end;
   GlobalStatement:=nil;
   // Check local variables
   Children := Statements.GetChildrenStatements(nil);
@@ -3068,21 +3158,23 @@ begin
   Result := GlobalStatement;
 end;
 
-function TCppParser.FindStatementOf(Phrase: AnsiString; CurrentClass: PStatement): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   ParentWord, MemberWord, OperatorToken: AnsiString;
-  Statement, MemberStatement, TypedefStatement, VariableStatement, CurrentClassType: PStatement;
+  Statement, MemberStatement, TypedefStatement, VariableStatement: PStatement;
   i: integer;
   Children: TList;
 begin
   Result := nil;
   if fParsing then
     Exit;
+    {
   CurrentClassType := CurrentClass;
   while assigned(CurrentClassType) and not (CurrentClassType._Kind = skClass) do begin
     CurrentClassType:=CurrentClassType^._Parent;
   end;
+  }
 
   // Get the FIRST class and member, surrounding the FIRST operator
   ParentWord := GetClass(Phrase);
@@ -3170,7 +3262,7 @@ end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
 begin
-  Result := FindStatementOf(Phrase, FindAndScanBlockAt(FileName, Row, Stream));
+  Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Row, Stream));
 end;
 
 procedure TCppParser.DeleteTemporaries;
@@ -3319,6 +3411,41 @@ begin
   RecursiveFind(Filename);
 end;
 }
+
+procedure TCppParser.GetFileUsings(const Filename: AnsiString; var List: TStringList);
+var
+  I,t: integer;
+  P,Q: PFileIncludes;
+  sl: TStrings;
+  name: AnsiString;
+begin
+  if FileName = '' then
+    Exit;
+  List.Clear;
+  if fParsing then
+    Exit;
+  List.Sorted := False;
+
+  P := FindFileIncludes(FileName);
+  if Assigned(P) then begin
+    for t:=0 to P^.Usings.Count -1 do begin
+      if FastIndexOf(List,P^.Usings[t])=-1 then
+        List.Add(P^.Usings[t]);
+    end;
+    sl := P^.IncludeFiles;
+    for I := 0 to sl.Count - 1 do begin
+      name:=sl[I];
+      Q:=FindFileIncludes(FileName);
+      if Assigned(Q) then begin
+        for t:=0 to Q^.Usings.Count -1 do begin
+          if FastIndexOf(List,Q^.Usings[t])=-1 then
+            List.Add(Q^.Usings[t]);
+        end;
+      end;
+    end;
+  end;
+  List.Sorted := True;
+end;
 //Since we have save all include files info, don't need to recursive find anymore
 procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
 var
@@ -3337,7 +3464,7 @@ begin
   P := FindFileIncludes(FileName);
   if Assigned(P) then begin
     sl := P^.IncludeFiles;
-    for I := 0 to sl.Count - 1 do // Last one is always an empty item
+    for I := 0 to sl.Count - 1 do
       List.Add(sl[I]);
   end;
   List.Sorted := True;

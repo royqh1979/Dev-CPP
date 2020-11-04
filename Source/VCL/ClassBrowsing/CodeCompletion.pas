@@ -24,7 +24,7 @@ interface
 uses
 {$IFDEF WIN32}
   Windows, Classes, Forms, SysUtils, Controls, Graphics, CppParser,
-  cbutils, StatementList;
+  cbutils, StatementList, iniFiles;
 {$ENDIF}
 {$IFDEF LINUX}
 Xlib, Classes, QForms, SysUtils, QControls, QGraphics, CppParser,
@@ -54,8 +54,10 @@ type
     fOnlyGlobals: boolean;
     fCurrentStatement: PStatement;
     fIncludedFiles: TStringList;
+    fUsings: TStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
+    fAddedStatements : TStringHash;
     function ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
     procedure GetCompletionFor(Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
@@ -63,6 +65,7 @@ type
     procedure OnFormResize(Sender: TObject);
     function IsIncluded(const FileName: AnsiString): boolean;
     function IsVisible: boolean;
+    procedure AddChildren(ScopeStatement:PStatement);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -112,6 +115,10 @@ begin
   fIncludedFiles.Sorted := True;
   fIncludedFiles.Duplicates := dupIgnore;
 
+  fUsings:=TStringList.Create;
+  fUsings.Sorted := True;
+  fAddedStatements := TStringHash.Create;
+
   fCompletionStatementList := TList.Create;
   fFullCompletionStatementList := TList.Create;
 
@@ -135,6 +142,8 @@ begin
   FreeAndNil(fCompletionStatementList);
   FreeAndNil(fFullCompletionStatementList);
   FreeAndNil(fIncludedFiles);
+  FreeAndNil(fUsings);
+  FreeAndNil(fAddedStatements);
   inherited Destroy;
 end;
 
@@ -152,14 +161,33 @@ begin
     );
 end;
 
+procedure TCodeCompletion.AddChildren(ScopeStatement:PStatement);
+var
+  ChildStatement: PStatement;
+  Children : TList;
+  i:integer;
+begin
+  Children := fParser.Statements.GetChildrenStatements(ScopeStatement);
+  if not Assigned(Children) then
+    Exit;
+  for i:=0 to Children.Count-1 do begin
+    ChildStatement:=PStatement(Children[i]);
+    if fAddedStatements.ValueOf(ChildStatement^._FullName) = -1 then begin
+      fAddedStatements.Add(ChildStatement^._FullName,1);
+      fFullCompletionStatementList.Add(ChildStatement);
+    end;
+  end;
+end;
+
 procedure TCodeCompletion.GetCompletionFor(Phrase: AnsiString);
 var
-  Node: PStatementNode;
-  ChildStatement: PStatement;
-  I,t: integer;
-  ScopeTypeStatement, Statement, TypeStatement: PStatement;
+  scopeStatement : PStatement;
+  ChildStatement,namespaceStatement:PStatement;
+  namespaceStatementsList: TList;
   Children : TList;
-  ScopeName : AnsiString;
+  I,t,k: integer;
+  ScopeTypeStatement, Statement, TypeStatement: PStatement;
+  ScopeName, namespaceName : AnsiString;
   opType: TOperatorType;
 begin
   // Reset filter cache
@@ -173,25 +201,77 @@ begin
   end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
-    I := fParser.FindLastOperator(Phrase);
-    if I = 0 then begin
-
-      // only add globals and members of the current class
-      //todo: namespace support
-
-      // Also consider classes the current class inherits from
-      Node := fParser.Statements.FirstNode;
-      while Assigned(Node) do begin
-        Statement := Node^.Data;
-        if ApplyClassFilter(Statement, ScopeTypeStatement) then begin
-          fFullCompletionStatementList.Add(Statement);
+  I := fParser.FindLastOperator(Phrase);
+  if I = 0 then begin
+    scopeStatement := fCurrentStatement;
+    // repeat until reach global
+    while Assigned(scopeStatement) do begin
+      //add members of current scope that not added before
+      AddChildren(scopeStatement);
+      // add members of all usings (in current scope ) and not added before
+      for t:=0 to scopeStatement^._Usings.Count-1 do begin
+        namespaceName := scopeStatement^._Usings[t];
+        namespaceStatementsList:=fParser.FindNamespace(namespaceName);
+        if not Assigned(namespaceStatementsList) then
+          continue;
+        for k:=0 to namespaceStatementsList.Count-1 do begin
+          namespaceStatement:=PStatement(namespaceStatementsList[k]);
+          AddChildren(namespaceStatement);
         end;
-        Node := Node^.NextNode;
       end;
+      scopeStatement:=scopeStatement^._Parent;
+    end;
 
-    end else begin
+    // add all global members and not added before
+    AddChildren(nil);
+    // add members of all fusings
+    for t:=0 to fUsings.Count-1 do begin
+      namespaceName := fUsings[t];
+      namespaceStatementsList:=fParser.FindNamespace(namespaceName);
+      if not Assigned(namespaceStatementsList) then
+        continue;
+      for k:=0 to namespaceStatementsList.Count-1 do begin
+        namespaceStatement:=PStatement(namespaceStatementsList[k]);
+        AddChildren(namespaceStatement);
+      end;
+    end;
 
-      opType:=GetOperatorType(Phrase,I);
+  end else begin
+
+    opType:=GetOperatorType(Phrase,I);
+
+    if (opType in [otArrow, otDot]) then  begin
+      Statement := fParser.FindVariableOf(Phrase, fCurrentStatement);
+      if not Assigned(Statement) then
+        Exit;
+      //It's a var we should show its type's members
+        TypeStatement := fParser.FindTypeDefinitionOf(Statement^._Type, ScopeTypeStatement);
+        if Assigned(TypeStatement) then begin
+          Children := fParser.Statements.GetChildrenStatements(TypeStatement);
+          if Assigned(Children) then begin
+            for t:=0 to Children.Count-1 do begin
+              ChildStatement := PStatement(Children[t]);
+              if (SameStr(ChildStatement^._Command,'this')) then
+                Continue;
+              if (ChildStatement^._ClassScope in [scsPublic,scsNone]) or
+                 (//we are inside the classes friend
+                    Assigned(TypeStatement^._Friends) and
+                    (TypeStatement^._Friends.ValueOf(ScopeName)>=0)
+                  ) or
+                  (
+                   (ChildStatement^._ClassScope =scsProtected) and
+                    IsAncestor(ScopeTypeStatement, TypeStatement) // Is an ancestor of our scope class
+                   ) or (
+                     (ChildStatement^._ClassScope = scsPrivate) and
+                     (ScopeTypeStatement = TypeStatement) // Is an ancestor of our scope class
+                   )
+
+                  then
+                fFullCompletionStatementList.Add(ChildStatement);
+            end;
+          end;
+        end;
+      end;
 
       // Find last operator
       Delete(Phrase, I, MaxInt);
@@ -251,35 +331,7 @@ begin
               fFullCompletionStatementList.Add(ChildStatement);
           end;
         end;
-      end else if (Statement^._Kind = skVariable) and  (opType in [otArrow, otDot]) then  begin
-        //It's a var we should show its type's members
-        TypeStatement := fParser.FindTypeDefinitionOf(Statement^._Type, ScopeTypeStatement);
-        if Assigned(TypeStatement) then begin
-          Children := fParser.Statements.GetChildrenStatements(TypeStatement);
-          if Assigned(Children) then begin
-            for t:=0 to Children.Count-1 do begin
-              ChildStatement := PStatement(Children[t]);
-              if (SameStr(ChildStatement^._Command,'this')) then
-                Continue;
-              if (ChildStatement^._ClassScope in [scsPublic,scsNone]) or
-                 (//we are inside the classes friend
-                    Assigned(TypeStatement^._Friends) and
-                    (TypeStatement^._Friends.ValueOf(ScopeName)>=0)
-                  ) or
-                  (
-                   (ChildStatement^._ClassScope =scsProtected) and
-                    IsAncestor(ScopeTypeStatement, TypeStatement) // Is an ancestor of our scope class
-                   ) or (
-                     (ChildStatement^._ClassScope = scsPrivate) and
-                     (ScopeTypeStatement = TypeStatement) // Is an ancestor of our scope class
-                   )
-
-                  then
-                fFullCompletionStatementList.Add(ChildStatement);
-            end;
-          end;
-        end;
-      end;
+      end else
     end;
 end;
 
@@ -351,6 +403,8 @@ begin
   CodeComplForm.lbCompletion.Items.Clear;
   CodeComplForm.lbCompletion.Items.EndUpdate;
   fIncludedFiles.Clear; // is recreated anyway on reshow, so save some memory when hiding
+  fUsings.Clear;
+  fAddedStatements.Clear;
 end;
 
 function TCodeCompletion.Search(const Phrase, Filename: AnsiString;AutoHideOnSingleResult:boolean):boolean;
@@ -372,6 +426,7 @@ begin
     // only perform full new search if just invoked
     if not CodeComplForm.Showing then begin
       fParser.GetFileIncludes(Filename, fIncludedFiles);
+      fParser.GetFileUsings(Filename,fUsings);
       GetCompletionFor(Phrase);
       CodeComplForm.lbCompletion.Font.Size := FontSize;
       CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
