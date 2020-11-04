@@ -1233,9 +1233,13 @@ begin
 
   if (Key in fText.IdentChars) then begin
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
-      if not fLastPressedIsIdChar then
+      if not fLastPressedIsIdChar then begin
+        fLastPressedIsIdChar:=True;
+        fText.SelText := Key;
         ShowCompletion(Key);
-      fLastPressedIsIdChar:=True;
+        Key:=#0;
+      end else
+        fLastPressedIsIdChar:=True;
     end
   end else begin
     fLastPressedIsIdChar:=False;
@@ -1367,11 +1371,9 @@ procedure TEditor.ShowCompletion(key:ansistring);
 var
   P: TPoint;
   M: TMemoryStream;
-  s: AnsiString;
+  s,word: AnsiString;
   attr: TSynHighlighterAttributes;
 begin
-  fText.ReadOnly := True;
-  try
   fCompletionTimer.Enabled := False;
   if fCompletionBox.Visible and (key <> '') then // already in search, don't do it again
     Exit;
@@ -1379,9 +1381,6 @@ begin
   // Position it at the top of the next line
   P := fText.RowColumnToPixels(fText.DisplayXY);
   Inc(P.Y, fText.LineHeight + 2);
-  fCompletionBox.Position := fText.ClientToScreen(P);
-  //Set Font size;
-  fCompletionBox.FontSize := fText.Font.Size;
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
   if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
     if (attr <> fText.Highlighter.SymbolAttribute) and
@@ -1389,6 +1388,13 @@ begin
       (attr <> fText.Highlighter.IdentifierAttribute) then
       Exit;
 
+  // Redirect key presses to completion box if applicable
+  fCompletionBox.Position := fText.ClientToScreen(P);
+  //Set Font size;
+  fCompletionBox.FontSize := fText.Font.Size;
+  fCompletionBox.OnKeyPress := CompletionKeyPress;
+  fCompletionBox.OnKeyDown := CompletionKeyDown;
+  fCompletionBox.Show;
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
@@ -1404,18 +1410,13 @@ begin
   finally
     M.Free;
   end;
-
-  // Redirect key presses to completion box if applicable
-  fCompletionBox.OnKeyPress := CompletionKeyPress;
-  fCompletionBox.OnKeyDown := CompletionKeyDown;
+  word:=GetWordAtPosition(fText.CaretXY, wpCompletion);
+  //if not fCompletionBox.Visible then
+  fCompletionBox.PrepareSearch(word, fFileName);
 
   // Filter the whole statement list
-  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)
-    and (key = '') then //only one suggestion and it's not input while typing
+  if fCompletionBox.Search(word, fFileName, (key = '')) then //only one suggestion and it's not input while typing
     CompletionInsert(); // if only have one suggestion, just use it
-  finally
-    fText.ReadOnly := False;
-  end;
 end;
 
 procedure TEditor.DestroyCompletion;
@@ -1547,6 +1548,7 @@ begin
       fFunctionTip.Show;
     end;
   end;
+  fCompletionBox.Hide;
 end;
 
 procedure TEditor.EditorDblClick(Sender: TObject);

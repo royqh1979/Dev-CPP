@@ -21,7 +21,7 @@ Version 6.0    November 2020
   - change: Press LEFT/RIGHT/HOME/END will close Code Suggestion and move the cursor in the current line
   - fix: ignore namespace qualify info in identifiers. This makes auto suggestion work (but not perfect) for qualified names.
 
-  - fix: disable/readonly the edtior when Code Suggestion window is starting to show. This will prevent key inputed to editor while suggestion starting appears before the key bring up the suggestion window.
+  - fix: user can type while code suggestion is preparing
 
 
 Version 6-beta6.1     November 2020

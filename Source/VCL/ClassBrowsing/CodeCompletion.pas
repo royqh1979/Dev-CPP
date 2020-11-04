@@ -56,6 +56,8 @@ type
     fIncludedFiles: TStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
+    fPreparing: boolean;
+    fPhrase : AnsiString;
     function ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
     procedure GetCompletionFor(Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
@@ -66,8 +68,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure PrepareSearch(const Phrase, Filename: AnsiString);
     function Search(const Phrase, Filename: AnsiString; AutoHideOnSingleResult:boolean):boolean;
     procedure Hide;
+    procedure Show;
     function SelectedStatement: PStatement;
     property CurrentStatement: PStatement read fCurrentStatement write fCurrentStatement;
   published
@@ -341,8 +345,25 @@ begin
 
 end;
 
+
+procedure TCodeCompletion.Show;
+begin
+  fPreparing:=True;
+  // Clear data, do not free pointed memory: data is owned by CppParser
+  fCompletionStatementList.Clear;
+  fFullCompletionStatementList.Clear;
+  CodeComplForm.lbCompletion.Items.BeginUpdate;
+  CodeComplForm.lbCompletion.Items.Clear;
+  CodeComplForm.lbCompletion.Items.EndUpdate;
+  fIncludedFiles.Clear; // is recreated anyway on reshow, so save some memory when hiding
+  CodeComplForm.Show;
+  CodeComplForm.lbCompletion.SetFocus;
+end;
+
 procedure TCodeCompletion.Hide;
 begin
+  if fPreparing then
+    Exit;
   OnKeyPress := nil;
   CodeComplForm.Hide;
 
@@ -355,6 +376,20 @@ begin
   fIncludedFiles.Clear; // is recreated anyway on reshow, so save some memory when hiding
 end;
 
+procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
+begin
+  fPreparing:=True;
+  fPhrase := Phrase;
+  Screen.Cursor := crHourglass;
+  fParser.GetFileIncludes(Filename, fIncludedFiles);
+  GetCompletionFor(Phrase);
+  CodeComplForm.lbCompletion.Font.Size := FontSize;
+  CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
+  CodeComplForm.Update;
+  Screen.Cursor := crDefault;
+  fPreparing:=False;
+end;
+
 function TCodeCompletion.Search(const Phrase, Filename: AnsiString;AutoHideOnSingleResult:boolean):boolean;
 var
   I: integer;
@@ -362,23 +397,15 @@ var
 begin
   Result:=False;
 
+  fPhrase := Phrase;
   if Phrase = '' then begin
     Hide;
     Exit;
   end;
-    
+
   if fEnabled then begin
 
     Screen.Cursor := crHourglass;
-
-    // only perform full new search if just invoked
-    if not CodeComplForm.Showing then begin
-      fParser.GetFileIncludes(Filename, fIncludedFiles);
-      GetCompletionFor(Phrase);
-      CodeComplForm.lbCompletion.Font.Size := FontSize;
-      CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
-      CodeComplForm.Update;
-    end;
 
 
     // Sort here by member
@@ -417,8 +444,7 @@ begin
         Exit;
       end;
 
-      CodeComplForm.Show;
-      CodeComplForm.lbCompletion.SetFocus;
+      //CodeComplForm.Show;
       if CodeComplForm.lbCompletion.Items.Count > 0 then
         CodeComplForm.lbCompletion.ItemIndex := 0;
     end else begin
