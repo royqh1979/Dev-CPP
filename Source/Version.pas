@@ -119,6 +119,8 @@ const
   cGut = 'Gutter';
   cSel = 'Selected text';
   cFld = 'Folding lines';
+  cAL = 'Active Line';
+
 
   // GPROF commands and displays
   GPROF_CHECKFILE = 'gmon.out';

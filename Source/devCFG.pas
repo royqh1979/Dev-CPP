@@ -399,7 +399,6 @@ type
     fParserHints: boolean; // Show parser's hint for the word under the cursor
     fMatch: boolean; // Highlight matching parenthesis
     fHighCurrLine: boolean; // Highlight current line
-    fHighColor: TColor; // Color of current line when highlighted
     fTrimTrailingSpaces: boolean;
 
     // Autosave
@@ -475,7 +474,6 @@ type
     property ParserHints: boolean read fParserHints write fParserHints;
     property Match: boolean read fMatch write fMatch;
     property HighCurrLine: boolean read fHighCurrLine write fHighCurrLine;
-    property HighColor: TColor read fHighColor write fHighColor;
 
     // Autosave
     property EnableAutoSave: boolean read fEnableAutoSave write fEnableAutoSave;
@@ -2370,6 +2368,13 @@ begin
 end;
 
 procedure TdevEditor.SettoDefaults;
+var
+  offset:integer;
+  
+  procedure AddSpecial(AttrName: AnsiString; Offset: integer);
+  begin
+    fSyntax.Append(format('%s=%s', [AttrName, LoadStr(offset)]))
+  end;
 begin
   // General
   fAutoIndent := TRUE;
@@ -2407,7 +2412,6 @@ begin
   fUseSyn := TRUE;
   fSynExt := 'c;cpp;h;hpp;cc;cxx;cp;hp;rh;fx;inl;tcc;win;;'; //last ; is for files with no extension
   fHighCurrLine := TRUE;
-  fHighColor := $FFFFCC; // Light Turquoise
   fTabSize := 4;
 
   // Display
@@ -2443,6 +2447,17 @@ begin
   fDeleteSymbolPairs := True;
 
   fUseUTF8ByDefault := True;
+
+  fSyntax.Clear;
+  //fix for old config files
+  offset:=1000;
+  AddSpecial(cBP, offset + 17); // breakpoint
+  AddSpecial(cErr, offset + 18); // error line
+  AddSpecial(cABP, offset + 19); // active breakpoint
+  AddSpecial(cGut, offset + 20); // gutter
+  AddSpecial(cSel, offset + 21); // selected text
+  AddSpecial(cFld, offset + 22); // fold bar lines
+  AddSpecial(cAL, offset + 23); // active Line
 end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);
@@ -2474,6 +2489,15 @@ begin
         SelectedColor.Foreground := clWhite;
       end;
 
+      //active line
+      if Assigned(Highlighter) then begin
+        StrtoPoint(pt, devEditor.Syntax.Values[cAL]);
+        ActiveLineColor := pt.X;
+      end else begin // editor not colored, pick defaults
+        ActiveLineColor := $FFFFCC;
+      end;
+
+
       // Set code folding
       if Assigned(Highlighter) then begin
         StrtoPoint(pt, devEditor.Syntax.Values[cFld]);
@@ -2482,6 +2506,8 @@ begin
       end else begin
         UseCodeFolding := False;
       end;
+
+
 
       // More stuff
       if fMarginVis then
@@ -2492,10 +2518,6 @@ begin
       InsertCaret := TSynEditCaretType(fInsertCaret);
       OverwriteCaret := TSynEditCaretType(fOverwriteCaret);
       ScrollHintFormat := shfTopToBottom;
-      if HighCurrLine and Assigned(Highlighter) then
-        ActiveLineColor := HighColor
-      else
-        ActiveLineColor := clNone;
 
       // Set gutter properties
       with Gutter do begin

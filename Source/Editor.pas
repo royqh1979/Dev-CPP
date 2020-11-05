@@ -1375,12 +1375,10 @@ var
   attr: TSynHighlighterAttributes;
 begin
   fCompletionTimer.Enabled := False;
+
   if fCompletionBox.Visible and (key <> '') then // already in search, don't do it again
     Exit;
 
-  // Position it at the top of the next line
-  P := fText.RowColumnToPixels(fText.DisplayXY);
-  Inc(P.Y, fText.LineHeight + 2);
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
   if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
     if (attr <> fText.Highlighter.SymbolAttribute) and
@@ -1388,10 +1386,14 @@ begin
       (attr <> fText.Highlighter.IdentifierAttribute) then
       Exit;
 
-  // Redirect key presses to completion box if applicable
+  // Position it at the top of the next line
+  P := fText.RowColumnToPixels(fText.DisplayXY);
+  Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
+
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
+  // Redirect key presses to completion box if applicable
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
   fCompletionBox.Show;
@@ -1771,6 +1773,8 @@ var
   LineLength: integer;
 
   procedure SetColors(Point: TBufferCoord);
+  var
+    pt:TPoint;
   begin
     // Draw using highlighting colors
     if TransientType = ttAfter then begin
@@ -1780,7 +1784,8 @@ var
       // Draw using normal colors
     end else begin
       if devEditor.HighCurrLine and (Point.Line = fText.CaretY) then begin // matching char is inside highlighted line
-        Canvas.Brush.Color := devEditor.HighColor;
+        StrtoPoint(pt, devEditor.Syntax.Values[cAL]);
+        Canvas.Brush.Color := pt.x;
         Canvas.Font.Color := Attri.Foreground;
       end else begin
         Canvas.Brush.Color := Attri.Background;

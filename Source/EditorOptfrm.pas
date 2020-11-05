@@ -118,7 +118,6 @@ type
     SaveInterval: TLabel;
     MinutesDelay: TTrackBar;
     FileOptions: TRadioGroup;
-    grpHighCurLine: TGroupBox;
     cbFunctionHint: TCheckBox;
     edSyntaxExt: TEdit;
     cbSyntaxHighlight: TCheckBox;
@@ -127,7 +126,6 @@ type
     lblTabSize: TLabel;
     cbUseTabs: TCheckBox;
     cbSmartTabs: TCheckBox;
-    cbHighlightColor: TLabel;
     cbDefaultCode: TCheckBox;
     seDefault: TSynEdit;
     NameOptions: TRadioGroup;
@@ -137,7 +135,6 @@ type
     chkCBParseLocalH: TCheckBox;
     lblTimeStampExample: TLabel;
     cpMarginColor: TColorBox;
-    cpHighColor: TColorBox;
     cpForeground: TColorBox;
     cpBackground: TColorBox;
     cpCompletionBackground: TColorBox;
@@ -176,7 +173,6 @@ type
     procedure chkEnableCompletionClick(Sender: TObject);
     procedure btnSaveSyntaxClick(Sender: TObject);
     procedure OnGutterClick(Sender: TObject; Button: TMouseButton; X, Y, Line: Integer; Mark: TSynEditMark);
-    procedure cbHighCurrLineClick(Sender: TObject);
     procedure cbAutoSaveClick(Sender: TObject);
     procedure MinutesDelayChange(Sender: TObject);
     procedure cbSymbolCompleteClick(Sender: TObject);
@@ -201,6 +197,7 @@ type
     fABPColor: TPoint;
     fSelColor: TPoint;
     fFoldColor: TPoint;
+    fALColor : TPoint;
     procedure LoadFonts;
     procedure LoadText;
     procedure LoadCodeIns;
@@ -225,6 +222,7 @@ const
   cABreakLine = 9;
   cErrorLine = 11;
   cSelection = 15;
+  cActiveLine = 13;
 
 procedure TEditorOptForm.FormCreate(Sender: TObject);
 var
@@ -283,8 +281,6 @@ begin
     cbMatch.Checked := Match;
     cbDefaultCode.Checked := DefaultCode;
     cbHighCurrLine.Checked := HighCurrLine;
-    cpHighColor.Selected := HighColor;
-    cpHighColor.Enabled := cbHighCurrLine.Checked;
 
     // Fonts
     LoadFonts; // fill dropdowns
@@ -302,6 +298,7 @@ begin
     StrtoPoint(fErrColor, Syntax.Values[cErr]);
     StrtoPoint(fABPColor, Syntax.Values[cABP]);
     StrtoPoint(fFoldColor, Syntax.Values[cFld]);
+    StrToPoint(fALColor, Syntax.Values[cAL]);
   end;
 
   // Colors, cont.
@@ -319,42 +316,32 @@ begin
         finally
           Attribute.Free;
         end;
-      end else
-        devEditor.Syntax.Append(AttrName);
+      end;
 
       // Add to list
       ElementList.Items.Add(cpp.Attribute[I].Name);
     end;
 
     // selection color
-    if devEditor.Syntax.IndexofName(cSel) = -1 then
-      devEditor.Syntax.Append(cSel);
     ElementList.Items.Append(cSel);
 
     // gutter colors
-    if devEditor.Syntax.IndexofName(cGut) = -1 then
-      devEditor.Syntax.Append(cGut);
     ElementList.Items.Append(cGut);
 
     // breakpoint
-    if devEditor.Syntax.IndexOfName(cBP) = -1 then
-      devEditor.Syntax.Append(cBP);
     ElementList.Items.Append(cBP);
 
     // error line
-    if devEditor.Syntax.IndexOfName(cErr) = -1 then
-      devEditor.Syntax.Append(cErr);
     ElementList.Items.Append(cErr);
 
     // active breakpoint
-    if devEditor.Syntax.IndexOfName(cABP) = -1 then
-      devEditor.Syntax.Append(cABP);
     ElementList.Items.Append(cABP);
 
     // folding color
-    if devEditor.Syntax.IndexofName(cFld) = -1 then
-      devEditor.Syntax.Append(cFld);
     ElementList.Items.Append(cFld);
+
+    // active line
+    ElementList.Items.Append(cAL);
 
     ffgColor := cpp.WhitespaceAttribute.Foreground;
     fbgColor := cpp.WhitespaceAttribute.Background;
@@ -414,7 +401,6 @@ begin
 
   // Set defaults of color buttons, don't want all system colors too
   cpMarginColor.Items.InsertObject(1, 'Default', TObject(cpMarginColor.DefaultColorColor));
-  cpHighColor.Items.InsertObject(1, 'Default', TObject(cpHighColor.DefaultColorColor));
   cpCompletionBackground.Items.InsertObject(1, 'Default', TObject(cpCompletionBackground.DefaultColorColor));
 end;
 
@@ -555,8 +541,6 @@ begin
   cbMarginVis.Caption := Lang[ID_EOPT_GENERICENABLED];
   lblMarginWidth.Caption := Lang[ID_EOPT_WIDTH];
   lblMarginColor.Caption := Lang[ID_EOPT_COLOR];
-  grpHighCurLine.Caption := Lang[ID_EOPT_HIGHCURLINE];
-  cbHighlightColor.Caption := Lang[ID_EOPT_COLOR];
 
   grpCaret.Caption := Lang[ID_EOPT_CARET];
   lblInsertCaret.Caption := Lang[ID_EOPT_INSCARET];
@@ -568,7 +552,7 @@ begin
   cbUseTabs.Caption := Lang[ID_EOPT_TAB2SPC];
   cbSmartTabs.Caption := Lang[ID_EOPT_SMARTTABS];
 
-  cbHighCurrLine.Caption := Lang[ID_EOPT_GENERICENABLED];
+  cbHighCurrLine.Caption := Lang[ID_EOPT_HIGHCURLINE];
 
   cboInsertCaret.Clear;
   cboInsertCaret.Items.Add(Lang[ID_EOPT_CARET1]);
@@ -685,7 +669,6 @@ begin
     Match := cbMatch.Checked;
 
     HighCurrLine := cbHighCurrLine.Checked;
-    HighColor := cpHighColor.Selected;
 
     UseSyntax := cbSyntaxHighlight.Checked;
     SyntaxExt := edSyntaxExt.Text;
@@ -785,7 +768,17 @@ begin
       Syntax.Append(format('%s=%s', [cFld, s]))
     else
       Syntax.Values[cFld] := s;
+
+    // active line
+    s := PointtoStr(fALColor);
+    a := Syntax.IndexofName(cAL);
+    if a = -1 then
+      Syntax.Append(format('%s=%s', [cAL, s]))
+    else
+      Syntax.Values[cAL] := s;
+
   end;
+
 
   // Save our code snippet even if we opted not to use it (user may want to keep it)
   if not seDefault.IsEmpty then
@@ -878,6 +871,9 @@ begin
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cFld) then begin
       pt := fFoldColor;
       cpBackground.Enabled := false;
+    end else if SameText(ElementList.Items[ElementList.ItemIndex], cAL) then begin
+      pt := fALColor;
+      cpBackground.Enabled := True;
     end;
 
     cpBackground.Selected := pt.x;
@@ -954,6 +950,8 @@ begin
     end else if SameText(s, cFld) then begin
       fFoldColor := pt;
       SetGutter;
+    end else if SameText(s, cAL) then begin
+      fALColor := pt;
     end;
 
     // regular SynEdit attributes
@@ -1000,6 +998,10 @@ begin
           ElementList.ItemIndex := ElementList.Items.Indexof(cSel);
           ElementListClick(Self);
         end;
+      cActiveLine: begin
+          ElementList.ItemIndex := ElementList.Items.Indexof(cAL);
+          ElementListClick(Self);
+        end;
       cBreakLine: begin
           ElementList.ItemIndex := ElementList.Items.Indexof(cBP);
           ElementListClick(Self);
@@ -1032,6 +1034,15 @@ begin
           BG := fSelColor.x;
         if fSelColor.y <> clNone then
           FG := fSelColor.y;
+        Special := TRUE;
+      end;
+    cActiveLine: begin
+        if fALColor.x <> clNone then
+          BG := fALColor.x;
+          {
+        if fALColor.y <> clNone then
+          FG := fALColor.y;
+          }
         Special := TRUE;
       end;
     cBreakLine: begin
@@ -1097,6 +1108,7 @@ begin
     StrtoPoint(fgutColor, LoadStr(offset + 20)); // gutter
     StrtoPoint(fSelColor, LoadStr(offset + 21)); // selected text
     StrtoPoint(fFoldColor, LoadStr(offset + 22)); // folding bar lines
+    StrtoPoint(fALColor, LoadStr(offset + 23)); // folding bar lines
   end;
 
   SetGutter;
@@ -1301,8 +1313,9 @@ begin
       else if CompareText(ElementList.Items[idx], cGut) = 0 then
         pt := fGutColor
       else if CompareText(ElementList.Items[idx], cFld) = 0 then
-        pt := fFoldColor;
-
+        pt := fFoldColor
+      else if CompareText(ElementList.Items[idx], cAL) = 0 then
+        pt := fALColor;
       fINI.WriteString('Editor.Custom', ElementList.Items[idx], PointtoStr(pt));
     end;
   finally
@@ -1349,6 +1362,8 @@ begin
       end else if CompareText(ElementList.Items[idx], cFld) = 0 then begin
         fFoldColor := pt;
         SetGutter;
+      end else if CompareText(ElementList.Items[idx], cAL) = 0 then begin
+        fALColor := pt;
       end;
     end;
   finally
@@ -1376,11 +1391,6 @@ begin
     ElementList.ItemIndex := idx;
     ElementListClick(Self);
   end;
-end;
-
-procedure TEditorOptForm.cbHighCurrLineClick(Sender: TObject);
-begin
-  cpHighColor.Enabled := cbHighCurrLine.Checked;
 end;
 
 procedure TEditorOptForm.cbAutoSaveClick(Sender: TObject);

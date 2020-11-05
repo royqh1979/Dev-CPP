@@ -1,9 +1,9 @@
 object EditorOptForm: TEditorOptForm
-  Left = 810
-  Top = 294
+  Left = 811
+  Top = 32
   BorderStyle = bsDialog
   Caption = 'Editor Options'
-  ClientHeight = 656
+  ClientHeight = 645
   ClientWidth = 645
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,14 +17,14 @@ object EditorOptForm: TEditorOptForm
   OnCreate = FormCreate
   DesignSize = (
     645
-    656)
+    645)
   PixelsPerInch = 120
   TextHeight = 20
   object PagesMain: TPageControl
     Left = 0
     Top = 0
     Width = 647
-    Height = 607
+    Height = 593
     ActivePage = tabGeneral
     TabOrder = 0
     OnChange = PagesMainChange
@@ -223,6 +223,14 @@ object EditorOptForm: TEditorOptForm
           Caption = 'Use UTF-8 As the default charset'
           TabOrder = 16
         end
+        object cbHighCurrLine: TCheckBox
+          Left = 323
+          Top = 251
+          Width = 246
+          Height = 22
+          Caption = 'Highlight current line'
+          TabOrder = 17
+        end
       end
       object grpCaret: TGroupBox
         Left = 12
@@ -282,43 +290,9 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 2
         end
       end
-      object grpHighCurLine: TGroupBox
-        Left = 352
-        Top = 443
-        Width = 268
-        Height = 112
-        Caption = 'Highlight current line'
-        TabOrder = 4
-        object cbHighlightColor: TLabel
-          Left = 132
-          Top = 47
-          Width = 36
-          Height = 20
-          Caption = 'Color'
-        end
-        object cbHighCurrLine: TCheckBox
-          Left = 11
-          Top = 27
-          Width = 246
-          Height = 22
-          Caption = 'Enabled'
-          TabOrder = 0
-          OnClick = cbHighCurrLineClick
-        end
-        object cpHighColor: TColorBox
-          Left = 128
-          Top = 67
-          Width = 129
-          Height = 22
-          DefaultColorColor = 16777164
-          Style = [cbStandardColors, cbIncludeDefault, cbCustomColor, cbPrettyNames]
-          ItemHeight = 16
-          TabOrder = 1
-        end
-      end
       object grpTabs: TGroupBox
         Left = 12
-        Top = 443
+        Top = 435
         Width = 331
         Height = 112
         Caption = '  Tabs  '
@@ -789,7 +763,7 @@ object EditorOptForm: TEditorOptForm
         Left = 0
         Top = 0
         Width = 639
-        Height = 572
+        Height = 558
         ActivePage = tabCPInserts
         Align = alClient
         TabOrder = 0
@@ -928,7 +902,7 @@ object EditorOptForm: TEditorOptForm
         Left = 0
         Top = 0
         Width = 639
-        Height = 572
+        Height = 558
         ActivePage = tabCodeCompletion
         Align = alClient
         TabOrder = 0
@@ -1179,7 +1153,7 @@ object EditorOptForm: TEditorOptForm
   end
   object btnOk: TBitBtn
     Left = 280
-    Top = 613
+    Top = 602
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1208,7 +1182,7 @@ object EditorOptForm: TEditorOptForm
   end
   object btnCancel: TBitBtn
     Left = 400
-    Top = 613
+    Top = 602
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1218,7 +1192,7 @@ object EditorOptForm: TEditorOptForm
   end
   object btnHelp: TBitBtn
     Left = 520
-    Top = 613
+    Top = 602
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]

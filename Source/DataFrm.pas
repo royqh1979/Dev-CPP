@@ -138,18 +138,20 @@ var
   Attr: TSynHighlighterAttributes;
 begin
   offset := index * 1000;
-  for i := 0 to pred(cpp.AttrCount) do begin
-    attr := TSynHighlighterAttributes.Create(cpp.Attribute[i].Name);
-    try
-      StrtoAttr(Attr, LoadStr(i + offset + 1));
-      cpp.Attribute[i].Assign(Attr);
-      a := devEditor.Syntax.IndexOfName(cpp.Attribute[i].Name);
-      if a = -1 then
-        devEditor.Syntax.Append(format('%s=%s', [cpp.Attribute[i].Name, AttrtoStr(Attr)]))
-      else
-        devEditor.Syntax.Values[cpp.Attribute[i].Name] := AttrtoStr(Attr);
-    finally
-      Attr.Free;
+  if Assigned(cpp) then begin
+    for i := 0 to pred(cpp.AttrCount) do begin
+      attr := TSynHighlighterAttributes.Create(cpp.Attribute[i].Name);
+      try
+        StrtoAttr(Attr, LoadStr(i + offset + 1));
+        cpp.Attribute[i].Assign(Attr);
+        a := devEditor.Syntax.IndexOfName(cpp.Attribute[i].Name);
+        if a = -1 then
+          devEditor.Syntax.Append(format('%s=%s', [cpp.Attribute[i].Name, AttrtoStr(Attr)]))
+        else
+          devEditor.Syntax.Values[cpp.Attribute[i].Name] := AttrtoStr(Attr);
+      finally
+        Attr.Free;
+      end;
     end;
   end;
   AddSpecial(cBP, offset + 17); // breakpoint
@@ -158,6 +160,7 @@ begin
   AddSpecial(cGut, offset + 20); // gutter
   AddSpecial(cSel, offset + 21); // selected text
   AddSpecial(cFld, offset + 22); // fold bar lines
+  AddSpecial(cAL, offset + 23); // active Line
 end;
 
 procedure TdmMain.UpdateHighlighter;

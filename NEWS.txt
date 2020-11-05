@@ -23,6 +23,9 @@ Version 6.0    November 2020
 
   - fix: user can type while code suggestion is preparing
 
+  - fix: can set current line fg/bg color in Editor's Color tab
+  - fix: editor color theme with correct current line color
+
 
 Version 6-beta6.1     November 2020
 
