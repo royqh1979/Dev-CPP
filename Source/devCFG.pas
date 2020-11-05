@@ -2358,8 +2358,25 @@ begin
 end;
 
 procedure TdevEditor.LoadSettings;
+var
+  offset:integer;
+
+  procedure AddSpecial(AttrName: AnsiString; Offset: integer);
+  begin
+    if (fSyntax.IndexOf(AttrName)=-1) then
+      fSyntax.Append(format('%s=%s', [AttrName, LoadStr(offset)]))
+  end;
 begin
   devData.ReadObject('Editor', Self);
+  //fix for old config files
+  offset:=1000;
+  AddSpecial(cBP, offset + 17); // breakpoint
+  AddSpecial(cErr, offset + 18); // error line
+  AddSpecial(cABP, offset + 19); // active breakpoint
+  AddSpecial(cGut, offset + 20); // gutter
+  AddSpecial(cSel, offset + 21); // selected text
+  AddSpecial(cFld, offset + 22); // fold bar lines
+  AddSpecial(cAL, offset + 23); // active Line
 end;
 
 procedure TdevEditor.SaveSettings;
@@ -2368,13 +2385,6 @@ begin
 end;
 
 procedure TdevEditor.SettoDefaults;
-var
-  offset:integer;
-  
-  procedure AddSpecial(AttrName: AnsiString; Offset: integer);
-  begin
-    fSyntax.Append(format('%s=%s', [AttrName, LoadStr(offset)]))
-  end;
 begin
   // General
   fAutoIndent := TRUE;
@@ -2449,15 +2459,7 @@ begin
   fUseUTF8ByDefault := True;
 
   fSyntax.Clear;
-  //fix for old config files
-  offset:=1000;
-  AddSpecial(cBP, offset + 17); // breakpoint
-  AddSpecial(cErr, offset + 18); // error line
-  AddSpecial(cABP, offset + 19); // active breakpoint
-  AddSpecial(cGut, offset + 20); // gutter
-  AddSpecial(cSel, offset + 21); // selected text
-  AddSpecial(cFld, offset + 22); // fold bar lines
-  AddSpecial(cAL, offset + 23); // active Line
+
 end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);
