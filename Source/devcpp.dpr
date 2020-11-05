@@ -21,6 +21,7 @@ program devcpp;
 {$R 'icons.res' 'icons.rc'}
 {$R 'DefaultFiles.res' 'DefaultFiles.rc'}
 {%File 'LangIDs.inc'}
+{$R 'manifest.res' 'manifest.rc'}
 
 uses
   FastMM4 in 'FastMM4.pas',
@@ -50,7 +51,7 @@ uses
   IconFrm in 'IconFrm.pas' {IconForm},
   devcfg in 'devcfg.pas',
   DataFrm in 'DataFrm.pas' {dmMain: TDataModule},
-  EditorOptFrm in 'EditorOptFrm.pas' {EditorOptForm},
+  EditorOptFrm in 'EditorOptfrm.pas' {EditorOptForm},
   CodeInsList in 'CodeInsList.pas',
   IncrementalFrm in 'IncrementalFrm.pas' {IncrementalForm},
   FindFrm in 'FindFrm.pas' {FindForm},
