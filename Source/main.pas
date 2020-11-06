@@ -507,7 +507,6 @@ type
     MenuItem12: TMenuItem;
     N51: TMenuItem;
     DisplayGDBCommandsBtn: TMenuItem;
-    DisplayGDBAnnotationsBtn: TMenuItem;
     MessageControl: TPageControl;
     actMsgDisplayGDBCommands: TAction;
     actMsgDisplayGDBAnnotations: TAction;
@@ -879,6 +878,7 @@ type
     procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
     procedure DebugOutputEnter(Sender: TObject);
     procedure actOpenConsoleExecute(Sender: TObject);
+    procedure WatchViewDblClick(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1077,10 +1077,11 @@ begin
     devData.ProjectWindowState.GetPlacement(fProjectToolWindow.Handle);
   if Assigned(fReportToolWindow) then
     devData.ReportWindowState.GetPlacement(fReportToolWindow.Handle);
-
-  SaveOptions;
-
-  Action := caFree;
+  try
+    SaveOptions;
+  finally
+    Action := caFree;
+  end;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1663,11 +1664,13 @@ begin
   end else begin
     dmMain.RemoveFromHistory(FileName);
   end;
+  
   e.Activate;
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) then begin
     LeftPageControl.ActivePage := LeftClassSheet;
+    ClassBrowser.TabVisible := True;
   end;
 end;
 
@@ -2041,8 +2044,9 @@ begin
   NewEditor := fEditorList.NewEditor('',devEditor.UseUTF8ByDefault, False, True);
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
-  LeftPageControl.ActivePage := LeftClassSheet;
   UpdateFileEncodingStatusPanel;
+  LeftPageControl.ActivePage := LeftClassSheet;
+  ClassBrowser.TabVisible := True;
 end;
 
 procedure TMainForm.actNewProjectExecute(Sender: TObject);
@@ -2254,6 +2258,7 @@ begin
     if not fQuitting and RefreshEditor then begin
       //reset Class browsing
       LeftPageControl.ActivePage := LeftClassSheet;
+      ClassBrowser.TabVisible := True;
       UpdateClassBrowsing;
       ClassBrowser.ProjectDir := '';
       //UpdateClassBrowserForEditor(EditorList.GetEditor());
@@ -7468,6 +7473,27 @@ begin
     end;
   end;
 end;
+
+procedure TMainForm.WatchViewDblClick(Sender: TObject);
+var
+  curnode: TTreeNode;
+  name: AnsiString;
+  newName: AnsiString;
+begin
+  curnode := WatchView.Selected;
+  if Assigned(curnode) then begin // only edit members
+    if not Assigned(curnode.Data) then
+      Exit;
+    name := PWatchVar(curnode.Data)^.Name;
+    newName := name;
+    if ShowInputQuery(Lang[ID_NV_RENAMEWATCH], Lang[ID_NV_NEWVAR], newName) then begin
+      fDebugger.RenameWatchVar(name, newName);
+      WatchView.Update;
+    end;
+  end;
+end;
+
+
 
 end.
 

@@ -69,6 +69,8 @@ type
     procedure RemoveWatchVar(i: integer); overload;
     procedure AddWatchVar(const namein: AnsiString); overload;
     procedure RemoveWatchVar(nodein: TTreeNode); overload;
+    procedure RenameWatchVar(const oldname: AnsiString; const newname: AnsiString); 
+
     procedure RefreshWatchVars;
     procedure DeleteWatchVars(deleteparent: boolean);
     procedure InvalidateAllVars();
@@ -384,6 +386,33 @@ end;
 procedure TDebugger.AddWatchVar(i: integer);
 begin
   SendCommand('display', PWatchVar(WatchVarList.Items[i])^.name);
+end;
+
+procedure TDebugger.RenameWatchVar(const oldname: AnsiString; const newname: AnsiString);
+var
+  I: integer;
+  watchVar: PWatchVar;
+begin
+  // check if name already exists;
+  for i := 0 to WatchVarList.Count - 1 do begin
+    watchVar := PWatchVar(WatchVarList.Items[I]);
+    if SameStr(watchVar^.name, newName) then
+      Exit;
+  end;
+  for i := 0 to WatchVarList.Count - 1 do begin
+    watchVar := PWatchVar(WatchVarList.Items[I]);
+
+    if SameStr(watchVar^.name, oldName) then begin
+      watchVar^.name:=newName;
+      watchVar^.Node.Text:= newName + ' = '+Lang[ID_MSG_EXECUTE_TO_EVALUATE];
+      // Debugger already running and GDB scanned this one? Remove it from GDB
+      if Executing and (watchVar^.gdbindex <> -1) then
+        RemoveWatchVar(i);
+      if Executing then
+        AddWatchVar(i);
+      break;
+    end;
+  end;
 end;
 
 procedure TDebugger.RemoveWatchVar(i: integer);

@@ -1,6 +1,6 @@
 object ProjectOptionsFrm: TProjectOptionsFrm
-  Left = 792
-  Top = 261
+  Left = 381
+  Top = 279
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Project Options'
@@ -505,6 +505,9 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     end
     object tabCompOpts: TTabSheet
       Caption = 'Options'
+      DesignSize = (
+        704
+        446)
       object lblAdditions: TLabel
         Left = 8
         Top = 8
@@ -512,93 +515,102 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Height = 20
         Caption = '  Additional Command Line Options:  '
       end
-      object lblCompiler: TLabel
-        Left = 13
+      object PageControl1: TPageControl
+        Left = 0
         Top = 32
-        Width = 77
-        Height = 20
-        Caption = 'C Compiler:'
-      end
-      object lblCppCompiler: TLabel
-        Left = 253
-        Top = 32
-        Width = 97
-        Height = 20
-        Caption = 'C++ Compiler:'
-      end
-      object lblLinker: TLabel
-        Left = 491
-        Top = 32
-        Width = 39
-        Height = 20
-        Caption = 'Linker'
-        WordWrap = True
-      end
-      object edCompiler: TMemo
-        Left = 13
-        Top = 53
-        Width = 234
-        Height = 354
-        Lines.Strings = (
-          'edCompiler')
-        ScrollBars = ssVertical
+        Width = 704
+        Height = 414
+        ActivePage = LinkerSheet
+        Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 0
-      end
-      object edCppCompiler: TMemo
-        Left = 253
-        Top = 53
-        Width = 234
-        Height = 354
-        Lines.Strings = (
-          'edCppCompiler')
-        ScrollBars = ssVertical
-        TabOrder = 1
-      end
-      object edLinker: TMemo
-        Left = 491
-        Top = 53
-        Width = 197
-        Height = 300
-        Lines.Strings = (
-          'edLinker')
-        ScrollBars = ssVertical
-        TabOrder = 2
-      end
-      object btnAddLib: TBitBtn
-        Left = 491
-        Top = 363
-        Width = 197
-        Height = 40
-        Caption = 'Add Library or Object'
-        TabOrder = 3
-        OnClick = btnAddLibClick
-        Glyph.Data = {
-          36030000424D3603000000000000360000002800000010000000100000000100
-          18000000000000030000120B0000120B00000000000000000000BFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
-          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
-          BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
-          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
-          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
-          BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
-          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000000000
-          000000000000000000000000000000000000000000000000000000BFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBF00000000AEFF0096DB0096DB0096DB0096DB0096DB00
-          96DB0096DB0082BE000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
-          00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF00AEFF00AEFF00AEFF00
-          AEFF00AEFF0096DB000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
-          00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF5DCCFF5DCCFF5DCCFF5D
-          CCFF5DCCFF00AEFF000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF686868BDEBFF
-          5DCCFF5DCCFF000000000000000000000000000000000000BFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBFBFBFBF000000000000000000BFBFBFBFBFBFBFBFBFBF
-          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+        object CompilerSheet: TTabSheet
+          Caption = 'CompilerSheet'
+          object edCompiler: TMemo
+            Left = 0
+            Top = 0
+            Width = 696
+            Height = 379
+            Align = alClient
+            Lines.Strings = (
+              'edCompiler')
+            ScrollBars = ssBoth
+            TabOrder = 0
+            WantReturns = False
+            WordWrap = False
+          end
+        end
+        object CppCompilerSheet: TTabSheet
+          Caption = 'CppCompilerSheet'
+          ImageIndex = 1
+          object edCppCompiler: TMemo
+            Left = 0
+            Top = 0
+            Width = 696
+            Height = 379
+            Align = alClient
+            Lines.Strings = (
+              'edCppCompiler')
+            ScrollBars = ssBoth
+            TabOrder = 0
+            WantReturns = False
+          end
+        end
+        object LinkerSheet: TTabSheet
+          Caption = 'LinkerSheet'
+          ImageIndex = 2
+          DesignSize = (
+            696
+            379)
+          object edLinker: TMemo
+            Left = 0
+            Top = 2
+            Width = 697
+            Height = 319
+            Anchors = [akLeft, akTop, akRight]
+            Lines.Strings = (
+              'edLinker')
+            ScrollBars = ssBoth
+            TabOrder = 0
+            WantReturns = False
+          end
+          object btnAddLib: TBitBtn
+            Left = 492
+            Top = 334
+            Width = 197
+            Height = 40
+            Anchors = [akRight, akBottom]
+            Caption = 'Add Library or Object'
+            TabOrder = 1
+            OnClick = btnAddLibClick
+            Glyph.Data = {
+              36030000424D3603000000000000360000002800000010000000100000000100
+              18000000000000030000120B0000120B00000000000000000000BFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+              00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+              BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+              00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+              00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+              BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+              00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000000000
+              000000000000000000000000000000000000000000000000000000BFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBF00000000AEFF0096DB0096DB0096DB0096DB0096DB00
+              96DB0096DB0082BE000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+              00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF00AEFF00AEFF00AEFF00
+              AEFF00AEFF0096DB000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+              00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF5DCCFF5DCCFF5DCCFF5D
+              CCFF5DCCFF00AEFF000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF686868BDEBFF
+              5DCCFF5DCCFF000000000000000000000000000000000000BFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBF000000000000000000BFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+          end
+        end
       end
     end
     object tabFilesDir: TTabSheet

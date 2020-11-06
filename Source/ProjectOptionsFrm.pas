@@ -113,11 +113,8 @@ type
     cmbCompiler: TComboBox;
     lblCompilerSet: TLabel;
     lblAdditions: TLabel;
-    lblCompiler: TLabel;
     edCompiler: TMemo;
-    lblCppCompiler: TLabel;
     edCppCompiler: TMemo;
-    lblLinker: TLabel;
     edLinker: TMemo;
     btnAddLib: TBitBtn;
     cbUseCustomMakefile: TCheckBox;
@@ -140,6 +137,10 @@ type
     CheckBox1: TCheckBox;
     cbUseUTF8: TCheckBox;
     cbUnitUseUTF8: TCheckBox;
+    PageControl1: TPageControl;
+    CompilerSheet: TTabSheet;
+    CppCompilerSheet: TTabSheet;
+    LinkerSheet: TTabSheet;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);
@@ -658,9 +659,9 @@ begin
 
   // Options tab
   lblAdditions.Caption := Lang[ID_POPT_ADDITIONAL];
-  lblCompiler.Caption := Lang[ID_POPT_CCOMP];
-  lblCppCompiler.Caption := Lang[ID_POPT_CPPCOMP];
-  lblLinker.Caption := Lang[ID_POPT_LINKER];
+  CompilerSheet.Caption := Lang[ID_POPT_CCOMP];
+  CppCompilerSheet.Caption := Lang[ID_POPT_CPPCOMP];
+  LinkerSheet.Caption := Lang[ID_POPT_LINKER];
   btnAddLib.Caption := Lang[ID_POPT_ADDLIBRARY];
 
   // Directories tab

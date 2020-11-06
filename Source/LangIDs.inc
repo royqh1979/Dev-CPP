@@ -335,6 +335,7 @@ const
   ID_NV_MODIFYVALUE                     = 20005;
   ID_NV_VARNAME                         = 20006;
   ID_NV_VARVALUE                        = 20007;
+  ID_NV_RENAMEWATCH                        = 20008;
 
   // Project Manager/Class Browser
   ID_LP_PROJECT                         = 21001;

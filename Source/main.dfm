@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 329
-  Top = 184
+  Left = 488
+  Top = 206
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1166,6 +1166,7 @@ object MainForm: TMainForm
         RightClickSelect = True
         TabOrder = 0
         OnAdvancedCustomDrawItem = WatchViewAdvancedCustomDrawItem
+        OnDblClick = WatchViewDblClick
         OnKeyDown = WatchViewKeyDown
       end
     end
@@ -3287,9 +3288,6 @@ object MainForm: TMainForm
     end
     object DisplayGDBCommandsBtn: TMenuItem
       Action = actMsgDisplayGDBCommands
-    end
-    object DisplayGDBAnnotationsBtn: TMenuItem
-      Action = actMsgDisplayGDBAnnotations
     end
     object N51: TMenuItem
       Caption = '-'

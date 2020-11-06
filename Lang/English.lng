@@ -273,13 +273,14 @@ Ver=1
 19007=Save As
 
 
-20001=New Variable Watch
-20002=Enter Variable Name (it is recommended to use 'this->' for class members):
+20001=New Watch Expression
+20002=Enter Watch Expression (it is recommended to use 'this->' for class members):
 20003=Modify Variable Watch
-20004=New Variable Name:
+20004=New Watch Expression:
 20005=Modify value
 20006=Variable to modify:
 20007=New value:
+20008=Change Watch
 
 
 21001=Project
