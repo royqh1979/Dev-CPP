@@ -26,7 +26,11 @@ Version 6.0    November 2020
   - fix: can set current line fg/bg color in Editor's Color tab
   - fix: editor color theme with correct current line color
   - fix: use TThemeColor instead of TPoint to save theme colors
-  
+
+  - fix: wordwrap in project's compiler set options setting
+  - add installer scripts
+  - fix: if another dev-c++ is already running, just exit (dont loop to wait it finish starting)
+
 Version 6-beta6.1     November 2020
 
   - fix: When closed, Dev-C++ doesn't really exist

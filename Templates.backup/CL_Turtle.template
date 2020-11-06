@@ -1,0 +1,15 @@
+[Template]
+ver=1
+Name=Turtel Graphics
+Icon=CL_Turtle.ico
+Description=A simple program using Turtle Graphics (https://github.com/royqh1979/libturtle)
+Category=Multimedia
+[Unit0]
+CppName=main.cpp
+Cpp=CL_Turtle_cpp.txt
+[Project]
+UnitCount=1
+Type=0
+IsCpp=1
+linker=-lpthread -lturtle -lgraphics -lgdiplus -lgdi32  -limm32 -lmsimg32 -lole32 -loleaut32 -lwinmm -luuid -mwindows --static_@@__@@_
+

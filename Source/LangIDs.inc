@@ -358,6 +358,7 @@ const
   ID_EOPT_AUTOSAVEFILE                  = 24003;
   ID_EOPT_OPTIONS                       = 24004;
   ID_EOPT_CPSYMBOLS                     = 24005;
+  ID_EOPT_CPCODES                     = 24006;
 
   // General Tab Items
   ID_EOPT_SAVESYNTAXQUESTION            = 25001;

@@ -516,6 +516,7 @@ begin
 
   // Sub tabs (completion)
   tabSymbolCompletion.Caption := Lang[ID_EOPT_CPSYMBOLS];
+  tabCodeCompletion.Caption := Lang[ID_EOPT_CPCODES];
 
   // General Tab
   grpEditorOpts.Caption := Lang[ID_EOPT_EDOPTIONS];

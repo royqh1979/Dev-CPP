@@ -1,0 +1,30 @@
+#include <graphics.h>
+#include <mathographics.h>
+#include <math.h>
+
+int main()
+{
+    initgraph( 800, 800 );
+    setcolor( BLACK );
+    setfillcolor( RGB(0, 0, 0xff) );
+    setbkcolor(WHITE);
+    setrendermode(RENDER_AUTO);
+    cleardevice();
+    initCanvas(0,3,3,0);
+    for (double n=0;n<=2;n+=0.05) {
+	    move(0,0);
+	    for (double x=0;x<=3;x+=0.01) {
+	    	double y=pow(x,n);
+	    	draw(x,y);
+	    }
+	}
+    getch();
+    cleardevice(0);
+	initCanvas(-15,15,15,-15);
+    movep(10,0);
+    for (int d=0;d<=360;d+=5) {
+    	drawp(10,d);
+    }
+    getch();
+    return 0;
+}

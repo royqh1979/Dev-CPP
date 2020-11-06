@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabSyntax
+    ActivePage = tabGeneral
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -907,7 +907,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 639
         Height = 558
-        ActivePage = tabCodeCompletion
+        ActivePage = tabSymbolCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet
