@@ -30,6 +30,8 @@ Version 6.0    November 2020
   - fix: wordwrap in project's compiler set options setting
   - add installer scripts
   - fix: if another dev-c++ is already running, just exit (dont loop to wait it finish starting)
+  - fix: -> . :: started code completion will not auto complete if there is only one suggestion candidator
+  - Simplified chinese translation for installer  
 
 Version 6-beta6.1     November 2020
 

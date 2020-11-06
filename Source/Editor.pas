@@ -139,7 +139,7 @@ type
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
-    procedure ShowCompletion(key:ansistring='');
+    procedure ShowCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -1236,7 +1236,7 @@ begin
       if not fLastPressedIsIdChar then begin
         fLastPressedIsIdChar:=True;
         fText.SelText := Key;
-        ShowCompletion(Key);
+        ShowCompletion(False);
         Key:=#0;
       end else
         fLastPressedIsIdChar:=True;
@@ -1333,7 +1333,7 @@ begin
     (fText.CaretY <> fCompletionInitialPosition.Line) then
     Exit;
 
-  ShowCompletion();
+  ShowCompletion(False);
 end;
 
 procedure TEditor.InitCompletion;
@@ -1367,7 +1367,7 @@ begin
   end;
 end;
 
-procedure TEditor.ShowCompletion(key:ansistring);
+procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
   M: TMemoryStream;
@@ -1376,7 +1376,7 @@ var
 begin
   fCompletionTimer.Enabled := False;
 
-  if fCompletionBox.Visible and (key <> '') then // already in search, don't do it again
+  if fCompletionBox.Visible then // already in search, don't do it again
     Exit;
 
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
@@ -1417,7 +1417,7 @@ begin
   fCompletionBox.PrepareSearch(word, fFileName);
 
   // Filter the whole statement list
-  if fCompletionBox.Search(word, fFileName, (key = '')) then //only one suggestion and it's not input while typing
+  if fCompletionBox.Search(word, fFileName, autoComplete) then //only one suggestion and it's not input while typing
     CompletionInsert(); // if only have one suggestion, just use it
 end;
 
