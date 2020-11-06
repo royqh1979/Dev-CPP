@@ -434,22 +434,22 @@ end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
 var
-  pt: TPoint;
+  tc: TThemeColor;
 begin
   if (Line = fActiveLine) then begin
-    StrtoPoint(pt, devEditor.Syntax.Values[cABP]);
-    BG := pt.X;
-    FG := pt.Y;
+    StrToThemeColor(tc, devEditor.Syntax.Values[cABP]);
+    BG := tc.Background;
+    FG := tc.Foreground;
     Special := TRUE;
   end else if (HasBreakpoint(Line) <> -1) then begin
-    StrtoPoint(pt, devEditor.Syntax.Values[cBP]);
-    BG := pt.X;
-    FG := pt.Y;
+    StrToThemeColor(tc, devEditor.Syntax.Values[cBP]);
+    BG := tc.Background;
+    FG := tc.Foreground;
     Special := TRUE;
   end else if Line = fErrorLine then begin
-    StrtoPoint(pt, devEditor.Syntax.Values[cErr]);
-    BG := pt.X;
-    FG := pt.Y;
+    StrToThemeColor(tc,  devEditor.Syntax.Values[cErr]);
+    BG := tc.Background;
+    FG := tc.Foreground;
     Special := TRUE;
   end;
 end;
@@ -1774,7 +1774,7 @@ var
 
   procedure SetColors(Point: TBufferCoord);
   var
-    pt:TPoint;
+    tc:TThemeColor;
   begin
     // Draw using highlighting colors
     if TransientType = ttAfter then begin
@@ -1784,8 +1784,8 @@ var
       // Draw using normal colors
     end else begin
       if devEditor.HighCurrLine and (Point.Line = fText.CaretY) then begin // matching char is inside highlighted line
-        StrtoPoint(pt, devEditor.Syntax.Values[cAL]);
-        Canvas.Brush.Color := pt.x;
+        StrToThemeColor(tc, devEditor.Syntax.Values[cAL]);
+        Canvas.Brush.Color := tc.Background;
         Canvas.Font.Color := Attri.Foreground;
       end else begin
         Canvas.Brush.Color := Attri.Background;

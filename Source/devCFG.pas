@@ -2464,7 +2464,7 @@ end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);
 var
-  pt: TPoint;
+  tc: TThemeColor;
 begin
   with Editor do begin
     BeginUpdate;
@@ -2483,18 +2483,18 @@ begin
 
       // Set selection color
       if Assigned(Highlighter) then begin
-        StrtoPoint(pt, devEditor.Syntax.Values[cSel]);
-        SelectedColor.Background := pt.X;
-        SelectedColor.Foreground := pt.Y;
+        StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+        SelectedColor.Background := tc.Background;
+        SelectedColor.Foreground := tc.Foreground;
       end else begin // editor not colored, pick defaults
-        SelectedColor.Background := clNavy;
-        SelectedColor.Foreground := clWhite;
+        SelectedColor.Background := clWhite;
+        SelectedColor.Foreground := clNavy;
       end;
 
       //active line
       if Assigned(Highlighter) then begin
-        StrtoPoint(pt, devEditor.Syntax.Values[cAL]);
-        ActiveLineColor := pt.X;
+        StrToThemeColor(tc, devEditor.Syntax.Values[cAL]);
+        ActiveLineColor := tc.Background;
       end else begin // editor not colored, pick defaults
         ActiveLineColor := $FFFFCC;
       end;
@@ -2502,8 +2502,8 @@ begin
 
       // Set code folding
       if Assigned(Highlighter) then begin
-        StrtoPoint(pt, devEditor.Syntax.Values[cFld]);
-        CodeFolding.FolderBarLinesColor := pt.y;
+        StrToThemeColor(tc, devEditor.Syntax.Values[cFld]);
+        CodeFolding.FolderBarLinesColor := tc.Foreground;
         UseCodeFolding := True;
       end else begin
         UseCodeFolding := False;
@@ -2534,9 +2534,9 @@ begin
         LeadingZeros := fLeadZero;
         ZeroStart := fFirstisZero;
         if Assigned(Highlighter) then begin
-          StrtoPoint(pt, fSyntax.Values[cGut]);
-          Color := pt.x;
-          Font.Color := pt.y;
+          StrToThemeColor(tc, fSyntax.Values[cGut]);
+          Color := tc.Background;
+          Font.Color := tc.Foreground;
         end else begin // editor not colored, pick defaults
           Color := clBtnFace;
           Font.Color := clBlack;

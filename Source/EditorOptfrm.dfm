@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabSyntax
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -447,7 +447,7 @@ object EditorOptForm: TEditorOptForm
           Left = 480
           Top = 143
           Width = 107
-          Height = 24
+          Height = 31
           MaxValue = 999
           MinValue = 1
           TabOrder = 7
@@ -458,7 +458,7 @@ object EditorOptForm: TEditorOptForm
           Left = 480
           Top = 65
           Width = 107
-          Height = 24
+          Height = 31
           MaxValue = 999
           MinValue = 1
           TabOrder = 8
@@ -503,7 +503,7 @@ object EditorOptForm: TEditorOptForm
           Left = 480
           Top = 43
           Width = 107
-          Height = 24
+          Height = 31
           MaxValue = 999
           MinValue = 1
           TabOrder = 1
@@ -514,20 +514,6 @@ object EditorOptForm: TEditorOptForm
     end
     object tabSyntax: TTabSheet
       Caption = 'Colors'
-      object lblForeground: TLabel
-        Left = 12
-        Top = 243
-        Width = 80
-        Height = 20
-        Caption = 'Foreground:'
-      end
-      object lblBackground: TLabel
-        Left = 12
-        Top = 304
-        Width = 82
-        Height = 20
-        Caption = 'Background:'
-      end
       object lblSpeed: TLabel
         Left = 12
         Top = 488
@@ -755,6 +741,24 @@ object EditorOptForm: TEditorOptForm
         ItemHeight = 16
         TabOrder = 7
         OnChange = StyleChange
+      end
+      object cbForeground: TCheckBox
+        Left = 11
+        Top = 244
+        Width = 133
+        Height = 23
+        Caption = 'Foreground:'
+        TabOrder = 8
+        OnClick = cbForegroundClick
+      end
+      object cbBackground: TCheckBox
+        Left = 11
+        Top = 300
+        Width = 133
+        Height = 23
+        Caption = 'Background:'
+        TabOrder = 9
+        OnClick = cbBackgroundClick
       end
     end
     object tabCode: TTabSheet
