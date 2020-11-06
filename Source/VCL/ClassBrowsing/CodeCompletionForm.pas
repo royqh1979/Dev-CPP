@@ -140,8 +140,8 @@ begin
     // draw statement name, like 'foo'
     Canvas.Font.Style := [fsBold];
     Canvas.TextOut(Offset, Rect.Top, statement^._Command);
-    Offset := Offset + Canvas.TextWidth(statement^._Command + ' ');
-
+//    Offset := Offset + Canvas.TextWidth(statement^._Command + ' ');
+    Offset := Offset + Canvas.TextWidth(statement^._Command );
     // if applicable, draw arguments
     if statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
       Canvas.Font.Style := [];

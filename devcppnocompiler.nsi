@@ -3,11 +3,14 @@
 
 !define COMPILERNAME "No Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "5.11"
+!define DEVCPP_VERSION "6.0"
 !define FINALNAME "Dev-Cpp ${DEVCPP_VERSION} ${COMPILERNAME} Setup.exe"
-!define DISPLAY_NAME "Dev-C++ ${DEVCPP_VERSION}"
+!define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
 !include "MUI2.nsh"
+!include "lang.nsh"
+
+!define MUI_CUSTOMFUNCTION_GUIINIT myGuiInit
 
 ####################################################################
 # Installer Attributes
@@ -16,7 +19,7 @@ Name "${DISPLAY_NAME}"
 OutFile "${FINALNAME}"
 Caption "${DISPLAY_NAME}"
 
-LicenseData "copying.txt"
+LicenseData "LICENSE"
 InstallDir $PROGRAMFILES\Dev-Cpp
 
 ####################################################################
@@ -35,6 +38,11 @@ InstType "Full";1
 InstType "Minimal";2
 InstType "Safe";3
 
+## Remember the installer language
+!define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\Dev-C++"
+!define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+
 ####################################################################
 # Pages
 
@@ -46,7 +54,7 @@ InstType "Safe";3
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 !define MUI_COMPONENTSPAGE_SMALLDESC
 
-!insertmacro MUI_PAGE_LICENSE "copying.txt"
+!insertmacro MUI_PAGE_LICENSE "LICENSE"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -58,6 +66,8 @@ InstType "Safe";3
 # Languages
 
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "SimpChinese"
+!insertmacro MUI_LANGUAGE "TradChinese"
 !insertmacro MUI_LANGUAGE "Bulgarian"
 !insertmacro MUI_LANGUAGE "Catalan"
 !insertmacro MUI_LANGUAGE "Croatian"
@@ -72,7 +82,6 @@ InstType "Safe";3
 !insertmacro MUI_LANGUAGE "Italian"
 !insertmacro MUI_LANGUAGE "Korean"
 !insertmacro MUI_LANGUAGE "Latvian"
-!insertmacro MUI_LANGUAGE "Norwegian"
 !insertmacro MUI_LANGUAGE "Polish"
 !insertmacro MUI_LANGUAGE "Portuguese"
 !insertmacro MUI_LANGUAGE "Romanian"
@@ -84,10 +93,11 @@ InstType "Safe";3
 !insertmacro MUI_LANGUAGE "Turkish"
 !insertmacro MUI_LANGUAGE "Ukrainian"
 
+
 ####################################################################
 # Files, by option section
 
-Section "Dev-C++ program files (required)" SectionMain
+Section "$(SectionMainName)" SectionMain
   SectionIn 1 2 3 RO
   
   SetOutPath $INSTDIR
@@ -100,6 +110,9 @@ Section "Dev-C++ program files (required)" SectionMain
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "DisplayIcon" "$INSTDIR\devcpp.exe"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "Publisher" "Bloodshed Software"
 
+  ; HDPI Fix
+  WriteRegStr HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"  "$INSTDIR\devcpp.exe" "~HIGHDPIAWARE"
+
   ; Write required files
   File "devcpp.exe"
   File "devcppPortable.exe"
@@ -108,8 +121,9 @@ Section "Dev-C++ program files (required)" SectionMain
   File "Packman.map"
   File "ConsolePauser.exe"
   File "devcpp.exe.manifest"
-  File "copying.txt"
+  File "LICENSE"
   File "NEWS.txt"
+  File "README.MD"
   
   ; Write required paths
   SetOutPath $INSTDIR\Lang
@@ -120,16 +134,18 @@ Section "Dev-C++ program files (required)" SectionMain
   File /nonfatal /r "Help\*"
   SetOutPath $INSTDIR\AStyle
   File /nonfatal /r "AStyle\*"
+  SetOutPath $INSTDIR\ResEd
+  File /nonfatal /r "ResEd\*"
 SectionEnd
 
-Section "Icon files" SectionIcons
+Section "$(SectionIconsName)" SectionIcons
   SectionIn 1 3
   
   SetOutPath $INSTDIR\Icons
   File /nonfatal /r "Icons\*.*"
 SectionEnd
 
-Section "Language files" SectionLangs
+Section "$(SectionLangsName)" SectionLangs
   SectionIn 1 3
   
   SetOutPath $INSTDIR\Lang
@@ -138,9 +154,8 @@ SectionEnd
 
 ####################################################################
 # File association
-SubSection "Associate C and C++ files to Dev-C++" SectionAssocs
-
-Section "Associate .dev files to Dev-C++"
+SubSection "$(SectionAssocsName)" SectionAssocs
+Section "$(SectionAssocExtNameBegin) .dev $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".dev"
@@ -154,7 +169,7 @@ Section "Associate .dev files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .c files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .c $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".c"
@@ -168,7 +183,7 @@ Section "Associate .c files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .cpp files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .cpp $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".cpp"
@@ -182,7 +197,7 @@ Section "Associate .cpp files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .h files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .h $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".h"
@@ -196,7 +211,7 @@ Section "Associate .h files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .hpp files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .hpp $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".hpp"
@@ -210,7 +225,7 @@ Section "Associate .hpp files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .rc files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .rc $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".rc"
@@ -224,7 +239,7 @@ Section "Associate .rc files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .devpak files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .devpak $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".devpak"
@@ -239,7 +254,7 @@ Section "Associate .devpak files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .devpackage files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .devpackage $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".devpackage"
@@ -254,7 +269,7 @@ Section "Associate .devpackage files to Dev-C++"
   Call RefreshShellIcons
 SectionEnd
 
-Section "Associate .template files to Dev-C++"
+Section "$(SectionAssocExtNameBegin) .template $(SectionAssocExtNameEnd)"
   SectionIn 1 3
 
   StrCpy $0 ".template"
@@ -272,31 +287,31 @@ SubSectionEnd
 
 ####################################################################
 # Shortcuts
-SubSection "Shortcuts" SectionShortcuts
+SubSection "$(SectionShortcutsName)" SectionShortcuts
 
-Section "Create Start Menu shortcuts" SectionMenuLaunch
+Section "$(SectionMenuLaunchName)" SectionMenuLaunch
   SectionIn 1 3
  
   ; always use all user start menu, normal users can delete these
   SetShellVarContext all 
   StrCpy $0 $SMPROGRAMS ; start menu Programs folder
-  CreateDirectory "$0\Bloodshed Dev-C++"
-  CreateShortCut "$0\Bloodshed Dev-C++\Dev-C++.lnk" "$INSTDIR\devcpp.exe"
-  CreateShortCut "$0\Bloodshed Dev-C++\License.lnk" "$INSTDIR\copying.txt"
-  CreateShortCut "$0\Bloodshed Dev-C++\Uninstall Dev-C++.lnk" "$INSTDIR\uninstall.exe"
+  CreateDirectory "$0\Dev-C++"
+  CreateShortCut "$0\Dev-C++\Red Panda Dev-C++.lnk" "$INSTDIR\devcpp.exe"
+  CreateShortCut "$0\Dev-C++\License.lnk" "$INSTDIR\LICENSE"
+  CreateShortCut "$0\Dev-C++\Uninstall Red Panda Dev-C++.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
-Section "Create Desktop shortcut" SectionDesktopLaunch
+Section "$(SectionDesktopLaunchName)" SectionDesktopLaunch
   SectionIn 1 3
   
   ; always use current user desktop, normal users can't delete all users' shortcuts
   SetShellVarContext current
-  CreateShortCut "$DESKTOP\Dev-C++.lnk" "$INSTDIR\devcpp.exe"
+  CreateShortCut "$DESKTOP\Red Panda Dev-C++.lnk" "$INSTDIR\devcpp.exe"
 SectionEnd
 
 SubSectionEnd
 
-Section "Remove old configuration files" SectionConfig
+Section "$(SectionConfigName)" SectionConfig
   SectionIn 3
 
   RMDir /r "$APPDATA\Dev-Cpp"
@@ -316,13 +331,13 @@ SectionEnd
 # TODO: Create language tables that describe installation components using LangString
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionMain}        "The Dev-C++ IDE (Integrated Development Environment), package manager and templates"
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionIcons}       "Various icons that you can use in your programs"
-#!insertmacro MUI_DESCRIPTION_TEXT ${SectionMinGW}       "The ${COMPILERNAME} compiler and associated tools, headers and libraries"
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionLangs}       "The Dev-C++ interface translated to different languages (other than English which is built-in)"
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionAssocs}      "Use Dev-C++ as the default application for opening these types of files"
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionShortcuts}   "Create shortcuts to Dev-C++ in various folders"
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionConfig}      "Remove all leftover configuration files from previous installs"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionMain}        "$(MessageSectionMain)"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionIcons}      "$(MessageSectionIcons)"
+#!insertmacro MUI_DESCRIPTION_TEXT ${SectionMinGW}      "$(MessageSectionMinGW}"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionLangs}      "$(MessageSectionLangs)"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionAssocs}      "$(MessageSectionAssocs)"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionShortcuts}   "$(MessageSectionShortcuts)"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionConfig}      "$(MessageSectionConfig)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ####################################################################
@@ -336,6 +351,15 @@ Function .onInit
 	
   IfFileExists "$APPDATA\Dev-Cpp\devcpp.cfg" 0 +2 # deprecated config file
     SectionSetFlags ${SectionConfig} ${SF_SELECTED}
+
+FunctionEnd
+
+
+Function myGuiInit
+
+  ; uninstall existing
+  Call UninstallExisting
+
 FunctionEnd
 
 ;backup file association
@@ -355,6 +379,10 @@ Function BackupAssoc
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++\Backup" "$0" "$1"
   no_assoc:
   
+FunctionEnd
+
+Function un.onInit
+   !insertmacro MUI_UNGETLANGUAGE
 FunctionEnd
 
 ;restore file association
@@ -403,10 +431,30 @@ Function un.DeleteDirIfEmpty
    FindClose $R0
 FunctionEnd
 
+Function UninstallExisting
+    ReadRegStr $R0 HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++"  "UninstallString"
+
+    StrCmp $R0 "" done
+
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+        "$(MessageUninstallExisting)" \
+        IDOK uninst
+    Abort
+
+    ;Run the uninstaller
+    uninst:
+        ClearErrors
+        HideWindow
+        ClearErrors
+        ExecWait '"$R0" _?=$INSTDIR'
+        BringToFront
+
+    done:
+FunctionEnd
 ####################################################################
 # uninstall
 
-UninstallText "This program will uninstall Dev-C++, continue?"
+UninstallText "$(MessageUninstallText)"
 ShowUninstDetails show
 
 Section "Uninstall"
@@ -416,15 +464,15 @@ Section "Uninstall"
 
   ; Remove start menu stuff, located in all users folder
   SetShellVarContext all 
-  Delete "$SMPROGRAMS\Bloodshed Dev-C++\Dev-C++.lnk"
-  Delete "$SMPROGRAMS\Bloodshed Dev-C++\License.lnk"
-  Delete "$SMPROGRAMS\Bloodshed Dev-C++\Uninstall Dev-C++.lnk"
-  RMDir "$SMPROGRAMS\Bloodshed Dev-C++"
+  Delete "$SMPROGRAMS\Dev-C++\Red Panda Dev-C++.lnk"
+  Delete "$SMPROGRAMS\Dev-C++\License.lnk"
+  Delete "$SMPROGRAMS\Dev-C++\Uninstall Red Panda Dev-C++.lnk"
+  RMDir "$SMPROGRAMS\Dev-C++"
   
   ; Remove desktop stuff, located in current user folder
   SetShellVarContext current
-  Delete "$QUICKLAUNCH\Dev-C++.lnk"
-  Delete "$DESKTOP\Dev-C++.lnk"
+  Delete "$QUICKLAUNCH\Red Panda Dev-C++.lnk"
+  Delete "$DESKTOP\Red Panda Dev-C++.lnk"
 
   ; Restore file associations
   StrCpy $0 ".dev"
@@ -464,7 +512,8 @@ Section "Uninstall"
   Delete "$INSTDIR\devcpp.exe.manifest"
   Delete "$INSTDIR\devcppPortable.exe"
   Delete "$INSTDIR\ConsolePauser.exe"
-  Delete "$INSTDIR\copying.txt"
+  Delete "$INSTDIR\LICENSE"
+  Delete "$INSTDIR\README.MD"
 
   RMDir /r "$INSTDIR\Lang"
   RMDir /r "$INSTDIR\Examples"
@@ -473,15 +522,20 @@ Section "Uninstall"
   RMDir /r "$INSTDIR\Packages"
   RMDir /r "$INSTDIR\Templates"
   RMDir /r "$INSTDIR\Astyle"
+  RMDir /r "$INSTDIR\ResEd"
+  RMDir /r "$INSTDIR\MinGW32"
+  RMDir /r "$INSTDIR\MinGW64"
 
   StrCpy $0 "$INSTDIR"
   Call un.DeleteDirIfEmpty
 
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++"
+  DeleteRegKey HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers\$INSTDIR\devcpp.exe"
+  DeleteRegKey HKCU "Software\Dev-C++"
 
   IfSilent +2 ; Don't ask when running in silent mode
-  MessageBox MB_YESNO "Do you want to remove all the remaining configuration files?" IDNO Done
+  MessageBox MB_YESNO "$(MessageRemoveConfig)" IDNO Done
 
   RMDir /r "$APPDATA\Dev-Cpp"
   

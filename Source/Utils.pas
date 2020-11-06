@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, Sysutils, Dateutils, Forms, ShellAPI, Dialogs, SynEdit, SynEditHighlighter,
-  Menus, Registry, Controls, ComCtrls, Messages;
+  Menus, Registry, Controls, ComCtrls, Messages, Graphics;
 
 type
   { File ID types }
@@ -51,6 +51,11 @@ type
   TLineOutputFunc = procedure(const Line: AnsiString) of object;
   TCheckAbortFunc = procedure(var AbortThread: boolean) of object;
 
+  TThemeColor = packed record
+    Foreground:TColor;
+    Background:TColor;
+  end;
+
 procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files: TStringList; Subdirs, ShowDirs,
   Multitasking: Boolean);
 
@@ -75,8 +80,8 @@ function StrtoCodeIns(const s: AnsiString): AnsiString;
 procedure StrtoAttr(var Attr: TSynHighlighterAttributes; const Value: AnsiString);
 function AttrtoStr(Attr: TSynHighlighterAttributes): AnsiString;
 
-procedure StrtoPoint(var pt: TPoint; const value: AnsiString);
-function PointtoStr(pt: TPoint): AnsiString;
+procedure StrToThemeColor(var tc: TThemeColor; const value: AnsiString);
+function ThemeColortoStr(tc: TThemeColor): AnsiString;
 
 function GetFileTyp(const FileName: AnsiString): TExUnitType;
 
@@ -187,7 +192,7 @@ procedure LogError(source:AnsiString; msg:AnsiString);
 implementation
 
 uses
-  devcfg, version, Graphics, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage,
+  devcfg, version, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage,
   FileCtrl;
 
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
@@ -776,7 +781,7 @@ begin
   result := StringReplace(s, '$_', #13#10, [rfReplaceAll]);
 end;
 
-procedure StrtoPoint(var pt: TPoint; const value: AnsiString);
+procedure StrToThemeColor(var tc: TThemeColor; const value: AnsiString);
 var
   tmp: TStringList;
 begin
@@ -784,19 +789,23 @@ begin
   try
     tmp.CommaText := value;
     if tmp.Count >= 2 then
-      with pt do begin
-        // x=foreground y=background
-        x := StringToColor(tmp[1]);
-        y := StringtoColor(tmp[0]);
+      with tc do begin
+        Foreground := StringtoColor(tmp[0]);
+        Background := StringToColor(tmp[1]);
+      end
+    else
+      with tc do begin
+        Foreground := clNone;
+        Background := clNone;
       end;
   finally
     tmp.Free;
   end;
 end;
 
-function PointtoStr(pt: TPoint): AnsiString;
+function ThemeColortoStr(tc: TThemeColor): AnsiString;
 begin
-  result := format('%d, %d', [pt.y, pt.x]);
+  result := format('%d, %d', [tc.Foreground, tc.Background]);
 end;
 
 function AttrtoStr(Attr: TSynHighlighterAttributes): AnsiString;

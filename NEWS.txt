@@ -15,12 +15,27 @@ Version 6.0    November 2020
  
   - fix: member Suggestion failed when a var is defined using (Type * var) instead of (Type* var);
   - fix: update watch when switch functions in Call Stack Panel
-  - fix: when dialogs is open, press Alt will cause buttons on it to disappear
 
+  - fix: when dialogs is open, press Alt will cause buttons on it to disappear
   - fix: update some chinese translations
   - change: Press LEFT/RIGHT/HOME/END will close Code Suggestion and move the cursor in the current line
   - fix: ignore namespace qualify info in identifiers. This makes auto suggestion work (but not perfect) for qualified names.
 
+  - fix: user can type while code suggestion is preparing
+
+  - fix: can set current line fg/bg color in Editor's Color tab
+  - fix: editor color theme with correct current line color
+  - fix: use TThemeColor instead of TPoint to save theme colors
+
+  - fix: wordwrap in project's compiler set options setting
+  - add installer scripts
+  - fix: if another dev-c++ is already running, just exit (dont loop to wait it finish starting)
+  - fix: -> . :: started code completion will not auto complete if there is only one suggestion candidator
+  - Simplified chinese translation for installer  
+  - enhancement: double click in watch view to rename a watch var
+  - change: remove 'show gdb annotation' option from gdb console's context value
+  - enhancement: relayout link parameter input in project option dialog
+  - fix: if open a file when active left panel is not class browser, class browser is actived but show nothing
 
 Version 6-beta6.1     November 2020
 

@@ -1,0 +1,15 @@
+[Template]
+ver=1
+Name=Mathographics
+Icon=Misc_Mathographics.ico
+Description=Computer Graphics from Book "Mathographics"
+Category=Misc
+[Unit0]
+CppName=main.cpp
+Cpp=Misc_Mathographics_cpp.txt
+[Project]
+UnitCount=1
+Type=0
+IsCpp=1
+linker=-lpthread -lgraphics -lgdi32 -limm32 -lmsimg32 -lole32 -loleaut32 -lwinmm -luuid -lmathographics -mwindows --static_@@__@@_
+Name=Computer Graphics from Book "Mathographics"
