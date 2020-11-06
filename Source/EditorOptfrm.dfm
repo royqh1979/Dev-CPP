@@ -907,7 +907,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 639
         Height = 558
-        ActivePage = tabSymbolCompletion
+        ActivePage = tabCodeCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet

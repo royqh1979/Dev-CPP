@@ -142,8 +142,6 @@ begin
 
     // If that's the case, walk all top level windows and find the previous instance
     // At this point, the program that created the mutex might not have created its MainForm yet
-    // Temporary fix: try to find the MainForm handle every 100ms
-
     if not EnumWindows(@GetPreviousInstanceCallback, Integer(PAnsiString(@ThisModuleFileName))) then begin
       Result := PreviousInstance;
       Exit;

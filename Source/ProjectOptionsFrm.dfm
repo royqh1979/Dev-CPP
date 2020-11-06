@@ -329,7 +329,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Width = 278
         Height = 396
         HideSelection = False
-        Indent = 19
+        Indent = 22
         MultiSelect = True
         MultiSelectStyle = [msControlSelect, msShiftSelect, msSiblingOnly]
         ReadOnly = True
@@ -496,9 +496,9 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Left = 21
         Top = 32
         Width = 660
-        Height = 23
+        Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnChange = cmbCompilerChange
       end
@@ -541,7 +541,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Height = 354
         Lines.Strings = (
           'edCompiler')
-        ScrollBars = ssBoth
+        ScrollBars = ssVertical
         TabOrder = 0
       end
       object edCppCompiler: TMemo
@@ -551,7 +551,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Height = 354
         Lines.Strings = (
           'edCppCompiler')
-        ScrollBars = ssBoth
+        ScrollBars = ssVertical
         TabOrder = 1
       end
       object edLinker: TMemo
@@ -561,7 +561,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Height = 300
         Lines.Strings = (
           'edLinker')
-        ScrollBars = ssBoth
+        ScrollBars = ssVertical
         TabOrder = 2
       end
       object btnAddLib: TBitBtn
@@ -757,7 +757,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Top = 35
           Width = 647
           Height = 293
-          ItemHeight = 15
+          ItemHeight = 20
           TabOrder = 0
           OnClick = ListClick
         end
@@ -1275,7 +1275,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Top = 187
         Width = 647
         Height = 150
-        ItemHeight = 15
+        ItemHeight = 20
         TabOrder = 7
         OnClick = lbMakeIncludesClick
         OnDrawItem = lbMakeIncludesDrawItem
@@ -1395,9 +1395,9 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Left = 373
           Top = 48
           Width = 279
-          Height = 23
+          Height = 28
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 20
           Sorted = True
           TabOrder = 4
         end
