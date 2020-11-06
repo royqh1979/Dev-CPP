@@ -110,7 +110,7 @@ Section "$(SectionMainName)" SectionMain
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "Publisher" "Bloodshed Software"
 
   ; HDPI Fix
-  WriteRegStr HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"  "$INSTDIR\devcpp.exe" "~HIGHDPIAWARE"
+  WriteRegStr HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"  "$INSTDIR\devcpp.exe" "~ HIGHDPIAWARE"
 
   ; Write required files
   File "devcpp.exe"
@@ -138,7 +138,7 @@ Section "$(SectionMainName)" SectionMain
 SectionEnd
 
 Section "$(SectionMinGWName)" SectionMinGW
-  SectionIn 1 2 3
+  SectionIn 1 3
   SetOutPath $INSTDIR
 
   File /nonfatal /r "${COMPILERFOLDER}"
