@@ -1,3 +1,7 @@
+Version 6.1-beta1  November 2020
+  - enhancement: WatchView only update once each command the debugger runs.
+  - change: only the devcpp.exe installed by the installer will use %AppData%\config as the config's folder; otherwise devcpp.exe will use it's folder's 'config' subfolder to save configs. This makes Dev-C++ really portable.
+
 Version 6.0    November 2020
   
   - fix: change icons for run/complie&run/replace

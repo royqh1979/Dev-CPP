@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "No.Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.0"
+!define DEVCPP_VERSION "6.1-beta1"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 

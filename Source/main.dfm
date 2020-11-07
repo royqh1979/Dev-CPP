@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = DebugSheet
+    ActivePage = CloseSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
@@ -485,7 +485,7 @@ object MainForm: TMainForm
             Width = 343
             Height = 24
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 16
+            ItemHeight = 0
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
