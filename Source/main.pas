@@ -7494,6 +7494,8 @@ var
 begin
   curnode := WatchView.Selected;
   if Assigned(curnode) then begin // only edit members
+    if curnode.Level <> 0 then
+      Exit;
     if not Assigned(curnode.Data) then
       Exit;
     name := PWatchVar(curnode.Data)^.Name;

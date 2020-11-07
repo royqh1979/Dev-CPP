@@ -956,7 +956,7 @@ begin
   fAutoOpen := 2; // Reopen
   fShowLeftPages := TRUE;
   fLeftActivePage := 0;
-  fProjectWidth := 161;
+  fProjectWidth := 250;
   fOutputHeight := 220;
   fStatusbar := TRUE;
   fShowBars := FALSE;
