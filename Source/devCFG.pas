@@ -2823,8 +2823,8 @@ var
 begin
   TempDir := GetEnvironmentVariable('TEMP');
   WorkingDir := devDirs.Exec + fAStyleDir;
-  RunCommand := fAStyleFile + ' ' + OverrideCommand + ' "' + FileName + '"';
-  Result := RunAndGetOutput(WorkingDir + RunCommand, tempDir, nil, nil, False);
+  RunCommand := '"'+WorkingDir+fAStyleFile + '" ' + OverrideCommand + ' "' + FileName + '"';
+  Result := RunAndGetOutput(RunCommand, tempDir, nil, nil, False);
 end;
 
 function TdevFormatter.GetVersion: AnsiString;

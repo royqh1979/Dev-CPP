@@ -1,10 +1,10 @@
 ####################################################################
 # Startup
 
-!define COMPILERNAME "GCC 9.2"
+!define COMPILERNAME "GCC.9.2"
 !define COMPILERFOLDER "MinGW32"
 !define DEVCPP_VERSION "6.0"
-!define FINALNAME "Dev-Cpp ${DEVCPP_VERSION} ${COMPILERNAME} Setup.exe"
+!define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
 !include "MUI2.nsh"
@@ -114,10 +114,10 @@ Section "$(SectionMainName)" SectionMain
 
   ; Write required files
   File "devcpp.exe"
-  File "devcppPortable.exe"
   File "devcpp.map"
+  File "devcppPortable.exe"
   File "packman.exe"
-  File "Packman.map"
+  File "packman.map"
   File "ConsolePauser.exe"
   File "devcpp.exe.manifest"
   File "LICENSE"

@@ -610,7 +610,7 @@ begin
 
   // Launch the process that we want to redirect.
   if not CreateProcess(nil, PAnsiChar(Cmd), nil, nil, true, 0, nil, PAnsiChar(WorkDir), si, pi) then begin
-    Result := 'CreateProcess error: ' + SysErrorMessage(GetLastError);
+    Result := Format('CreateProcess error: %s %s',[SysErrorMessage(GetLastError),Cmd]);
     LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
