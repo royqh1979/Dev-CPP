@@ -1,9 +1,8 @@
 Version 6.1-beta1  November 2020
 
-  - enhancement: WatchView only update once each command the debugger runs.
-  - change: only the devcpp.exe installed by the installer will use %AppData%\config as the config's folder; otherwise devcpp.exe will use it's folder's 'config' subfolder to save configs. This makes Dev-C++ really portable.
-  - change: default width of left panel
-  - fix: only first level nodes in watch view can rename
+  - enhancement: Watch View only update once each command the debugger runs.
+  - enhancement: Save/Load vars in Watch View
+  - change: only devcpp.exe installed by the installer will save configs to User's AppData dir; devcpp.exe not installed will save configs to Dev-CPP's config dir. This will make Dev-C++ really portable.
 
 Version 6.0    November 2020
   

@@ -69,6 +69,7 @@ const
   EXE_EXT = '.exe';
   DEV_EXT = '.dev';
   HTML_EXT = '.html';
+  WATCH_EXT = '.watch';
   RTF_EXT = '.rtf';
   TEX_EXT = '.tex';
   INI_EXT = '.ini';
@@ -111,6 +112,7 @@ const
   FLT_RES = 'Resource scripts (*.rc)|*.rc';
   FLT_MSVCPROJECTS = 'MS Visual C++ projects (*.dsp)|*.dsp';
   FLT_CBPROJECTS = 'Code::Blocks projects (*.cbp)|*.cbp';
+  FLT_WATCHLIST = 'Watch List  (*.watch)|*.watch';
 
   // Custom synedit style properties
   cBP = 'Breakpoints';

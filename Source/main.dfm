@@ -485,7 +485,7 @@ object MainForm: TMainForm
             Width = 343
             Height = 24
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 0
+            ItemHeight = 16
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
@@ -1056,9 +1056,9 @@ object MainForm: TMainForm
       ImageIndex = -1
       object Panel3: TPanel
         Left = 0
-        Top = 33
+        Top = 31
         Width = 209
-        Height = 310
+        Height = 312
         Align = alClient
         Caption = 'Panel3'
         TabOrder = 0
@@ -1066,7 +1066,7 @@ object MainForm: TMainForm
           Left = 1
           Top = 1
           Width = 207
-          Height = 308
+          Height = 310
           Align = alClient
           Color = clWhite
           Images = dmMain.ClassImages
@@ -1109,7 +1109,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 209
-        Height = 33
+        Height = 31
         ButtonHeight = 30
         ButtonWidth = 30
         Caption = 'ToolBar8'
@@ -1149,25 +1149,58 @@ object MainForm: TMainForm
     object WatchSheet: TTabSheet
       Caption = 'Watch'
       ImageIndex = 2
-      object WatchView: TTreeView
+      object Panel4: TPanel
+        Left = 0
+        Top = 31
+        Width = 209
+        Height = 312
+        Align = alClient
+        Caption = 'Panel4'
+        TabOrder = 0
+        object WatchView: TTreeView
+          Left = 1
+          Top = 1
+          Width = 207
+          Height = 310
+          Align = alClient
+          BevelKind = bkFlat
+          BorderStyle = bsNone
+          ChangeDelay = 1
+          Images = dmMain.MenuImages_NewLook
+          Indent = 19
+          MultiSelectStyle = []
+          PopupMenu = DebugPopup
+          ReadOnly = True
+          RightClickSelect = True
+          TabOrder = 0
+          OnAdvancedCustomDrawItem = WatchViewAdvancedCustomDrawItem
+          OnDblClick = WatchViewDblClick
+          OnKeyDown = WatchViewKeyDown
+        end
+      end
+      object ToolBar9: TToolBar
         Left = 0
         Top = 0
         Width = 209
-        Height = 343
-        Align = alClient
-        BevelKind = bkFlat
-        BorderStyle = bsNone
-        ChangeDelay = 1
+        Height = 31
+        ButtonHeight = 30
+        ButtonWidth = 30
+        Caption = 'ToolBar9'
+        EdgeInner = esNone
+        EdgeOuter = esNone
+        Flat = True
         Images = dmMain.MenuImages_NewLook
-        Indent = 19
-        MultiSelectStyle = []
-        PopupMenu = DebugPopup
-        ReadOnly = True
-        RightClickSelect = True
-        TabOrder = 0
-        OnAdvancedCustomDrawItem = WatchViewAdvancedCustomDrawItem
-        OnDblClick = WatchViewDblClick
-        OnKeyDown = WatchViewKeyDown
+        TabOrder = 1
+        object ToolButton24: TToolButton
+          Left = 0
+          Top = 0
+          Action = actLoadWatchList
+        end
+        object ToolButton23: TToolButton
+          Left = 30
+          Top = 0
+          Action = actSaveWatchList
+        end
       end
     end
   end
@@ -1297,6 +1330,7 @@ object MainForm: TMainForm
       end
       object ImportItem: TMenuItem
         Caption = '&Import'
+        ImageIndex = 67
         object ImportMSVisualCproject: TMenuItem
           Action = actImportMSVC
         end
@@ -2031,7 +2065,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'File'
       Caption = '&Open project or file...'
-      ImageIndex = 4
+      ImageIndex = 68
       ShortCut = 16463
       OnExecute = actOpenExecute
     end
@@ -3054,6 +3088,20 @@ object MainForm: TMainForm
       OnExecute = actOpenConsoleExecute
       OnUpdate = actUpdatePageCount
     end
+    object actSaveWatchList: TAction
+      Category = 'Debug'
+      Caption = 'actSaveWatchList'
+      ImageIndex = 6
+      OnExecute = actSaveWatchListExecute
+      OnUpdate = actSaveWatchListUpdate
+    end
+    object actLoadWatchList: TAction
+      Category = 'Debug'
+      Caption = 'actLoadWatchList'
+      ImageIndex = 68
+      OnExecute = actLoadWatchListExecute
+      OnUpdate = actUpdatePageCount
+    end
   end
   object MessagePopup: TPopupMenu
     Left = 339
@@ -3193,6 +3241,15 @@ object MainForm: TMainForm
     object ClearallWatchPop: TMenuItem
       Caption = '&Clear all'
       OnClick = ClearallWatchPopClick
+    end
+    object N52: TMenuItem
+      Caption = '-'
+    end
+    object actLoadWatchList1: TMenuItem
+      Action = actLoadWatchList
+    end
+    object actSaveWatchList1: TMenuItem
+      Action = actSaveWatchList
     end
   end
   object DevCppDDEServer: TDdeServerConv

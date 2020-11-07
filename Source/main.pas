@@ -601,6 +601,15 @@ type
     ToolButton22: TToolButton;
     actOpenConsole: TAction;
     OpenShellHere1: TMenuItem;
+    Panel4: TPanel;
+    ToolBar9: TToolBar;
+    actSaveWatchList: TAction;
+    actLoadWatchList: TAction;
+    ToolButton23: TToolButton;
+    ToolButton24: TToolButton;
+    actLoadWatchList1: TMenuItem;
+    actSaveWatchList1: TMenuItem;
+    N52: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -879,6 +888,9 @@ type
     procedure DebugOutputEnter(Sender: TObject);
     procedure actOpenConsoleExecute(Sender: TObject);
     procedure WatchViewDblClick(Sender: TObject);
+    procedure actSaveWatchListUpdate(Sender: TObject);
+    procedure actLoadWatchListExecute(Sender: TObject);
+    procedure actSaveWatchListExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1380,6 +1392,8 @@ begin
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
   ClearallWatchPop.Caption := Lang[ID_ITEM_CLEARALL];
+  actSaveWatchList.Caption := Lang[ID_NV_SAVEWATCH];
+  actLoadWatchList.Caption := Lang[ID_NV_LOADWATCH];
 
   // Project/Unit/Folder popup
   actUnitRemove.Caption := Lang[ID_POP_REMOVE];
@@ -7507,7 +7521,70 @@ begin
   end;
 end;
 
+procedure TMainForm.actSaveWatchListUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := fDebugger.WatchVarList.Count > 0;
+end;
 
+procedure TMainForm.actSaveWatchListExecute(Sender: TObject);
+var
+  i:integer;
+  WatchVar: PWatchVar;
+begin
+  with TSaveDialog.Create(Self) do try
+    Filter := FLT_WATCHLIST;
+    Title := Lang[ID_NV_SAVEWATCH];
+    DefaultExt := WATCH_EXT;
+    Options := Options + [ofOverwritePrompt];
+
+    // Open all provided files
+    if Execute and (FileName <> '') then begin
+      with TStringList.Create do try
+        for i:=0 to fDebugger.WatchVarList.Count-1 do begin
+          WatchVar := PWatchVar(fDebugger.WatchVarList[i]);
+          Add(WatchVar^.Name);
+        end;
+        SaveToFile(FileName);
+      finally
+        Free;
+      end;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TMainForm.actLoadWatchListExecute(Sender: TObject);
+var
+  i:integer;
+  WatchVar: PWatchVar;
+begin
+  with TOpenDialog.Create(Self) do try
+    Filter := FLT_WATCHLIST;
+    Title := Lang[ID_NV_LOADWATCH];
+    DefaultExt := WATCH_EXT;
+
+    // Open all provided files
+    if Execute and (FileName <> '') then begin
+      with TStringList.Create do try
+        LoadFromFile(FileName);
+        WatchView.Items.BeginUpdate;
+        try
+          fDebugger.DeleteWatchVars(true);
+          for i:=0 to Count-1 do begin
+            fDebugger.AddWatchVar(Strings[i]);
+          end;
+        finally
+          WatchView.Items.EndUpdate;
+        end;
+      finally
+        Free;
+      end;
+    end;
+  finally
+    Free;
+  end;
+end;
 
 end.
 
