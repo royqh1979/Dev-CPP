@@ -957,7 +957,7 @@ begin
   fShowLeftPages := TRUE;
   fLeftActivePage := 0;
   fProjectWidth := 161;
-  fOutputHeight := 183;
+  fOutputHeight := 220;
   fStatusbar := TRUE;
   fShowBars := FALSE;
   fMultiLineTab := TRUE;

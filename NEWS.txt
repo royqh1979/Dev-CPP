@@ -33,9 +33,10 @@ Version 6.0    November 2020
   - fix: -> . :: started code completion will not auto complete if there is only one suggestion candidator
   - Simplified chinese translation for installer  
   - enhancement: double click in watch view to rename a watch var
-  - change: remove 'show gdb annotation' option from gdb console's context value
+  - change: remove 'show gdb annotation' option from gdb console's context menu
   - enhancement: relayout link parameter input in project option dialog
   - fix: if open a file when active left panel is not class browser, class browser is actived but show nothing
+  - fix: use uncompressed gcc & gdb & consolePauser to increase speed
 
 Version 6-beta6.1     November 2020
 
