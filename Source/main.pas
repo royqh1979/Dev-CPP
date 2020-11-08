@@ -891,6 +891,7 @@ type
     procedure actSaveWatchListUpdate(Sender: TObject);
     procedure actLoadWatchListExecute(Sender: TObject);
     procedure actSaveWatchListExecute(Sender: TObject);
+    procedure actAddWatchUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -6371,6 +6372,8 @@ begin
   // We need this variable during the whole startup process
   devData.First := FALSE;
 
+  LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftProjectSheet.Width;
+  //MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
   //windows xp hack
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
@@ -7557,7 +7560,6 @@ end;
 procedure TMainForm.actLoadWatchListExecute(Sender: TObject);
 var
   i:integer;
-  WatchVar: PWatchVar;
 begin
   with TOpenDialog.Create(Self) do try
     Filter := FLT_WATCHLIST;
@@ -7584,6 +7586,15 @@ begin
   finally
     Free;
   end;
+end;
+
+
+procedure TMainForm.actAddWatchUpdate(Sender: TObject);
+begin
+  if fDebugger.Executing then
+    TCustomAction(Sender).Enabled := (not fDebugger.Reader.CommandRunning)
+  else
+    TCustomAction(Sender).Enabled := (fEditorList.PageCount > 0);
 end;
 
 end.

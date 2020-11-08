@@ -230,7 +230,8 @@ begin
     if Assigned(CPUForm) then
       CPUForm.Close;
 
-    TerminateProcess(fProcessID, 0); // stop gdb
+    // stop gdb
+    TerminateProcess(fProcessID, 0);
 
     Reader.Terminate;
     Reader := nil;

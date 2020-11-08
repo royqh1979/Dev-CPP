@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 488
-  Top = 206
+  Left = 736
+  Top = 255
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -26,7 +26,7 @@ object MainForm: TMainForm
   PixelsPerInch = 120
   TextHeight = 16
   object SplitterLeft: TSplitter
-    Left = 238
+    Left = 209
     Top = 64
     Width = 4
     Height = 351
@@ -54,7 +54,7 @@ object MainForm: TMainForm
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
-    TabOrder = 2
+    TabOrder = 1
     TabPosition = tpBottom
     OnChange = MessageControlChange
     object CompSheet: TTabSheet
@@ -1005,16 +1005,69 @@ object MainForm: TMainForm
     Height = 0
     OnNotifyChange = FileMonitorNotifyChange
   end
+  object PageControlPanel: TPanel
+    Left = 213
+    Top = 64
+    Width = 974
+    Height = 351
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 4
+    OnResize = PageControlPanelResize
+    object EditorPageControlSplitter: TSplitter
+      Left = 974
+      Top = 0
+      Width = 0
+      Height = 351
+      Align = alRight
+      ResizeStyle = rsUpdate
+      Visible = False
+    end
+    object EditorPageControlLeft: TPageControl
+      Left = 0
+      Top = 0
+      Width = 974
+      Height = 351
+      Align = alClient
+      HotTrack = True
+      MultiLine = True
+      PopupMenu = EditorPopup
+      TabOrder = 0
+      Visible = False
+      OnChange = EditorPageControlChange
+      OnDragDrop = EditorPageControlDragDrop
+      OnDragOver = EditorPageControlDragOver
+      OnMouseDown = EditorPageControlMouseDown
+      OnMouseMove = EditorPageControlMouseMove
+    end
+    object EditorPageControlRight: TPageControl
+      Left = 974
+      Top = 0
+      Width = 0
+      Height = 351
+      Align = alRight
+      HotTrack = True
+      MultiLine = True
+      PopupMenu = EditorPopup
+      TabOrder = 1
+      Visible = False
+      OnChange = EditorPageControlChange
+      OnDragDrop = EditorPageControlDragDrop
+      OnDragOver = EditorPageControlDragOver
+      OnMouseDown = EditorPageControlMouseDown
+      OnMouseMove = EditorPageControlMouseMove
+    end
+  end
   object LeftPageControl: TPageControl
     Left = 0
     Top = 64
-    Width = 238
+    Width = 209
     Height = 351
     ActivePage = WatchSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
-    TabOrder = 1
+    TabOrder = 5
     TabPosition = tpLeft
     OnChange = LeftPageControlChange
     object LeftProjectSheet: TTabSheet
@@ -1023,7 +1076,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 209
+        Width = 180
         Height = 343
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1057,7 +1110,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 31
-        Width = 209
+        Width = 180
         Height = 312
         Align = alClient
         Caption = 'Panel3'
@@ -1065,7 +1118,7 @@ object MainForm: TMainForm
         object ClassBrowser: TClassBrowser
           Left = 1
           Top = 1
-          Width = 207
+          Width = 178
           Height = 310
           Align = alClient
           Color = clWhite
@@ -1108,7 +1161,7 @@ object MainForm: TMainForm
       object ToolBar8: TToolBar
         Left = 0
         Top = 0
-        Width = 209
+        Width = 180
         Height = 31
         ButtonHeight = 30
         ButtonWidth = 30
@@ -1152,7 +1205,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 31
-        Width = 209
+        Width = 180
         Height = 312
         Align = alClient
         Caption = 'Panel4'
@@ -1160,7 +1213,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 1
           Top = 1
-          Width = 207
+          Width = 178
           Height = 310
           Align = alClient
           BevelKind = bkFlat
@@ -1181,7 +1234,7 @@ object MainForm: TMainForm
       object ToolBar9: TToolBar
         Left = 0
         Top = 0
-        Width = 209
+        Width = 180
         Height = 31
         ButtonHeight = 30
         ButtonWidth = 30
@@ -1202,59 +1255,6 @@ object MainForm: TMainForm
           Action = actSaveWatchList
         end
       end
-    end
-  end
-  object PageControlPanel: TPanel
-    Left = 242
-    Top = 64
-    Width = 945
-    Height = 351
-    Align = alClient
-    BevelOuter = bvNone
-    TabOrder = 5
-    OnResize = PageControlPanelResize
-    object EditorPageControlSplitter: TSplitter
-      Left = 945
-      Top = 0
-      Width = 0
-      Height = 351
-      Align = alRight
-      ResizeStyle = rsUpdate
-      Visible = False
-    end
-    object EditorPageControlLeft: TPageControl
-      Left = 0
-      Top = 0
-      Width = 945
-      Height = 351
-      Align = alClient
-      HotTrack = True
-      MultiLine = True
-      PopupMenu = EditorPopup
-      TabOrder = 0
-      Visible = False
-      OnChange = EditorPageControlChange
-      OnDragDrop = EditorPageControlDragDrop
-      OnDragOver = EditorPageControlDragOver
-      OnMouseDown = EditorPageControlMouseDown
-      OnMouseMove = EditorPageControlMouseMove
-    end
-    object EditorPageControlRight: TPageControl
-      Left = 945
-      Top = 0
-      Width = 0
-      Height = 351
-      Align = alRight
-      HotTrack = True
-      MultiLine = True
-      PopupMenu = EditorPopup
-      TabOrder = 1
-      Visible = False
-      OnChange = EditorPageControlChange
-      OnDragDrop = EditorPageControlDragDrop
-      OnDragOver = EditorPageControlDragOver
-      OnMouseDown = EditorPageControlMouseDown
-      OnMouseMove = EditorPageControlMouseMove
     end
   end
   object MainMenu: TMainMenu
@@ -2512,7 +2512,7 @@ object MainForm: TMainForm
       Caption = 'Add &Watch...'
       ImageIndex = 65
       OnExecute = actAddWatchExecute
-      OnUpdate = actUpdatePageCount
+      OnUpdate = actAddWatchUpdate
     end
     object actEditWatch: TAction
       Category = 'Debug'
@@ -3100,7 +3100,7 @@ object MainForm: TMainForm
       Caption = 'actLoadWatchList'
       ImageIndex = 68
       OnExecute = actLoadWatchListExecute
-      OnUpdate = actUpdatePageCount
+      OnUpdate = actAddWatchUpdate
     end
   end
   object MessagePopup: TPopupMenu
