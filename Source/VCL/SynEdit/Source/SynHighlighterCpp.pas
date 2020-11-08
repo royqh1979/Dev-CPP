@@ -115,7 +115,6 @@ type
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
     fLineNumber: Integer;
-    fIdentFuncTable: array[0..206] of TIdentFuncTableFunc;
     fAsmAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
     fDirecAttri: TSynHighlighterAttributes;
@@ -130,64 +129,6 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fCharAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: String): Boolean;
-    function Func17: TtkTokenKind;
-    function Func21: TtkTokenKind;
-    function Func22: TtkTokenKind;
-    function Func32: TtkTokenKind;
-    function Func34: TtkTokenKind;
-    function Func35: TtkTokenKind;
-    function Func36: TtkTokenKind;
-    function Func40: TtkTokenKind;
-    function Func42: TtkTokenKind;
-    function Func45: TtkTokenKind;
-    function Func46: TtkTokenKind;
-    function Func48: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func54: TtkTokenKind;
-    function Func55: TtkTokenKind;
-    function Func56: TtkTokenKind;
-    function Func57: TtkTokenKind;
-    function Func59: TtkTokenKind;
-    function Func60: TtkTokenKind;
-    function Func61: TtkTokenKind;
-    function Func62: TtkTokenKind;
-    function Func64: TtkTokenKind;
-    function Func65: TtkTokenKind;
-    function Func66: TtkTokenKind;
-    function Func68: TtkTokenKind;
-    function Func69: TtkTokenKind;
-    function Func70: TtkTokenKind;
-    function Func71: TtkTokenKind;
-    function Func75: TtkTokenKind;
-    function Func76: TtkTokenKind;
-    function Func78: TtkTokenKind;
-    function Func79: TtkTokenKind;
-    function Func81: TtkTokenKind;
-    function Func84: TtkTokenKind;
-    function Func85: TtkTokenKind;
-    function Func86: TtkTokenKind;
-    function Func88: TtkTokenKind;
-    function Func89: TtkTokenKind;
-    function Func92: TtkTokenKind;
-    function Func98: TtkTokenKind;
-    function Func100: TtkTokenKind;
-    function Func101: TtkTokenKind;
-    function Func102: TtkTokenKind;
-    function Func104: TtkTokenKind;
-    function Func106: TtkTokenKind;
-    function Func107: TtkTokenKind;
-    function Func109: TtkTokenKind;
-    function Func110: TtkTokenKind;
-    function Func115: TtkTokenKind;
-    function Func116: TtkTokenKind;
-    function Func120: TtkTokenKind;
-    function Func123: TtkTokenKind;
-    function Func125: TtkTokenKind;
-    function Func143: TtkTokenKind;
-    function Func166: TtkTokenKind;
-    function Func206: TtkTokenKind;
     procedure AnsiCProc;
     procedure AnsiCppProc;
     procedure AndSymbolProc;
@@ -226,8 +167,6 @@ type
     procedure TildeProc;
     procedure XOrSymbolProc;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
     procedure StringEndProc;
@@ -289,9 +228,12 @@ type
       write fSymbolAttri;
   end;
 
+
+
 implementation
 
 uses
+  iniFiles,
 {$IFDEF SYN_CLX}
   QSynEditStrConst;
 {$ELSE}
@@ -302,6 +244,7 @@ uses
 var
   Identifiers: array[#0..#255] of ByteBool;
   mHashTable: array[#0..#255] of Integer;
+  CppKeywords : TStringHash;
 
 procedure MakeIdentTable;
 var
@@ -324,487 +267,25 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.InitIdent;
-var
-  I: Integer;
-  pF: PIdentFuncTableFunc;
-begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[17] := Func17;
-  fIdentFuncTable[21] := Func21;
-  fIdentFuncTable[22] := Func22;
-  fIdentFuncTable[32] := Func32;
-  fIdentFuncTable[34] := Func34;
-  fIdentFuncTable[35] := Func35;
-  fIdentFuncTable[36] := Func36;
-  fIdentFuncTable[40] := Func40;
-  fIdentFuncTable[42] := Func42;
-  fIdentFuncTable[45] := Func45;
-  fIdentFuncTable[46] := Func46;
-  fIdentFuncTable[48] := Func48;
-  fIdentFuncTable[52] := Func52;
-  fIdentFuncTable[54] := Func54;
-  fIdentFuncTable[55] := Func55;
-  fIdentFuncTable[56] := Func56;
-  fIdentFuncTable[57] := Func57;
-  fIdentFuncTable[59] := Func59;
-  fIdentFuncTable[60] := Func60;
-  fIdentFuncTable[61] := Func61;
-  fIdentFuncTable[62] := Func62;
-  fIdentFuncTable[64] := Func64;
-  fIdentFuncTable[65] := Func65;
-  fIdentFuncTable[66] := Func66;
-  fIdentFuncTable[68] := Func68;
-  fIdentFuncTable[69] := Func69;
-  fIdentFuncTable[70] := Func70;
-  fIdentFuncTable[71] := Func71;
-  fIdentFuncTable[75] := Func75;
-  fIdentFuncTable[76] := Func76;
-  fIdentFuncTable[78] := Func78;
-  fIdentFuncTable[79] := Func79;
-  fIdentFuncTable[81] := Func81;
-  fIdentFuncTable[84] := Func84;
-  fIdentFuncTable[85] := Func85;
-  fIdentFuncTable[86] := Func86;
-  fIdentFuncTable[88] := Func88;
-  fIdentFuncTable[89] := Func89;
-  fIdentFuncTable[92] := Func92;
-  fIdentFuncTable[98] := Func98;
-  fIdentFuncTable[100] := Func100;
-  fIdentFuncTable[101] := Func101;
-  fIdentFuncTable[102] := Func102;
-  fIdentFuncTable[104] := Func104;
-  fIdentFuncTable[106] := Func106;
-  fIdentFuncTable[107] := Func107;
-  fIdentFuncTable[109] := Func109;
-  fIdentFuncTable[110] := Func110;
-  fIdentFuncTable[115] := Func115;
-  fIdentFuncTable[116] := Func116;
-  fIdentFuncTable[120] := Func120;
-  fIdentFuncTable[123] := Func123;
-  fIdentFuncTable[125] := Func125;
-  fIdentFuncTable[143] := Func143;
-  fIdentFuncTable[166] := Func166;
-  fIdentFuncTable[206] := Func206;
-end;
-
-function TSynCppSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
-  begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end; { KeyHash }
-
-function TSynCppSyn.KeyComp(const aKey: String): Boolean;
-var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Temp^ <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
-end; { KeyComp }
-
-function TSynCppSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('if') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func21: TtkTokenKind;
-begin
-  if KeyComp('do') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func22: TtkTokenKind;
-begin
-  if KeyComp('and') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func32: TtkTokenKind;
-begin
-  if KeyComp('case') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func34: TtkTokenKind;
-begin
-  if KeyComp('char') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func35: TtkTokenKind;
-begin
-  if KeyComp('or') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func36: TtkTokenKind;
-begin
-  if KeyComp('asm') then
-  begin
-    Result := tkKey;
-    fRange := rsAsm;
-    fAsmStart := True;
-  end else
-    Result := tkIdentifier; // special case
-end;
-
-function TSynCppSyn.Func40: TtkTokenKind;
-begin
-  if KeyComp('catch') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('break') then Result := tkKey else
-  if KeyComp('for') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('else') then Result := tkKey else
-  if KeyComp('new') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func46: TtkTokenKind;
-begin
-  if KeyComp('and_eq') then Result := tkKey else
-  if KeyComp('int') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('bool') then Result := tkKey else
-  if KeyComp('false') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('long') then Result := tkKey else
-  if KeyComp('not') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func54: TtkTokenKind;
-begin
-  if KeyComp('void') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func55: TtkTokenKind;
-begin
-  if KeyComp('char16_t') then Result := tkKey else
-  if KeyComp('char32_t') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func56: TtkTokenKind;
-begin
-  if KeyComp('bitand') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func57: TtkTokenKind;
-begin
-  if KeyComp('delete') then Result := tkKey else
-  if KeyComp('enum') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func59: TtkTokenKind;
-begin
-  if KeyComp('class') then Result := tkKey else
-  if KeyComp('float') then Result := tkKey else
-  if KeyComp('or_eq') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func60: TtkTokenKind;
-begin
-  if KeyComp('this') then Result := tkKey else
-  if KeyComp('xor') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func61: TtkTokenKind;
-begin
-  if KeyComp('auto') then Result := tkKey else
-  if KeyComp('goto') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('friend') then Result := tkKey else
-  if KeyComp('while') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func64: TtkTokenKind;
-begin
-  if KeyComp('compl') then Result := tkKey else
-  if KeyComp('signed') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func65: TtkTokenKind;
-begin
-  if KeyComp('double') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func66: TtkTokenKind;
-begin
-  if KeyComp('try') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func68: TtkTokenKind;
-begin
-  if KeyComp('true') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func69: TtkTokenKind;
-begin
-  if KeyComp('bitor') then Result := tkKey else
-  if KeyComp('inline') then Result := tkKey else
-  if KeyComp('public') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func70: TtkTokenKind;
-begin
-  if KeyComp('alignas') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func71: TtkTokenKind;
-begin
-  if KeyComp('alignof') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func75: TtkTokenKind;
-begin
-  if KeyComp('using') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func76: TtkTokenKind;
-begin
-  if KeyComp('const') then Result := tkKey else
-  if KeyComp('default') then Result := tkKey else
-  if KeyComp('not_eq') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func78: TtkTokenKind;
-begin
-  if KeyComp('static') then Result := tkKey else
-  if KeyComp('union') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func79: TtkTokenKind;
-begin
-  if KeyComp('wchar_t') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func81: TtkTokenKind;
-begin
-  if KeyComp('mutable') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func84: TtkTokenKind;
-begin
-  if KeyComp('xor_eq') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func85: TtkTokenKind;
-begin
-  if KeyComp('short') then Result := tkKey else
-  if KeyComp('typeid') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func86: TtkTokenKind;
-begin
-  if KeyComp('namespace') then Result := tkKey else
-  if KeyComp('sizeof') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func88: TtkTokenKind;
-begin
-  if KeyComp('switch') then Result := tkKey else
-  if KeyComp('typedef') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func89: TtkTokenKind;
-begin
-  if KeyComp('throw') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func92: TtkTokenKind;
-begin
-  if KeyComp('extern') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func98: TtkTokenKind;
-begin
-  if KeyComp('decltype') then Result := tkKey else
-  if KeyComp('private') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func100: TtkTokenKind;
-begin
-  if KeyComp('template') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func101: TtkTokenKind;
-begin
-  if KeyComp('unsigned') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func102: TtkTokenKind;
-begin
-  if KeyComp('return') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func104: TtkTokenKind;
-begin
-  if KeyComp('export') then Result := tkKey else
-  if KeyComp('volatile') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func106: TtkTokenKind;
-begin
-  if KeyComp('explicit') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func107: TtkTokenKind;
-begin
-  if KeyComp('struct') then Result := tkKey else
-  if KeyComp('typename') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func109: TtkTokenKind;
-begin
-  if KeyComp('continue') then Result := tkKey else
-  if KeyComp('register') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func110: TtkTokenKind;
-begin
-  if KeyComp('noexcept') then Result := tkKey else
-  if KeyComp('thread_local') then Result := tkKey else
-  if KeyComp('virtual') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func115: TtkTokenKind;
-begin
-  if KeyComp('protected') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func116: TtkTokenKind;
-begin
-  if KeyComp('operator') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func120: TtkTokenKind;
-begin
-  if KeyComp('nullptr') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func123: TtkTokenKind;
-begin
-  if KeyComp('const_cast') then Result := tkKey else
-  if KeyComp('dynamic_cast') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func125: TtkTokenKind;
-begin
-  if KeyComp('static_cast') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func143: TtkTokenKind;
-begin
-  if KeyComp('constexpr') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func166: TtkTokenKind;
-begin
-  if KeyComp('static_assert') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.Func206: TtkTokenKind;
-begin
-  if KeyComp('reinterpret_cast') then Result := tkKey else
-  Result := tkIdentifier
-end;
-
-function TSynCppSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier;
-end;
 
 function TSynCppSyn.IdentKind(MayBe: PChar): TtkTokenKind;
 var
-  HashKey: Integer;
+  ToHash : PChar;
+  fStringLen : integer;
+  Key:String;
 begin
-  fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < 207 then Result := fIdentFuncTable[HashKey] else Result := tkIdentifier;
+  fToIdent := MayBe; { things like 'int a;' }
+  ToHash := fToIdent;
+  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
+  begin
+    inc(ToHash);
+  end;
+  fStringLen := ToHash - fToIdent;
+  SetString(Key, fToIdent, fStringLen); { we need to get 'int' }
+  if CppKeywords.ValueOf(Key) = -1 then
+    Result := tkIdentifier
+  else
+    Result := tkKey;
 end;
 
 procedure TSynCppSyn.MakeMethodTables;
@@ -886,7 +367,6 @@ begin
   fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor);
   AddAttribute(fDirecAttri);
   SetAttributesOnChange(DefHighlightChange);
-  InitIdent;
   MakeMethodTables;
   fRange := rsUnknown;
   fAsmStart := False;
@@ -2054,8 +1534,127 @@ begin
 end;
 
 initialization
+begin
   MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynCppSyn);
 {$ENDIF}
+
+  CppKeywords := TStringHash.Create();
+
+  CppKeywords.Add('and',1);
+  CppKeywords.Add('and_eq',1);
+  CppKeywords.Add('bitand',1);
+  CppKeywords.Add('bitor',1);
+  CppKeywords.Add('break',1);
+  CppKeywords.Add('compl',1);
+  CppKeywords.Add('constexpr',1);
+  CppKeywords.Add('const_cast',1);
+  CppKeywords.Add('continue',1);
+  CppKeywords.Add('dynamic_cast',1);
+  CppKeywords.Add('else',1);
+  CppKeywords.Add('explicit',1);
+  CppKeywords.Add('export',1);
+  CppKeywords.Add('extern',1);
+  CppKeywords.Add('false',1);
+  CppKeywords.Add('for',1);
+  CppKeywords.Add('mutable',1);
+  CppKeywords.Add('noexcept',1);
+  CppKeywords.Add('not',1);
+  CppKeywords.Add('not_eq',1);
+  CppKeywords.Add('nullptr',1);
+  CppKeywords.Add('or',1);
+  CppKeywords.Add('or_eq',1);
+  CppKeywords.Add('register',1);
+  CppKeywords.Add('reinterpret_cast',1);
+  CppKeywords.Add('static_assert',1);
+  CppKeywords.Add('static_cast',1);
+  CppKeywords.Add('template',1);
+  CppKeywords.Add('this',1);
+  CppKeywords.Add('thread_local',1);
+  CppKeywords.Add('true',1);
+  CppKeywords.Add('typename',1);
+  CppKeywords.Add('virtual',1);
+  CppKeywords.Add('volatile',1);
+  CppKeywords.Add('xor',1);
+  CppKeywords.Add('xor_eq',1);
+  CppKeywords.Add('delete',1);
+  CppKeywords.Add('delete[]',1);
+  CppKeywords.Add('goto',1);
+  CppKeywords.Add('new',1);
+  CppKeywords.Add('return',1);
+  CppKeywords.Add('throw',1);
+  CppKeywords.Add('using',1);
+  CppKeywords.Add('case',1);
+  CppKeywords.Add('default',1);
+
+  CppKeywords.Add('alignas',1); 
+  CppKeywords.Add('alignof',1); 
+  CppKeywords.Add('decltype',1);
+  CppKeywords.Add('if',1);
+  CppKeywords.Add('sizeof',1);
+  CppKeywords.Add('switch',1);
+  CppKeywords.Add('typeid',1);
+  CppKeywords.Add('while',1);
+
+  CppKeywords.Add('asm',1);
+  CppKeywords.Add('catch',1);
+  CppKeywords.Add('do',1);
+  CppKeywords.Add('namespace',1); 
+  CppKeywords.Add('try',1);
+
+  CppKeywords.Add('atomic_cancel',1);
+  CppKeywords.Add('atomic_commit',1);
+  CppKeywords.Add('atomic_noexcept',1);
+  CppKeywords.Add('concept',1);
+  CppKeywords.Add('consteval',1);
+  CppKeywords.Add('constinit',1);
+  CppKeywords.Add('co_wait',1);
+  CppKeywords.Add('co_return',1);
+  CppKeywords.Add('co_yield',1);
+  CppKeywords.Add('reflexpr',1);
+  CppKeywords.Add('requires',1);
+
+  CppKeywords.Add('auto',1);
+  CppKeywords.Add('bool',1);
+  CppKeywords.Add('char',1);
+  CppKeywords.Add('char8_t',1);
+  CppKeywords.Add('char16_t',1);
+  CppKeywords.Add('char32_t',1);
+  CppKeywords.Add('double',1);
+  CppKeywords.Add('float',1);
+  CppKeywords.Add('int',1);
+  CppKeywords.Add('long',1);
+  CppKeywords.Add('short',1);
+  CppKeywords.Add('signed',1);
+  CppKeywords.Add('unsigned',1);
+  CppKeywords.Add('void',1);
+  CppKeywords.Add('wchar_t',1);
+
+  CppKeywords.Add('const',1);
+  CppKeywords.Add('inline',1);
+
+  CppKeywords.Add('class',1);
+  CppKeywords.Add('enum',1);
+  CppKeywords.Add('friend',1);
+  CppKeywords.Add('operator',1);
+  CppKeywords.Add('private',1);
+  CppKeywords.Add('protected',1);
+  CppKeywords.Add('public',1);
+  CppKeywords.Add('static',1);
+  CppKeywords.Add('struct',1);
+  CppKeywords.Add('typedef',1);
+  CppKeywords.Add('union',1);
+
+  CppKeywords.Add('nullptr',1);
+
+end;
+
+finalization
+begin
+  CppKeywords.Clear;
+  CppKeywords.Free;
+end;
+
 end.
+
