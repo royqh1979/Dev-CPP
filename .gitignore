@@ -56,3 +56,11 @@ __history/
 #MinGW32
 MinGW32
 *.zip
+config
+configBackup
+
+ConsolePauser.exe
+devcpp.exe
+devcppPortable.exe
+Packman.exe
+TabNine.exe
