@@ -894,7 +894,8 @@ var
   I: integer;
   dis: integer;
 begin
-  if SameStr(fTokenizer[fIndex]^.Text, 'friend') then
+  if SameStr(fTokenizer[fIndex]^.Text, 'friend')
+   or SameStr(fTokenizer[fIndex]^.Text, 'public') or SameStr(fTokenizer[fIndex]^.Text, 'private') then
     dis := 1
   else
     dis := 0;
@@ -3528,7 +3529,7 @@ begin
       m_acc:=scsPrivate;
     end;
     //inherit
-    AddInheritedStatement(parentScope,derived,Statement,m_acc);
+    AddInheritedStatement(derived,Statement,m_acc);
   end;
 end;
 
@@ -3565,10 +3566,10 @@ begin
       _Friends := nil; // Friends are not inherited;
       _Static := inherit^._Static;
       _Inherited:=True;
-      _FullName := derived^._FullName + '::'+inherit^._Command
+      _FullName := derived^._FullName + '::'+inherit^._Command;
       _Usings:=TStringList.Create;
       _Usings.Sorted:=True;
-      _Usings.Add('std');      
+      _Usings.Add('std');
     end;
     node:=fStatementList.Add(Result);
     if Result^._Temporary then
