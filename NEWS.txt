@@ -8,6 +8,7 @@ Version 6.1-beta1  November 2020
   - fix: when gdb is not finished a command executing( such as executing a scanf) , don't left user add watches. (Because gdb can't fetch watch info now)
   - enhancement: use TStringHash to test if an identifier is a keyword in SynEdit's cpp highlighter, mush easier to maintain; Add new cpp keywords to cpp highlighter
   - fix: if there're spaces in source file name, ConsolePauser will not find the compiled .exe file
+  - fix: RemoveProjectUnit dialog layout error
 
 
 Version 6.0    November 2020
