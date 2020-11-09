@@ -56,6 +56,7 @@ type
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
     procedure DumpTo(Filename:AnsiString);
+    procedure DumpWithScope(Filename:AnsiString);
     procedure Clear;
     property FirstNode: PStatementNode read fFirstNode;
     property LastNode: PStatementNode read fLastNode;
@@ -287,6 +288,47 @@ begin
       Add(Format('%s,%s,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)
         ,statement^._FileName,statement^._Line,statement^._DefinitionFileName,statement^._DefinitionLine]));
       Node := NextNode;
+    end;
+    SaveToFile(Filename);
+  finally
+    Free;
+  End;
+end;
+
+procedure TStatementList.DumpWithScope(Filename:AnsiString);
+var
+  i:integer;
+  statement:PStatement;
+  DumpFile : TStringList;
+  procedure DumpStatement( statement:PStatement;level:integer);
+  var
+    indent:AnsiString;
+    i:integer;
+    children:TList;
+    childStatement:PStatement;
+  begin
+    indent:='';
+    for i:=0 to level do
+      indent:=indent+'  ';
+    DumpFile.Add(indent+Format('%s,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)
+        ,statement^._FileName,statement^._Line]));
+    children := statement^._Children;
+    if not Assigned(children) then begin
+      Exit;
+    end;
+    DumpFile.Add(indent + statement^._Command + ' {');
+    for i:=0 to children.Count -1 do begin
+      childStatement := PStatement(children[i]);
+      DumpStatement(childStatement,level+1);
+    end;
+    DumpFile.Add(indent + '}');
+  end;
+begin
+  DumpFile:=TStringList.Create;
+  with DumpFile do try
+    for i:=0 to fGlobalStatements.Count -1 do begin
+      Statement := PStatement(fGlobalStatements[i]);
+      DumpStatement(Statement,0);
     end;
     SaveToFile(Filename);
   finally

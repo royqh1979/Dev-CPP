@@ -1081,9 +1081,38 @@ begin
   OpenInclude(FileName);
 end;
 
-function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //  Too slow at the moment, so disabling.
+function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+var
+  word:AnsiString;
+  i,Index:integer;
+  lenLine: integer;
+  newLIne: AnsiString;
+  define:PDefine;
 begin
-  Result := Line;
+  word := '';
+  lenLine := Length(Line);
+  for i:=1 to lenLine do begin
+    if Line[i] in ['_','a'..'z','A'..'Z','0'..'9'] then begin
+      word:=word+Line[i];
+    end else begin
+      if word<>'' then begin
+        define:=GetDefine(word,index);
+        if Assigned(define) and (define^.args='') then begin
+          newLine:=newLine+define^.Value;
+        end else
+          newLine:=newLine+word;
+      end;
+      word :='';
+      newLine:= newLine+Line[i];
+    end;
+  end;
+  if word<>'' then begin
+    define:=GetDefine(word,index);
+    if Assigned(define) and (define^.args='') then begin
+      newLine:=newLine+define^.Value;
+    end;
+  end;
+  Result := newLine;
 end;
 
 function TCppPreprocessor.RemoveSuffixes(const Input: AnsiString): AnsiString;

@@ -61,7 +61,7 @@ type
     fPreparing: boolean;
     fPhrase : AnsiString;
     function ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
-    procedure GetCompletionFor(Phrase: AnsiString);
+    procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
     procedure OnFormResize(Sender: TObject);
@@ -183,7 +183,7 @@ begin
   end;
 end;
 
-procedure TCodeCompletion.GetCompletionFor(Phrase: AnsiString);
+procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: AnsiString);
 var
   scopeStatement : PStatement;
   ChildStatement,namespaceStatement:PStatement;
@@ -283,7 +283,7 @@ begin
       Delete(Phrase,1,LastDelimiter(':',Phrase)); // remove namespace infos...
 
       // Add statements of all the text before the last operator
-      Statement := fParser.FindStatementOf(Phrase, fCurrentStatement);
+      Statement := fParser.FindStatementOf(FileName, Phrase, fCurrentStatement);
       if not Assigned(Statement) then begin // maybe a namespace name, give it all global definitions except macros (we can only do this now)
         Children := fParser.Statements.GetChildrenStatements(nil);
         for t:=0 to Children.Count-1 do begin
@@ -434,9 +434,10 @@ procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
 begin
   fPreparing:=True;
   fPhrase := Phrase;
+  fFileName := Filename;
   Screen.Cursor := crHourglass;
   fParser.GetFileIncludes(Filename, fIncludedFiles);
-  GetCompletionFor(Phrase);
+  GetCompletionFor(FileName,Phrase);
   CodeComplForm.lbCompletion.Font.Size := FontSize;
   CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
   CodeComplForm.Update;
@@ -458,6 +459,7 @@ begin
   end;
 
   if fEnabled then begin
+    fFileName := FileName;
 
     Screen.Cursor := crHourglass;
 

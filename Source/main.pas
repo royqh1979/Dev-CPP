@@ -4091,8 +4091,8 @@ var
 begin
   // Configure parser
   CppParser.Reset;
-  CppParser.Tokenizer := CppTokenizer;
   CppParser.Preprocessor := CppPreprocessor;
+  CppParser.Tokenizer := CppTokenizer;
   CppParser.Enabled := devCodeCompletion.Enabled;
   CppParser.ParseLocalHeaders := devCodeCompletion.ParseLocalHeaders;
   CppParser.ParseGlobalHeaders := devCodeCompletion.ParseGlobalHeaders;

@@ -22,6 +22,7 @@ unit CppTokenizer;
 interface
 
 uses
+  CppPreprocessor,
 {$IFDEF WIN32}
   Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils;
 {$ENDIF}

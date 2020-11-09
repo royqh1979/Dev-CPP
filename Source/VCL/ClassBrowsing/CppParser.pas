@@ -147,6 +147,8 @@ type
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
     function GetIncompleteClass(const Command: AnsiString): PStatement;
     procedure ReProcessInheritance;
+    procedure SetTokenizer(tokenizer: TCppTokenizer);
+    procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean=False; isLocal:boolean=False):PStatement;
   public
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
@@ -202,8 +204,8 @@ type
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
     property OnBusy: TNotifyEvent read fOnBusy write fOnBusy;
     property OnTotalProgress: TProgressEvent read fOnTotalProgress write fOnTotalProgress;
-    property Tokenizer: TCppTokenizer read fTokenizer write fTokenizer;
-    property Preprocessor: TCppPreprocessor read fPreprocessor write fPreprocessor;
+    property Tokenizer: TCppTokenizer read fTokenizer write SetTokenizer;
+    property Preprocessor: TCppPreprocessor read fPreprocessor write SetPreprocessor;
     property Statements: TStatementList read fStatementList write fStatementList;
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
@@ -1335,7 +1337,7 @@ begin
       nil,
       False);
     inc(fIndex,2); //skip ;
-  end else if (fTokenizer[fIndex]^.Text[1] = '{') then begin
+  end else begin
     NamespaceStatement := AddStatement(
       GetLastCurrentScope,
       fCurrentFile,
@@ -1353,8 +1355,9 @@ begin
       nil, //inheritance
       False);
     AddSoloScopeLevel(NamespaceStatement);
-    // Step over {
-    Inc(fIndex);
+    // Skip to '{'
+    while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do
+      Inc(fIndex);
   end;
 end;
 
@@ -2092,7 +2095,7 @@ begin
   try
     repeat
     until not HandleStatement;
-    //Statements.DumpTo('f:\\statements.txt');
+    Statements.DumpWithScope('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentScope.Clear;
@@ -3054,6 +3057,7 @@ var
   Statement: PStatement;
   namespaceStatement,scopeStatement: PStatement;
   Children:TList;
+  namespaceStatementsList :TList;
   i,t,k:integer;
   namespacename: AnsiString;
   UsingNames:TStringList;
@@ -3067,6 +3071,7 @@ begin
   if Assigned(Result) then
     Exit;
   scopeStatement := CurrentClass;
+
   // repeat until reach global
   while Assigned(scopeStatement) do begin
     //search members of current scope
@@ -3094,7 +3099,9 @@ begin
   if Assigned(Result) then
     Exit;
   UsingNames := TStringList.Create;
-  FindFileUsings(
+  //TODO: 
+  //FindFileUsings(
+  {
   try
     // Search members of all fusings
     for t:=0 to fUsings.Count-1 do begin
@@ -3156,25 +3163,25 @@ begin
   end;
 
   Result := GlobalStatement;
+  }
 end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   ParentWord, MemberWord, OperatorToken: AnsiString;
-  Statement, MemberStatement, TypedefStatement, VariableStatement: PStatement;
+  CurrentClassType ,Statement, MemberStatement, TypedefStatement, VariableStatement: PStatement;
   i: integer;
   Children: TList;
 begin
   Result := nil;
   if fParsing then
     Exit;
-    {
+
   CurrentClassType := CurrentClass;
   while assigned(CurrentClassType) and not (CurrentClassType._Kind = skClass) do begin
     CurrentClassType:=CurrentClassType^._Parent;
   end;
-  }
 
   // Get the FIRST class and member, surrounding the FIRST operator
   ParentWord := GetClass(Phrase);
@@ -3567,6 +3574,16 @@ end;
 procedure TCppParser.UnFreeze();
 begin
   fLocked := False;
+end;
+
+procedure TCppParser.SetTokenizer(tokenizer: TCppTokenizer);
+begin
+  fTokenizer := tokenizer;
+end;
+
+procedure TCppParser.SetPreprocessor(preprocessor: TCppPreprocessor);
+begin
+  fPreprocessor := preprocessor;
 end;
 
 end.
