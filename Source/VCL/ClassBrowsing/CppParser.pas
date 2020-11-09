@@ -558,12 +558,12 @@ var
     if (Result^._Temporary) then
       fTempNodes.Add(node);
     if (Result^._Kind = skNamespace) then begin
-      i:=FastIndexOf(fNamespaces,FileName);
+      i:=FastIndexOf(fNamespaces,Result^._FullName);
       if (i<>-1) then
         NamespaceList := TList(fNamespaces.objects[i])
       else begin
         NamespaceList := TList.Create;
-        fNamespaces.AddObject(FileName,NamespaceList);
+        fNamespaces.AddObject(Result^._FullName,NamespaceList);
       end;
       NamespaceList.Add(result);
     end;
