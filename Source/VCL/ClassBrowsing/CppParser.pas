@@ -64,7 +64,7 @@ type
     fIsProjectFile: boolean;
     fInvalidatedStatements: TList;
     fPendingDeclarations: TList;
-    fMacroDefines : TList;
+    //fMacroDefines : TList;
     fTempNodes : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
@@ -142,7 +142,7 @@ type
     procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
     procedure DeleteTemporaries;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
-    function FindMacroDefine(const Command: AnsiString): PStatement;
+//    function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
     function GetIncompleteClass(const Command: AnsiString): PStatement;
@@ -246,7 +246,7 @@ begin
   fProjectFiles.Sorted := True;
   fInvalidatedStatements := TList.Create;
   fPendingDeclarations := TList.Create;
-  fMacroDefines := TList.Create;
+  //fMacroDefines := TList.Create;
   fCurrentScope := TList.Create;
   fSkipList:= -1;
   fParseLocalHeaders := False;
@@ -262,7 +262,7 @@ var
   i: Integer;
   namespaceList: TList;
 begin
-  FreeAndNil(fMacroDefines);
+  //FreeAndNil(fMacroDefines);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
   FreeAndNil(fCurrentScope);
@@ -347,6 +347,7 @@ begin
   Result := StartAt;
 end;
 
+{
 function TCppParser.FindMacroDefine(const Command:AnsiString):PStatement;
 var
   Statement: PStatement;
@@ -362,7 +363,7 @@ begin
   end;
   Result := nil;
 end;
-
+}
 function TCppParser.expandMacroType(const name:AnsiString): AnsiString;
 var
   Statement: PStatement;
@@ -372,6 +373,8 @@ begin
     Result := '';
     Exit;
   end;
+  { we have expanded macro in the preprocessor , so we don't need do it here{
+  {
   Statement := FindMacroDefine(name);
   if Assigned(Statement) then begin
     if (Statement^._Value <> '') then
@@ -379,6 +382,7 @@ begin
     else
       Result:='';
   end;
+  }
 end;
 
 // When finding declaration/definition pairs only search the separate incomplete pair list
@@ -600,10 +604,11 @@ begin
     if not IsDefinition then // add declarations to separate list to speed up searches for them
       fPendingDeclarations.Add(Result);
   end;
-
+  {
   if Kind = skPreprocessor then begin
      fMacroDefines.Add(Result);
   end;
+  }
 end;
 
 function TCppParser.GetLastCurrentScope: PStatement;
@@ -2126,7 +2131,7 @@ begin
   fParseGlobalHeaders := False;
 
   //remove all macrodefines;
-  fMacroDefines.Clear;
+  //fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
   fInvalidatedStatements.Clear;
   fCurrentScope.Clear;
@@ -2412,7 +2417,7 @@ begin
       if Statement^._Kind = skClass then // only classes have inheritance
         fInvalidatedStatements.Add(Statement);
 
-      fMacroDefines.Remove(Statement);
+      //fMacroDefines.Remove(Statement);
       fStatementList.DeleteNode(Node);
     end;
     Node := NextNode;
@@ -3300,7 +3305,7 @@ begin
   for i := 0 to fTempNodes.Count -1 do
   begin
     node := PStatementNode(fTempNodes[i]);
-    fMacroDefines.Remove(Node^.Data);
+    //fMacroDefines.Remove(Node^.Data);
     fStatementList.DeleteNode(Node);
   end;
   fTempNodes.Clear;
