@@ -1,6 +1,6 @@
-Red Panda Dev C++ （小熊猫Dev-C++，old name Dev-C++ 2000） is a fork of Orwell Dev-C++ (https://sourceforge.net/p/orwelldevcpp).
+Red Panda Dev C++ （小熊猫Dev-C++，old name Dev-C++ 2000） is a new a improved fork of Orwell Dev-C++.
 
-Orwell Dev-C++ has stopped update since 2016, So I forked it. 
+Orwell Dev-C++ has stopped updating since 2015, So I forked it. 
 
 It's intended to be used for eductional purposes.
 
@@ -8,7 +8,7 @@ Website: https://royqh.net/devcpp-en/
 
 中文网站在这里 https://royqh.net/devcpp/
 
-HighLights of News:
+HighLights of Red Panda Dev C++:
  * Greatly improved "Auto Code Completion":
    * Fixed header parsing error. Can correctly show type hints for std::string, for example.
    * Auto code suggestion while typing.
@@ -17,11 +17,12 @@ HighLights of News:
  * Greatly improved Debugger:
    * breakpoints on condition
    * Redesigned Debugger panel, add Call Stack / Breakpoints sheet
-   * Debug Output window can hide all annotions of the output. This makes it much better to look, and we can use it just like using a gdb console.
-   * If no breakpoint is set, the debugged program will pause at the entrance of main().
+   * Debug Toolbar
+   * gdb Console
+   * Informations in Watch View are updated timely
  * Greatly improved ClassBrowser:
    * Correctly show #define/typedef/enum/class/struct/global var/function infos
-   * sort by type/ alphabetically
+   * sort by type/sort alphabetically
    * show/hide inherited members
    * correctly differentiate static class members / class members;
  * Greatly improved Code Parser, faster and less error;
@@ -29,6 +30,7 @@ HighLights of News:
  * Fix auto-indent; When } is inputted, its line will intend to the same as the matching {.
  * GDB 9.2 and GCC 9.2
  * User can open/edit/save/compile UTF-8 encoding files.
+ * use regular expressions in find/replace
  * rename symbol
  * -Wall -Wextra -Werror is setted by default in the Debug profile, to help beginners learn good coding habits.
  * redirect STDIN to a data file while running or debuging ( to easy debug / need a patched gdb ) 

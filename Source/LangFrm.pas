@@ -197,6 +197,7 @@ begin
   dmMain.InitHighlighterFirstTime(cmbColors.ItemIndex);
 
   // Pick a proper current line color (choice is up for debate...)
+  {
   if cmbColors.Text = 'Obsidian' then
     devEditor.HighColor := clBlack
   else if cmbColors.Text = 'Twilight' then
@@ -214,6 +215,7 @@ begin
   else
     devEditor.HighColor := $FFFFCC; // Light Turquoise
 
+    }
   devEditor.AssignEditor(synExample, 'main.cpp');
 end;
 

@@ -139,7 +139,7 @@ type
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
-    procedure ShowCompletion(key:ansistring='');
+    procedure ShowCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -434,22 +434,22 @@ end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
 var
-  pt: TPoint;
+  tc: TThemeColor;
 begin
   if (Line = fActiveLine) then begin
-    StrtoPoint(pt, devEditor.Syntax.Values[cABP]);
-    BG := pt.X;
-    FG := pt.Y;
+    StrToThemeColor(tc, devEditor.Syntax.Values[cABP]);
+    BG := tc.Background;
+    FG := tc.Foreground;
     Special := TRUE;
   end else if (HasBreakpoint(Line) <> -1) then begin
-    StrtoPoint(pt, devEditor.Syntax.Values[cBP]);
-    BG := pt.X;
-    FG := pt.Y;
+    StrToThemeColor(tc, devEditor.Syntax.Values[cBP]);
+    BG := tc.Background;
+    FG := tc.Foreground;
     Special := TRUE;
   end else if Line = fErrorLine then begin
-    StrtoPoint(pt, devEditor.Syntax.Values[cErr]);
-    BG := pt.X;
-    FG := pt.Y;
+    StrToThemeColor(tc,  devEditor.Syntax.Values[cErr]);
+    BG := tc.Background;
+    FG := tc.Foreground;
     Special := TRUE;
   end;
 end;
@@ -1233,9 +1233,13 @@ begin
 
   if (Key in fText.IdentChars) then begin
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
-      if not fLastPressedIsIdChar then
-        ShowCompletion(Key);
-      fLastPressedIsIdChar:=True;
+      if not fLastPressedIsIdChar then begin
+        fLastPressedIsIdChar:=True;
+        fText.SelText := Key;
+        ShowCompletion(False);
+        Key:=#0;
+      end else
+        fLastPressedIsIdChar:=True;
     end
   end else begin
     fLastPressedIsIdChar:=False;
@@ -1329,7 +1333,7 @@ begin
     (fText.CaretY <> fCompletionInitialPosition.Line) then
     Exit;
 
-  ShowCompletion();
+  ShowCompletion(False);
 end;
 
 procedure TEditor.InitCompletion;
@@ -1363,23 +1367,18 @@ begin
   end;
 end;
 
-procedure TEditor.ShowCompletion(key:ansistring);
+procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
   M: TMemoryStream;
-  s: AnsiString;
+  s,word: AnsiString;
   attr: TSynHighlighterAttributes;
 begin
   fCompletionTimer.Enabled := False;
-  if fCompletionBox.Visible and (key <> '') then // already in search, don't do it again
+
+  if fCompletionBox.Visible then // already in search, don't do it again
     Exit;
 
-  // Position it at the top of the next line
-  P := fText.RowColumnToPixels(fText.DisplayXY);
-  Inc(P.Y, fText.LineHeight + 2);
-  fCompletionBox.Position := fText.ClientToScreen(P);
-  //Set Font size;
-  fCompletionBox.FontSize := fText.Font.Size;
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
   if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
     if (attr <> fText.Highlighter.SymbolAttribute) and
@@ -1387,6 +1386,17 @@ begin
       (attr <> fText.Highlighter.IdentifierAttribute) then
       Exit;
 
+  // Position it at the top of the next line
+  P := fText.RowColumnToPixels(fText.DisplayXY);
+  Inc(P.Y, fText.LineHeight + 2);
+  fCompletionBox.Position := fText.ClientToScreen(P);
+
+  //Set Font size;
+  fCompletionBox.FontSize := fText.Font.Size;
+  // Redirect key presses to completion box if applicable
+  fCompletionBox.OnKeyPress := CompletionKeyPress;
+  fCompletionBox.OnKeyDown := CompletionKeyDown;
+  fCompletionBox.Show;
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
@@ -1402,16 +1412,13 @@ begin
   finally
     M.Free;
   end;
-
-  // Redirect key presses to completion box if applicable
-  fCompletionBox.OnKeyPress := CompletionKeyPress;
-  fCompletionBox.OnKeyDown := CompletionKeyDown;
+  word:=GetWordAtPosition(fText.CaretXY, wpCompletion);
+  //if not fCompletionBox.Visible then
+  fCompletionBox.PrepareSearch(word, fFileName);
 
   // Filter the whole statement list
-  if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion)+key, fFileName, False)
-    and (key = '') then //only one suggestion and it's not input while typing
+  if fCompletionBox.Search(word, fFileName, autoComplete) then //only one suggestion and it's not input while typing
     CompletionInsert(); // if only have one suggestion, just use it
-
 end;
 
 procedure TEditor.DestroyCompletion;
@@ -1543,6 +1550,7 @@ begin
       fFunctionTip.Show;
     end;
   end;
+  fCompletionBox.Hide;
 end;
 
 procedure TEditor.EditorDblClick(Sender: TObject);
@@ -1765,6 +1773,8 @@ var
   LineLength: integer;
 
   procedure SetColors(Point: TBufferCoord);
+  var
+    tc:TThemeColor;
   begin
     // Draw using highlighting colors
     if TransientType = ttAfter then begin
@@ -1774,7 +1784,8 @@ var
       // Draw using normal colors
     end else begin
       if devEditor.HighCurrLine and (Point.Line = fText.CaretY) then begin // matching char is inside highlighted line
-        Canvas.Brush.Color := devEditor.HighColor;
+        StrToThemeColor(tc, devEditor.Syntax.Values[cAL]);
+        Canvas.Brush.Color := tc.Background;
         Canvas.Font.Color := Attri.Foreground;
       end else begin
         Canvas.Brush.Color := Attri.Background;

@@ -27,6 +27,7 @@ English lng ..\lang\English.lng
 20 Gutter
 21 Selected Text
 22 Fold bar lines (fg only)
+23 Active Line
 */
 STRINGTABLE
 {
@@ -53,6 +54,7 @@ STRINGTABLE
  20, "clBlack, clBtnFace"
  21, "clWhite, clNavy"
  22, "clBlack, clBtnFace"
+ 23, "clNone, $00FFFFCC"
 
 /* Classic Plus */
  1001, "clBlue, clNone, 0, 0, 0"
@@ -77,6 +79,7 @@ STRINGTABLE
  1020, "clBlack, clBtnFace"
  1021, "clWhite, clNavy"
  1022, "clBlack, clBtnFace"
+ 1023, "clNone, $00FFFFCC"
 
 /* Twilight */
  2001, "clLime, clNone, 0, 0, 0"
@@ -101,6 +104,7 @@ STRINGTABLE
  2020, "clWhite, clBlack"
  2021, "clWhite, clNavy"
  2022, "clWhite, clBtnFace"
+ 2023, "clNone, $404080"
 
 /* Ocean */
  3001, "clBlue, clNone, 0, 0, 0"
@@ -125,6 +129,7 @@ STRINGTABLE
  3020, "clBlue, clAqua"
  3021, "clWhite, clNavy"
  3022, "clBlue, clBtnFace"
+ 3023, "clNone, $00FFFFCC"
 
 /* Visual Studio */
  4001, "clBlack, clNone, 0, 0, 0"
@@ -149,6 +154,7 @@ STRINGTABLE
  4020, "clNone, clWhite"
  4021, "clWhite, clNavy"
  4022, "clNone, clBtnFace"
+ 4023, "clNone, $00FFFFCC"
 
 /* Borland */
  5001, "clLime, clNone, 0, 0, 0"
@@ -173,6 +179,7 @@ STRINGTABLE
  5020, "clYellow, clNavy"
  5021, "clBlack, clSilver"
  5022, "clYellow, clBtnFace"
+ 5023, "clNone, $500000"
 
 /* Matrix */
  6001, "clLime, clNone, 0, 0, 0"
@@ -197,6 +204,7 @@ STRINGTABLE
  6020, "clLime, clBlack"
  6021, "clWhite, clNavy"
  6022, "clRed, clBtnFace"
+ 6023, "clNone, $202020"
 
  /* Obisidian */
  7001, "$0063c793, clNone, 0, 0, 0"
@@ -221,6 +229,7 @@ STRINGTABLE
  7020, "$0088806a, $003c382f"
  7021, "16777215, $00514e40"
  7022, "$000000c0, $00514e40"
+ 7023, "clNone, clBlack"
 
  /* GSS Hacker */
  8001, "$00ff9c00, $00171717, 0, 0, 0"
@@ -245,7 +254,8 @@ STRINGTABLE
  8020, "$0002ed06, $00000000"
  8021, "$00FFFFFF, $001c5f4e"
  8022, "$00a5a5a5, $00171717"
- 
+ 8023, "clNone, clBlack"
+
  /* Obvilion */
  9001, "$00FFAB79, $001E1E1E, 0, 0, 0"
  9002, "$005252D2, clNone, 0, 0, 0"
@@ -269,6 +279,7 @@ STRINGTABLE
  9020, "13684944, 1973790"
  9021, "13684944, 0"
  9022, "39423, 5328448"
+ 9023, "clNone, clBlack"
 
  /* PlasticCodeWrap */
  10001, "clFuchsia, $021D160B, 0, 0, 0"
@@ -293,4 +304,6 @@ STRINGTABLE
  10020, "16777215, 3552302"
  10021, "16776960, 1906187"
  10022, "192, 5328448"
+ 10023, "clNone, clBlack"
+
 }

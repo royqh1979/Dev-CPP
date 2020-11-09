@@ -80,12 +80,17 @@ type
     valuedec: AnsiString;
   end;
 
+  TInvalidateAllVarsEvent = procedure of object;
+
   TDebugReader = class(TThread)
   private
     fCSQueue: TRTLCriticalSection;
     fPipeRead: THandle;
     fPipeWrite: THandle;
     fCmdQueue: TQueue;
+    fUpdateCount: integer; // how many WatchView.Items.BeginUpdate have been called without EndUpdate?
+    fInvalidateAllVars: boolean; // invalidate All watch vars
+    fOnInvalidateAllVars: TInvalidateAllVarsEvent;
     fCmdRunning : boolean;
     fCurrentCmd: PGDBCmd;
     fRegisters: TList;
@@ -168,6 +173,8 @@ type
     property BreakPointFile: AnsiString read fBreakPointFile;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property CommandRunning: boolean read fCmdRunning;
+    property InvalidateAllVars: boolean read fInvalidateAllVars write fInvalidateAllVars;
+    property OnInvalidateAllVars: TInvalidateAllVarsEvent  read fOnInvalidateAllVars write fOnInvalidateAllVars; 
 
     procedure PostCommand(const Command, Params: AnsiString; ViewInUI: boolean);
   end;
@@ -187,6 +194,8 @@ begin
   fCurrentCmd := nil;
   fBacktrace := TList.Create;
   InitializeCriticalSection(fCSQueue);
+  fUpdateCount := 0;
+  fInvalidateAllVars := False
 end;
 
 destructor TDebugReader.Destroy;
@@ -1001,6 +1010,14 @@ var
 begin
   // Only update once per update at most
   WatchView.Items.BeginUpdate;
+
+  if fInvalidateAllVars then begin
+    //invalidate all vars when there's first output
+    if Assigned(fOnInvalidateAllVars) then
+      fOnInvalidateAllVars;
+    fInvalidateAllVars := False;
+  end;
+
   try
 
     dobacktraceready := false;
@@ -1101,6 +1118,10 @@ var
   PCmd: PGDBCmd;
 begin
     EnterCriticalSection(fCSQueue);
+    if fCmdQueue.Count<=0 then begin
+      WatchView.Items.BeginUpdate;
+      inc(fUpdateCount);
+    end;
     pCmd:=new(PGDBCmd);
     pCmd^.Cmd := Command;
     pCmd^.Params := Params;
@@ -1120,12 +1141,18 @@ var
   PCmd: PGDBCmd;
 begin
     EnterCriticalSection(fCSQueue);
-    if fCmdQueue.Count<=00 then begin
+    try
+      if fCmdQueue.Count<=0 then begin
+        while (fUpdateCount>0) do begin
+          WatchView.Items.EndUpdate();
+          dec(fUpdateCount);
+        end;
+        Exit;
+      end;
+      pCmd := PGDBCmd(fCmdQueue.Pop);
+    finally
       LeaveCriticalSection(fCSQueue);
-      Exit;
     end;
-    pCmd := PGDBCmd(fCmdQueue.Pop);
-    LeaveCriticalSection(fCSQueue);
     // Convert command to C string
     if Length(pCmd^.params) > 0 then begin
       GetMem(P, Length(pCmd^.Cmd) + Length(pCmd.Params) + 3);
@@ -1166,6 +1193,10 @@ begin
   while fCmdQueue.Count>0 do begin
     pCmd := PGDBCmd(fCmdQueue.Pop);
     Dispose(pCmd);
+  end;
+  while (fUpdateCount>0) do begin
+    WatchView.Items.EndUpdate();
+    dec(fUpdateCount);
   end;
   LeaveCriticalSection(fCSQueue);
 end;

@@ -1,26 +1,47 @@
+Version 6.1-beta1  November 2020
+
+  - enhancement: Watch View only update once each command the debugger runs.
+  - enhancement: Save/Load vars in Watch View
+  - change: only devcpp.exe installed by the installer will save configs to User's AppData dir; devcpp.exe not installed will save configs to Dev-CPP's config dir. This will make Dev-C++ really portable.
+  - fix: correctly draw current line in Editor option dialog's demo code windows
+  - fix: left panel's has a min width when use the splitter to adjust its size
+  - fix: when gdb is not finished a command executing( such as executing a scanf) , don't left user add watches. (Because gdb can't fetch watch info now)
+  - enhancement: use TStringHash to test if an identifier is a keyword in SynEdit's cpp highlighter, mush easier to maintain; Add new cpp keywords to cpp highlighter
+
+
 Version 6.0    November 2020
   
   - fix: change icons for run/complie&run/replace
   - fix: make class members dropdown list in toolbar work
   - add: open console from current file's folder
   - fix: makefile generation error if #included header file is not in system include dirs
-
   - fix: use Parsed #include info to generate dependent list in Makefile, instead of "gcc -MM"
   - fix: class browser updated correctly when project is closed
   - fix: typedef functions parsing error
   - fix: when clear Parser's statementlist, delete a parent before it's children will cause Dev-C++ to crash
   - fix: use fastindexof to search in stringlists, improve search speed
   - fix: search using regular expression
-  - fix: Dev-C++ hangs when make project and ld.exe have errors
- 
+  - fix: Dev-C++ hangs when make project and ld.exe have errors 
   - fix: member Suggestion failed when a var is defined using (Type * var) instead of (Type* var);
   - fix: update watch when switch functions in Call Stack Panel
   - fix: when dialogs is open, press Alt will cause buttons on it to disappear
-
   - fix: update some chinese translations
   - change: Press LEFT/RIGHT/HOME/END will close Code Suggestion and move the cursor in the current line
-
-
+  - fix: ignore namespace qualify info in identifiers. This makes auto suggestion work (but not perfect) for qualified names.
+  - fix: user can type while code suggestion is preparing
+  - fix: can set current line fg/bg color in Editor's Color tab
+  - fix: editor color theme with correct current line color
+  - fix: use TThemeColor instead of TPoint to save theme colors
+  - fix: wordwrap in project's compiler set options setting
+  - add installer scripts
+  - fix: if another dev-c++ is already running, just exit (dont loop to wait it finish starting)
+  - fix: -> . :: started code completion will not auto complete if there is only one suggestion candidator
+  - Simplified chinese translation for installer  
+  - enhancement: double click in watch view to rename a watch var
+  - change: remove 'show gdb annotation' option from gdb console's context menu
+  - enhancement: relayout link parameter input in project option dialog
+  - fix: if open a file when active left panel is not class browser, class browser is actived but show nothing
+  - fix: use uncompressed gcc & gdb & consolePauser to increase speed
 
 Version 6-beta6.1     November 2020
 

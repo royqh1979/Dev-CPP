@@ -507,7 +507,6 @@ type
     MenuItem12: TMenuItem;
     N51: TMenuItem;
     DisplayGDBCommandsBtn: TMenuItem;
-    DisplayGDBAnnotationsBtn: TMenuItem;
     MessageControl: TPageControl;
     actMsgDisplayGDBCommands: TAction;
     actMsgDisplayGDBAnnotations: TAction;
@@ -602,6 +601,15 @@ type
     ToolButton22: TToolButton;
     actOpenConsole: TAction;
     OpenShellHere1: TMenuItem;
+    Panel4: TPanel;
+    ToolBar9: TToolBar;
+    actSaveWatchList: TAction;
+    actLoadWatchList: TAction;
+    ToolButton23: TToolButton;
+    ToolButton24: TToolButton;
+    actLoadWatchList1: TMenuItem;
+    actSaveWatchList1: TMenuItem;
+    N52: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -879,6 +887,11 @@ type
     procedure actBrowserSortAlphabeticallyExecute(Sender: TObject);
     procedure DebugOutputEnter(Sender: TObject);
     procedure actOpenConsoleExecute(Sender: TObject);
+    procedure WatchViewDblClick(Sender: TObject);
+    procedure actSaveWatchListUpdate(Sender: TObject);
+    procedure actLoadWatchListExecute(Sender: TObject);
+    procedure actSaveWatchListExecute(Sender: TObject);
+    procedure actAddWatchUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1077,10 +1090,11 @@ begin
     devData.ProjectWindowState.GetPlacement(fProjectToolWindow.Handle);
   if Assigned(fReportToolWindow) then
     devData.ReportWindowState.GetPlacement(fReportToolWindow.Handle);
-
-  SaveOptions;
-
-  Action := caFree;
+  try
+    SaveOptions;
+  finally
+    Action := caFree;
+  end;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1379,6 +1393,8 @@ begin
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
   ClearallWatchPop.Caption := Lang[ID_ITEM_CLEARALL];
+  actSaveWatchList.Caption := Lang[ID_NV_SAVEWATCH];
+  actLoadWatchList.Caption := Lang[ID_NV_LOADWATCH];
 
   // Project/Unit/Folder popup
   actUnitRemove.Caption := Lang[ID_POP_REMOVE];
@@ -1663,11 +1679,13 @@ begin
   end else begin
     dmMain.RemoveFromHistory(FileName);
   end;
+  
   e.Activate;
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) then begin
     LeftPageControl.ActivePage := LeftClassSheet;
+    ClassBrowser.TabVisible := True;
   end;
 end;
 
@@ -2041,8 +2059,9 @@ begin
   NewEditor := fEditorList.NewEditor('',devEditor.UseUTF8ByDefault, False, True);
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
-  LeftPageControl.ActivePage := LeftClassSheet;
   UpdateFileEncodingStatusPanel;
+  LeftPageControl.ActivePage := LeftClassSheet;
+  ClassBrowser.TabVisible := True;
 end;
 
 procedure TMainForm.actNewProjectExecute(Sender: TObject);
@@ -2254,6 +2273,7 @@ begin
     if not fQuitting and RefreshEditor then begin
       //reset Class browsing
       LeftPageControl.ActivePage := LeftClassSheet;
+      ClassBrowser.TabVisible := True;
       UpdateClassBrowsing;
       ClassBrowser.ProjectDir := '';
       //UpdateClassBrowserForEditor(EditorList.GetEditor());
@@ -3861,11 +3881,13 @@ end;
 procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('next', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    WatchView.Items.EndUpdate();
     //fDebugger.RefreshWatchVars;
   end;
 end;
@@ -3873,11 +3895,13 @@ end;
 procedure TMainForm.actStepIntoExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('step', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
+    WatchView.Items.EndUpdate();
     //fDebugger.RefreshWatchVars;
   end;
 end;
@@ -3924,13 +3948,15 @@ end;
 procedure TMainForm.actContinueExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    WatchView.Items.BeginUpdate();
     RemoveActiveBreakpoints;
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('continue', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
-    //fDebugger.RefreshWatchVars;
+    WatchView.Items.EndUpdate();
+        //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -6346,6 +6372,8 @@ begin
   // We need this variable during the whole startup process
   devData.First := FALSE;
 
+  LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftProjectSheet.Width;
+  //MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
   //windows xp hack
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
@@ -6450,12 +6478,14 @@ end;
 procedure TMainForm.actStepOutExecute(Sender: TObject);
 begin
   if fDebugger.Executing then begin
+    WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('finish', '');
     fDebugger.SendCommand('backtrace', '');
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
-    //fDebugger.RefreshWatchVars;
+    WatchView.Items.EndUpdate();
+      //fDebugger.RefreshWatchVars;
   end;
 end;
 
@@ -6466,12 +6496,14 @@ begin
   if fDebugger.Executing then begin
     e:=fEditorList.GetEditor;
     if assigned(e) then begin
+      WatchView.Items.BeginUpdate();
       fDebugger.InvalidateAllVars;
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
       fDebugger.SendCommand('backtrace', '');
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
+      WatchView.Items.EndUpdate();
       //fDebugger.RefreshWatchVars;
     end;
   end;
@@ -6806,7 +6838,7 @@ var
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then
-    e.ShowCompletion();
+    e.ShowCompletion(True);
 end;
 
 procedure TMainForm.actPackageManagerExecute(Sender: TObject);
@@ -7223,6 +7255,7 @@ begin
     end;
     i := sel.Index;
     if Debugger.Executing then begin
+      WatchView.Items.BeginUpdate();
       Debugger.SendCommand('select-frame',IntToStr(i));
       //update register info
       // Load the registers...
@@ -7231,6 +7264,7 @@ begin
       fDebugger.InvalidateAllVars;
       //Debugger.SendCommand('display','');
       fDebugger.RefreshWatchVars;
+      WatchView.Items.EndUpdate();
     end;
   end;
 end;
@@ -7467,6 +7501,100 @@ begin
       ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
     end;
   end;
+end;
+
+procedure TMainForm.WatchViewDblClick(Sender: TObject);
+var
+  curnode: TTreeNode;
+  name: AnsiString;
+  newName: AnsiString;
+begin
+  curnode := WatchView.Selected;
+  if Assigned(curnode) then begin // only edit members
+    if curnode.Level <> 0 then
+      Exit;
+    if not Assigned(curnode.Data) then
+      Exit;
+    name := PWatchVar(curnode.Data)^.Name;
+    newName := name;
+    if ShowInputQuery(Lang[ID_NV_RENAMEWATCH], Lang[ID_NV_NEWVAR], newName) then begin
+      fDebugger.RenameWatchVar(name, newName);
+      WatchView.Update;
+    end;
+  end;
+end;
+
+procedure TMainForm.actSaveWatchListUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := fDebugger.WatchVarList.Count > 0;
+end;
+
+procedure TMainForm.actSaveWatchListExecute(Sender: TObject);
+var
+  i:integer;
+  WatchVar: PWatchVar;
+begin
+  with TSaveDialog.Create(Self) do try
+    Filter := FLT_WATCHLIST;
+    Title := Lang[ID_NV_SAVEWATCH];
+    DefaultExt := WATCH_EXT;
+    Options := Options + [ofOverwritePrompt];
+
+    // Open all provided files
+    if Execute and (FileName <> '') then begin
+      with TStringList.Create do try
+        for i:=0 to fDebugger.WatchVarList.Count-1 do begin
+          WatchVar := PWatchVar(fDebugger.WatchVarList[i]);
+          Add(WatchVar^.Name);
+        end;
+        SaveToFile(FileName);
+      finally
+        Free;
+      end;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TMainForm.actLoadWatchListExecute(Sender: TObject);
+var
+  i:integer;
+begin
+  with TOpenDialog.Create(Self) do try
+    Filter := FLT_WATCHLIST;
+    Title := Lang[ID_NV_LOADWATCH];
+    DefaultExt := WATCH_EXT;
+
+    // Open all provided files
+    if Execute and (FileName <> '') then begin
+      with TStringList.Create do try
+        LoadFromFile(FileName);
+        WatchView.Items.BeginUpdate;
+        try
+          fDebugger.DeleteWatchVars(true);
+          for i:=0 to Count-1 do begin
+            fDebugger.AddWatchVar(Strings[i]);
+          end;
+        finally
+          WatchView.Items.EndUpdate;
+        end;
+      finally
+        Free;
+      end;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+
+procedure TMainForm.actAddWatchUpdate(Sender: TObject);
+begin
+  if fDebugger.Executing then
+    TCustomAction(Sender).Enabled := (not fDebugger.Reader.CommandRunning)
+  else
+    TCustomAction(Sender).Enabled := (fEditorList.PageCount > 0);
 end;
 
 end.

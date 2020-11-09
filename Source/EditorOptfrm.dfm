@@ -1,9 +1,9 @@
 object EditorOptForm: TEditorOptForm
-  Left = 810
-  Top = 294
+  Left = 811
+  Top = 32
   BorderStyle = bsDialog
   Caption = 'Editor Options'
-  ClientHeight = 656
+  ClientHeight = 645
   ClientWidth = 645
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,14 +17,14 @@ object EditorOptForm: TEditorOptForm
   OnCreate = FormCreate
   DesignSize = (
     645
-    656)
+    645)
   PixelsPerInch = 120
   TextHeight = 20
   object PagesMain: TPageControl
     Left = 0
     Top = 0
     Width = 647
-    Height = 607
+    Height = 593
     ActivePage = tabGeneral
     TabOrder = 0
     OnChange = PagesMainChange
@@ -223,6 +223,14 @@ object EditorOptForm: TEditorOptForm
           Caption = 'Use UTF-8 As the default charset'
           TabOrder = 16
         end
+        object cbHighCurrLine: TCheckBox
+          Left = 323
+          Top = 251
+          Width = 246
+          Height = 22
+          Caption = 'Highlight current line'
+          TabOrder = 17
+        end
       end
       object grpCaret: TGroupBox
         Left = 12
@@ -282,43 +290,9 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 2
         end
       end
-      object grpHighCurLine: TGroupBox
-        Left = 352
-        Top = 443
-        Width = 268
-        Height = 112
-        Caption = 'Highlight current line'
-        TabOrder = 4
-        object cbHighlightColor: TLabel
-          Left = 132
-          Top = 47
-          Width = 36
-          Height = 20
-          Caption = 'Color'
-        end
-        object cbHighCurrLine: TCheckBox
-          Left = 11
-          Top = 27
-          Width = 246
-          Height = 22
-          Caption = 'Enabled'
-          TabOrder = 0
-          OnClick = cbHighCurrLineClick
-        end
-        object cpHighColor: TColorBox
-          Left = 128
-          Top = 67
-          Width = 129
-          Height = 22
-          DefaultColorColor = 16777164
-          Style = [cbStandardColors, cbIncludeDefault, cbCustomColor, cbPrettyNames]
-          ItemHeight = 16
-          TabOrder = 1
-        end
-      end
       object grpTabs: TGroupBox
         Left = 12
-        Top = 443
+        Top = 435
         Width = 331
         Height = 112
         Caption = '  Tabs  '
@@ -473,7 +447,7 @@ object EditorOptForm: TEditorOptForm
           Left = 480
           Top = 143
           Width = 107
-          Height = 24
+          Height = 31
           MaxValue = 999
           MinValue = 1
           TabOrder = 7
@@ -484,7 +458,7 @@ object EditorOptForm: TEditorOptForm
           Left = 480
           Top = 65
           Width = 107
-          Height = 24
+          Height = 31
           MaxValue = 999
           MinValue = 1
           TabOrder = 8
@@ -529,7 +503,7 @@ object EditorOptForm: TEditorOptForm
           Left = 480
           Top = 43
           Width = 107
-          Height = 24
+          Height = 31
           MaxValue = 999
           MinValue = 1
           TabOrder = 1
@@ -540,20 +514,6 @@ object EditorOptForm: TEditorOptForm
     end
     object tabSyntax: TTabSheet
       Caption = 'Colors'
-      object lblForeground: TLabel
-        Left = 12
-        Top = 243
-        Width = 80
-        Height = 20
-        Caption = 'Foreground:'
-      end
-      object lblBackground: TLabel
-        Left = 12
-        Top = 304
-        Width = 82
-        Height = 20
-        Caption = 'Background:'
-      end
       object lblSpeed: TLabel
         Left = 12
         Top = 488
@@ -690,7 +650,7 @@ object EditorOptForm: TEditorOptForm
         OnClick = ElementListClick
       end
       object grpStyle: TGroupBox
-        Left = 20
+        Left = 12
         Top = 367
         Width = 147
         Height = 97
@@ -726,36 +686,24 @@ object EditorOptForm: TEditorOptForm
       end
       object cboQuickColor: TComboBox
         Left = 43
-        Top = 515
+        Top = 517
         Width = 173
         Height = 28
         Style = csDropDownList
         ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
-        Items.Strings = (
-          'Classic'
-          'Classic Plus'
-          'Twilight'
-          'Ocean'
-          'Visual Studio'
-          'Borland'
-          'Matrix'
-          'Obsidian'
-          'GSS Hacker'
-          'Obvilion'
-          'PlasticCodeWrap')
       end
       object edSyntaxExt: TEdit
-        Left = 240
-        Top = 515
+        Left = 232
+        Top = 517
         Width = 380
         Height = 28
         TabOrder = 4
       end
       object cbSyntaxHighlight: TCheckBox
         Left = 233
-        Top = 480
+        Top = 487
         Width = 400
         Height = 23
         Caption = 'Use Syntax Highlighting'
@@ -763,7 +711,7 @@ object EditorOptForm: TEditorOptForm
         OnClick = cbSyntaxHighlightClick
       end
       object cpForeground: TColorBox
-        Left = 23
+        Left = 12
         Top = 269
         Width = 146
         Height = 22
@@ -773,7 +721,7 @@ object EditorOptForm: TEditorOptForm
         OnChange = StyleChange
       end
       object cpBackground: TColorBox
-        Left = 23
+        Left = 12
         Top = 328
         Width = 146
         Height = 22
@@ -782,6 +730,24 @@ object EditorOptForm: TEditorOptForm
         TabOrder = 7
         OnChange = StyleChange
       end
+      object cbForeground: TCheckBox
+        Left = 12
+        Top = 244
+        Width = 133
+        Height = 23
+        Caption = 'Foreground:'
+        TabOrder = 8
+        OnClick = cbForegroundClick
+      end
+      object cbBackground: TCheckBox
+        Left = 12
+        Top = 300
+        Width = 133
+        Height = 23
+        Caption = 'Background:'
+        TabOrder = 9
+        OnClick = cbBackgroundClick
+      end
     end
     object tabCode: TTabSheet
       Caption = 'Snippets'
@@ -789,7 +755,7 @@ object EditorOptForm: TEditorOptForm
         Left = 0
         Top = 0
         Width = 639
-        Height = 572
+        Height = 558
         ActivePage = tabCPInserts
         Align = alClient
         TabOrder = 0
@@ -928,7 +894,7 @@ object EditorOptForm: TEditorOptForm
         Left = 0
         Top = 0
         Width = 639
-        Height = 572
+        Height = 558
         ActivePage = tabCodeCompletion
         Align = alClient
         TabOrder = 0
@@ -1179,7 +1145,7 @@ object EditorOptForm: TEditorOptForm
   end
   object btnOk: TBitBtn
     Left = 280
-    Top = 613
+    Top = 602
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1208,7 +1174,7 @@ object EditorOptForm: TEditorOptForm
   end
   object btnCancel: TBitBtn
     Left = 400
-    Top = 613
+    Top = 602
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1218,7 +1184,7 @@ object EditorOptForm: TEditorOptForm
   end
   object btnHelp: TBitBtn
     Left = 520
-    Top = 613
+    Top = 602
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]

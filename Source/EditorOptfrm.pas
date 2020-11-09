@@ -26,7 +26,7 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Spin,
   SynEdit, SynEditHighlighter, SynHighlighterCpp,
   Buttons, ClassBrowser, CppParser, CppTokenizer, StrUtils, Grids,
-  CppPreprocessor;
+  CppPreprocessor, Utils;
 
 type
   // Keep history of what we have accessed (does not mean changed)
@@ -50,8 +50,6 @@ type
     edGutterSize: TSpinEdit;
     tabGeneral: TTabSheet;
     tabSyntax: TTabSheet;
-    lblForeground: TLabel;
-    lblBackground: TLabel;
     CppEdit: TSynEdit;
     ElementList: TListBox;
     grpStyle: TGroupBox;
@@ -118,7 +116,6 @@ type
     SaveInterval: TLabel;
     MinutesDelay: TTrackBar;
     FileOptions: TRadioGroup;
-    grpHighCurLine: TGroupBox;
     cbFunctionHint: TCheckBox;
     edSyntaxExt: TEdit;
     cbSyntaxHighlight: TCheckBox;
@@ -127,7 +124,6 @@ type
     lblTabSize: TLabel;
     cbUseTabs: TCheckBox;
     cbSmartTabs: TCheckBox;
-    cbHighlightColor: TLabel;
     cbDefaultCode: TCheckBox;
     seDefault: TSynEdit;
     NameOptions: TRadioGroup;
@@ -137,7 +133,6 @@ type
     chkCBParseLocalH: TCheckBox;
     lblTimeStampExample: TLabel;
     cpMarginColor: TColorBox;
-    cpHighColor: TColorBox;
     cpForeground: TColorBox;
     cpBackground: TColorBox;
     cpCompletionBackground: TColorBox;
@@ -156,6 +151,8 @@ type
     cbUseUTF8AsDefault: TCheckBox;
     cbUseAltSlash: TCheckBox;
     cbShowCompletionWhileInputing: TCheckBox;
+    cbForeground: TCheckBox;
+    cbBackground: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -176,7 +173,6 @@ type
     procedure chkEnableCompletionClick(Sender: TObject);
     procedure btnSaveSyntaxClick(Sender: TObject);
     procedure OnGutterClick(Sender: TObject; Button: TMouseButton; X, Y, Line: Integer; Mark: TSynEditMark);
-    procedure cbHighCurrLineClick(Sender: TObject);
     procedure cbAutoSaveClick(Sender: TObject);
     procedure MinutesDelayChange(Sender: TObject);
     procedure cbSymbolCompleteClick(Sender: TObject);
@@ -192,15 +188,19 @@ type
       var CanSelect: Boolean);
     procedure PagesMainChange(Sender: TObject);
     procedure NameOptionsClick(Sender: TObject);
+    procedure cbForegroundClick(Sender: TObject);
+    procedure cbBackgroundClick(Sender: TObject);
   private
     ffgColor: TColor;
     fbgColor: TColor;
-    fGutColor: TPoint;
-    fBPColor: TPoint;
-    fErrColor: TPoint;
-    fABPColor: TPoint;
-    fSelColor: TPoint;
-    fFoldColor: TPoint;
+    fGutColor: TThemeColor;
+    fBPColor: TThemeColor;
+    fErrColor: TThemeColor;
+    fABPColor: TThemeColor;
+    fSelColor: TThemeColor;
+    fFoldColor: TThemeColor;
+    fALColor : TThemeColor;
+    fPredefinedColorThemeCount: integer;
     procedure LoadFonts;
     procedure LoadText;
     procedure LoadCodeIns;
@@ -209,6 +209,7 @@ type
     procedure UpdateCIButtons;
     procedure LoadSyntax(const Value: AnsiString);
     procedure FillSyntaxSets;
+    procedure UpdateDemoEditColor;
   public
     AccessedTabs: TEditorOptFormHistory;
   end;
@@ -216,7 +217,7 @@ type
 implementation
 
 uses
-  shlobj, MultiLangSupport, devcfg, version, utils, math, CommCtrl, DateUtils, CodeInsList, DataFrm, IniFiles, editor,
+  shlobj, MultiLangSupport, devcfg, version, math, CommCtrl, DateUtils, CodeInsList, DataFrm, IniFiles, editor,
   main;
 
 {$R *.dfm}
@@ -225,6 +226,17 @@ const
   cABreakLine = 9;
   cErrorLine = 11;
   cSelection = 15;
+  cActiveLine = 1;
+
+procedure TEditorOptForm.UpdateDemoEditColor;
+begin
+  CppEdit.Gutter.Color := fGutColor.Background;
+  CppEdit.Gutter.Font.Color := fGutColor.Foreground;
+  CppEdit.ActiveLineColor := fALColor.Background;
+  CppEdit.CaretY := cActiveLine;
+  CppEdit.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;
+  CppEdit.UseCodeFolding := True;
+end;
 
 procedure TEditorOptForm.FormCreate(Sender: TObject);
 var
@@ -233,6 +245,18 @@ var
   I: integer;
 begin
   LoadText;
+  cboQuickColor.Items.Add('Classic');
+  cboQuickColor.Items.Add('Classic Plus');
+  cboQuickColor.Items.Add('Twilight');
+  cboQuickColor.Items.Add('Ocean');
+  cboQuickColor.Items.Add('Visual Studio');
+  cboQuickColor.Items.Add('Borland');
+  cboQuickColor.Items.Add('Matrix');
+  cboQuickColor.Items.Add('Obsidian');
+  cboQuickColor.Items.Add('GSS Hacker');
+  cboQuickColor.Items.Add('Obvilion');
+  cboQuickColor.Items.Add('PlasticCodeWrap');
+  fPredefinedColorThemeCount := cboQuickColor.Items.Count;
 
   with devEditor do begin
 
@@ -283,8 +307,6 @@ begin
     cbMatch.Checked := Match;
     cbDefaultCode.Checked := DefaultCode;
     cbHighCurrLine.Checked := HighCurrLine;
-    cpHighColor.Selected := HighColor;
-    cpHighColor.Enabled := cbHighCurrLine.Checked;
 
     // Fonts
     LoadFonts; // fill dropdowns
@@ -296,12 +318,14 @@ begin
 
     // Colors
     FillSyntaxSets; // Load color themes
-    StrtoPoint(fSelColor, Syntax.Values[cSel]);
-    StrtoPoint(fGutColor, Syntax.Values[cGut]);
-    StrtoPoint(fbpColor, Syntax.Values[cBP]);
-    StrtoPoint(fErrColor, Syntax.Values[cErr]);
-    StrtoPoint(fABPColor, Syntax.Values[cABP]);
-    StrtoPoint(fFoldColor, Syntax.Values[cFld]);
+    StrToThemeColor(fSelColor, Syntax.Values[cSel]);
+    StrToThemeColor(fGutColor, Syntax.Values[cGut]);
+    StrToThemeColor(fbpColor, Syntax.Values[cBP]);
+    StrToThemeColor(fErrColor, Syntax.Values[cErr]);
+    StrToThemeColor(fABPColor, Syntax.Values[cABP]);
+    StrToThemeColor(fFoldColor, Syntax.Values[cFld]);
+    StrToThemeColor(fALColor, Syntax.Values[cAL]);
+    UpdateDemoEditColor;
   end;
 
   // Colors, cont.
@@ -319,42 +343,32 @@ begin
         finally
           Attribute.Free;
         end;
-      end else
-        devEditor.Syntax.Append(AttrName);
+      end;
 
       // Add to list
       ElementList.Items.Add(cpp.Attribute[I].Name);
     end;
 
     // selection color
-    if devEditor.Syntax.IndexofName(cSel) = -1 then
-      devEditor.Syntax.Append(cSel);
     ElementList.Items.Append(cSel);
 
     // gutter colors
-    if devEditor.Syntax.IndexofName(cGut) = -1 then
-      devEditor.Syntax.Append(cGut);
     ElementList.Items.Append(cGut);
 
     // breakpoint
-    if devEditor.Syntax.IndexOfName(cBP) = -1 then
-      devEditor.Syntax.Append(cBP);
     ElementList.Items.Append(cBP);
 
     // error line
-    if devEditor.Syntax.IndexOfName(cErr) = -1 then
-      devEditor.Syntax.Append(cErr);
     ElementList.Items.Append(cErr);
 
     // active breakpoint
-    if devEditor.Syntax.IndexOfName(cABP) = -1 then
-      devEditor.Syntax.Append(cABP);
     ElementList.Items.Append(cABP);
 
     // folding color
-    if devEditor.Syntax.IndexofName(cFld) = -1 then
-      devEditor.Syntax.Append(cFld);
     ElementList.Items.Append(cFld);
+
+    // active line
+    ElementList.Items.Append(cAL);
 
     ffgColor := cpp.WhitespaceAttribute.Foreground;
     fbgColor := cpp.WhitespaceAttribute.Background;
@@ -414,7 +428,6 @@ begin
 
   // Set defaults of color buttons, don't want all system colors too
   cpMarginColor.Items.InsertObject(1, 'Default', TObject(cpMarginColor.DefaultColorColor));
-  cpHighColor.Items.InsertObject(1, 'Default', TObject(cpHighColor.DefaultColorColor));
   cpCompletionBackground.Items.InsertObject(1, 'Default', TObject(cpCompletionBackground.DefaultColorColor));
 end;
 
@@ -528,6 +541,7 @@ begin
 
   // Sub tabs (completion)
   tabSymbolCompletion.Caption := Lang[ID_EOPT_CPSYMBOLS];
+  tabCodeCompletion.Caption := Lang[ID_EOPT_CPCODES];
 
   // General Tab
   grpEditorOpts.Caption := Lang[ID_EOPT_EDOPTIONS];
@@ -555,8 +569,6 @@ begin
   cbMarginVis.Caption := Lang[ID_EOPT_GENERICENABLED];
   lblMarginWidth.Caption := Lang[ID_EOPT_WIDTH];
   lblMarginColor.Caption := Lang[ID_EOPT_COLOR];
-  grpHighCurLine.Caption := Lang[ID_EOPT_HIGHCURLINE];
-  cbHighlightColor.Caption := Lang[ID_EOPT_COLOR];
 
   grpCaret.Caption := Lang[ID_EOPT_CARET];
   lblInsertCaret.Caption := Lang[ID_EOPT_INSCARET];
@@ -568,7 +580,7 @@ begin
   cbUseTabs.Caption := Lang[ID_EOPT_TAB2SPC];
   cbSmartTabs.Caption := Lang[ID_EOPT_SMARTTABS];
 
-  cbHighCurrLine.Caption := Lang[ID_EOPT_GENERICENABLED];
+  cbHighCurrLine.Caption := Lang[ID_EOPT_HIGHCURLINE];
 
   cboInsertCaret.Clear;
   cboInsertCaret.Items.Add(Lang[ID_EOPT_CARET1]);
@@ -599,8 +611,8 @@ begin
   lblGutterFontSize.Caption := Lang[ID_EOPT_SIZE];
 
   // Colors tab
-  lblForeground.Caption := Lang[ID_EOPT_FORE];
-  lblBackground.Caption := Lang[ID_EOPT_BACK];
+  cbForeground.Caption := Lang[ID_EOPT_FORE];
+  cbBackground.Caption := Lang[ID_EOPT_BACK];
   grpStyle.Caption := Lang[ID_EOPT_STYLE];
   cbBold.Caption := Lang[ID_EOPT_BOLD];
   cbItalic.Caption := Lang[ID_EOPT_ITALIC];
@@ -685,7 +697,6 @@ begin
     Match := cbMatch.Checked;
 
     HighCurrLine := cbHighCurrLine.Checked;
-    HighColor := cpHighColor.Selected;
 
     UseSyntax := cbSyntaxHighlight.Checked;
     SyntaxExt := edSyntaxExt.Text;
@@ -739,7 +750,7 @@ begin
     end;
 
     // selected text
-    s := PointtoStr(fSelColor);
+    s := ThemeColortoStr(fSelColor);
     a := Syntax.IndexofName(cSel);
     if a = -1 then
       Syntax.Append(format('%s=%s', [cSel, s]))
@@ -747,7 +758,7 @@ begin
       Syntax.Values[cSel] := s;
 
     // gutter
-    s := PointtoStr(fGutColor);
+    s := ThemeColortoStr(fGutColor);
     a := Syntax.IndexofName(cGut);
     if a = -1 then
       Syntax.Append(format('%s=%s', [cGut, s]))
@@ -755,7 +766,7 @@ begin
       Syntax.Values[cGut] := s;
 
     // breakpoints
-    s := PointtoStr(fbpColor);
+    s := ThemeColortoStr(fbpColor);
     a := Syntax.IndexofName(cBP);
     if a = -1 then
       Syntax.Append(format('%s=%s', [cBP, s]))
@@ -763,7 +774,7 @@ begin
       Syntax.Values[cBP] := s;
 
     // error line
-    s := PointtoStr(fErrColor);
+    s := ThemeColortoStr(fErrColor);
     a := Syntax.IndexofName(cErr);
     if a = -1 then
       Syntax.Append(format('%s=%s', [cErr, s]))
@@ -771,7 +782,7 @@ begin
       Syntax.Values[cErr] := s;
 
     // active breakpoint
-    s := PointtoStr(fAbpColor);
+    s := ThemeColortoStr(fAbpColor);
     a := Syntax.IndexofName(cABP);
     if a = -1 then
       Syntax.Append(format('%s=%s', [cABP, s]))
@@ -779,13 +790,23 @@ begin
       Syntax.Values[cABP] := s;
 
     // fold bar
-    s := PointtoStr(fFoldColor);
+    s := ThemeColortoStr(fFoldColor);
     a := Syntax.IndexofName(cFld);
     if a = -1 then
       Syntax.Append(format('%s=%s', [cFld, s]))
     else
       Syntax.Values[cFld] := s;
+
+    // active line
+    s := ThemeColortoStr(fALColor);
+    a := Syntax.IndexofName(cAL);
+    if a = -1 then
+      Syntax.Append(format('%s=%s', [cAL, s]))
+    else
+      Syntax.Values[cAL] := s;
+
   end;
+
 
   // Save our code snippet even if we opted not to use it (user may want to keep it)
   if not seDefault.IsEmpty then
@@ -836,55 +857,75 @@ end;
 procedure TEditorOptForm.SetGutter;
 begin
   // update preview
-  cppedit.Gutter.Color := fgutColor.x;
-  cppedit.Gutter.Font.Color := fgutColor.y;
-  cppedit.CodeFolding.FolderBarLinesColor := fFoldColor.y;
+  cppedit.Gutter.Color := fgutColor.Background;
+  cppedit.Gutter.Font.Color := fgutColor.Foreground;
+  cppedit.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;
 
   // update snippet edit
-  CodeIns.Gutter.Color := fgutColor.x;
-  CodeIns.Gutter.Font.Color := fgutColor.y;
-  CodeIns.CodeFolding.FolderBarLinesColor := fFoldColor.y;
+  CodeIns.Gutter.Color := fgutColor.Background;
+  CodeIns.Gutter.Font.Color := fgutColor.Foreground;
+  CodeIns.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;
 
   // update default source edit
-  seDefault.Gutter.Color := fgutColor.x;
-  seDefault.Gutter.Font.Color := fgutColor.y;
-  seDefault.CodeFolding.FolderBarLinesColor := fFoldColor.y;
+  seDefault.Gutter.Color := fgutColor.Background;
+  seDefault.Gutter.Font.Color := fgutColor.Foreground;
+  seDefault.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;
 end;
 
 procedure TEditorOptForm.ElementListClick(Sender: TObject);
 var
-  pt: TPoint;
+  tc: TThemeColor;
+  procedure SetColor(fg,bg:TColor);
+  begin
+    if bg = clNone then begin
+      cpBackground.Enabled := False;
+      cbBackground.Checked := False;
+      cpBackground.Selected := fbgColor;
+    end else begin
+      cpBackground.Enabled := True;
+      cbBackground.Checked := True;
+      cpBackground.Selected := bg;
+    end;
+    if fg = clNone then begin
+      cpForeground.Enabled := False;
+      cbForeground.Checked := False;
+      cpForeground.Selected := ffgColor;
+    end else begin
+      cpForeground.Enabled := True;
+      cbForeground.Checked := True;
+      cpForeground.Selected := fg;
+    end;
+
+  end;
 begin
+  cbBackground.Enabled := True;
+  cbForeground.Enabled := True;
+
   // Special additions not directly exposed by TSynHighlighter
   if ElementList.ItemIndex > pred(cpp.AttrCount) then begin
 
     // Select proper color for special items. Disable background for fold colors?
     // TODO: support specific colors for folds
     if SameText(ElementList.Items[ElementList.ItemIndex], cSel) then begin
-      pt := fSelColor;
-      cpBackground.Enabled := True;
+      tc := fSelColor;
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cBP) then begin
-      pt := fBPColor;
-      cpBackground.Enabled := True;
+      tc := fBPColor;
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cErr) then begin
-      pt := fErrColor;
-      cpBackground.Enabled := True;
+      tc := fErrColor;
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cABP) then begin
-      pt := fABPColor;
-      cpBackground.Enabled := True;
+      tc := fABPColor;
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cGut) then begin
-      pt := fGutColor;
-      cpBackground.Enabled := True;
+      tc := fGutColor;
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cFld) then begin
-      pt := fFoldColor;
-      cpBackground.Enabled := false;
+      tc := fFoldColor;
+      cbBackground.Enabled := False;      
+    end else if SameText(ElementList.Items[ElementList.ItemIndex], cAL) then begin
+      tc := fALColor;
+      cbForeground.Enabled := False;      
     end;
 
-    cpBackground.Selected := pt.x;
-    cpForeground.Selected := pt.y;
+    SetColor(tc.Foreground,tc.Background);
 
-    cbBold.Checked := False;
-    cbItalic.Checked := False;
     cbUnderlined.Checked := False;
 
     cbBold.Enabled := False;
@@ -895,16 +936,22 @@ begin
   end else if ElementList.ItemIndex <> -1 then begin
     with Cpp.Attribute[ElementList.ItemIndex] do begin
 
-      if Foreground = clNone then
-        cpForeground.Selected := ffgcolor //clNone
-      else
-        cpForeground.Selected := Foreground;
-      if Background = clNone then
-        cpBackground.Selected := fbgcolor //clNone
-      else
-        cpBackground.Selected := Background;
+    SetColor(Foreground,Background);
 
+    {
+      if Foreground = clNone then begin
+        cpForeground.Selected := ffgcolor //clNone
+      end else begin
+        cpForeground.Selected := Foreground;
+      end
+      if Background = clNone then begin
+        cpBackground.Selected := fbgcolor //clNone
+      end else begin
+        cpBackground.Selected := Background;
+      end
       cpBackground.Enabled := True;
+    }
+
 
       cbBold.Enabled := True;
       cbItalic.Enabled := True;
@@ -920,49 +967,60 @@ end;
 procedure TEditorOptForm.StyleChange(Sender: TObject);
 var
   attr: TSynHighlighterAttributes;
-  pt: TPoint;
+  tc: TThemeColor;
   s: AnsiString;
+  fg,bg:TColor;
+  procedure ReadColor(var fg:TColor;var bg:TColor);
+  begin
+    if cbBackground.Checked then begin
+      bg:=cpBackground.Selected;
+    end else begin
+      bg:=clNone;
+    end;
+    if cbForeground.Checked then begin
+      fg:=cpForeground.Selected;
+    end else begin
+      fg:=clNone;
+    end;
+  end;
 begin
   if ElementList.ItemIndex < 0 then
     exit;
 
   // Special additions not directly exposed by TSynHighlighter
   if ElementList.ItemIndex > pred(cpp.AttrCount) then begin
-    pt.x := cpBackground.Selected;
-    pt.y := cpForeground.Selected;
+    ReadColor(tc.Foreground,tc.Background);
 
     // use local AnsiString just to ease readability
     s := ElementList.Items[ElementList.ItemIndex];
 
-    // if either value is clnone set to Whitespace color values
-    if pt.x = clNone then
-      pt.x := fbgColor;
-    if pt.y = clNone then
-      pt.y := ffgColor;
-
     if SameText(s, cSel) then
-      fSelColor := pt
+      fSelColor := tc
     else if SameText(s, cBP) then
-      fBPColor := pt
+      fBPColor := tc
     else if SameText(s, cABP) then
-      fABPColor := pt
+      fABPColor := tc
     else if SameText(s, cerr) then
-      fErrColor := pt
+      fErrColor := tc
     else if SameText(s, cGut) then begin
-      fGutColor := pt;
+      fGutColor := tc;
       SetGutter;
     end else if SameText(s, cFld) then begin
-      fFoldColor := pt;
+      fFoldColor := tc;
       SetGutter;
+    end else if SameText(s, cAL) then begin
+      fALColor := tc;
     end;
+    UpdateDemoEditColor;
 
     // regular SynEdit attributes
   end else begin
     Attr := TSynHighlighterAttributes.Create(ElementList.Items[ElementList.ItemIndex]);
     Attr.Assign(cpp.Attribute[ElementList.ItemIndex]);
     with Attr do try
-      Foreground := cpForeground.Selected;
-      Background := cpBackground.Selected;
+      ReadColor(fg,bg);
+      Foreground := fg;
+      Background := bg;
 
       // Update default color
       if SameText(Name, 'WhiteSpace') then begin
@@ -1000,6 +1058,10 @@ begin
           ElementList.ItemIndex := ElementList.Items.Indexof(cSel);
           ElementListClick(Self);
         end;
+      cActiveLine: begin
+          ElementList.ItemIndex := ElementList.Items.Indexof(cAL);
+          ElementListClick(Self);
+        end;
       cBreakLine: begin
           ElementList.ItemIndex := ElementList.Items.Indexof(cBP);
           ElementListClick(Self);
@@ -1028,31 +1090,38 @@ procedure TEditorOptForm.CppEditSpecialLineColors(Sender: TObject;
 begin
   case Line of
     cSelection: begin
-        if fSelColor.x <> clNone then
-          BG := fSelColor.x;
-        if fSelColor.y <> clNone then
-          FG := fSelColor.y;
+        if fSelColor.Background <> clNone then
+          BG := fSelColor.Background;
+        if fSelColor.Foreground <> clNone then
+          FG := fSelColor.Foreground;
         Special := TRUE;
       end;
+      {
+    cActiveLine: begin
+        if fALColor.Background <> clNone then
+          BG := fALColor.background;
+        Special := TRUE;
+      end;
+      }
     cBreakLine: begin
-        if fBPColor.x <> clNone then
-          BG := fBPColor.x;
-        if fBPColor.y <> clNone then
-          FG := fBPColor.y;
+        if fBPColor.Background <> clNone then
+          BG := fBPColor.Background;
+        if fBPColor.Foreground <> clNone then
+          FG := fBPColor.Foreground;
         Special := TRUE;
       end;
     cABreakLine: begin
-        if fABPColor.x <> clNone then
-          BG := fABPColor.X;
-        if fABPColor.y <> clNone then
-          FG := fABPColor.y;
+        if fABPColor.Background <> clNone then
+          BG := fABPColor.Background;
+        if fABPColor.Foreground <> clNone then
+          FG := fABPColor.Foreground;
         Special := TRUE;
       end;
     cErrorLine: begin
-        if fErrColor.x <> clNone then
-          BG := fErrColor.x;
-        if fErrColor.y <> clNone then
-          FG := fErrColor.y;
+        if fErrColor.Background <> clNone then
+          BG := fErrColor.Background;
+        if fErrColor.Foreground <> clNone then
+          FG := fErrColor.Foreground;
         Special := TRUE;
       end;
   end;
@@ -1075,7 +1144,7 @@ var
   i: integer;
   attr: TSynHighlighterAttributes;
 begin
-  if cboQuickColor.ItemIndex > 10 then begin // 10 == number of built-in styles
+  if cboQuickColor.ItemIndex >= fPredefinedColorThemeCount then begin 
     // custom style; load from disk
     LoadSyntax(cboQuickColor.Items[cboQuickColor.ItemIndex]);
   end else begin
@@ -1091,12 +1160,14 @@ begin
       end;
     end;
 
-    StrtoPoint(fBPColor, LoadStr(offset + 17)); // breakpoints
-    StrtoPoint(fErrColor, LoadStr(offset + 18)); // error line
-    StrtoPoint(fABPColor, LoadStr(offset + 19)); // active breakpoint
-    StrtoPoint(fgutColor, LoadStr(offset + 20)); // gutter
-    StrtoPoint(fSelColor, LoadStr(offset + 21)); // selected text
-    StrtoPoint(fFoldColor, LoadStr(offset + 22)); // folding bar lines
+    StrToThemeColor(fBPColor, LoadStr(offset + 17)); // breakpoints
+    StrToThemeColor(fErrColor, LoadStr(offset + 18)); // error line
+    StrToThemeColor(fABPColor, LoadStr(offset + 19)); // active breakpoint
+    StrToThemeColor(fgutColor, LoadStr(offset + 20)); // gutter
+    StrToThemeColor(fSelColor, LoadStr(offset + 21)); // selected text
+    StrToThemeColor(fFoldColor, LoadStr(offset + 22)); // folding bar lines
+    StrToThemeColor(fALColor, LoadStr(offset + 23)); // folding bar lines
+    UpdateDemoEditColor;
   end;
 
   SetGutter;
@@ -1278,7 +1349,7 @@ var
   idx: integer;
   fINI: TIniFile;
   S: AnsiString;
-  pt: TPoint;
+  tc: TThemeColor;
 begin
   s := 'New syntax';
   if not ShowInputQuery(Lang[ID_EOPT_SAVESYNTAX], Lang[ID_EOPT_SAVESYNTAXQUESTION], s) or (s = '') then
@@ -1291,19 +1362,20 @@ begin
 
     for idx := Cpp.AttrCount to pred(ElementList.Items.Count) do begin
       if CompareText(ElementList.Items[idx], cSel) = 0 then
-        pt := fSelColor
+        tc := fSelColor
       else if CompareText(ElementList.Items[idx], cBP) = 0 then
-        pt := fBPColor
+        tc := fBPColor
       else if CompareText(ElementList.Items[idx], cErr) = 0 then
-        pt := fErrColor
+        tc := fErrColor
       else if CompareText(ElementList.Items[idx], cABP) = 0 then
-        pt := fABPColor
+        tc := fABPColor
       else if CompareText(ElementList.Items[idx], cGut) = 0 then
-        pt := fGutColor
+        tc := fGutColor
       else if CompareText(ElementList.Items[idx], cFld) = 0 then
-        pt := fFoldColor;
-
-      fINI.WriteString('Editor.Custom', ElementList.Items[idx], PointtoStr(pt));
+        tc := fFoldColor
+      else if CompareText(ElementList.Items[idx], cAL) = 0 then
+        tc := fALColor;
+      fINI.WriteString('Editor.Custom', ElementList.Items[idx], ThemeColortoStr(tc));
     end;
   finally
     fINI.Free;
@@ -1318,7 +1390,7 @@ var
   idx: integer;
   fINI: TIniFile;
   Attr: TSynHighlighterAttributes;
-  pt: TPoint;
+  tc: TThemeColor;
 begin
   fINI := TIniFile.Create(devDirs.Config + Value + SYNTAX_EXT);
   try
@@ -1334,23 +1406,26 @@ begin
     end;
 
     for idx := Cpp.AttrCount to pred(ElementList.Items.Count) do begin
-      StrToPoint(pt, fINI.ReadString('Editor.Custom', ElementList.Items[idx], PointToStr(Point(clNone, clNone))));
+      StrToThemeColor(tc, fINI.ReadString('Editor.Custom', ElementList.Items[idx], ''));
       if CompareText(ElementList.Items[idx], cSel) = 0 then
-        fSelColor := pt
+        fSelColor := tc
       else if CompareText(ElementList.Items[idx], cBP) = 0 then
-        fBPColor := pt
+        fBPColor := tc
       else if CompareText(ElementList.Items[idx], cErr) = 0 then
-        fErrColor := pt
+        fErrColor := tc
       else if CompareText(ElementList.Items[idx], cABP) = 0 then
-        fABPColor := pt
+        fABPColor := tc
       else if CompareText(ElementList.Items[idx], cGut) = 0 then begin
-        fGutColor := pt;
+        fGutColor := tc;
         SetGutter;
       end else if CompareText(ElementList.Items[idx], cFld) = 0 then begin
-        fFoldColor := pt;
+        fFoldColor := tc;
         SetGutter;
+      end else if CompareText(ElementList.Items[idx], cAL) = 0 then begin
+        fALColor := tc;
       end;
     end;
+    UpdateDemoEditColor;
   finally
     fINI.Free;
   end;
@@ -1376,11 +1451,6 @@ begin
     ElementList.ItemIndex := idx;
     ElementListClick(Self);
   end;
-end;
-
-procedure TEditorOptForm.cbHighCurrLineClick(Sender: TObject);
-begin
-  cpHighColor.Enabled := cbHighCurrLine.Checked;
 end;
 
 procedure TEditorOptForm.cbAutoSaveClick(Sender: TObject);
@@ -1455,6 +1525,16 @@ begin
   end;
 end;
 
+
+procedure TEditorOptForm.cbForegroundClick(Sender: TObject);
+begin
+  cpForeground.Enabled := cbForeground.Checked;
+end;
+
+procedure TEditorOptForm.cbBackgroundClick(Sender: TObject);
+begin
+  cpBackground.Enabled := cbBackground.Checked;
+end;
 
 end.
 
