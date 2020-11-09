@@ -100,7 +100,7 @@ type
 
   PStatement = ^TStatement;
   TStatement = record
-    _Parent: PStatement; // parent class/struct/namespace
+    _ParentScope: PStatement; // parent class/struct/namespace scope
     _HintText: AnsiString; // text to force display when using PrettyPrintStatement
     _Type: AnsiString; // type "int"
     _Command: AnsiString; // identifier/name of statement "foo"

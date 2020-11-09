@@ -128,8 +128,8 @@ begin
   Node^.Data := Data;
   OnNodeAdding(Node);
   Result := Node;
-  if Assigned(Data^._Parent) then begin
-    parent := Data^._Parent;
+  if Assigned(Data^._ParentScope) then begin
+    parent := Data^._ParentScope;
     if not Assigned(parent^._Children) then
       parent^._Children := TList.Create;
     parent^._Children.Add(Data);
@@ -145,12 +145,11 @@ var
   child:PStatement;
 begin
   // remove it from parent's children
-  if Assigned(Node^.Data^._Parent) then begin
-    Node^.Data^._Parent^._Children.remove(Node^.Data);
+  if Assigned(Node^.Data^._ParentScope) then begin
+    Node^.Data^._ParentScope^._Children.remove(Node^.Data);
   end else begin
     fGlobalStatements.Remove(Node^.Data);
   end;
-
   if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then
       PStatement(Node^.Data)^._InheritanceList.Free;
@@ -158,7 +157,7 @@ begin
       Children := PStatement(Node^.Data)^._Children;
       for i:=0 to Children.Count-1 do begin
         child:=PStatement(Children[i]);
-        child^._Parent:=nil;
+        child^._ParentScope:=nil;
       end;
       Children.Free;
     end;
@@ -285,7 +284,7 @@ begin
       NextNode := Node^.NextNode;
       // Do not call OnNodeDeleting, because all nodes will be cleared
       statement := PStatement(Node^.Data);
-      Add(Format('%s,%s,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)
+      Add(Format('%s,%s,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._ParentScope)
         ,statement^._FileName,statement^._Line,statement^._DefinitionFileName,statement^._DefinitionLine]));
       Node := NextNode;
     end;
@@ -310,7 +309,7 @@ var
     indent:='';
     for i:=0 to level do
       indent:=indent+'  ';
-    DumpFile.Add(indent+Format('%s,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)
+    DumpFile.Add(indent+Format('%s,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._ParentScope)
         ,statement^._FileName,statement^._Line]));
     children := statement^._Children;
     if not Assigned(children) then begin

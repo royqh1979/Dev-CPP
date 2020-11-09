@@ -84,8 +84,8 @@ begin
         Continue;
 
       // Add parent name (Foo::Bar)
-      if Assigned(Statement^._Parent) then
-        ScopeCommand := Statement^._Parent^._Command + '::' + Statement^._Command
+      if Assigned(Statement^._ParentScope) then
+        ScopeCommand := Statement^._ParentScope^._Command + '::' + Statement^._Command
       else
         ScopeCommand := Statement^._Command;
 

@@ -265,11 +265,13 @@ begin
   //FreeAndNil(fMacroDefines);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
+  for i:=0 to fCurrentScope.Count-1 do
+    TList(fCurrentScope[i]).Free;  
   FreeAndNil(fCurrentScope);
   FreeAndNil(fProjectFiles);
   FreeAndNil(fTempNodes);
 
-  for i := 0 to fIncludesList.Count - 1 do begin
+  for i:=0 to fIncludesList.Count - 1 do begin
     PFileIncludes(fIncludesList[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList[i])^.Usings.Free;
     Dispose(PFileIncludes(fIncludesList[i]));
@@ -281,7 +283,7 @@ begin
     namespaceList.Free;
   end;
   FreeAndNil(fNamespaces);
-  
+
   FreeAndNil(fStatementList);
   FreeAndNil(fFilesToScan);
   FreeAndNil(fScannedFiles);
@@ -398,7 +400,7 @@ begin
     Statement := fPendingDeclarations[i];
 
     // Only do an expensive string compare with the right kinds and parents
-    if Statement^._Parent = Parent then begin
+    if Statement^._ParentScope = Parent then begin
       if Statement^._Kind = Kind then begin
         if Statement^._Command = Command then begin
           if Statement^._Args = Args then begin
@@ -424,7 +426,7 @@ begin
   // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
   for I := fPendingDeclarations.Count - 1 downto 0 do begin
     Statement := fPendingDeclarations[i];
-    ParentStatement := Statement^._Parent;
+    ParentStatement := Statement^._ParentScope;
     if Assigned(ParentStatement) then begin
       if ParentStatement^._Command = Command then begin
         Result := ParentStatement;
@@ -522,7 +524,7 @@ var
   begin
     Result := New(PStatement);
     with Result^ do begin
-      _Parent := Parent;
+      _ParentScope := Parent;
       _HintText := HintText;
       _Type := NewType;
       _Command := NewCommand;
@@ -1363,6 +1365,8 @@ begin
     // Skip to '{'
     while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do
       Inc(fIndex);
+    if (fIndex<fTokenizer.Tokens.Count) then
+      Inc(fIndex); //skip '{'
   end;
 end;
 
@@ -2033,6 +2037,8 @@ end;
 
 procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream =
   nil);
+var
+  i: integer;
 begin
   // Perform some validation before we start
   if not fEnabled then
@@ -2103,6 +2109,8 @@ begin
     Statements.DumpWithScope('f:\\statements.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
+    for i:=0 to fCurrentScope.Count-1 do
+      TList(fCurrentScope[i]).Free;
     fCurrentScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
@@ -2134,6 +2142,8 @@ begin
   //fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
   fInvalidatedStatements.Clear;
+  for i:=0 to fCurrentScope.Count-1 do
+    TList(fCurrentScope[i]).Free;
   fCurrentScope.Clear;
   fProjectFiles.Clear;
   fTempNodes.Clear;
@@ -2399,8 +2409,8 @@ begin
         inc(j);
     end;
     if namespaceList.Count = 0 then begin
-      fNamespaces.Delete(i);
       namespaceList.Free;
+      fNamespaces.Delete(i);
     end else
       inc(i);
   end;
@@ -2641,14 +2651,14 @@ begin
     // For classes, the line with the class keyword on it belongs to the parent
     if ClosestStatement^._Kind = skClass then begin
       if not InsideBody then begin // Hovering above a class name
-        ParentStatement := ClosestStatement^._Parent;
+        ParentStatement := ClosestStatement^._ParentScope;
       end else begin // inside class body
         ParentStatement := ClosestStatement; // class
       end;
 
       // For functions, it does not
     end else begin // it's a function
-      ParentStatement := ClosestStatement^._Parent; // class::function
+      ParentStatement := ClosestStatement^._ParentScope; // class::function
     end;
 
     // The result is the class the function belongs to or the class body we're in
@@ -2887,9 +2897,9 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
   begin
     Result := '';
     WalkStatement := Statement;
-    while Assigned(WalkStatement^._Parent) do begin
-      Result := WalkStatement^._Parent^._Command + '::' + Result;
-      WalkStatement := WalkStatement^._Parent;
+    while Assigned(WalkStatement^._ParentScope) do begin
+      Result := WalkStatement^._ParentScope^._Command + '::' + Result;
+      WalkStatement := WalkStatement^._ParentScope;
     end;
   end;
   function GetArgsSuffix: AnsiString;
@@ -3026,7 +3036,7 @@ begin
     end;
     if not assigned(CurrentClass) then
       break;
-    CurrentClass := CurrentClass^._Parent;
+    CurrentClass := CurrentClass^._ParentScope;
   end;
   Result := nil;
 end;
@@ -3096,7 +3106,7 @@ begin
           Exit;
       end;
     end;
-    scopeStatement:=scopeStatement^._Parent;
+    scopeStatement:=scopeStatement^._ParentScope;
   end;
 
   // Search all global members
@@ -3163,7 +3173,7 @@ begin
           end;
         end;
       end;
-      CurrentClass := CurrentClass^._Parent;
+      CurrentClass := CurrentClass^._ParentScope;
     Until (not assigned(CurrentClass));
   end;
 
@@ -3185,7 +3195,7 @@ begin
 
   CurrentClassType := CurrentClass;
   while assigned(CurrentClassType) and not (CurrentClassType._Kind = skClass) do begin
-    CurrentClassType:=CurrentClassType^._Parent;
+    CurrentClassType:=CurrentClassType^._ParentScope;
   end;
 
   // Get the FIRST class and member, surrounding the FIRST operator
@@ -3296,8 +3306,8 @@ begin
         inc(j);
     end;
     if namespaceList.Count = 0 then begin
-      fNamespaces.Delete(i);
       namespaceList.Free;
+      fNamespaces.Delete(i);
     end else
       inc(i);
   end;
@@ -3518,7 +3528,7 @@ begin
       m_acc:=scsPrivate;
     end;
     //inherit
-    AddInheritedStatement(derived,Statement,m_acc);
+    AddInheritedStatement(parentScope,derived,Statement,m_acc);
   end;
 end;
 
@@ -3528,7 +3538,7 @@ var
 begin
   Result := new(PStatement);
   with Result^ do begin
-    _Parent := derived;
+    _ParentScope := derived;
     _HintText := inherit^._HintText;
       _Type := inherit^._Type;
       _Command := inherit^._Command;
@@ -3555,6 +3565,10 @@ begin
       _Friends := nil; // Friends are not inherited;
       _Static := inherit^._Static;
       _Inherited:=True;
+      _FullName := derived^._FullName + '::'+inherit^._Command
+      _Usings:=TStringList.Create;
+      _Usings.Sorted:=True;
+      _Usings.Add('std');      
     end;
     node:=fStatementList.Add(Result);
     if Result^._Temporary then

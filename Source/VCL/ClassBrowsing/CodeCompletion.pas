@@ -157,7 +157,7 @@ begin
     (
       (Statement^._Scope in [ssLocal, ssGlobal]) or // local or global var or
       ( (Statement^._Scope = ssClassLocal) and // class var
-        (Statement^._Parent = CurrentClass) // from current class
+        (Statement^._ParentScope = CurrentClass) // from current class
       )
     ) and (
       IsIncluded(Statement^._FileName) or
@@ -201,7 +201,7 @@ begin
   // Get type statement  of current (scope) statement
   ScopeTypeStatement := fCurrentStatement;
   while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind = skClass) do begin
-    ScopeTypeStatement := ScopeTypeStatement^._Parent;
+    ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
   end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
@@ -223,7 +223,7 @@ begin
           AddChildren(namespaceStatement);
         end;
       end;
-      scopeStatement:=scopeStatement^._Parent;
+      scopeStatement:=scopeStatement^._ParentScope;
     end;
 
     // add all global members and not added before
@@ -434,7 +434,6 @@ procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
 begin
   fPreparing:=True;
   fPhrase := Phrase;
-  fFileName := Filename;
   Screen.Cursor := crHourglass;
   fParser.GetFileIncludes(Filename, fIncludedFiles);
   GetCompletionFor(FileName,Phrase);
@@ -459,8 +458,6 @@ begin
   end;
 
   if fEnabled then begin
-    fFileName := FileName;
-
     Screen.Cursor := crHourglass;
 
 
