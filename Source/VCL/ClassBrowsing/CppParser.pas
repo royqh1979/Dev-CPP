@@ -563,7 +563,7 @@ var
         NamespaceList := TList(fNamespaces.objects[i])
       else begin
         NamespaceList := TList.Create;
-        fNamespaces.AddObject(Result^._FullName,NamespaceList);
+        fNamespaces.AddObject(FileName,NamespaceList);
       end;
       NamespaceList.Add(result);
     end;
@@ -1127,7 +1127,7 @@ begin
   if (fIndex+1 < fTokenizer.Tokens.Count) and (OldType <> '') then begin
     repeat
       // Support multiword typedefs
-      if (fTokenizer[fIndex + 2]^.Text[1] in [',', ';']) then begin // function define
+      if (fIndex+2 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 2]^.Text[1] in [',', ';']) then begin // function define
         if (fIndex + 2 < fTokenizer.Tokens.Count) and (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then begin
           //valid function define
           NewType:=TrimRight(fTokenizer[fIndex]^.Text);
