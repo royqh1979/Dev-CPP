@@ -157,8 +157,8 @@ type
     procedure ReProcessInheritance;
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
-    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean=False; isLocal:boolean=False):PStatement;
   public
+    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean=False; isLocal:boolean=False):PStatement;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
@@ -3071,7 +3071,7 @@ var
   function GetTypeDef(statement:PStatement):PStatement;
   begin
     if not Assigned(Statement) then begin
-      Result:=nil
+      Result:=nil;
       Exit;
     end;
     if Statement^._Kind = skClass then begin
@@ -3199,7 +3199,7 @@ begin
       ) then begin
     }
     if SameStr(ChildStatement^._Command, Phrase) and
-      (not isVariable or (ChildStatement^._Kind = skVariable)
+      (isVariable or (ChildStatement^._Kind in [skTypedef,skClass,skNamespace])
       ) then begin
       Result:=ChildStatement;
       Exit;
@@ -3207,6 +3207,7 @@ begin
   end;
 end;
 
+// find variable/ function/ enum /etc
 function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
 //  Statement: PStatement;
