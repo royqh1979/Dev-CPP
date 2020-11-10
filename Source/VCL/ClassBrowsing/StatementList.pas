@@ -25,6 +25,7 @@ uses
   Classes, CBUtils, Forms, SysUtils, iniFiles;
 
 type
+
   PStatementNode = ^TStatementNode;
   TStatementNode = record
     PrevNode: PStatementNode;
@@ -126,6 +127,7 @@ begin
   // Create a new one
   Node := New(PStatementNode);
   Node^.Data := Data;
+  Data^._Node := Node;
   OnNodeAdding(Node);
   Result := Node;
   if Assigned(Data^._ParentScope) then begin
@@ -145,6 +147,7 @@ var
   child:PStatement;
 begin
   // remove it from parent's children
+  Node^.Data^._Node := nil;
   if Assigned(Node^.Data^._ParentScope) then begin
     Node^.Data^._ParentScope^._Children.remove(Node^.Data);
   end else begin
@@ -218,14 +221,20 @@ function TStatementList.DeleteStatement(Data: PStatement): Integer;
 var
   Node: PStatementNode;
 begin
-  Node := fFirstNode;
-  while Assigned(Node) do begin
-    if Node^.Data = Data then begin
+  Node := PStatementNode(Data^._Node);
+  if Assigned(Node) then begin
       OnNodeDeleting(Node); // updates information about linked list
       DisposeNode(Node);
-      break;
+  end else begin
+    Node := fFirstNode;
+    while Assigned(Node) do begin
+      if Node^.Data = Data then begin
+        OnNodeDeleting(Node); // updates information about linked list
+        DisposeNode(Node);
+        break;
+      end;
+      Node := Node^.NextNode;
     end;
-    Node := Node^.NextNode;
   end;
   Result := fCount;
 end;
@@ -309,7 +318,7 @@ var
     indent:='';
     for i:=0 to level do
       indent:=indent+'  ';
-    DumpFile.Add(indent+Format('%s,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._ParentScope)
+    DumpFile.Add(indent+Format('%s,%s,%s,%d,%s,%d',[statement^._Command,statement^._Type,statement^._FullName,integer(statement^._ParentScope)
         ,statement^._FileName,statement^._Line]));
     children := statement^._Children;
     if not Assigned(children) then begin

@@ -41,6 +41,7 @@ type
     Args: AnsiString;
     Value: AnsiString;
     FileName: AnsiString;
+    IsMultiLine: boolean; // if true the expanded macro will span multiline
     HardCoded: boolean; // if true, don't free memory (points to hard defines)
   end;
 
@@ -49,6 +50,7 @@ type
     BaseFile: AnsiString;
     IncludeFiles: TStringList; // "file","file" etc
     Usings: TStringList; // namespaces it usings
+    Statements: TList; // List<PStatement> , but we don't save temporary statements
   end;
 
   TSkipType = (
@@ -124,6 +126,7 @@ type
     _Inherited: boolean; // inherted member;
     _FullName: AnsiString; // fullname(including class and namespace)
     _Usings: TStringList;
+    _Node: Pointer;
   end;
 
   PUsingNamespace =^TUsingNamespace;

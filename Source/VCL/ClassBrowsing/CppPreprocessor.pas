@@ -56,7 +56,7 @@ type
     fResult: TStringList;
     fCurrentIncludes: PFileIncludes;
     fPreProcIndex: integer;
-    fIncludesList: TList;
+    fIncludesList: TStringList;
     fHardDefines: TStringList; // set by "cpp -dM -E -xc NUL"
     fDefines: TStringList; // working set, editable
     fFileDefines: TStringList; //dictionary to save defines for each headerfile; PDefine should be diposed here
@@ -108,14 +108,14 @@ type
     procedure SetIncludePaths(var List: TStringList);
     procedure SetProjectIncludePaths(var List: TStringList);
     procedure SetScannedFileList(var List: TStringList);
-    procedure SetIncludesList(var List: TList);
+    procedure SetIncludesList(var List: TStringList);
     procedure PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
     procedure PreprocessFile(const FileName: AnsiString);
     property Result: AnsiString read GetResult;
     procedure InvalidDefinesInFile(const FileName:AnsiString);
-
     //debug procedures
     procedure DumpIncludesListTo(FileName:ansiString);
+    procedure DumpDefinesTo(FileName:ansiString);
   end;
 
 procedure Register;
@@ -287,7 +287,8 @@ begin
     fCurrentIncludes^.IncludeFiles.Sorted:=True;
     fCurrentIncludes^.Usings := TStringList.Create;
     fCurrentIncludes^.Usings.Sorted:=True;
-    fIncludesList.Add(fCurrentIncludes);
+    fCurrentIncludes^.Statements:=TList.Create;
+    fIncludesList.AddObject(FileName,TObject(fCurrentIncludes));
   end;
 
   FileItem^.FileIncludes := fCurrentIncludes;
@@ -399,7 +400,7 @@ begin
   fParseLocal := ParseLocal;
 end;
 
-procedure TCppPreprocessor.SetIncludesList(var List: TList);
+procedure TCppPreprocessor.SetIncludesList(var List: TStringList);
 begin
   fIncludesList := List;
 end;
@@ -533,6 +534,7 @@ begin
   Item^.Args := Args;
   Item^.Value := Value;
   Item^.FileName := fFileName;
+  Item^.IsMultiLine := ContainsStr(Item^.Value, #10);
   Item^.HardCoded := HardCoded;
   if HardCoded then
     fHardDefines.AddObject(Name, Pointer(Item)) // uses TStringList too to be able to assign to fDefines easily
@@ -1097,7 +1099,7 @@ begin
     end else begin
       if word<>'' then begin
         define:=GetDefine(word,index);
-        if Assigned(define) and (define^.args='') then begin
+        if Assigned(define) and (define^.args='') and not (define^.IsMultiLine) then begin
           newLine:=newLine+define^.Value;
         end else
           newLine:=newLine+word;
@@ -1110,7 +1112,8 @@ begin
     define:=GetDefine(word,index);
     if Assigned(define) and (define^.args='') then begin
       newLine:=newLine+define^.Value;
-    end;
+    end else
+      newLine:=newLine+word;
   end;
   Result := newLine;
 end;
@@ -1135,11 +1138,9 @@ var
   I: integer;
 begin
   Result := nil;
-  for I := 0 to fIncludesList.Count - 1 do begin
-    if SameText(PFileIncludes(fIncludesList[I])^.BaseFile, Filename) then begin
-      Result := PFileIncludes(fIncludesList[I]);
-      Exit;
-    end;
+  i:=FastIndexOf(fIncludesList,FileName);
+  if i<>-1 then begin
+    Result := PFileIncludes(fIncludesList.Objects[I]);
   end;
 end;
 
@@ -1190,14 +1191,36 @@ var
   i:integer;
   t:integer;
   FileIncludes:PFileIncludes;
+  s:PStatement;
 begin
   with TStringList.Create do try
     for i:=0 to fIncludesList.Count -1 do begin
-      FileIncludes := PFileIncludes(fIncludesList[i]);
-      Add(FileIncludes^.BaseFile+' : ');
+      FileIncludes := PFileIncludes(fIncludesList.Objects[i]);
+      Add(fIncludesList[i]+' : ');
       for t:=0 to FileIncludes^.IncludeFiles.Count-1 do begin
-        Add(#9+FileIncludes^.IncludeFiles[t]);
+        Add(#9+'--'+FileIncludes^.IncludeFiles[t]);
       end;
+      for t:=0 to FileIncludes^.Statements.Count-1 do begin
+        S:=FileIncludes^.Statements[t];
+        Add(#9+'**'+Format('%s , %s',[s^._Command, s^._FullName] ));
+      end;
+    end;
+    SaveToFile(FileName);
+  finally
+    Free;
+  end;
+end;
+
+procedure TCppPreprocessor.DumpDefinesTo(FileName:ansiString);
+var
+  i:integer;
+  define:PDefine;
+begin
+  with TStringList.Create do try
+    for i:=0 to fDefines.Count -1 do begin
+      define := PDefine(fDefines.Objects[i]);
+      Add(Format('%s %s %s %d',
+      [define^.Name,define^.Args,define^.Value,integer(define^.HardCoded)]));
     end;
     SaveToFile(FileName);
   finally
