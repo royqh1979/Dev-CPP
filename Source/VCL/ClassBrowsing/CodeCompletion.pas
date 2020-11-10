@@ -176,8 +176,8 @@ begin
     Exit;
   for i:=0 to Children.Count-1 do begin
     ChildStatement:=PStatement(Children[i]);
-    if fAddedStatements.ValueOf(ChildStatement^._FullName) = -1 then begin
-      fAddedStatements.Add(ChildStatement^._FullName,1);
+    if fAddedStatements.ValueOf(ChildStatement^._Command) = -1 then begin
+      fAddedStatements.Add(ChildStatement^._Command,1);
       fFullCompletionStatementList.Add(ChildStatement);
     end;
   end;
@@ -186,11 +186,11 @@ end;
 procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: AnsiString);
 var
   scopeStatement : PStatement;
-  ChildStatement,namespaceStatement:PStatement;
+  ChildStatement,ClassTypeStatement,namespaceStatement:PStatement;
   namespaceStatementsList: TList;
   Children : TList;
   I,t,k: integer;
-  ScopeTypeStatement, Statement, TypeStatement, currentStatement: PStatement;
+  ScopeTypeStatement, Statement : PStatement;
   ScopeName, namespaceName, firstName : AnsiString;
   opType: TOperatorType;
 begin
@@ -198,11 +198,6 @@ begin
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
 
-  // Get type statement  of current (scope) statement
-  ScopeTypeStatement := fCurrentStatement;
-  while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass,skNamespace,skBlock]) do begin
-    ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
-  end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
   I := fParser.FindLastOperator(Phrase);
@@ -239,47 +234,74 @@ begin
         AddChildren(namespaceStatement);
       end;
     end;
-
   end else begin
     opType:=GetOperatorType(Phrase,I);
-    firstName := Copy(Phrase,1,I-1);
-    Statement := fParser.FindStatementOf(FileName, firstName,fCurrentStatement);
-    currentStatement:=nil;
-    if not Assigned(statement) then
-      Exit;
-    if (opType in [otArrow, otDot]) and (statement^._Kind = skVariable) then  begin
-      currentStatement:=fParser.FindTypeDefinitionOf(Statement^._Type,fCurrentStatement);
-    end else if (opType in [otDColon]) and (statement^._Kind in [skClass,skNamespace] )then begin
-      currentStatement:=Statement;
-    end;
-    if not Assigned(CurrentStatement) then
-      Exit;
-    Delete(Phrase, I, MaxInt);
-    I := fParser.FindLastOperator(Phrase);
-    while (I>0) do begin
-      firstName := Copy(Phrase,1,I-1);
-      Statement := fParser.FindMemberOfStatement(firstName,currentStatement,True);
-      if not Assigned(Statement) then
-        Statement := fParser.FindMemberOfStatement(firstName,currentStatement,False);
-      if not Assigned(Statement) then
+    scopeName := Copy(Phrase,1,I-1);
+    namespaceStatementsList := nil;
+    //assume it's a namespace
+    if OpType = otDColon then
+      namespaceStatementsList:=fParser.FindNamespace(namespaceName);
+    if assigned(namespaceStatementsList) then begin //yes, it's a namespace
+      for k:=0 to namespaceStatementsList.Count-1 do begin
+        namespaceStatement:=PStatement(namespaceStatementsList[k]);
+        AddChildren(namespaceStatement);
+      end;
+    end else begin
+      Statement := fParser.FindStatementOf(FileName, scopeName,fCurrentStatement);
+      if not Assigned(statement) then
         Exit;
+      ScopeTypeStatement := fCurrentStatement;
+      while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass]) do begin
+        ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
+      end;
       if (opType in [otArrow, otDot]) and (statement^._Kind = skVariable) then  begin
-        currentStatement:=fParser.FindTypeDefinitionOf(Statement^._Type,fCurrentStatement);
-      end else if(opType in [otDColon]) and (statement^._Kind in [skClass,skNamespace] ) then begin
-        currentStatement:=Statement;
-      end else
-        CurrentStatement:=nil;
-      if not Assigned(CurrentStatement) then
-        Exit;
-      Delete(Phrase, I, MaxInt);
-      I := fParser.FindLastOperator(Phrase);
-    end;
+        // Get type statement  of current (scope) statement
 
-    Children := fParser.Statements.GetChildrenStatements(CurrentStatement);
-    if Assigned(Children) then begin
-      for t:=0 to Children.Count-1 do begin
-        ChildStatement := PStatement(Children[t]);
-        fFullCompletionStatementList.Add(ChildStatement);
+        ClassTypeStatement:=fParser.FindTypeDefinitionOf(Statement^._Type,fCurrentStatement);
+        if (ClassTypeStatement = ScopeTypeStatement) or (statement^._Command = 'this') then begin
+          //we can use all members
+          AddChildren(ClassTypeStatement);
+        end else begin // we can only use public members
+          Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);
+          if not Assigned(Children) then
+            Exit;
+          for i:=0 to Children.Count-1 do begin
+            ChildStatement:=PStatement(Children[i]);
+            if (ChildStatement^._ClassScope=scsPublic)
+              and(fAddedStatements.ValueOf(ChildStatement^._Command) = -1) then begin
+              fAddedStatements.Add(ChildStatement^._Command,1);
+              fFullCompletionStatementList.Add(ChildStatement);
+            end;
+          end;
+        end;
+      //todo friend
+      end else if (opType in [otDColon]) and (statement^._Kind = skClass )then begin
+        ClassTypeStatement:=fParser.FindTypeDefinitionOf(Statement^._Type,fCurrentStatement);
+        if (ClassTypeStatement = ScopeTypeStatement) then begin
+          //we can use all static members
+          Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);
+          if not Assigned(Children) then
+            Exit;
+          for i:=0 to Children.Count-1 do begin
+            ChildStatement:=PStatement(Children[i]);
+            if (ChildStatement^._Static) and (fAddedStatements.ValueOf(ChildStatement^._Command) = -1) then begin
+              fAddedStatements.Add(ChildStatement^._Command,1);
+              fFullCompletionStatementList.Add(ChildStatement);
+            end;
+          end;
+        end else begin // we can only use public static members
+          Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);
+          if not Assigned(Children) then
+            Exit;
+          for i:=0 to Children.Count-1 do begin
+            ChildStatement:=PStatement(Children[i]);
+            if (ChildStatement^._Static) and  (ChildStatement^._ClassScope=scsPublic) and(fAddedStatements.ValueOf(ChildStatement^._Command) = -1) then begin
+              fAddedStatements.Add(ChildStatement^._Command,1);
+              fFullCompletionStatementList.Add(ChildStatement);
+            end;
+          end;
+        end;
+        //todo friend
       end;
     end;
   end;
@@ -346,6 +368,7 @@ procedure TCodeCompletion.Show;
 begin
   fPreparing:=True;
   // Clear data, do not free pointed memory: data is owned by CppParser
+  fAddedStatements.Clear;
   fCompletionStatementList.Clear;
   fFullCompletionStatementList.Clear;
   CodeComplForm.lbCompletion.Items.BeginUpdate;

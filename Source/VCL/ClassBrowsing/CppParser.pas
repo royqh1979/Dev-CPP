@@ -158,14 +158,13 @@ type
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
   public
-    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean=False; isLocal:boolean=False):PStatement;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure AddHardDefineByLine(const Line: AnsiString);
     procedure InvalidateFile(const FileName: AnsiString);
     procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
-    procedure GetFileUsings(const Filename: AnsiString; var List: TStringList);    
+    procedure GetFileUsings(const Filename: AnsiString; var List: TStringList);
     function IsCfile(const Filename: AnsiString): boolean;
     function IsHfile(const Filename: AnsiString): boolean;
     procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
@@ -198,15 +197,18 @@ type
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
-    function FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
+    {Find statement starting from startScope}
+    function FindStatementStartingFrom(const Phrase: AnsiString; startScope: PStatement): PStatement;
     function FindTypeDefinitionOf(const aType: AnsiString; CurrentClass: PStatement): PStatement;
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function FindLastOperator(const Phrase: AnsiString): integer;
-    function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace) 
+    function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
+    procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
+    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isLocal:boolean=False):PStatement;
   published
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
@@ -284,8 +286,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
-    Dispose(PFileIncludes(fIncludesList[i]));
+    Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
   FreeAndNil(fIncludesList);
 
@@ -3113,7 +3114,7 @@ begin
   // repeat until reach global
   while Assigned(scopeStatement) do begin
     //search members of current scope
-    Statement:=FindMemberOfStatement(aType,scopeStatement,False);
+    Statement:=FindMemberOfStatement(aType,scopeStatement);
     Result := GetTypeDef(Statement);
     if Assigned(Result) then
       Exit;
@@ -3124,7 +3125,7 @@ begin
         continue;
       for k:=0 to namespaceStatementsList.Count-1 do begin
         namespaceStatement:=PStatement(namespaceStatementsList[k]);
-        Statement:=FindMemberOfStatement(aType,namespaceStatement,False);
+        Statement:=FindMemberOfStatement(aType,namespaceStatement);
         Result := GetTypeDef(Statement);
         if Assigned(Result) then
           Exit;
@@ -3134,7 +3135,7 @@ begin
   end;
 
   // Search all global members
-  Statement:=FindMemberOfStatement(aType,nil,False);
+  Statement:=FindMemberOfStatement(aType,nil);
   Result := GetTypeDef(Statement);
 
     {
@@ -3173,7 +3174,7 @@ begin
   }
 end;
 
-function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isVariable:boolean; isLocal:boolean):PStatement;
+function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isLocal:boolean):PStatement;
 var
   ChildStatement: PStatement;
   Children : TList;
@@ -3198,17 +3199,15 @@ begin
         )
       ) then begin
     }
-    if SameStr(ChildStatement^._Command, Phrase) and
-      (isVariable or (ChildStatement^._Kind in [skTypedef,skClass,skNamespace])
-      ) then begin
+    if SameStr(ChildStatement^._Command, Phrase) then begin
       Result:=ChildStatement;
       Exit;
     end;
   end;
 end;
 
-// find variable/ function/ enum /etc
-function TCppParser.FindVariableOf(const Phrase: AnsiString; CurrentClass: PStatement): PStatement;
+// find allStatment
+function TCppParser.FindStatementStartingFrom(const Phrase: AnsiString; startScope: PStatement): PStatement;
 var
 //  Statement: PStatement;
   namespaceStatement,scopeStatement: PStatement;
@@ -3222,16 +3221,16 @@ begin
     Exit;
 
   //Find in local members
-  Result:=FindMemberOfStatement(Phrase,nil,True,True);
-  if Assigned(Result) then
+  Result:=FindMemberOfStatement(Phrase,nil,True);
+  if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass]) then
     Exit;
-  scopeStatement := CurrentClass;
+  scopeStatement := startScope;
 
   // repeat until reach global
   while Assigned(scopeStatement) do begin
     //search members of current scope
-    Result:=FindMemberOfStatement(Phrase,scopeStatement,True);
-    if Assigned(Result) then
+    Result:=FindMemberOfStatement(Phrase,scopeStatement);
+    if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass])  then
       Exit;
     // search members of all usings (in current scope )
     for t:=0 to scopeStatement^._Usings.Count-1 do begin
@@ -3241,7 +3240,7 @@ begin
         continue;
       for k:=0 to namespaceStatementsList.Count-1 do begin
         namespaceStatement:=PStatement(namespaceStatementsList[k]);
-        Result:=FindMemberOfStatement(Phrase,namespaceStatement,True);
+        Result:=FindMemberOfStatement(Phrase,namespaceStatement);
         if Assigned(Result) then
           Exit;
       end;
@@ -3250,9 +3249,10 @@ begin
   end;
 
   // Search all global members
-  Result:=FindMemberOfStatement(Phrase,nil,True);
+  Result:=FindMemberOfStatement(Phrase,nil);
   if Assigned(Result) then
     Exit;
+  Result := nil;
   //TODO: 
   //FindFileUsings(
   {
@@ -3320,22 +3320,83 @@ begin
   }
 end;
 
+{
+
+
+}
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   ParentWord, MemberWord, OperatorToken: AnsiString;
-  CurrentClassType ,Statement, MemberStatement, TypedefStatement, VariableStatement: PStatement;
-  i: integer;
+  currentNamespace, TypeStatement,CurrentClassType ,Statement, MemberStatement, TypedefStatement, VariableStatement: PStatement;
+  i,idx: integer;
   Children: TList;
+  namespaceName, memberName,NextScopeWord : AnsiString;
+  namespaceList:TList;
 begin
   Result := nil;
   if fParsing then
     Exit;
 
-  CurrentClassType := CurrentClass;
-  while assigned(CurrentClassType) and not (CurrentClassType._Kind in [skClass,skNamespace]) do begin
-    CurrentClassType:=CurrentClassType^._ParentScope;
+  getFullNamespace(Phrase, namespaceName, memberName);
+  if namespaceName <> '' then begin  // (namespace )qualified Name
+    idx:=FastIndexOf(fNamespaces,namespaceName) ;
+    namespaceList := TList(fNamespaces.Objects[idx]);
+
+    if memberName = '' then begin
+      Result := namespaceList[0];
+      Exit;
+    end;
+
+    NextScopeWord := GetClass(memberName);
+    OperatorToken := GetOperator(memberName);
+    MemberName := GetMember(memberName);
+    statement:=nil;
+    for i:=0 to namespaceList.Count-1 do begin
+      currentNamespace:=PStatement(namespaceList[i]);
+      statement:=findMemberOfStatement(NextScopeWord,currentNamespace);
+      if assigned(statement) then
+        break;
+    end;
+
+    //not found in namespaces;
+    if not assigned(statement) then
+      Exit;
+    // found in namespace
+  end else begin   //unqualified name
+    CurrentClassType := CurrentClass;
+    {
+    while assigned(CurrentClassType) and not (CurrentClassType._Kind in [skClass,skNamespace]) do begin
+      CurrentClassType:=CurrentClassType^._ParentScope;
+    end;
+    }
+    NextScopeWord := GetClass(memberName);
+    OperatorToken := GetOperator(memberName);
+    MemberName := GetMember(memberName);
+
+    statement := FindStatementStartingFrom(nextScopeWord,currentClassType);
+    if not Assigned(statement) then
+      Exit;
   end;
+  CurrentClassType := CurrentClass;
+
+  if statement._Kind in [skTypeDef] then begin
+    TypeStatement := FindTypeDefinitionOf(statement^._Type, CurrentClassType);
+    if Assigned(TypeStatement) then
+      Statement := TypeStatement;
+  end;
+
+  while MemberName <> '' do begin
+    NextScopeWord := GetClass(memberName);
+    OperatorToken := GetOperator(memberName);
+    MemberName := GetMember(memberName);
+    MemberStatement := FindMemberOfStatement(NextScopeWord,Statement);
+    if not Assigned(MemberStatement) then
+      Statement:=MemberStatement;
+  end;
+  Result := Statement;
+
+  {
 
   // Get the FIRST class and member, surrounding the FIRST operator
   ParentWord := GetClass(Phrase);
@@ -3419,6 +3480,7 @@ begin
     if not Assigned(TypedefStatement) then
       break;
   end;
+  }
 end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
@@ -3784,6 +3846,45 @@ procedure TCppParser.SetPreprocessor(preprocessor: TCppPreprocessor);
 begin
   fPreprocessor := preprocessor;
 end;
+
+procedure TCppParser.getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
+var
+  lastI,i,idx,strLen:integer;
+begin
+  nameSpace := '';
+  member:=Phrase;
+  strLen := Length(Phrase);
+  if strLen = 0 then
+    Exit;
+  lastI:=-1;
+  i:=1;
+  while (i<=strLen) do begin
+    if (i<strLen) and (Phrase[i]=':') and (Phrase[i+1]=':') then begin
+      idx := FastIndexOf(fNamespaces,nameSpace);
+      if idx = -1 then
+        break
+      else
+        lastI := i;
+    end;
+    nameSpace := nameSpace + Phrase[i];
+    inc(i);
+  end;
+  if (i>strLen) then begin
+      idx := FastIndexOf(fNamespaces,nameSpace);
+      if idx <> -1 then begin
+        namespace := Phrase;
+        member := '';
+        Exit;
+      end;
+  end;
+  if lastI > 0 then begin
+    namespace := Copy(Phrase,1,lastI-1);
+    member := Copy(Phrase, lastI+2,MaxInt);
+  end else begin
+    namespace := '';
+    member := Phrase;
+  end;
+end;        
 
 end.
 
