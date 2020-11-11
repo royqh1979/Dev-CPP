@@ -199,7 +199,7 @@ type
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const Phrase: AnsiString; startScope: PStatement): PStatement;
-    function FindTypeDefinitionOf(const aType: AnsiString; CurrentClass: PStatement): PStatement;
+    function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
@@ -608,12 +608,14 @@ begin
 
   NewKind := Kind;
 
+  {
   // Remove namespace stuff from type (until we support namespaces)
   if NewKind in [skFunction, skVariable] then begin
     OperatorPos := Pos('::', NewType);
     if OperatorPos > 0 then
       Delete(NewType, 1, OperatorPos + 1);
   end;
+  }
 
   // Find a declaration/definition pair
   if FindDeclaration and IsDefinition then
@@ -1596,8 +1598,12 @@ begin
 
         // Nothing worth mentioning after closing brace
         // Proceed to set first synonym as current class
+	  end else
+        AddSoloScopeLevel(FirstSynonym);
+	{
       end else if Assigned(FirstSynonym) then
         AddSoloScopeLevel(FirstSynonym);
+	}
 
       // Classes do not have synonyms after the brace
       // Proceed to set first synonym as current class
@@ -1826,7 +1832,7 @@ begin
         break; // inline constructor
     end else if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';', ':', '}',
       '#']) then begin
-      Break;
+        break;
     end;
 
 
@@ -1839,11 +1845,15 @@ begin
     if (not SameStr(fTokenizer[fIndex]^.Text, 'struct')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'class')) and
       (not SameStr(fTokenizer[fIndex]^.Text, 'union')) then  begin
-      s:=expandMacroType(fTokenizer[fIndex]^.Text);
-      if s<>'' then
-        LastType := LastType + ' '+expandMacroType(fTokenizer[fIndex]^.Text);
-      if SameStr(s,'static') then
-        isStatic := True;
+      if fTokenizer[fIndex]^.Text = ':' then begin
+          LastType := LastType + ':';
+      end else begin
+        s:=expandMacroType(fTokenizer[fIndex]^.Text);
+        if s<>'' then
+          LastType := LastType + ' '+s;
+        if SameStr(s,'static') then
+          isStatic := True;
+      end;
     end;
     Inc(fIndex);
   until (fIndex >= fTokenizer.Tokens.Count) or IsFunctionPointer;
@@ -2103,14 +2113,14 @@ begin
   end;
 
 
-  {
+  
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-  }
+
 
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
@@ -3058,7 +3068,7 @@ begin
   end;
 end;
 
-function TCppParser.FindTypeDefinitionOf(const aType: AnsiString; currentClass: PStatement): PStatement;
+function TCppParser.FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; currentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   Statement: PStatement;
@@ -3079,7 +3089,7 @@ var
       Result:=statement;
     end else if Statement^._Kind = skTypedef then begin
       if not SameStr(aType, Statement^._Type) then // prevent infinite loop
-        Result := FindTypeDefinitionOf(Statement^._Type, CurrentClass)
+        Result := FindTypeDefinitionOf(FileName,Statement^._Type, CurrentClass)
       else
         Result := Statement; // stop walking the trail here
       if Result = nil then // found end of typedef trail, return result
@@ -3111,6 +3121,10 @@ begin
 
   scopeStatement:= currentClass;
 
+  Statement :=FindStatementOf(FileName,aType,currentClass);
+  Result := GetTypeDef(Statement);
+
+  {
   // repeat until reach global
   while Assigned(scopeStatement) do begin
     //search members of current scope
@@ -3133,10 +3147,10 @@ begin
     end;
     scopeStatement:=scopeStatement^._ParentScope;
   end;
-
   // Search all global members
   Statement:=FindMemberOfStatement(aType,nil);
   Result := GetTypeDef(Statement);
+  }
 
     {
   // Seach them
@@ -3381,7 +3395,7 @@ begin
   CurrentClassType := CurrentClass;
 
   if statement._Kind in [skTypeDef] then begin
-    TypeStatement := FindTypeDefinitionOf(statement^._Type, CurrentClassType);
+    TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
     if Assigned(TypeStatement) then
       Statement := TypeStatement;
   end;
@@ -3659,7 +3673,7 @@ begin
     sl := P^.IncludeFiles;
     for I := 0 to sl.Count - 1 do begin
       name:=sl[I];
-      Q:=FindFileIncludes(FileName);
+      Q:=FindFileIncludes(name);
       if Assigned(Q) then begin
         for t:=0 to Q^.Usings.Count -1 do begin
           if FastIndexOf(List,Q^.Usings[t])=-1 then

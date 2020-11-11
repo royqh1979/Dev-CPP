@@ -17,6 +17,7 @@ Version 6.1-beta1  November 2020
   - fix: nest structs processing error
   - fix: expand macros error
   - fix: expand macro with multiline value will cause wrong line info in statements 
+  - enhancement: C++ namespace support
 
 
 Version 6.0    November 2020

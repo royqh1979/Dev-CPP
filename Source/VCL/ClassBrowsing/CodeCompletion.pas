@@ -223,6 +223,8 @@ begin
 
     // add all global members and not added before
     AddChildren(nil);
+
+    fParser.GetFileUsings(FileName,fUsings);
     // add members of all fusings
     for t:=0 to fUsings.Count-1 do begin
       namespaceName := fUsings[t];
@@ -240,7 +242,7 @@ begin
     namespaceStatementsList := nil;
     //assume it's a namespace
     if OpType = otDColon then
-      namespaceStatementsList:=fParser.FindNamespace(namespaceName);
+      namespaceStatementsList:=fParser.FindNamespace(scopeName);
     if assigned(namespaceStatementsList) then begin //yes, it's a namespace
       for k:=0 to namespaceStatementsList.Count-1 do begin
         namespaceStatement:=PStatement(namespaceStatementsList[k]);
@@ -257,7 +259,7 @@ begin
       if (opType in [otArrow, otDot]) and (statement^._Kind = skVariable) then  begin
         // Get type statement  of current (scope) statement
 
-        ClassTypeStatement:=fParser.FindTypeDefinitionOf(Statement^._Type,fCurrentStatement);
+        ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
         if (ClassTypeStatement = ScopeTypeStatement) or (statement^._Command = 'this') then begin
           //we can use all members
           AddChildren(ClassTypeStatement);
@@ -276,7 +278,7 @@ begin
         end;
       //todo friend
       end else if (opType in [otDColon]) and (statement^._Kind = skClass )then begin
-        ClassTypeStatement:=fParser.FindTypeDefinitionOf(Statement^._Type,fCurrentStatement);
+        ClassTypeStatement:=statement;
         if (ClassTypeStatement = ScopeTypeStatement) then begin
           //we can use all static members
           Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);

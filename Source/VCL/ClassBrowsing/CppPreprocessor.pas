@@ -1200,6 +1200,9 @@ begin
       for t:=0 to FileIncludes^.IncludeFiles.Count-1 do begin
         Add(#9+'--'+FileIncludes^.IncludeFiles[t]);
       end;
+      for t:=0 to FileIncludes^.Usings.Count-1 do begin
+        Add(#9+'++'+FileIncludes^.Usings[i]);
+      end;
       for t:=0 to FileIncludes^.Statements.Count-1 do begin
         S:=FileIncludes^.Statements[t];
         Add(#9+'**'+Format('%s , %s',[s^._Command, s^._FullName] ));
