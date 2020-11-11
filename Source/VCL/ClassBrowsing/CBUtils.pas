@@ -443,7 +443,7 @@ begin
     if CloseTokenPos > 0 then begin
       Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
       Result := GetSystemHeaderFileName(Result, IncludePaths);
-      if Result := '' then
+      if Result = '' then
         Result := GetSystemHeaderFileName(Result, ProjectIncludePaths);
     end;
   end else begin

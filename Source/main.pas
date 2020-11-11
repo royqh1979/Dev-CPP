@@ -1428,6 +1428,8 @@ begin
   actBrowserRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actBrowserRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
   actBrowserShowInherited.Caption := Lang[ID_POP_SHOWINHERITED];
+  actBrowserSortAlphabetically.Caption := Lang[ID_POP_SHOWINHERITED];
+  actBrowserSortByType.Caption := Lang[ID_POP_SHOWINHERITED];
 
   // Message Control tabs
   CompSheet.Caption := Lang[ID_SHEET_COMP];

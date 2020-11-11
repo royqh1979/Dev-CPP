@@ -61,6 +61,7 @@ const
   TEMPLATE_DIR = 'Templates' + pd;
   THEME_DIR = 'Themes' + pd;
   PACKAGES_DIR = 'Packages' + pd;
+  PROJECTS_DIR = 'Projects' + pd;
 
   // file extensions
   LIB_EXT = '.a';

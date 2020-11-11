@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = CloseSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
@@ -1063,7 +1063,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 351
-    ActivePage = WatchSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -3062,11 +3062,12 @@ object MainForm: TMainForm
     end
     object actRemoveBreakpointInPane: TAction
       Category = 'Debug'
-      Caption = 'Remove Breakpoint'
+      Caption = 'Remove Breakpoint In panel'
       OnExecute = actRemoveBreakpointInPaneExecute
     end
     object actBreakPointPropInPane: TAction
       Category = 'Debug'
+      Caption = 'Set Break Point Property In Panel'
       OnExecute = actBreakPointPropInPaneExecute
     end
     object actBrowserSortAlphabetically: TAction

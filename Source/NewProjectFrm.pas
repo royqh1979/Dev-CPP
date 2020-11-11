@@ -168,7 +168,7 @@ begin
 
   while True do begin
     edProjectName.Text := format(Lang[ID_NEWPROJECT], [dmMain.GetNewFileNumber]);
-    edProjectLocation.Text := devDirs.Default + PathDelim + edProjectName.Text;
+    edProjectLocation.Text := IncludeTrailingPathDelimiter( devDirs.Default) +PROJECTS_DIR + edProjectName.Text;
     if not DirectoryExists(edProjectLocation.Text) then
       break;
   end;
