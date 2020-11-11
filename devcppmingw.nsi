@@ -114,10 +114,8 @@ Section "$(SectionMainName)" SectionMain
 
   ; Write required files
   File "devcpp.exe"
-  File "devcpp.map"
   File "devcppPortable.exe"
   File "packman.exe"
-  File "packman.map"
   File "ConsolePauser.exe"
   File "devcpp.exe.manifest"
   File "LICENSE"

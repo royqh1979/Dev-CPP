@@ -139,10 +139,11 @@ begin
       CreateDir(ParamStr(2));
 
     // Store the INI file in the directory given to us
-    if ParamStr(2)[2] <> ':' then // if a relative path is specified...
-      devData.INIFileName := ExeFolder + IncludeTrailingBackslash(ParamStr(2)) + INIFileName
-    else
+    if ParamStr(2)[2] <> ':' then begin// if a relative path is specified...
+      devData.INIFileName := ExeFolder + IncludeTrailingBackslash(ParamStr(2)) + INIFileName;
+    end else begin
       devData.INIFileName := IncludeTrailingBackslash(ParamStr(2)) + INIFileName;
+    end;
   end else begin
 
     // default dir should be %APPDATA%\Dev-Cpp
@@ -151,16 +152,18 @@ begin
       AppData := IncludeTrailingBackslash(AnsiString(Buffer));
 
     // Store the INI file in %APPDATA% or if we are not allowed to do so, in the exe directory
-    if SameStr(regPath,exeFolder) and 
+    if SameStr(regPath,exeFolder) and
        (AppData <> '') and
-      (DirectoryExists(AppData + 'Dev-Cpp') or CreateDir(AppData + 'Dev-Cpp')) then
-      devData.INIFileName := AppData + 'Dev-Cpp\' + INIFileName
-    else begin
+      (DirectoryExists(AppData + 'Dev-Cpp') or CreateDir(AppData + 'Dev-Cpp')) then begin
+      devData.INIFileName := AppData + 'Dev-Cpp\' + INIFileName;
+      devData.Portable := False;
+    end else begin
       // store it in the default portable config folder anyways...
       configFolder := ExeFolder + 'config';
       if not DirectoryExists(configFolder) then
         CreateDir(configFolder);
       devData.INIFileName := configFolder + '\' + INIFileName;
+      devData.Portable := True;
     end;
   end;
 

@@ -57,10 +57,9 @@ type
     fUsings: TStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
-    fAddedStatements : TStringHash;
+    fAddedStatements : TStringList;
     fPreparing: boolean;
     fPhrase : AnsiString;
-    function ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -121,8 +120,8 @@ begin
 
   fUsings:=TStringList.Create;
   fUsings.Sorted := True;
-  fAddedStatements := TStringHash.Create;
-
+  fAddedStatements := TStringList.Create;
+  fAddedStatements.Sorted:=True;
   fCompletionStatementList := TList.Create;
   fFullCompletionStatementList := TList.Create;
 
@@ -151,20 +150,6 @@ begin
   inherited Destroy;
 end;
 
-function TCodeCompletion.ApplyClassFilter(Statement, CurrentClass: PStatement): boolean;
-begin
-  Result :=
-    (
-      (Statement^._Scope in [ssLocal, ssGlobal]) or // local or global var or
-      ( (Statement^._Scope = ssClassLocal) and // class var
-        (Statement^._ParentScope = CurrentClass) // from current class
-      )
-    ) and (
-      IsIncluded(Statement^._FileName) or
-      IsIncluded(Statement^._DefinitionFileName)
-    );
-end;
-
 procedure TCodeCompletion.AddChildren(ScopeStatement:PStatement);
 var
   ChildStatement: PStatement;
@@ -176,8 +161,8 @@ begin
     Exit;
   for i:=0 to Children.Count-1 do begin
     ChildStatement:=PStatement(Children[i]);
-    if fAddedStatements.ValueOf(ChildStatement^._Command) = -1 then begin
-      fAddedStatements.Add(ChildStatement^._Command,1);
+    if IsIncluded(ChildStatement^._FileName) and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+      fAddedStatements.Add(ChildStatement^._Command);
       fFullCompletionStatementList.Add(ChildStatement);
     end;
   end;
@@ -191,7 +176,7 @@ var
   Children : TList;
   I,t,k: integer;
   ScopeTypeStatement, Statement : PStatement;
-  ScopeName, namespaceName, firstName : AnsiString;
+  ScopeName, namespaceName: AnsiString;
   opType: TOperatorType;
 begin
   // Reset filter cache
@@ -270,8 +255,8 @@ begin
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
             if (ChildStatement^._ClassScope=scsPublic)
-              and(fAddedStatements.ValueOf(ChildStatement^._Command) = -1) then begin
-              fAddedStatements.Add(ChildStatement^._Command,1);
+              and( FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+              fAddedStatements.Add(ChildStatement^._Command);
               fFullCompletionStatementList.Add(ChildStatement);
             end;
           end;
@@ -286,8 +271,8 @@ begin
             Exit;
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
-            if (ChildStatement^._Static) and (fAddedStatements.ValueOf(ChildStatement^._Command) = -1) then begin
-              fAddedStatements.Add(ChildStatement^._Command,1);
+            if (ChildStatement^._Static) and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+              fAddedStatements.Add(ChildStatement^._Command);
               fFullCompletionStatementList.Add(ChildStatement);
             end;
           end;
@@ -297,8 +282,8 @@ begin
             Exit;
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
-            if (ChildStatement^._Static) and  (ChildStatement^._ClassScope=scsPublic) and(fAddedStatements.ValueOf(ChildStatement^._Command) = -1) then begin
-              fAddedStatements.Add(ChildStatement^._Command,1);
+            if (ChildStatement^._Static) and  (ChildStatement^._ClassScope=scsPublic) and(FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+              fAddedStatements.Add(ChildStatement^._Command);
               fFullCompletionStatementList.Add(ChildStatement);
             end;
           end;

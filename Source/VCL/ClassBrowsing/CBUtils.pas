@@ -173,7 +173,7 @@ function FastIndexOf(List: TStringlist; const S: AnsiString): integer; overload;
 // Needed by Parser and Preprocessor (and class browser)
 function IsSystemHeaderFile(const FileName: AnsiString; IncludePaths: TStringList): boolean;
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString; // <file.h>
-function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString; ProjectIncludePaths: TStringList): AnsiString;
+function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
 // "file.h"
 function GetHeaderFileName(const RelativeTo, Line: AnsiString; IncludePaths, ProjectIncludePaths: TStringList):
   AnsiString; // both
@@ -229,14 +229,36 @@ begin
   end;
 end;
 
+function FindInStringList(List: TStringlist;const S: string; var Index: Integer): Boolean;
+var
+  L, H, I, C: Integer;
+begin
+  Result := False;
+  L := 0;
+  H := List.Count - 1;
+  while L <= H do
+  begin
+    I := (L + H) shr 1;
+    C := CompareStr(List[I], S);
+    if C < 0 then L := I + 1 else
+    begin
+      H := I - 1;
+      if C = 0 then
+      begin
+        Result := True;
+        if List.Duplicates <> dupAccept then L := I;
+      end;
+    end;
+  end;
+  Index := L;
+end;
+
 function FastIndexOf(List: TStringlist; const S: AnsiString): integer;
 begin
-  with List do begin
-    if not List.Sorted then
-      Result := FastIndexOf(TStrings(List), S)
-    else if not Find(S, Result) then
-      Result := -1;
-  end;
+  if not List.Sorted then
+    Result := FastIndexOf(TStrings(List), S)
+  else if not FindInStringList(List,S, Result) then
+    Result := -1;
 end;
 
 function StartsStr(const subtext, text: AnsiString): boolean;
@@ -335,6 +357,8 @@ var
   I: integer;
 begin
   Result := false;
+  if not assigned(IncludePaths) then
+    Exit;
 
   // If it's a full file name, check if its directory is an include path
   if (Length(FileName) > 2) and (FileName[2] = ':') then begin // full file name
@@ -372,9 +396,8 @@ begin
   end;
 end;
 
-function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString; ProjectIncludePaths: TStringList): AnsiString;
+function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
 var
-  I: integer;
   Dir: AnsiString;
 begin
   Result := StringReplace(FileName,'/','\',[rfReplaceAll]);
@@ -392,6 +415,8 @@ begin
     Exit;
   end;
 
+  Result := '';
+  {
   // Search project include directories
   for I := 0 to ProjectIncludePaths.Count - 1 do
     if FileExists(ProjectIncludePaths[I] + '\' + FileName) then begin
@@ -400,12 +425,18 @@ begin
     end;
 
   Result := FileName; // signifies failure
+  }
 end;
 
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString;
 var
   I: integer;
 begin
+  if  not Assigned(IncludePaths) then begin
+    Result :='';
+    Exit;
+  end;
+
   Result := FileName;
 
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
@@ -425,10 +456,12 @@ begin
   Result := ''; //not found, don't use it
 end;
 
+
 function GetHeaderFileName(const RelativeTo, Line: AnsiString; IncludePaths, ProjectIncludePaths: TStringList):
   AnsiString;
 var
   OpenTokenPos, CloseTokenPos: integer;
+  FileName : AnsiString;
 begin
   Result := '';
 
@@ -437,8 +470,10 @@ begin
   if OpenTokenPos > 0 then begin
     CloseTokenpos := Pos('>', Line);
     if CloseTokenPos > 0 then begin
-      Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
-      Result := GetSystemHeaderFileName(Result, IncludePaths);
+      FileName := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
+      Result := GetSystemHeaderFileName(FileName, IncludePaths);
+      if Result = '' then
+        Result := GetSystemHeaderFileName(FileName, ProjectIncludePaths);
     end;
   end else begin
 
@@ -448,8 +483,8 @@ begin
       CloseTokenpos := Pos('"', Copy(Line, OpenTokenPos + 1, MaxInt));
       if CloseTokenPos > 0 then begin
         Inc(CloseTokenPos, OpenTokenPos);
-        Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
-        Result := GetLocalHeaderFileName(RelativeTo, Result, ProjectIncludePaths);
+        FileName := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
+        Result := GetLocalHeaderFileName(RelativeTo, FileName);
       end;
     end;
   end;
