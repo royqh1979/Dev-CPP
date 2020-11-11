@@ -144,6 +144,7 @@ type
     procedure ReProcessInheritance;
   public
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
+    function IsProjectHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;
     procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure AddHardDefineByLine(const Line: AnsiString);
@@ -157,6 +158,7 @@ type
       boolean):
       integer;
     function GetSystemHeaderFileName(const FileName: AnsiString): AnsiString; // <file.h>
+    function GetProjectHeaderFileName(const FileName: AnsiString): AnsiString; // <file.h>
     function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString; // "file.h"
     function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
     function IsIncludeLine(const Line: AnsiString): boolean;
@@ -2014,9 +2016,14 @@ begin
   Result := cbutils.GetSystemHeaderFileName(FileName, fIncludePaths);
 end;
 
+function TCppParser.GetProjectHeaderFileName(const FileName: AnsiString): AnsiString;
+begin
+  Result := cbutils.GetSystemHeaderFileName(FileName, fIncludePaths);
+end;
+
 function TCppParser.GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
 begin
-  Result := cbutils.GetLocalHeaderFileName(RelativeTo, FileName, fProjectIncludePaths);
+  Result := cbutils.GetLocalHeaderFileName(RelativeTo, FileName);
 end;
 
 function TCppParser.GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString;
@@ -2102,6 +2109,11 @@ end;
 function TCppParser.IsSystemHeaderFile(const FileName: AnsiString): boolean;
 begin
   Result := cbutils.IsSystemHeaderFile(FileName, fIncludePaths);
+end;
+
+function TCppParser.IsProjectHeaderFile(const FileName: AnsiString): boolean;
+begin
+  Result := cbutils.IsSystemHeaderFile(FileName, fProjectIncludePaths);
 end;
 
 procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False;

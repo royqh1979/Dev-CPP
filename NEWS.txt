@@ -10,6 +10,9 @@ Version 6.1-beta1  November 2020
   - fix: if there're spaces in source file name, ConsolePauser will not find the compiled .exe file
   - fix: RemoveProjectUnit dialog layout error
 
+  - fix: Project Makefile generate error, if #include<> headers in project  include folders
+  - change: lib and include dir tab order in project options dialog
+
 
 Version 6.0    November 2020
   
