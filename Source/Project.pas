@@ -1251,6 +1251,8 @@ begin
 end;
 
 function TProject.RemoveEditor(index: integer; DoClose: boolean): boolean;
+var
+  projUnit: TProjUnit;
 begin
   result := False;
 
@@ -1264,7 +1266,9 @@ begin
   { this causes problems if the project isn't saved after this, since the erase happens phisically at this moment }
   //if not fUnits.GetItem(index).fNew then
   finifile.EraseSection('Unit' + inttostr(index + 1));
-  fUnits.GetItem(index).fNode.Delete;
+  projUnit:=fUnits.GetItem(index);
+  projUnit.fNode.Delete;
+  projUnit.Free;
   fUnits.Remove(index);
 
   UpdateNodeIndexes;

@@ -200,6 +200,7 @@ type
     fSelColor: TThemeColor;
     fFoldColor: TThemeColor;
     fALColor : TThemeColor;
+    fPredefinedColorThemeCount: integer;
     procedure LoadFonts;
     procedure LoadText;
     procedure LoadCodeIns;
@@ -208,6 +209,7 @@ type
     procedure UpdateCIButtons;
     procedure LoadSyntax(const Value: AnsiString);
     procedure FillSyntaxSets;
+    procedure UpdateDemoEditColor;
   public
     AccessedTabs: TEditorOptFormHistory;
   end;
@@ -224,7 +226,17 @@ const
   cABreakLine = 9;
   cErrorLine = 11;
   cSelection = 15;
-  cActiveLine = 13;
+  cActiveLine = 1;
+
+procedure TEditorOptForm.UpdateDemoEditColor;
+begin
+  CppEdit.Gutter.Color := fGutColor.Background;
+  CppEdit.Gutter.Font.Color := fGutColor.Foreground;
+  CppEdit.ActiveLineColor := fALColor.Background;
+  CppEdit.CaretY := cActiveLine;
+  CppEdit.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;
+  CppEdit.UseCodeFolding := True;
+end;
 
 procedure TEditorOptForm.FormCreate(Sender: TObject);
 var
@@ -233,6 +245,18 @@ var
   I: integer;
 begin
   LoadText;
+  cboQuickColor.Items.Add('Classic');
+  cboQuickColor.Items.Add('Classic Plus');
+  cboQuickColor.Items.Add('Twilight');
+  cboQuickColor.Items.Add('Ocean');
+  cboQuickColor.Items.Add('Visual Studio');
+  cboQuickColor.Items.Add('Borland');
+  cboQuickColor.Items.Add('Matrix');
+  cboQuickColor.Items.Add('Obsidian');
+  cboQuickColor.Items.Add('GSS Hacker');
+  cboQuickColor.Items.Add('Obvilion');
+  cboQuickColor.Items.Add('PlasticCodeWrap');
+  fPredefinedColorThemeCount := cboQuickColor.Items.Count;
 
   with devEditor do begin
 
@@ -301,6 +325,7 @@ begin
     StrToThemeColor(fABPColor, Syntax.Values[cABP]);
     StrToThemeColor(fFoldColor, Syntax.Values[cFld]);
     StrToThemeColor(fALColor, Syntax.Values[cAL]);
+    UpdateDemoEditColor;
   end;
 
   // Colors, cont.
@@ -873,6 +898,9 @@ var
 
   end;
 begin
+  cbBackground.Enabled := True;
+  cbForeground.Enabled := True;
+
   // Special additions not directly exposed by TSynHighlighter
   if ElementList.ItemIndex > pred(cpp.AttrCount) then begin
 
@@ -890,8 +918,10 @@ begin
       tc := fGutColor;
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cFld) then begin
       tc := fFoldColor;
+      cbBackground.Enabled := False;      
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cAL) then begin
       tc := fALColor;
+      cbForeground.Enabled := False;      
     end;
 
     SetColor(tc.Foreground,tc.Background);
@@ -981,6 +1011,7 @@ begin
     end else if SameText(s, cAL) then begin
       fALColor := tc;
     end;
+    UpdateDemoEditColor;
 
     // regular SynEdit attributes
   end else begin
@@ -1065,11 +1096,13 @@ begin
           FG := fSelColor.Foreground;
         Special := TRUE;
       end;
+      {
     cActiveLine: begin
         if fALColor.Background <> clNone then
           BG := fALColor.background;
         Special := TRUE;
       end;
+      }
     cBreakLine: begin
         if fBPColor.Background <> clNone then
           BG := fBPColor.Background;
@@ -1111,7 +1144,7 @@ var
   i: integer;
   attr: TSynHighlighterAttributes;
 begin
-  if cboQuickColor.ItemIndex > 10 then begin // 10 == number of built-in styles
+  if cboQuickColor.ItemIndex >= fPredefinedColorThemeCount then begin 
     // custom style; load from disk
     LoadSyntax(cboQuickColor.Items[cboQuickColor.ItemIndex]);
   end else begin
@@ -1134,6 +1167,7 @@ begin
     StrToThemeColor(fSelColor, LoadStr(offset + 21)); // selected text
     StrToThemeColor(fFoldColor, LoadStr(offset + 22)); // folding bar lines
     StrToThemeColor(fALColor, LoadStr(offset + 23)); // folding bar lines
+    UpdateDemoEditColor;
   end;
 
   SetGutter;
@@ -1391,6 +1425,7 @@ begin
         fALColor := tc;
       end;
     end;
+    UpdateDemoEditColor;
   finally
     fINI.Free;
   end;

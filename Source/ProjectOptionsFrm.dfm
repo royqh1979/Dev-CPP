@@ -623,8 +623,8 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Align = alClient
         TabOrder = 0
         Tabs.Strings = (
-          'Libraries'
           'Include Directories'
+          'Libraries'
           'Resource Directories')
         TabIndex = 0
         OnChange = SubTabsChange
@@ -787,7 +787,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Left = 5
           Top = 333
           Width = 647
-          Height = 23
+          Height = 28
           TabOrder = 2
           OnChange = EditChange
         end
@@ -1409,7 +1409,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 279
           Height = 28
           Style = csDropDownList
-          ItemHeight = 20
+          ItemHeight = 0
           Sorted = True
           TabOrder = 4
         end

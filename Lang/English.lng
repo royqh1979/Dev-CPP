@@ -206,6 +206,8 @@ Ver=1
 12018=Close All Except This
 12019=Add TODO Item...
 12020=Open Console here
+12021=Sort Alphabetically
+12022=Sort By Type
 
 
 13001=Compiler
@@ -281,6 +283,8 @@ Ver=1
 20006=Variable to modify:
 20007=New value:
 20008=Change Watch
+20009=Load Watch
+20010=Save Watch
 
 
 21001=Project

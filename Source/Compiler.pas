@@ -371,7 +371,7 @@ begin
     // Only process source files
     if GetFileTyp(ShortFileName) in [utcSrc, utcppSrc] then begin
       Writeln(F);
-      objStr:=ShortFileName+': ';
+      objStr:=ShortFileName;
       if MainForm.CppParser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
         fileIncludes := TStringList.Create;
         try
@@ -380,7 +380,8 @@ begin
             headerName := fileIncludes[j];
             if headerName = FileName then
               continue;
-            if not MainForm.CppParser.IsSystemHeaderFile(headerName) then begin
+            if (not MainForm.CppParser.IsSystemHeaderFile(headerName))
+              and (not MainForm.CppParser.IsProjectHeaderFile(headerName)) then begin
               objStr := objStr + ' ' + ExtractRelativePath(Makefile,headerName);
             end;
           end;
@@ -409,7 +410,7 @@ begin
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
       end;
 
-      objStr:=objStr;
+      objStr:=ObjFileName + ': '+objStr;
 
       Writeln(F,ObjStr);
 

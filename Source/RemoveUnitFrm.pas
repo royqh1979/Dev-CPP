@@ -29,6 +29,7 @@ type
   TRemoveUnitForm = class(TForm)
     UnitList: TListBox;
     DelBtn: TButton;
+    Panel1: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure UnitListKeyPress(Sender: TObject; var Key: Char);
@@ -69,8 +70,9 @@ var
 begin
   // Delete selection from project
   for i := UnitList.Count - 1 downto 0 do
-    if UnitList.Selected[i] then
+    if UnitList.Selected[i] then begin
       MainForm.Project.RemoveEditor(i, true);
+    end;
 
   // Delete selection from list
   for I := UnitList.Count - 1 downto 0 do

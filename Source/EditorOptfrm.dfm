@@ -650,7 +650,7 @@ object EditorOptForm: TEditorOptForm
         OnClick = ElementListClick
       end
       object grpStyle: TGroupBox
-        Left = 20
+        Left = 12
         Top = 367
         Width = 147
         Height = 97
@@ -686,36 +686,24 @@ object EditorOptForm: TEditorOptForm
       end
       object cboQuickColor: TComboBox
         Left = 43
-        Top = 515
+        Top = 517
         Width = 173
         Height = 28
         Style = csDropDownList
         ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
-        Items.Strings = (
-          'Classic'
-          'Classic Plus'
-          'Twilight'
-          'Ocean'
-          'Visual Studio'
-          'Borland'
-          'Matrix'
-          'Obsidian'
-          'GSS Hacker'
-          'Obvilion'
-          'PlasticCodeWrap')
       end
       object edSyntaxExt: TEdit
-        Left = 240
-        Top = 515
+        Left = 232
+        Top = 517
         Width = 380
         Height = 28
         TabOrder = 4
       end
       object cbSyntaxHighlight: TCheckBox
         Left = 233
-        Top = 480
+        Top = 487
         Width = 400
         Height = 23
         Caption = 'Use Syntax Highlighting'
@@ -723,7 +711,7 @@ object EditorOptForm: TEditorOptForm
         OnClick = cbSyntaxHighlightClick
       end
       object cpForeground: TColorBox
-        Left = 23
+        Left = 12
         Top = 269
         Width = 146
         Height = 22
@@ -733,7 +721,7 @@ object EditorOptForm: TEditorOptForm
         OnChange = StyleChange
       end
       object cpBackground: TColorBox
-        Left = 23
+        Left = 12
         Top = 328
         Width = 146
         Height = 22
@@ -743,7 +731,7 @@ object EditorOptForm: TEditorOptForm
         OnChange = StyleChange
       end
       object cbForeground: TCheckBox
-        Left = 11
+        Left = 12
         Top = 244
         Width = 133
         Height = 23
@@ -752,7 +740,7 @@ object EditorOptForm: TEditorOptForm
         OnClick = cbForegroundClick
       end
       object cbBackground: TCheckBox
-        Left = 11
+        Left = 12
         Top = 300
         Width = 133
         Height = 23

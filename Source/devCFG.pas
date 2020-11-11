@@ -620,6 +620,8 @@ type
     fDirBackward: boolean;
     fRegExp: boolean; //use regular expression
 
+    fPortable: boolean; //is a portable program (not installed by the setup)
+
     // Floating windows
     fProjectFloat: boolean;
     fMessageFloat: boolean;
@@ -629,6 +631,7 @@ type
     procedure SettoDefaults; override;
     property LangChange: boolean read fLangChange write fLangChange;
     property ThemeChange: boolean read fThemeChange write fThemeChange;
+    property Portable: boolean read fPortable write fPortable;
   published
     property Language: AnsiString read fLang write fLang;
     property Theme: AnsiString read fTheme write fTheme;
@@ -956,7 +959,7 @@ begin
   fAutoOpen := 2; // Reopen
   fShowLeftPages := TRUE;
   fLeftActivePage := 0;
-  fProjectWidth := 161;
+  fProjectWidth := 250;
   fOutputHeight := 220;
   fStatusbar := TRUE;
   fShowBars := FALSE;
@@ -2299,12 +2302,16 @@ begin
   fLang := fExec + LANGUAGE_DIR;
   fTemp := fExec + TEMPLATE_DIR;
   fThemes := fExec + THEME_DIR;
-
-  // Get my documents folder
-  if SHGetSpecialFolderPath(Application.Handle, DocumentsPath, CSIDL_MYDOCUMENTS, false) then
-    fDefault := DocumentsPath
-  else
-    fDefault := fExec;
+  
+  if devData.Portable then begin
+    fDefault:=fExec;
+  end else begin
+    // Get my documents folder
+    if SHGetSpecialFolderPath(Application.Handle, DocumentsPath, CSIDL_MYDOCUMENTS, false) then
+      fDefault := DocumentsPath
+    else
+      fDefault := fExec;
+  end;
 end;
 
 procedure TdevDirs.LoadSettings;
@@ -2312,6 +2319,7 @@ begin
   devData.ReadObject('Directories', Self);
 
   fConfig := ExtractFilePath(devData.INIFileName);
+  fDefault := ReplaceFirstStr(fDefault, '%path%\', fExec);
   fHelp := ReplaceFirstStr(fHelp, '%path%\', fExec);
   fIcons := ReplaceFirstStr(fIcons, '%path%\', fExec);
   fLang := ReplaceFirstStr(fLang, '%path%\', fExec);
@@ -2321,6 +2329,7 @@ end;
 
 procedure TdevDirs.SaveSettings;
 begin
+  fDefault := ReplaceFirstStr(fDefault, fExec, '%path%\');
   fHelp := ReplaceFirstStr(fHelp, fExec, '%path%\');
   fIcons := ReplaceFirstStr(fIcons, fExec, '%path%\');
   fLang := ReplaceFirstStr(fLang, fExec, '%path%\');
@@ -2328,7 +2337,7 @@ begin
   fThemes := ReplaceFirstStr(fThemes, fExec, '%path%\');
 
   devData.WriteObject('Directories', Self);
-
+  fDefault := ReplaceFirstStr(fDefault, '%path%\', fExec);
   fHelp := ReplaceFirstStr(fHelp, '%path%\', fExec);
   fIcons := ReplaceFirstStr(fIcons, '%path%\', fExec);
   fLang := ReplaceFirstStr(fLang, '%path%\', fExec);

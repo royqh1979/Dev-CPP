@@ -73,7 +73,8 @@ type
 
     procedure RefreshWatchVars;
     procedure DeleteWatchVars(deleteparent: boolean);
-    procedure InvalidateAllVars();
+    procedure InvalidateAllVars;
+    procedure OnInvalidateAllVars;
 
     // Access
     property Executing: boolean read fExecuting write fExecuting;
@@ -207,6 +208,7 @@ begin
   Reader.WatchView := WatchView;
   Reader.UseUTF8 := UseUTF8;
   Reader.Resume;
+  Reader.OnInvalidateAllVars := OnInvalidateAllVars;
 
   MainForm.UpdateAppTitle;
 
@@ -228,7 +230,8 @@ begin
     if Assigned(CPUForm) then
       CPUForm.Close;
 
-    TerminateProcess(fProcessID, 0); // stop gdb
+    // stop gdb
+    TerminateProcess(fProcessID, 0);
 
     Reader.Terminate;
     Reader := nil;
@@ -525,7 +528,12 @@ begin
   end;
 end;
 
-procedure TDebugger.InvalidateAllVars();
+procedure TDebugger.InvalidateAllVars;
+begin
+  fReader.InvalidateAllVars := True;
+end;
+
+procedure TDebugger.OnInvalidateAllVars;
 var
   I:integer;
   WatchVar:PWatchVar;

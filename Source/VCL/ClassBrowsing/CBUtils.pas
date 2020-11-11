@@ -166,7 +166,7 @@ function FastIndexOf(List: TStringlist; const S: AnsiString): integer; overload;
 // Needed by Parser and Preprocessor (and class browser)
 function IsSystemHeaderFile(const FileName: AnsiString; IncludePaths: TStringList): boolean;
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString; // <file.h>
-function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString; ProjectIncludePaths: TStringList): AnsiString;
+function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
 // "file.h"
 function GetHeaderFileName(const RelativeTo, Line: AnsiString; IncludePaths, ProjectIncludePaths: TStringList):
   AnsiString; // both
@@ -328,6 +328,8 @@ var
   I: integer;
 begin
   Result := false;
+  if not assigned(IncludePaths) then
+    Exit;
 
   // If it's a full file name, check if its directory is an include path
   if (Length(FileName) > 2) and (FileName[2] = ':') then begin // full file name
@@ -365,7 +367,7 @@ begin
   end;
 end;
 
-function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString; ProjectIncludePaths: TStringList): AnsiString;
+function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
 var
   I: integer;
   Dir: AnsiString;
@@ -385,6 +387,8 @@ begin
     Exit;
   end;
 
+  Result := '';
+  {
   // Search project include directories
   for I := 0 to ProjectIncludePaths.Count - 1 do
     if FileExists(ProjectIncludePaths[I] + '\' + FileName) then begin
@@ -393,12 +397,18 @@ begin
     end;
 
   Result := FileName; // signifies failure
+  }
 end;
 
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString;
 var
   I: integer;
 begin
+  if  not Assigned(IncludePaths) then begin
+    Result :='';
+    Exit;
+  end;
+
   Result := FileName;
 
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
@@ -418,6 +428,7 @@ begin
   Result := ''; //not found, don't use it
 end;
 
+
 function GetHeaderFileName(const RelativeTo, Line: AnsiString; IncludePaths, ProjectIncludePaths: TStringList):
   AnsiString;
 var
@@ -432,6 +443,8 @@ begin
     if CloseTokenPos > 0 then begin
       Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
       Result := GetSystemHeaderFileName(Result, IncludePaths);
+      if Result = '' then
+        Result := GetSystemHeaderFileName(Result, ProjectIncludePaths);
     end;
   end else begin
 
@@ -442,7 +455,7 @@ begin
       if CloseTokenPos > 0 then begin
         Inc(CloseTokenPos, OpenTokenPos);
         Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
-        Result := GetLocalHeaderFileName(RelativeTo, Result, ProjectIncludePaths);
+        Result := GetLocalHeaderFileName(RelativeTo, Result);
       end;
     end;
   end;

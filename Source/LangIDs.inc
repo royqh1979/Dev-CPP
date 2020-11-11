@@ -257,6 +257,8 @@ const
   ID_POP_CLOSEALLBUTTHIS                = 12018;
   ID_POP_ADDTODOITEM                    = 12019;
   ID_POP_OPEN_CONSOLE                   = 12020;
+  ID_POP_SORT_ALPHABETICALLY            = 12021;
+  ID_POP_SORT_BY_TYPE                   = 12022;
 
   // message control
   ID_SHEET_COMP                         = 13001;
@@ -335,7 +337,9 @@ const
   ID_NV_MODIFYVALUE                     = 20005;
   ID_NV_VARNAME                         = 20006;
   ID_NV_VARVALUE                        = 20007;
-  ID_NV_RENAMEWATCH                        = 20008;
+  ID_NV_RENAMEWATCH                      = 20008;
+  ID_NV_LOADWATCH                        = 20009;
+  ID_NV_SAVEWATCH                        = 20010;
 
   // Project Manager/Class Browser
   ID_LP_PROJECT                         = 21001;

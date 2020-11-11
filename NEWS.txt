@@ -1,3 +1,20 @@
+Version 6.1-beta1  November 2020
+
+  - enhancement: Watch View only update once each command the debugger runs.
+  - enhancement: Save/Load vars in Watch View
+  - change: only devcpp.exe installed by the installer will save configs to User's AppData dir; devcpp.exe not installed will save configs to Dev-CPP's config dir. This will make Dev-C++ really portable.
+  - fix: correctly draw current line in Editor option dialog's demo code windows
+  - fix: left panel's has a min width when use the splitter to adjust its size
+  - fix: when gdb is not finished a command executing( such as executing a scanf) , don't left user add watches. (Because gdb can't fetch watch info now)
+  - enhancement: use TStringHash to test if an identifier is a keyword in SynEdit's cpp highlighter, mush easier to maintain; Add new cpp keywords to cpp highlighter
+  - fix: if there're spaces in source file name, ConsolePauser will not find the compiled .exe file
+  - fix: RemoveProjectUnit dialog layout error
+
+  - fix: Project Makefile generate error, if #include<> headers in project  include folders
+  - change: lib and include dir tab order in project options dialog
+  - change: devcpp.exe installed by the installer will create new project folders under user's document dir; devcpp.exe not installed will create them under Dev-CPP/projects dir.
+  - fix: no caption action will crash when save/load custom shortcut settings
+
 Version 6.0    November 2020
   
   - fix: change icons for run/complie&run/replace
