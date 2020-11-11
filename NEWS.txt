@@ -10,6 +10,10 @@ Version 6.1-beta1  November 2020
   - fix: if there're spaces in source file name, ConsolePauser will not find the compiled .exe file
   - fix: RemoveProjectUnit dialog layout error
 
+  - fix: Project Makefile generate error, if #include<> headers in project  include folders
+  - change: lib and include dir tab order in project options dialog
+  - change: devcpp.exe installed by the installer will create new project folders under user's document dir; devcpp.exe not installed will create them under Dev-CPP/projects dir.
+  - fix: no caption action will crash when save/load custom shortcut settings
 
 Version 6.0    November 2020
   
