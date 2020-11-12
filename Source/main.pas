@@ -2277,9 +2277,9 @@ begin
     if not fQuitting and RefreshEditor then begin
       //reset Class browsing
       LeftPageControl.ActivePage := LeftClassSheet;
-      ClassBrowser.ProjectDir := '';
       ClassBrowser.TabVisible := True;
       UpdateClassBrowsing;
+      ClassBrowser.ProjectDir := '';
       //UpdateClassBrowserForEditor(EditorList.GetEditor());
 
       e:=EditorList.GetEditor();
