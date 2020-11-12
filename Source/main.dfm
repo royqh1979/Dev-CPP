@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 736
-  Top = 255
+  Left = 562
+  Top = 295
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -220,16 +220,16 @@ object MainForm: TMainForm
       Caption = 'Debug'
       ImageIndex = 32
       object Splitter1: TSplitter
-        Left = 457
+        Left = 450
         Top = 0
         Width = 8
         Height = 196
         Beveled = True
       end
       object DebugViews: TPageControl
-        Left = 465
+        Left = 458
         Top = 0
-        Width = 714
+        Width = 721
         Height = 196
         ActivePage = CallStackSheet
         Align = alClient
@@ -265,7 +265,7 @@ object MainForm: TMainForm
           object StackTrace: TListView
             Left = 0
             Top = 0
-            Width = 706
+            Width = 713
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -333,13 +333,14 @@ object MainForm: TMainForm
       object DebugButtonsPanel: TPanel
         Left = 0
         Top = 0
-        Width = 457
+        Width = 450
         Height = 196
         Align = alLeft
         BevelOuter = bvNone
+        Constraints.MinWidth = 28
         TabOrder = 1
         DesignSize = (
-          457
+          450
           196)
         object ToolBar1: TToolBar
           Left = 0
@@ -464,13 +465,13 @@ object MainForm: TMainForm
         object Panel1: TPanel
           Left = 32
           Top = 0
-          Width = 425
+          Width = 418
           Height = 193
           Anchors = [akLeft, akTop, akRight, akBottom]
           BevelOuter = bvNone
           TabOrder = 7
           DesignSize = (
-            425
+            418
             193)
           object lblEvaluate: TLabel
             Left = 5
@@ -482,7 +483,7 @@ object MainForm: TMainForm
           object EvaluateInput: TComboBox
             Left = 82
             Top = 1
-            Width = 343
+            Width = 336
             Height = 24
             Anchors = [akLeft, akTop, akRight]
             ItemHeight = 16
@@ -492,7 +493,7 @@ object MainForm: TMainForm
           object EvalOutput: TMemo
             Left = 0
             Top = 32
-            Width = 425
+            Width = 418
             Height = 161
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]

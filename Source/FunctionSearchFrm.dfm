@@ -3,12 +3,12 @@ object FunctionSearchForm: TFunctionSearchForm
   Top = 563
   BorderStyle = bsDialog
   Caption = 'Goto function...'
-  ClientHeight = 377
-  ClientWidth = 469
+  ClientHeight = 503
+  ClientWidth = 625
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -12
+  Font.Height = -15
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
@@ -16,39 +16,41 @@ object FunctionSearchForm: TFunctionSearchForm
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    469
-    377)
-  PixelsPerInch = 96
-  TextHeight = 15
+    625
+    503)
+  PixelsPerInch = 120
+  TextHeight = 20
   object lblSearch: TLabel
-    Left = 4
-    Top = 8
-    Width = 56
-    Height = 15
+    Left = 5
+    Top = 11
+    Width = 70
+    Height = 20
     Caption = 'Search for:'
   end
   object lvEntries: TListView
     Left = 0
-    Top = 32
-    Width = 469
-    Height = 345
+    Top = 43
+    Width = 625
+    Height = 460
     Align = alCustom
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvNone
     BevelOuter = bvNone
     Columns = <
       item
-        Width = 30
+        Width = 40
       end
       item
         Caption = 'Type'
+        Width = 67
       end
       item
         Caption = 'Function'
-        Width = 300
+        Width = 400
       end
       item
         Caption = 'Line'
+        Width = 67
       end>
     ColumnClick = False
     HideSelection = False
@@ -64,9 +66,9 @@ object FunctionSearchForm: TFunctionSearchForm
     OnDblClick = lvEntriesDblClick
   end
   object txtSearch: TEdit
-    Left = 84
-    Top = 4
-    Width = 379
+    Left = 112
+    Top = 5
+    Width = 505
     Height = 23
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1

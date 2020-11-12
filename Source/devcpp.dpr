@@ -22,7 +22,7 @@ program devcpp;
 {$R 'DefaultFiles.res' 'DefaultFiles.rc'}
 {%File 'LangIDs.inc'}
 {$R 'manifest.res' 'manifest.rc'}
-
+{%File 'FastMM4Options.inc'}
 uses
   FastMM4 in 'FastMM4.pas',
   Windows,

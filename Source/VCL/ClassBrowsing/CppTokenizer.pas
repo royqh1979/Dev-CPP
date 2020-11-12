@@ -22,6 +22,7 @@ unit CppTokenizer;
 interface
 
 uses
+  CppPreprocessor,
 {$IFDEF WIN32}
   Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils;
 {$ENDIF}
@@ -94,6 +95,7 @@ type
     procedure TokenizeBuffer(StartAt: PAnsiChar);
     procedure TokenizeStream(const FileName: AnsiString; Stream: TStream);
     procedure TokenizeFile(const FileName: AnsiString);
+    procedure DumpTokens(const FileName: AnsiString);
     property TokenList[index: integer]: PToken read GetToken; default;
     property Tokens: TList read fTokenList;
   end;
@@ -200,7 +202,9 @@ begin
     Inc(pCurrent);
   until (pCurrent^ = #0) or ((pCurrent^ = '*') and ((pCurrent + 1)^ = '/'));
   if pCurrent^ <> #0 then
-    Inc(pCurrent, 2); //skip '*/'
+    Inc(pCurrent); //skip '*/'
+  if pCurrent^ <> #0 then
+    Inc(pCurrent); //skip '*/'
 end;
 
 procedure TCppTokenizer.SkipSplitLine;
@@ -651,9 +655,56 @@ end;
 
 procedure TCppTokenizer.Simplify(var Output: AnsiString);
 var
-  DelimPosFrom, DelimPosTo: integer;
+  //DelimPosFrom, DelimPosTo: integer;
+  temp: PChar;
+  i,t,OutputLen:integer;
 begin
+  OutputLen:=Length(Output);
+  temp:=StrAlloc((OutputLen+1) * SizeOf(Char));
+  try
+    i:=1;
+    t:=0;
+    while i<=OutputLen do begin
+      if ((i+1) <= OutputLen) and (Output[i]='/') and (Output[i+1]='*')  then begin
+        //skip C-Style comments
+        inc(i,2);
+        while ((i+1)<=OutputLen) do begin
+          if (Output[i]='*') and (Output[i+1]='/') then begin
+            inc(i,2);
+            break;
+          end;
+          inc(i);
+        end;
+      end else if ((i+1) <= OutputLen) and (Output[i]='/') and (Output[i+1]='/') then begin
+        //skip Cpp-Style Comments
+        inc(i,2);
+        while (i<=OutputLen) do begin
+          if (Output[i]=#10) then begin
+            inc(i);
+            break;
+          end;
+          inc(i);
+        end;
+      end else if ((i+1) <= OutputLen) and (Output[i]='\') and ((Output[i+1]=#10) or (Output[i+1]=#13))then begin
+        inc(i,2);
+      end else if (Output[i]=#10) or (Output[i]=#13) then begin
+        //skip \n \r
+        inc(i);
+      end else begin
+        temp[t]:=Output[i];
+        inc(i);
+        inc(t);
+      end;
+    end;
+    temp[t]:=#0;
+    Output := String(temp);
+    Output := Trim(Output);
+  finally
+    StrDispose(temp);
+  end;
+   {
   // Remove C-style comments
+
   while true do begin
     DelimPosFrom := Pos('/*', Output);
     if DelimPosFrom > 0 then begin
@@ -684,6 +735,7 @@ begin
   Output := FastStringReplace(Output, #13, '', [rfReplaceAll]);
   Output := FastStringReplace(Output, #10, '', [rfReplaceAll]);
   Output := Trim(Output);
+}
 end;
 
 procedure TCppTokenizer.SimplifyArgs(var Output: AnsiString);
@@ -743,6 +795,21 @@ begin
   FormatSpacesAround(Length(Output), 0);
 end;
 
+procedure TCppTokenizer.DumpTokens(const FileName:AnsiString);
+var
+  i:integer;
+  token: PToken;
+begin
+  with TStringList.Create do try
+    for i:=0 to fTokenList.Count-1 do begin
+      token:=PToken(fTokenList[i]);
+      Add(Format('%s,%d',[token^.Text,token^.Line]));
+    end;
+    SaveToFile(FileName);
+  finally
+    Free;
+  end;
+end;
 procedure TCppTokenizer.TokenizeBuffer(StartAt: PAnsiChar);
 var
   S: AnsiString;

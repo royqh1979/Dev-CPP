@@ -84,7 +84,7 @@ Set the default options for FastMM here.
 {Enable this option to suppress the generation of debug info for the
  FastMM4.pas unit. This will prevent the integrated debugger from stepping into
  the memory manager code.}
-{$define NoDebugInfo}
+{.$define NoDebugInfo}
 
 {Enable this option to suppress the display of all message dialogs. This is
  useful in service applications that should not be interrupted.}
@@ -153,7 +153,7 @@ Set the default options for FastMM here.
 
   {Deletes the error log file on startup. No effect if LogErrorsToFile is not
    also set.}
-  {$define ClearLogFileOnStartup}
+  {.$define ClearLogFileOnStartup}
 
   {Loads the FASTMM_FullDebugMode.dll dynamically. If the DLL cannot be found
    then stack traces will not be available. Note that this may cause problems
@@ -209,7 +209,7 @@ Set the default options for FastMM here.
   {Set this option to require the presence of the Delphi IDE to report memory
    leaks. This option has no effect if the option "EnableMemoryLeakReporting"
    is not also set.}
-  {$define RequireIDEPresenceForLeakReporting}
+  {.$define RequireIDEPresenceForLeakReporting}
 
   {Set this option to require the program to be run inside the IDE debugger to
    report memory leaks. This option has no effect if the option
@@ -220,7 +220,7 @@ Set the default options for FastMM here.
   {Set this option to require the presence of debug info ($D+ option) in the
    compiled unit to perform memory leak checking. This option has no effect if
    the option "EnableMemoryLeakReporting" is not also set.}
-  {$define RequireDebugInfoForLeakReporting}
+  {.$define RequireDebugInfoForLeakReporting}
 
   {Set this option to enable manual control of the memory leak report. When
    this option is set the ReportMemoryLeaksOnShutdown variable (default = false)
@@ -232,7 +232,7 @@ Set the default options for FastMM here.
 
   {Set this option to disable the display of the hint below the memory leak
    message.}
-  {$define HideMemoryLeakHintMessage}
+  {.$define HideMemoryLeakHintMessage}
 
 {--------------------------Instruction Set Options----------------------------}
 
@@ -241,7 +241,7 @@ Set the default options for FastMM here.
  AMD K5, Pentium I and earlier CPUs. MMX is currently only used in the variable
  size move routines, so if UseCustomVariableSizeMoveRoutines is not set then
  this option has no effect.}
-{$define EnableMMX}
+{.$define EnableMMX}
 
   {Set this option to force the use of MMX instructions without checking
    whether the CPU supports it. If this option is disabled then the CPU will be
@@ -303,6 +303,18 @@ Set the default options for FastMM here.
  additional peace of mind when working with highly sensitive data. This option
  supersedes the ClearMemoryBeforeReturningToOS option.}
 {.$define AlwaysClearFreedMemory}
+
+{----------------------------Lock Contention Logging--------------------------}
+
+{Define this to lock stack traces for all occasions where GetMem/FreeMem
+ go to sleep because of lock contention (IOW, when memory manager is already
+ locked by another thread). At the end of the program execution top 10 sites
+ (locations with highest occurrence) will be logged to the _MemoryManager_EventLog.txt
+ file.
+ This options works with FullDebugMode or without it, but requires
+ FastMM_FullDebugMode.dll to be present in both cases.
+}
+{.$define LogLockContention}
 
 {--------------------------------Option Grouping------------------------------}
 

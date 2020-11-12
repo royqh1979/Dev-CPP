@@ -41,6 +41,7 @@ type
     Args: AnsiString;
     Value: AnsiString;
     FileName: AnsiString;
+    IsMultiLine: boolean; // if true the expanded macro will span multiline
     HardCoded: boolean; // if true, don't free memory (points to hard defines)
   end;
 
@@ -48,6 +49,8 @@ type
   TFileIncludes = record
     BaseFile: AnsiString;
     IncludeFiles: TStringList; // "file","file" etc
+    Usings: TStringList; // namespaces it usings
+    Statements: TList; // List<PStatement> , but we don't save temporary statements
   end;
 
   TSkipType = (
@@ -71,6 +74,7 @@ type
     skDestructor,
     skVariable,
     skNamespace,
+    skNamespaceAlias,
     skBlock,
     skUnknown
     );
@@ -98,7 +102,7 @@ type
 
   PStatement = ^TStatement;
   TStatement = record
-    _Parent: PStatement; // parent class/struct/namespace
+    _ParentScope: PStatement; // parent class/struct/namespace scope
     _HintText: AnsiString; // text to force display when using PrettyPrintStatement
     _Type: AnsiString; // type "int"
     _Command: AnsiString; // identifier/name of statement "foo"
@@ -120,6 +124,9 @@ type
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
     _Inherited: boolean; // inherted member;
+    _FullName: AnsiString; // fullname(including class and namespace)
+    _Usings: TStringList;
+    _Node: Pointer;
   end;
 
   PUsingNamespace =^TUsingNamespace;
@@ -134,9 +141,15 @@ type
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
   TProgressEndEvent = procedure(Sender: TObject; Total: integer) of object;
 
+  { TStringList is case insensitive }
+  TDevStringList = class(TStringList)
+  protected
+    function CompareStrings(const S1, S2: string): Integer; override;
+  end;
 var
   CppKeywords : TStringHash;
   // These functions are about six times faster than the locale sensitive AnsiX() versions
+
 function StartsStr(const subtext, text: AnsiString): boolean;
 function StartsText(const subtext, text: AnsiString): boolean;
 
@@ -182,6 +195,11 @@ function IsAncestor(a:PStatement;b:PStatement):boolean;
 
 implementation
 
+function TDevStringList.CompareStrings(const S1, S2: string): Integer;
+begin
+  Result := AnsiCompareStr(S1, S2);
+end;
+
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
 var
   SearchStr, Patt, NewStr: AnsiString;
@@ -224,12 +242,10 @@ end;
 
 function FastIndexOf(List: TStringlist; const S: AnsiString): integer;
 begin
-  with List do begin
-    if not List.Sorted then
-      Result := FastIndexOf(TStrings(List), S)
-    else if not Find(S, Result) then
-      Result := -1;
-  end;
+  if not List.Sorted then
+    Result := FastIndexOf(TStrings(List), S)
+  else if not List.Find(S, Result) then
+    Result := -1;
 end;
 
 function StartsStr(const subtext, text: AnsiString): boolean;
@@ -369,21 +385,22 @@ end;
 
 function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
 var
-  I: integer;
   Dir: AnsiString;
+  s:AnsiString;
 begin
-  Result := StringReplace(FileName,'/','\',[rfReplaceAll]);
+  s := StringReplace(FileName,'/','\',[rfReplaceAll]);
+//  Result := FileName;
 
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
-  if StartsStr('c', Result) and not EndsStr('.h', Result) and not ContainsStr(Result, '.') then begin
-    Delete(Result, 1, 1);
-    Result := Result + '.h';
+  if StartsStr('c', s) and not ContainsStr(s, '.') then begin
+    Delete(s, 1, 1);
+    s := s + '.h';
   end;
 
   // Search local directory
   Dir := ExtractFilePath(RelativeTo);
-  if FileExists(Dir + Result) then begin // same dir as file
-    Result := Dir + Result;
+  if FileExists(Dir + s) then begin // same dir as file
+    Result := Dir + s;
     Exit;
   end;
 
@@ -403,28 +420,29 @@ end;
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString;
 var
   I: integer;
+  s:AnsiString;
 begin
   if  not Assigned(IncludePaths) then begin
     Result :='';
     Exit;
   end;
 
-  Result := FileName;
+  s := StringReplace(FileName,'/','\',[rfReplaceAll]);
+//  Result := FileName;
 
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
-  if StartsStr('c', Result) and not EndsStr('.h', Result) and not ContainsStr(Result, '.') then begin
-    Delete(Result, 1, 1);
-    Result := Result + '.h';
+  if StartsStr('c', s) and not ContainsStr(s, '.') then begin
+    Delete(s, 1, 1);
+    s := s + '.h';
   end;
 
   // Search compiler include directories
   for I := 0 to IncludePaths.Count - 1 do
-    if FileExists(IncludePaths[I] + '\' + FileName) then begin
-      Result := IncludePaths[I] + '\' + FileName;
+    if FileExists(IncludePaths[I] + '\' + s) then begin
+      Result := IncludePaths[I] + '\' + s;
       Exit;
     end;
 
-  //Result := FileName; // signifies failure
   Result := ''; //not found, don't use it
 end;
 
@@ -433,6 +451,7 @@ function GetHeaderFileName(const RelativeTo, Line: AnsiString; IncludePaths, Pro
   AnsiString;
 var
   OpenTokenPos, CloseTokenPos: integer;
+  FileName : AnsiString;
 begin
   Result := '';
 
@@ -441,10 +460,10 @@ begin
   if OpenTokenPos > 0 then begin
     CloseTokenpos := Pos('>', Line);
     if CloseTokenPos > 0 then begin
-      Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
-      Result := GetSystemHeaderFileName(Result, IncludePaths);
+      FileName := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
+      Result := GetSystemHeaderFileName(FileName, IncludePaths);
       if Result = '' then
-        Result := GetSystemHeaderFileName(Result, ProjectIncludePaths);
+        Result := GetSystemHeaderFileName(FileName, ProjectIncludePaths);
     end;
   end else begin
 
@@ -454,8 +473,8 @@ begin
       CloseTokenpos := Pos('"', Copy(Line, OpenTokenPos + 1, MaxInt));
       if CloseTokenPos > 0 then begin
         Inc(CloseTokenPos, OpenTokenPos);
-        Result := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
-        Result := GetLocalHeaderFileName(RelativeTo, Result);
+        FileName := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
+        Result := GetLocalHeaderFileName(RelativeTo, FileName);
       end;
     end;
   end;
@@ -643,13 +662,14 @@ begin
   CppKeywords.Add('new',Ord(skToSemicolon));
   CppKeywords.Add('return',Ord(skToSemicolon));
   CppKeywords.Add('throw',Ord(skToSemicolon));
-  CppKeywords.Add('using',Ord(skToSemicolon)); //won't use it
+//  CppKeywords.Add('using',Ord(skToSemicolon)); //won't use it
 
   // Skip to :
   CppKeywords.Add('case',Ord(skToColon));
   CppKeywords.Add('default',Ord(skToColon));
 
   // Skip to )
+  CppKeywords.Add('__attribute__',Ord(skToRightParenthesis)); 
   CppKeywords.Add('alignas',Ord(skToRightParenthesis));  // not right
   CppKeywords.Add('alignof',Ord(skToRightParenthesis));  // not right
   CppKeywords.Add('decltype',Ord(skToRightParenthesis)); // not right
@@ -663,7 +683,7 @@ begin
   CppKeywords.Add('asm',Ord(skToRightBrace));
   CppKeywords.Add('catch',Ord(skToLeftBrace));
   CppKeywords.Add('do',Ord(skToLeftBrace));
-  CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
+  //CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
   CppKeywords.Add('try',Ord(skToLeftBrace));
 
   // wont handle
@@ -714,6 +734,9 @@ begin
   CppKeywords.Add('struct',Ord(skNone));
   CppKeywords.Add('typedef',Ord(skNone));
   CppKeywords.Add('union',Ord(skNone));
+  // namespace
+  CppKeywords.Add('namespace',Ord(skNone));
+  CppKeywords.Add('using',Ord(skNone));
 
 
   // nullptr is value

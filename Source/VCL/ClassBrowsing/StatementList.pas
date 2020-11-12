@@ -25,6 +25,7 @@ uses
   Classes, CBUtils, Forms, SysUtils, iniFiles;
 
 type
+
   PStatementNode = ^TStatementNode;
   TStatementNode = record
     PrevNode: PStatementNode;
@@ -56,6 +57,7 @@ type
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
     procedure DumpTo(Filename:AnsiString);
+    procedure DumpWithScope(Filename:AnsiString);
     procedure Clear;
     property FirstNode: PStatementNode read fFirstNode;
     property LastNode: PStatementNode read fLastNode;
@@ -125,10 +127,11 @@ begin
   // Create a new one
   Node := New(PStatementNode);
   Node^.Data := Data;
+  Data^._Node := Node;
   OnNodeAdding(Node);
   Result := Node;
-  if Assigned(Data^._Parent) then begin
-    parent := Data^._Parent;
+  if Assigned(Data^._ParentScope) then begin
+    parent := Data^._ParentScope;
     if not Assigned(parent^._Children) then
       parent^._Children := TList.Create;
     parent^._Children.Add(Data);
@@ -144,12 +147,12 @@ var
   child:PStatement;
 begin
   // remove it from parent's children
-  if Assigned(Node^.Data^._Parent) then begin
-    Node^.Data^._Parent^._Children.remove(Node^.Data);
+  Node^.Data^._Node := nil;
+  if Assigned(Node^.Data^._ParentScope) then begin
+    Node^.Data^._ParentScope^._Children.remove(Node^.Data);
   end else begin
     fGlobalStatements.Remove(Node^.Data);
   end;
-
   if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then
       PStatement(Node^.Data)^._InheritanceList.Free;
@@ -157,12 +160,13 @@ begin
       Children := PStatement(Node^.Data)^._Children;
       for i:=0 to Children.Count-1 do begin
         child:=PStatement(Children[i]);
-        child^._Parent:=nil;
+        child^._ParentScope:=nil;
       end;
       Children.Free;
     end;
     if Assigned(PStatement(Node^.Data)^._Friends) then
       PStatement(Node^.Data)^._Friends.Free;
+    PStatement(Node^.Data)^._Usings.Free;
     Dispose(PStatement(Node^.Data));
   end;
   Dispose(PStatementNode(Node));
@@ -217,14 +221,20 @@ function TStatementList.DeleteStatement(Data: PStatement): Integer;
 var
   Node: PStatementNode;
 begin
-  Node := fFirstNode;
-  while Assigned(Node) do begin
-    if Node^.Data = Data then begin
+  Node := PStatementNode(Data^._Node);
+  if Assigned(Node) then begin
       OnNodeDeleting(Node); // updates information about linked list
       DisposeNode(Node);
-      break;
+  end else begin
+    Node := fFirstNode;
+    while Assigned(Node) do begin
+      if Node^.Data = Data then begin
+        OnNodeDeleting(Node); // updates information about linked list
+        DisposeNode(Node);
+        break;
+      end;
+      Node := Node^.NextNode;
     end;
-    Node := Node^.NextNode;
   end;
   Result := fCount;
 end;
@@ -283,9 +293,50 @@ begin
       NextNode := Node^.NextNode;
       // Do not call OnNodeDeleting, because all nodes will be cleared
       statement := PStatement(Node^.Data);
-      Add(Format('%s,%s,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._Parent)
+      Add(Format('%s,%s,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,integer(statement^._ParentScope)
         ,statement^._FileName,statement^._Line,statement^._DefinitionFileName,statement^._DefinitionLine]));
       Node := NextNode;
+    end;
+    SaveToFile(Filename);
+  finally
+    Free;
+  End;
+end;
+
+procedure TStatementList.DumpWithScope(Filename:AnsiString);
+var
+  i:integer;
+  statement:PStatement;
+  DumpFile : TStringList;
+  procedure DumpStatement( statement:PStatement;level:integer);
+  var
+    indent:AnsiString;
+    i:integer;
+    children:TList;
+    childStatement:PStatement;
+  begin
+    indent:='';
+    for i:=0 to level do
+      indent:=indent+'  ';
+    DumpFile.Add(indent+Format('%s,%s,%s,%d,%s,%d',[statement^._Command,statement^._Type,statement^._FullName,integer(statement^._ParentScope)
+        ,statement^._FileName,statement^._Line]));
+    children := statement^._Children;
+    if not Assigned(children) then begin
+      Exit;
+    end;
+    DumpFile.Add(indent + statement^._Command + ' {');
+    for i:=0 to children.Count -1 do begin
+      childStatement := PStatement(children[i]);
+      DumpStatement(childStatement,level+1);
+    end;
+    DumpFile.Add(indent + '}');
+  end;
+begin
+  DumpFile:=TStringList.Create;
+  with DumpFile do try
+    for i:=0 to fGlobalStatements.Count -1 do begin
+      Statement := PStatement(fGlobalStatements[i]);
+      DumpStatement(Statement,0);
     end;
     SaveToFile(Filename);
   finally

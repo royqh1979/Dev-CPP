@@ -963,6 +963,7 @@ type
     procedure SetStatusbarLineCol;
     procedure SetStatusbarMessage(const msg: AnsiString);
     procedure OnBacktraceReady;
+    procedure SetCppParserProject(Project:TProject);
 
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
@@ -1644,6 +1645,7 @@ begin
       CheckForDLLProfiling;
       UpdateAppTitle;
       UpdateCompilerList;
+      { we do it in project.open }
       ScanActiveProject;
     end else begin
       fProject.Free;
@@ -2094,7 +2096,7 @@ begin
         if MessageDlg(format(Lang[ID_MSG_CREATEFOLDER], [edProjectLocation.Text]),
             mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
           Exit;
-        if not CreateDir(edProjectLocation.Text) then begin
+        if not CreateDirRecursive(edProjectLocation.Text) then begin
           MessageDlg(format(Lang[ID_ERR_CREATEFOLDER], [edProjectLocation.Text]),
             mtError, [mbOK], 0);
           LogError('main.pas TMainForm.actNewProjectExecute',
@@ -2275,9 +2277,9 @@ begin
     if not fQuitting and RefreshEditor then begin
       //reset Class browsing
       LeftPageControl.ActivePage := LeftClassSheet;
+      ClassBrowser.ProjectDir := '';
       ClassBrowser.TabVisible := True;
       UpdateClassBrowsing;
-      ClassBrowser.ProjectDir := '';
       //UpdateClassBrowserForEditor(EditorList.GetEditor());
 
       e:=EditorList.GetEditor();
@@ -2836,6 +2838,7 @@ procedure TMainForm.actProjectOptionsExecute(Sender: TObject);
 begin
   if Assigned(fProject) then begin
     if fProject.ShowOptions = mrOk then begin
+      SetCppParserProject(fProject);
       UpdateAppTitle;
       UpdateCompilerList;
       UpdateProjectEditorsEncoding;
@@ -4093,8 +4096,8 @@ var
 begin
   // Configure parser
   CppParser.Reset;
-  CppParser.Tokenizer := CppTokenizer;
   CppParser.Preprocessor := CppPreprocessor;
+  CppParser.Tokenizer := CppTokenizer;
   CppParser.Enabled := devCodeCompletion.Enabled;
   CppParser.ParseLocalHeaders := devCodeCompletion.ParseLocalHeaders;
   CppParser.ParseGlobalHeaders := devCodeCompletion.ParseGlobalHeaders;
@@ -4156,27 +4159,27 @@ begin
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
 end;
 
+procedure TMainForm.SetCppParserProject(Project:TProject);
+var
+  i:integer;
+begin
+  CppParser.ProjectDir := Project.Directory;
+  CppParser.ClearProjectFiles;
+  for I := 0 to Project.Units.Count - 1 do
+    CppParser.AddFileToScan(Project.Units[I].FileName, True);
+  CppParser.ClearProjectIncludePaths;
+  for I := 0 to Project.Options.Includes.Count - 1 do
+    CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
+end;
+
 procedure TMainForm.ScanActiveProject;
 var
-  I: integer;
   e: TEditor;
 begin
   //UpdateClassBrowsing;
   if Assigned(fProject) then begin
-    CppParser.ProjectDir := fProject.Directory;
-    CppParser.ClearProjectFiles;
-    for I := 0 to fProject.Units.Count - 1 do
-      CppParser.AddFileToScan(fProject.Units[I].FileName, True);
-    CppParser.ClearProjectIncludePaths;
-    for I := 0 to fProject.Options.Includes.Count - 1 do
-      CppParser.AddProjectIncludePath(fProject.Options.Includes[I]);
   end else begin
-    e := fEditorList.GetEditor;
-    if Assigned(e) then begin
-      CppParser.ProjectDir := ExtractFilePath(e.FileName);
-      CppParser.AddFileToScan(e.FileName);
-    end else
-      CppParser.ProjectDir := '';
+    SetCppParserProject(fProject);
   end;
   CppParser.ParseFileList;
 end;

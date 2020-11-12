@@ -71,7 +71,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Top = 0
     Width = 712
     Height = 481
-    ActivePage = tabGeneral
+    ActivePage = tabFilesDir
     TabOrder = 3
     object tabGeneral: TTabSheet
       Caption = 'General'
@@ -498,7 +498,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Width = 660
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnChange = cmbCompilerChange
       end
@@ -623,8 +623,8 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Align = alClient
         TabOrder = 0
         Tabs.Strings = (
-          'Include Directories'
           'Libraries'
+          'Include Directories'
           'Resource Directories')
         TabIndex = 0
         OnChange = SubTabsChange

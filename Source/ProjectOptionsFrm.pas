@@ -247,12 +247,12 @@ begin
     newitem := fProjectCopy.Directory;
 
   case SubTabs.TabIndex of
-    0: begin // Include tab
-        if NewSelectDirectory('Include Directory', '', NewItem) then
+    0: begin // Lib tab
+        if NewSelectDirectory('Library Directory', '', NewItem) then
           edDirEntry.Text := NewItem;
       end;
-    1: begin // Lib tab
-        if NewSelectDirectory('Library Directory', '', NewItem) then
+    1: begin // Include tab
+        if NewSelectDirectory('Include Directory', '', NewItem) then
           edDirEntry.Text := NewItem;
       end;
     2: begin // Resource dir Tab
@@ -273,23 +273,23 @@ begin
     1: begin
         lstDirList.Items[lstDirList.ItemIndex] := item;
         case SubTabs.TabIndex of
-          0: fProjectCopy.Options.Includes[lstDirList.ItemIndex] := item;
-          1: fProjectCopy.Options.Libs[lstDirList.ItemIndex] := item;
+          0: fProjectCopy.Options.Libs[lstDirList.ItemIndex] := item;
+          1: fProjectCopy.Options.Includes[lstDirList.ItemIndex] := item;
           2: fProjectCopy.Options.ResourceIncludes[lstDirList.ItemIndex] := item;
         end;
       end;
     2: begin
         lstDirList.Items.Add(item);
         case SubTabs.TabIndex of
-          0: fProjectCopy.Options.Includes.Add(item);
-          1: fProjectCopy.Options.Libs.Add(item);
+          0: fProjectCopy.Options.Libs.Add(item);
+          1: fProjectCopy.Options.Includes.Add(item);
           2: fProjectCopy.Options.ResourceIncludes.Add(item);
         end;
       end;
     3: begin
         case SubTabs.TabIndex of
-          0: fProjectCopy.Options.Includes.Delete(lstDirList.ItemIndex);
-          1: fProjectCopy.Options.Libs.Delete(lstDirList.ItemIndex);
+          0: fProjectCopy.Options.Libs.Delete(lstDirList.ItemIndex);
+          1: fProjectCopy.Options.Includes.Delete(lstDirList.ItemIndex);
           2: fProjectCopy.Options.ResourceIncludes.Delete(lstDirList.ItemIndex);
         end;
         lstDirList.DeleteSelected;
@@ -299,8 +299,8 @@ begin
           for idx := lstDirList.Items.Count - 1 downto 0 do
             if not DirectoryExists(lstDirList.Items[idx]) then begin
               case SubTabs.TabIndex of
-                0: fProjectCopy.Options.Includes.Delete(idx);
-                1: fProjectCopy.Options.Libs.Delete(idx);
+                0: fProjectCopy.Options.Libs.Delete(idx);
+                1: fProjectCopy.Options.Includes.Delete(idx);
                 2: fProjectCopy.Options.ResourceIncludes.Delete(idx);
               end;
               lstDirList.Items.Delete(idx);
@@ -537,8 +537,8 @@ var
 begin
   sl := nil;
   case SubTabs.TabIndex of
-    0: sl := fProjectCopy.Options.Includes;
-    1: sl := fProjectCopy.Options.Libs;
+    0: sl := fProjectCopy.Options.Libs;
+    1: sl := fProjectCopy.Options.Includes;
     2: sl := fProjectCopy.Options.ResourceIncludes;
   end;
   if assigned(sl) then begin
@@ -555,8 +555,8 @@ end;
 procedure TProjectOptionsFrm.SubTabsChange(Sender: TObject);
 begin
   case SubTabs.TabIndex of
-    0: lstDirList.Items := fProjectCopy.Options.Includes;
-    1: lstDirList.Items := fProjectCopy.Options.Libs;
+    0: lstDirList.Items := fProjectCopy.Options.Libs;
+    1: lstDirList.Items := fProjectCopy.Options.Includes;
     2: lstDirList.Items := fProjectCopy.Options.ResourceIncludes;
   end;
   UpdateDirButtons;

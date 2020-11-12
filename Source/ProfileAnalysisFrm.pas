@@ -103,6 +103,7 @@ procedure TProfileAnalysisForm.DoFlat;
 var
   Params: AnsiString;
   Dir: AnsiString;
+  FileName: AnsiString;
   I, J: integer;
   Line, Phrase: AnsiString;
   spacepos: integer;
@@ -161,7 +162,7 @@ begin
       Phrase := Copy(addeditem.Caption, 1, Pos('(', addeditem.Caption) - 1)
     else
       Phrase := addeditem.Caption;
-    addeditem.Data := MainForm.CppParser.FindStatementOf(Phrase, nil);
+    addeditem.Data := MainForm.CppParser.FindStatementOf('',Phrase, nil);
 
     // Dive remaining part based on spaces
     Line := TrimLeft(buffer[i]);
@@ -264,7 +265,7 @@ begin
         Phrase := Copy(addeditem.Caption, 1, Pos('(', addeditem.Caption) - 1)
       else
         Phrase := addeditem.Caption;
-      addeditem.Data := MainForm.CppParser.FindStatementOf(Phrase, nil);
+      addeditem.Data := MainForm.CppParser.FindStatementOf('',Phrase, nil);
 
       // Divide remaining part based on spaces
       Line := TrimLeft(buffer[i]);

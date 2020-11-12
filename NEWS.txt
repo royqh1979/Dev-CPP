@@ -7,6 +7,7 @@ Version 6.1-beta1  November 2020
   - fix: left panel's has a min width when use the splitter to adjust its size
   - fix: when gdb is not finished a command executing( such as executing a scanf) , don't left user add watches. (Because gdb can't fetch watch info now)
   - enhancement: use TStringHash to test if an identifier is a keyword in SynEdit's cpp highlighter, mush easier to maintain; Add new cpp keywords to cpp highlighter
+
   - fix: if there're spaces in source file name, ConsolePauser will not find the compiled .exe file
   - fix: RemoveProjectUnit dialog layout error
 
@@ -14,6 +15,19 @@ Version 6.1-beta1  November 2020
   - change: lib and include dir tab order in project options dialog
   - change: devcpp.exe installed by the installer will create new project folders under user's document dir; devcpp.exe not installed will create them under Dev-CPP/projects dir.
   - fix: no caption action will crash when save/load custom shortcut settings
+
+  - enhancement: expand non-parameter macros in Parser's preprocessor
+  - fix: Crash when parsing and typedef is on the last line of file
+  - fix: memory leak in CppParser when processing namespace
+  - fix: nest structs processing error
+  - fix: expand macros error
+  - fix: expand macro with multiline value will cause wrong line info in statements 
+  - enhancement: C++ namespace support
+  - enhancement: ignore '__attribute__' in Parser
+  - enhancement: create project dir recursively
+  - fix: process #include <dir> 
+  - fix: project include dir not added to parser (and parse error) when open a project
+  - fix: crash when close project
 
 Version 6.0    November 2020
   

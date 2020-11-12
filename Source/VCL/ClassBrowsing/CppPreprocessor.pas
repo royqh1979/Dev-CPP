@@ -56,9 +56,9 @@ type
     fResult: TStringList;
     fCurrentIncludes: PFileIncludes;
     fPreProcIndex: integer;
-    fIncludesList: TList;
-    fHardDefines: TStringList; // set by "cpp -dM -E -xc NUL"
-    fDefines: TStringList; // working set, editable
+    fIncludesList: TStringList;
+    fHardDefines: TDevStringList; // set by "cpp -dM -E -xc NUL"
+    fDefines: TDevStringList; // working set, editable
     fFileDefines: TStringList; //dictionary to save defines for each headerfile; PDefine should be diposed here
     fIncludes: TList; // stack of files we've stepped into. last one is current file, first one is source file
     fBranchResults: TList;
@@ -80,6 +80,7 @@ type
     procedure HandleBranch(const Line: AnsiString);
     procedure HandleInclude(const Line: AnsiString);
     function ExpandMacros(const Line: AnsiString): AnsiString;
+    function RemoveGCCAttributes(const Line: AnsiString): AnsiString;
     function RemoveSuffixes(const Input: AnsiString): AnsiString;
     // current file stuff
     function GetInclude(index: integer): PFile;
@@ -102,20 +103,21 @@ type
     procedure GetDefineParts(const Input: AnsiString; var Name, Args, Value: AnsiString);
     procedure AddDefineByLine(const Line: AnsiString; HardCoded: boolean);
     function GetDefine(const Name: AnsiString; var Index: integer): PDefine;
+    function GetHardDefine(const Name: AnsiString; var Index: integer): PDefine;
     procedure Reset; //reset but don't clear generated defines
     procedure ResetDefines;
     procedure SetScanOptions(ParseSystem, ParseLocal: boolean);
     procedure SetIncludePaths(var List: TStringList);
     procedure SetProjectIncludePaths(var List: TStringList);
     procedure SetScannedFileList(var List: TStringList);
-    procedure SetIncludesList(var List: TList);
+    procedure SetIncludesList(var List: TStringList);
     procedure PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
     procedure PreprocessFile(const FileName: AnsiString);
     property Result: AnsiString read GetResult;
     procedure InvalidDefinesInFile(const FileName:AnsiString);
-
     //debug procedures
     procedure DumpIncludesListTo(FileName:ansiString);
+    procedure DumpDefinesTo(FileName:ansiString);
   end;
 
 procedure Register;
@@ -131,13 +133,13 @@ constructor TCppPreprocessor.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   fIncludes := TList.Create;
-  fHardDefines := TStringList.Create;
-  fDefines := TStringList.Create;
+  fHardDefines := TDevStringList.Create;
+  fDefines := TDevStringList.Create;
+  fDefines.Sorted := True;
+  fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fProcessed := TStringHash.Create;
   fFileDefines := TStringList.Create;
   fFileDefines.Sorted:=True;
-  fDefines.Sorted := True;
-  fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fBranchResults := TList.Create;
   fResult := TStringList.Create;
 end;
@@ -285,7 +287,10 @@ begin
     fCurrentIncludes^.BaseFile := FileName;
     fCurrentIncludes^.IncludeFiles := TStringList.Create;
     fCurrentIncludes^.IncludeFiles.Sorted:=True;
-    fIncludesList.Add(fCurrentIncludes);
+    fCurrentIncludes^.Usings := TStringList.Create;
+    fCurrentIncludes^.Usings.Sorted:=True;
+    fCurrentIncludes^.Statements:=TList.Create;
+    fIncludesList.AddObject(FileName,TObject(fCurrentIncludes));
   end;
 
   FileItem^.FileIncludes := fCurrentIncludes;
@@ -319,10 +324,12 @@ begin
   end;
   fIncludes.Add(FileItem);
 
+  {
   //Convert Unix EOL to Windows EOL
   if not ContainsStr(FileItem^.Buffer.Text,#13#10) then begin
     StringReplace(FileItem^.Buffer.Text,#10,#13#10,[rfReplaceAll]);
   end;
+  }
   
   // Process it
   fIndex := FileItem^.Index;
@@ -397,7 +404,7 @@ begin
   fParseLocal := ParseLocal;
 end;
 
-procedure TCppPreprocessor.SetIncludesList(var List: TList);
+procedure TCppPreprocessor.SetIncludesList(var List: TStringList);
 begin
   fIncludesList := List;
 end;
@@ -418,6 +425,8 @@ begin
 end;
 
 procedure TCppPreprocessor.SkipToPreprocessor;
+var
+  InCComment:boolean;
   function FirstLineChar(const Line: AnsiString): Char;
   begin
     if Length(Line) > 0 then
@@ -426,8 +435,13 @@ procedure TCppPreprocessor.SkipToPreprocessor;
       Result := #0;
   end;
 begin
+  InCComment:=False;
   // Increment until a line begins with a #
-  while (fIndex < fBuffer.Count) and (FirstLineChar(fBuffer[fIndex]) <> '#') do begin
+  while (fIndex < fBuffer.Count) and (InCComment or(FirstLineChar(fBuffer[fIndex]) <> '#')) do begin
+    if Pos('/*',fBuffer[fIndex]) >0 then
+      InCComment:=True;
+    if Pos('*/',fBuffer[fIndex]) >0 then
+      InCComment:=False;
     if GetCurrentBranch then // if not skipping, expand current macros
       fResult.Add(ExpandMacros(fBuffer[fIndex]))
     else // If skipping due to a failed branch, clear line
@@ -519,6 +533,15 @@ begin
     Result := nil;
 end;
 
+function TCppPreprocessor.GetHardDefine(const Name: AnsiString; var Index: integer): PDefine;
+begin
+  Index := FastIndexOf(fHardDefines,Name); // use sorted searching. is really fast
+  if Index <> -1 then
+    Result := PDefine(fHardDefines.Objects[Index])
+  else
+    Result := nil;
+end;
+
 procedure TCppPreprocessor.AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
 var
   Item: PDefine;
@@ -531,6 +554,7 @@ begin
   Item^.Args := Args;
   Item^.Value := Value;
   Item^.FileName := fFileName;
+  Item^.IsMultiLine := ContainsStr(Item^.Value, #10);
   Item^.HardCoded := HardCoded;
   if HardCoded then
     fHardDefines.AddObject(Name, Pointer(Item)) // uses TStringList too to be able to assign to fDefines easily
@@ -543,7 +567,8 @@ begin
       DefineList := TList(fFileDefines.Objects[idx]);
     end;
     DefineList.Add(Pointer(Item));
-    fDefines.AddObject(Name, Pointer(Item)); // sort by name
+    idx:=FastIndexOf(fDefines,Name);
+    fDefines.AddObject(Name, Pointer(Item));
   end;
 end;
 
@@ -660,20 +685,20 @@ begin
   // Remove undef
   Name := TrimLeft(Copy(Line, Length('undef') + 1, MaxInt));
 
-  // Remove from soft list only
-  Define := GetDefine(Name, Index);
-  if Assigned(Define) then begin
-    idx := FastIndexOf(fFileDefines,Define^.FileName);
-    if idx>0 then begin
-       DefineList:=TList(fFileDefines.Objects[idx]);
-       DefineList.Remove(Pointer(Define));
-       Dispose(PDefine(Define));
-    end;
-    {
-    if not Define^.HardCoded then // memory belongs to hardcoded list
-      Dispose(PDefine(Define));
-    }
-    fDefines.Delete(Index);
+  // may be defined many times
+  while True do begin
+    Define := GetDefine(Name, Index);
+    if Assigned(Define) then begin
+      fDefines.Delete(Index);
+      // Dispose define in files only
+      idx := FastIndexOf(fFileDefines,Define^.FileName);
+      if idx>0 then begin
+        DefineList:=TList(fFileDefines.Objects[idx]);
+        DefineList.Remove(Pointer(Define));
+        Dispose(PDefine(Define));
+      end;
+    end else
+      break;
   end;
 end;
 
@@ -1079,9 +1104,120 @@ begin
   OpenInclude(FileName);
 end;
 
-function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //  Too slow at the moment, so disabling.
+function TCppPreprocessor.RemoveGCCAttributes(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+var
+  word:AnsiString;
+  i:integer;
+  lenLine: integer;
+  newLine: AnsiString;
+
+  procedure RemoveGCCAttribute;
+  var
+    level:integer;
+  begin
+    if (word='__attribute__') then begin
+      while (i<= lenLine) and (Line[i] in [' ',#9]) do
+        inc(i);
+      if (i<=LenLine) and (Line[i]='(') then begin
+        level:=0;
+        while (i<= lenLine) do begin
+          case Line[i] of
+            '(': inc(level);
+            ')': dec(level);
+          end;
+          inc(i);
+          if (level=0) then
+            break;
+        end;
+      end;
+    end else begin
+      newLine:=newLine+word;
+    end;
+  end;
+
 begin
-  Result := Line;
+  newLine:='';
+  word := '';
+  lenLine := Length(Line);
+  i:=1;
+  while i<= lenLine do begin
+    if Line[i] in ['_','a'..'z','A'..'Z','0'..'9'] then begin
+      word:=word+Line[i];
+    end else begin
+      if word<>'' then begin
+        RemoveGCCAttribute;
+      end;
+      word :='';
+      if i<= lenLine then
+        newLine:= newLine+Line[i];
+    end;
+    inc(i);
+  end;
+  if word<>'' then begin
+    RemoveGCCAttribute;
+  end;
+  Result := newLine;
+end;
+
+{ We also remove gcc's __attribtue__ here }
+function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+var
+  word:AnsiString;
+  i:integer;
+  lenLine: integer;
+  newLIne: AnsiString;
+
+  procedure ExpandMacro;
+  var
+    level,Index:integer;
+    define:PDefine;
+  begin
+    if (word='__attribute__') then begin
+      while (i<= lenLine) and (Line[i] in [' ',#9]) do
+        inc(i);
+      if (i<=LenLine) and (Line[i]='(') then begin
+        level:=0;
+        while (i<= lenLine) do begin
+          case Line[i] of
+            '(': inc(level);
+            ')': dec(level);
+          end;
+          inc(i);
+          if (level=0) then
+            break;
+        end;
+      end;
+    end else begin
+      define:=GetDefine(word,index);
+      if Assigned(define) and (define^.args='') and not (define^.IsMultiLine) then begin
+        newLine:=newLine+RemoveGCCAttributes(define^.Value);
+      end else
+        newLine:=newLine+word;
+    end;
+  end;
+  
+begin
+  word := '';
+  newLine:='';
+  lenLine := Length(Line);
+  i:=1;
+  while i<= lenLine do begin
+    if Line[i] in ['_','a'..'z','A'..'Z','0'..'9'] then begin
+      word:=word+Line[i];
+    end else begin
+      if word<>'' then begin
+        ExpandMacro;
+      end;
+      word :='';
+      if i<= lenLine then
+        newLine:= newLine+Line[i];
+    end;
+    inc(i);
+  end;
+  if word<>'' then begin
+    ExpandMacro;
+  end;
+  Result := newLine;
 end;
 
 function TCppPreprocessor.RemoveSuffixes(const Input: AnsiString): AnsiString;
@@ -1104,11 +1240,9 @@ var
   I: integer;
 begin
   Result := nil;
-  for I := 0 to fIncludesList.Count - 1 do begin
-    if SameText(PFileIncludes(fIncludesList[I])^.BaseFile, Filename) then begin
-      Result := PFileIncludes(fIncludesList[I]);
-      Exit;
-    end;
+  i:=FastIndexOf(fIncludesList,FileName);
+  if i<>-1 then begin
+    Result := PFileIncludes(fIncludesList.Objects[I]);
   end;
 end;
 
@@ -1159,14 +1293,39 @@ var
   i:integer;
   t:integer;
   FileIncludes:PFileIncludes;
+  s:PStatement;
 begin
   with TStringList.Create do try
     for i:=0 to fIncludesList.Count -1 do begin
-      FileIncludes := PFileIncludes(fIncludesList[i]);
-      Add(FileIncludes^.BaseFile+' : ');
+      FileIncludes := PFileIncludes(fIncludesList.Objects[i]);
+      Add(fIncludesList[i]+' : ');
       for t:=0 to FileIncludes^.IncludeFiles.Count-1 do begin
-        Add(#9+FileIncludes^.IncludeFiles[t]);
+        Add(#9+'--'+FileIncludes^.IncludeFiles[t]);
       end;
+      for t:=0 to FileIncludes^.Usings.Count-1 do begin
+        Add(#9+'++'+FileIncludes^.Usings[t]);
+      end;
+      for t:=0 to FileIncludes^.Statements.Count-1 do begin
+        S:=FileIncludes^.Statements[t];
+        Add(#9+'**'+Format('%s , %s',[s^._Command, s^._FullName] ));
+      end;
+    end;
+    SaveToFile(FileName);
+  finally
+    Free;
+  end;
+end;
+
+procedure TCppPreprocessor.DumpDefinesTo(FileName:ansiString);
+var
+  i:integer;
+  define:PDefine;
+begin
+  with TStringList.Create do try
+    for i:=0 to fDefines.Count -1 do begin
+      define := PDefine(fDefines.Objects[i]);
+      Add(Format('%s %s %s %d',
+      [define^.Name,define^.Args,define^.Value,integer(define^.HardCoded)]));
     end;
     SaveToFile(FileName);
   finally
@@ -1182,6 +1341,12 @@ var
 begin
   idx := FastIndexOf(fFileDefines,FileName);
   if idx<>-1 then begin
+    i:=fDefines.Count-1;
+    while (i>=0) do begin
+      define:=PDefine(fDefines[i]);
+      if SameText(define^.FileName,FileName) then
+        fDefines.Delete(i);
+    end;
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin
       define:=PDefine(DefineList[i]);
