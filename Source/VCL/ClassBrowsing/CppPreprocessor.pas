@@ -567,7 +567,6 @@ begin
       DefineList := TList(fFileDefines.Objects[idx]);
     end;
     DefineList.Add(Pointer(Item));
-    idx:=FastIndexOf(fDefines,Name);
     fDefines.AddObject(Name, Pointer(Item));
   end;
 end;
@@ -679,26 +678,33 @@ procedure TCppPreprocessor.HandleUndefine(const Line: AnsiString);
 var
   Define: PDefine;
   Name: AnsiString;
-  Index,idx: integer;
+  Index,idx,i: integer;
   DefineList:TList;
+  files:TStringList;
 begin
   // Remove undef
   Name := TrimLeft(Copy(Line, Length('undef') + 1, MaxInt));
 
+  files:=TStringList.Create;
+  files.Sorted:=True;
+  files.Duplicates:=dupIgnore;
   // may be defined many times
   while True do begin
     Define := GetDefine(Name, Index);
     if Assigned(Define) then begin
       fDefines.Delete(Index);
-      // Dispose define in files only
-      idx := FastIndexOf(fFileDefines,Define^.FileName);
-      if idx>0 then begin
-        DefineList:=TList(fFileDefines.Objects[idx]);
-        DefineList.Remove(Pointer(Define));
-        Dispose(PDefine(Define));
-      end;
+      files.AddObject(Define^.FileName,Pointer(Define));
     end else
       break;
+  end;
+  for i:=0 to files.Count-1 do begin
+    Define:= PDefine(files.objects[i]);
+    idx:=FastIndexOf(fFileDefines,files[i]);
+    if idx>0 then begin
+      DefineList:=TList(fFileDefines.Objects[idx]);
+      DefineList.Remove(Pointer(Define));
+      Dispose(PDefine(Define));
+    end;
   end;
 end;
 

@@ -2117,15 +2117,14 @@ begin
     Exit;
   end;
 
-
-  
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-
+  }
 
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
@@ -2153,11 +2152,11 @@ begin
   try
     repeat
     until not HandleStatement;
-    fTokenizer.DumpTokens('f:\tokens.txt');
-    Statements.DumpTo('f:\stats.txt');
-    Statements.DumpWithScope('f:\\statements.txt');
-    fPreprocessor.DumpDefinesTo('f:\defines.txt');
-    fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+    //fTokenizer.DumpTokens('f:\tokens.txt');
+    //Statements.DumpTo('f:\stats.txt');
+    //Statements.DumpWithScope('f:\\statements.txt');
+    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
+    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     for i:=0 to fCurrentScope.Count-1 do
@@ -2785,13 +2784,15 @@ begin
         fPreprocessor.PreProcessStream(FileName, Stream);
         // Tokenize the stream so we can find the start and end of the function body
         fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+        {
         with TStringList.Create do try
           Text:=fPreprocessor.Result;
           SaveToFile('f:\preprocessor-local.txt');
         finally
           Free;
         end;
-        fTokenizer.DumpTokens('f:\tokens-local.txt');
+        }
+        //fTokenizer.DumpTokens('f:\tokens-local.txt');
       end;
 
       // Find start of the function block and start from the opening brace
@@ -3520,7 +3521,7 @@ end;
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
 begin
   Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Row, Stream));
-  Statements.DumpWithScope('f:\\local-statements.txt');
+  //Statements.DumpWithScope('f:\\local-statements.txt');
 end;
 
 procedure TCppParser.DeleteTemporaries;
