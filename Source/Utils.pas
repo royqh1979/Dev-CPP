@@ -188,6 +188,7 @@ procedure AppendToFile(filename:AnsiString; text:AnsiString);overload;
 procedure AppendToFile(filename:AnsiString; strings:TStrings);overload;
 procedure LogError(source:AnsiString; msg:AnsiString);
 
+function CreateDirRecursive(const Dir: string): Boolean;
 
 implementation
 
@@ -1590,6 +1591,24 @@ begin
     Format('%s %s: %s'#13#10,[FormatDateTime('yyyy/mm/dd tt',Now),source,msg]));
 
 end;
+
+function CreateDirRecursive(const Dir: string): Boolean;
+var
+  parentDir:AnsiString;
+begin
+  parentDir :=  ExcludeTrailingPathDelimiter( ExtractFilePath(Dir));
+  if parentDir=Dir then begin
+    Result:=False;
+    Exit;
+  end;
+  if not DirectoryExists(parentDir) then begin
+    Result:=CreateDirRecursive(parentDir);
+    if not Result then
+      Exit;
+  end;
+  Result:=CreateDir(Dir);
+end;
+
 
 end.
 

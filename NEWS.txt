@@ -23,6 +23,10 @@ Version 6.1-beta1  November 2020
   - fix: expand macros error
   - fix: expand macro with multiline value will cause wrong line info in statements 
   - enhancement: C++ namespace support
+  - enhancement: ignore '__attribute__' in Parser
+  - enhancement: create project dir recursively
+  - fix: process #include <dir> 
+  - fix: project include dir not added to parser (and parse error) when open a project
 
 Version 6.0    November 2020
   

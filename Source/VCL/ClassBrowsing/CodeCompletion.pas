@@ -57,7 +57,7 @@ type
     fUsings: TStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
-    fAddedStatements : TStringList;
+    fAddedStatements : TDevStringList;
     fPreparing: boolean;
     fPhrase : AnsiString;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
@@ -120,7 +120,7 @@ begin
 
   fUsings:=TStringList.Create;
   fUsings.Sorted := True;
-  fAddedStatements := TStringList.Create;
+  fAddedStatements := TDevStringList.Create;
   fAddedStatements.Sorted:=True;
   fCompletionStatementList := TList.Create;
   fFullCompletionStatementList := TList.Create;
@@ -156,14 +156,27 @@ var
   Children : TList;
   i:integer;
 begin
+  if assigned(ScopeStatement) and not IsIncluded(ScopeStatement^._FileName) then
+    Exit ;
   Children := fParser.Statements.GetChildrenStatements(ScopeStatement);
   if not Assigned(Children) then
     Exit;
-  for i:=0 to Children.Count-1 do begin
-    ChildStatement:=PStatement(Children[i]);
-    if IsIncluded(ChildStatement^._FileName) and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
-      fAddedStatements.Add(ChildStatement^._Command);
-      fFullCompletionStatementList.Add(ChildStatement);
+  if not Assigned(ScopeStatement) then begin //Global scope
+    for i:=0 to Children.Count-1 do begin
+      ChildStatement:=PStatement(Children[i]);
+      if not( ChildStatement^._Kind in [skConstructor, skDestructor])
+        and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+        fAddedStatements.Add(ChildStatement^._Command);
+        fFullCompletionStatementList.Add(ChildStatement);
+      end;
+    end;
+  end else begin
+    for i:=0 to Children.Count-1 do begin
+      ChildStatement:=PStatement(Children[i]);
+      if (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+        fAddedStatements.Add(ChildStatement^._Command);
+        fFullCompletionStatementList.Add(ChildStatement);
+      end;
     end;
   end;
 end;
@@ -245,6 +258,10 @@ begin
         // Get type statement  of current (scope) statement
 
         ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
+        if not Assigned(ClassTypeStatement) then
+          Exit;
+        if not IsIncluded(ClassTypeStatement^._FileName) then
+          Exit;
         if (ClassTypeStatement = ScopeTypeStatement) or (statement^._Command = 'this') then begin
           //we can use all members
           AddChildren(ClassTypeStatement);
@@ -255,6 +272,7 @@ begin
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
             if (ChildStatement^._ClassScope=scsPublic)
+              and not (ChildStatement^._Kind in [skConstructor,skDestructor])
               and( FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
               fAddedStatements.Add(ChildStatement^._Command);
               fFullCompletionStatementList.Add(ChildStatement);
@@ -264,6 +282,10 @@ begin
       //todo friend
       end else if (opType in [otDColon]) and (statement^._Kind = skClass )then begin
         ClassTypeStatement:=statement;
+        if not Assigned(ClassTypeStatement) then
+          Exit;
+        if not IsIncluded(ClassTypeStatement^._FileName) then
+          Exit;
         if (ClassTypeStatement = ScopeTypeStatement) then begin
           //we can use all static members
           Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);

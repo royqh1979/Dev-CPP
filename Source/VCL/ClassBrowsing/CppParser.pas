@@ -340,6 +340,7 @@ begin
     skTypedef: Result := 'T';
     skEnum: Result := 'E';
     skUnknown: Result := 'U';
+    skNamespace: Result := 'N';
   end;
 end;
 
@@ -935,6 +936,7 @@ begin
     SameStr(fTokenizer[fIndex+dis]^.Text, 'struct') or
     SameStr(fTokenizer[fIndex+dis]^.Text, 'class') or
     SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
+
   if Result then begin
     if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
       I := fIndex+dis;
@@ -943,12 +945,15 @@ begin
       //		{"debug", 1, 0, 'D'},
       //		{"info", 0, 0, 'i'},
       //    ...
-      //  };
+      // };
       while (I < fTokenizer.Tokens.Count) and not (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] in [';', ':', '{',
-        '}', ',', ')', ']']) do
+        '}', ',', ')', ']']) do begin
         Inc(I);
-      if (I < fTokenizer.Tokens.Count) and not (fTokenizer[I]^.Text[1] in ['{', ':']) then
+      end;
+
+      if (I < fTokenizer.Tokens.Count) and not (fTokenizer[I]^.Text[1] in ['{', ':',';']) then begin
         Result := False;
+      end;
     end;
   end;
 end;
@@ -1347,7 +1352,6 @@ var
 begin
   startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip 'namespace'
-
 
   if (fTokenizer[fIndex]^.Text[1] in [';', '=', '{']) then begin
     //wrong namespace define, stop handling
@@ -2149,6 +2153,7 @@ begin
   try
     repeat
     until not HandleStatement;
+    fTokenizer.DumpTokens('f:\tokens.txt');
     Statements.DumpTo('f:\stats.txt');
     Statements.DumpWithScope('f:\\statements.txt');
     fPreprocessor.DumpDefinesTo('f:\defines.txt');
@@ -2780,6 +2785,13 @@ begin
         fPreprocessor.PreProcessStream(FileName, Stream);
         // Tokenize the stream so we can find the start and end of the function body
         fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+        with TStringList.Create do try
+          Text:=fPreprocessor.Result;
+          SaveToFile('f:\preprocessor-local.txt');
+        finally
+          Free;
+        end;
+        fTokenizer.DumpTokens('f:\tokens-local.txt');
       end;
 
       // Find start of the function block and start from the opening brace
@@ -3130,7 +3142,7 @@ begin
 
   scopeStatement:= currentClass;
 
-  Statement :=FindStatementOf(FileName,aType,currentClass);
+  Statement :=FindStatementOf(FileName,s,currentClass);
   Result := GetTypeDef(Statement);
 
   {

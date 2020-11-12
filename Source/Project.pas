@@ -1046,6 +1046,9 @@ begin
     end;
   end;
 
+  // reset cppparser
+  MainForm.SetCppParserProject(self);
+
   case devData.AutoOpen of
     0: begin
         for i := 0 to pred(fUnits.Count) do
