@@ -27,6 +27,7 @@ Version 6.1-beta1  November 2020
   - enhancement: create project dir recursively
   - fix: process #include <dir> 
   - fix: project include dir not added to parser (and parse error) when open a project
+  - fix: crash when close project
 
 Version 6.0    November 2020
   

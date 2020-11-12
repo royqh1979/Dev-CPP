@@ -2214,7 +2214,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
-    Dispose(PFileIncludes(fIncludesList[I]));
+    Dispose(PFileIncludes(fIncludesList.Objects[i][I]));
   end;
   fIncludesList.Clear;
 
