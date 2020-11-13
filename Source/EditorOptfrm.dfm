@@ -1,6 +1,6 @@
 object EditorOptForm: TEditorOptForm
-  Left = 811
-  Top = 32
+  Left = 925
+  Top = 182
   BorderStyle = bsDialog
   Caption = 'Editor Options'
   ClientHeight = 645
@@ -915,14 +915,12 @@ object EditorOptForm: TEditorOptForm
             Height = 20
             Caption = 'Delay (ms):'
           end
-          object chkEnableCompletion: TCheckBox
-            Left = 11
-            Top = 11
-            Width = 609
-            Height = 22
-            Caption = 'Enable code-completion'
-            TabOrder = 0
-            OnClick = chkEnableCompletionClick
+          object lbCodeSuggestionShowCount: TLabel
+            Left = 8
+            Top = 304
+            Width = 292
+            Height = 20
+            Caption = 'Max number of items in suggestion window:'
           end
           object cpCompletionBackground: TColorBox
             Left = 444
@@ -932,7 +930,7 @@ object EditorOptForm: TEditorOptForm
             DefaultColorColor = clWhite
             Style = [cbStandardColors, cbCustomColor, cbPrettyNames]
             ItemHeight = 16
-            TabOrder = 1
+            TabOrder = 0
           end
           object gbCBEngine: TGroupBox
             Left = 11
@@ -940,7 +938,7 @@ object EditorOptForm: TEditorOptForm
             Width = 609
             Height = 87
             Caption = 'Engine behaviour'
-            TabOrder = 2
+            TabOrder = 1
             object chkCBParseLocalH: TCheckBox
               Left = 11
               Top = 27
@@ -969,7 +967,7 @@ object EditorOptForm: TEditorOptForm
             Frequency = 50
             Position = 1000
             ShowHint = False
-            TabOrder = 3
+            TabOrder = 2
             TickMarks = tmBoth
             OnChange = tbCompletionDelayChange
           end
@@ -979,7 +977,7 @@ object EditorOptForm: TEditorOptForm
             Width = 609
             Height = 22
             Caption = 'Use Alt+/ instead of Ctrl+Space'
-            TabOrder = 4
+            TabOrder = 3
           end
           object cbShowCompletionWhileInputing: TCheckBox
             Left = 11
@@ -987,7 +985,28 @@ object EditorOptForm: TEditorOptForm
             Width = 609
             Height = 22
             Caption = 'Code Completion while inputing'
+            TabOrder = 4
+            OnClick = cbShowCompletionWhileInputingClick
+          end
+          object txtCodeSuggestionMaxCount: TSpinEdit
+            Left = 8
+            Top = 336
+            Width = 233
+            Height = 31
+            Increment = 10
+            MaxValue = 0
+            MinValue = 0
             TabOrder = 5
+            Value = 1000
+          end
+          object chkEnableCompletion: TCheckBox
+            Left = 11
+            Top = 11
+            Width = 609
+            Height = 22
+            Caption = 'Enable Code Compeltion'
+            TabOrder = 6
+            OnClick = chkEnableCompletionClick
           end
         end
         object tabSymbolCompletion: TTabSheet

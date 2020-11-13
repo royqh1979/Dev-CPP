@@ -3150,7 +3150,7 @@ object MainForm: TMainForm
     Top = 196
   end
   object CodeCompletion: TCodeCompletion
-    ShowCount = 100
+    ShowCount = 1000
     Parser = CppParser
     Color = clWhite
     Width = 320

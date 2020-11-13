@@ -4163,24 +4163,23 @@ procedure TMainForm.SetCppParserProject(Project:TProject);
 var
   i:integer;
 begin
-  CppParser.ProjectDir := Project.Directory;
   CppParser.ClearProjectFiles;
+  CppParser.ClearProjectIncludePaths;
+  if not Assigned(Project) then begin
+    CppParser.ProjectDir := '';
+    Exit;
+  end;
+  CppParser.ProjectDir := Project.Directory;
   for I := 0 to Project.Units.Count - 1 do
     CppParser.AddFileToScan(Project.Units[I].FileName, True);
-  CppParser.ClearProjectIncludePaths;
   for I := 0 to Project.Options.Includes.Count - 1 do
     CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
 end;
 
 procedure TMainForm.ScanActiveProject;
-var
-  e: TEditor;
 begin
   //UpdateClassBrowsing;
-  if Assigned(fProject) then begin
-  end else begin
-    SetCppParserProject(fProject);
-  end;
+  SetCppParserProject(fProject);
   CppParser.ParseFileList;
 end;
 
@@ -5162,6 +5161,7 @@ begin
     e.FunctionTip.ReleaseHandle;
     e.CompletionBox.Hide;
   end;
+  ClassBrowser.BeginUpdate;
 
   fParseStartTime := GetTickCount;
 end;
@@ -5202,6 +5202,7 @@ begin
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGINCOUNT], [Total, ParseTimeFloat, ParsingFrequency]))
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
+  ClassBrowser.EndUpdate;
 end;
 
 procedure TMainForm.UpdateAppTitle;

@@ -1391,6 +1391,7 @@ begin
   Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
 
+  fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
   // Redirect key presses to completion box if applicable

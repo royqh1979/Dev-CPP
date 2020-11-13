@@ -286,9 +286,12 @@ begin
     fCurrentIncludes := New(PFileIncludes);
     fCurrentIncludes^.BaseFile := FileName;
     fCurrentIncludes^.IncludeFiles := TStringList.Create;
+    fCurrentIncludes^.IncludeFiles.Duplicates:=dupIgnore;
     fCurrentIncludes^.IncludeFiles.Sorted:=True;
-    fCurrentIncludes^.Usings := TStringList.Create;
+    fCurrentIncludes^.Usings := TDevStringList.Create;
+    fCurrentIncludes^.Usings.Duplicates := dupIgnore;
     fCurrentIncludes^.Usings.Sorted:=True;
+    fCurrentIncludes^.Usings.Add('std'); //using std by default
     fCurrentIncludes^.Statements:=TList.Create;
     fIncludesList.AddObject(FileName,TObject(fCurrentIncludes));
   end;
@@ -688,23 +691,27 @@ begin
   files:=TStringList.Create;
   files.Sorted:=True;
   files.Duplicates:=dupIgnore;
-  // may be defined many times
-  while True do begin
-    Define := GetDefine(Name, Index);
-    if Assigned(Define) then begin
-      fDefines.Delete(Index);
-      files.AddObject(Define^.FileName,Pointer(Define));
-    end else
-      break;
-  end;
-  for i:=0 to files.Count-1 do begin
-    Define:= PDefine(files.objects[i]);
-    idx:=FastIndexOf(fFileDefines,files[i]);
-    if idx>0 then begin
-      DefineList:=TList(fFileDefines.Objects[idx]);
-      DefineList.Remove(Pointer(Define));
-      Dispose(PDefine(Define));
+  try
+    // may be defined many times
+    while True do begin
+      Define := GetDefine(Name, Index);
+      if Assigned(Define) then begin
+        fDefines.Delete(Index);
+        files.AddObject(Define^.FileName,Pointer(Define));
+      end else
+        break;
     end;
+    for i:=0 to files.Count-1 do begin
+      Define:= PDefine(files.objects[i]);
+      idx:=FastIndexOf(fFileDefines,files[i]);
+      if idx>0 then begin
+        DefineList:=TList(fFileDefines.Objects[idx]);
+        DefineList.Remove(Pointer(Define));
+        Dispose(PDefine(Define));
+      end;
+    end;
+  finally
+    files.Free;
   end;
 end;
 
@@ -1349,9 +1356,10 @@ begin
   if idx<>-1 then begin
     i:=fDefines.Count-1;
     while (i>=0) do begin
-      define:=PDefine(fDefines[i]);
+      define:=PDefine(fDefines.objects[i]);
       if SameText(define^.FileName,FileName) then
         fDefines.Delete(i);
+      dec(i);
     end;
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin
