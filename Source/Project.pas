@@ -764,7 +764,7 @@ begin
       fOptions.IncludeVersionInfo := ReadBool('Project', 'IncludeVersionInfo', False);
       fOptions.SupportXPThemes := ReadBool('Project', 'SupportXPThemes', False);
       fOptions.CompilerSet := ReadInteger('Project', 'CompilerSet', devCompilerSets.DefaultSetIndex);
-      if fOptions.CompilerSet >= devCompilerSets.Count then begin // TODO: change from indices to names
+      if (fOptions.CompilerSet >= devCompilerSets.Count) or (fOptions.CompilerSet < 0)  then begin // TODO: change from indices to names
         MessageDlg(Lang[ID_MSG_COMPILERNOTFOUND], mtError, [mbOk], 0);
         fOptions.CompilerSet := devCompilerSets.DefaultSetIndex;
         Modified := True;
