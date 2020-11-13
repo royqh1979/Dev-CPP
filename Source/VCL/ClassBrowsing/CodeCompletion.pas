@@ -190,7 +190,7 @@ var
   Children : TList;
   I,t,k: integer;
   ScopeTypeStatement, Statement : PStatement;
-  ScopeName, namespaceName: AnsiString;
+  ScopeName, namespaceName,typeName: AnsiString;
   opType: TOperatorType;
 begin
   // Reset filter cache
@@ -261,6 +261,19 @@ begin
         ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
         if not Assigned(ClassTypeStatement) then
           Exit;
+        //is a smart pointer
+        if ((ClassTypeStatement^._FullName = 'std::unique_ptr')
+           or (ClassTypeStatement^._FullName = 'std::auto_ptr')
+           or (ClassTypeStatement^._FullName = 'std::shared_ptr')
+           or (ClassTypeStatement^._FullName = 'std::weak_ptr'))
+           and (opType=otArrow) then begin
+          i:=Pos('<',Statement^._Type);
+          t:=LastDelimiter('>',Statement^._Type);
+          typeName:=Copy(Statement^._Type,i+1,t-i-1);
+          ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,fCurrentStatement);
+          if not Assigned(ClassTypeStatement) then
+            Exit;
+        end;
         if not IsIncluded(ClassTypeStatement^._FileName) then
           Exit;
         if (ClassTypeStatement = ScopeTypeStatement) or (statement^._Command = 'this') then begin

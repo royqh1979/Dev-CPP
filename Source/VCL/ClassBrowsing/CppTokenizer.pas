@@ -124,7 +124,6 @@ var
 begin
   for I := 0 to fTokenList.Count - 1 do
     Dispose(PToken(fTokenList[I]));
-  fTokenList.Free;
   inherited Destroy;
 end;
 
@@ -418,13 +417,15 @@ var
   Offset: PAnsiChar;
   S: AnsiString;
   tmp: integer;
-//  bFoundTemplate: boolean;
+//  bIsSmartPointer: boolean;
+  bFoundTemplate: boolean;
   function CurrentWordEquals(const Text : AnsiString) : Boolean;
   begin
     Result := (pCurrent - Offset = Length(Text)) and (StrLComp(PAnsiChar(Text), Offset, pCurrent - Offset) = 0);
   end;
 begin
-//  bFoundTemplate := false;
+  bFoundTemplate := false;
+//  bIsSmartPointer:=False;
 
   // Skip spaces
   SkipToNextToken;
@@ -446,9 +447,16 @@ begin
     // Find end of operator
     while pCurrent^ in OperatorChars do
       Inc(pCurrent);
-//  end else if CurrentWordEquals('template') then begin
-//    bFoundTemplate := true;
+  end else if CurrentWordEquals('template') then begin
+    bFoundTemplate := true;
   end;
+  {
+  end else if CurrentWordEquals('shared_ptr') or CurrentWordEquals('weak_ptr')
+    or CurrentWordEquals('auto_ptr') or CurrentWordEquals('unique_ptr') then begin
+    bIsSmartPointer := True;
+  end;
+  }
+
 
   // We found a word...
   if Offset <> pCurrent then begin
@@ -459,10 +467,14 @@ begin
 
     // Skip template contents, but keep template variable types
     if pCurrent^ = '<' then begin
-      Offset := pCurrent;
+      Offset := pCurrent; //we don't skip 
       SkipTemplateArgs;
-//      if not bFoundTemplate then
-//        CatString(Result, Offset, pCurrent - Offset);
+
+      if not bFoundTemplate then begin
+//      if bIsSmartPointer then begin
+        CatString(Result, Offset, pCurrent - Offset);
+        SkipToNextToken;
+      end;
 
       // Append array stuff
     end else if bSkipArray and (pCurrent^ = '[') then begin

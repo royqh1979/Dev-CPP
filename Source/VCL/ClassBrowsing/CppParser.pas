@@ -589,6 +589,8 @@ var
   //NewKind: TStatementKind;
   NewType, NewCommand: AnsiString;
   node: PStatementNode;
+  //t,lenCmd:integer;
+
   function AddToList: PStatement;
   var
     i: integer;
@@ -664,7 +666,14 @@ begin
     Delete(NewCommand, 1, 1); // remove first
   end;
 
-
+  {
+  lenCmd:=Length(NewCommand);
+  if (lenCmd>3) and (NewCommand[lenCmd] ='>') then begin
+    t:=Pos('<',NewCommand);
+    if t>0 then
+      Delete(NewCommand,t,MaxInt);
+  end;
+  }
   {
   NewKind := Kind;
   // Remove namespace stuff from type (until we support namespaces)
@@ -756,9 +765,18 @@ var
   CurrentScopeLevel: TList;
   I: integer;
   Statement: PStatement;
+  //s:AnsiString;
 begin
   Result := nil;
   CurrentScopeLevel := GetCurrentScopeLevel;
+  {
+  // remove template staff
+  i:=Pos('<',command);
+  if i>0 then
+    s:=Copy(Command,1,i-1)
+  else
+    s:=Command;
+  }
   if Assigned(CurrentScopeLevel) then begin
     for I := 0 to CurrentScopeLevel.Count - 1 do begin
       Statement := CurrentScopeLevel[i];
@@ -1018,7 +1036,7 @@ function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;
   var isStatic:boolean;var IsFriend:boolean): boolean;
 var
   CurrentScopeLevel: TList;
-  fIndexBackup, DelimPos: integer;
+  fIndexBackup, DelimPos,pos1: integer;
   bTypeOK, bNameOK, bArgsOK: boolean;
   s:AnsiString;
 begin
@@ -1064,6 +1082,14 @@ begin
         if DelimPos > 0 then begin
           bTypeOK := true;
           sType := Copy(sName, 1, DelimPos - 1);
+
+          // remove template staff
+          pos1 := Pos('<', sType);
+          if pos1>0 then begin
+            Delete(sType,pos1,MaxInt);
+            sName:=sType+Copy(sName,DelimPos,MaxInt);
+          end;
+
         end;
       end;
 
