@@ -5161,6 +5161,7 @@ begin
     e.FunctionTip.ReleaseHandle;
     e.CompletionBox.Hide;
   end;
+  ClassBrowser.BeginUpdate;
 
   fParseStartTime := GetTickCount;
 end;
@@ -5201,6 +5202,7 @@ begin
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGINCOUNT], [Total, ParseTimeFloat, ParsingFrequency]))
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
+  ClassBrowser.EndUpdate;
 end;
 
 procedure TMainForm.UpdateAppTitle;

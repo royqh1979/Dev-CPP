@@ -8,6 +8,7 @@ Version 6.1-beta2 November 2020
  - Fix: Forward declaration and definition can't be matched by the parser, when declaration parameters don't have name. (still don't work if parameters name in declaration and definition is not the same);
  - enhancement: code completion support smart pointers
  - fix: Parser can get template parameters of variables now(but we don't use it now..)
+ - fix: Crash when classbrowser is showing and resize main window
 
 
 Version 6.1-beta1.1 November 2020
