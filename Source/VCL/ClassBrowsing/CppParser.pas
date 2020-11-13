@@ -165,7 +165,7 @@ type
     procedure AddHardDefineByLine(const Line: AnsiString);
     procedure InvalidateFile(const FileName: AnsiString);
     procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
-    procedure GetFileUsings(const Filename: AnsiString; var List: TStringList);
+    procedure GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
     function IsCfile(const Filename: AnsiString): boolean;
     function IsHfile(const Filename: AnsiString): boolean;
     procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
@@ -200,7 +200,7 @@ type
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
     {Find statement starting from startScope}
-    function FindStatementStartingFrom(const Phrase: AnsiString; startScope: PStatement): PStatement;
+    function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
@@ -3243,7 +3243,7 @@ begin
 end;
 
 // find allStatment
-function TCppParser.FindStatementStartingFrom(const Phrase: AnsiString; startScope: PStatement): PStatement;
+function TCppParser.FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
 var
 //  Statement: PStatement;
   namespaceStatement,scopeStatement: PStatement;
@@ -3251,6 +3251,7 @@ var
   namespaceStatementsList :TList;
   t,k:integer;
   namespacename: AnsiString;
+  FileUsings: TDevStringList;
 begin
   Result := nil;
   if fParsing then
@@ -3289,71 +3290,27 @@ begin
   if Assigned(Result) then
     Exit;
   Result := nil;
-  //TODO: 
-  //FindFileUsings(
-  {
+
+  //FindFileUsings
+  FileUsings:=TDevStringList.Create;
   try
-    // Search members of all fusings
-    for t:=0 to fUsings.Count-1 do begin
-      namespaceName := fUsings[t];
-      namespaceStatementsList:=fParser.FindNamespace(namespaceName);
-    if not Assigned(namespaceStatementsList) then
-      continue;
-    for k:=0 to namespaceStatementsList.Count-1 do begin
-      namespaceStatement:=PStatement(namespaceStatementsList[k]);
-      AddChildren(namespaceStatement);
-    end;
-  end;
-  finally
-    UsingNames.Free;
-  end;
-  GlobalStatement:=nil;
-  // Check local variables
-  Children := Statements.GetChildrenStatements(nil);
-  if Assigned(Children) then begin
-    for i:=0 to Children.Count-1 do
-    begin
-      Statement := PStatement(Children[i]);
-      // Local scope variables (includes function arguments)
-      if (Statement^._Scope = ssLocal) then begin
-        if SameStr(Statement^._Command, Phrase) then begin
-          result := Statement;
+    GetFileUsings(FileName,FileUsings);
+    // add members of all fusings
+    for t:=0 to FileUsings.Count-1 do begin
+      namespaceName := FileUsings[t];
+      namespaceStatementsList:=FindNamespace(namespaceName);
+      if not Assigned(namespaceStatementsList) then
+        continue;
+      for k:=0 to namespaceStatementsList.Count-1 do begin
+        namespaceStatement:=PStatement(namespaceStatementsList[k]);
+        Result:=FindMemberOfStatement(Phrase,namespaceStatement);
+        if Assigned(Result) then
           Exit;
-        end;
-      end;
-      // found a Global define, cache it but not use now;
-      if (Statement^._Scope = ssGlobal) then begin
-        if SameStr(Statement^._Command, Phrase) then begin
-          GlobalStatement := Statement;
-        end;
       end;
     end;
+  finally
+    FileUsings.Free;
   end;
-
-    // Then, assume the variable belongs to the current scope/class, if there is one
-  if Assigned(CurrentClass) then begin
-    Repeat
-      if CurrentClass._Kind in [skClass] then begin
-        Children := Statements.GetChildrenStatements(CurrentClass);
-        if Assigned(Children) then begin
-          for i:=0 to Children.Count-1 do begin
-            Statement := PStatement(Children[i]);
-            // Class members
-            if (Statement^._Scope = ssClassLocal) then begin
-              if SameStr(Statement^._Command, Phrase) then begin
-                result := Statement;
-                Exit;
-              end;
-            end
-          end;
-        end;
-      end;
-      CurrentClass := CurrentClass^._ParentScope;
-    Until (not assigned(CurrentClass));
-  end;
-
-  Result := GlobalStatement;
-  }
 end;
 
 {
@@ -3409,7 +3366,7 @@ begin
     OperatorToken := GetOperator(memberName);
     MemberName := GetMember(memberName);
 
-    statement := FindStatementStartingFrom(nextScopeWord,currentClassType);
+    statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType);
     if not Assigned(statement) then
       Exit;
   end;
@@ -3671,7 +3628,7 @@ begin
 end;
 }
 
-procedure TCppParser.GetFileUsings(const Filename: AnsiString; var List: TStringList);
+procedure TCppParser.GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
 var
   I,t: integer;
   P,Q: PFileIncludes;

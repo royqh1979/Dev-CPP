@@ -1,3 +1,13 @@
+Version 6.1-beta2 November 2020
+
+ - Fix: Code Suggestion can't find real type of usings (such as Image in using namespace Gdiplus::Image; Image img;)
+ - Fix: Memory Leak when processing '#undef'
+
+
+Version 6.1-beta1.1 November 2020
+
+ - Disable Debug Logs
+
 Version 6.1-beta1  November 2020
 
   Highlights:

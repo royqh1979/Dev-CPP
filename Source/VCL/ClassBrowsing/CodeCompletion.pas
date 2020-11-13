@@ -54,7 +54,7 @@ type
     fOnlyGlobals: boolean;
     fCurrentStatement: PStatement;
     fIncludedFiles: TStringList;
-    fUsings: TStringList;
+    fUsings: TDevStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
     fAddedStatements : TDevStringList;
@@ -118,8 +118,9 @@ begin
   fIncludedFiles.Sorted := True;
   fIncludedFiles.Duplicates := dupIgnore;
 
-  fUsings:=TStringList.Create;
+  fUsings:=TDevStringList.Create;
   fUsings.Sorted := True;
+  fUsings.Duplicates:=dupIgnore;
   fAddedStatements := TDevStringList.Create;
   fAddedStatements.Sorted:=True;
   fCompletionStatementList := TList.Create;

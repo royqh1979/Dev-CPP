@@ -45,13 +45,6 @@ type
     HardCoded: boolean; // if true, don't free memory (points to hard defines)
   end;
 
-  PFileIncludes = ^TFileIncludes;
-  TFileIncludes = record
-    BaseFile: AnsiString;
-    IncludeFiles: TStringList; // "file","file" etc
-    Usings: TStringList; // namespaces it usings
-    Statements: TList; // List<PStatement> , but we don't save temporary statements
-  end;
 
   TSkipType = (
     skItself,  // skip itself
@@ -146,6 +139,15 @@ type
   protected
     function CompareStrings(const S1, S2: string): Integer; override;
   end;
+
+  PFileIncludes = ^TFileIncludes;
+  TFileIncludes = record
+    BaseFile: AnsiString;
+    IncludeFiles: TStringList; // "file","file" etc
+    Usings: TDevStringList; // namespaces it usings
+    Statements: TList; // List<PStatement> , but we don't save temporary statements
+  end;
+
 var
   CppKeywords : TStringHash;
   // These functions are about six times faster than the locale sensitive AnsiX() versions
