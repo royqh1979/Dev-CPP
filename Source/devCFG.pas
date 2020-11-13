@@ -195,6 +195,7 @@ type
     fParseGlobalHeaders: boolean;
     fUseAltSlash : boolean;
     fShowCompletionWhileInput: boolean;
+    fMaxCount: integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -207,6 +208,7 @@ type
     property Delay: integer read fDelay write fDelay;
     property BackColor: integer read fBackColor write fBackColor;
     property Enabled: boolean read fEnabled write fEnabled;
+    property MaxCount: integer read fMaxCount write fMaxCount;
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property UseAltSlash: boolean read fUseAltSlash write fUseAltSlash;
@@ -2629,6 +2631,7 @@ begin
     fUseAltSlash := True;
   end else
     fUseAltSlash := False;
+  fMaxCount:=1000;
 end;
 
 { TdevClassBrowsing }

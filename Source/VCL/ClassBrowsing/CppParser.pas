@@ -247,6 +247,7 @@ begin
   fStatementList := TStatementList.Create; // owns the objects
   fIncludesList := TStringList.Create;
   fIncludesList.Sorted := True;
+  fIncludesList.duplicates:=dupIgnore;
   fFilesToScan := TStringList.Create;
   fFilesToScan.Sorted := True;
   fScannedFiles := TStringList.Create;
@@ -410,8 +411,43 @@ function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kin
   PStatement;
 var
   Statement: PStatement;
-  I: integer;
+  I,j: integer;
+  lst1,lst2:TStringList;
+  lst1Getted:boolean;
+  word1,word2:AnsiString;
+  isSame:boolean;
+
+  procedure ParseArgs(const Args:AnsiString; lst:TStringList);
+  var
+    argsLen,i:integer;
+    word:AnsiString;
+  begin
+    lst.Clear;
+    argsLen := Length(Args);
+    i:=2; // skip '('
+    word:='';
+    while i<argsLen do begin // skip ')'
+      if Args[i]=',' then begin
+        word:=Trim(word);
+        if word<>'' then
+          lst.Add(word);
+        word:='';
+      end else begin
+        word:=word+Args[i];
+      end;
+      inc(i);
+    end;
+    word:=Trim(word);
+    if word<>'' then
+      lst.Add(word);
+    word:='';
+  end;
+
 begin
+  lst1:=TStringList.Create;
+  lst2:=TStringList.Create;
+  lst1Getted:=False;
+  try
   // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
   for I := fPendingDeclarations.Count - 1 downto 0 do begin
     Statement := fPendingDeclarations[i];
@@ -420,17 +456,37 @@ begin
     if Statement^._ParentScope = Parent then begin
       if Statement^._Kind = Kind then begin
         if Statement^._Command = Command then begin
-          if Statement^._Args = Args then begin
-            fPendingDeclarations.Delete(i); // remove it when we have found it
-            Result := Statement;
-            Exit;
+          if not lst1Getted then begin
+            parseArgs(Args,lst1);
+            lst1Getted:=True;
           end;
+          parseArgs(Statement^._Args,lst2);
+          if lst1.count <> lst2.Count then
+            Continue;
+          isSame:=True;
+          for j:=0 to lst1.Count-1 do begin
+            word1:=lst1[j];
+            word2:=lst2[j];
+            if not StartsStr(word2,word1) then begin
+              isSame:=False;
+              break;
+            end;
+          end;
+          if not isSame then
+            Continue;
+          fPendingDeclarations.Delete(i); // remove it when we have found it
+          Result := Statement;
+          Exit;
         end;
       end;
     end;
   end;
 
   Result := nil;
+  finally
+    lst1.Free;
+    lst2.Free;
+  end;
 end;
 
 // When finding a parent class for a function definition, only search classes of incomplete decl/def pairs
@@ -2477,25 +2533,6 @@ begin
   end;
 
   DeleteTemporaries; // do it before deleting invalid nodes, in case some temp nodes deleted by invalid and cause error (redelete)
-
-  {
-  // delete statements of file
-  Node := fStatementList.FirstNode;
-  while Assigned(Node) do begin
-    Statement := Node^.Data;
-    NextNode := Node^.NextNode; // parent classname is encountered first
-
-    // Is this statement part of this file? Remove
-    if SameText(Statement^._FileName, FileName) or SameText(Statement^._DefinitionFileName, FileName) then begin
-      if Statement^._Kind = skClass then // only classes have inheritance
-        fInvalidatedStatements.Add(Statement);
-
-      //fMacroDefines.Remove(Statement);
-      fStatementList.DeleteNode(Node);
-    end;
-    Node := NextNode;
-  end;
-  }
 
   // delete it from scannedfiles
   I := FastIndexOf(fScannedFiles,FileName);

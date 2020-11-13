@@ -88,7 +88,6 @@ type
     lblCompletionDelay: TLabel;
     lblCompletionColor: TLabel;
     tbCompletionDelay: TTrackBar;
-    chkEnableCompletion: TCheckBox;
     cbMatch: TCheckBox;
     grpEditorOpts: TGroupBox;
     edMarginWidth: TSpinEdit;
@@ -153,6 +152,9 @@ type
     cbShowCompletionWhileInputing: TCheckBox;
     cbForeground: TCheckBox;
     cbBackground: TCheckBox;
+    txtCodeSuggestionMaxCount: TSpinEdit;
+    lbCodeSuggestionShowCount: TLabel;
+    chkEnableCompletion: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -190,6 +192,7 @@ type
     procedure NameOptionsClick(Sender: TObject);
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
+    procedure cbShowCompletionWhileInputingClick(Sender: TObject);
   private
     ffgColor: TColor;
     fbgColor: TColor;
@@ -399,7 +402,8 @@ begin
   chkEnableCompletionClick(nil);
   cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
-
+  txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
+  
   // Symbol Completion
   with devEditor do begin
     cbSymbolComplete.Checked := CompleteSymbols;
@@ -519,6 +523,7 @@ begin
   Font.Name := devData.InterfaceFont;
   Font.Size := devData.InterfaceFontSize;
 
+  lbCodeSuggestionShowCount.Caption := Lang[ID_EOPT_CODECOMPLETE_MAXCOUNT];
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
   cbUseAltSlash.Caption := Lang[ID_EOPT_ALTSLASH];
   cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
@@ -824,6 +829,7 @@ begin
     ParseGlobalHeaders := chkCBParseGlobalH.Checked;
     UseAltSlash := cbUseAltSlash.Checked;
     ShowCompletionWhileInput := cbShowCompletionWhileInputing.Checked;
+    MaxCount := txtCodeSuggestionMaxCount.Value;
   end;
 
   // Only create the timer if autosaving is enabled
@@ -1341,6 +1347,9 @@ begin
     cpCompletionBackground.Enabled := Checked;
     chkCBParseGlobalH.Enabled := Checked;
     chkCBParseLocalH.Enabled := Checked;
+    cbUseAltSlash.Enabled := Checked;
+    cbShowCompletionWhileInputing.Enabled:=Checked;
+    txtCodeSuggestionMaxCount.Enabled:=Checked and cbShowCompletionWhileInputing.Checked;
   end;
 end;
 
@@ -1534,6 +1543,12 @@ end;
 procedure TEditorOptForm.cbBackgroundClick(Sender: TObject);
 begin
   cpBackground.Enabled := cbBackground.Checked;
+end;
+
+procedure TEditorOptForm.cbShowCompletionWhileInputingClick(
+  Sender: TObject);
+begin
+  txtCodeSuggestionMaxCount.Enabled := cbShowCompletionWhileInputing.Checked;
 end;
 
 end.

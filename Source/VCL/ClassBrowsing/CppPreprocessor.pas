@@ -1355,9 +1355,10 @@ begin
   if idx<>-1 then begin
     i:=fDefines.Count-1;
     while (i>=0) do begin
-      define:=PDefine(fDefines[i]);
+      define:=PDefine(fDefines.objects[i]);
       if SameText(define^.FileName,FileName) then
         fDefines.Delete(i);
+      dec(i);
     end;
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin

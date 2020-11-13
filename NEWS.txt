@@ -3,7 +3,9 @@ Version 6.1-beta2 November 2020
  - Fix: Code Suggestion can't find real type of usings (such as Image in using namespace Gdiplus::Image; Image img;)
  - Fix: Memory Leak when processing '#undef'
  - Fix: Error when project compiler set index is set to -1
-
+ - Fix: crash when remove/add #include to files
+ - change: by default, the max count of suggestion window is set to 1000
+ - enhancement: Can set max count of suggestion window in editor option dialog now
 
 Version 6.1-beta1.1 November 2020
 

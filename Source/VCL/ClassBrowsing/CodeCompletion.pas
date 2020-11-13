@@ -134,7 +134,7 @@ begin
   fColor := clWindow;
   fEnabled := True;
   fOnlyGlobals := False;
-  fShowCount := 100; // keep things fast
+  fShowCount := 1000; 
 
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
