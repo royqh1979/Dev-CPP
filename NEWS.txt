@@ -4,8 +4,8 @@ Version 6.1-beta2 November 2020
  - Fix: Memory Leak when processing '#undef'
  - Fix: Error when project compiler set index is set to -1
  - Fix: crash when remove/add #include to files
- - change: by default, the max count of suggestion window is set to 1000
- - enhancement: Can set max count of suggestion window in editor option dialog now
+ - Fix: out of classes/functions, std namespace is not used by default
+
 
 Version 6.1-beta1.1 November 2020
 
