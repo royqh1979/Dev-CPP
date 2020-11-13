@@ -98,6 +98,7 @@ type
     fSortAlphabetically: boolean;
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
+    fUpdating: boolean;
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
@@ -151,6 +152,10 @@ type
 
 const
   CLASS_FOLDERS_MAGIC = 'DEVCF_1_0';
+  TV_FIRST = $1100;
+  TVM_SETEXTENDEDSTYLE = TV_FIRST + 44;
+  TVM_GETEXTENDEDSTYLE = TV_FIRST + 45;
+  TVS_EX_DOUBLEBUFFER = $4;
 
 procedure Register;
 
@@ -191,6 +196,7 @@ begin
   fSortAlphabetically:= True;
   fSortByType:=True ;
   fOnUpdated:=nil;
+  fUpdating:=False;
 end;
 
 destructor TClassBrowser.Destroy;
@@ -349,22 +355,19 @@ end;
 
 procedure TClassBrowser.UpdateView;
 begin
-  if not Assigned(fParser) then
-    Exit;
-  if not fParser.Enabled then begin
-    Clear;
-    Exit;
-  end;
-
   if fUpdateCount <> 0 then
     Exit;
-  if not Visible or not TabVisible then
-    Exit;
 
+  Clear;
   // We are busy...
   Items.BeginUpdate;
+  fUpdating:=True;
   try
-    Clear;
+    if (not Assigned(fParser)) or (not fParser.Enabled) then begin
+      Exit;
+    end;
+    if not Visible or not TabVisible then
+      Exit;
     if fCurrentFile <> '' then begin
       // Update file includes, reset cache
       fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
@@ -380,6 +383,7 @@ begin
         ReSelect;
     end;
   finally
+    fUpdating:=False;  
     Items.EndUpdate; // calls repaint when needed
   end;
   if Assigned(fOnUpdated) then
@@ -476,7 +480,14 @@ end;
 
 procedure TClassBrowser.Clear;
 begin
-  Items.Clear;
+  Items.BeginUpdate;
+  fUpdating:=True;
+  try
+    Items.Clear;
+  finally
+    fUpdating:=False;
+    Items.EndUpdate;
+  end;
 end;
 
 procedure TClassBrowser.SetParser(Value: TCppParser);
@@ -536,6 +547,13 @@ var
   TypeText: AnsiString;
   color : TColor;
 begin
+  if fUpdating then begin
+    Exit;
+  end;
+
+  if stage<>cdPostPaint then
+    Exit;
+
   // Assume the node image is correct
   bInherited := fShowInheritedMembers and (Node.ImageIndex in [
     fImagesRecord.fInhMethodProtectedImg,

@@ -9,6 +9,7 @@ Version 6.1-beta2 November 2020
  - enhancement: code completion support smart pointers
  - fix: Parser can get template parameters of variables now(but we don't use it now..)
  - fix: Crash when classbrowser is showing and resize main window
+ - fix: ClassBrowser don't refresh when select/jump to definitions
 
 
 Version 6.1-beta1.1 November 2020

@@ -4633,6 +4633,8 @@ end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
+  if ClassBrowser.CurrentFile = e.FileName then
+    Exit;
   ClassBrowser.BeginUpdate;
   try
     if Assigned(e) then begin

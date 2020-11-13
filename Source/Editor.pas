@@ -895,7 +895,7 @@ begin
 
   // fText needs to be focused for TopLine and LinesInWindow to be correct
   if not fText.Focused then
-    Self.Activate;
+    self.Activate;
 
   // Position the caret, call EnsureCursorPosVisibleEx after setting block
   fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
