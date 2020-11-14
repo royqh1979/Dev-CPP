@@ -16,6 +16,7 @@ Version 6.1-beta2 November 2020
  - fix: Parser error cause infinite-loop when parsing local blocks
  - enhancement: caret between {} and press enter will behave like in IDEA and CLion
  - enhancement: user code template / call it in Code Sugestion
+ - change: compiler set droplist now use Mainform's font setting
 
 Version 6.1-beta1.1 November 2020
 
