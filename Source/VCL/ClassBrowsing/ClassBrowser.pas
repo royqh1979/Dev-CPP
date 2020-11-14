@@ -109,13 +109,15 @@ type
     procedure OnParserUpdate(Sender: TObject);
     procedure OnParserBusy(Sender: TObject);
     procedure SetNodeImages(Node: TTreeNode; Statement: PStatement);
-    procedure Sort;
     procedure SetCurrentFile(const Value: AnsiString);
     procedure SetShowFilter(Value: TShowFilter);
     procedure SetShowInheritedMembers(Value: boolean);
+    procedure SetSortAlphabetically(Value: boolean);
+    procedure SetSortByType(Value: boolean);
     procedure SetTabVisible(Value: boolean);
     function IsIncluded(const FileName: AnsiString): boolean;
     procedure ReSelect;
+    procedure Sort;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -146,8 +148,8 @@ type
     property ProjectDir: AnsiString read fProjectDir write fProjectDir;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write SetShowInheritedMembers;
     property TabVisible: boolean read fTabVisible write SetTabVisible;
-    property SortAlphabetically: boolean read fSortAlphabetically write fSortAlphabetically;
-    property SortByType: boolean read fSortByType write fSortByType;
+    property SortAlphabetically: boolean read fSortAlphabetically write SetSortAlphabetically;
+    property SortByType: boolean read fSortByType write SetSortByType;
   end;
 
 const
@@ -358,16 +360,17 @@ begin
   if fUpdateCount <> 0 then
     Exit;
 
+  if (not Assigned(fParser)) or (not fParser.Enabled) then begin
+    Exit;
+  end;
+  if not Visible or not TabVisible then
+    Exit;
+
   Clear;
   // We are busy...
   Items.BeginUpdate;
   fUpdating:=True;
   try
-    if (not Assigned(fParser)) or (not fParser.Enabled) then begin
-      Exit;
-    end;
-    if not Visible or not TabVisible then
-      Exit;
     if fCurrentFile <> '' then begin
       // Update file includes, reset cache
       fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
@@ -471,11 +474,15 @@ begin
   else
     CustomSort(@CustomSortAlphaProc, 0);
 }
-  if sortAlphabetically then
-    CustomSort(@CustomSortAlphaProc, 0);
-  if sortByType then
-    CustomSort(@CustomSortTypeProc, 0);
-
+  Items.BeginUpdate;
+  try
+    if sortAlphabetically then
+      CustomSort(@CustomSortAlphaProc, 0);
+    if sortByType then
+      CustomSort(@CustomSortTypeProc, 0);
+  finally
+    Items.EndUpdate;
+  end;
 end;
 
 procedure TClassBrowser.Clear;
@@ -529,6 +536,23 @@ begin
   UpdateView;
 end;
 
+procedure TClassBrowser.SetSortAlphabetically(Value: boolean);
+begin
+  if Value = fSortAlphabetically then
+    Exit;
+  fSortAlphabetically := Value;
+  Sort;
+end;
+
+procedure TClassBrowser.SetSortByType(Value: boolean);
+begin
+  if Value = fSortByType then
+    Exit;
+  fSortByType := Value;
+  Sort;
+end;
+
+
 procedure TClassBrowser.SetTabVisible(Value: boolean);
 begin
   if Value = fTabVisible then
@@ -548,11 +572,10 @@ var
   color : TColor;
 begin
   if fUpdating then begin
+    PaintImages:=False;
+    DefaultDraw:=False;
     Exit;
   end;
-
-  if stage<>cdPostPaint then
-    Exit;
 
   // Assume the node image is correct
   bInherited := fShowInheritedMembers and (Node.ImageIndex in [
@@ -562,7 +585,7 @@ begin
       fImagesRecord.fInhVariablePublicImg]);
 
   if Stage = cdPrePaint then begin
-    Sender.Canvas.Font.Style := [fsBold];
+      Sender.Canvas.Font.Style := [fsBold];
     if bInherited then
       Sender.Canvas.Font.Color := clGray;
   end else if Stage = cdPostPaint then begin

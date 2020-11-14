@@ -11,6 +11,7 @@ Version 6.1-beta2 November 2020
  - fix: Crash when classbrowser is showing and resize main window
  - fix: ClassBrowser don't refresh when select/jump to definitions
  - fix: /* display error
+ - enhancement: ClassBrowser updates faster when refresh/change sort types
 
 
 Version 6.1-beta1.1 November 2020
