@@ -440,6 +440,7 @@ Ver=1
 27067=Delete closing character when deleting opening character
 27068=Complete single quotes ''''
 27069=Complete double quotes '""'
+27070=Prefix
 
 
 28001=Name:

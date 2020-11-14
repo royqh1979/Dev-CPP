@@ -1391,6 +1391,7 @@ begin
   Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
 
+  fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
@@ -1538,17 +1539,21 @@ begin
   fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
   fText.SelEnd := fText.RowColToCharIndex(p);
   // ... by replacing the selection
-  fText.SelText := Statement^._Command + FuncAddOn;
+  if Statement^._Kind = skUserCodeIn then begin // it's a user code template
+    fText.SelText := Statement^._Value;
+  end else begin
+    fText.SelText := Statement^._Command + FuncAddOn;
 
-  // Move caret inside the ()'s, only when the user has something to do there...
-  if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
+    // Move caret inside the ()'s, only when the user has something to do there...
+    if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
 
-    fText.CaretX := fText.CaretX - Length(FuncAddOn) + 1;
+      fText.CaretX := fText.CaretX - Length(FuncAddOn) + 1;
 
-    // immediately activate function hint
-    if devEditor.ShowFunctionTip and Assigned(fText.Highlighter) then begin
-      fText.SetFocus;
-      fFunctionTip.Show;
+      // immediately activate function hint
+      if devEditor.ShowFunctionTip and Assigned(fText.Highlighter) then begin
+        fText.SetFocus;
+        fFunctionTip.Show;
+      end;
     end;
   end;
   fCompletionBox.Hide;

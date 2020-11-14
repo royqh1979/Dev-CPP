@@ -220,7 +220,7 @@ type
 implementation
 
 uses
-  shlobj, MultiLangSupport, devcfg, version, math, CommCtrl, DateUtils, CodeInsList, DataFrm, IniFiles, editor,
+  shlobj, MultiLangSupport, devcfg, version, math, CommCtrl, DateUtils,cbUtils, CodeInsList, DataFrm, IniFiles, editor,
   main;
 
 {$R *.dfm}
@@ -629,8 +629,9 @@ begin
   btnAdd.Caption := Lang[ID_BTN_ADD];
   btnRemove.Caption := Lang[ID_BTN_REMOVE];
   lvCodeIns.Cols[0][0] := Lang[ID_EOPT_CIMENU];
-  lvCodeIns.Cols[1][0] := Lang[ID_EOPT_CISECTION];
-  lvCodeIns.Cols[2][0] := Lang[ID_EOPT_CIDESC];
+  lvCodeIns.Cols[1][0] := Lang[ID_EOPT_CIPREFIX];
+  lvCodeIns.Cols[2][0] := Lang[ID_EOPT_CISECTION];
+  lvCodeIns.Cols[3][0] := Lang[ID_EOPT_CIDESC];
   cbDefaultCode.Caption := Lang[ID_EOPT_DEFCODE];
 
   // Completion tab, code
@@ -1275,11 +1276,12 @@ begin
 
     // Fill cols
     ins := dmMain.CodeInserts[I];
-    sl.Text := ins^.Line;
+    sl.Text := ins^.Code;
     lvCodeIns.Objects[0, lvCodeIns.RowCount - 1] := sl;
     lvCodeIns.Cells[0, lvCodeIns.RowCount - 1] := ins^.Caption;
-    lvCodeIns.Cells[1, lvCodeIns.RowCount - 1] := IntToStr(ins^.Sep);
-    lvCodeIns.Cells[2, lvCodeIns.RowCount - 1] := ins^.Desc;
+    lvCodeIns.Cells[1, lvCodeIns.RowCount - 1] := ins^.Prefix;
+    lvCodeIns.Cells[2, lvCodeIns.RowCount - 1] := IntToStr(ins^.Section);
+    lvCodeIns.Cells[3, lvCodeIns.RowCount - 1] := ins^.Desc;
   end;
 
   // Add empty, but configured row
@@ -1291,6 +1293,7 @@ begin
     lvCodeIns.Cells[0, lvCodeIns.RowCount - 1] := '';
     lvCodeIns.Cells[1, lvCodeIns.RowCount - 1] := '';
     lvCodeIns.Cells[2, lvCodeIns.RowCount - 1] := '';
+    lvCodeIns.Cells[3, lvCodeIns.RowCount - 1] := '';
   end;
 
   lvCodeIns.FixedRows := 1; // gets reset to 0 when removing all editable rows
@@ -1310,9 +1313,10 @@ begin
 
       // Get snippet from attached object
       Item.Caption := lvCodeIns.Cells[0, I];
-      Item.Sep := StrToIntDef(lvCodeIns.Cells[1, I], 0);
-      Item.Desc := lvCodeIns.Cells[2, I];
-      Item.Line := TStringList(lvCodeIns.Objects[0, I]).Text;
+      Item.Prefix := lvCodeIns.Cells[1, I];
+      Item.Section := StrToIntDef(lvCodeIns.Cells[2, I], 0);
+      Item.Desc := lvCodeIns.Cells[3, I];
+      Item.Code := TStringList(lvCodeIns.Objects[0, I]).Text;
 
       dmMain.CodeInserts.AddItem(Item);
     end;

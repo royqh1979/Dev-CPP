@@ -34,6 +34,16 @@ const
   SourceExts: array[0..5] of AnsiString = ('.c', '.cpp', '.cc', '.cxx', '.c++', '.cp');
 
 type
+
+  PCodeIns = ^TCodeIns;
+  TCodeIns = record
+    Caption: AnsiString; //Name
+    Prefix: AnsiString; //Prefix used in code suggestion
+    Code: AnsiString;  //Code body
+    Desc: AnsiString;  //Description
+    Section: integer;  //Section in the menu
+  end;
+  
   //macro define
   PDefine = ^TDefine;
   TDefine = record
@@ -69,6 +79,7 @@ type
     skNamespace,
     skNamespaceAlias,
     skBlock,
+    skUserCodeIn,  // user code template
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;

@@ -49,10 +49,9 @@ uses
   ToolFrm in 'ToolFrm.pas' {ToolFrom},
   ToolEditFrm in 'ToolEditFrm.pas' {ToolEditForm},
   IconFrm in 'IconFrm.pas' {IconForm},
-  devcfg in 'devcfg.pas',
+  devcfg in 'devCFG.pas',
   DataFrm in 'DataFrm.pas' {dmMain: TDataModule},
   EditorOptFrm in 'EditorOptfrm.pas' {EditorOptForm},
-  CodeInsList in 'CodeInsList.pas',
   IncrementalFrm in 'IncrementalFrm.pas' {IncrementalForm},
   FindFrm in 'FindFrm.pas' {FindForm},
   Editor in 'Editor.pas',
@@ -91,7 +90,8 @@ uses
   RenameFrm in 'RenameFrm.pas' {RenameForm},
   Refactorer in 'Refactorer.pas',
   CodePage in 'CodePage.pas',
-  Registry;
+  Registry,
+  CodeInsList in 'CodeInsList.pas';
 
 {$R *.res}
 

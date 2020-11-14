@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabCode
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -781,8 +781,8 @@ object EditorOptForm: TEditorOptForm
           end
           object CodeIns: TSynEdit
             Left = 0
-            Top = 245
-            Width = 625
+            Top = 241
+            Width = 631
             Height = 282
             Align = alBottom
             Font.Charset = DEFAULT_CHARSET
@@ -825,12 +825,18 @@ object EditorOptForm: TEditorOptForm
             Top = 11
             Width = 492
             Height = 182
-            ColCount = 3
+            ColCount = 4
             DefaultColWidth = 115
-            DefaultRowHeight = 18
+            DefaultRowHeight = 30
             FixedCols = 0
             RowCount = 2
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -15
+            Font.Name = 'Segoe UI'
+            Font.Style = []
             Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goAlwaysShowEditor]
+            ParentFont = False
             ScrollBars = ssVertical
             TabOrder = 3
             OnSelectCell = lvCodeInsSelectCell

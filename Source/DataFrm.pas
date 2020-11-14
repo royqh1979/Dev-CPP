@@ -512,10 +512,10 @@ begin
     Item.Caption := fCodeList[idx]^.Caption;
     Item.OnClick := fCodeEvent;
     Item.Tag := idx;
-    if fCodeList[idx]^.Sep <= cdx then
+    if fCodeList[idx]^.Section <= cdx then
       fCodeMenu.Add(Item)
     else begin
-      cdx := fCodeList[idx]^.Sep;
+      cdx := fCodeList[idx]^.Section;
       fCodeMenu.NewBottomLine;
       fCodeMenu.Add(Item);
     end;

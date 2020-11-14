@@ -1602,7 +1602,7 @@ var
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then
-    e.InsertString(dmMain.CodeInserts[TMenuItem(Sender).Tag].Line, TRUE);
+    e.InsertString(dmMain.CodeInserts[TMenuItem(Sender).Tag].Code, TRUE);
 end;
 
 procedure TMainForm.ToolItemClick(Sender: TObject);
