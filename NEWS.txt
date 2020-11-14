@@ -13,6 +13,7 @@ Version 6.1-beta2 November 2020
  - fix: /* display error
  - enhancement: ClassBrowser updates faster when refresh/change sort types
  - enhancement: Code Suggestion for function return value's member
+ - fix: Parser error cause infinite-loop when parsing local blocks
 
 
 Version 6.1-beta1.1 November 2020
