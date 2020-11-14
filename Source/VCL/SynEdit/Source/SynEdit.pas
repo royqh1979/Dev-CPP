@@ -6825,14 +6825,15 @@ begin
             if Len > 0 then begin
               if Len >= CaretX then begin
                 if CaretX > 1 then begin
-                  Temp3:= Copy(LineText, 1, CaretX - 1);
-                  Temp := TrimRight(Temp3);
-                  SpaceCount1 := LeftSpacesEx(Temp3, true);
+
+                  Temp:= Copy(LineText, 1, CaretX - 1);
+                  Temp3:=Temp;
+                  SpaceCount1 := LeftSpacesEx(Temp, true);
                   Delete(Temp2, 1, CaretX - 1);
-                  Lines[CaretY-1] := Temp;
+                  ProperSetLine(CaretY-1,Temp);
                   Lines.Insert(CaretY, GetLeftSpacing(SpaceCount1, true));
-                  if (eoAddIndent in Options) and GetHighlighterAttriAtRowCol(BufferCoord(Length(Temp), CaretY),
-                    Temp, Attr) then begin // only add indent to source files
+                  if (eoAddIndent in Options) and GetHighlighterAttriAtRowCol(BufferCoord(Length(Temp3), CaretY),
+                    Temp3, Attr) then begin // only add indent to source files
                     if Attr <> Highlighter.CommentAttribute then begin // and outside of comments
                       if (Temp[Length(Temp)] =':')
                         or (
@@ -6853,11 +6854,13 @@ begin
                     smNormal);
 
                   if (Length(Temp)>0) and (Temp[Length(Temp)] = '{') and (Length(Temp2)>0) and (Temp2[1]='}') then begin
-                    Lines.Insert(CaretY, GetLeftSpacing(LeftSpacesEx(Temp3, true), true));
-                    if not (eoTabsToSpaces in Options) then begin
-                      Lines[CaretY] := Lines[CaretY] + TSynTabChar;
-                    end else begin
-                      Lines[CaretY] := Lines[CaretY] + StringOfChar(' ', TabWidth);
+                    Lines.Insert(CaretY, GetLeftSpacing(LeftSpacesEx(Temp, true), true));
+                    if (eoAddIndent in Options) then begin;
+                      if not (eoTabsToSpaces in Options) then begin
+                        Lines[CaretY] := Lines[CaretY] + TSynTabChar;
+                      end else begin
+                        Lines[CaretY] := Lines[CaretY] + StringOfChar(' ', TabWidth);
+                      end;
                     end;
                     fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, '',
                       smNormal);

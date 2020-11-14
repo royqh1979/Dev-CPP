@@ -42,6 +42,8 @@ type
     Code: AnsiString;  //Code body
     Desc: AnsiString;  //Description
     Section: integer;  //Section in the menu
+    CaretX: integer;   
+    CaretY: integer;
   end;
   
   //macro define
