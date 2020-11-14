@@ -255,7 +255,7 @@ begin
       while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass]) do begin
         ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
       end;
-      if (opType in [otArrow, otDot]) and (statement^._Kind = skVariable) then  begin
+      if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin
         // Get type statement  of current (scope) statement
 
         ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
