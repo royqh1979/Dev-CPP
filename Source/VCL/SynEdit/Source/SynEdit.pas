@@ -6300,6 +6300,7 @@ var
   Len: Integer;
   Temp: string;
   Temp2: string;
+  Temp3: AnsiString;
   helper: string;
   TabBuffer: string;
   SpaceBuffer: string;
@@ -6824,15 +6825,20 @@ begin
             if Len > 0 then begin
               if Len >= CaretX then begin
                 if CaretX > 1 then begin
-                  Temp := TrimRight(Copy(LineText, 1, CaretX - 1));
-                  SpaceCount1 := LeftSpacesEx(Temp, true);
+                  Temp3:= Copy(LineText, 1, CaretX - 1);
+                  Temp := TrimRight(Temp3);
+                  SpaceCount1 := LeftSpacesEx(Temp3, true);
                   Delete(Temp2, 1, CaretX - 1);
                   Lines[CaretY-1] := Temp;
                   Lines.Insert(CaretY, GetLeftSpacing(SpaceCount1, true));
                   if (eoAddIndent in Options) and GetHighlighterAttriAtRowCol(BufferCoord(Length(Temp), CaretY),
                     Temp, Attr) then begin // only add indent to source files
                     if Attr <> Highlighter.CommentAttribute then begin // and outside of comments
-                      if Temp[Length(Temp)] in ['{', ':'] then begin // add more indent for these too
+                      if (Temp[Length(Temp)] =':')
+                        or (
+                          (Temp[Length(Temp)] ='{')
+                          and ((Length(Temp2)<=0) or (Temp2[1]<>'}'))
+                        )then begin // add more indent for these too
                         if not (eoTabsToSpaces in Options) then begin
                           Lines[CaretY] := Lines[CaretY] + TSynTabChar;
                         end else begin
@@ -6845,10 +6851,26 @@ begin
                   Lines[CaretY] := Lines[CaretY] + Temp2;
                   fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, Temp2,
                     smNormal);
-                  if Command = ecLineBreak then
-                    InternalCaretXY := BufferCoord(
-                      SpaceCount1+1,
-                      CaretY + 1);
+
+                  if (Length(Temp)>0) and (Temp[Length(Temp)] = '{') and (Length(Temp2)>0) and (Temp2[1]='}') then begin
+                    Lines.Insert(CaretY, GetLeftSpacing(LeftSpacesEx(Temp3, true), true));
+                    if not (eoTabsToSpaces in Options) then begin
+                      Lines[CaretY] := Lines[CaretY] + TSynTabChar;
+                    end else begin
+                      Lines[CaretY] := Lines[CaretY] + StringOfChar(' ', TabWidth);
+                    end;
+                    fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, '',
+                      smNormal);
+                    if Command = ecLineBreak then
+                      InternalCaretXY := BufferCoord(
+                        Length(Lines[CaretY])+1,
+                        CaretY + 1);
+                  end else begin
+                    if Command = ecLineBreak then
+                      InternalCaretXY := BufferCoord(
+                        SpaceCount1+1,
+                        CaretY + 1);
+                  end;
                 end else begin
                   Lines.Insert(CaretY - 1, '');
                   fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, Temp2,
