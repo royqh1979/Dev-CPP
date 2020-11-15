@@ -369,8 +369,18 @@ begin
   Statement1 := PStatement(Item1);
   Statement2 := PStatement(Item2);
 
+  // Show user template first
+  if (Statement1^._Kind = skUserCodeIn) then begin
+    if not (Statement2^._Kind = skUserCodeIn) then begin
+      Result := -1;
+    end else begin
+      Result := CompareText(Statement1^._Command, Statement2^._Command);
+    end;
+  end else if (Statement2^._Kind = skUserCodeIn) then begin
+    Result := 1;
+
   // Show stuff from local headers first
-  if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
+  end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
     Result := 1;
   end else if (not Statement1^._InSystemHeader) and (Statement2^._InSystemHeader) then begin
     Result := -1;

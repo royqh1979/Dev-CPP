@@ -4113,6 +4113,7 @@ var
       Start: PChar;
       P: PChar;
       bChangeScroll: Boolean;
+      spaceCount : integer;
     begin
       Result := 0;
       sLeftSide := Copy(LineText, 1, CaretX - 1);
@@ -4124,6 +4125,7 @@ var
             CaretX - 1 - Length(sLeftSide));
       end;
       sRightSide := Copy(LineText, CaretX, Length(LineText) - (CaretX - 1));
+      SpaceCount := LeftSpacesEx(sLeftSide, true);
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
@@ -4155,7 +4157,7 @@ var
           if p^ = #0 then
             Str := Str + sRightSide
         end;
-        ProperSetLine(CaretY - 1, Str);
+        ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
         Inc(Result);
       end;
       bChangeScroll := not (eoScrollPastEol in fOptions);
@@ -5607,8 +5609,23 @@ procedure TCustomSynEdit.WndProc(var Msg: TMessage);
 // Prevent Alt-Backspace from beeping
 const
   ALT_KEY_DOWN = $20000000;
+var
+  keyMsg : TWMKey;
+  code: word;
+  temp: char;
 begin
-  if (Msg.Msg = WM_SYSCHAR) and (Msg.wParam = VK_BACK) and
+  if Msg.Msg = CN_KEYDOWN then begin
+    keyMsg := TWMKey(Msg);
+    code := keyMsg.CharCode;
+    case code of
+      VK_TAB: begin
+        temp := #9;
+        keyPress(temp);
+        if temp=#0 then
+          Exit;
+      end;
+    end;
+  end else if (Msg.Msg = WM_SYSCHAR) and (Msg.wParam = VK_BACK) and
     (Msg.lParam and ALT_KEY_DOWN <> 0) then
     Msg.Msg := 0
   else

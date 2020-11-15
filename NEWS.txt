@@ -18,6 +18,7 @@ Version 6.1-beta2 November 2020
  - enhancement: user code template / call it in Code Sugestion
  - change: compiler set droplist now use Mainform's font setting
  - enhancement: Symbol Completion of #include <>
+ - enhancement: Copy/insert user template will keep the origin indent
 
 Version 6.1-beta1.1 November 2020
 
