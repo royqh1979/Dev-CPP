@@ -826,8 +826,12 @@ begin
         newSl.Add(s);
       end;
       CursorPos := Text.CaretXY;
-      fText.SelText := newSl.Text;
-      fText.Lines.Delete(Text.CaretY-1);
+      s:=newSl.Text;
+      if EndsStr(#13#10,s) then
+        Delete(s,Length(s)-1,2)
+      else if EndsStr(#10, s) then
+        Delete(s,Length(s),1);
+      fText.SelText := s;
       Text.CaretXY := CursorPos; //restore cursor pos before insert
       PopUserCodeInTabStops;
       if Code <> '' then
