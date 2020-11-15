@@ -1067,15 +1067,24 @@ var
   end;
 
   procedure HandleGlobalIncludeCompletion;
+  var
+    s: AnsiString;
   begin
+    s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
+    if not StartsStr('include',s) then //it'ss not #include
+      Exit;
     InsertString('>', false);
   end;
 
   procedure HandleGlobalIncludeSkip;
   var
     pos : TBufferCoord;
+    s: AnsiString;
   begin
     if GetCurrentChar <> '>' then
+      Exit;
+    s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
+    if not StartsStr('include',s) then //it'ss not #include
       Exit;
     pos:=Text.GetMatchingBracket;
     if pos.Line <> 0 then begin
