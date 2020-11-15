@@ -457,7 +457,6 @@ type
     function GetWordAtMouse: string;
     procedure GutterChanged(Sender: TObject);
     procedure InsertBlock(const BB, BE: TBufferCoord; ChangeStr: PChar; AddToUndoList: Boolean);
-    function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): string;
     procedure LinesChanging(Sender: TObject);
     procedure MoveCaretAndSelection(const ptBefore, ptAfter: TBufferCoord;
       SelectionCommand: boolean);
@@ -671,6 +670,7 @@ type
     procedure EnsureCursorPosVisible;
     procedure EnsureCursorPosVisibleEx(ForceToMiddle: Boolean);
     procedure FindMatchingBracket; virtual;
+    function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): string;
     function GetMatchingBracket: TBufferCoord; virtual;
     function GetMatchingBracketEx(const APoint: TBufferCoord): TBufferCoord; virtual;
 {$IFDEF SYN_COMPILER_4_UP}

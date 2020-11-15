@@ -792,6 +792,7 @@ var
   s :AnsiString;
   p:PPoint;
   CursorPos: TBufferCoord;
+  spaceCount :integer;
 begin
   ClearUserCodeInTabStops;
   fXOffsetSince := 0;
@@ -803,9 +804,12 @@ begin
     try
       sl.Text:=Code;
       lastI:=0;
+      spaceCount := Text.LeftSpacesEx(fText.LineText,True);
       for i:=0 to sl.Count -1 do begin
         lastPos := 0;
         s:=sl[i];
+        if i>0 then
+          lastPos := -spaceCount; 
         while True do begin
           insertPos := Pos(USER_CODE_IN_INSERT_POS,s);
           if insertPos = 0 then // no %INSERT% macro in this line now
