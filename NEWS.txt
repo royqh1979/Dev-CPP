@@ -17,6 +17,7 @@ Version 6.1-beta2 November 2020
  - enhancement: caret between {} and press enter will behave like in IDEA and CLion
  - enhancement: user code template / call it in Code Sugestion
  - change: compiler set droplist now use Mainform's font setting
+ - enhancement: Symbol Completion of #include <>
 
 Version 6.1-beta1.1 November 2020
 

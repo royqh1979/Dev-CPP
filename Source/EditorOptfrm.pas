@@ -155,6 +155,7 @@ type
     txtCodeSuggestionMaxCount: TSpinEdit;
     lbCodeSuggestionShowCount: TLabel;
     chkEnableCompletion: TCheckBox;
+    cbGlobalIncludes: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -415,6 +416,7 @@ begin
     cbParenth.Checked := ParentheseComplete;
     cbSingleQuotes.Checked := SingleQuoteComplete;
     cbDoubleQuotes.Checked := DoubleQuoteComplete;
+    cbGlobalIncludes.Checked := GlobalIncludeCompletion;
 
     // Completion. Only enable if CompleteSymbols is true
     cbSymbolCompleteClick(nil);
@@ -650,6 +652,7 @@ begin
   cbComments.Caption := Lang[ID_EOPT_SYMBOLCOMMENT];
   cbSingleQuotes.Caption := Lang[ID_EOPT_SYMBOLSINGLEQUOTE];
   cbDoubleQuotes.Caption := Lang[ID_EOPT_SYMBOLDOUBLEQUOTE];
+  cbGlobalIncludes.Caption := Lang[ID_EOPT_SYMBOLINCLUDE];
   cbDeleteCompleted.Caption := Lang[ID_EOPT_DELETESYMBOLPAIRS];
 
   // Autosave
@@ -734,6 +737,7 @@ begin
     ParentheseComplete := cbParenth.Checked;
     SingleQuoteComplete := cbSingleQuotes.Checked;
     DoubleQuoteComplete := cbDoubleQuotes.Checked;
+    GlobalIncludeCompletion := cbGlobalIncludes.Checked;
     DeleteSymbolPairs := cbDeleteCompleted.Checked;
 
     // Autosave
@@ -1491,6 +1495,7 @@ begin
   cbComments.Enabled := cbSymbolComplete.Checked;
   cbParenth.Enabled := cbSymbolComplete.Checked;
   cbSingleQuotes.Enabled := cbSymbolComplete.Checked;
+  cbGlobalIncludes.Enabled := cbSymbolComplete.Checked;
   cbDoubleQuotes.Enabled := cbSymbolComplete.Checked;
   cbDeleteCompleted.Enabled := cbSymbolComplete.Checked;
 end;

@@ -1066,6 +1066,24 @@ var
     InsertString('}', false);
   end;
 
+  procedure HandleGlobalIncludeCompletion;
+  begin
+    InsertString('>', false);
+  end;
+
+  procedure HandleGlobalIncludeSkip;
+  var
+    pos : TBufferCoord;
+  begin
+    if GetCurrentChar <> '>' then
+      Exit;
+    pos:=Text.GetMatchingBracket;
+    if pos.Line <> 0 then begin
+      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
+      Key := #0; // remove key press
+    end;
+  end;
+
   procedure HandleBraceSkip;
   var
     pos : TBufferCoord;
@@ -1156,6 +1174,9 @@ begin
       if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
         'Character')) and not tokenFinished and not (key in ['''','"']) then
         Exit;
+      if (key in ['<','>']) and (Attr.Name<>'Preprocessor') then begin
+        Exit;
+      end;
     end;
   end;
 
@@ -1201,6 +1222,14 @@ begin
     '"': begin
         if devEditor.DoubleQuoteComplete then // strings
           HandleDoubleQuoteCompletion;
+      end;
+    '<': begin
+        if devEditor.GlobalIncludeCompletion then // #include <>
+          HandleGlobalIncludeCompletion;
+      end;
+    '>': begin
+        if devEditor.GlobalIncludeCompletion then // #include <>
+          HandleGlobalIncludeSkip;
       end;
   end;
 end;
