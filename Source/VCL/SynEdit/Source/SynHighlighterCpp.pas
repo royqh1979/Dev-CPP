@@ -1017,7 +1017,8 @@ begin
         else
           fRange:=rsAnsiC;
         inc(Run, 2);
-        AnsiCProc;
+        if FLine[Run] <> #0 then
+          AnsiCProc;
       end;
     '=':                               {divide assign}
       begin

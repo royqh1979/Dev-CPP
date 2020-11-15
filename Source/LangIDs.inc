@@ -493,6 +493,8 @@ const
   ID_EOPT_SYMBOLSINGLEQUOTE             = 27068;
   ID_EOPT_SYMBOLDOUBLEQUOTE             = 27069;
 
+  ID_EOPT_CIPREFIX                     = 27070;
+
   // new project
   ID_NP_PRJNAME                         = 28001;
   ID_NP_DEFAULTC                        = 28002;

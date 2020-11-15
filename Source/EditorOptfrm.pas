@@ -155,6 +155,7 @@ type
     txtCodeSuggestionMaxCount: TSpinEdit;
     lbCodeSuggestionShowCount: TLabel;
     chkEnableCompletion: TCheckBox;
+    cbGlobalIncludes: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -220,7 +221,7 @@ type
 implementation
 
 uses
-  shlobj, MultiLangSupport, devcfg, version, math, CommCtrl, DateUtils, CodeInsList, DataFrm, IniFiles, editor,
+  shlobj, MultiLangSupport, devcfg, version, math, CommCtrl, DateUtils,cbUtils, CodeInsList, DataFrm, IniFiles, editor,
   main;
 
 {$R *.dfm}
@@ -415,6 +416,7 @@ begin
     cbParenth.Checked := ParentheseComplete;
     cbSingleQuotes.Checked := SingleQuoteComplete;
     cbDoubleQuotes.Checked := DoubleQuoteComplete;
+    cbGlobalIncludes.Checked := GlobalIncludeCompletion;
 
     // Completion. Only enable if CompleteSymbols is true
     cbSymbolCompleteClick(nil);
@@ -629,8 +631,9 @@ begin
   btnAdd.Caption := Lang[ID_BTN_ADD];
   btnRemove.Caption := Lang[ID_BTN_REMOVE];
   lvCodeIns.Cols[0][0] := Lang[ID_EOPT_CIMENU];
-  lvCodeIns.Cols[1][0] := Lang[ID_EOPT_CISECTION];
-  lvCodeIns.Cols[2][0] := Lang[ID_EOPT_CIDESC];
+  lvCodeIns.Cols[1][0] := Lang[ID_EOPT_CIPREFIX];
+  lvCodeIns.Cols[2][0] := Lang[ID_EOPT_CISECTION];
+  lvCodeIns.Cols[3][0] := Lang[ID_EOPT_CIDESC];
   cbDefaultCode.Caption := Lang[ID_EOPT_DEFCODE];
 
   // Completion tab, code
@@ -649,6 +652,7 @@ begin
   cbComments.Caption := Lang[ID_EOPT_SYMBOLCOMMENT];
   cbSingleQuotes.Caption := Lang[ID_EOPT_SYMBOLSINGLEQUOTE];
   cbDoubleQuotes.Caption := Lang[ID_EOPT_SYMBOLDOUBLEQUOTE];
+  cbGlobalIncludes.Caption := Lang[ID_EOPT_SYMBOLINCLUDE];
   cbDeleteCompleted.Caption := Lang[ID_EOPT_DELETESYMBOLPAIRS];
 
   // Autosave
@@ -733,6 +737,7 @@ begin
     ParentheseComplete := cbParenth.Checked;
     SingleQuoteComplete := cbSingleQuotes.Checked;
     DoubleQuoteComplete := cbDoubleQuotes.Checked;
+    GlobalIncludeCompletion := cbGlobalIncludes.Checked;
     DeleteSymbolPairs := cbDeleteCompleted.Checked;
 
     // Autosave
@@ -1275,11 +1280,12 @@ begin
 
     // Fill cols
     ins := dmMain.CodeInserts[I];
-    sl.Text := ins^.Line;
+    sl.Text := ins^.Code;
     lvCodeIns.Objects[0, lvCodeIns.RowCount - 1] := sl;
     lvCodeIns.Cells[0, lvCodeIns.RowCount - 1] := ins^.Caption;
-    lvCodeIns.Cells[1, lvCodeIns.RowCount - 1] := IntToStr(ins^.Sep);
-    lvCodeIns.Cells[2, lvCodeIns.RowCount - 1] := ins^.Desc;
+    lvCodeIns.Cells[1, lvCodeIns.RowCount - 1] := ins^.Prefix;
+    lvCodeIns.Cells[2, lvCodeIns.RowCount - 1] := IntToStr(ins^.Section);
+    lvCodeIns.Cells[3, lvCodeIns.RowCount - 1] := ins^.Desc;
   end;
 
   // Add empty, but configured row
@@ -1291,6 +1297,7 @@ begin
     lvCodeIns.Cells[0, lvCodeIns.RowCount - 1] := '';
     lvCodeIns.Cells[1, lvCodeIns.RowCount - 1] := '';
     lvCodeIns.Cells[2, lvCodeIns.RowCount - 1] := '';
+    lvCodeIns.Cells[3, lvCodeIns.RowCount - 1] := '';
   end;
 
   lvCodeIns.FixedRows := 1; // gets reset to 0 when removing all editable rows
@@ -1310,9 +1317,10 @@ begin
 
       // Get snippet from attached object
       Item.Caption := lvCodeIns.Cells[0, I];
-      Item.Sep := StrToIntDef(lvCodeIns.Cells[1, I], 0);
-      Item.Desc := lvCodeIns.Cells[2, I];
-      Item.Line := TStringList(lvCodeIns.Objects[0, I]).Text;
+      Item.Prefix := lvCodeIns.Cells[1, I];
+      Item.Section := StrToIntDef(lvCodeIns.Cells[2, I], 0);
+      Item.Desc := lvCodeIns.Cells[3, I];
+      Item.Code := TStringList(lvCodeIns.Objects[0, I]).Text;
 
       dmMain.CodeInserts.AddItem(Item);
     end;
@@ -1487,6 +1495,7 @@ begin
   cbComments.Enabled := cbSymbolComplete.Checked;
   cbParenth.Enabled := cbSymbolComplete.Checked;
   cbSingleQuotes.Enabled := cbSymbolComplete.Checked;
+  cbGlobalIncludes.Enabled := cbSymbolComplete.Checked;
   cbDoubleQuotes.Enabled := cbSymbolComplete.Checked;
   cbDeleteCompleted.Enabled := cbSymbolComplete.Checked;
 end;

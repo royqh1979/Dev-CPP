@@ -2763,22 +2763,24 @@ begin
               ClosestLine := Statement^._Line;
               InsideBody := Statement^._Line < Row;
             end;
-        end;
+      end;
       skFunction, skConstructor, skDestructor: begin
-          if SameFileName(Statement^._FileName, Filename) then begin
-          // Check definition
-            if Statement^._HasDefinition and (Statement^._DefinitionLine <= Row) and (Statement^._DefinitionLine > ClosestLine) then begin
-              ClosestStatement := Statement;
-              ClosestLine := Statement^._DefinitionLine;
-              InsideBody := Statement^._Line < Row;
-            end else if (Statement^._Line <= Row) and (Statement^._Line > ClosestLine) then begin
-              // Check declaration
-              ClosestStatement := Statement;
-              ClosestLine := Statement^._Line;
-              InsideBody := True; // no body, so assume true
-            end;
-          end;
+        if Statement^._HasDefinition
+          and SameFileName(Statement^._DefinitionFileName, Filename)
+          and (Statement^._DefinitionLine <= Row)
+          and (Statement^._DefinitionLine > ClosestLine) then begin
+          ClosestStatement := Statement;
+          ClosestLine := Statement^._DefinitionLine;
+          InsideBody := Statement^._DefinitionLine < Row;
+        end else if SameFileName(Statement^._FileName, Filename)
+          and (Statement^._Line <= Row)
+          and (Statement^._Line > ClosestLine) then begin
+          // Check declaration
+          ClosestStatement := Statement;
+          ClosestLine := Statement^._Line;
+          InsideBody := True; // no body, so assume true
         end;
+      end;
     end;
   end;
 

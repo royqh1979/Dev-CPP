@@ -895,7 +895,7 @@ begin
 
   // fText needs to be focused for TopLine and LinesInWindow to be correct
   if not fText.Focused then
-    Self.Activate;
+    self.Activate;
 
   // Position the caret, call EnsureCursorPosVisibleEx after setting block
   fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
@@ -1066,6 +1066,24 @@ var
     InsertString('}', false);
   end;
 
+  procedure HandleGlobalIncludeCompletion;
+  begin
+    InsertString('>', false);
+  end;
+
+  procedure HandleGlobalIncludeSkip;
+  var
+    pos : TBufferCoord;
+  begin
+    if GetCurrentChar <> '>' then
+      Exit;
+    pos:=Text.GetMatchingBracket;
+    if pos.Line <> 0 then begin
+      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
+      Key := #0; // remove key press
+    end;
+  end;
+
   procedure HandleBraceSkip;
   var
     pos : TBufferCoord;
@@ -1156,6 +1174,9 @@ begin
       if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
         'Character')) and not tokenFinished and not (key in ['''','"']) then
         Exit;
+      if (key in ['<','>']) and (Attr.Name<>'Preprocessor') then begin
+        Exit;
+      end;
     end;
   end;
 
@@ -1201,6 +1222,14 @@ begin
     '"': begin
         if devEditor.DoubleQuoteComplete then // strings
           HandleDoubleQuoteCompletion;
+      end;
+    '<': begin
+        if devEditor.GlobalIncludeCompletion then // #include <>
+          HandleGlobalIncludeCompletion;
+      end;
+    '>': begin
+        if devEditor.GlobalIncludeCompletion then // #include <>
+          HandleGlobalIncludeSkip;
       end;
   end;
 end;
@@ -1391,6 +1420,7 @@ begin
   Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
 
+  fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
@@ -1538,17 +1568,21 @@ begin
   fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
   fText.SelEnd := fText.RowColToCharIndex(p);
   // ... by replacing the selection
-  fText.SelText := Statement^._Command + FuncAddOn;
+  if Statement^._Kind = skUserCodeIn then begin // it's a user code template
+    fText.SelText := Statement^._Value;
+  end else begin
+    fText.SelText := Statement^._Command + FuncAddOn;
 
-  // Move caret inside the ()'s, only when the user has something to do there...
-  if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
+    // Move caret inside the ()'s, only when the user has something to do there...
+    if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
 
-    fText.CaretX := fText.CaretX - Length(FuncAddOn) + 1;
+      fText.CaretX := fText.CaretX - Length(FuncAddOn) + 1;
 
-    // immediately activate function hint
-    if devEditor.ShowFunctionTip and Assigned(fText.Highlighter) then begin
-      fText.SetFocus;
-      fFunctionTip.Show;
+      // immediately activate function hint
+      if devEditor.ShowFunctionTip and Assigned(fText.Highlighter) then begin
+        fText.SetFocus;
+        fFunctionTip.Show;
+      end;
     end;
   end;
   fCompletionBox.Hide;

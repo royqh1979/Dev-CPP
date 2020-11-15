@@ -9,7 +9,15 @@ Version 6.1-beta2 November 2020
  - enhancement: code completion support smart pointers
  - fix: Parser can get template parameters of variables now(but we don't use it now..)
  - fix: Crash when classbrowser is showing and resize main window
-
+ - fix: ClassBrowser don't refresh when select/jump to definitions
+ - fix: /* display error
+ - enhancement: ClassBrowser updates faster when refresh/change sort types
+ - enhancement: Code Suggestion for function return value's member
+ - fix: Parser error cause infinite-loop when parsing local blocks
+ - enhancement: caret between {} and press enter will behave like in IDEA and CLion
+ - enhancement: user code template / call it in Code Sugestion
+ - change: compiler set droplist now use Mainform's font setting
+ - enhancement: Symbol Completion of #include <>
 
 Version 6.1-beta1.1 November 2020
 

@@ -417,6 +417,7 @@ type
     fArrayComplete: boolean;
     fSingleQuoteComplete: boolean;
     fDoubleQuoteComplete: boolean;
+    fGlobalIncludeCompletion: boolean;
     fCompleteSymbols: boolean;
     fDeleteSymbolPairs: boolean;
 
@@ -491,6 +492,7 @@ type
     property ArrayComplete: boolean read fArrayComplete write fArrayComplete;
     property SingleQuoteComplete: boolean read fSingleQuoteComplete write fSingleQuoteComplete;
     property DoubleQuoteComplete: boolean read fDoubleQuoteComplete write fDoubleQuoteComplete;
+    property GlobalIncludeCompletion: boolean read fGlobalIncludeCompletion write fGlobalIncludeCompletion;
     property CompleteSymbols: boolean read fCompleteSymbols write fCompleteSymbols;
     property DeleteSymbolPairs: boolean read fDeleteSymbolPairs write fDeleteSymbolPairs;
     property UseUTF8ByDefault: boolean read fUseUTF8ByDefault write fUseUTF8ByDefault;
@@ -2465,6 +2467,7 @@ begin
   fCommentComplete := True;
   fSingleQuoteComplete := True;
   fDoubleQuoteComplete := True;
+  fGlobalIncludeCompletion := True;
   fDeleteSymbolPairs := True;
 
   fUseUTF8ByDefault := True;

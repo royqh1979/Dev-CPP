@@ -22,16 +22,9 @@ unit CodeInsList;
 interface
 
 uses
-  Windows, Classes;
+  Windows, Classes, cbutils;
 
 type
-  PCodeIns = ^TCodeIns;
-  TCodeIns = record
-    Caption: AnsiString;
-    Line: AnsiString;
-    Desc: AnsiString;
-    Sep: integer;
-  end;
 
   TCodeInsList = class(TObject)
   private
@@ -46,10 +39,11 @@ type
 
     procedure LoadCode;
     procedure SaveCode;
-    function AddItem(Value: PCodeIns): integer;
-    procedure AddItemByValues(const menutext, description, code: AnsiString; section: integer);
+    function AddItem(Value: PCodeIns): integer; overload;
+    procedure AddItem(const menutext, prefix,description, code: AnsiString; section: integer); overload;
     procedure Delete(index: integer);
     procedure Clear;
+    property ItemList: TList read fList;
     property Items[index: integer]: PCodeins read GetItem write SetItem; default;
     property Count: integer read GetCount;
   end;
@@ -83,15 +77,16 @@ begin
   result := fList.Add(Value);
 end;
 
-procedure TCodeInsList.AddItemByValues(const menutext, description, code: AnsiString; section: integer);
+procedure TCodeInsList.AddItem(const menutext, prefix,description, code: AnsiString; section: integer);
 var
   assembleditem: PCodeIns;
 begin
   new(assembleditem);
   assembleditem^.Caption := menutext;
-  assembleditem^.Line := code;
+  assembleditem^.Prefix := prefix;
+  assembleditem^.Code := code;
   assembleditem^.Desc := description;
-  assembleditem^.Sep := section;
+  assembleditem^.Section := section;
   fList.Add(assembleditem);
 end;
 
@@ -140,112 +135,112 @@ var
 begin
   if devData.First then begin
     // Win32
-    AddItemByValues('MessageBox', 'Win32 MessageBox', 'MessageBox(*|*,"Hello","Caption",MB_OK);', 1);
-    AddItemByValues('WinMain', 'Win32 Main Function',
+//    AddItemByValues('MessageBox', 'Win32 MessageBox', 'MessageBox(*|*,"Hello","Caption",MB_OK);', 1);
+//    AddItemByValues('WinMain', 'Win32 Main Function',
+//
+//      'int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {' + #13#10 +
+//      '	WNDCLASSEX wc;' + #13#10 +
+//      '	HWND hwnd;' + #13#10 +
+//      '	MSG Msg;' + #13#10 +
+//      '' + #13#10 +
+//      '	memset(&wc,0,sizeof(wc));' + #13#10 +
+//      '	wc.cbSize		 = sizeof(WNDCLASSEX);' + #13#10 +
+//      '	wc.lpfnWndProc	 = *|*; /* insert window procedure function here */' + #13#10 +
+//      '	wc.hInstance	 = hInstance;' + #13#10 +
+//      '	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);' + #13#10 +
+//      '	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);' + #13#10 +
+//      '	wc.lpszClassName = "WindowClass";' + #13#10 +
+//      '	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION); /* use "A" as icon name when you want to use the project icon */' + #13#10
+//      +
+//      '	wc.hIconSm		 = LoadIcon(NULL, IDI_APPLICATION); /* as above */' + #13#10 +
+//      '' + #13#10 +
+//      '	if(!RegisterClassEx(&wc)) {' + #13#10 +
+//      '		MessageBox(NULL, "Window Registration Failed!","Error!",MB_ICONEXCLAMATION|MB_OK);' + #13#10 +
+//      '		return 0;' + #13#10 +
+//      '	}' + #13#10 +
+//      '' + #13#10 +
+//      '	hwnd = CreateWindowEx(WS_EX_CLIENTEDGE,"WindowClass","Caption",WS_VISIBLE|WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,640,480,NULL,NULL,hInstance,NULL);' + #13#10
+//      +
+//      '	if(hwnd == NULL) {' + #13#10 +
+//      '		MessageBox(NULL, "Window Creation Failed!","Error!",MB_ICONEXCLAMATION|MB_OK);' + #13#10 +
+//      '		return 0;' + #13#10 +
+//      '	}' + #13#10 +
+//      '' + #13#10 +
+//      '	while(GetMessage(&Msg, NULL, 0, 0) > 0) {' + #13#10 +
+//      '		TranslateMessage(&Msg);' + #13#10 +
+//      '		DispatchMessage(&Msg);' + #13#10 +
+//      '	}' + #13#10 +
+//      '	return Msg.wParam;' + #13#10 +
+//      '}', 1);
 
-      'int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {' + #13#10 +
-      '	WNDCLASSEX wc;' + #13#10 +
-      '	HWND hwnd;' + #13#10 +
-      '	MSG Msg;' + #13#10 +
-      '' + #13#10 +
-      '	memset(&wc,0,sizeof(wc));' + #13#10 +
-      '	wc.cbSize		 = sizeof(WNDCLASSEX);' + #13#10 +
-      '	wc.lpfnWndProc	 = *|*; /* insert window procedure function here */' + #13#10 +
-      '	wc.hInstance	 = hInstance;' + #13#10 +
-      '	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);' + #13#10 +
-      '	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);' + #13#10 +
-      '	wc.lpszClassName = "WindowClass";' + #13#10 +
-      '	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION); /* use "A" as icon name when you want to use the project icon */' + #13#10
-      +
-      '	wc.hIconSm		 = LoadIcon(NULL, IDI_APPLICATION); /* as above */' + #13#10 +
-      '' + #13#10 +
-      '	if(!RegisterClassEx(&wc)) {' + #13#10 +
-      '		MessageBox(NULL, "Window Registration Failed!","Error!",MB_ICONEXCLAMATION|MB_OK);' + #13#10 +
-      '		return 0;' + #13#10 +
-      '	}' + #13#10 +
-      '' + #13#10 +
-      '	hwnd = CreateWindowEx(WS_EX_CLIENTEDGE,"WindowClass","Caption",WS_VISIBLE|WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,640,480,NULL,NULL,hInstance,NULL);' + #13#10
-      +
-      '	if(hwnd == NULL) {' + #13#10 +
-      '		MessageBox(NULL, "Window Creation Failed!","Error!",MB_ICONEXCLAMATION|MB_OK);' + #13#10 +
-      '		return 0;' + #13#10 +
-      '	}' + #13#10 +
-      '' + #13#10 +
-      '	while(GetMessage(&Msg, NULL, 0, 0) > 0) {' + #13#10 +
-      '		TranslateMessage(&Msg);' + #13#10 +
-      '		DispatchMessage(&Msg);' + #13#10 +
-      '	}' + #13#10 +
-      '	return Msg.wParam;' + #13#10 +
-      '}', 1);
+//    AddItemByValues('Main Window Proc', 'Win32 Main Proc Function',
 
-    AddItemByValues('Main Window Proc', 'Win32 Main Proc Function',
+//      'LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {' + #13#10 +
+//      '	switch(Message) {' + #13#10 +
+//      '		case *|*: {' + #13#10 +
+//      '			break;' + #13#10 +
+//      '		}' + #13#10 +
+//      '		case WM_DESTROY: {' + #13#10 +
+//      '			PostQuitMessage(0);' + #13#10 +
+//      '			break;' + #13#10 +
+//      '		}' + #13#10 +
+//      '		default:' + #13#10 +
+//      '			return DefWindowProc(hwnd, Message, wParam, lParam);' + #13#10 +
+//      '	}' + #13#10 +
+//      '	return 0;' + #13#10 +
+//      '}', 1);
 
-      'LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {' + #13#10 +
-      '	switch(Message) {' + #13#10 +
-      '		case *|*: {' + #13#10 +
-      '			break;' + #13#10 +
-      '		}' + #13#10 +
-      '		case WM_DESTROY: {' + #13#10 +
-      '			PostQuitMessage(0);' + #13#10 +
-      '			break;' + #13#10 +
-      '		}' + #13#10 +
-      '		default:' + #13#10 +
-      '			return DefWindowProc(hwnd, Message, wParam, lParam);' + #13#10 +
-      '	}' + #13#10 +
-      '	return 0;' + #13#10 +
-      '}', 1);
+//    AddItemByValues('Child Window Proc', 'Win32 Child Proc Function',
 
-    AddItemByValues('Child Window Proc', 'Win32 Child Proc Function',
-
-      'BOOL CALLBACK ChildProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {' + #13#10 +
-      '	switch(Message) {' + #13#10 +
-      '		case *|*: {' + #13#10 +
-      '			break;' + #13#10 +
-      '		}' + #13#10 +
-      '		default:' + #13#10 +
-      '			return false;' + #13#10 +
-      '	}' + #13#10 +
-      '	return true;' + #13#10 +
-      '}', 1);
-
+//      'BOOL CALLBACK ChildProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {' + #13#10 +
+//      '	switch(Message) {' + #13#10 +
+//      '		case *|*: {' + #13#10 +
+//      '			break;' + #13#10 +
+//      '		}' + #13#10 +
+//      '		default:' + #13#10 +
+//      '			return false;' + #13#10 +
+//      '	}' + #13#10 +
+//      '	return true;' + #13#10 +
+//      '}', 1);
     // Generic C
-    AddItemByValues('for()', 'for loop', 'for(*|*;;) {' + #13#10 + '}', 2);
-    AddItemByValues('while()', 'while loop', 'while(*|*) {' + #13#10 + '}', 2);
-    AddItemByValues('do-while()', 'do-while loop', 'do {' + #13#10 + '} while(*|*);', 2);
-    AddItemByValues('if()', 'if statement', 'if(*|*) {' + #13#10 + '}', 2);
-    AddItemByValues('switch()', 'switch statement', 'switch(*|*) {' + #13#10 + '	default:' + #13#10 + '}', 2);
+//    AddItemByValues('for()', 'for loop', 'for(*|*;;) {' + #13#10 + '}', 2);
+//    AddItemByValues('while()', 'while loop', 'while(*|*) {' + #13#10 + '}', 2);
+//    AddItemByValues('do-while()', 'do-while loop', 'do {' + #13#10 + '} while(*|*);', 2);
+//    AddItemByValues('if()', 'if statement', 'if(*|*) {' + #13#10 + '}', 2);
+//    AddItemByValues('switch()', 'switch statement', 'switch(*|*) {' + #13#10 + '	default:' + #13#10 + '}', 2);
+
 
     // C++
-    AddItemByValues('Class', 'Class',
+//    AddItemByValues('Class', 'Class',
 
-      'class *|* {' + #13#10 +
-      '	// Private section' + #13#10 +
-      '	public:' + #13#10 +
-      '		// Public Declarations' + #13#10 +
-      '	protected:' + #13#10 +
-      '		// Protected Declarations' + #13#10 +
-      '};', 2);
+//      'class *|* {' + #13#10 +
+//      '	// Private section' + #13#10 +
+//      '	public:' + #13#10 +
+//      '		// Public Declarations' + #13#10 +
+//      '	protected:' + #13#10 +
+//      '		// Protected Declarations' + #13#10 +
+//      '};', 2);
 
-    AddItemByValues('Class Header Template', 'Class',
+//    AddItemByValues('Class Header Template', 'Class',
 
-      '#ifndef SOMETHING_H' + #13#10 +
-      '#define SOMETHING_H' + #13#10#13#10 +
-      'class *|* {' + #13#10 +
-      '	// Private section' + #13#10 +
-      '	public:' + #13#10 +
-      '		// Public Declarations' + #13#10 +
-      '	protected:' + #13#10 +
-      '		// Protected Declarations' + #13#10 +
-      '};' + #13#10 + #13#10 +
-      '#endif', 2);
+//      '#ifndef SOMETHING_H' + #13#10 +
+//      '#define SOMETHING_H' + #13#10#13#10 +
+//      'class *|* {' + #13#10 +
+//      '	// Private section' + #13#10 +
+//      '	public:' + #13#10 +
+//      '		// Public Declarations' + #13#10 +
+//      '	protected:' + #13#10 +
+//      '		// Protected Declarations' + #13#10 +
+//      '};' + #13#10 + #13#10 +
+//      '#endif', 2);
 
     // Preprocessor
-    AddItemByValues('#ifdef', 'Preprocessor if', '#ifdef *|*' + #13#10#13#10 + '#endif', 3);
-    AddItemByValues('#ifndef', 'Preprocessor !if', '#ifndef *|*' + #13#10#13#10 + '#endif', 3);
-    AddItemByValues('#ifdef/else', 'Preprocessor if-else', '#ifdef *|*' + #13#10#13#10 + '#elif' + #13#10#13#10 +
-      '#endif', 3);
-    AddItemByValues('#ifndef/else', 'Preprocessor !if-else', '#ifndef *|*' + #13#10#13#10 + '#elif' + #13#10#13#10 +
-      '#endif', 3);
+//    AddItemByValues('#ifdef', 'Preprocessor if', '#ifdef *|*' + #13#10#13#10 + '#endif', 3);
+//    AddItemByValues('#ifndef', 'Preprocessor !if', '#ifndef *|*' + #13#10#13#10 + '#endif', 3);
+//    AddItemByValues('#ifdef/else', 'Preprocessor if-else', '#ifdef *|*' + #13#10#13#10 + '#elif' + #13#10#13#10 +
+//      '#endif', 3);
+//    AddItemByValues('#ifndef/else', 'Preprocessor !if-else', '#ifndef *|*' + #13#10#13#10 + '#elif' + #13#10#13#10 +
+//      '#endif', 3);
 
     // Save to disk as defaults
     SaveCode;
@@ -260,8 +255,9 @@ begin
           new(Item);
           Item^.Caption := StringReplace(tmp[I], '_', ' ', [rfReplaceAll]);
           Item^.Desc := ReadString(tmp[I], 'Desc', '');
-          Item^.Line := StrtoCodeIns(ReadString(tmp[I], 'Line', ''));
-          Item^.Sep := ReadInteger(tmp[I], 'Sep', 0);
+          Item^.Prefix := ReadString(tmp[I], 'Prefix', '');
+          Item^.Code := StrtoCodeIns(ReadString(tmp[I], 'Code', ''));
+          Item^.Section := ReadInteger(tmp[I], 'Section', 0);
           AddItem(Item);
         end;
       finally
@@ -288,8 +284,9 @@ begin
       item := PCodeIns(fList[I]);
       section := StringReplace(item^.Caption, ' ', '_', [rfReplaceAll]);
       WriteString(section, 'Desc', item^.Desc);
-      WriteString(section, 'Line', CodeInstoStr(item^.Line));
-      WriteInteger(section, 'Sep', item^.Sep);
+      WriteString(section, 'Prefix', item^.Prefix);
+      WriteString(section, 'Code', CodeInstoStr(item^.Code));
+      WriteInteger(section, 'Section', item^.Section);
     end;
   finally
     Free;

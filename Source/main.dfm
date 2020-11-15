@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 562
-  Top = 295
+  Left = 592
+  Top = 231
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -231,7 +231,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = CallStackSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
@@ -241,7 +241,7 @@ object MainForm: TMainForm
           object Panel2: TPanel
             Left = 0
             Top = 0
-            Width = 706
+            Width = 713
             Height = 162
             Align = alClient
             BevelOuter = bvNone
@@ -249,7 +249,7 @@ object MainForm: TMainForm
             object DebugOutput: TDevConsole
               Left = 0
               Top = 0
-              Width = 706
+              Width = 713
               Height = 162
               Align = alClient
               PopupMenu = DebugOutputPopup
@@ -300,7 +300,7 @@ object MainForm: TMainForm
           object BreakpointsView: TListView
             Left = 0
             Top = 0
-            Width = 706
+            Width = 713
             Height = 162
             Cursor = crHandPoint
             Align = alClient
@@ -827,7 +827,7 @@ object MainForm: TMainForm
       Top = 34
       Width = 700
       Height = 28
-      ButtonHeight = 28
+      ButtonHeight = 24
       Caption = 'tbClasses'
       EdgeBorders = []
       EdgeInner = esNone
@@ -839,19 +839,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 350
-        Height = 28
+        Height = 24
         Style = csDropDownList
         Ctl3D = True
         DropDownCount = 16
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -17
-        Font.Name = 'Courier New'
-        Font.Style = []
-        ItemHeight = 20
+        ItemHeight = 16
         ItemIndex = 0
         ParentCtl3D = False
-        ParentFont = False
         Sorted = True
         TabOrder = 0
         Text = '(globals)'
@@ -864,18 +858,12 @@ object MainForm: TMainForm
         Left = 350
         Top = 0
         Width = 350
-        Height = 28
+        Height = 24
         Style = csDropDownList
         Ctl3D = True
         DropDownCount = 16
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -17
-        Font.Name = 'Courier New'
-        Font.Style = []
-        ItemHeight = 20
+        ItemHeight = 16
         ParentCtl3D = False
-        ParentFont = False
         Sorted = True
         TabOrder = 1
         OnChange = cmbMembersChange
@@ -887,7 +875,7 @@ object MainForm: TMainForm
       Top = 2
       Width = 339
       Height = 28
-      ButtonHeight = 28
+      ButtonHeight = 24
       Caption = 'tbCompilers'
       EdgeBorders = []
       EdgeInner = esNone
@@ -902,19 +890,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 337
-        Height = 28
+        Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
         Ctl3D = True
         DropDownCount = 16
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -17
-        Font.Name = 'Courier New'
-        Font.Style = []
-        ItemHeight = 20
+        ItemHeight = 16
         ParentCtl3D = False
-        ParentFont = False
         TabOrder = 0
         OnChange = cmbCompilersChange
         OnDropDown = cmbGenericDropDown

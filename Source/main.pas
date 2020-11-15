@@ -1602,7 +1602,7 @@ var
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then
-    e.InsertString(dmMain.CodeInserts[TMenuItem(Sender).Tag].Line, TRUE);
+    e.InsertString(dmMain.CodeInserts[TMenuItem(Sender).Tag].Code, TRUE);
 end;
 
 procedure TMainForm.ToolItemClick(Sender: TObject);
@@ -4633,6 +4633,8 @@ end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
+  if ClassBrowser.CurrentFile = e.FileName then
+    Exit;
   ClassBrowser.BeginUpdate;
   try
     if Assigned(e) then begin
@@ -7421,8 +7423,6 @@ begin
   ClassBrowser.SortByType := not ClassBrowser.SortByType;
   devClassBrowsing.SortByType := ClassBrowser.SortByType;
   actBrowserSortByType.Checked := ClassBrowser.SortByType;
-  ClassBrowser.UpdateView; // we must updateview here since write fsortbytype don't call updateview
-  ClassBrowser.Refresh;
 end;
 
 procedure TMainForm.actBrowserSortAlphabeticallyExecute(Sender: TObject);
@@ -7430,8 +7430,6 @@ begin
   ClassBrowser.SortAlphabetically := not ClassBrowser.SortAlphabetically;
   devClassBrowsing.SortAlphabetically := ClassBrowser.SortAlphabetically;
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
-  ClassBrowser.UpdateView; // we must updateview here since write fSortAlphabetically don't call updateview
-  ClassBrowser.Refresh;
 end;
 
 procedure TMainForm.DebugOutputEnter(Sender: TObject);

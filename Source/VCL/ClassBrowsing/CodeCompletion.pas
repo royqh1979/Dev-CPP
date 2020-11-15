@@ -34,6 +34,8 @@ U_IntList, QDialogs, Types;
 type
   TCodeCompletion = class(TComponent)
   private
+    fCodeInsList: TList; // TList<PCodeIns> CodeInsList (Code template list)
+    fCodeInsStatements: TList; //TList<Statement> temporary (user code template) statements created when show code suggestion
     fParser: TCppParser;
     fFullCompletionStatementList: TList;
     fCompletionStatementList: TList;
@@ -76,6 +78,7 @@ type
     procedure Show;
     function SelectedStatement: PStatement;
     property CurrentStatement: PStatement read fCurrentStatement write fCurrentStatement;
+    property CodeInsList: TList read fCodeInsList write fCodeInsList;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property Parser: TCppParser read fParser write fParser;
@@ -114,6 +117,8 @@ constructor TCodeCompletion.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  fCodeInsStatements:=TList.Create;
+
   fIncludedFiles := TStringList.Create;
   fIncludedFiles.Sorted := True;
   fIncludedFiles.Duplicates := dupIgnore;
@@ -141,6 +146,8 @@ begin
 end;
 
 destructor TCodeCompletion.Destroy;
+var
+  i:integer;
 begin
   FreeAndNil(CodeComplForm);
   FreeAndNil(fCompletionStatementList);
@@ -148,6 +155,10 @@ begin
   FreeAndNil(fIncludedFiles);
   FreeAndNil(fUsings);
   FreeAndNil(fAddedStatements);
+  for i:= 0 to  fCodeInsStatements.Count-1 do begin
+    dispose(PStatement(fCodeInsStatements[i]));
+  end;
+  FreeAndNil(fCodeInsStatements);
   inherited Destroy;
 end;
 
@@ -192,11 +203,30 @@ var
   ScopeTypeStatement, Statement : PStatement;
   ScopeName, namespaceName,typeName: AnsiString;
   opType: TOperatorType;
+  codeIn:PCodeIns;
+  codeInStatement:PStatement;
 begin
   // Reset filter cache
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
 
+  {
+  //Clear Code Statements
+  for i:= 0 to  fCodeInsStatements.Count-1 do begin
+    dispose(PStatement(fCodeInsStatements[i]));
+  end;
+  fCodeInsStatements.Clear;
+  }
+
+  for i:=0 to fCodeInsList.Count-1 do begin
+    codeIn:=PCodeIns(fCodeInsList[i]);
+    new(codeInStatement);
+    codeInStatement^._Command := codeIn.Prefix;
+    codeInStatement^._Value := codeIn.Code;
+    codeInStatement^._Kind := skUserCodeIn;
+    fCodeInsStatements.Add(pointer(codeInStatement));
+    fFullCompletionStatementList.Add(pointer(codeInStatement));
+  end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
   I := fParser.FindLastOperator(Phrase);
@@ -255,7 +285,7 @@ begin
       while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass]) do begin
         ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
       end;
-      if (opType in [otArrow, otDot]) and (statement^._Kind = skVariable) then  begin
+      if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin
         // Get type statement  of current (scope) statement
 
         ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
@@ -403,12 +433,18 @@ begin
 end;
 
 procedure TCodeCompletion.Hide;
+var
+  i:integer;
 begin
   if fPreparing then
     Exit;
   OnKeyPress := nil;
   CodeComplForm.Hide;
-
+  //Clear Code Statements
+  for i:= 0 to  fCodeInsStatements.Count-1 do begin
+    dispose(PStatement(fCodeInsStatements[i]));
+  end;
+  fCodeInsStatements.Clear;
   // Clear data, do not free pointed memory: data is owned by CppParser
   fCompletionStatementList.Clear;
   fFullCompletionStatementList.Clear;

@@ -781,8 +781,8 @@ object EditorOptForm: TEditorOptForm
           end
           object CodeIns: TSynEdit
             Left = 0
-            Top = 245
-            Width = 625
+            Top = 241
+            Width = 631
             Height = 282
             Align = alBottom
             Font.Charset = DEFAULT_CHARSET
@@ -825,12 +825,18 @@ object EditorOptForm: TEditorOptForm
             Top = 11
             Width = 492
             Height = 182
-            ColCount = 3
+            ColCount = 4
             DefaultColWidth = 115
-            DefaultRowHeight = 18
+            DefaultRowHeight = 30
             FixedCols = 0
             RowCount = 2
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -15
+            Font.Name = 'Segoe UI'
+            Font.Style = []
             Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goAlwaysShowEditor]
+            ParentFont = False
             ScrollBars = ssVertical
             TabOrder = 3
             OnSelectCell = lvCodeInsSelectCell
@@ -895,7 +901,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 639
         Height = 558
-        ActivePage = tabCodeCompletion
+        ActivePage = tabSymbolCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet
@@ -1016,7 +1022,7 @@ object EditorOptForm: TEditorOptForm
             Left = 21
             Top = 53
             Width = 364
-            Height = 226
+            Height = 260
             Caption = 'Specific completion options'
             TabOrder = 1
             object cbParenth: TCheckBox
@@ -1067,6 +1073,14 @@ object EditorOptForm: TEditorOptForm
               Caption = 'Complete double quotes '#39'""'#39
               TabOrder = 5
             end
+            object cbGlobalIncludes: TCheckBox
+              Left = 21
+              Top = 224
+              Width = 320
+              Height = 23
+              Caption = 'Complete double #include  '#39'<>'#39
+              TabOrder = 6
+            end
           end
           object cbSymbolComplete: TCheckBox
             Left = 11
@@ -1079,7 +1093,7 @@ object EditorOptForm: TEditorOptForm
           end
           object cbDeleteCompleted: TCheckBox
             Left = 11
-            Top = 288
+            Top = 328
             Width = 598
             Height = 23
             Caption = 'Delete completed symbols as pairs'

@@ -426,7 +426,7 @@ Ver=1
 27053=Specific completion options
 27054=Complete braces '{}'
 27055=Complete parentheses '()'
-27056=Complete includes '<>' '""'
+27056=Complete #includes '<>'
 27057=Complete square braces '[]'
 27058=Complete multiline comments '/**/'
 27059=Save all project files
@@ -440,6 +440,7 @@ Ver=1
 27067=Delete closing character when deleting opening character
 27068=Complete single quotes ''''
 27069=Complete double quotes '""'
+27070=Prefix
 
 
 28001=Name:
