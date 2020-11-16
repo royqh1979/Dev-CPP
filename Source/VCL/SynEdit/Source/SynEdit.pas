@@ -5686,7 +5686,7 @@ begin
     (Msg.lParam and ALT_KEY_DOWN <> 0) then begin
     Msg.Msg := 0 ;
     Exit;
-  end else
+  end;
   inherited;
 end;
 {$ENDIF}
