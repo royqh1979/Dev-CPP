@@ -1118,16 +1118,19 @@ var
   PCmd: PGDBCmd;
 begin
     EnterCriticalSection(fCSQueue);
-    if fCmdQueue.Count<=0 then begin
-      WatchView.Items.BeginUpdate;
-      inc(fUpdateCount);
+    try
+      if fCmdQueue.Count<=0 then begin
+        WatchView.Items.BeginUpdate;
+        inc(fUpdateCount);
+      end;
+      pCmd:=new(PGDBCmd);
+      pCmd^.Cmd := Command;
+      pCmd^.Params := Params;
+      pCmd^.ViewInUI := ViewInUi;
+      fCmdQueue.Push(pCmd);
+    finally
+      LeaveCriticalSection(fCSQueue);
     end;
-    pCmd:=new(PGDBCmd);
-    pCmd^.Cmd := Command;
-    pCmd^.Params := Params;
-    pCmd^.ViewInUI := ViewInUi;
-    fCmdQueue.Push(pCmd);
-    LeaveCriticalSection(fCSQueue);
     if not fCmdRunning then begin
       RunNextCmd;
     end;
@@ -1149,10 +1152,10 @@ begin
         end;
         Exit;
       end;
-      pCmd := PGDBCmd(fCmdQueue.Pop);
     finally
       LeaveCriticalSection(fCSQueue);
     end;
+    pCmd := PGDBCmd(fCmdQueue.Pop);
     // Convert command to C string
     if Length(pCmd^.params) > 0 then begin
       GetMem(P, Length(pCmd^.Cmd) + Length(pCmd.Params) + 3);
@@ -1190,15 +1193,18 @@ var
   pCmd : PGDBCmd;
 begin
   EnterCriticalSection(fCSQueue);
-  while fCmdQueue.Count>0 do begin
-    pCmd := PGDBCmd(fCmdQueue.Pop);
-    Dispose(pCmd);
+  try
+    while fCmdQueue.Count>0 do begin
+      pCmd := PGDBCmd(fCmdQueue.Pop);
+      Dispose(pCmd);
+    end;
+    while (fUpdateCount>0) do begin
+      WatchView.Items.EndUpdate();
+      dec(fUpdateCount);
+    end;
+  finally
+    LeaveCriticalSection(fCSQueue);
   end;
-  while (fUpdateCount>0) do begin
-    WatchView.Items.EndUpdate();
-    dec(fUpdateCount);
-  end;
-  LeaveCriticalSection(fCSQueue);
 end;
 
 end.
