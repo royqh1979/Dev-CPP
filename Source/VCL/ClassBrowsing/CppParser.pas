@@ -2235,8 +2235,8 @@ begin
     repeat
     until not HandleStatement;
     //fTokenizer.DumpTokens('f:\tokens.txt');
-    Statements.DumpTo('f:\stats.txt');
-    Statements.DumpWithScope('f:\\statements.txt');
+    //Statements.DumpTo('f:\stats.txt');
+    //Statements.DumpWithScope('f:\\statements.txt');
     //fPreprocessor.DumpDefinesTo('f:\defines.txt');
     //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -2511,13 +2511,10 @@ begin
       fFilesToScanCount := 0;
       fFilesScannedCount := 0;
       if not Assigned(Stream) then begin
-      {
         if CFile = '' then
           InternalParse(HFile, True) // headers should be parsed via include
         else
           InternalParse(CFile, True); // headers should be parsed via include
-      }
-        InternalParse(FileName, True);
       end else
         InternalParse(FileName, True, Stream); // or from stream
       fFilesToScan.Clear;

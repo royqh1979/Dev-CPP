@@ -312,7 +312,7 @@ var
 begin
   Children := fParser.Statements.GetChildrenStatements(ParentStatement);
 
-  fParser.Statements.DumpWithScope('f:\browser.txt');
+//  fParser.Statements.DumpWithScope('f:\browser.txt');
   if Assigned(Children) then begin
     for i:=0 to Children.Count-1 do begin
       Statement := Children[i];

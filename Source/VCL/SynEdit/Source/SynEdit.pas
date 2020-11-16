@@ -151,9 +151,7 @@ type
   PEditingArea = ^TEditingArea;
   TEditingArea = Record
     beginX: integer;
-    beginY: integer;
     endX: integer;
-    endY: integer;
   end;
 
   TEditingAreasEvent = procedure(Sender: TObject; Line:integer;
@@ -2953,7 +2951,7 @@ var
         x2:=p.endX;
       rc.Left := ColumnToXValue(x1);
       rc.Right := ColumnToXValue(x2);
-      fTextDrawer.SetForeColor(colBorder);
+      Canvas.Pen.Color := colBorder;
       canvas.MoveTo(rc.Left,rc.Top);
       canvas.LineTo(rc.Right,rc.Top);
       canvas.LineTo(rc.Right,rc.bottom);

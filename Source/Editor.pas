@@ -108,6 +108,7 @@ type
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
+    procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
@@ -326,6 +327,7 @@ begin
   fText.OnGutterClick := EditorGutterClick;
   fText.OnSpecialLineColors := EditorSpecialLineColors;
   fText.OnEnter := EditorEnter;
+  fText.OnEditingAreas:=EditorEditingAreas;
   fText.OnExit := EditorExit;
   fText.OnKeyPress := EditorKeyPress;
   fText.OnKeyDown := EditorKeyDown;
@@ -457,6 +459,14 @@ begin
         Result := I;
         break;
       end;
+end;
+
+procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
+var
+  tc: TThemeColor;
+  p:PEditingArea;
+begin
+
 end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
@@ -1425,7 +1435,7 @@ begin
           fText.Cursor := crIBeam;
       end;
     VK_RETURN: begin
-        fLastPressedIsIdChar:=False;    
+        fLastPressedIsIdChar:=False;
     end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
@@ -1439,7 +1449,7 @@ begin
           Key:=0;
           PopUserCodeInTabStops;
         end;
-      end;      
+      end;
     VK_LEFT: begin
         if fUserCodeInTabStops.Count > 0 then
           dec(fXOffsetSince);
@@ -2262,6 +2272,7 @@ end;
       end;
       NewCursorPos.Line := fText.CaretY + p^.Y;
       fText.CaretXY := NewCursorPos;
+
       dispose(p);
       fXOffsetSince:=0;
       fUserCodeInTabStops.Delete(0);
