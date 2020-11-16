@@ -1,24 +1,24 @@
 Version 6.1-beta2 November 2020
 
+ - enhancement: ClassBrowser updates faster when refresh/change sort types
+ - enhancement: Code Suggestion for function return value's member
+ - enhancement: caret between {} and press enter will behave like in IDEA and CLion
+ - enhancement: user code template / call it in Code Sugestion
+ - enhancement: Symbol Completion of #include <>
+ - enhancement: code completion support smart pointers
+ - enhancement: Copy/insert user template will keep the origin indent 
  - Fix: Code Suggestion can't find real type of usings (such as Image in using namespace Gdiplus::Image; Image img;)
  - Fix: Memory Leak when processing '#undef'
  - Fix: Error when project compiler set index is set to -1
  - Fix: crash when remove/add #include to files
  - Fix: out of classes/functions, std namespace is not used by default
  - Fix: Forward declaration and definition can't be matched by the parser, when declaration parameters don't have name. (still don't work if parameters name in declaration and definition is not the same);
- - enhancement: code completion support smart pointers
  - fix: Parser can get template parameters of variables now(but we don't use it now..)
  - fix: Crash when classbrowser is showing and resize main window
  - fix: ClassBrowser don't refresh when select/jump to definitions
  - fix: /* display error
- - enhancement: ClassBrowser updates faster when refresh/change sort types
- - enhancement: Code Suggestion for function return value's member
  - fix: Parser error cause infinite-loop when parsing local blocks
- - enhancement: caret between {} and press enter will behave like in IDEA and CLion
- - enhancement: user code template / call it in Code Sugestion
  - change: compiler set droplist now use Mainform's font setting
- - enhancement: Symbol Completion of #include <>
- - enhancement: Copy/insert user template will keep the origin indent
  - fix: Left Class browser updates correctly for project header file ( now we compare file name without casesensitive)
  - fix: parse error when scan a block which delacration is not in the parsing file
 

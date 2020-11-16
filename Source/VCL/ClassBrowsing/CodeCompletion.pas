@@ -218,19 +218,22 @@ begin
   fCodeInsStatements.Clear;
   }
 
-  for i:=0 to fCodeInsList.Count-1 do begin
-    codeIn:=PCodeIns(fCodeInsList[i]);
-    new(codeInStatement);
-    codeInStatement^._Command := codeIn.Prefix;
-    codeInStatement^._Value := codeIn.Code;
-    codeInStatement^._Kind := skUserCodeIn;
-    fCodeInsStatements.Add(pointer(codeInStatement));
-    fFullCompletionStatementList.Add(pointer(codeInStatement));
-  end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
   I := fParser.FindLastOperator(Phrase);
   if I = 0 then begin
+
+    //add templates
+    for i:=0 to fCodeInsList.Count-1 do begin
+      codeIn:=PCodeIns(fCodeInsList[i]);
+      new(codeInStatement);
+      codeInStatement^._Command := codeIn.Prefix;
+      codeInStatement^._Value := codeIn.Code;
+      codeInStatement^._Kind := skUserCodeIn;
+      fCodeInsStatements.Add(pointer(codeInStatement));
+      fFullCompletionStatementList.Add(pointer(codeInStatement));
+    end;
+
     scopeStatement := fCurrentStatement;
     // repeat until reach global
     while Assigned(scopeStatement) do begin

@@ -1059,6 +1059,7 @@ begin
       fText.SelText := Key;
       phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
 
+      fCompletionBox.Search(phrase , fFileName,False);
       //we don't auto use the completion even if there's only one suggestion
       {
       // There's only one suggestion and is exactly the search word

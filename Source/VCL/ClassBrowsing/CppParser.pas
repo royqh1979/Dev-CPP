@@ -2764,8 +2764,8 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
-  Statements.DumpWithScope('f:\block.txt');
-  Statements.DumpTo('f:\block2.txt');
+  //Statements.DumpWithScope('f:\block.txt');
+  //Statements.DumpTo('f:\block2.txt');
 
   //we only search in the current file
   for i:=0 to fileIncludes^.Statements.Count -1 do begin
