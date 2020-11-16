@@ -2235,8 +2235,8 @@ begin
     repeat
     until not HandleStatement;
     //fTokenizer.DumpTokens('f:\tokens.txt');
-    //Statements.DumpTo('f:\stats.txt');
-    //Statements.DumpWithScope('f:\\statements.txt');
+    Statements.DumpTo('f:\stats.txt');
+    Statements.DumpWithScope('f:\\statements.txt');
     //fPreprocessor.DumpDefinesTo('f:\defines.txt');
     //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -2470,15 +2470,18 @@ begin
   if fParsing then
     Exit;
   fParsing:=True;
+
   try
+    if UpdateView and Assigned(fOnBusy) then
+      fOnBusy(Self);
+      
     if not fEnabled then
       Exit;
     FName := FileName;
-    if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then
+
+    if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then begin
       Exit;
-    if UpdateView then
-      if Assigned(fOnBusy) then
-        fOnBusy(Self);
+    end;
 
     // Always invalidate file pairs. If we don't, reparsing the header
     // screws up the information inside the source file
@@ -2508,10 +2511,13 @@ begin
       fFilesToScanCount := 0;
       fFilesScannedCount := 0;
       if not Assigned(Stream) then begin
+      {
         if CFile = '' then
           InternalParse(HFile, True) // headers should be parsed via include
         else
           InternalParse(CFile, True); // headers should be parsed via include
+      }
+        InternalParse(FileName, True);
       end else
         InternalParse(FileName, True, Stream); // or from stream
       fFilesToScan.Clear;
@@ -2521,10 +2527,9 @@ begin
       if Assigned(fOnEndParsing) then
         fOnEndParsing(Self, 1);
     end;
-    if UpdateView then
-      if Assigned(fOnUpdate) then
-        fOnUpdate(Self);
   finally
+    if UpdateView and Assigned(fOnUpdate) then
+        fOnUpdate(Self);
     fParsing:=False;
   end;
 end;

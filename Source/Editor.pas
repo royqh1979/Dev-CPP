@@ -86,7 +86,6 @@ type
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
     fFunctionTip: TCodeToolTip;
-    fOldTextWndProc: TWndMethod;
     
     fUseUTF8: boolean;
 
@@ -1002,7 +1001,6 @@ end;
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
-  Statement: PStatement;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
@@ -2258,7 +2256,7 @@ end;
       p:=PPoint(fUserCodeInTabStops[0]);
       // Update the cursor
       if p^.Y = 0 then
-        NewCursorPos.Char := fText.CaretX + fXOffsetSince + p^.X
+        NewCursorPos.Char := fText.CaretX - fXOffsetSince + p^.X
       else begin
         NewCursorPos.Char := p^.X+1;
       end;

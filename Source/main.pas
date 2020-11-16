@@ -1630,6 +1630,7 @@ begin
       exit;
   end;
   LeftPageControl.ActivePage := LeftProjectSheet;
+  ClassBrowser.TabVisible:=False;
 
   // Only update class browser once
   ClassBrowser.BeginUpdate;
@@ -2759,7 +2760,8 @@ begin
       FolderNode := fProject.Node;
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
-      LeftPageControl.ActivePage := LeftProjectSheet;
+  LeftPageControl.ActivePage := LeftProjectSheet;
+  ClassBrowser.TabVisible:=False;
   if idx <> -1 then
     with fProject.OpenUnit(idx) do begin
       Activate;
@@ -3198,6 +3200,7 @@ begin
   // Focus on the debugging buttons
   DebugViews.ActivePage := DebugConsoleSheet;
   LeftPageControl.ActivePage := WatchSheet;
+  ClassBrowser.TabVisible:=False;  
   MessageControl.ActivePage := DebugSheet;
   OpenCloseMessageSheet(True);
 
@@ -4144,7 +4147,7 @@ begin
     ClassBrowser.ShowInheritedMembers := devClassBrowsing.ShowInheritedMembers;
     ClassBrowser.SortByType := devClassBrowsing.SortByType;
     ClassBrowser.SortAlphabetically := devClassBrowsing.SortAlphabetically;
-    ClassBrowser.TabVisible := LeftPageControl.ActivePage = LeftClassSheet;
+    ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
   finally
     ClassBrowser.EndUpdate;
   end;

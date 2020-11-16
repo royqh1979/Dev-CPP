@@ -587,7 +587,7 @@ end;
 function TCodeCompletion.IsIncluded(const FileName: AnsiString): boolean;
 begin
   // Only do the slow check if the cache is invalid
-  if not SameStr(FileName, fIsIncludedCacheFileName) then begin
+  if not SameText(FileName, fIsIncludedCacheFileName) then begin
     fIsIncludedCacheFileName := FileName;
     fIsIncludedCacheResult := FastIndexOf(fIncludedFiles, FileName) <> -1;
   end;
