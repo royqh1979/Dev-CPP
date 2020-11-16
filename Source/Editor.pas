@@ -27,6 +27,9 @@ uses
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
   CodeToolTip, CBUtils;
 
+const
+  USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
+
 type
   TEditor = class;
   TDebugGutter = class(TSynEditPlugin)
@@ -71,6 +74,18 @@ type
     fPreviousEditors: TList;
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
+    {
+      Format:  it's the offset relative to the previous tab stop position
+        if y=0, then x means the offset in the same line relative to the previous tab stop postion
+        if y>0, then x means the cursor postion in the new line
+    }
+    fUserCodeInTabStops: TList; //TList<PPoint> queue of offsets of tab stop(insertion) positions in the inserted user code template
+    fXOffsetSince: integer; // cursor movement offset since enter previous tab stop position; only DELETE/LEFT/RIGHT will change this value
+    fTabStopBegin: integer;
+    fTabStopEnd: integer;
+    fTabStopY: integer;
+    fLineBeforeTabStop: AnsiString;
+    fLineAfterTabStop : AnsiString;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
     fCompletionInitialPosition: TBufferCoord;
@@ -98,6 +113,7 @@ type
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
+    procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
@@ -114,6 +130,9 @@ type
     procedure DebugAfterPaint(ACanvas: TCanvas; AClip: TRect; FirstLine, LastLine: integer);
     function GetPageControl: TPageControl;
     procedure SetPageControl(Value: TPageControl);
+    procedure ClearUserCodeInTabStops;
+    procedure PopUserCodeInTabStops;
+    //procedure TextWindowProc(var Message: TMessage);
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
     destructor Destroy; override;
@@ -126,6 +145,7 @@ type
     procedure ExportToRTF;
     procedure ExportToTEX;
     procedure InsertString(Value: AnsiString; MoveCursor: boolean);
+    procedure InsertUserCodeIn(Code: AnsiString);
     procedure SetErrorFocus(Col, Line: integer);
     procedure GotoActiveBreakpoint;
     procedure SetActiveBreakpointFocus(Line: integer);
@@ -146,7 +166,8 @@ type
     property InProject: boolean read fInProject write fInProject;
     property New: boolean read fNew write fNew;
     property Text: TSynEdit read fText write fText;
-    property TabSheet: TTabSheet read fTabSheet write fTabSheet;
+//    property TabSheet: TTabSheet read fTabSheet write fTabSheet;
+    property TabSheet: TTabSheet read fTabSheet;
     property FunctionTip: TCodeToolTip read fFunctionTip;
     property CompletionBox: TCodeCompletion read fCompletionBox;
     property PageControl: TPageControl read GetPageControl write SetPageControl;
@@ -277,6 +298,7 @@ begin
 
   // Create an editor and set static options
   fText := TSynEdit.Create(fTabSheet);
+//  fOldTextWndProc := fText.WndProc();
 
   fUseUTF8 := AutoDetectUTF8;
 
@@ -310,11 +332,15 @@ begin
   fText.OnGutterClick := EditorGutterClick;
   fText.OnSpecialLineColors := EditorSpecialLineColors;
   fText.OnEnter := EditorEnter;
+  fText.OnEditingAreas:=EditorEditingAreas;
   fText.OnExit := EditorExit;
   fText.OnKeyPress := EditorKeyPress;
   fText.OnKeyDown := EditorKeyDown;
   fText.OnKeyUp := EditorKeyUp;
   fText.OnPaintTransient := EditorPaintTransient;
+  fText.WantReturns := True;
+  fText.WantTabs := True;
+//  fText.AddKeyDownHandler(EditorKeyDown);
 
   // Set the variable options
   devEditor.AssignEditor(fText, fFileName);
@@ -330,6 +356,15 @@ begin
   // Initialize code completion stuff
   InitCompletion;
 
+  //Initialize User Code Template stuff;
+  fUserCodeInTabStops:=TList.Create;
+  fXOffsetSince :=0;
+  fTabStopY:=-1;
+  fTabStopBegin:= -1;
+  fTabStopEnd:= -1;
+  fLineBeforeTabStop:='';
+  fLineAfterTabStop := '';
+
   // Setup a monitor which keeps track of outside-of-editor changes
   MainForm.FileMonitor.Monitor(fFileName);
 
@@ -344,6 +379,10 @@ begin
 
   // Delete breakpoints in this editor
   MainForm.Debugger.DeleteBreakPointsOf(self);
+
+
+  ClearUserCodeInTabStops;
+  FreeAndNil(fUserCodeInTabStops);
 
   // Destroy code completion stuff
   DestroyCompletion;
@@ -430,6 +469,24 @@ begin
         Result := I;
         break;
       end;
+end;
+
+procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
+var
+  tc: TThemeColor;
+  p:PEditingArea;
+  spaceCount :integer;
+  spaceBefore :integer;
+begin
+  if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
+    System.new(p);
+    spaceCount := fText.LeftSpacesEx(fLineBeforeTabStop,True);
+    spaceBefore := Length(fLineBeforeTabStop) - Length(TrimLeft(fLineBeforeTabStop));
+    p.beginX := fTabStopBegin + spaceCount - spaceBefore ;
+    p.endX := fTabStopEnd + spaceCount - spaceBefore ;
+    areaList.Add(p);
+    ColBorder := clRed;
+  end;
 end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
@@ -570,6 +627,19 @@ begin
     end else begin
       UpdateCaption(ExtractFileName(fFileName));
     end;
+  end;
+
+  if (fTabStopBegin >=0) and (fTabStopY=fText.CaretY) then begin
+    if StartsStr(fLineBeforeTabStop,fText.LineText) and EndsStr(fLineAfterTabStop, fText.LineText) then
+      fTabStopBegin := Length(fLineBeforeTabStop);
+      if fLineAfterTabStop = '' then
+        fTabStopEnd := Length(fText.LineText)+1
+      else
+        fTabStopEnd := Length(fText.LineText) - Length(fLineAfterTabStop);
+      fXOffsetSince := fTabStopEnd - fText.CaretX;
+      if (fText.CaretX < fTabStopBegin) or (fText.CaretX >  (fTabStopEnd+1)) then begin
+        fTabStopBegin :=-1;
+      end;
   end;
 
   // scSelection includes anything caret related
@@ -757,6 +827,76 @@ begin
   end;
 end;
 
+procedure TEditor.InsertUserCodeIn(Code: AnsiString);
+var
+  I, insertPos, lastPos, lastI: integer;
+  sl,newSl: TStringList;
+  s :AnsiString;
+  p:PPoint;
+  CursorPos: TBufferCoord;
+  spaceCount :integer;
+begin
+  ClearUserCodeInTabStops;
+  fXOffsetSince := 0;
+  fTabStopBegin:= -1;
+  fTabStopEnd:= -1;
+  fTabStopY:=0;
+  fLineBeforeTabStop:='';
+  fLineAfterTabStop := '';
+  sl:=TStringList.Create;
+  newSl:=TStringList.Create;
+  try
+    // prevent lots of repaints
+    fText.BeginUpdate;
+    try
+      sl.Text:=Code;
+      lastI:=0;
+      spaceCount := Text.LeftSpacesEx(fText.LineText,True);
+      for i:=0 to sl.Count -1 do begin
+        lastPos := 0;
+        s:=sl[i];
+        if i>0 then
+          lastPos := -spaceCount; 
+        while True do begin
+          insertPos := Pos(USER_CODE_IN_INSERT_POS,s);
+          if insertPos = 0 then // no %INSERT% macro in this line now
+            break;
+          System.new(p);
+          Delete(s,insertPos,Length(USER_CODE_IN_INSERT_POS));
+          dec(insertPos);
+          p.x:=insertPos - lastPos;
+          p.y:=i-lastI;
+          lastPos := insertPos;
+          lastI:=i;
+          fUserCodeInTabStops.Add(p);
+        end;
+        newSl.Add(s);
+      end;
+      CursorPos := Text.CaretXY;
+      s:=newSl.Text;
+      if EndsStr(#13#10,s) then
+        Delete(s,Length(s)-1,2)
+      else if EndsStr(#10, s) then
+        Delete(s,Length(s),1);
+      fText.SelText := s;
+      Text.CaretXY := CursorPos; //restore cursor pos before insert
+      if fUserCodeInTabStops.Count > 0  then begin
+        fTabStopBegin :=0;
+        PopUserCodeInTabStops;
+      end;
+      if Code <> '' then
+        fLastPressedIsIdChar := False;
+      // prevent lots of repaints
+    finally
+      fText.EndUpdate;
+    end;
+  finally
+    sl.Free;
+    newSl.Free;
+  end;
+end;
+
+
 procedure TEditor.InsertString(Value: AnsiString; MoveCursor: boolean);
 var
   NewCursorPos: TBufferCoord;
@@ -917,11 +1057,24 @@ begin
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
+      phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
+
+      fCompletionBox.Search(phrase , fFileName,False);
+      //we don't auto use the completion even if there's only one suggestion
+      {
       // There's only one suggestion and is exactly the search word
-      if fCompletionBox.Search(GetWordAtPosition(fText.CaretXY, wpCompletion), fFileName,False) then begin
-         CompletionInsert();
-         fCompletionBox.Hide;
+      if fCompletionBox.Search(phrase , fFileName,False) then begin
+        // we don't auto insert code tempate, so we must test for it
+        Statement := fCompletionBox.SelectedStatement;
+        if not Assigned(Statement) then
+          Exit;
+        if Statement^._Kind = skUserCodeIn then
+          Exit;
+        //not code tempate, auto use it
+        CompletionInsert();
+        fCompletionBox.Hide;
       end;
+      }
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
@@ -1067,15 +1220,24 @@ var
   end;
 
   procedure HandleGlobalIncludeCompletion;
+  var
+    s: AnsiString;
   begin
+    s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
+    if not StartsStr('include',s) then //it'ss not #include
+      Exit;
     InsertString('>', false);
   end;
 
   procedure HandleGlobalIncludeSkip;
   var
     pos : TBufferCoord;
+    s: AnsiString;
   begin
     if GetCurrentChar <> '>' then
+      Exit;
+    s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
+    if not StartsStr('include',s) then //it'ss not #include
       Exit;
     pos:=Text.GetMatchingBracket;
     if pos.Line <> 0 then begin
@@ -1315,16 +1477,42 @@ begin
           fText.Cursor := crIBeam;
       end;
     VK_RETURN: begin
-        fLastPressedIsIdChar:=False;    
+        fLastPressedIsIdChar:=False;
+        if fTabStopBegin>=0 then begin
+          fTabStopBegin:=-1;
+          fText.InvalidateLine(fText.CaretY);
+          self.ClearUserCodeInTabStops;
+        end;        
     end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
+        if fTabStopBegin>=0 then begin
+          fTabStopBegin:=-1;
+          fText.InvalidateLine(fText.CaretY);
+          self.ClearUserCodeInTabStops;
+        end;
         if ttoHideOnEsc in fFunctionTip.Options then begin
           fFunctionTip.ReleaseHandle;
           fFunctionTip.ForceHide := true;
         end;
       end;
-    VK_DELETE: begin // remove completed character
+    VK_TAB: begin
+        if fUserCodeInTabStops.Count > 0 then begin
+          Key:=0;
+          PopUserCodeInTabStops;
+          fText.InvalidateLine(fText.CaretY);
+        end else begin
+          fTabStopBegin:=-1;
+        end;
+      end;
+    VK_UP: begin
+        ClearUserCodeInTabStops;
+      end;
+    VK_DOWN: begin
+        ClearUserCodeInTabStops;
+      end;
+    VK_DELETE: begin
+        // remove completed character
         fLastPressedIsIdChar:=False;
         if not fText.SelAvail then begin
           S := fText.LineText;
@@ -1351,8 +1539,11 @@ end;
 
 procedure TEditor.EditorKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  if (Key = VK_CONTROL) then
-    fText.Cursor := crIBeam;
+  case(key) of
+    VK_CONTROL: begin
+        fText.Cursor := crIBeam;
+      end;
+  end;
 end;
 
 procedure TEditor.CompletionTimer(Sender: TObject);
@@ -1569,7 +1760,7 @@ begin
   fText.SelEnd := fText.RowColToCharIndex(p);
   // ... by replacing the selection
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
-    fText.SelText := Statement^._Value;
+    InsertUserCodeIn(Statement^._Value);
   end else begin
     fText.SelText := Statement^._Command + FuncAddOn;
 
@@ -2097,6 +2288,49 @@ end;
       tmpList.Free;
     end;
     fLastPressedIsIdChar := False;
+  end;
+
+  procedure  TEditor.ClearUserCodeInTabStops;
+  var
+    p:PPoint;
+    i:integer;
+  begin
+    for i:=0 to fUserCodeInTabStops.Count-1 do begin
+      p:=PPoint(fUserCodeInTabStops[i]);
+      dispose(PPoint(p));
+    end;
+    fUserCodeInTabStops.Clear;
+  end;
+
+  procedure TEditor.PopUserCodeInTabStops;
+  var
+      NewCursorPos: TBufferCoord;
+      p:PPoint;
+  begin
+    if fTabStopBegin < 0 then begin
+      ClearUserCodeInTabStops;
+      Exit;
+    end;
+    if fUserCodeInTabStops.Count > 0 then begin
+      p:=PPoint(fUserCodeInTabStops[0]);
+      // Update the cursor
+      if p^.Y = 0 then
+        NewCursorPos.Char := fText.CaretX - fXOffsetSince + p^.X
+      else begin
+        NewCursorPos.Char := p^.X+1;
+      end;
+      NewCursorPos.Line := fText.CaretY + p^.Y;
+      fText.CaretXY := NewCursorPos;
+      dispose(p);
+      
+      fTabStopBegin:=fText.CaretX;
+      fTabStopEnd:=fText.CaretX;
+      fTabStopY:=fText.CaretY;
+      fLineBeforeTabStop:= Copy(fText.LineText,1,fTabStopBegin) ;
+      fLineAfterTabStop := Copy(fText.LineText,fTabStopBegin+1,MaxInt) ;
+      fXOffsetSince:=0;
+      fUserCodeInTabStops.Delete(0);
+    end;
   end;
 
 end.

@@ -192,7 +192,7 @@ begin
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
   fUpdateCount := 0;
-  fTabVisible := true;
+  fTabVisible := false;
   RowSelect := true;
   ShowLines := False;
   fSortAlphabetically:= True;
@@ -312,6 +312,7 @@ var
 begin
   Children := fParser.Statements.GetChildrenStatements(ParentStatement);
 
+//  fParser.Statements.DumpWithScope('f:\browser.txt');
   if Assigned(Children) then begin
     for i:=0 to Children.Count-1 do begin
       Statement := Children[i];
@@ -326,7 +327,7 @@ begin
         if Statement = ParentStatement then // prevent infinite recursion
           Continue;
 
-        if SameStr(_FileName,CurrentFile) then
+        if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
           AddStatement(Statement)
         else begin
           case fShowFilter of

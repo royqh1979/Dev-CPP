@@ -218,19 +218,22 @@ begin
   fCodeInsStatements.Clear;
   }
 
-  for i:=0 to fCodeInsList.Count-1 do begin
-    codeIn:=PCodeIns(fCodeInsList[i]);
-    new(codeInStatement);
-    codeInStatement^._Command := codeIn.Prefix;
-    codeInStatement^._Value := codeIn.Code;
-    codeInStatement^._Kind := skUserCodeIn;
-    fCodeInsStatements.Add(pointer(codeInStatement));
-    fFullCompletionStatementList.Add(pointer(codeInStatement));
-  end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
   I := fParser.FindLastOperator(Phrase);
   if I = 0 then begin
+
+    //add templates
+    for i:=0 to fCodeInsList.Count-1 do begin
+      codeIn:=PCodeIns(fCodeInsList[i]);
+      new(codeInStatement);
+      codeInStatement^._Command := codeIn.Prefix;
+      codeInStatement^._Value := codeIn.Code;
+      codeInStatement^._Kind := skUserCodeIn;
+      fCodeInsStatements.Add(pointer(codeInStatement));
+      fFullCompletionStatementList.Add(pointer(codeInStatement));
+    end;
+
     scopeStatement := fCurrentStatement;
     // repeat until reach global
     while Assigned(scopeStatement) do begin
@@ -369,8 +372,18 @@ begin
   Statement1 := PStatement(Item1);
   Statement2 := PStatement(Item2);
 
+  // Show user template first
+  if (Statement1^._Kind = skUserCodeIn) then begin
+    if not (Statement2^._Kind = skUserCodeIn) then begin
+      Result := -1;
+    end else begin
+      Result := CompareText(Statement1^._Command, Statement2^._Command);
+    end;
+  end else if (Statement2^._Kind = skUserCodeIn) then begin
+    Result := 1;
+
   // Show stuff from local headers first
-  if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
+  end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
     Result := 1;
   end else if (not Statement1^._InSystemHeader) and (Statement2^._InSystemHeader) then begin
     Result := -1;
@@ -577,7 +590,7 @@ end;
 function TCodeCompletion.IsIncluded(const FileName: AnsiString): boolean;
 begin
   // Only do the slow check if the cache is invalid
-  if not SameStr(FileName, fIsIncludedCacheFileName) then begin
+  if not SameText(FileName, fIsIncludedCacheFileName) then begin
     fIsIncludedCacheFileName := FileName;
     fIsIncludedCacheResult := FastIndexOf(fIncludedFiles, FileName) <> -1;
   end;

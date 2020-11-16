@@ -148,6 +148,15 @@ type
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: integer;
     var Special: boolean; var FG, BG: TColor) of object;
 
+  PEditingArea = ^TEditingArea;
+  TEditingArea = Record
+    beginX: integer;
+    endX: integer;
+  end;
+
+  TEditingAreasEvent = procedure(Sender: TObject; Line:integer;
+    areaList:TList; var borderColor:TColor) of object;  // areaList : TList<TEditingArea>
+
   TTransientType = (ttBefore, ttAfter);
   TPaintTransient = procedure(Sender: TObject; Canvas: TCanvas;
     TransientType: TTransientType) of object;
@@ -383,6 +392,7 @@ type
     fOnProcessUserCommand: TProcessCommandEvent;
     fOnReplaceText: TReplaceTextEvent;
     fOnSpecialLineColors: TSpecialLineColorsEvent;
+    fOnEditingAreas: TEditingAreasEvent;
     fOnContextHelp: TContextHelpEvent;
     fOnPaintTransient: TPaintTransient;
     fOnScroll: TScrollEvent;
@@ -457,7 +467,6 @@ type
     function GetWordAtMouse: string;
     procedure GutterChanged(Sender: TObject);
     procedure InsertBlock(const BB, BE: TBufferCoord; ChangeStr: PChar; AddToUndoList: Boolean);
-    function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): string;
     procedure LinesChanging(Sender: TObject);
     procedure MoveCaretAndSelection(const ptBefore, ptAfter: TBufferCoord;
       SelectionCommand: boolean);
@@ -514,6 +523,7 @@ type
     procedure UpdateScrollBars;
     procedure WriteAddedKeystrokes(Writer: TWriter);
     procedure WriteRemovedKeystrokes(Writer: TWriter);
+    procedure ClearAreaList(areaList:TList);
   protected
 {$IFDEF SYN_COMPILER_6_UP}
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
@@ -619,6 +629,7 @@ type
       Line, Column, wordlen: integer): TSynReplaceAction; virtual;
     function DoOnSpecialLineColors(Line: integer;
       var Foreground, Background: TColor): boolean; virtual;
+    function DoOnEditAreas(Line:integer; areaList:TList; var borderColor:TColor): boolean; virtual;
     procedure DoOnStatusChange(Changes: TSynStatusChanges); virtual;
     function GetSelEnd: integer;
     function GetSelStart: integer;
@@ -671,6 +682,7 @@ type
     procedure EnsureCursorPosVisible;
     procedure EnsureCursorPosVisibleEx(ForceToMiddle: Boolean);
     procedure FindMatchingBracket; virtual;
+    function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): string;
     function GetMatchingBracket: TBufferCoord; virtual;
     function GetMatchingBracketEx(const APoint: TBufferCoord): TBufferCoord; virtual;
 {$IFDEF SYN_COMPILER_4_UP}
@@ -899,6 +911,8 @@ type
       write fOnReplaceText;
     property OnSpecialLineColors: TSpecialLineColorsEvent
       read fOnSpecialLineColors write fOnSpecialLineColors;
+    property OnEditingAreas: TEditingAreasEvent
+      read fOnEditingAreas write fOnEditingAreas;
     property OnStatusChange: TStatusChangeEvent
       read fOnStatusChange write fOnStatusChange;
     property OnPaintTransient: TPaintTransient
@@ -2912,6 +2926,40 @@ var
       Inc(rcToken.Left, iCharWidth);
   end;
 {$ENDIF}
+  procedure PaintEditAreas(areaList:TList; colBorder:TColor);
+  var
+    rc:TRect;
+    i:integer;
+    p:PEditingArea;
+    x1,x2:integer;
+  begin
+    rc:=rcLine;
+    dec(rc.bottom);
+    SetDrawingColors(False);
+    for i:=0 to areaList.Count-1 do begin
+      p:=PEditingArea(areaList[i]);
+      if p.beginX > LastCol then
+        continue;
+      if p.endX < FirstCol then
+        continue;
+      if p.beginX<FirstCol then
+        x1:=FirstCol
+      else
+        x1:=p.beginX;
+      if p.endX>LastCol then
+        x2:=LastCol
+      else
+        x2:=p.endX;
+      rc.Left := ColumnToXValue(x1);
+      rc.Right := ColumnToXValue(x2);
+      Canvas.Pen.Color := colBorder;
+      canvas.MoveTo(rc.Left,rc.Top);
+      canvas.LineTo(rc.Right,rc.Top);
+      canvas.LineTo(rc.Right,rc.bottom);
+      canvas.LineTo(rc.Left,rc.bottom);
+      canvas.LineTo(rc.Left,rc.Top);
+    end;
+  end;
 
   procedure PaintHighlightToken(bFillToEOL: boolean);
   var
@@ -3193,7 +3241,11 @@ var
     attr: TSynHighlighterAttributes;
     vFirstChar: integer;
     vLastChar: integer;
+    areaList:TList;
+    colBorder: TColor;
   begin
+    areaList:=TList.Create;
+    try
     // Initialize rcLine for drawing. Note that Top and Bottom are updated
     // inside the loop. Get only the starting point for this.
     rcLine := AClip;
@@ -3225,6 +3277,7 @@ var
       end else begin
         colSelFG := fSelectedColor.Foreground;
         colSelBG := fSelectedColor.Background;
+        DoOnEditAreas(vLine, areaList,colBorder);
       end;
 
       // Removed word wrap support
@@ -3371,6 +3424,9 @@ var
         // Draw anything that's left in the TokenAccu record. Fill to the end
         // of the invalid area with the correct colors.
         PaintHighlightToken(TRUE);
+
+        //Paint editingAreaBorders
+        PaintEditAreas(areaList,colBorder);
       end;
 
       // Now paint the right edge if necessary. We do it line by line to reduce
@@ -3382,6 +3438,10 @@ var
       end;
       bCurrentLine := False;
     end; //endfor cRow
+    finally
+      clearAreaList(areaList);
+      areaList.Free;
+    end;
   end;
 
   { end local procedures }
@@ -4113,6 +4173,7 @@ var
       Start: PChar;
       P: PChar;
       bChangeScroll: Boolean;
+      spaceCount : integer;
     begin
       Result := 0;
       sLeftSide := Copy(LineText, 1, CaretX - 1);
@@ -4124,6 +4185,7 @@ var
             CaretX - 1 - Length(sLeftSide));
       end;
       sRightSide := Copy(LineText, CaretX, Length(LineText) - (CaretX - 1));
+      SpaceCount := LeftSpacesEx(sLeftSide, true);
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
@@ -4155,7 +4217,7 @@ var
           if p^ = #0 then
             Str := Str + sRightSide
         end;
-        ProperSetLine(CaretY - 1, Str);
+        ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
         Inc(Result);
       end;
       bChangeScroll := not (eoScrollPastEol in fOptions);
@@ -5607,12 +5669,25 @@ procedure TCustomSynEdit.WndProc(var Msg: TMessage);
 // Prevent Alt-Backspace from beeping
 const
   ALT_KEY_DOWN = $20000000;
+var
+  keyMsg : TWMKey;
+  code: word;
+  temp: char;
 begin
-  if (Msg.Msg = WM_SYSCHAR) and (Msg.wParam = VK_BACK) and
-    (Msg.lParam and ALT_KEY_DOWN <> 0) then
-    Msg.Msg := 0
-  else
-    inherited;
+  if Msg.Msg = CN_KEYDOWN then begin
+    keyMsg := TWMKey(Msg);
+    code := keyMsg.CharCode;
+    case code of
+      VK_TAB: begin
+        Exit; // must discard the first TAB CN_KEYDOWN message, don't know why?
+      end;
+    end;
+  end else if (Msg.Msg = WM_SYSCHAR) and (Msg.wParam = VK_BACK) and
+    (Msg.lParam and ALT_KEY_DOWN <> 0) then begin
+    Msg.Msg := 0 ;
+    Exit;
+  end;
+  inherited;
 end;
 {$ENDIF}
 
@@ -9105,6 +9180,26 @@ begin
   Result := FALSE;
   if Assigned(fOnSpecialLineColors) then
     fOnSpecialLineColors(Self, Line, Result, Foreground, Background);
+end;
+
+procedure TCustomSynEdit.ClearAreaList(areaList:TList);
+var
+  i:integer;
+begin
+  for i:=0 to areaList.Count-1 do begin
+    dispose(PEditingArea(areaList[i]));
+  end;
+  areaList.Clear;
+end;
+
+function TCustomSynEdit.DoOnEditAreas(Line:integer; areaList:TList; var borderColor: TColor): boolean;
+begin
+  Result := FALSE;
+  clearAreaList(areaList);
+  if Assigned(fOnEditingAreas) then begin
+    fOnEditingAreas(Self, Line, areaList, borderColor);
+    Result := areaList.Count > 0;
+  end;
 end;
 
 procedure TCustomSynEdit.InvalidateLine(Line: integer);
