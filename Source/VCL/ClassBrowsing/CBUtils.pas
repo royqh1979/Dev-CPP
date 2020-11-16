@@ -157,6 +157,7 @@ type
     IncludeFiles: TStringList; // "file","file" etc
     Usings: TDevStringList; // namespaces it usings
     Statements: TList; // List<PStatement> , but we don't save temporary statements
+    DeclaredStatements: TList; // List<PStatement> statement declared in this file 
   end;
 
 var

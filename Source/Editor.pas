@@ -632,8 +632,12 @@ begin
   if (fTabStopBegin >=0) and (fTabStopY=fText.CaretY) then begin
     if StartsStr(fLineBeforeTabStop,fText.LineText) and EndsStr(fLineAfterTabStop, fText.LineText) then
       fTabStopBegin := Length(fLineBeforeTabStop);
-      fTabStopEnd := Length(fText.LineText) - Length(fLineAfterTabStop);
-      if (fText.CaretX < fTabStopBegin) or (fText.CaretY >  (fTabStopEnd+1)) then begin
+      if fLineAfterTabStop = '' then
+        fTabStopEnd := Length(fText.LineText)+1
+      else
+        fTabStopEnd := Length(fText.LineText) - Length(fLineAfterTabStop);
+      fXOffsetSince := fTabStopEnd - fText.CaretX;
+      if (fText.CaretX < fTabStopBegin) or (fText.CaretX >  (fTabStopEnd+1)) then begin
         fTabStopBegin :=-1;
       end;
   end;
@@ -876,7 +880,10 @@ begin
         Delete(s,Length(s),1);
       fText.SelText := s;
       Text.CaretXY := CursorPos; //restore cursor pos before insert
-      PopUserCodeInTabStops;
+      if fUserCodeInTabStops.Count > 0  then begin
+        fTabStopBegin :=0;
+        PopUserCodeInTabStops;
+      end;
       if Code <> '' then
         fLastPressedIsIdChar := False;
       // prevent lots of repaints
@@ -1470,16 +1477,19 @@ begin
       end;
     VK_RETURN: begin
         fLastPressedIsIdChar:=False;
+        if fTabStopBegin>=0 then begin
+          fTabStopBegin:=-1;
+          fText.InvalidateLine(fText.CaretY);
+          self.ClearUserCodeInTabStops;
+        end;        
     end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
-        {
         if fTabStopBegin>=0 then begin
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
         end;
-        }
         if ttoHideOnEsc in fFunctionTip.Options then begin
           fFunctionTip.ReleaseHandle;
           fFunctionTip.ForceHide := true;
@@ -1494,14 +1504,6 @@ begin
           fTabStopBegin:=-1;
         end;
       end;
-    VK_LEFT: begin
-        if fUserCodeInTabStops.Count > 0 then
-          dec(fXOffsetSince);
-      end;
-    VK_RIGHT: begin
-        if fUserCodeInTabStops.Count > 0 then
-          inc(fXOffsetSince);
-      end;
     VK_UP: begin
         ClearUserCodeInTabStops;
       end;
@@ -1509,8 +1511,6 @@ begin
         ClearUserCodeInTabStops;
       end;
     VK_DELETE: begin
-        if fUserCodeInTabStops.Count > 0 then
-          dec(fXOffsetSince);
         // remove completed character
         fLastPressedIsIdChar:=False;
         if not fText.SelAvail then begin
@@ -2306,6 +2306,10 @@ end;
       NewCursorPos: TBufferCoord;
       p:PPoint;
   begin
+    if fTabStopBegin < 0 then begin
+      ClearUserCodeInTabStops;
+      Exit;
+    end;
     if fUserCodeInTabStops.Count > 0 then begin
       p:=PPoint(fUserCodeInTabStops[0]);
       // Update the cursor

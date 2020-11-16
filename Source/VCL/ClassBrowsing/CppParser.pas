@@ -289,6 +289,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
   FreeAndNil(fIncludesList);
@@ -589,6 +590,7 @@ var
   //NewKind: TStatementKind;
   NewType, NewCommand: AnsiString;
   node: PStatementNode;
+  fileIncludes1:PFileIncludes;
   //t,lenCmd:integer;
 
   function AddToList: PStatement;
@@ -642,8 +644,8 @@ var
       fTempStatements.Add(Result)
     else begin
       if (Result^._Kind = skNamespace) then begin
-        i:=FastIndexOf(fNamespaces,Result^._FullName);
-        if (i<>-1) then
+      i:=FastIndexOf(fNamespaces,Result^._FullName);
+      if (i<>-1) then
           NamespaceList := TList(fNamespaces.objects[i])
         else begin
           NamespaceList := TList.Create;
@@ -654,6 +656,7 @@ var
       fileIncludes:=FindFileIncludes(FileName);
       if Assigned(fileIncludes) then begin
         fileIncludes^.Statements.Add(Result);
+        fileIncludes^.DeclaredStatements.Add(Result);
       end;
     end;
   end;
@@ -697,6 +700,10 @@ begin
     Declaration^._DefinitionFileName := FileName;
     Declaration^._HasDefinition := True;
     Result := Declaration;
+    fileIncludes1:=FindFileIncludes(FileName);
+    if (not Declaration^._Temporary) and  Assigned(fileIncludes1) then begin
+      fileIncludes1^.Statements.Add(Result);
+    end;
 
     // No duplicates found. Proceed as usual
   end else begin
@@ -704,6 +711,7 @@ begin
     if not IsDefinition then // add declarations to separate list to speed up searches for them
       fPendingDeclarations.Add(Result);
   end;
+
   {
   if Kind = skPreprocessor then begin
      fMacroDefines.Add(Result);
@@ -2295,6 +2303,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
   fIncludesList.Clear;
@@ -2573,9 +2582,10 @@ begin
     fPreprocessor.InvalidDefinesInFile(FileName);
     P^.IncludeFiles.Free;
     P^.Usings.Free;
-    for i:=0 to P^.Statements.Count-1 do begin
-      fStatementList.DeleteStatement(P^.Statements[i]);
+    for i:=0 to P^.DeclaredStatements.Count-1 do begin
+      fStatementList.DeleteStatement(P^.DeclaredStatements[i]);
     end;
+    PFileIncludes(P)^.DeclaredStatements.Free;
     PFileIncludes(P)^.Statements.Free;
     Dispose(PFileIncludes(P));
   end;
@@ -2754,12 +2764,15 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
+  Statements.DumpWithScope('f:\block.txt');
+  Statements.DumpTo('f:\block2.txt');
+
   //we only search in the current file
   for i:=0 to fileIncludes^.Statements.Count -1 do begin
     Statement :=  PStatement(fileIncludes^.Statements[i]);
     case Statement^._Kind of
       skClass: begin
-          if SameFileName(Statement^._FileName, FileName) then
+          if SameText(Statement^._FileName, FileName) then
             if (Statement^._Line <= Row) and (Statement^._Line > ClosestLine) then begin
               ClosestStatement := Statement;
               ClosestLine := Statement^._Line;
@@ -2768,13 +2781,13 @@ begin
       end;
       skFunction, skConstructor, skDestructor: begin
         if Statement^._HasDefinition
-          and SameFileName(Statement^._DefinitionFileName, Filename)
+          and SameText(Statement^._DefinitionFileName, Filename)
           and (Statement^._DefinitionLine <= Row)
           and (Statement^._DefinitionLine > ClosestLine) then begin
           ClosestStatement := Statement;
           ClosestLine := Statement^._DefinitionLine;
           InsideBody := Statement^._DefinitionLine < Row;
-        end else if SameFileName(Statement^._FileName, Filename)
+        end else if SameText(Statement^._FileName, Filename)
           and (Statement^._Line <= Row)
           and (Statement^._Line > ClosestLine) then begin
           // Check declaration
