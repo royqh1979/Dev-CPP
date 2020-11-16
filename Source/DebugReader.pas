@@ -1117,23 +1117,23 @@ procedure TDebugReader.PostCommand(const Command, Params: AnsiString; ViewInUI: 
 var
   PCmd: PGDBCmd;
 begin
-    EnterCriticalSection(fCSQueue);
-    try
-      if fCmdQueue.Count<=0 then begin
-        WatchView.Items.BeginUpdate;
-        inc(fUpdateCount);
-      end;
-      pCmd:=new(PGDBCmd);
-      pCmd^.Cmd := Command;
-      pCmd^.Params := Params;
-      pCmd^.ViewInUI := ViewInUi;
-      fCmdQueue.Push(pCmd);
-    finally
-      LeaveCriticalSection(fCSQueue);
+  EnterCriticalSection(fCSQueue);
+  try
+    if fCmdQueue.Count<=0 then begin
+      WatchView.Items.BeginUpdate;
+      inc(fUpdateCount);
     end;
-    if not fCmdRunning then begin
-      RunNextCmd;
-    end;
+    pCmd:=new(PGDBCmd);
+    pCmd^.Cmd := Command;
+    pCmd^.Params := Params;
+    pCmd^.ViewInUI := ViewInUi;
+    fCmdQueue.Push(pCmd);
+  finally
+    LeaveCriticalSection(fCSQueue);
+  end;
+  if not fCmdRunning then begin
+    RunNextCmd;
+  end;
 end;
 
 procedure TDebugReader.RunNextCmd;
