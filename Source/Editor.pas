@@ -81,6 +81,11 @@ type
     }
     fUserCodeInTabStops: TList; //TList<PPoint> queue of offsets of tab stop(insertion) positions in the inserted user code template
     fXOffsetSince: integer; // cursor movement offset since enter previous tab stop position; only DELETE/LEFT/RIGHT will change this value
+    fTabStopBegin: integer;
+    fTabStopEnd: integer;
+    fTabStopY: integer;
+    fLineBeforeTabStop: AnsiString;
+    fLineAfterTabStop : AnsiString;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
     fCompletionInitialPosition: TBufferCoord;
@@ -354,6 +359,11 @@ begin
   //Initialize User Code Template stuff;
   fUserCodeInTabStops:=TList.Create;
   fXOffsetSince :=0;
+  fTabStopY:=-1;
+  fTabStopBegin:= -1;
+  fTabStopEnd:= -1;
+  fLineBeforeTabStop:='';
+  fLineAfterTabStop := '';
 
   // Setup a monitor which keeps track of outside-of-editor changes
   MainForm.FileMonitor.Monitor(fFileName);
@@ -465,8 +475,18 @@ procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TL
 var
   tc: TThemeColor;
   p:PEditingArea;
+  spaceCount :integer;
+  spaceBefore :integer;
 begin
-
+  if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
+    System.new(p);
+    spaceCount := fText.LeftSpacesEx(fLineBeforeTabStop,True);
+    spaceBefore := Length(fLineBeforeTabStop) - Length(TrimLeft(fLineBeforeTabStop));
+    p.beginX := fTabStopBegin + spaceCount - spaceBefore ;
+    p.endX := fTabStopEnd + spaceCount - spaceBefore ;
+    areaList.Add(p);
+    ColBorder := clRed;
+  end;
 end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
@@ -607,6 +627,15 @@ begin
     end else begin
       UpdateCaption(ExtractFileName(fFileName));
     end;
+  end;
+
+  if (fTabStopBegin >=0) and (fTabStopY=fText.CaretY) then begin
+    if StartsStr(fLineBeforeTabStop,fText.LineText) and EndsStr(fLineAfterTabStop, fText.LineText) then
+      fTabStopBegin := Length(fLineBeforeTabStop);
+      fTabStopEnd := Length(fText.LineText) - Length(fLineAfterTabStop);
+      if (fText.CaretX < fTabStopBegin) or (fText.CaretY >  (fTabStopEnd+1)) then begin
+        fTabStopBegin :=-1;
+      end;
   end;
 
   // scSelection includes anything caret related
@@ -805,6 +834,11 @@ var
 begin
   ClearUserCodeInTabStops;
   fXOffsetSince := 0;
+  fTabStopBegin:= -1;
+  fTabStopEnd:= -1;
+  fTabStopY:=0;
+  fLineBeforeTabStop:='';
+  fLineAfterTabStop := '';
   sl:=TStringList.Create;
   newSl:=TStringList.Create;
   try
@@ -1439,6 +1473,13 @@ begin
     end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
+        {
+        if fTabStopBegin>=0 then begin
+          fTabStopBegin:=-1;
+          fText.InvalidateLine(fText.CaretY);
+          self.ClearUserCodeInTabStops;
+        end;
+        }
         if ttoHideOnEsc in fFunctionTip.Options then begin
           fFunctionTip.ReleaseHandle;
           fFunctionTip.ForceHide := true;
@@ -1448,6 +1489,9 @@ begin
         if fUserCodeInTabStops.Count > 0 then begin
           Key:=0;
           PopUserCodeInTabStops;
+          fText.InvalidateLine(fText.CaretY);
+        end else begin
+          fTabStopBegin:=-1;
         end;
       end;
     VK_LEFT: begin
@@ -2272,8 +2316,13 @@ end;
       end;
       NewCursorPos.Line := fText.CaretY + p^.Y;
       fText.CaretXY := NewCursorPos;
-
       dispose(p);
+      
+      fTabStopBegin:=fText.CaretX;
+      fTabStopEnd:=fText.CaretX;
+      fTabStopY:=fText.CaretY;
+      fLineBeforeTabStop:= Copy(fText.LineText,1,fTabStopBegin) ;
+      fLineAfterTabStop := Copy(fText.LineText,fTabStopBegin+1,MaxInt) ;
       fXOffsetSince:=0;
       fUserCodeInTabStops.Delete(0);
     end;

@@ -2934,6 +2934,7 @@ var
     x1,x2:integer;
   begin
     rc:=rcLine;
+    dec(rc.bottom);
     SetDrawingColors(False);
     for i:=0 to areaList.Count-1 do begin
       p:=PEditingArea(areaList[i]);
@@ -5678,17 +5679,14 @@ begin
     code := keyMsg.CharCode;
     case code of
       VK_TAB: begin
-        temp := #9;
-        keyPress(temp);
-        if temp=#0 then
-          Exit;
+        Exit; // must discard the first TAB CN_KEYDOWN message, don't know why?
       end;
     end;
   end else if (Msg.Msg = WM_SYSCHAR) and (Msg.wParam = VK_BACK) and
     (Msg.lParam and ALT_KEY_DOWN <> 0) then begin
     Msg.Msg := 0 ;
     Exit;
-  end;
+  end else
   inherited;
 end;
 {$ENDIF}
