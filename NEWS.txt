@@ -1,3 +1,12 @@
+Version 6.1-beta2.2 November 2020
+
+ - fix: upgrade ege to master
+ - fix: devcpp dead lock when debuging and move mouse cursor over a variable name
+
+Version 6.1-beta2.1 November 2020
+
+ - fix: shortcuts don't work
+
 Version 6.1-beta2 November 2020
 
  - enhancement: ClassBrowser updates faster when refresh/change sort types
