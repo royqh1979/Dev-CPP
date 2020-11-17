@@ -62,6 +62,8 @@ type
     fAddedStatements : TDevStringList;
     fPreparing: boolean;
     fPhrase : AnsiString;
+    fSymbolUsage:TDevStringList;
+    fRecordUsage: boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -79,6 +81,8 @@ type
     function SelectedStatement: PStatement;
     property CurrentStatement: PStatement read fCurrentStatement write fCurrentStatement;
     property CodeInsList: TList read fCodeInsList write fCodeInsList;
+    property SymbolUsage:TDevStringList read fSymbolUsage write fSymbolUsage;
+    property RecordUsage: boolean read fRecordUsage write fRecordUsage;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property Parser: TCppParser read fParser write fParser;
@@ -381,7 +385,6 @@ begin
     end;
   end else if (Statement2^._Kind = skUserCodeIn) then begin
     Result := 1;
-
   // Show stuff from local headers first
   end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
     Result := 1;
@@ -399,11 +402,49 @@ begin
     Result := CompareText(Statement1^._Command, Statement2^._Command);
 end;
 
+function ListSortWithUsage(Item1, Item2: Pointer): Integer;
+var
+  Statement1, Statement2: PStatement;
+begin
+  Statement1 := PStatement(Item1);
+  Statement2 := PStatement(Item2);
+
+  // Show user template first
+  if (Statement1^._Kind = skUserCodeIn) then begin
+    if not (Statement2^._Kind = skUserCodeIn) then begin
+      Result := -1;
+    end else begin
+      Result := CompareText(Statement1^._Command, Statement2^._Command);
+    end;
+  end else if (Statement2^._Kind = skUserCodeIn) then begin
+    Result := 1;
+  end else if (Statement1^._FreqTop <> Statement2^._FreqTop) then begin
+    Result := Statement2^._FreqTop - Statement1^._FreqTop;
+  // Show stuff from local headers first
+  end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
+    Result := 1;
+  end else if (not Statement1^._InSystemHeader) and (Statement2^._InSystemHeader) then begin
+    Result := -1;
+
+    // Show local statements first
+  end else if (Statement1^._Scope in [ssGlobal]) and not (Statement2^._Scope in [ssGlobal]) then begin
+    Result := 1;
+  end else if not (Statement1^._Scope in [ssGlobal]) and (Statement2^._Scope in [ssGlobal]) then begin
+    Result := -1;
+
+    // otherwise, sort by name
+  end else
+    Result := CompareText(Statement1^._Command, Statement2^._Command);
+end;
+
+
 procedure TCodeCompletion.FilterList(const Member: AnsiString);
 var
-  I: integer;
+  I,idx: integer;
   tmpList:TList;
   lastCmd:String;
+  TopCount,SecondCount,ThirdCount:integer;
+  usageCount:integer;
 begin
   fCompletionStatementList.Clear;
   tmpList:=TList.Create;
@@ -415,7 +456,44 @@ begin
           tmpList.Add(fFullCompletionStatementList[I]);
     end else
       tmpList.Assign(fFullCompletionStatementList);
-    tmpList.sort(@ListSort);
+    if RecordUsage then begin
+      TopCount:=0; SecondCount:=0; ThirdCount:=0;
+      for I:=0 to tmpList.Count -1 do begin
+        if PStatement(tmpList[I])^._UsageCount = 0 then begin
+          idx:=FastIndexOf(SymbolUsage,PStatement(tmpList[I])^._FullName);
+          if idx=-1 then
+            continue;
+          usageCount := integer(SymbolUsage.Objects[idx]);
+          PStatement(tmpList[I])^._UsageCount := usageCount;
+        end else
+          usageCount := PStatement(tmpList[I])^._UsageCount;
+        if usageCount>TopCount then begin
+          ThirdCount := SecondCount;
+          SecondCount := TopCount;
+          TopCount:=usageCount;
+        end else if usageCount>SecondCount then begin
+          ThirdCount := SecondCount;
+          SecondCount :=usageCount;
+        end else if usageCount>ThirdCount then begin
+          ThirdCount := usageCount;
+        end;
+      end;
+      for I:=0 to tmpList.Count -1 do begin
+        if PStatement(tmpList[I])^._UsageCount = 0 then begin
+          PStatement(tmpList[I])^._FreqTop :=0;
+        end else if PStatement(tmpList[I])^._UsageCount = TopCount then begin
+          PStatement(tmpList[I])^._FreqTop :=30;
+        end else if PStatement(tmpList[I])^._UsageCount = SecondCount then begin
+          PStatement(tmpList[I])^._FreqTop :=20;
+        end else if PStatement(tmpList[I])^._UsageCount = ThirdCount then begin
+          PStatement(tmpList[I])^._FreqTop :=10;
+        end;
+      end;
+      tmpList.sort(@ListSortWithUsage);
+    end else begin
+      tmpList.sort(@ListSort);
+    end;
+
     // filter duplicates
     lastCmd := '';
     for I:=0 to tmpList.Count -1 do begin

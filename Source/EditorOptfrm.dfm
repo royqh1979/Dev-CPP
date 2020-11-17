@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabCBCompletion
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -690,7 +690,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -901,7 +901,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 639
         Height = 558
-        ActivePage = tabSymbolCompletion
+        ActivePage = tabCodeCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet
@@ -1013,6 +1013,15 @@ object EditorOptForm: TEditorOptForm
             Caption = 'Enable Code Compeltion'
             TabOrder = 6
             OnClick = chkEnableCompletionClick
+          end
+          object chkRecordUsage: TCheckBox
+            Left = 11
+            Top = 379
+            Width = 609
+            Height = 22
+            Caption = 'Save Symbol Usage Data'
+            TabOrder = 7
+            OnClick = cbShowCompletionWhileInputingClick
           end
         end
         object tabSymbolCompletion: TTabSheet
@@ -1229,6 +1238,6 @@ object EditorOptForm: TEditorOptForm
   object cpp: TSynCppSyn
     DefaultFilter = 'C++ Files (*.c,*.cpp,*.h,*.hpp)|*.c;*.cpp;*.h;*.hpp'
     Left = 5
-    Top = 458
+    Top = 474
   end
 end

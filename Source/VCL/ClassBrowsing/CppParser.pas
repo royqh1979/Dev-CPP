@@ -638,6 +638,8 @@ var
       _Usings.Duplicates:=dupIgnore;
       _Usings.Sorted:=True;
       _Node := nil; // will set by the fStatementlist.add()
+      _UsageCount :=0;
+      _FreqTop:=0;
     end;
     node:=fStatementList.Add(Result);
     if (Result^._Temporary) then

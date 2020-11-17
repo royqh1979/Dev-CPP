@@ -23,7 +23,7 @@ interface
 
 uses
   SysUtils, Classes, Menus, Controls, SynEditHighlighter, SynHighlighterCpp,
-  CodeInsList, SynHighlighterRC, ImgList;
+  CodeInsList, SynHighlighterRC, ImgList, CBUtils;
 
 type
   PMRUItem = ^TMRUItem;
@@ -54,6 +54,7 @@ type
     fCodePop: TMenuItem;
     fCodeEvent: TNotifyEvent;
     fCodeOffset: byte;
+    fSymbolUsage: TDevStringList;
     procedure LoadCodeIns;
   public
     property CodeMenu: TMenuItem read fCodeMenu write fCodeMenu;
@@ -61,7 +62,7 @@ type
     property CodeClick: TNotifyEvent read fCodeEvent write fCodeEvent;
     property CodeInserts: TCodeInsList read fCodeList write fCodeList;
     property CodeOffset: byte read fCodeOffset write fCodeOffset;
-
+    property SymbolUsage: TDevStringList read fSymbolUsage;
     { MRU List }
   private
     fMRU: TList; // let them store their own location
@@ -75,6 +76,8 @@ type
     procedure FilterHistory; // remove deleted
     procedure LoadHistory;
     procedure SaveHistory;
+    procedure LoadSymbolUsage;
+    procedure SaveSymbolUsage;
     procedure SetMRUMenu(value: TMenuItem);
   public
     procedure RebuildMRU;
@@ -99,7 +102,7 @@ var
 implementation
 
 uses
-  devcfg, utils, version, math, MultiLangSupport;
+  devcfg, utils, version, math, MultiLangSupport, iniFiles;
 
 {$R *.dfm}
 
@@ -109,16 +112,22 @@ procedure TdmMain.DataModuleCreate(Sender: TObject);
 begin
   fMRU := TList.Create;
   fCodeList := TCodeInsList.Create;
+  fSymbolUsage := TDevStringList.Create;
+  fSymbolUsage.Sorted:=True;
+  fSymbolUsage.Duplicates := dupIgnore;
+  LoadSymbolUsage;
 end;
 
 procedure TdmMain.DataModuleDestroy(Sender: TObject);
 var
   I: integer;
 begin
+  saveSymbolUsage;
   SaveHistory;
   for I := 0 to fMRU.Count - 1 do
     Dispose(PMRUItem(fMRU[i]));
   fMRU.Free;
+  fSymbolUsage.Free;
   fCodeList.Free;
 end;
 
@@ -341,6 +350,52 @@ begin
       Dispose(PMRUItem(fMRU[i]));
       fMRU.Delete(i);
     end;
+end;
+
+procedure TdmMain.LoadSymbolUsage;
+var
+  filename:AnsiString;
+  i:integer;
+  KeyList:TStringList;
+  key:ansiString;
+begin
+  filename := devDirs.Config + DEV_SYMBOLUSAGE_INI;
+
+  if FileExists(filename) then begin // no first time launch? load from disk
+    KeyList:=TStringList.Create;
+    with TINIFile.Create(filename) do try
+      fSymbolUsage.Clear;
+      fSymbolUsage.BeginUpdate;
+      ReadSection('Usage', KeyList);
+      for I := 0 to KeyList.Count - 1 do begin
+        key := KeyList[i];
+        fSymbolUsage.AddObject(key,pointer(ReadInteger('Usage',key,0)));
+      end;
+      fSymbolUsage.EndUpdate;
+    finally
+      free;
+      KeyList.Free;
+    end;
+  end;
+end;
+
+procedure TdmMain.SaveSymbolUsage;
+var
+  filename:AnsiString;
+  i : integer;
+begin
+  filename := devDirs.Config + DEV_SYMBOLUSAGE_INI;
+
+  DeleteFile(filename);
+  if fSymbolUsage.Count = 0 then
+    Exit;
+  with TINIFile.Create(filename) do try
+    for i:=0 to fSymbolUsage.Count-1 do begin
+      WriteString('Usage',fSymbolUsage[i],IntToStr(integer(fSymbolUsage.Objects[i])));
+    end;
+  finally
+    free;
+  end;
 end;
 
 procedure TdmMain.LoadHistory;

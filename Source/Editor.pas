@@ -1611,7 +1611,9 @@ begin
   Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
 
+  fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
+  fCompletionBox.SymbolUsage := dmMain.SymbolUsage;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
@@ -1736,10 +1738,24 @@ var
   Statement: PStatement;
   FuncAddOn: AnsiString;
   P: TBufferCoord;
+  idx: integer;
+  usageCount:integer;
 begin
   Statement := fCompletionBox.SelectedStatement;
   if not Assigned(Statement) then
     Exit;
+
+  if devCodeCompletion.RecordUsage then begin
+    idx:=Utils.FastIndexOf(dmMain.SymbolUsage,Statement^._FullName);
+    if idx = -1 then begin
+      usageCount:=1;
+      dmMain.SymbolUsage.AddObject(Statement^._FullName, pointer(1))
+    end else begin
+      usageCount := 1 + integer(dmMain.SymbolUsage.Objects[idx]);
+      dmMain.SymbolUsage.Objects[idx] := pointer( usageCount );
+    end;
+    Statement^._UsageCount := usageCount;
+  end;
 
   FuncAddOn := '';
 

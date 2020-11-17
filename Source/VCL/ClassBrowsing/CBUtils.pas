@@ -131,6 +131,8 @@ type
     _FullName: AnsiString; // fullname(including class and namespace)
     _Usings: TStringList;
     _Node: Pointer;
+    _UsageCount : integer;
+    _FreqTop: integer;
   end;
 
   PUsingNamespace =^TUsingNamespace;

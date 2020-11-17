@@ -45,6 +45,7 @@ const
   DEV_WEBMIRRORS_FILE = 'webmirrors.ini';
   DEV_ERROR_LOG_FILE = 'devcpp-errors.log';
   DEV_TOOLS_FILE = 'tools.ini';
+  DEV_SYMBOLUSAGE_INI = 'symbolusage.ini';
 
   // make stuff
   DEV_MAKE_FILE = 'Makefile.win';
