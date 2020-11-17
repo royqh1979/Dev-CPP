@@ -1836,14 +1836,37 @@ var
 
   procedure ShowDebugHint;
   begin
-    // Add to list
-    if devData.WatchHint then
-      MainForm.Debugger.AddWatchVar(s);
 
-    // Evaluate s
-    fCurrentEvalWord := s; // remember name when debugger finishes
-    MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
-    MainForm.Debugger.SendCommand('print', s);
+  M := TMemoryStream.Create;
+    try
+      fText.Lines.SaveToStream(M);
+      st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
+    finally
+      M.Free;
+    end;
+
+    if not Assigned(st) then
+      Exit;
+
+    if st^._Kind = skVariable then begin //only show debug info of variables;
+      if MainForm.Debugger.Reader.CommandRunning then
+        Exit;
+
+      // Add to list
+      if devData.WatchHint then
+        MainForm.Debugger.AddWatchVar(s);
+
+      // Evaluate s
+      fCurrentEvalWord := s; // remember name when debugger finishes
+      MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
+      MainForm.Debugger.SendCommand('print', s, False);
+    end else begin
+      fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+      fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
+      // vertical bar is used to split up short and long hint versions...
+    end;
+
   end;
 
   procedure ShowParserHint;

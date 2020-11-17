@@ -3881,6 +3881,7 @@ begin
       if not ShowInputQuery(Lang[ID_NV_ADDWATCH], Lang[ID_NV_ENTERVAR], s) then
         Exit;
     end;
+    s:=Trim(s);
     if s <> '' then
       fDebugger.AddWatchVar(s);
   end;
@@ -6433,7 +6434,7 @@ end;
 
 procedure TMainForm.EvaluateInputKeyPress(Sender: TObject; var Key: Char);
 begin
-  if fDebugger.Executing then begin
+  if fDebugger.Executing and (not fDebugger.Reader.CommandRunning) then begin
     if Key = Chr(VK_RETURN) then begin
       if Length(EvaluateInput.Text) > 0 then begin
 
@@ -6443,7 +6444,7 @@ begin
         Key := #0;
 
         fDebugger.OnEvalReady := OnInputEvalReady;
-        fDebugger.SendCommand('print', EvaluateInput.Text);
+        fDebugger.SendCommand('print', EvaluateInput.Text,False);
 
         // Tell the user we're updating...
         EvalOutput.Font.Color := clGrayText;
