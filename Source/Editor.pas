@@ -1860,7 +1860,7 @@ var
       fCurrentEvalWord := s; // remember name when debugger finishes
       MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
       MainForm.Debugger.SendCommand('print', s, False);
-    end else begin
+    end else if devEditor.ParserHints then begin
       fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
         IntToStr(st^._Line) + ') - Ctrl+Click for more info';
       fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
@@ -1955,10 +1955,11 @@ begin
           ShowParserHint;
       end;
     hprIdentifier, hprSelection: begin
-        if MainForm.Debugger.Executing then
-          ShowDebugHint
-        else if devEditor.ParserHints and not fCompletionBox.Visible then
-          ShowParserHint;
+        if not fCompletionBox.Visible  then
+          if MainForm.Debugger.Executing then
+            ShowDebugHint
+          else if devEditor.ParserHints then
+            ShowParserHint;
       end;
   end;
 end;
