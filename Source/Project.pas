@@ -1724,7 +1724,7 @@ begin
     // Recreate everything
     CreateFolderNodes;
     for idx := 0 to pred(fUnits.Count) do begin
-      fUnits[idx].Node := MakeNewFileNode(ExtractFileName(fUnits[idx].FileName), False,
+      fUnits[idx].Node := MakeNewFileNode(ExtractRelativePath(self.FileName,fUnits[idx].FileName), False,
         FolderNodeFromName(fUnits[idx].Folder));
       fUnits[idx].Node.Data := pointer(idx);
     end;
