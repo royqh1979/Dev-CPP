@@ -1432,7 +1432,7 @@ begin
         fLastPressedIsIdChar:=True;
         lastWord:=GetPreviousWordAtPosition(Text.CaretXY);
         if lastWord <> '' then begin
-          if CbUtils.CppKeywords.ValueOf(lastWord) <> -1  then begin
+          if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
           //last word is a type keyword, this is a var or param define, and dont show suggestion
             Exit;
           end;

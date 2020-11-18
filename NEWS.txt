@@ -7,6 +7,8 @@ Version 6.1-beta3 November 2020
  - enhancement: Code Suggestion Window and most Content View use Editor's color theme
  - enhancement: don't show code suggesition when define var/parameter's name
  - enhancement: if a project's unit file is not in the same folder with the project.dev file, show it's relative path
+ - fix: #if parse error if there are spaces between ! and defined
+ - fix: #if parse error for defined xxx 
 
 Version 6.1-beta2.2 November 2020
 

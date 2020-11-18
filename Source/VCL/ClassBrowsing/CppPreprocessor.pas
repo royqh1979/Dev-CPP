@@ -719,7 +719,7 @@ end;
 procedure TCppPreprocessor.HandleBranch(const Line: AnsiString);
 var
   Name, IfLine: AnsiString;
-  OldResult: boolean;
+  testResult,OldResult: boolean;
   I, Dummy: integer;
 
   // Should start on top of the opening char
@@ -750,7 +750,7 @@ var
   // Expand any token that isn't a number
   function ExpandDefines(Line: AnsiString): AnsiString;
   var
-    SearchPos, Head, Tail, NameStart, NameEnd: integer;
+    SearchPos, Head, Head1, Tail, NameStart, NameEnd: integer;
     Name, Args, InsertValue: AnsiString;
     Define: PDefine;
 
@@ -801,15 +801,25 @@ var
           while (Head <= Length(Line)) and (Line[Head] in SpaceChars) do
             Inc(Head); // skip spaces
 
+          Head1:=Head;
           // Skip over its arguments
           if SkipBraces(Line, Head) then begin
             SearchPos := Head;
           end else begin
+            //Skip none braced argument (next word)
+            {
             Line := ''; // broken line
             break;
-          end;
-
-          // We have found a logical operator. Skip over it
+            }
+            Head:=Head1;
+            if (Head>Length(Line)) or not (Line[SearchPos] in MacroIdentChars) then begin
+              Line := ''; // broken line
+              break;
+            end;
+            while (Head <= Length(Line)) and ((Line[Head] in MacroIdentChars) or (Line[Head] in ['0'..'9'])) do
+              Inc(Head);
+            end;
+            SearchPos := Head;
         end else if (Name = 'and') or (Name = 'or') then begin
           SearchPos := Head; // Skip logical operators
 
@@ -858,14 +868,22 @@ var
   function EvaluateDefines(Line: AnsiString): AnsiString;
   var
     S: AnsiString;
-    I, Head, Tail: integer;
+    I,I1, Head, Tail: integer;
     DefineResult, InvertResult: boolean;
   begin
     while true do begin
       I := Pos('defined', Line);
       if I > 0 then begin
         // Check for boolean inverter
-        InvertResult := (I > 1) and (Line[I - 1] = '!');
+        I1:= I-1;
+        while (I1>0) and (Line[I1] in [#9,#32]) do begin
+          dec(I1);
+        end;
+        if (I1<=0) then
+          I1:=I;
+
+
+        InvertResult := (Line[I1] = '!');
 
         // Find expression enclosed in () or after space
         Tail := I + Length('defined'); // find (
@@ -892,7 +910,7 @@ var
         // Delete expression from string
         Tail := I;
         if InvertResult then
-          Dec(Tail);
+          Tail:=I1;
         Delete(Line, Tail, Head - Tail + 1);
 
         // Evaludate and replace expression by 1 or 0 (true or false)
@@ -1067,7 +1085,8 @@ begin
       SetCurrentBranch(false) // so don't take this one either
     else begin
       IfLine := TrimLeft(Copy(Line, Length('if') + 1, MaxInt)); // remove if
-      SetCurrentBranch(EvaluateIf(IfLine));
+      testResult := EvaluateIf(IfLine);
+      SetCurrentBranch(testResult);
     end;
   end else if StartsStr('else', Line) then begin
     // if a branch that is not at our level is false, current branch is false too;
