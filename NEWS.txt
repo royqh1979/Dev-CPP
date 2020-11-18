@@ -5,6 +5,7 @@ Version 6.1-beta3 November 2020
  - fix: trim left spaces when add watch var
  - enhancement: remember the times user choosed a symbol, and use it to sort symbols user usages frequently to front
  - enhancement: Code Suggestion Window and most Content View use Editor's color theme
+ - enhancement: don't show code suggesition when define var/parameter's name
 
 Version 6.1-beta2.2 November 2020
 

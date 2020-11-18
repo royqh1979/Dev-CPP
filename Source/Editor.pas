@@ -156,6 +156,7 @@ type
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
     function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+    function GetPreviousWordAtPosition(P: TBufferCoord): AnsiString;
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
@@ -473,7 +474,6 @@ end;
 
 procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
 var
-  tc: TThemeColor;
   p:PEditingArea;
   spaceCount :integer;
   spaceBefore :integer;
@@ -1417,6 +1417,10 @@ begin
 end;
 
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
+var
+  lastWord:AnsiString;
+  M:TMemoryStream;
+  st,currentStatement:PStatement;
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1426,6 +1430,29 @@ begin
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
       if not fLastPressedIsIdChar then begin
         fLastPressedIsIdChar:=True;
+        lastWord:=GetPreviousWordAtPosition(Text.CaretXY);
+        if lastWord <> '' then begin
+          if CbUtils.CppKeywords.ValueOf(lastWord) <> -1  then begin
+          //last word is a type keyword, this is a var or param define, and dont show suggestion
+            Exit;
+          end;
+          M := TMemoryStream.Create;
+          try
+            fText.Lines.SaveToStream(M);
+            st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, Text.CaretXY.Line, M);
+            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
+              //expand macro
+              currentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
+              st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,currentStatement);
+            end;
+            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              Exit;
+            end;
+          finally
+            M.Free;
+          end;
+        end;
         fText.SelText := Key;
         ShowCompletion(False);
         Key:=#0;
@@ -1502,7 +1529,11 @@ begin
           PopUserCodeInTabStops;
           fText.InvalidateLine(fText.CaretY);
         end else begin
-          fTabStopBegin:=-1;
+          if fTabStopBegin >= 0 then begin
+            Key:=0;
+            fTabStopBegin:=-1;
+            fText.InvalidateLine(fText.CaretY);
+          end;
         end;
       end;
     VK_UP: begin
@@ -1593,7 +1624,6 @@ var
   M: TMemoryStream;
   s,word: AnsiString;
   attr: TSynHighlighterAttributes;
-  tc:TThemeColor;
 begin
   fCompletionTimer.Enabled := False;
 
@@ -1651,6 +1681,57 @@ procedure TEditor.DestroyCompletion;
 begin
   FreeAndNil(fCompletionTimer);
   FreeAndNil(fFunctionTipTimer);
+end;
+
+function TEditor.GetPreviousWordAtPosition(P: TBufferCoord): AnsiString;
+var
+  WordBegin, WordEnd: integer;
+  s: AnsiString;
+  bracketLevel:integer;
+  skipNextWord: boolean;
+begin
+  result := '';
+  if (p.Line >= 1) and (p.Line <= fText.Lines.Count) then begin
+    s := fText.Lines[p.Line - 1];
+    WordEnd := p.Char-1;
+    while True do begin
+      bracketLevel:=0;
+      skipNextWord:=False;
+      while (WordEnd > 0) do begin
+        if s[WordEnd] in ['>',']'] then begin
+          inc(bracketLevel);
+        end else if s[WordEnd] in ['<','['] then begin
+          dec(bracketLevel);
+        end else if (bracketLevel=0) then begin
+          if s[WordEnd] = ',' then
+            skipNextWord:=True
+          else if not (s[WordEnd] in [#9,#32,'*','&']) then
+            break;
+        end;
+        dec(WordEnd);
+      end;
+      if WordEnd<=0 then
+        Exit;
+      if bracketLevel > 0 then
+        Exit;
+      if not (s[WordEnd] in ['_','0'..'9','a'..'z','A'..'Z']) then
+        Exit;
+
+      wordBegin := WordEnd;
+      while (WordBegin > 0) and (s[WordBegin] in ['_','0'..'9','a'..'z','A'..'Z']) do begin
+        dec(WordBegin);
+      end;
+      inc(WordBegin);
+
+      if s[WordBegin] in ['0'..'9'] then // not valid word
+        Exit;
+
+      Result := Copy(S, WordBegin , WordEnd - WordBegin+1);
+      if (Result <> 'const') and not SkipNextWord then
+        Exit;
+      WordEnd:= WordBegin-1;
+    end;
+  end;
 end;
 
 function TEditor.GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
@@ -1747,7 +1828,7 @@ begin
   if not Assigned(Statement) then
     Exit;
 
-  if devCodeCompletion.RecordUsage then begin
+  if devCodeCompletion.RecordUsage and (Statement^._Kind <> skUserCodeIn) then begin
     idx:=Utils.FastIndexOf(dmMain.SymbolUsage,Statement^._FullName);
     if idx = -1 then begin
       usageCount:=1;
