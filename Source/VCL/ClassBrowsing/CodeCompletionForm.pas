@@ -22,14 +22,8 @@ unit CodeCompletionForm;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Classes, Graphics, Forms, StdCtrls, Controls,
   CodeCompletion, CppParser, CBUtils,Messages;
-{$ENDIF}
-{$IFDEF LINUX}
-Xlib, SysUtils, Classes, QGraphics, QForms, QStdCtrls, QControls,
-CodeCompletion, CppParser, QGrids, QDialogs, Types;
-{$ENDIF}
 
 type
   TCodeComplForm = class(TForm)
@@ -39,15 +33,19 @@ type
     procedure lbCompletionDblClick(Sender: TObject);
     procedure lbCompletionDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure lbCompletionKeyPress(Sender: TObject; var Key: Char);
-    procedure FormCreate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);              
   private
     { Private declarations }
     fOwner: TCodeCompletion;
     FOldWndProc: TWndMethod;
+    fColors : array[0..11] of TColor;
     procedure lbCompletionWindowProc(var Message: TMessage);
+    function GetColor(i:integer):TColor;
+    procedure SetColor(i:integer; const Color:TColor);    protected
+    procedure CreateParams(var Params: TCreateParams); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure CreateParams(var Params: TCreateParams); override;
+    property Colors[Index: Integer]: TColor read GetColor write SetColor;
   end;
 
 var
@@ -72,8 +70,7 @@ end;
 procedure TCodeComplForm.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
-
-  Params.Style := Params.Style or WS_SIZEBOX;
+//  Params.Style := (Params.Style or WS_SIZEBOX) ;
 end;
 
 constructor TCodeComplForm.Create(AOwner: TComponent);
@@ -107,14 +104,15 @@ begin
 
     // Draw statement kind string, like 'Preprocessor'
     if odSelected in State then begin
-      Canvas.Brush.Color := clHighlight;
+      Canvas.Brush.Color := Colors[SelectedBackColor];
       Canvas.FillRect(Rect);
-      Canvas.Font.Color := clHighlightText;
+      Canvas.Font.Color := Colors[SelectedForeColor];
     end else begin
-      Canvas.Brush.Color := fOwner.Color;
+      Canvas.Brush.Color := Colors[BackColor];
       Canvas.FillRect(Rect);
+      {
       case statement^._Kind of
-        skFunction: Canvas.Font.Color := clGreen;
+        skFunction, skConstructor, skDestructor: Canvas.Font.Color := clGreen;
         skClass: Canvas.Font.Color := clMaroon;
         skVariable: Canvas.Font.Color := clBlue;
         skTypedef: Canvas.Font.Color := clOlive;
@@ -123,12 +121,24 @@ begin
       else
         Canvas.Font.Color := clGray;
       end;
+      }
+      case statement^._Kind of
+        skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
+        skClass: Canvas.Font.Color := Colors[ClassColor];
+        skVariable: Canvas.Font.Color := Colors[VarColor];
+        skNamespace: Canvas.Font.Color := Colors[NamespaceColor];
+        skTypedef: Canvas.Font.Color := Colors[TypedefColor];
+        skPreprocessor: Canvas.Font.Color := Colors[PreprocessorColor];
+        skEnum: Canvas.Font.Color := Colors[EnumColor];
+      else
+        Canvas.Font.Color := Colors[ForeColor];
+      end;
     end;
     Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
     Offset := Offset +
       Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing
     if not (odSelected in State) then
-      Canvas.Font.Color := clWindowText;
+      Canvas.Font.Color := Colors[ForeColor];
 
     // Draw data type string, like 'int', hide for defines/others that don't have this property
 // MinGW gcc's type info is too long , so we don't print it
@@ -186,6 +196,20 @@ begin
   if Message.Msg = WM_GETDLGCODE then
     Message.Result:= Message.Result or DLGC_WANTTAB;
 end;
+
+function TCodeComplForm.GetColor(i:integer):TColor;
+begin
+  Result := fColors[i];
+end;
+
+procedure TCodeComplForm.SetColor(i:integer; const Color:TColor);
+begin
+  fColors[i] := Color;
+  if i=BackColor then begin
+    self.Color := Color;
+  end;
+end;
+
 
 end.
 

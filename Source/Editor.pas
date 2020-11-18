@@ -1593,6 +1593,7 @@ var
   M: TMemoryStream;
   s,word: AnsiString;
   attr: TSynHighlighterAttributes;
+  tc:TThemeColor;
 begin
   fCompletionTimer.Enabled := False;
 
@@ -1617,6 +1618,7 @@ begin
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
+
   // Redirect key presses to completion box if applicable
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;

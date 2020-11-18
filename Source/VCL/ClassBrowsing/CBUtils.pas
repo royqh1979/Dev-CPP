@@ -32,7 +32,19 @@ SysUtils, StrUtils;
 const
   HeaderExts: array[0..6] of AnsiString = ('.h', '.hpp', '.rh', '.hh', '.hxx', '.inl', '');
   SourceExts: array[0..5] of AnsiString = ('.c', '.cpp', '.cc', '.cxx', '.c++', '.cp');
-
+  BackColor = 0;
+  ForeColor = 1;
+  FunctionColor = 2;
+  ClassColor = 3;
+  VarColor = 4;
+  NamespaceColor = 5;
+  TypedefColor = 6;
+  PreprocessorColor = 7;
+  EnumColor = 8;
+  SelectedBackColor = 9;
+  SelectedForeColor = 10;
+  InheritedColor = 11;
+  
 type
 
   PCodeIns = ^TCodeIns;

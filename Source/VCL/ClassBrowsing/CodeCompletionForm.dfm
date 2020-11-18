@@ -39,6 +39,7 @@ object CodeComplForm: TCodeComplForm
     Font.Name = 'Courier New'
     Font.Style = []
     ItemHeight = 16
+    ParentColor = True
     ParentFont = False
     TabOrder = 0
     OnDblClick = lbCompletionDblClick

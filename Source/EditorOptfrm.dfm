@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabCBCompletion
+    ActivePage = tabGeneral
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -690,7 +690,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -913,6 +913,7 @@ object EditorOptForm: TEditorOptForm
             Width = 120
             Height = 20
             Caption = 'Background color:'
+            Visible = False
           end
           object lblCompletionDelay: TLabel
             Left = 11
@@ -937,6 +938,7 @@ object EditorOptForm: TEditorOptForm
             Style = [cbStandardColors, cbCustomColor, cbPrettyNames]
             ItemHeight = 16
             TabOrder = 0
+            Visible = False
           end
           object gbCBEngine: TGroupBox
             Left = 11

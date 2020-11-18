@@ -99,6 +99,7 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
+    fColors : array[0..11] of TColor;    
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
@@ -118,6 +119,8 @@ type
     function IsIncluded(const FileName: AnsiString): boolean;
     procedure ReSelect;
     procedure Sort;
+    function GetColor(i:integer):TColor;
+    procedure SetColor(i:integer; const Color:TColor);        
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -126,10 +129,10 @@ type
     procedure BeginUpdate;
     procedure EndUpdate;
     property OnUpdated: TNotifyEvent read fOnUpdated write fOnUpdated;
+    property Colors[Index: Integer]: TColor read GetColor write SetColor;
   published
     property Align;
     property Font;
-    property Color;
     property Images;
     property ReadOnly;
     property Indent;
@@ -588,7 +591,9 @@ begin
   if Stage = cdPrePaint then begin
       Sender.Canvas.Font.Style := [fsBold];
     if bInherited then
-      Sender.Canvas.Font.Color := clGray;
+      Sender.Canvas.Font.Color := fColors[InheritedColor]
+    else
+      Sender.Canvas.Font.Color := fColors[ForeColor];
   end else if Stage = cdPostPaint then begin
     try
       st := Node.Data;
@@ -600,21 +605,20 @@ begin
       DrawPoint := Point(DrawRect.Right, DrawRect.Top);
       color:=fControlCanvas.Brush.Color;
       if  Node.Selected then begin
-        fControlCanvas.Brush.Color:=clHighLight;
+        fControlCanvas.Brush.Color:=fColors[SelectedBackColor];
+      end else begin
+        fControlCanvas.Brush.Color:=fColors[BackColor];
       end;
       // Draw function arguments to the right of the already drawn text
       if st^._Args <> '' then begin
         fControlCanvas.Font.Assign(self.Font);
         if  Node.Selected then begin
-          if bInherited then
-            fControlCanvas.Font.Color := clGray
-          else
-            fControlCanvas.Font.Color := clHighlightText;
+          fControlCanvas.Font.Color := fColors[SelectedForeColor];
         end else begin
           if bInherited then
-            fControlCanvas.Font.Color := clGray
+            fControlCanvas.Font.Color := fColors[InheritedColor]
           else
-            fControlCanvas.Font.Color := clMaroon;
+            fControlCanvas.Font.Color := fColors[FunctionColor];
         end;
         fControlCanvas.TextOut(DrawPoint.X, DrawPoint.Y + 2, st^._Args); // center vertically
         Inc(DrawPoint.X, fControlCanvas.TextWidth(st^._Args) + 3); // add some right padding
@@ -631,9 +635,9 @@ begin
       // Then draw node type to the right of the arguments
       if TypeText <> '' then begin
         if  Node.Selected then
-          fControlCanvas.Font.Color := clHighLightText
+          fControlCanvas.Font.Color := fColors[SelectedForeColor]
         else
-          fControlCanvas.Font.Color := clBlack;
+          fControlCanvas.Font.Color := fColors[ClassColor];
         fControlCanvas.TextOut(DrawPoint.X, DrawPoint.Y + 2, ': ' + TypeText); // center vertically
       end;
       fControlCanvas.Brush.Color:=color;
@@ -667,6 +671,19 @@ begin
         Selected := Items[I];
         Break;
       end;
+  end;
+end;
+
+function TClassBrowser.GetColor(i:integer):TColor;
+begin
+  Result := fColors[i];
+end;
+
+procedure TClassBrowser.SetColor(i:integer; const Color:TColor);
+begin
+  fColors[i] := Color;
+  if i=BackColor then begin
+    self.Color := Color;
   end;
 end;
 

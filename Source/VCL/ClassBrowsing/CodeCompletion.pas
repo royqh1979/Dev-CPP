@@ -71,6 +71,8 @@ type
     function IsIncluded(const FileName: AnsiString): boolean;
     function IsVisible: boolean;
     procedure AddChildren(ScopeStatement:PStatement);
+    function GetColor(i:integer):TColor;
+    procedure SetColor(i:integer; const Color:TColor);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -83,6 +85,7 @@ type
     property CodeInsList: TList read fCodeInsList write fCodeInsList;
     property SymbolUsage:TDevStringList read fSymbolUsage write fSymbolUsage;
     property RecordUsage: boolean read fRecordUsage write fRecordUsage;
+    property Colors[Index: Integer]: TColor read GetColor write SetColor;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property Parser: TCppParser read fParser write fParser;
@@ -680,6 +683,16 @@ end;
 function TCodeCompletion.IsVisible: boolean;
 begin
   Result := fEnabled and CodeComplForm.Visible;
+end;
+
+function TCodeCompletion.GetColor(i:integer):TColor;
+begin
+  Result := CodeComplForm.Colors[i];
+end;
+
+procedure TCodeCompletion.SetColor(i:integer; const Color:TColor);
+begin
+  CodeComplForm.Colors[i] := Color;
 end;
 
 end.
