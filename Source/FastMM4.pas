@@ -1144,7 +1144,7 @@ type
   {Make sure all the required types are available}
 {$ifdef BCB6OrDelphi6AndUp}
   {$if CompilerVersion < 20}
-  PByte = PAnsiChar;
+  PByte = pChar;
   {NativeInt didn't exist or was broken before Delphi 2009.}
   NativeInt = Integer;
   {$ifend}
@@ -1163,7 +1163,7 @@ type
   {$ifend}
 {$else}
   {$ifndef fpc}
-  PByte = PAnsiChar;
+  PByte = pChar;
   NativeInt = Integer;
   NativeUInt = Cardinal;
   PNativeUInt = ^Cardinal;
@@ -1309,9 +1309,9 @@ var
 type
   TGetCppVirtObjSizeByTypeIdPtrFunc = function(APointer: Pointer): Cardinal;
   TGetCppVirtObjTypeIdPtrFunc = function(APointer: Pointer; ASize: Cardinal): Pointer;
-  TGetCppVirtObjTypeNameFunc = function(APointer: Pointer; ASize: Cardinal): PAnsiChar;
-  TGetCppVirtObjTypeNameByTypeIdPtrFunc = function (APointer: Pointer): PAnsiChar;
-  TGetCppVirtObjTypeNameByVTablePtrFunc = function(AVTablePtr: Pointer; AVTablePtrOffset: Cardinal): PAnsiChar;
+  TGetCppVirtObjTypeNameFunc = function(APointer: Pointer; ASize: Cardinal): pChar;
+  TGetCppVirtObjTypeNameByTypeIdPtrFunc = function (APointer: Pointer): pChar;
+  TGetCppVirtObjTypeNameByVTablePtrFunc = function(AVTablePtr: Pointer; AVTablePtrOffset: Cardinal): pChar;
 var
   {Return virtual object's size from typeId pointer}
   GetCppVirtObjSizeByTypeIdPtrFunc: TGetCppVirtObjSizeByTypeIdPtrFunc = nil;
@@ -1364,7 +1364,7 @@ procedure LogAllocatedBlocksToFile(AFirstAllocationGroupToLog, ALastAllocationGr
 {Specify the full path and name for the filename to be used for logging memory
  errors, etc. If ALogFileName is nil or points to an empty string it will
  revert to the default log file name.}
-procedure SetMMLogFileName(ALogFileName: PAnsiChar = nil);
+procedure SetMMLogFileName(ALogFileName: pChar = nil);
 {$endif}
 
 {Releases all allocated memory (use with extreme care)}
@@ -1695,13 +1695,13 @@ const
   AdditionalSleepTime = 1;
 {$endif}
   {Hexadecimal characters}
-  HexTable: array[0..15] of AnsiChar = ('0', '1', '2', '3', '4', '5', '6', '7',
+  HexTable: array[0..15] of Char = ('0', '1', '2', '3', '4', '5', '6', '7',
     '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
   {Copyright message - not used anywhere in the code}
-  Copyright: AnsiString = 'FastMM4 (c) 2004 - 2011 Pierre le Riche / Professional Software Development';
+  Copyright: String = 'FastMM4 (c) 2004 - 2011 Pierre le Riche / Professional Software Development';
 {$ifdef FullDebugMode}
   {Virtual Method Called On Freed Object Errors}
-  StandardVirtualMethodNames: array[1 + vmtParent div SizeOf(Pointer) .. vmtDestroy div SizeOf(Pointer)] of PAnsiChar = (
+  StandardVirtualMethodNames: array[1 + vmtParent div SizeOf(Pointer) .. vmtDestroy div SizeOf(Pointer)] of pChar = (
 {$ifdef BCB6OrDelphi6AndUp}
   {$if RTLVersion >= 20}
     'Equals',
@@ -2103,7 +2103,7 @@ var
   {---------------------EventLog-------------------}
 {$ifdef _EventLog}
   {The current log file name}
-  MMLogFileName: array[0..1023] of AnsiChar;
+  MMLogFileName: array[0..1023] of Char;
 {$endif}
   {---------------------Full Debug Mode structures--------------------}
 {$ifdef FullDebugMode}
@@ -2171,13 +2171,13 @@ var
 {$ifdef MMSharingEnabled}
   {A string uniquely identifying the current process (for sharing the memory
    manager between DLLs and the main application)}
-  MappingObjectName: array[0..25] of AnsiChar = ('L', 'o', 'c', 'a', 'l', '\',
+  MappingObjectName: array[0..25] of Char = ('L', 'o', 'c', 'a', 'l', '\',
     'F', 'a', 's', 't', 'M', 'M', '_', 'P', 'I', 'D', '_', '?', '?', '?', '?',
     '?', '?', '?', '?', #0);
 {$ifdef EnableBackwardCompatibleMMSharing}
-  UniqueProcessIDString: array[1..20] of AnsiChar = ('?', '?', '?', '?', '?',
+  UniqueProcessIDString: array[1..20] of Char = ('?', '?', '?', '?', '?',
     '?', '?', '?', '_', 'P', 'I', 'D', '_', 'F', 'a', 's', 't', 'M', 'M', #0);
-  UniqueProcessIDStringBE: array[1..23] of AnsiChar = ('?', '?', '?', '?', '?',
+  UniqueProcessIDStringBE: array[1..23] of Char = ('?', '?', '?', '?', '?',
     '?', '?', '?', '_', 'P', 'I', 'D', '_', 'F', 'a', 's', 't', 'M', 'M', '_',
     'B', 'E', #0);
   {The handle of the MM window}
@@ -2207,7 +2207,7 @@ var
 
 {A copy of StrLen in order to avoid the SysUtils unit, which would have
  introduced overhead like exception handling code.}
-function StrLen(const AStr: PAnsiChar): NativeUInt;
+function StrLen(const AStr: pChar): NativeUInt;
 {$ifndef Use32BitAsm}
 begin
   Result := 0;
@@ -2350,7 +2350,7 @@ end;
 
 {$ifdef MACOS_OR_KYLIX}
 
-function StrLCopy(Dest: PAnsiChar; const Source: PAnsiChar; MaxLen: Cardinal): PAnsiChar;
+function StrLCopy(Dest: pChar; const Source: pChar; MaxLen: Cardinal): pChar;
 var
   Len: Cardinal;
 begin
@@ -2358,25 +2358,25 @@ begin
   Len := StrLen(Source);
   if Len > MaxLen then
     Len := MaxLen;
-  Move(Source^, Dest^, Len * SizeOf(AnsiChar));
+  Move(Source^, Dest^, Len * SizeOf(Char));
   Dest[Len] := #0;
 end;
 
-function GetModuleFileName(Module: HMODULE; Buffer: PAnsiChar; BufLen: Integer): Integer;
+function GetModuleFileName(Module: HMODULE; Buffer: pChar; BufLen: Integer): Integer;
 const
-  CUnknown: AnsiString = 'unknown';
+  CUnknown: String = 'unknown';
 var
   tmp: array[0..512] of Char;
 begin
   if FastMMIsInstalled then
   begin
     Result := System.GetModuleFileName(Module, tmp, BufLen);
-    StrLCopy(Buffer, PAnsiChar(AnsiString(tmp)), BufLen);
+    StrLCopy(Buffer, pChar(String(tmp)), BufLen);
   end
   else
   begin
     Result := Length(CUnknown);
-    StrLCopy(Buffer, PAnsiChar(CUnknown), Result + 1);
+    StrLCopy(Buffer, pChar(CUnknown), Result + 1);
   end;
 end;
 
@@ -2386,13 +2386,13 @@ const
 function FileCreate(const FileName: string): THandle;
 begin
   Result := THandle({$ifdef MACOS}__open{$else}open{$endif}(
-    PAnsiChar(UTF8String(FileName)), O_RDWR or O_CREAT or O_TRUNC or O_EXCL, FileAccessRights));
+    pChar(UTF8String(FileName)), O_RDWR or O_CREAT or O_TRUNC or O_EXCL, FileAccessRights));
 end;
 
 {$endif}
 
 {$ifdef FPC}
-function StrLCopy(Dest: PAnsiChar; const Source: PAnsiChar; MaxLen: Cardinal): PAnsiChar;
+function StrLCopy(Dest: pChar; const Source: pChar; MaxLen: Cardinal): pChar;
 var
   Len: Cardinal;
 begin
@@ -2400,18 +2400,18 @@ begin
   Len := StrLen(Source);
   if Len > MaxLen then
     Len := MaxLen;
-  Move(Source^, Dest^, Len * SizeOf(AnsiChar));
+  Move(Source^, Dest^, Len * SizeOf(Char));
   Dest[Len] := #0;
 end;
 
-function GetModuleFileName(Module: HMODULE; Buffer: PAnsiChar; BufLen: Integer): Integer;
+function GetModuleFileName(Module: HMODULE; Buffer: pChar; BufLen: Integer): Integer;
 const
-  CUnknown: AnsiString = 'unknown';
+  CUnknown: String = 'unknown';
 var
   tmp: array[0..512] of Char;
 begin
   Result := Length(CUnknown);
-  StrLCopy(Buffer, PAnsiChar(CUnknown), Result + 1);
+  StrLCopy(Buffer, pChar(CUnknown), Result + 1);
 end;
 
 const
@@ -2420,13 +2420,13 @@ const
 
 function FileCreate(const FileName: string): THandle;
 begin
-  Result := THandle(fpopen(PAnsiChar(UTF8String(FileName)), O_RDWR or O_CREAT or O_TRUNC or O_EXCL, FileAcc));
+  Result := THandle(fpopen(pChar(UTF8String(FileName)), O_RDWR or O_CREAT or O_TRUNC or O_EXCL, FileAcc));
 end;
 {$endif}
 
 {Writes the module filename to the specified buffer and returns the number of
  characters written.}
-function AppendModuleFileName(ABuffer: PAnsiChar): Integer;
+function AppendModuleFileName(ABuffer: pChar): Integer;
 var
   LModuleHandle: HModule;
 begin
@@ -2447,10 +2447,10 @@ end;
 
 {Copies the name of the module followed by the given string to the buffer,
  returning the pointer following the buffer.}
-function AppendStringToModuleName(AString, ABuffer: PAnsiChar): PAnsiChar;
+function AppendStringToModuleName(AString, ABuffer: pChar): pChar;
 var
   LModuleNameLength: Cardinal;
-  LCopyStart: PAnsiChar;
+  LCopyStart: pChar;
 begin
   {Get the name of the application}
   LModuleNameLength := AppendModuleFileName(ABuffer);
@@ -2458,7 +2458,7 @@ begin
   if LModuleNameLength > 0 then
   begin
     {Find the last backslash}
-    LCopyStart := PAnsiChar(PByte(ABuffer) + LModuleNameLength - 1);
+    LCopyStart := pChar(PByte(ABuffer) + LModuleNameLength - 1);
     LModuleNameLength := 0;
     while (UIntPtr(LCopyStart) >= UIntPtr(ABuffer))
       and (LCopyStart^ <> '\') do
@@ -3123,7 +3123,7 @@ const
   MEM_TOP_DOWN = $100000;
   PAGE_READWRITE = 4;
 
-procedure MessageBoxA(hWnd: Cardinal; AMessageText, AMessageTitle: PAnsiChar; uType: Cardinal); stdcall;
+procedure MessageBoxA(hWnd: Cardinal; AMessageText, AMessageTitle: pChar; uType: Cardinal); stdcall;
 begin
   if FastMMIsInstalled then
     writeln(AMessageText)
@@ -3256,7 +3256,7 @@ procedure GetStackTrace(AReturnAddresses: PNativeUInt;
 {The exported procedure in the FastMM_FullDebugMode.dll library used to convert
  the return addresses of a stack trace to a text string.}
 function LogStackTrace(AReturnAddresses: PNativeUInt;
-  AMaxDepth: Cardinal; ABuffer: PAnsiChar): PAnsiChar; external FullDebugModeLibraryName
+  AMaxDepth: Cardinal; ABuffer: pChar): pChar; external FullDebugModeLibraryName
   name 'LogStackTrace';
 
   {$else}
@@ -3269,7 +3269,7 @@ function LogStackTrace(AReturnAddresses: PNativeUInt;
   end;
 
   function NoOpLogStackTrace(AReturnAddresses: PNativeUInt;
-    AMaxDepth: Cardinal; ABuffer: PAnsiChar): PAnsiChar;
+    AMaxDepth: Cardinal; ABuffer: pChar): pChar;
   begin
     Result := ABuffer;
   end;
@@ -3283,7 +3283,7 @@ var
     AMaxDepth, ASkipFrames: Cardinal) = NoOpGetStackTrace;
 
   LogStackTrace: function (AReturnAddresses: PNativeUInt;
-    AMaxDepth: Cardinal; ABuffer: PAnsiChar): PAnsiChar = NoOpLogStackTrace;
+    AMaxDepth: Cardinal; ABuffer: pChar): pChar = NoOpLogStackTrace;
 
   {$endif}
 
@@ -3313,12 +3313,12 @@ end;
 {Converts an unsigned integer to string at the buffer location, returning the
  new buffer position. Note: The 32-bit asm version only supports numbers up to
  2^31 - 1.}
-function NativeUIntToStrBuf(ANum: NativeUInt; APBuffer: PAnsiChar): PAnsiChar;
+function NativeUIntToStrBuf(ANum: NativeUInt; APBuffer: pChar): pChar;
 {$ifndef Use32BitAsm}
 const
   MaxDigits = 20;
 var
-  LDigitBuffer: array[0..MaxDigits - 1] of AnsiChar;
+  LDigitBuffer: array[0..MaxDigits - 1] of Char;
   LCount: Cardinal;
   LDigit: NativeUInt;
 begin
@@ -3329,7 +3329,7 @@ begin
     ANum := ANum div 10;
     LDigit := LDigit - ANum * 10;
     Inc(LCount);
-    LDigitBuffer[MaxDigits - LCount] := AnsiChar(Ord('0') + LDigit);
+    LDigitBuffer[MaxDigits - LCount] := Char(Ord('0') + LDigit);
   until ANum = 0;
   {Copy the digits to the output buffer and advance it}
   System.Move(LDigitBuffer[MaxDigits - LCount], APBuffer^, LCount);
@@ -3448,12 +3448,12 @@ end;
 
 {Converts an unsigned integer to a hexadecimal string at the buffer location,
  returning the new buffer position.}
-function NativeUIntToHexBuf(ANum: NativeUInt; APBuffer: PAnsiChar): PAnsiChar;
+function NativeUIntToHexBuf(ANum: NativeUInt; APBuffer: pChar): pChar;
 {$ifndef Use32BitAsm}
 const
   MaxDigits = 16;
 var
-  LDigitBuffer: array[0..MaxDigits - 1] of AnsiChar;
+  LDigitBuffer: array[0..MaxDigits - 1] of Char;
   LCount: Cardinal;
   LDigit: NativeUInt;
 begin
@@ -3555,7 +3555,7 @@ end;
 
 {Appends the source text to the destination and returns the new destination
  position}
-function AppendStringToBuffer(const ASource, ADestination: PAnsiChar; ACount: Cardinal): PAnsiChar;
+function AppendStringToBuffer(const ASource, ADestination: pChar; ACount: Cardinal): pChar;
 begin
   System.Move(ASource^, ADestination^, ACount);
   Result := Pointer(PByte(ADestination) + ACount);
@@ -3563,7 +3563,7 @@ end;
 
 {Appends the name of the class to the destination buffer and returns the new
  destination position}
-function AppendClassNameToBuffer(AClass: TClass; ADestination: PAnsiChar): PAnsiChar;
+function AppendClassNameToBuffer(AClass: TClass; ADestination: pChar): pChar;
 var
   LPClassName: PShortString;
 begin
@@ -3581,7 +3581,7 @@ begin
 end;
 
 {Shows a message box if the program is not showing one already.}
-procedure ShowMessageBox(AText, ACaption: PAnsiChar);
+procedure ShowMessageBox(AText, ACaption: pChar);
 begin
   if (not ShowingMessageBox) and (not SuppressMessageBoxes) then
   begin
@@ -8584,7 +8584,7 @@ end;
 function InvalidGetMem(ASize: {$ifdef XE2AndUp}NativeInt{$else}{$ifdef fpc}NativeUInt{$else}Integer{$endif}{$endif}): Pointer;
 {$ifndef NoMessageBoxes}
 var
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
 begin
 {$ifdef UseOutputDebugString}
@@ -8600,7 +8600,7 @@ end;
 function InvalidFreeMem(APointer: Pointer): {$ifdef fpc}NativeUInt{$else}Integer{$endif};
 {$ifndef NoMessageBoxes}
 var
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
 begin
 {$ifdef UseOutputDebugString}
@@ -8616,7 +8616,7 @@ end;
 function InvalidReallocMem({$ifdef fpc}var {$endif}APointer: Pointer; ANewSize: {$ifdef XE2AndUp}NativeInt{$else}{$ifdef fpc}NativeUInt{$else}Integer{$endif}{$endif}): Pointer;
 {$ifndef NoMessageBoxes}
 var
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
 begin
 {$ifdef UseOutputDebugString}
@@ -8632,7 +8632,7 @@ end;
 function InvalidAllocMem(ASize: {$ifdef XE2AndUp}NativeInt{$else}{$ifdef fpc}NativeUInt{$else}Cardinal{$endif}{$endif}): Pointer;
 {$ifndef NoMessageBoxes}
 var
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
 begin
 {$ifdef UseOutputDebugString}
@@ -8662,9 +8662,9 @@ begin
 end;
 
 {Finds the start and length of the file name given a full path.}
-procedure ExtractFileName(APFullPath: PAnsiChar; var APFileNameStart: PAnsiChar; var AFileNameLength: Integer);
+procedure ExtractFileName(APFullPath: pChar; var APFileNameStart: pChar; var AFileNameLength: Integer);
 var
-  LChar: AnsiChar;
+  LChar: Char;
 begin
   {Initialize}
   APFileNameStart := APFullPath;
@@ -8693,10 +8693,10 @@ const
   SHGFP_TYPE_CURRENT = 0;
 var
   LFileHandle, LBytesWritten: Cardinal;
-  LEventHeader: array[0..1023] of AnsiChar;
-  LAlternateLogFileName: array[0..2047] of AnsiChar;
+  LEventHeader: array[0..1023] of Char;
+  LAlternateLogFileName: array[0..2047] of Char;
   LPathLen, LNameLength: Integer;
-  LMsgPtr, LPFileName: PAnsiChar;
+  LMsgPtr, LPFileName: pChar;
   LSystemTime: TSystemTime;
 begin
   {Try to open the log file in read/write mode.}
@@ -8782,11 +8782,11 @@ end;
 {Sets the default log filename}
 procedure SetDefaultMMLogFileName;
 const
-  LogFileExtAnsi: PAnsiChar = LogFileExtension;
+  LogFileExtAnsi: pChar = LogFileExtension;
 var
   LEnvVarLength, LModuleNameLength: Cardinal;
-  LPathOverride: array[0..2047] of AnsiChar;
-  LPFileName: PAnsiChar;
+  LPathOverride: array[0..2047] of Char;
+  LPFileName: pChar;
   LFileNameLength: Integer;
 begin
   {Get the name of the application}
@@ -8822,7 +8822,7 @@ end;
 {Specify the full path and name for the filename to be used for logging memory
  errors, etc. If ALogFileName is nil or points to an empty string it will
  revert to the default log file name.}
-procedure SetMMLogFileName(ALogFileName: PAnsiChar = nil);
+procedure SetMMLogFileName(ALogFileName: pChar = nil);
 var
   LLogFileNameLen: Integer;
 begin
@@ -9077,7 +9077,7 @@ begin
   PNativeUInt(PByte(APointer) + SizeOf(TFullDebugBlockHeader) + APointer.UserSize)^ := not LHeaderCheckSum;
 end;
 
-function LogCurrentThreadAndStackTrace(ASkipFrames: Cardinal; ABuffer: PAnsiChar): PAnsiChar;
+function LogCurrentThreadAndStackTrace(ASkipFrames: Cardinal; ABuffer: pChar): pChar;
 var
   LCurrentStackTrace: TStackTrace;
 begin
@@ -9092,7 +9092,7 @@ begin
 end;
 
 {$ifndef DisableLoggingOfMemoryDumps}
-function LogMemoryDump(APointer: PFullDebugBlockHeader; ABuffer: PAnsiChar): PAnsiChar;
+function LogMemoryDump(APointer: PFullDebugBlockHeader; ABuffer: pChar): pChar;
 var
   LByteNum, LVal: Cardinal;
   LDataPtr: PByte;
@@ -9149,7 +9149,7 @@ begin
     if LVal < 32 then
       Result^ := '.'
     else
-      Result^ := AnsiChar(LVal);
+      Result^ := Char(LVal);
     Inc(Result);
     {Next byte}
     Inc(LDataPtr);
@@ -9194,7 +9194,7 @@ begin
     Byte(RotateRight(LFillPattern, (AUserOffset and (SizeOf(Pointer) - 1)) * 8));
 end;
 
-function LogBlockChanges(APointer: PFullDebugBlockHeader; ABuffer: PAnsiChar): PAnsiChar;
+function LogBlockChanges(APointer: PFullDebugBlockHeader; ABuffer: pChar): pChar;
 var
   LOffset, LChangeStart, LCount: NativeUInt;
   LLogCount: Integer;
@@ -9251,14 +9251,14 @@ end;
 
 procedure LogBlockError(APointer: PFullDebugBlockHeader; AOperation: TBlockOperation; LHeaderValid, LFooterValid: Boolean);
 var
-  LMsgPtr: PAnsiChar;
-  LErrorMessage: array[0..32767] of AnsiChar;
+  LMsgPtr: pChar;
+  LErrorMessage: array[0..32767] of Char;
 {$ifndef NoMessageBoxes}
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
   LClass: TClass;
   {$ifdef CheckCppObjectTypeEnabled}
-  LCppObjectTypeName: PAnsiChar;
+  LCppObjectTypeName: pChar;
   {$endif}
 begin
   {Display the error header and the operation type.}
@@ -9425,11 +9425,11 @@ end;
 procedure LogMemoryLeakOrAllocatedBlock(APointer: PFullDebugBlockHeader; IsALeak: Boolean);
 var
   LHeaderValid: Boolean;
-  LMsgPtr: PAnsiChar;
-  LErrorMessage: array[0..32767] of AnsiChar;
+  LMsgPtr: pChar;
+  LErrorMessage: array[0..32767] of Char;
   LClass: TClass;
   {$ifdef CheckCppObjectTypeEnabled}
-  LCppObjectTypeName: PAnsiChar;
+  LCppObjectTypeName: pChar;
   {$endif}
 begin
   {Display the error header and the operation type.}
@@ -10111,10 +10111,10 @@ end;
 procedure TFreedObject.VirtualMethodError;
 var
   LVMOffset: Integer;
-  LMsgPtr: PAnsiChar;
-  LErrorMessage: array[0..32767] of AnsiChar;
+  LMsgPtr: pChar;
+  LErrorMessage: array[0..32767] of Char;
 {$ifndef NoMessageBoxes}
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
   LClass: TClass;
   LActualBlock: PFullDebugBlockHeader;
@@ -10217,11 +10217,11 @@ end;
 {$ifdef CatchUseOfFreedInterfaces}
 procedure TFreedObject.InterfaceError;
 var
-  LMsgPtr: PAnsiChar;
+  LMsgPtr: pChar;
 {$ifndef NoMessageBoxes}
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
-  LErrorMessage: array[0..4000] of AnsiChar;
+  LErrorMessage: array[0..4000] of Char;
 begin
   {Display the error header}
   LMsgPtr := AppendStringToBuffer(InterfaceErrorHeader, @LErrorMessage[0], Length(InterfaceErrorHeader));
@@ -10592,7 +10592,7 @@ const
   MinCharCode = #9;
 var
   LStringLength, LElemSize, LCharInd: Integer;
-  LPAnsiStr: PAnsiChar;
+  LPAnsiStr: pChar;
   LPUniStr: PWideChar;
 begin
   {Check that the reference count is within a reasonable range}
@@ -10631,7 +10631,7 @@ begin
   if LElemSize = 1 then
   begin
     {Check that all characters are in the range considered valid.}
-    LPAnsiStr := PAnsiChar(PByte(APMemoryBlock) + SizeOf(StrRec));
+    LPAnsiStr := pChar(PByte(APMemoryBlock) + SizeOf(StrRec));
     for LCharInd := 1 to LStringLength do
     begin
       if LPAnsiStr^ < MinCharCode then
@@ -10974,12 +10974,12 @@ var
   LPLogInfo: PMemoryLogInfo;
   LInd: Integer;
   LPNode: PMemoryLogNode;
-  LMsgBuffer: array[0..MsgBufferSize - 1] of AnsiChar;
-  LPMsg: PAnsiChar;
+  LMsgBuffer: array[0..MsgBufferSize - 1] of Char;
+  LPMsg: pChar;
   LBufferSpaceUsed, LBytesWritten: Cardinal;
   LFileHandle: NativeUInt;
   LMemoryManagerUsageSummary: TMemoryManagerUsageSummary;
-  LUTF8Str: AnsiString;
+  LUTF8Str: String;
 begin
   {Get the current memory manager usage summary.}
   GetMemoryManagerUsageSummary(LMemoryManagerUsageSummary);
@@ -11031,7 +11031,7 @@ begin
               begin
                 LPMsg := AppendStringToBuffer(UnknownClassNameMsg, LPMsg, Length(UnknownClassNameMsg));
               end;
-              {AnsiString}
+              {String}
               1:
               begin
                 LPMsg := AppendStringToBuffer(AnsiStringBlockMessage, LPMsg, Length(AnsiStringBlockMessage));
@@ -11135,16 +11135,16 @@ var
   LLeakType: TMemoryLeakType;
   {$ifdef CheckCppObjectTypeEnabled}
   LLeakedCppTypeIdPtr: Pointer;
-  LCppTypeName: PAnsiChar;
+  LCppTypeName: pChar;
   {$endif}
   LMediumAndLargeBlockLeaks: TMediumAndLargeBlockLeaks;
   LNumMediumAndLargeLeaks: Integer;
   LPLargeBlock: PLargeBlockHeader;
-  LLeakMessage: array[0..32767] of AnsiChar;
+  LLeakMessage: array[0..32767] of Char;
   {$ifndef NoMessageBoxes}
-  LMessageTitleBuffer: array[0..1023] of AnsiChar;
+  LMessageTitleBuffer: array[0..1023] of Char;
   {$endif}
-  LMsgPtr: PAnsiChar;
+  LMsgPtr: pChar;
   LExpectedLeaksOnly, LSmallLeakHeaderAdded, LBlockSizeHeaderAdded: Boolean;
   LBlockTypeInd, LClassInd, LBlockInd: Cardinal;
   LMediumBlockSize, LPreviousBlockSize, LLargeBlockSize, LThisBlockSize: NativeUInt;
@@ -11533,7 +11533,7 @@ begin
               begin
                 LMsgPtr := AppendStringToBuffer(UnknownClassNameMsg, LMsgPtr, Length(UnknownClassNameMsg));
               end;
-              {AnsiString}
+              {String}
               1:
               begin
                 LMsgPtr := AppendStringToBuffer(AnsiStringBlockMessage, LMsgPtr, Length(AnsiStringBlockMessage));
@@ -12027,9 +12027,9 @@ var
   count: Integer;
   data: TStaticCollector.TCollectedData;
   i: Integer;
-  LErrorMessage: array[0..32767] of AnsiChar;
-  LMessageTitleBuffer: array[0..200] of AnsiChar;
-  LMsgPtr: PAnsiChar;
+  LErrorMessage: array[0..32767] of Char;
+  LMessageTitleBuffer: array[0..200] of Char;
+  LMsgPtr: pChar;
   mergedCount: Integer;
   mergedData: TStaticCollector.TCollectedData;
 begin
@@ -12137,8 +12137,8 @@ procedure LogReleaseStackUsage;
 var
   LCount: integer;
   LInd: Integer;
-  LMessage: array[0..32767] of AnsiChar;
-  LMsgPtr: PAnsiChar;
+  LMessage: array[0..32767] of Char;
+  LMsgPtr: pChar;
   LSize: NativeUInt;
   LSlot: Integer;
   LSlotCount: array[0..NumStacksPerBlock-1] of integer;
@@ -12296,7 +12296,7 @@ end;
 function CheckCanInstallMemoryManager: Boolean;
 {$ifndef NoMessageBoxes}
 var
-  LErrorMessageTitle: array[0..1023] of AnsiChar;
+  LErrorMessageTitle: array[0..1023] of Char;
 {$endif}
 begin
   {Default to error}
@@ -12541,7 +12541,7 @@ procedure InstallMemoryManager;
 var
   i, LCurrentProcessID: Cardinal;
   LPMapAddress: PPointer;
-  LChar: AnsiChar;
+  LChar: Char;
 {$endif}
 begin
   if not FastMMIsInstalled then
@@ -12568,8 +12568,8 @@ begin
 {$ifdef AttemptToUseSharedMM}
     {Is the replacement memory manager already installed for this process?}
 {$ifdef EnableBackwardCompatibleMMSharing}
-    MMWindow := FindWindowA('STATIC', PAnsiChar(@UniqueProcessIDString[1]));
-    MMWindowBE := FindWindowA('STATIC', PAnsiChar(@UniqueProcessIDStringBE[1]));
+    MMWindow := FindWindowA('STATIC', pChar(@UniqueProcessIDString[1]));
+    MMWindowBE := FindWindowA('STATIC', pChar(@UniqueProcessIDStringBE[1]));
 {$endif}
     MappingObjectHandle := OpenFileMappingA(FILE_MAP_READ, False, MappingObjectName);
     {Is no MM being shared?}
@@ -12589,9 +12589,9 @@ begin
       begin
   {$ifdef EnableBackwardCompatibleMMSharing}
         {No memory manager installed yet - create the invisible window}
-        MMWindow := CreateWindowA('STATIC', PAnsiChar(@UniqueProcessIDString[1]),
+        MMWindow := CreateWindowA('STATIC', pChar(@UniqueProcessIDString[1]),
           WS_POPUP, 0, 0, 0, 0, 0, 0, hInstance, nil);
-        MMWindowBE := CreateWindowA('STATIC', PAnsiChar(@UniqueProcessIDStringBE[1]),
+        MMWindowBE := CreateWindowA('STATIC', pChar(@UniqueProcessIDStringBE[1]),
           WS_POPUP, 0, 0, 0, 0, 0, 0, hInstance, nil);
         {The window data is a pointer to this memory manager}
         if MMWindow <> 0 then

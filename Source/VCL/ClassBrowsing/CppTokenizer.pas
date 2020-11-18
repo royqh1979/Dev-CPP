@@ -48,15 +48,15 @@ type
 
   TCppTokenizer = class(TComponent)
   private
-    pStart: PAnsiChar;
-    pCurrent: PAnsiChar;
-    pLineCount: PAnsiChar;
-    fLastToken: AnsiString;
+    pStart: pChar;
+    pCurrent: pChar;
+    pLineCount: pChar;
+    fLastToken: String;
     fEnd: integer;
     fCurrLine: integer;
     fTokenList: TList;
-    fFileName: AnsiString;
-    procedure AddToken(const sText: AnsiString; iLine: integer);
+    fFileName: String;
+    procedure AddToken(const sText: String; iLine: integer);
     function GetToken(index: integer): PToken;
     procedure CountLines;
     procedure SkipCStyleComment;
@@ -68,34 +68,34 @@ type
     procedure SkipPair(cStart, cEnd: Char; FailChars: TSysCharSet = []);
     procedure SkipAssignment;
     procedure SkipTemplateArgs;
-    function GetNumber: AnsiString;
+    function GetNumber: String;
     function GetWord(bSkipParenthesis: boolean = False; bSkipArray: boolean = False; bSkipBlock: boolean = False):
-      AnsiString;
-    function GetPreprocessor: AnsiString;
-    function GetArguments: AnsiString;
-    function GetForInit: AnsiString;
+      String;
+    function GetPreprocessor: String;
+    function GetArguments: String;
+    function GetForInit: String;
     function IsWord: boolean;
     function IsNumber: boolean;
     function IsPreprocessor: boolean;
     function IsArguments: boolean;
     function IsForInit: boolean;
     function GetNextToken(bSkipParenthesis: boolean = False; bSkipArray: boolean = False; bSkipBlock: boolean = False):
-      AnsiString;
-    procedure Simplify(var Output: AnsiString);
-    procedure SimplifyArgs(var Output: AnsiString);
+      String;
+    procedure Simplify(var Output: String);
+    procedure SimplifyArgs(var Output: String);
     procedure Advance;
-    function OpenFile(const FileName: AnsiString): boolean;
+    function OpenFile(const FileName: String): boolean;
     function OpenStream(Stream: TStream): boolean;
     // no manual buffer madness including Schlemiel algorithms anymore
-    procedure CatString(var Dest: AnsiString; Source: PAnsiChar; Count: integer);
+    procedure CatString(var Dest: String; Source: pChar; Count: integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Reset;
-    procedure TokenizeBuffer(StartAt: PAnsiChar);
-    procedure TokenizeStream(const FileName: AnsiString; Stream: TStream);
-    procedure TokenizeFile(const FileName: AnsiString);
-    procedure DumpTokens(const FileName: AnsiString);
+    procedure TokenizeBuffer(StartAt: pChar);
+    procedure TokenizeStream(const FileName: String; Stream: TStream);
+    procedure TokenizeFile(const FileName: String);
+    procedure DumpTokens(const FileName: String);
     property TokenList[index: integer]: PToken read GetToken; default;
     property Tokens: TList read fTokenList;
   end;
@@ -136,7 +136,7 @@ begin
   fTokenList.Clear;
 end;
 
-function TCppTokenizer.OpenFile(const FileName: AnsiString): boolean;
+function TCppTokenizer.OpenFile(const FileName: String): boolean;
 var
   hFile: integer;
   iLength, iRead: integer;
@@ -170,7 +170,7 @@ begin
   end;
 end;
 
-procedure TCppTokenizer.AddToken(const sText: AnsiString; iLine: integer);
+procedure TCppTokenizer.AddToken(const sText: String; iLine: integer);
 var
   Token: PToken;
 begin
@@ -271,7 +271,7 @@ begin
       break;
     end else if pCurrent^ = '"' then begin
       if cStart <> '''' then
-        SkipDoubleQuotes // don't do it inside AnsiString!
+        SkipDoubleQuotes // don't do it inside String!
       else
         Inc(pCurrent);
     end else if pCurrent^ = '''' then begin
@@ -316,7 +316,7 @@ procedure TCppTokenizer.SkipTemplateArgs;
 {var
  tmp : integer;}
 var
-  Start: PAnsiChar;
+  Start: pChar;
 begin
   // Skip template contents. Do not blindy do a pair skip from < to >,
   // as there can be assignments within the part we have to skip
@@ -393,9 +393,9 @@ begin
   end;
 end;
 
-function TCppTokenizer.GetNumber: AnsiString;
+function TCppTokenizer.GetNumber: String;
 var
-  Offset: PAnsiChar;
+  Offset: pChar;
 begin
   Offset := pCurrent;
 
@@ -412,16 +412,16 @@ begin
 end;
 
 function TCppTokenizer.GetWord(bSkipParenthesis: boolean = False; bSkipArray: boolean = False; bSkipBlock: boolean =
-  False): AnsiString;
+  False): String;
 var
-  Offset: PAnsiChar;
-  S: AnsiString;
+  Offset: pChar;
+  S: String;
   tmp: integer;
 //  bIsSmartPointer: boolean;
   bFoundTemplate: boolean;
-  function CurrentWordEquals(const Text : AnsiString) : Boolean;
+  function CurrentWordEquals(const Text : String) : Boolean;
   begin
-    Result := (pCurrent - Offset = Length(Text)) and (StrLComp(PAnsiChar(Text), Offset, pCurrent - Offset) = 0);
+    Result := (pCurrent - Offset = Length(Text)) and (StrLComp(pChar(Text), Offset, pCurrent - Offset) = 0);
   end;
 begin
   bFoundTemplate := false;
@@ -511,24 +511,24 @@ begin
 
       // Append next token to this one
       S := GetWord(bSkipParenthesis, bSkipArray, bSkipBlock);
-      CatString(Result, PAnsiChar(S), Length(S));
+      CatString(Result, pChar(S), Length(S));
     end;
   end else
     Result := '';
 end;
 
-function TCppTokenizer.GetPreprocessor: AnsiString;
+function TCppTokenizer.GetPreprocessor: String;
 var
-  Offset: PAnsiChar;
+  Offset: pChar;
 begin
   Offset := pCurrent;
   SkipToEOL;
   SetString(Result, Offset, pCurrent - Offset);
 end;
 
-function TCppTokenizer.GetArguments: AnsiString;
+function TCppTokenizer.GetArguments: String;
 var
-  Offset: PAnsiChar;
+  Offset: pChar;
 begin
   Offset := pCurrent;
   SkipPair('(', ')');
@@ -540,10 +540,10 @@ begin
   SkipToNextToken;
 end;
 
-function TCppTokenizer.GetForInit: AnsiString;
+function TCppTokenizer.GetForInit: String;
 var
-  StartOffset: PAnsiChar;
-  S: AnsiString;
+  StartOffset: pChar;
+  S: String;
 begin
   StartOffset := pCurrent;
 
@@ -589,7 +589,7 @@ begin
 end;
 
 function TCppTokenizer.GetNextToken(bSkipParenthesis: boolean = False; bSkipArray: boolean = False; bSkipBlock: boolean
-  = False): AnsiString;
+  = False): String;
 var
   Done: boolean;
   DelimPos: integer;
@@ -665,7 +665,7 @@ begin
   until Done;
 end;
 
-procedure TCppTokenizer.Simplify(var Output: AnsiString);
+procedure TCppTokenizer.Simplify(var Output: String);
 var
   //DelimPosFrom, DelimPosTo: integer;
   temp: PChar;
@@ -750,7 +750,7 @@ begin
 }
 end;
 
-procedure TCppTokenizer.SimplifyArgs(var Output: AnsiString);
+procedure TCppTokenizer.SimplifyArgs(var Output: String);
 var
   SearchStart, CommaPos: integer;
 
@@ -807,7 +807,7 @@ begin
   FormatSpacesAround(Length(Output), 0);
 end;
 
-procedure TCppTokenizer.DumpTokens(const FileName:AnsiString);
+procedure TCppTokenizer.DumpTokens(const FileName:String);
 var
   i:integer;
   token: PToken;
@@ -822,14 +822,14 @@ begin
     Free;
   end;
 end;
-procedure TCppTokenizer.TokenizeBuffer(StartAt: PAnsiChar);
+procedure TCppTokenizer.TokenizeBuffer(StartAt: pChar);
 var
-  S: AnsiString;
-  Command: AnsiString;
+  S: String;
+  Command: String;
   bSkipBlocks: boolean;
   {  I: integer;
     DebugFile: TFileStream;
-    Buffer: AnsiString;}
+    Buffer: String;}
 begin
   if StartAt = nil then
     Exit;
@@ -865,21 +865,21 @@ begin
   end;}
 end;
 
-procedure TCppTokenizer.TokenizeStream(const FileName: AnsiString; Stream: TStream);
+procedure TCppTokenizer.TokenizeStream(const FileName: String; Stream: TStream);
 begin
   fFileName := FileName;
   if OpenStream(Stream) then
     TokenizeBuffer(pStart);
 end;
 
-procedure TCppTokenizer.TokenizeFile(const FileName: AnsiString);
+procedure TCppTokenizer.TokenizeFile(const FileName: String);
 begin
   fFileName := FileName;
   if OpenFile(FileName) then
     TokenizeBuffer(pStart);
 end;
 
-procedure TCppTokenizer.CatString(var Dest: AnsiString; Source: PAnsiChar; Count: integer);
+procedure TCppTokenizer.CatString(var Dest: String; Source: pChar; Count: integer);
 var
   OldLength: integer;
 begin

@@ -48,7 +48,7 @@ begin
       FAbort := True;
 end;
 
-procedure Mkdir(const DirName: AnsiString);
+procedure Mkdir(const DirName: String);
 var
   Dirs: TStringList;
   i: Integer;
@@ -61,7 +61,7 @@ begin
 
   for i := 0 to Dirs.Count - 1 do
       if not DirectoryExists(Dirs.Strings[i]) then
-          CreateDirectory(PAnsiChar(Dirs.Strings[i]), nil);
+          CreateDirectory(pChar(Dirs.Strings[i]), nil);
   Dirs.Free;
 end;
 
@@ -70,10 +70,10 @@ var
   i: Integer;
   Files: TInstallFiles;
   TheFile: TInstallFile;
-  EntryName: AnsiString;
+  EntryName: String;
   F: TextFile;
   IMod: Integer;
-  strDevRoot: AnsiString;
+  strDevRoot: String;
 begin
   Result := True;
   FInstalling := True;
@@ -112,7 +112,7 @@ begin
 
       if not DirectoryExists(ExtractFileDir(TheFile.Dest)) then
           Mkdir(ExtractFileDir(TheFile.Dest));
-      CopyFile(PAnsiChar(TheFile.Source), PAnsiChar(TheFile.Dest), False);
+      CopyFile(pChar(TheFile.Source), pChar(TheFile.Dest), False);
 
       if (IMod = 0) or (i mod IMod = 0) then
           Application.ProcessMessages;

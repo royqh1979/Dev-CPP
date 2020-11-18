@@ -56,8 +56,8 @@ type
     function DeleteNode(Node: PStatementNode): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
-    procedure DumpTo(Filename:AnsiString);
-    procedure DumpWithScope(Filename:AnsiString);
+    procedure DumpTo(Filename:String);
+    procedure DumpWithScope(Filename:String);
     procedure Clear;
     property FirstNode: PStatementNode read fFirstNode;
     property LastNode: PStatementNode read fLastNode;
@@ -281,7 +281,7 @@ begin
     Result:=fGlobalStatements;
 end;
 
-procedure TStatementList.DumpTo(Filename:AnsiString);
+procedure TStatementList.DumpTo(Filename:String);
 var
   Node, NextNode: PStatementNode;
   statement:PStatement;
@@ -303,14 +303,14 @@ begin
   End;
 end;
 
-procedure TStatementList.DumpWithScope(Filename:AnsiString);
+procedure TStatementList.DumpWithScope(Filename:String);
 var
   i:integer;
   statement:PStatement;
   DumpFile : TStringList;
   procedure DumpStatement( statement:PStatement;level:integer);
   var
-    indent:AnsiString;
+    indent:String;
     i:integer;
     children:TList;
     childStatement:PStatement;

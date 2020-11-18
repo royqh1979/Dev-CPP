@@ -27,7 +27,7 @@ uses
 
 type
 
-  TEvalReadyEvent = procedure(const evalvalue: AnsiString) of object;
+  TEvalReadyEvent = procedure(const evalvalue: String) of object;
 
   TDebugger = class(TObject)
   private
@@ -45,7 +45,7 @@ type
     fOnEvalReady: TEvalReadyEvent;
     fReader: TDebugReader;
     fUseUTF8: boolean;
-    function GetBreakPointFile: AnsiString;
+    function GetBreakPointFile: String;
   public
     constructor Create;
     destructor Destroy; override;
@@ -53,7 +53,7 @@ type
     // Play/pause
     procedure Start;
     procedure Stop;
-    procedure SendCommand(const command, params: AnsiString; UpdateWatch: boolean = true);
+    procedure SendCommand(const command, params: String; UpdateWatch: boolean = true);
 
     // breakpoints
     procedure AddBreakPoint(i: integer); overload;
@@ -61,15 +61,15 @@ type
     procedure AddBreakPoint(Linein: integer; e: TEditor); overload;
     procedure RemoveBreakPoint(Linein: integer; e: TEditor); overload;
     procedure DeleteBreakPointsOf(editor: TEditor);
-    procedure SetBreakPointCondition(i:integer; cond:ansistring);
+    procedure SetBreakPointCondition(i:integer; cond:String);
     function GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;
 
     // watch var
     procedure AddWatchVar(i: integer); overload;
     procedure RemoveWatchVar(i: integer); overload;
-    procedure AddWatchVar(const namein: AnsiString); overload;
+    procedure AddWatchVar(const namein: String); overload;
     procedure RemoveWatchVar(nodein: TTreeNode); overload;
-    procedure RenameWatchVar(const oldname: AnsiString; const newname: AnsiString); 
+    procedure RenameWatchVar(const oldname: String; const newname: String); 
 
     procedure RefreshWatchVars;
     procedure DeleteWatchVars(deleteparent: boolean);
@@ -85,7 +85,7 @@ type
     property WatchView: TTreeView read fWatchView write fWatchView;
     property OnEvalReady: TEvalReadyEvent read fOnEvalReady write fOnEvalReady;
     property Reader: TDebugReader read fReader write fReader;
-    property BreakPointFile: AnsiString read GetBreakPointFile;
+    property BreakPointFile: String read GetBreakPointFile;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
   end;
 
@@ -128,7 +128,7 @@ var
   pi: TProcessInformation;
   si: TStartupInfo;
   sa: TSecurityAttributes;
-  GDBFile, GDBCommand: AnsiString;
+  GDBFile, GDBCommand: String;
   CompilerSet: TdevCompilerSet;
 begin
   Executing := true;
@@ -182,7 +182,7 @@ begin
         Exit;
       end;
       GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
-      if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
+      if not CreateProcess(nil, pChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
         LogError('Debugger.pas TDebugger.Start',Format('Create GDB process failed: %s',[SysErrorMessage(GetLastError)]));
         MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
         [mbOK], 0);
@@ -265,14 +265,14 @@ begin
   end;
 end;
 
-procedure TDebugger.SendCommand(const Command, Params: AnsiString; UpdateWatch: boolean);
+procedure TDebugger.SendCommand(const Command, Params: String; UpdateWatch: boolean);
 begin
   MainForm.DebugOutput.InputEnabled:=False;
   if Executing then
     fReader.PostCommand(command,params,UpdateWatch);
 end;
 
-function TDebugger.GetBreakPointFile: AnsiString;
+function TDebugger.GetBreakPointFile: String;
 begin
   if Executing then
     Result := fReader.BreakPointFile
@@ -282,8 +282,8 @@ end;
 
 procedure TDebugger.AddBreakPoint(i: integer);
 var
-  filename: AnsiString;
-  condition : AnsiString;
+  filename: String;
+  condition : String;
 begin
   // "filename":linenum
   filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
@@ -295,7 +295,7 @@ begin
     '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line)+ condition);
 end;
 
-procedure TDebugger.SetBreakPointCondition(i:integer; cond:ansistring);
+procedure TDebugger.SetBreakPointCondition(i:integer; cond:String);
 begin
   PBreakPoint(BreakPointList[i])^.condition := cond;
   if cond = '' then
@@ -307,7 +307,7 @@ end;
 
 procedure TDebugger.RemoveBreakPoint(i: integer);
 var
-  filename: AnsiString;
+  filename: String;
 begin
   // "filename":linenum
   filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
@@ -391,7 +391,7 @@ begin
   SendCommand('display', PWatchVar(WatchVarList.Items[i])^.name);
 end;
 
-procedure TDebugger.RenameWatchVar(const oldname: AnsiString; const newname: AnsiString);
+procedure TDebugger.RenameWatchVar(const oldname: String; const newname: String);
 var
   I: integer;
   watchVar: PWatchVar;
@@ -423,7 +423,7 @@ begin
   SendCommand('undisplay', IntToStr(PWatchVar(WatchVarList.Items[i])^.gdbindex));
 end;
 
-procedure TDebugger.AddWatchVar(const namein: AnsiString);
+procedure TDebugger.AddWatchVar(const namein: String);
 var
   parentnode: TTreeNode;
   I: integer;

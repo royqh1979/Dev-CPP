@@ -28,7 +28,7 @@ uses
   CodeToolTip, CBUtils;
 
 const
-  USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
+  USER_CODE_IN_INSERT_POS: String = '%INSERT%';
 
 type
   TEditor = class;
@@ -60,7 +60,7 @@ type
   TEditor = class(TObject)
   private
     fInProject: boolean;
-    fFileName: AnsiString;
+    fFileName: String;
     fNew: boolean;
     fText: TSynEdit;
     fTabSheet: TTabSheet;
@@ -68,8 +68,8 @@ type
     fErrorLine: integer;
     fActiveLine: integer;
     fDebugGutter: TDebugGutter;
-    fCurrentWord: AnsiString;
-    fCurrentEvalWord: AnsiString;
+    fCurrentWord: String;
+    fCurrentEvalWord: String;
     fIgnoreCaretChange: boolean;
     fPreviousEditors: TList;
     fDblClickTime: Cardinal;
@@ -84,8 +84,8 @@ type
     fTabStopBegin: integer;
     fTabStopEnd: integer;
     fTabStopY: integer;
-    fLineBeforeTabStop: AnsiString;
-    fLineAfterTabStop : AnsiString;
+    fLineBeforeTabStop: String;
+    fLineAfterTabStop : String;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
     fCompletionInitialPosition: TBufferCoord;
@@ -104,7 +104,7 @@ type
     procedure EditorDblClick(Sender: TObject);
     procedure EditorClick(Sender: TObject);
     procedure EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
-    procedure EditorReplaceText(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column, wordlen: integer; var Action:
+    procedure EditorReplaceText(Sender: TObject; const aSearch, aReplace: String; Line, Column, wordlen: integer; var Action:
       TSynReplaceAction);
     procedure EditorDropFiles(Sender: TObject; x, y: integer; aFiles: TStrings);
     procedure EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -124,8 +124,8 @@ type
     procedure HandleSymbolCompletion(var Key: Char);
     procedure HandleCodeCompletion(var Key: Char);
     function HandpointAllowed(var MousePos: TBufferCoord; ShiftState: TShiftState): THandPointReason;
-    procedure SetFileName(const value: AnsiString);
-    procedure OnMouseOverEvalReady(const evalvalue: AnsiString);
+    procedure SetFileName(const value: String);
+    procedure OnMouseOverEvalReady(const evalvalue: String);
     function HasBreakPoint(Line: integer): integer;
     procedure DebugAfterPaint(ACanvas: TCanvas; AClip: TRect; FirstLine, LastLine: integer);
     function GetPageControl: TPageControl;
@@ -134,7 +134,7 @@ type
     procedure PopUserCodeInTabStops;
     //procedure TextWindowProc(var Message: TMessage);
   public
-    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+    constructor Create(const Filename: String;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
@@ -144,25 +144,25 @@ type
     procedure ExportToHTML;
     procedure ExportToRTF;
     procedure ExportToTEX;
-    procedure InsertString(Value: AnsiString; MoveCursor: boolean);
-    procedure InsertUserCodeIn(Code: AnsiString);
+    procedure InsertString(Value: String; MoveCursor: boolean);
+    procedure InsertUserCodeIn(Code: String);
     procedure SetErrorFocus(Col, Line: integer);
     procedure GotoActiveBreakpoint;
     procedure SetActiveBreakpointFocus(Line: integer);
     procedure RemoveBreakpointFocus;
-    procedure UpdateCaption(const NewCaption: AnsiString);
+    procedure UpdateCaption(const NewCaption: String);
     procedure InsertDefaultText;
     procedure ToggleBreakPoint(Line: integer);
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
-    function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+    function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): String;
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
     procedure ShowCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
     property PreviousEditors: TList read fPreviousEditors;
-    property FileName: AnsiString read fFileName write SetFileName;
+    property FileName: String read fFileName write SetFileName;
     property InProject: boolean read fInProject write fInProject;
     property New: boolean read fNew write fNew;
     property Text: TSynEdit read fText write fText;
@@ -265,9 +265,9 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+constructor TEditor.Create(const Filename: String; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
 var
-  s: AnsiString;
+  s: String;
   I: integer;
   e: TEditor;
 begin
@@ -411,7 +411,7 @@ begin
     fTabSheet.PageControl := Value;
 end;
 
-procedure TEditor.OnMouseOverEvalReady(const evalvalue: AnsiString);
+procedure TEditor.OnMouseOverEvalReady(const evalvalue: String);
 begin
   fText.Hint := fCurrentEvalWord + ' = ' + evalvalue;
   MainForm.Debugger.OnEvalReady := nil;
@@ -560,7 +560,7 @@ begin
   end;
 end;
 
-procedure TEditor.EditorReplaceText(Sender: TObject; const aSearch, aReplace: AnsiString; Line, Column, wordlen: integer; var
+procedure TEditor.EditorReplaceText(Sender: TObject; const aSearch, aReplace: String; Line, Column, wordlen: integer; var
   Action: TSynReplaceAction);
 var
   pt: TPoint;
@@ -702,7 +702,7 @@ end;
 procedure TEditor.ExportToHTML;
 var
   SynExporterHTML: TSynExporterHTML;
-  SaveFileName: AnsiString;
+  SaveFileName: String;
   newText : TStringList;
 begin
   SynExporterHTML := TSynExporterHTML.Create(nil);
@@ -750,7 +750,7 @@ end;
 procedure TEditor.ExportToRTF;
 var
   SynExporterRTF: TSynExporterRTF;
-  SaveFileName: AnsiString;
+  SaveFileName: String;
 begin
   SynExporterRTF := TSynExporterRTF.Create(nil);
   try
@@ -785,7 +785,7 @@ end;
 procedure TEditor.ExportToTEX;
 var
   SynExporterTEX: TSynExporterTEX;
-  SaveFileName: AnsiString;
+  SaveFileName: String;
 begin
   SynExporterTEX := TSynExporterTEX.Create(nil);
   try
@@ -827,11 +827,11 @@ begin
   end;
 end;
 
-procedure TEditor.InsertUserCodeIn(Code: AnsiString);
+procedure TEditor.InsertUserCodeIn(Code: String);
 var
   I, insertPos, lastPos, lastI: integer;
   sl,newSl: TStringList;
-  s :AnsiString;
+  s :String;
   p:PPoint;
   CursorPos: TBufferCoord;
   spaceCount :integer;
@@ -897,18 +897,18 @@ begin
 end;
 
 
-procedure TEditor.InsertString(Value: AnsiString; MoveCursor: boolean);
+procedure TEditor.InsertString(Value: String; MoveCursor: boolean);
 var
   NewCursorPos: TBufferCoord;
   Char, Line, I: integer;
-  P: PAnsiChar;
+  P: pChar;
 begin
   // prevent lots of repaints
   fText.BeginUpdate;
   try
     NewCursorPos := fText.CaretXY;
     if MoveCursor then begin
-      P := PAnsiChar(value);
+      P := pChar(value);
       Char := fText.CaretX;
       Line := fText.CaretY;
       I := 0;
@@ -996,7 +996,7 @@ begin
   end;
 end;
 
-procedure TEditor.UpdateCaption(const NewCaption: AnsiString);
+procedure TEditor.UpdateCaption(const NewCaption: String);
 begin
   if Assigned(fTabSheet) then begin
     if NewCaption <> fTabSheet.Caption then begin
@@ -1005,7 +1005,7 @@ begin
   end;
 end;
 
-procedure TEditor.SetFileName(const value: AnsiString);
+procedure TEditor.SetFileName(const value: String);
 begin
   if value <> fFileName then begin
     fFileName := value;
@@ -1051,7 +1051,7 @@ end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
 var
-  phrase:AnsiString;
+  phrase:String;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
@@ -1103,12 +1103,12 @@ Type
   TQuoteStates = (NotQuote, SingleQuote, SingleQuoteEscape, DoubleQuote, DoubleQuoteEscape);
 var
   Attr: TSynHighlighterAttributes;
-  Token: AnsiString;
+  Token: String;
   status : TQuoteStates;
   tokenFinished: boolean;
   HighlightPos : TBufferCoord;
 
-  function GetCurrentChar:AnsiChar;
+  function GetCurrentChar:Char;
   begin
     if Length(fText.LineText)<fText.CaretX then
       Result := #0
@@ -1118,7 +1118,7 @@ var
 
   function GetQuoteState:TQuoteStates;
   var
-    Line: AnsiString;
+    Line: String;
     posX,i : Integer;
 //    HighlightPos : TBufferCoord;
   begin
@@ -1221,7 +1221,7 @@ var
 
   procedure HandleGlobalIncludeCompletion;
   var
-    s: AnsiString;
+    s: String;
   begin
     s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
     if not StartsStr('include',s) then //it'ss not #include
@@ -1232,7 +1232,7 @@ var
   procedure HandleGlobalIncludeSkip;
   var
     pos : TBufferCoord;
-    s: AnsiString;
+    s: String;
   begin
     if GetCurrentChar <> '>' then
       Exit;
@@ -1249,7 +1249,7 @@ var
   procedure HandleBraceSkip;
   var
     pos : TBufferCoord;
-    temp : AnsiString;
+    temp : String;
   begin
     if GetCurrentChar<> '}' then
       Exit;
@@ -1274,7 +1274,7 @@ var
   procedure HandleSingleQuoteCompletion;
   var
     status:TQuoteStates;
-    ch: AnsiChar;
+    ch: Char;
   begin
     status := GetQuoteState;
     ch := GetCurrentChar;
@@ -1295,7 +1295,7 @@ var
   procedure HandleDoubleQuoteCompletion;
   var
     status:TQuoteStates;
-    ch: AnsiChar;
+    ch: Char;
   begin
     status := GetQuoteState;
     ch := GetCurrentChar;
@@ -1446,7 +1446,7 @@ procedure TEditor.EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftSta
 var
   p: TBufferCoord;
   DeletedChar, NextChar: Char;
-  S: AnsiString;
+  S: String;
   Reason: THandPointReason;
 
   procedure UndoSymbolCompletion;
@@ -1591,7 +1591,7 @@ procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
   M: TMemoryStream;
-  s,word: AnsiString;
+  s,word: String;
   attr: TSynHighlighterAttributes;
 begin
   fCompletionTimer.Enabled := False;
@@ -1651,10 +1651,10 @@ begin
   FreeAndNil(fFunctionTipTimer);
 end;
 
-function TEditor.GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+function TEditor.GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): String;
 var
   WordBegin, WordEnd, ParamBegin, ParamEnd, len: integer;
-  s: AnsiString;
+  s: String;
 begin
   result := '';
   if (p.Line >= 1) and (p.Line <= fText.Lines.Count) then begin
@@ -1736,7 +1736,7 @@ end;
 procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
   Statement: PStatement;
-  FuncAddOn: AnsiString;
+  FuncAddOn: String;
   P: TBufferCoord;
   idx: integer;
   usageCount:integer;
@@ -1832,7 +1832,7 @@ end;
 
 procedure TEditor.EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
-  s: AnsiString;
+  s: String;
   p: TBufferCoord;
   st: PStatement;
   M: TMemoryStream;
@@ -1841,7 +1841,7 @@ var
 
   procedure ShowFileHint;
   var
-    FileName: AnsiString;
+    FileName: String;
   begin
     FileName := MainForm.CppParser.GetHeaderFileName(fFileName, s);
     if (FileName <> '') and FileExists(FileName) then
@@ -1999,7 +1999,7 @@ end;
 procedure TEditor.EditorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   p: TDisplayCoord;
-  line, FileName: AnsiString;
+  line, FileName: String;
   e: TEditor;
 begin
   // if ctrl+clicked
@@ -2034,7 +2034,7 @@ var
   HighlightCharPos: TBufferCoord;
   ComplementCharPos: TBufferCoord;
   Pix: TPoint;
-  S: AnsiString;
+  S: String;
   Attri: TSynHighlighterAttributes;
   LineLength: integer;
 
@@ -2131,7 +2131,7 @@ end;
 
 function TEditor.HandpointAllowed(var MousePos: TBufferCoord; ShiftState: TShiftState): THandPointReason;
 var
-  s: AnsiString;
+  s: String;
   HLAttr: TSynHighlighterAttributes;
 begin
   Result := hprNone;
@@ -2203,7 +2203,7 @@ end;
 function TEditor.SaveAs: boolean;
 var
   UnitIndex: integer;
-  SaveFileName: AnsiString;
+  SaveFileName: String;
 begin
   Result := True;
   with TSaveDialog.Create(nil) do try

@@ -47,9 +47,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnResetCurrentClick(Sender: TObject);
   private
-    fReplaceHint: AnsiString;
-    fResetAllConfirm: AnsiString;
-    fResetCurrentConfirm: AnsiString;
+    fReplaceHint: String;
+    fResetAllConfirm: String;
+    fResetCurrentConfirm: String;
     function GetShortCut(Index: integer): PShortCutItem;
   public
     procedure BeginUpdate;
@@ -59,7 +59,7 @@ type
     function Count: integer;
     property ShortCuts[Index: integer]: PShortCutItem read GetShortCut;
     procedure LoadText(const WindowCaption, Column1, Column2, Tip, OK, Cancel, ResetAll, ResetCurrent, ReplaceHint,
-      ResetAllConfirm, ResetCurrentConfirm: AnsiString);
+      ResetAllConfirm, ResetCurrentConfirm: String);
   end;
 
 var
@@ -73,7 +73,7 @@ uses
 {$R *.dfm}
 
 procedure TfrmShortcutsEditor.LoadText(const WindowCaption, Column1, Column2, Tip, OK, Cancel, ResetAll, ResetCurrent,
-  ReplaceHint, ResetAllConfirm, ResetCurrentConfirm: AnsiString);
+  ReplaceHint, ResetAllConfirm, ResetCurrentConfirm: String);
 begin
   Caption := WindowCaption;
   lvShortcuts.Columns[0].Caption := Column1;

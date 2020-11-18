@@ -44,31 +44,17 @@ unit SynEditMiscProcs;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Types,
-  kTextDrawer,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
   Classes;
 
 type
   PIntArray = ^TIntArray;
   TIntArray = array[0..MaxListSize - 1] of integer;
 
-{$IFNDEF SYN_COMPILER_4_UP}
-function Max(x, y: integer): integer;
-function Min(x, y: integer): integer;
-{$ENDIF}
 
 function MinMax(x, mi, ma: integer): integer;
 procedure SwapInt(var l, r: integer);
@@ -84,21 +70,21 @@ procedure InternalFillRect(dc: HDC; const rcPaint: TRect);
 // Converting tabs to spaces: To use the function several times it's better
 // to use a function pointer that is set to the fastest conversion function.
 type
-  TConvertTabsProc = function(const Line: AnsiString;
-    TabWidth: integer): AnsiString;
+  TConvertTabsProc = function(const Line: String;
+    TabWidth: integer): String;
 
 function GetBestConvertTabsProc(TabWidth: integer): TConvertTabsProc;
 // This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabs(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs(const Line: String; TabWidth: integer): String;
 
 type
-  TConvertTabsProcEx = function(const Line: AnsiString; TabWidth: integer;
-    var HasTabs: boolean): AnsiString;
+  TConvertTabsProcEx = function(const Line: String; TabWidth: integer;
+    var HasTabs: boolean): String;
 
 function GetBestConvertTabsProcEx(TabWidth: integer): TConvertTabsProcEx;
 // This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabsEx(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabsEx(const Line: String; TabWidth: integer;
+  var HasTabs: boolean): String;
 
 function GetExpandedLength(const aStr: string; aTabWidth: integer): integer;
 
@@ -120,23 +106,6 @@ type
     stWideNumAlpha, stWideSymbol, stWideKatakana, stHiragana, stIdeograph,
     stControl, stKashida);
 
-{$IFNDEF SYN_COMPILER_4_UP}
-const
-  C3_NONSPACING = 1; { nonspacing character }
-  C3_DIACRITIC = 2; { diacritic mark }
-  C3_VOWELMARK = 4; { vowel mark }
-  C3_SYMBOL = 8; { symbols }
-  C3_KATAKANA = $0010; { katakana character }
-  C3_HIRAGANA = $0020; { hiragana character }
-  C3_HALFWIDTH = $0040; { half width character }
-  C3_FULLWIDTH = $0080; { full width character }
-  C3_IDEOGRAPH = $0100; { ideographic character }
-  C3_KASHIDA = $0200; { Arabic kashida character }
-  C3_LEXICAL = $0400; { lexical character }
-  C3_ALPHA = $8000; { any linguistic char (C1_ALPHA) }
-  C3_NOTAPPLICABLE = 0; { ctype 3 is not applicable }
-{$ENDIF}
-
 // search for first multibyte char in Line, starting at index Start
 function StrScanForMultiByteChar(const Line: string; Start: Integer): Integer;
 // the same, but searching backwards
@@ -154,32 +123,6 @@ function EncodeString(s: string): string;
 // Decodes string, encoded with EncodeString.
 function DecodeString(s: string): string;
 
-{$IFNDEF SYN_COMPILER_5_UP}
-procedure FreeAndNil(var Obj);
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_3_UP}
-procedure Assert(Expr: Boolean);  { stub for Delphi 2 }
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: string): Integer;
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_4_UP}
-type
-  TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
-
-function StringReplace(const S, OldPattern, NewPattern: string;
-  Flags: TReplaceFlags): string;
-{$ENDIF}
-
-{$IFDEF SYN_CLX}
-function GetRValue(RGBValue: TColor): byte;
-function GetGValue(RGBValue: TColor): byte;
-function GetBValue(RGBValue: TColor): byte;
-function RGB(r, g, b: Byte): Cardinal;
-{$ENDIF}
 
 type
   THighlighterAttriProc = function (Highlighter: TSynCustomHighlighter;
@@ -205,25 +148,10 @@ implementation
 
 uses
   SysUtils,
-  {$IFDEF SYN_CLX}
-  QSynHighlighterMulti;
-  {$ELSE}
   SynHighlighterMulti;
-  {$ENDIF}
 
 {***}
 
-{$IFNDEF SYN_COMPILER_4_UP}
-function Max(x, y: integer): integer;
-begin
-  if x > y then Result := x else Result := y;
-end;
-
-function Min(x, y: integer): integer;
-begin
-  if x < y then Result := x else Result := y;
-end;
-{$ENDIF}
 
 function MinMax(x, mi, ma: integer): integer;
 begin
@@ -297,8 +225,8 @@ begin
     Result := FALSE;
 end;
 
-function ConvertTabs1Ex(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabs1Ex(const Line: String; TabWidth: integer;
+  var HasTabs: boolean): String;
 var
   pDest: PChar;
   nBeforeTab: integer;
@@ -317,15 +245,15 @@ begin
     HasTabs := FALSE;
 end;
 
-function ConvertTabs1(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs1(const Line: String; TabWidth: integer): String;
 var
   HasTabs: boolean;
 begin
   Result := ConvertTabs1Ex(Line, TabWidth, HasTabs);
 end;
 
-function ConvertTabs2nEx(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabs2nEx(const Line: String; TabWidth: integer;
+  var HasTabs: boolean): String;
 var
   i, DestLen, TabCount, TabMask: integer;
   pSrc, pDest: PChar;
@@ -384,15 +312,15 @@ begin
     HasTabs := FALSE;
 end;
 
-function ConvertTabs2n(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs2n(const Line: String; TabWidth: integer): String;
 var
   HasTabs: boolean;
 begin
   Result := ConvertTabs2nEx(Line, TabWidth, HasTabs);
 end;
 
-function ConvertTabsEx(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabsEx(const Line: String; TabWidth: integer;
+  var HasTabs: boolean): String;
 var
   i, DestLen, TabCount: integer;
   pSrc, pDest: PChar;
@@ -447,7 +375,7 @@ begin
     HasTabs := FALSE;
 end;
 
-function ConvertTabs(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs(const Line: String; TabWidth: integer): String;
 var
   HasTabs: boolean;
 begin
@@ -761,124 +689,9 @@ begin
 end; { DecodeString }
 {$IFDEF RestoreRangeChecking}{$R+}{$ENDIF}
 
-{$IFNDEF SYN_COMPILER_5_UP}
-procedure FreeAndNil(var Obj);
-var
-  P: TObject;
-begin
-  P := TObject(Obj);
-  TObject(Obj) := nil;
-  P.Free;
-end;
-{$ENDIF}
 
-{$IFNDEF SYN_COMPILER_3_UP}
-procedure Assert(Expr: Boolean);  { stub for Delphi 2 }
-begin
-end;
-{$ENDIF}
 
-{$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: string): Integer;
-var
-  P: PChar;
-begin
-  Result := Length(S);
-  P := PChar(Delimiters);
-  while Result > 0 do
-  begin
-    if (S[Result] <> #0) and (StrScan(P, S[Result]) <> nil) then
-{$IFDEF SYN_MBCSSUPPORT}
-      if (ByteType(S, Result) = mbTrailByte) then
-        Dec(Result)
-      else
-{$ENDIF}
-        Exit;
-{$IFDEF SYN_KYLIX}
-    begin
-      if (ByteType(S, Result) <> mbTrailByte) then
-        Exit;
-      Dec(Result);
-      while ByteType(S, Result) = mbTrailByte do
-        Dec(Result);
-    end;
-{$ENDIF}
-    Dec(Result);
-  end;
-end;
-{$ENDIF}
 
-{$IFNDEF SYN_COMPILER_4_UP}
-function StringReplace(const S, OldPattern, NewPattern: string;
-  Flags: TReplaceFlags): string;
-var
-  SearchStr, Patt, NewStr: string;
-  Offset: Integer;
-begin
-  if rfIgnoreCase in Flags then
-  begin
-    SearchStr := AnsiUpperCase(S);
-    Patt := AnsiUpperCase(OldPattern);
-  end else
-  begin
-    SearchStr := S;
-    Patt := OldPattern;
-  end;
-  NewStr := S;
-  Result := '';
-  while SearchStr <> '' do
-  begin
-    {$IFDEF SYN_COMPILER_3_UP}
-    Offset := AnsiPos(Patt, SearchStr);
-    {$ELSE}
-    Offset := Pos(Patt, SearchStr);     // Pos does not support MBCS
-    {$ENDIF}
-    if Offset = 0 then
-    begin
-      Result := Result + NewStr;
-      Break;
-    end;
-    Result := Result + Copy(NewStr, 1, Offset - 1) + NewPattern;
-    NewStr := Copy(NewStr, Offset + Length(OldPattern), MaxInt);
-    if not (rfReplaceAll in Flags) then
-    begin
-      Result := Result + NewStr;
-      Break;
-    end;
-    SearchStr := Copy(SearchStr, Offset + Length(Patt), MaxInt);
-  end;
-end;
-{$ENDIF}
-
-{$IFDEF SYN_CLX}
-type
-  TColorRec = packed record
-    Blue: Byte;
-    Green: Byte;
-    Red: Byte;
-    Unused: Byte;
-  end;
-
-function GetRValue(RGBValue: TColor): byte;
-begin
-  Result := TColorRec(RGBValue).Red;
-end;
-
-function GetGValue(RGBValue: TColor): byte;
-begin
-  Result := TColorRec(RGBValue).Green;
-end;
-
-function GetBValue(RGBValue: TColor): byte;
-begin
-  Result := TColorRec(RGBValue).Blue;
-end;
-
-function RGB(r, g, b: Byte): Cardinal;
-begin
-  Result := (r or (g shl 8) or (b shl 16));
-end;
-{$ENDIF}
 
 {$IFDEF SYN_MBCSSUPPORT}
 function IsStringType(Value: Word): TStringType;

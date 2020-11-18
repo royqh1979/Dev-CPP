@@ -103,7 +103,7 @@ end;
 procedure TLangForm.UpdateLangList(List: TStrings);
 var
   I, sel: integer;
-  favorLang: ansistring;
+  favorLang: String;
 begin
   lbLanguages.Items.BeginUpdate;
   try
@@ -121,7 +121,7 @@ end;
 
 procedure TLangForm.HandleLangPanel;
 var
-  SelectedLang: AnsiString;
+  SelectedLang: String;
 begin
   OkBtn.Tag := 1;
   LangPanel.Visible := false;

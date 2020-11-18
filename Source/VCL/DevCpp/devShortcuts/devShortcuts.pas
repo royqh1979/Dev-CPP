@@ -33,8 +33,8 @@ type
   TShortCutItem = record
     Default: TShortCut;
     Temporary: TShortCut; // we can't use UI strings to store temp shortcuts (not one to one), so use this instead
-    IniEntry: AnsiString; // name in ini file, use untranslated MenuItem.Caption
-    ListEntry: AnsiString; // name in editor form
+    IniEntry: String; // name in ini file, use untranslated MenuItem.Caption
+    ListEntry: String; // name in editor form
     MenuItem: TMenuItem; // apply Current to this
     Action: TAction; // OR this
   end;
@@ -45,13 +45,13 @@ type
     fOwner: TComponent;
     fFilename: TFileName;
     fShortcuts: TList;
-    function GetItemDescription(Item: TMenuItem): AnsiString;
+    function GetItemDescription(Item: TMenuItem): String;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Load(List: TActionList);
     procedure Edit(const WindowCaption, Column1, Column2, Tip, OK, Cancel, ResetAll, ResetCurrent, ReplaceHint,
-      ResetAllConfirm, ResetCurrentConfirm, Button: AnsiString);
+      ResetAllConfirm, ResetCurrentConfirm, Button: String);
     procedure Save;
   published
     property Filename: TFilename read fFilename write fFilename;
@@ -95,7 +95,7 @@ begin
   inherited;
 end;
 
-function TdevShortcuts.GetItemDescription(Item: TMenuItem): AnsiString;
+function TdevShortcuts.GetItemDescription(Item: TMenuItem): String;
 var
   ParentItem: TMenuItem;
 begin
@@ -116,7 +116,7 @@ procedure TdevShortcuts.Load(List: TActionList);
 var
   I, intvalue,idx: integer;
   Fini: TIniFile;
-  value: AnsiString;
+  value: String;
   ShortCut: TShortCut;
   item: PShortcutItem;
   MenuItem: TMenuItem;
@@ -221,7 +221,7 @@ begin
 end;
 
 procedure TdevShortcuts.Edit(const WindowCaption, Column1, Column2, Tip, OK, Cancel, ResetAll, ResetCurrent,
-  ReplaceHint, ResetAllConfirm, ResetCurrentConfirm, Button: AnsiString);
+  ReplaceHint, ResetAllConfirm, ResetCurrentConfirm, Button: String);
 var
   I: integer;
   item: PShortcutItem;
@@ -260,7 +260,7 @@ procedure TdevShortcuts.Save;
 var
   I: integer;
   Fini: TIniFile;
-  entry, value: AnsiString;
+  entry, value: String;
   item: PShortcutItem;
 begin
   if fFileName = '' then

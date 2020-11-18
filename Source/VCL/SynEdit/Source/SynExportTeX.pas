@@ -136,10 +136,10 @@ function DotDecSepFormat(const Format: string; const Args: array of const): stri
 var
   OldDecimalSeparator: Char;
 begin
-  OldDecimalSeparator := DecimalSeparator;
-  DecimalSeparator := '.';
+  OldDecimalSeparator := FormatSettings.DecimalSeparator;
+  FormatSettings.DecimalSeparator := '.';
   Result := SysUtils.Format(Format, Args);
-  DecimalSeparator := OldDecimalSeparator;
+  FormatSettings.DecimalSeparator := OldDecimalSeparator;
 end;
 
 function ColorToTeX(AColor: TColor): string;

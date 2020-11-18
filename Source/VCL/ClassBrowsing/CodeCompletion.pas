@@ -57,25 +57,25 @@ type
     fCurrentStatement: PStatement;
     fIncludedFiles: TStringList;
     fUsings: TDevStringList;
-    fIsIncludedCacheFileName: AnsiString;
+    fIsIncludedCacheFileName: String;
     fIsIncludedCacheResult: boolean;
     fAddedStatements : TDevStringList;
     fPreparing: boolean;
-    fPhrase : AnsiString;
+    fPhrase : String;
     fSymbolUsage:TDevStringList;
     fRecordUsage: boolean;
-    procedure GetCompletionFor(FileName,Phrase: AnsiString);
-    procedure FilterList(const Member: AnsiString);
+    procedure GetCompletionFor(FileName,Phrase: String);
+    procedure FilterList(const Member: String);
     procedure SetPosition(Value: TPoint);
     procedure OnFormResize(Sender: TObject);
-    function IsIncluded(const FileName: AnsiString): boolean;
+    function IsIncluded(const FileName: String): boolean;
     function IsVisible: boolean;
     procedure AddChildren(ScopeStatement:PStatement);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure PrepareSearch(const Phrase, Filename: AnsiString);
-    function Search(const Phrase, Filename: AnsiString; AutoHideOnSingleResult:boolean):boolean;
+    procedure PrepareSearch(const Phrase, Filename: String);
+    function Search(const Phrase, Filename: String; AutoHideOnSingleResult:boolean):boolean;
     procedure Hide;
     procedure Show;
     function SelectedStatement: PStatement;
@@ -197,7 +197,7 @@ begin
   end;
 end;
 
-procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: AnsiString);
+procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: String);
 var
   scopeStatement : PStatement;
   ChildStatement,ClassTypeStatement,namespaceStatement:PStatement;
@@ -205,7 +205,7 @@ var
   Children : TList;
   I,t,k: integer;
   ScopeTypeStatement, Statement : PStatement;
-  ScopeName, namespaceName,typeName: AnsiString;
+  ScopeName, namespaceName,typeName: String;
   opType: TOperatorType;
   codeIn:PCodeIns;
   codeInStatement:PStatement;
@@ -438,7 +438,7 @@ begin
 end;
 
 
-procedure TCodeCompletion.FilterList(const Member: AnsiString);
+procedure TCodeCompletion.FilterList(const Member: String);
 var
   I,idx: integer;
   tmpList:TList;
@@ -547,7 +547,7 @@ begin
   fAddedStatements.Clear;
 end;
 
-procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
+procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: String);
 begin
   fPreparing:=True;
   fPhrase := Phrase;
@@ -561,10 +561,10 @@ begin
   fPreparing:=False;
 end;
 
-function TCodeCompletion.Search(const Phrase, Filename: AnsiString;AutoHideOnSingleResult:boolean):boolean;
+function TCodeCompletion.Search(const Phrase, Filename: String;AutoHideOnSingleResult:boolean):boolean;
 var
   I: integer;
-  symbol: ansistring;
+  symbol: String;
 begin
   Result:=False;
 
@@ -665,7 +665,7 @@ begin
   end;
 end;
 
-function TCodeCompletion.IsIncluded(const FileName: AnsiString): boolean;
+function TCodeCompletion.IsIncluded(const FileName: String): boolean;
 begin
   // Only do the slow check if the cache is invalid
   if not SameText(FileName, fIsIncludedCacheFileName) then begin

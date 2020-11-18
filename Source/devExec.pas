@@ -36,9 +36,9 @@ type
 
   TExecThread = class(TThread)
   private
-    fFile: AnsiString;
-    fPath: AnsiString;
-    fParams: AnsiString;
+    fFile: String;
+    fPath: String;
+    fParams: String;
     fTimeOut: Cardinal;
     fProcess: Cardinal;
     fVisible: boolean;
@@ -50,9 +50,9 @@ type
     RedirectInput : boolean;
     procedure Execute; override;
   published
-    property FileName: AnsiString read fFile write fFile;
-    property Path: AnsiString read fPath write fPath;
-    property Params: AnsiString read fParams write fParams;
+    property FileName: String read fFile write fFile;
+    property Path: String read fPath write fPath;
+    property Params: String read fParams write fParams;
     property TimeOut: Cardinal read fTimeOut write fTimeOut;
     property Visible: boolean read fVisible write fVisible;
     property Process: Cardinal read fProcess;
@@ -69,7 +69,7 @@ type
   public
     destructor Destroy; override;
     procedure Reset;
-    procedure ExecuteAndWatch(sFileName, sParams, sPath: AnsiString; bVisible: boolean;
+    procedure ExecuteAndWatch(sFileName, sParams, sPath: String; bVisible: boolean;
       bRedirectInput:boolean; InputFile: string; iTimeOut: Cardinal; OnTermEvent: TNotifyEvent);
   published
     property Running: boolean read fIsRunning;
@@ -118,7 +118,7 @@ begin
     sa.bInheritHandle := true;
 
     InputWrite := CreateNamedPipe(
-          pAnsiChar(Pipename),             // pipe name
+          pChar(Pipename),             // pipe name
           PIPE_ACCESS_OUTBOUND,       // read/write access
           PIPE_TYPE_MESSAGE or       // message type pipe
           PIPE_READMODE_MESSAGE or   // message-read mode
@@ -133,7 +133,7 @@ begin
       Exit;
     end;
     InputRead := CreateFile(
-         PAnsiChar(Pipename),   // pipe name
+         pChar(Pipename),   // pipe name
          GENERIC_READ,
          0,              // no sharing
          @sa,           // default security attributes
@@ -154,9 +154,9 @@ begin
     params := '1 '+fParams
   else
     params := '0 '+fParams;
-  if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + params), nil, nil, True,
+  if CreateProcess(nil, pChar('"' + fFile + '" ' + params), nil, nil, True,
     NORMAL_PRIORITY_CLASS , nil,
-    PAnsiChar(fPath), StartupInfo, ProcessInfo) then begin
+    pChar(fPath), StartupInfo, ProcessInfo) then begin
     fProcess := ProcessInfo.hProcess;
     SetEvent(StartupEvent);
     WaitForSingleObject(ProcessInfo.hProcess, fTimeOut);
@@ -194,7 +194,7 @@ begin
   inherited;
 end;
 
-procedure TdevExecutor.ExecuteAndWatch(sFileName, sParams, sPath: AnsiString;
+procedure TdevExecutor.ExecuteAndWatch(sFileName, sParams, sPath: String;
   bVisible: boolean; bRedirectInput:boolean; InputFile: string;
   iTimeOut: Cardinal; OnTermEvent: TNotifyEvent);
 begin
@@ -243,12 +243,12 @@ procedure TPipeInputThread.PipeInput;
 const
   BufSize = 4096;
 var
-  buffer: pAnsichar;
+  buffer: pChar;
   FileHandle : THandle;
   bytesRead: cardinal;
   bytesWritten: cardinal;
 begin
-  FileHandle := CreateFile(pAnsiChar(InputFile),GENERIC_READ, FILE_SHARE_READ,
+  FileHandle := CreateFile(pChar(InputFile),GENERIC_READ, FILE_SHARE_READ,
     nil, OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 
   if FileHandle = INVALID_HANDLE_VALUE then begin

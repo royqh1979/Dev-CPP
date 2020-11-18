@@ -114,15 +114,15 @@ end;
 
 procedure TAboutForm.URLLabelClick(Sender: TObject);
 var
-  S: AnsiString;
+  S: String;
 begin
   S := TLabel(Sender).Caption;
-  ShellExecute(GetDesktopWindow(), 'open', PAnsiChar(s), nil, nil, SW_SHOWNORMAL);
+  ShellExecute(GetDesktopWindow(), 'open', pChar(s), nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TAboutForm.FormCreate(Sender: TObject);
 var
-  datestring: AnsiString;
+  datestring: String;
 begin
   LoadText;
 
@@ -193,7 +193,7 @@ end;
 procedure TAboutForm.imgDonateClick(Sender: TObject);
 begin
   ShellExecute(GetDesktopWindow(), 'open',
-    PAnsiChar('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7FD675DNV8KKJ'), nil, nil,
+    pChar('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7FD675DNV8KKJ'), nil, nil,
     SW_SHOWNORMAL);
 end;
 

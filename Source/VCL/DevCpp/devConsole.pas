@@ -33,9 +33,9 @@ devMonitorThread, devMonitorTypes;
 type
   TDevConsole = class(TCustomMemo)
   private
-    fCurrentCommand : AnsiString;
+    fCurrentCommand : String;
     fInputEnabled : boolean;
-    fPrompt: AnsiString;
+    fPrompt: String;
     fCommandHistory: TStringList;
     fHistorySize: integer;
     fCurrentHistoryIndex: integer;
@@ -43,7 +43,7 @@ type
     function getNormalizedCaretPos():TPoint;
 
     procedure setInputEnabled(enabled:boolean);
-    procedure setCurrentCommand(command:AnsiString);
+    procedure setCurrentCommand(command:String);
   protected
     procedure KeyPress(var Key: Char); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
@@ -52,9 +52,9 @@ type
     destructor Destroy; override;
     procedure Update; override;
     procedure Clear; override; 
-    property CurrentCommand: AnsiString read fCurrentCommand write SetCurrentCommand;
+    property CurrentCommand: String read fCurrentCommand write SetCurrentCommand;
     property InputEnabled: boolean read fInputEnabled write SetInputEnabled;
-    property Prompt: AnsiString read fPrompt write fPrompt;
+    property Prompt: String read fPrompt write fPrompt;
     property HistorySize: integer read fHistorySize write fHistorySize;
   published
     property Align;
@@ -258,7 +258,7 @@ begin
   fInputEnabled:=enabled;
 end;
 
-procedure TDevConsole.setCurrentCommand(command:AnsiString);
+procedure TDevConsole.setCurrentCommand(command:String);
 begin
   fCurrentCommand := command;
   if not fInputEnabled then

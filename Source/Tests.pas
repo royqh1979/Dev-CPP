@@ -329,7 +329,7 @@ var
   I, J, FoldCount, LineCount, LineLength, CommentCount, DupeCount, IndentCount: Integer;
   e: TEditor;
 
-  procedure TypeText(const Text: AnsiString);
+  procedure TypeText(const Text: String);
   var
     I: Integer;
   begin

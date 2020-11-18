@@ -112,7 +112,7 @@ type
  REChar = WideChar;
  {$ELSE}
  PRegExprChar = PChar;
- RegExprString = AnsiString; //###0.952 was string
+ RegExprString = String; //###0.952 was string
  REChar = Char;
  {$ENDIF}
  TREOp = REChar; // internal p-code type //###0.933

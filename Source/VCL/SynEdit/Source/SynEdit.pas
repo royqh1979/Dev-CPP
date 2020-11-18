@@ -43,18 +43,6 @@ unit SynEdit;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-{$IFDEF SYN_LINUX}
-  Xlib,
-{$ENDIF}
-  Qt,
-  Types,
-  QControls,
-  QGraphics,
-  QForms,
-  QStdCtrls,
-  QExtCtrls,
-{$ELSE}
   Controls,
   Graphics,
   Forms,
@@ -62,24 +50,10 @@ uses
   ExtCtrls,
   Windows,
   Messages,
-{$IFDEF SYN_COMPILER_7}
   Themes,
-{$ENDIF}
-{$ENDIF}
 {$IFDEF SYN_MBCSSUPPORT}
   Imm,
 {$ENDIF}
-{$IFDEF SYN_CLX}
-  kTextDrawer,
-  QSynEditTypes,
-  QSynEditKeyConst,
-  QSynEditMiscProcs,
-  QSynEditMiscClasses,
-  QSynEditTextBuffer,
-  QSynEditKeyCmds,
-  QSynEditHighlighter,
-  QSynEditKbdHandler,
-{$ELSE}
   SynTextDrawer,
   SynEditTypes,
   SynEditKeyConst,
@@ -90,16 +64,11 @@ uses
   SynEditHighlighter,
   SynEditKbdHandler,
   SynEditCodeFolding,
-{$ENDIF}
   Math,
   SysUtils,
   Classes;
 
 const
-{$IFNDEF SYN_COMPILER_3_UP}
-  // not defined in all Delphi versions
-  WM_MOUSEWHEEL = $020A;
-{$ENDIF}
 
   // maximum scroll range
   MAX_SCROLL = 32767;
@@ -114,17 +83,10 @@ var
   SynEditClipboardFormat: UINT;
 
 type
-{$IFDEF SYN_CLX}
-  TSynBorderStyle = bsNone..bsSingle;
-  TBufferCoord = QSynEditTypes.TBufferCoord;
-  TDisplayCoord = QSynEditTypes.TDisplayCoord;
-  TSynEditMark = QSynEditMiscClasses.TSynEditMark;
-{$ELSE}
   TSynBorderStyle = TBorderStyle;
   TBufferCoord = SynEditTypes.TBufferCoord;
   TDisplayCoord = SynEditTypes.TDisplayCoord;
   TSynEditMark = SynEditMiscClasses.TSynEditMark;
-{$ENDIF}
 
   TSynReplaceAction = (raCancel, raSkip, raReplace, raReplaceAll);
 
@@ -295,15 +257,13 @@ type
     procedure WMImeNotify(var Msg: TMessage); message WM_IME_NOTIFY;
 {$ENDIF}
     procedure WMKillFocus(var Msg: TWMKillFocus); message WM_KILLFOCUS;
-    procedure WMSetCursor(var Msg: TWMSetCursor); message WM_SETCURSOR;
+//    procedure WMSetCursor(var Msg: TWMSetCursor); message WM_SETCURSOR;
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
     procedure WMSize(var Msg: TWMSize); message WM_SIZE;
     procedure WMUndo(var Msg: TMessage); message WM_UNDO;
     procedure WMVScroll(var Msg: TWMScroll); message WM_VSCROLL;
 {$ENDIF}
-{$IFNDEF SYN_COMPILER_6_UP}
-    procedure WMMouseWheel(var Msg: TMessage); message WM_MOUSEWHEEL;
-{$ENDIF}
+//    procedure WMMouseWheel(var Msg: TMessage); message WM_MOUSEWHEEL;
   private
     fAllFoldRanges: TSynEditFoldRanges;
     fCodeFolding: TSynCodeFolding;
@@ -423,7 +383,7 @@ type
     procedure ReScanForFoldRanges;
     procedure ReScan;
     procedure ScanForFoldRanges(TopFoldRanges: TSynEditFoldRanges; LinesToScan: TStrings);
-    function GetLineIndent(const Line: AnsiString): Integer;
+    function GetLineIndent(const Line: String): Integer;
     function GetPreviousLeftBracket(x:Integer; y: Integer): TBufferCoord;
     procedure SetUseCodeFolding(value: boolean);
     procedure BookMarkOptionsChanged(Sender: TObject);
@@ -525,23 +485,12 @@ type
     procedure WriteRemovedKeystrokes(Writer: TWriter);
     procedure ClearAreaList(areaList:TList);
   protected
-{$IFDEF SYN_COMPILER_6_UP}
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
-{$IFDEF SYN_CLX}const{$ENDIF}MousePos: TPoint): Boolean; override;
-{$ENDIF}
-{$IFDEF SYN_CLX}
-    procedure Resize; override;
-    function GetClientOrigin: TPoint; override;
-    function GetClientRect: TRect; override;
-    function WidgetFlags: integer; override;
-    function NeedKey(Key: Integer; Shift: TShiftState;
-      const KeyText: WideString): Boolean; override;
-{$ELSE}
+      MousePos: TPoint): Boolean; override;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure CreateWnd; override;
     procedure DestroyWnd; override;
     procedure InvalidateRect(const aRect: TRect; aErase: boolean); virtual;
-{$ENDIF}
     procedure DblClick; override;
     procedure DecPaintLock;
     procedure DefineProperties(Filer: TFiler); override;
@@ -653,13 +602,8 @@ type
     property AlwaysShowCaret: Boolean read FAlwaysShowCaret
       write SetAlwaysShowCaret;
     procedure UpdateCaret;
-{$IFDEF SYN_COMPILER_4_UP}
     procedure AddKey(Command: TSynEditorCommand; Key1: word; SS1: TShiftState;
       Key2: word = 0; SS2: TShiftState = []);
-{$ELSE}
-    procedure AddKey(Command: TSynEditorCommand; Key1: word; SS1: TShiftState;
-      Key2: word; SS2: TShiftState);
-{$ENDIF}
     function LeftSpaces(const Line: string): Integer;
     function LeftSpacesEx(const Line: string; WantTabs: Boolean): Integer;
     procedure BeginUndoBlock;
@@ -685,9 +629,7 @@ type
     function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): string;
     function GetMatchingBracket: TBufferCoord; virtual;
     function GetMatchingBracketEx(const APoint: TBufferCoord): TBufferCoord; virtual;
-{$IFDEF SYN_COMPILER_4_UP}
     function ExecuteAction(Action: TBasicAction): boolean; override;
-{$ENDIF}
     procedure ExecuteCommand(Command: TSynEditorCommand; AChar: char;
       Data: pointer); virtual;
     function GetBookMark(BookMark: integer; var X, Y: integer): boolean;
@@ -746,9 +688,7 @@ type
     procedure Undo;
     procedure UnlockUndo;
     procedure UnregisterCommandHandler(AHandlerProc: THookedCommandEvent);
-{$IFDEF SYN_COMPILER_4_UP}
     function UpdateAction(Action: TBasicAction): boolean; override;
-{$ENDIF}
     procedure SetFocus; override;
 
     procedure AddKeyUpHandler(aHandler: TKeyEvent);
@@ -927,17 +867,12 @@ type
   published
     // inherited properties
     property Align;
-{$IFDEF SYN_COMPILER_4_UP}
     property Anchors;
     property Constraints;
-{$ENDIF}
     property Color;
     property ActiveLineColor;
-{$IFDEF SYN_CLX}
-{$ELSE}
     property Ctl3D;
     property ParentCtl3D;
-{$ENDIF}
     property Enabled;
     property Font;
     property Height;
@@ -956,13 +891,8 @@ type
     property OnDblClick;
     property OnDragDrop;
     property OnDragOver;
-{$IFDEF SYN_CLX}
-{$ELSE}
-{$IFDEF SYN_COMPILER_4_UP}
     property OnEndDock;
     property OnStartDock;
-{$ENDIF}
-{$ENDIF}
     property OnEndDrag;
     property OnEnter;
     property OnExit;
@@ -1028,25 +958,11 @@ implementation
 {$R SynEdit.res}
 
 uses
-{$IFDEF SYN_CLX}
-  QStdActns,
-  QClipbrd,
-  QSynEditWordWrap,
-  QSynEditStrConst;
-{$ELSE}
-{$IFDEF SYN_COMPILER_4_UP}
   StdActns,
-{$ENDIF}
   Clipbrd,
   ShellAPI,
   SynEditWordWrap,
   SynEditStrConst;
-{$ENDIF}
-
-{$IFDEF SYN_CLX}
-const
-  FrameWidth = 2; { the border width when BoderStyle = bsSingle (until we support TWidgetStyle...)  }
-{$ENDIF}
 
 function TrimTrailingSpaces(const S: string): string;
 var
@@ -1309,12 +1225,7 @@ begin
   fRedoList.OnAddedUndo := UndoRedoAdded;
   fOrigRedoList := fRedoList;
 
-{$IFDEF SYN_COMPILER_4_UP}
-{$IFDEF SYN_CLX}
-{$ELSE}
   DoubleBuffered := false;
-{$ENDIF}
-{$ENDIF}
   fActiveLineColor := clNone;
   fSelectedColor := TSynSelectedColor.Create;
   fSelectedColor.OnChange := SelectedColorsChanged;
@@ -1327,15 +1238,7 @@ begin
   fGutter.OnChange := GutterChanged;
   fGutterWidth := fGutter.Width;
   fTextOffset := fGutterWidth + 2;
-{$IFDEF SYN_COMPILER_7_UP}
-{$IFNDEF SYN_CLX}
   ControlStyle := ControlStyle + [csOpaque, csSetCaption, csNeedsBorderPaint];
-{$ELSE}
-  ControlStyle := ControlStyle + [csOpaque, csSetCaption];
-{$ENDIF}
-{$ELSE}
-  ControlStyle := ControlStyle + [csOpaque, csSetCaption];
-{$ENDIF}
   Height := 150;
   Width := 200;
   Cursor := crIBeam;
@@ -1344,18 +1247,7 @@ begin
   fFontDummy.Name := 'Courier New';
   fFontDummy.Size := 10;
 {$ENDIF}
-{$IFDEF SYN_KYLIX}
-  fFontDummy.Name := 'adobe-courier';
-  if fFontDummy.Name = 'adobe-courier' then
-    fFontDummy.Size := 12
-  else begin
-    fFontDummy.Name := 'terminal';
-    fFontDummy.Size := 14;
-  end;
-{$ENDIF}
-{$IFDEF SYN_COMPILER_3_UP}
   fFontDummy.CharSet := DEFAULT_CHARSET;
-{$ENDIF}
   fTextDrawer := TheTextDrawer.Create([fsBold], fFontDummy);
   Font.Assign(fFontDummy);
   Font.OnChange := SynFontChanged;
@@ -3068,7 +2960,7 @@ var
   // Store the token chars with the attributes in the TokenAccu
   // record. This will paint any chars already stored if there is
   // a (visible) change in the attributes.
-  procedure AddHighlightToken(const Token: AnsiString;
+  procedure AddHighlightToken(const Token: String;
     CharsBefore, TokenLen: integer; p_Attri: TSynHighlighterAttributes);
   var
     bSpacesTest, bIsSpaces: boolean;
@@ -4536,7 +4428,7 @@ begin
         ScrollInfo.fMask := ScrollInfo.fMask or SIF_DISABLENOSCROLL;
       end;
 
-      if (fScrollBars in [ssBoth, ssHorizontal]) then begin
+      if (fScrollBars = TScrollStyle.ssBoth) or (fScrollBars = TScrollStyle.ssHorizontal) then begin
         if eoScrollPastEol in Options then
           nMaxScroll := MaxScrollWidth
         else
@@ -4683,10 +4575,8 @@ begin
 end;
 {$ENDIF SYN_CLX}
 
-{$IFDEF SYN_COMPILER_6_UP}
-
 function TCustomSynEdit.DoMouseWheel(Shift: TShiftState;
-  WheelDelta: Integer; {$IFDEF SYN_CLX}const{$ENDIF}MousePos: TPoint): Boolean;
+  WheelDelta: Integer; MousePos: TPoint): Boolean;
 const
   WHEEL_DIVISOR = 120; // Mouse Wheel standard
 var
@@ -4712,7 +4602,6 @@ begin
     OnScroll(Self, sbVertical);
   Result := True;
 end;
-{$ENDIF}
 
 {$IFDEF SYN_CLX}
 
@@ -4807,13 +4696,11 @@ end;
 
 procedure TCustomSynEdit.WMGetTextLength(var Msg: TWMGetTextLength);
 begin
-{$IFDEF SYN_COMPILER_4_UP}
   // Avoid (useless) temporary copy of WindowText while window is recreated
   // because of docking.
   if csDocking in ControlState then
     Msg.Result := 0
   else
-{$ENDIF}
     Msg.Result := Length(Text);
 end;
 
@@ -4968,12 +4855,7 @@ begin
               RowToLine(TopLine + Min(LinesInWindow, DisplayLineCount - TopLine))]);
           end;
 
-{$IFDEF SYN_COMPILER_3_UP}
           rc := ScrollHint.CalcHintRect(200, s, nil);
-{$ELSE}
-          rc := Rect(0, 0, ScrollHint.Canvas.TextWidth(s) + 6,
-            ScrollHint.Canvas.TextHeight(s) + 4);
-{$ENDIF}
           if eoScrollHintFollows in fOptions then begin
             ButtonH := GetSystemMetrics(SM_CYVSCROLL);
 
@@ -4993,12 +4875,6 @@ begin
 
           OffsetRect(rc, pt.x, pt.y);
           ScrollHint.ActivateHint(rc, s);
-{$IFDEF SYN_COMPILER_3}
-          SendMessage(ScrollHint.Handle, WM_NCPAINT, 1, 0);
-{$ENDIF}
-{$IFNDEF SYN_COMPILER_3_UP}
-          ScrollHint.Invalidate;
-{$ENDIF}
           ScrollHint.Update;
         end;
       end;
@@ -5859,10 +5735,8 @@ end;
 
 procedure TCustomSynEdit.RemoveLinesPointer;
 begin
-{$IFDEF SYN_COMPILER_5_UP}
   if Assigned(fChainedEditor) then
     RemoveFreeNotification(fChainedEditor);
-{$ENDIF}
   fChainedEditor := nil;
 
   UnHookTextBuffer;
@@ -6109,9 +5983,7 @@ begin
   if Value <> fHighlighter then begin
     if Assigned(fHighlighter) then begin
       fHighlighter.UnhookAttrChangeEvent(HighlighterAttrChanged);
-{$IFDEF SYN_COMPILER_5_UP}
       fHighlighter.RemoveFreeNotification(Self);
-{$ENDIF}
     end;
     if Assigned(Value) then begin
       Value.HookAttrChangeEvent(HighlighterAttrChanged);
@@ -6286,10 +6158,6 @@ function TCustomSynEdit.TranslateKeyCode(Code: word; Shift: TShiftState;
   var Data: pointer): TSynEditorCommand;
 var
   i: integer;
-{$IFNDEF SYN_COMPILER_3_UP}
-const
-  VK_ACCEPT = $30;
-{$ENDIF}
 begin
   i := KeyStrokes.FindKeycode2(fLastKey, fLastShiftState, Code, Shift);
   if i >= 0 then
@@ -6375,7 +6243,7 @@ var
   Len: Integer;
   Temp: string;
   Temp2: string;
-  Temp3: AnsiString;
+  Temp3: String;
   helper: string;
   TabBuffer: string;
   SpaceBuffer: string;
@@ -6396,9 +6264,7 @@ var
   Caret: TBufferCoord;
   CaretNew: TBufferCoord;
   i, j: integer;
-{$IFDEF SYN_MBCSSUPPORT}
   s: string;
-{$ENDIF}
   counter: Integer;
   InsDelta: integer;
   iUndoBegin, iUndoEnd: TBufferCoord;
@@ -6407,7 +6273,7 @@ var
   Attr: TSynHighlighterAttributes;
   StartPos: Integer;
   EndPos: Integer;
-  tempStr : AnsiString;
+  tempStr : String;
 begin
   IncPaintLock;
   try
@@ -7726,66 +7592,6 @@ begin
   fRedoList.Unlock;
 end;
 
-{$IFNDEF SYN_COMPILER_6_UP}
-
-procedure TCustomSynEdit.WMMouseWheel(var Msg: TMessage);
-var
-  nDelta: integer;
-  nWheelClicks: integer;
-{$IFNDEF SYN_COMPILER_4_UP}
-const
-  WHEEL_DELTA = 120;
-  WHEEL_PAGESCROLL = MAXDWORD;
-  SPI_GETWHEELSCROLLLINES = 104;
-{$ENDIF}
-begin
-  if csDesigning in ComponentState then
-    exit;
-
-  // Desperately trying to fix the unwanted forwarding of the notification...
-  Msg.Result := 1;
-
-{$IFDEF SYN_COMPILER_4_UP}
-  // In some occasions Windows will not properly initialize mouse wheel, but
-  // will still keep sending WM_MOUSEWHEEL message. Calling inherited procedure
-  // will re-initialize related properties (i.e. Mouse.WheelScrollLines)
-  inherited;
-{$ENDIF}
-
-  if GetKeyState(VK_MENU) >= 0 then {// use alt for fast scrolling, control for font resizing} begin
-{$IFDEF SYN_COMPILER_4_UP}
-    nDelta := Mouse.WheelScrollLines
-{$ELSE}
-    if not SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, @nDelta, 0) then
-      nDelta := LinesToScroll;
-{$ENDIF}
-  end else
-    nDelta := LinesInWindow shr Ord(eoHalfPageScroll in fOptions);
-
-  Inc(fMouseWheelAccumulator, SmallInt(Msg.wParamHi));
-  nWheelClicks := fMouseWheelAccumulator div WHEEL_DELTA;
-  fMouseWheelAccumulator := fMouseWheelAccumulator mod WHEEL_DELTA;
-  if (nDelta = integer(WHEEL_PAGESCROLL)) or (nDelta > LinesInWindow) then
-    nDelta := LinesInWindow;
-  TopLine := TopLine - (nDelta * nWheelClicks);
-  Update;
-  if Assigned(OnScroll) then
-    OnScroll(Self, sbVertical);
-end;
-{$ENDIF}
-
-{$IFNDEF SYN_CLX}
-
-procedure TCustomSynEdit.WMSetCursor(var Msg: TWMSetCursor);
-begin
-  if (Msg.HitTest = HTCLIENT) and (Msg.CursorWnd = Handle) and
-    not (csDesigning in ComponentState) then begin
-    UpdateMouseCursor;
-  end else
-    inherited;
-end;
-{$ENDIF}
-
 procedure TCustomSynEdit.SetTabWidth(Value: integer);
 begin
   Value := MinMax(Value, 1, 256);
@@ -8739,7 +8545,7 @@ procedure TCustomSynEdit.DoUncomment;
 var
   OrigBlockBegin, OrigBlockEnd, OrigCaret: TBufferCoord;
   EndLine, I, J: integer;
-  S: AnsiString;
+  S: String;
 begin
   if not ReadOnly then begin
     DoOnPaintTransient(ttBefore);
@@ -9110,7 +8916,6 @@ begin
   end;
 end;
 
-{$IFDEF SYN_COMPILER_4_UP}
 
 function TCustomSynEdit.ExecuteAction(Action: TBasicAction): boolean;
 begin
@@ -9122,17 +8927,12 @@ begin
       CopyToClipboard
     else if Action is TEditPaste then
       PasteFromClipboard
-{$IFDEF SYN_COMPILER_5_UP}
     else if Action is TEditDelete then
       ClearSelection
-{$IFDEF SYN_CLX}
-{$ELSE}
     else if Action is TEditUndo then
       Undo
-{$ENDIF}
     else if Action is TEditSelectAll then
       SelectAll;
-{$ENDIF}
   end else
     Result := inherited ExecuteAction(Action);
 end;
@@ -9146,22 +8946,16 @@ begin
         TEditAction(Action).Enabled := SelAvail
       else if Action is TEditPaste then
         TEditAction(Action).Enabled := CanPaste
-{$IFDEF SYN_COMPILER_5_UP}
       else if Action is TEditDelete then
         TEditAction(Action).Enabled := SelAvail
-{$IFDEF SYN_CLX}
-{$ELSE}
       else if Action is TEditUndo then
         TEditAction(Action).Enabled := CanUndo
-{$ENDIF}
       else if Action is TEditSelectAll then
         TEditAction(Action).Enabled := TRUE;
-{$ENDIF}
     end;
   end else
     Result := inherited UpdateAction(Action);
 end;
-{$ENDIF}
 
 procedure TCustomSynEdit.SetModified(Value: boolean);
 begin
@@ -10019,12 +9813,10 @@ end;
 
 procedure TCustomSynEdit.DefineProperties(Filer: TFiler);
 
-{$IFDEF SYN_COMPILER_6_UP}
   function CollectionsEqual(C1, C2: TCollection): boolean;
   begin
     Result := Classes.CollectionsEqual(C1, C2, nil, nil);
   end;
-{$ENDIF}
 
   function HasKeyData: boolean;
   var
@@ -10301,13 +10093,13 @@ begin
       Uncollapse(fAllFoldRanges[i]);
 end;
 
-function TCustomSynEdit.GetLineIndent(const Line: AnsiString): Integer;
+function TCustomSynEdit.GetLineIndent(const Line: String): Integer;
 var
-  P: PAnsiChar;
+  P: pChar;
 begin
   Result := 0;
 
-  P := PAnsiChar(Line);
+  P := pChar(Line);
   while P^ in [#9, #32] do begin
     if P^ = #9 then
       Inc(Result, TabWidth)
@@ -10370,9 +10162,9 @@ end;
 procedure TCustomSynEdit.ScanForFoldRanges(TopFoldRanges: TSynEditFoldRanges; LinesToScan: TStrings);
 var
   FoldIndex: integer;
-  token: AnsiString;
+  token: String;
   attr: TSynHighlighterAttributes;
-  CurLine: AnsiString;
+  CurLine: String;
   ParentFoldRanges: TSynEditFoldRanges;
 
   function LineHasChar(Line: integer; character: char): boolean; // faster than Pos!

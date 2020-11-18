@@ -1078,13 +1078,13 @@ var
 
   procedure GetSBCharRange;
   begin
-    while (pRun <> pTail) and (not (pRun^ in LeadBytes)) do
+    while (pRun <> pTail) and (not CharInSet(pRun^ , LeadBytes)) do
       Inc(pRun);
   end;
 
   procedure GetDBCharRange;
   begin
-    while (pRun <> pTail) and (pRun^ in LeadBytes) do
+    while (pRun <> pTail) and CharInSet(pRun^,LeadBytes) do
       Inc(pRun, 2);
   end;
 

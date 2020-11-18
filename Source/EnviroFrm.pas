@@ -116,7 +116,7 @@ uses
 
 procedure TEnviroForm.BrowseClick(Sender: TObject);
 var
-  s: AnsiString;
+  s: String;
 begin
   case TComponent(Sender).Tag of
     1: {// default dir browse} begin
@@ -154,7 +154,7 @@ end;
 procedure TEnviroForm.btnOkClick(Sender: TObject);
 var
   I: integer;
-  s: AnsiString;
+  s: String;
 begin
   with devData do begin
     DefCpp := cbDefCpp.Checked;
@@ -167,7 +167,7 @@ begin
     MRUMax := seMRUMax.Value;
     if not MultiLineTab then begin
       if cboTabsTop.ItemIndex in [2, 3] then begin
-        MessageBox(application.handle, PAnsiChar(Lang[ID_ENV_MULTILINETABERROR]), PAnsiChar(Lang[ID_ERROR]), MB_OK);
+        MessageBox(application.handle, pChar(Lang[ID_ENV_MULTILINETABERROR]), pChar(Lang[ID_ERROR]), MB_OK);
         cboTabsTop.ItemIndex := 0;
       end;
     end;
@@ -203,7 +203,7 @@ begin
       else
         Unassociate(I);
   except
-    MessageBox(application.handle, PAnsiChar(Lang[ID_ENV_UACERROR]), PAnsiChar(Lang[ID_ERROR]), MB_OK);
+    MessageBox(application.handle, pChar(Lang[ID_ENV_UACERROR]), pChar(Lang[ID_ERROR]), MB_OK);
     devData.CheckAssocs := false; // don't bother the user again on next startup
   end;
 

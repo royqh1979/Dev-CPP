@@ -26,9 +26,9 @@ uses
   devRun, version, project, utils, ProjectTypes, Classes, Graphics, devCFG;
 
 type
-  TLogEntryEvent = procedure(const Msg: AnsiString) of object;
-  TOutputEvent = procedure(const _Line, _Col, _Unit, _Message: AnsiString) of object;
-  TResOutputEvent = procedure(const _Line, _Col, _Unit, _Message: AnsiString) of object;
+  TLogEntryEvent = procedure(const Msg: String) of object;
+  TOutputEvent = procedure(const _Line, _Col, _Unit, _Message: String) of object;
+  TResOutputEvent = procedure(const _Line, _Col, _Unit, _Message: String) of object;
   TCompEndEvent = procedure of object;
   TCompSuccessEvent = procedure of object;
   TRunEndEvent = procedure of object;
@@ -44,12 +44,12 @@ type
     fOnCompSuccess: TCompSuccessEvent;
     fOnRunEnd: TRunEndEvent;
     fProject: TProject;
-    fSourceFile: AnsiString;
+    fSourceFile: String;
     fUseRunParams: boolean;
-    fRunParams: AnsiString;
+    fRunParams: String;
     fUseInputFile: boolean;
-    fInputFile: AnsiString;
-    fMakefile: AnsiString;
+    fInputFile: String;
+    fMakefile: String;
     fTarget: TTarget;
     fErrCount: integer;
     fCheckSyntax: Boolean;
@@ -58,14 +58,14 @@ type
     fShowOutputInfo: boolean;
     fCompilerSet: TdevCompilerSet;
     fUseUTF8: boolean;
-    procedure DoLogEntry(const msg: AnsiString);
-    procedure DoOutput(const s1, s2, s3, s4: AnsiString);
-    procedure DoResOutput(const s1, s2, s3, s4: AnsiString);
-    function GetMakeFile: AnsiString;
+    procedure DoLogEntry(const msg: String);
+    procedure DoOutput(const s1, s2, s3, s4: String);
+    procedure DoResOutput(const s1, s2, s3, s4: String);
+    function GetMakeFile: String;
     function GetCompiling: Boolean;
     procedure RunTerminate(Sender: TObject);
     procedure InitProgressForm;
-    procedure ProcessProgressForm(const Line: AnsiString);
+    procedure ProcessProgressForm(const Line: String);
     procedure EndProgressForm;
   public
     procedure BuildMakeFile;
@@ -82,25 +82,25 @@ type
     property OnCompEnd: TCompEndEvent read fOnCompEnd write fOnCompEnd;
     property OnCompSuccess: TCompSuccessEvent read fOnCompSuccess write fOnCompSuccess;
     property OnRunEnd: TRunEndEvent read fOnRunEnd write fOnRunEnd;
-    property SourceFile: AnsiString read fSourceFile write fSourceFile;
+    property SourceFile: String read fSourceFile write fSourceFile;
     property CompilerSet: TdevCompilerSet read fCompilerSet write fCompilerSet;
-    property RunParams: AnsiString read fRunParams write fRunParams; // only for nonproject compilations
+    property RunParams: String read fRunParams write fRunParams; // only for nonproject compilations
     property UseRunParams: boolean read fUseRunParams write fUseRunParams;
     property UseInputFile: boolean read fUseInputFile write fUseInputFile;
-    property InputFile: AnsiString read fInputFile write fInputFile;
-    property MakeFile: AnsiString read GetMakeFile;
+    property InputFile: String read fInputFile write fInputFile;
+    property MakeFile: String read GetMakeFile;
     property Target: TTarget read fTarget write fTarget;
     property WarningCount: integer read fWarnCount;
     property ErrorCount: integer read fErrCount;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     procedure AbortThread;
   protected
-    fCompileParams: AnsiString;
-    fCppCompileParams: AnsiString;
-    fLibrariesParams: AnsiString;
-    fIncludesParams: AnsiString;
-    fCppIncludesParams: AnsiString;
-    fBinDirs: AnsiString;
+    fCompileParams: String;
+    fCppCompileParams: String;
+    fLibrariesParams: String;
+    fIncludesParams: String;
+    fCppIncludesParams: String;
+    fBinDirs: String;
     fDevRun: TDevRun;
     fAbortThread: boolean;
     procedure CreateStandardMakeFile; // executable creation
@@ -109,11 +109,11 @@ type
     procedure GetCompileParams;
     procedure GetLibrariesParams;
     procedure GetIncludesParams;
-    procedure LaunchThread(const s, dir: AnsiString);
+    procedure LaunchThread(const s, dir: String);
     procedure ThreadCheckAbort(var AbortThread: boolean);
     procedure OnCompilationTerminated(Sender: TObject);
-    procedure OnLineOutput(Sender: TObject; const Line: AnsiString);
-    procedure ProcessOutput(const line: AnsiString);
+    procedure OnLineOutput(Sender: TObject; const Line: String);
+    procedure ProcessOutput(const line: String);
     procedure NewMakeFile(var F: TextFile); // create a fits-all makefile
     procedure WriteMakeHeader(var F: TextFile); // append commented header
     procedure WriteMakeDefines(var F: TextFile); // append definitions
@@ -128,25 +128,25 @@ implementation
 uses
   MultiLangSupport, Macros, devExec, main, StrUtils;
 
-procedure TCompiler.DoLogEntry(const msg: AnsiString);
+procedure TCompiler.DoLogEntry(const msg: String);
 begin
   if Assigned(fOnLogEntry) then
     fOnLogEntry(msg);
 end;
 
-procedure TCompiler.DoOutput(const s1, s2, s3, s4: AnsiString);
+procedure TCompiler.DoOutput(const s1, s2, s3, s4: String);
 begin
   if Assigned(fOnOutput) then
     fOnOutput(s1, s2, s3, s4);
 end;
 
-procedure TCompiler.DoResOutput(const s1, s2, s3, s4: AnsiString);
+procedure TCompiler.DoResOutput(const s1, s2, s3, s4: String);
 begin
   if Assigned(fOnResOutput) then
     fOnResOutput(s1, s2, s3, s4);
 end;
 
-function TCompiler.GetMakeFile: AnsiString;
+function TCompiler.GetMakeFile: String;
 begin
   if not FileExists(fMakeFile) then
     BuildMakeFile;
@@ -224,7 +224,7 @@ end;
 
 procedure TCompiler.WriteMakeDefines(var F: TextFile);
 var
-  Objects, ObjResFile, LinkObjects, ObjFile, RelativeName, OutputFileDir, LibOutputFile: AnsiString;
+  Objects, ObjResFile, LinkObjects, ObjFile, RelativeName, OutputFileDir, LibOutputFile: String;
   I: integer;
 begin
   // Get list of object files
@@ -348,10 +348,10 @@ resourcestring
   cSyntaxCmdLine = '%s "%s" %s';
 var
   i,j: integer;
-  FileName, ShortFileName, objStr,ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: AnsiString;
-  encodingStr: AnsiString;
+  FileName, ShortFileName, objStr,ObjFileName, BuildCmd, ResFiles, ResIncludes, ResFile, PrivResName, WindresArgs: String;
+  encodingStr: String;
   fileIncludes: TStringList;
-  headerName: AnsiString;
+  headerName: String;
 begin
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
@@ -655,9 +655,9 @@ resourcestring
   // make, makefile
   cMakeLine = '%s -f "%s" all';
 var
-  cmdline: AnsiString;
-  //s: AnsiString;
-  compilerName: AnsiString;
+  cmdline: String;
+  //s: String;
+  compilerName: String;
 begin
   if fCompilerSet.BinDir.Count < 1 then begin
     LogError('Compiler.pas TCompiler.Compile:', 'Active compiler set''s bin directory is not set!');
@@ -805,8 +805,8 @@ end;
 
 procedure TCompiler.Run;
 var
-  FileToRun: AnsiString;
-  Parameters: AnsiString;
+  FileToRun: String;
+  Parameters: String;
 begin
   case fTarget of
     ctNone:
@@ -903,8 +903,8 @@ const
   cCleanLine = '%s clean -f "%s"';
   cmsg = 'make clean';
 var
-  cmdLine: AnsiString;
-  FileName: AnsiString;
+  cmdLine: String;
+  FileName: String;
 begin
   case fTarget of
     ctFile: begin
@@ -951,7 +951,7 @@ begin
         if not FileExists(fMakefile) then begin
           DoLogEntry(Lang[ID_ERR_NOMAKEFILE]);
           DoLogEntry(Lang[ID_ERR_CLEANFAILED]);
-          MessageBox(MainForm.Handle, PAnsiChar(Lang[ID_ERR_NOMAKEFILE]), PAnsiChar(Lang[ID_ERROR]), MB_OK or
+          MessageBox(MainForm.Handle, pChar(Lang[ID_ERR_NOMAKEFILE]), pChar(Lang[ID_ERROR]), MB_OK or
             MB_ICONERROR);
           Exit;
         end;
@@ -975,7 +975,7 @@ procedure TCompiler.RebuildAll; // TODO: unite with TCompiler.Clean?
 const
   cCleanLine = '%s -f "%s" clean all';
 var
-  cmdLine: AnsiString;
+  cmdLine: String;
 begin
   case Target of
     ctFile: begin
@@ -995,7 +995,7 @@ begin
         if not FileExists(fMakefile) then begin
           DoLogEntry(Lang[ID_ERR_NOMAKEFILE]);
           DoLogEntry(Lang[ID_ERR_CLEANFAILED]);
-          MessageBox(MainForm.Handle, PAnsiChar(Lang[ID_ERR_NOMAKEFILE]), PAnsiChar(Lang[ID_ERROR]), MB_OK or
+          MessageBox(MainForm.Handle, pChar(Lang[ID_ERR_NOMAKEFILE]), pChar(Lang[ID_ERROR]), MB_OK or
             MB_ICONERROR);
           Exit;
         end;
@@ -1015,7 +1015,7 @@ begin
   end;
 end;
 
-procedure TCompiler.LaunchThread(const s, dir: AnsiString);
+procedure TCompiler.LaunchThread(const s, dir: String);
 begin
   if Assigned(fDevRun) then
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0)
@@ -1060,7 +1060,7 @@ begin
     OnCompSuccess;
 end;
 
-procedure TCompiler.OnLineOutput(Sender: TObject; const Line: AnsiString);
+procedure TCompiler.OnLineOutput(Sender: TObject; const Line: String);
 var
   List: TStringList;
   I: integer;
@@ -1076,9 +1076,9 @@ begin
   List.Free;
 end;
 
-procedure TCompiler.ProcessOutput(const line: AnsiString);
+procedure TCompiler.ProcessOutput(const line: String);
 var
-  OLine, OCol, OFile, OMsg, S: AnsiString;
+  OLine, OCol, OFile, OMsg, S: String;
   delim: integer;
 
   procedure GetFileName; // obtain delimiter AFTER (full) filename
@@ -1319,9 +1319,9 @@ begin
   fShowOutputInfo := not fCheckSyntax;
 end;
 
-procedure TCompiler.ProcessProgressForm(const Line: AnsiString);
+procedure TCompiler.ProcessProgressForm(const Line: String);
 var
-  filename: AnsiString;
+  filename: String;
   I: integer;
   Done: boolean;
 begin
@@ -1367,7 +1367,7 @@ end;
 procedure TCompiler.EndProgressForm;
 var
   CompileTime: Extended; // fp
-  FileName: AnsiString;
+  FileName: String;
 begin
   MainForm.pbCompilation.Position := 0;
 

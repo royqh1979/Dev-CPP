@@ -175,11 +175,7 @@ function TSynURIOpener.MouseInSynEdit: Boolean;
 var
   pt: TPoint;
 begin
-  {$IFDEF SYN_COMPILER_6_UP}
   pt := Mouse.CursorPos;
-  {$ELSE}
-  GetCursorPos(pt);
-  {$ENDIF}
   Result := PtInRect(FEditor.ClientRect, FEditor.ScreenToClient(pt))
 end;
 

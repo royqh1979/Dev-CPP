@@ -34,7 +34,7 @@ TTarWriter Usage
 - Choose a constructor
 - Make an instance of TTarWriter                   TW := TTarWriter.Create ('my.tar');
 - Add a file to the tar archive                    TW.AddFile ('foobar.txt');
-- Add a AnsiString as a file                           TW.AddString (SL.Text, 'joe.txt', Now);
+- Add a String as a file                           TW.AddString (SL.Text, 'joe.txt', Now);
 - Destroy TarWriter instance                       TW.Free;
 - Now your tar file is ready.
 
@@ -106,19 +106,19 @@ TYPE
   // --- Record for a Directory Entry
   //     Adjust the ClearDirRec procedure when this record changes!
   TTarDirRec  = RECORD
-                  Name        : AnsiString;            // File path and name
+                  Name        : String;            // File path and name
                   Size        : INT64;             // File size in Bytes
                   DateTime    : TDateTime;         // Last modification date and time
                   Permissions : TTarPermissions;   // Access permissions
                   FileType    : TFileType;         // Type of file
-                  LinkName    : AnsiString;            // Name of linked file (for ftLink, ftSymbolicLink)
+                  LinkName    : String;            // Name of linked file (for ftLink, ftSymbolicLink)
                   UID         : INTEGER;           // User ID
                   GID         : INTEGER;           // Group ID
-                  UserName    : AnsiString;            // User name
-                  GroupName   : AnsiString;            // Group name
+                  UserName    : String;            // User name
+                  GroupName   : String;            // Group name
                   ChecksumOK  : BOOLEAN;           // Checksum was OK
                   Mode        : TTarModes;         // Mode
-                  Magic       : AnsiString;            // Contents of the "Magic" field
+                  Magic       : String;            // Contents of the "Magic" field
                   MajorDevNo  : INTEGER;           // Major Device No. for ftCharacter and ftBlock
                   MinorDevNo  : INTEGER;           // Minor Device No. for ftCharacter and ftBlock
                   FilePos     : INT64;             // Position in TAR file
@@ -132,15 +132,15 @@ TYPE
                 PUBLIC
                   FStream     : TStream;   // Internal Stream
                   CONSTRUCTOR Create (Stream   : TStream);                                OVERLOAD;
-                  CONSTRUCTOR Create (Filename : AnsiString;
+                  CONSTRUCTOR Create (Filename : String;
                                       FileMode : WORD = fmOpenRead OR fmShareDenyWrite);  OVERLOAD;
                   DESTRUCTOR Destroy;                                       OVERRIDE;
                   PROCEDURE Reset;                                         // Reset File Pointer
                   FUNCTION  FindNext (VAR DirRec : TTarDirRec) : BOOLEAN;  // Reads next Directory Info Record. FALSE if EOF reached
                   PROCEDURE ReadFile (Buffer   : POINTER); OVERLOAD;       // Reads file data for last Directory Record
                   PROCEDURE ReadFile (Stream   : TStream); OVERLOAD;       // -;-
-                  PROCEDURE ReadFile (Filename : AnsiString);  OVERLOAD;       // -;-
-                  FUNCTION  ReadFile : AnsiString;           OVERLOAD;         // -;-
+                  PROCEDURE ReadFile (Filename : String);  OVERLOAD;       // -;-
+                  FUNCTION  ReadFile : String;           OVERLOAD;         // -;-
 
                   PROCEDURE GetFilePos (VAR Current, Size : INT64);        // Current File Position
                   PROCEDURE SetFilePos (NewPos : INT64);                   // Set new Current File Position
@@ -156,35 +156,35 @@ TYPE
                  FPermissions : TTarPermissions;   // Access permissions
                  FUID         : INTEGER;           // User ID
                  FGID         : INTEGER;           // Group ID
-                 FUserName    : AnsiString;            // User name
-                 FGroupName   : AnsiString;            // Group name
+                 FUserName    : String;            // User name
+                 FGroupName   : String;            // Group name
                  FMode        : TTarModes;         // Mode
-                 FMagic       : AnsiString;            // Contents of the "Magic" field
+                 FMagic       : String;            // Contents of the "Magic" field
                  CONSTRUCTOR CreateEmpty;
                PUBLIC
                  CONSTRUCTOR Create (TargetStream   : TStream);                            OVERLOAD;
-                 CONSTRUCTOR Create (TargetFilename : AnsiString; Mode : INTEGER = fmCreate);  OVERLOAD;
+                 CONSTRUCTOR Create (TargetFilename : String; Mode : INTEGER = fmCreate);  OVERLOAD;
                  DESTRUCTOR Destroy; OVERRIDE;                   // Writes End-Of-File Tag
-                 PROCEDURE AddFile   (Filename : AnsiString;  TarFilename : AnsiString = '');
-                 PROCEDURE AddStream (Stream   : TStream; TarFilename : AnsiString; FileDateGmt : TDateTime);
-                 PROCEDURE AddString (Contents : AnsiString;  TarFilename : AnsiString; FileDateGmt : TDateTime);
-                 PROCEDURE AddDir          (Dirname            : AnsiString; DateGmt : TDateTime; MaxDirSize : INT64 = 0);
-                 PROCEDURE AddSymbolicLink (Filename, Linkname : AnsiString; DateGmt : TDateTime);
-                 PROCEDURE AddLink         (Filename, Linkname : AnsiString; DateGmt : TDateTime);
-                 PROCEDURE AddVolumeHeader (VolumeId           : AnsiString; DateGmt : TDateTime);
+                 PROCEDURE AddFile   (Filename : String;  TarFilename : String = '');
+                 PROCEDURE AddStream (Stream   : TStream; TarFilename : String; FileDateGmt : TDateTime);
+                 PROCEDURE AddString (Contents : String;  TarFilename : String; FileDateGmt : TDateTime);
+                 PROCEDURE AddDir          (Dirname            : String; DateGmt : TDateTime; MaxDirSize : INT64 = 0);
+                 PROCEDURE AddSymbolicLink (Filename, Linkname : String; DateGmt : TDateTime);
+                 PROCEDURE AddLink         (Filename, Linkname : String; DateGmt : TDateTime);
+                 PROCEDURE AddVolumeHeader (VolumeId           : String; DateGmt : TDateTime);
                  PROCEDURE Finalize;
                  PROPERTY Permissions : TTarPermissions READ FPermissions WRITE FPermissions;   // Access permissions
                  PROPERTY UID         : INTEGER         READ FUID         WRITE FUID;           // User ID
                  PROPERTY GID         : INTEGER         READ FGID         WRITE FGID;           // Group ID
-                 PROPERTY UserName    : AnsiString          READ FUserName    WRITE FUserName;      // User name
-                 PROPERTY GroupName   : AnsiString          READ FGroupName   WRITE FGroupName;     // Group name
+                 PROPERTY UserName    : String          READ FUserName    WRITE FUserName;      // User name
+                 PROPERTY GroupName   : String          READ FGroupName   WRITE FGroupName;     // Group name
                  PROPERTY Mode        : TTarModes       READ FMode        WRITE FMode;          // Mode
-                 PROPERTY Magic       : AnsiString          READ FMagic       WRITE FMagic;         // Contents of the "Magic" field
+                 PROPERTY Magic       : String          READ FMagic       WRITE FMagic;         // Contents of the "Magic" field
                END;
 
 // --- Some useful constants
 CONST
-  FILETYPE_NAME : ARRAY [TFileType] OF AnsiString =
+  FILETYPE_NAME : ARRAY [TFileType] OF String =
                   ('Regular', 'Link', 'Symbolic Link', 'Char File', 'Block File',
                    'Directory', 'FIFO File', 'Contiguous', 'Dir Dump', 'Multivol', 'Volume Header');
 
@@ -196,9 +196,9 @@ CONST
   EXECUTE_PERMISSIONS = [tpExecuteByOwner, tpExecuteByGroup, tpExecuteByOther];
 
 
-FUNCTION  PermissionString      (Permissions : TTarPermissions) : AnsiString;
-FUNCTION  ConvertFilename       (Filename    : AnsiString)          : AnsiString;
-FUNCTION  FileTimeGMT           (FileName    : AnsiString)          : TDateTime;  OVERLOAD;
+FUNCTION  PermissionString      (Permissions : TTarPermissions) : String;
+FUNCTION  ConvertFilename       (Filename    : String)          : String;
+FUNCTION  FileTimeGMT           (FileName    : String)          : TDateTime;  OVERLOAD;
 FUNCTION  FileTimeGMT           (SearchRec   : TSearchRec)      : TDateTime;  OVERLOAD;
 PROCEDURE ClearDirRec           (VAR DirRec  : TTarDirRec);
 
@@ -211,7 +211,7 @@ IMPLEMENTATION
 
 IMPLEMENTATION
 
-FUNCTION PermissionString (Permissions : TTarPermissions) : AnsiString;
+FUNCTION PermissionString (Permissions : TTarPermissions) : String;
 BEGIN
   Result := '';
   IF tpReadByOwner    IN Permissions THEN Result := Result + 'r' ELSE Result := Result + '-';
@@ -226,7 +226,7 @@ BEGIN
 END;
 
 
-FUNCTION ConvertFilename  (Filename : AnsiString) : AnsiString;
+FUNCTION ConvertFilename  (Filename : String) : String;
          // Converts the filename to Unix conventions
 BEGIN
   (*$IFDEF LINUX *)
@@ -237,7 +237,7 @@ BEGIN
 END;
 
 
-FUNCTION FileTimeGMT (FileName: AnsiString): TDateTime;
+FUNCTION FileTimeGMT (FileName: String): TDateTime;
          // Returns the Date and Time of the last modification of the given File
          // The Result is zero if the file could not be found
          // The Result is given in UTC (GMT) time zone
@@ -247,7 +247,7 @@ VAR
   SystemFileTime : TSystemTime;
 begin
   Result := 0.0;
-  Handle := FindFirstFile (PAnsiChar (FileName), FindData);
+  Handle := FindFirstFile (pChar (FileName), FindData);
   IF Handle <> INVALID_HANDLE_VALUE THEN BEGIN
     Windows.FindClose (Handle);
     IF (FindData.dwFileAttributes AND FILE_ATTRIBUTE_DIRECTORY) = 0 THEN
@@ -278,7 +278,7 @@ END;
 
 PROCEDURE ClearDirRec (VAR DirRec : TTarDirRec);
           // This is included because a FillChar (DirRec, SizeOf (DirRec), 0)
-          // will destroy the long AnsiString pointers, leading to strange bugs
+          // will destroy the long String pointers, leading to strange bugs
 BEGIN
   WITH DirRec DO BEGIN
     Name        := '';
@@ -331,18 +331,18 @@ TYPE
                  DevMinor : ARRAY [0..7] OF CHAR;
                END;
 
-FUNCTION ExtractText (P : PAnsiChar) : AnsiString;
+FUNCTION ExtractText (P : pChar) : String;
 BEGIN
-  Result := AnsiString (P);
+  Result := String (P);
 END;
 
 
-FUNCTION ExtractNumber (P : PAnsiChar) : INTEGER; OVERLOAD;
+FUNCTION ExtractNumber (P : pChar) : INTEGER; OVERLOAD;
 VAR
-  Strg : AnsiString;
+  Strg : String;
 BEGIN
   Strg := Trim (StrPas (P));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -351,12 +351,12 @@ BEGIN
 END;
 
 
-FUNCTION ExtractNumber64 (P : PAnsiChar) : INT64; OVERLOAD;
+FUNCTION ExtractNumber64 (P : pChar) : INT64; OVERLOAD;
 VAR
-  Strg : AnsiString;
+  Strg : String;
 BEGIN
   Strg := Trim (StrPas (P));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -366,14 +366,14 @@ END;
 
 
 
-FUNCTION ExtractNumber (P : PAnsiChar; MaxLen : INTEGER) : INTEGER; OVERLOAD;
+FUNCTION ExtractNumber (P : pChar; MaxLen : INTEGER) : INTEGER; OVERLOAD;
 VAR
   S0   : ARRAY [0..255] OF CHAR;
-  Strg : AnsiString;
+  Strg : String;
 BEGIN
   StrLCopy (S0, P, MaxLen);
   Strg := Trim (StrPas (S0));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -382,14 +382,14 @@ BEGIN
 END;
 
 
-FUNCTION ExtractNumber64 (P : PAnsiChar; MaxLen : INTEGER) : INT64; OVERLOAD;
+FUNCTION ExtractNumber64 (P : pChar; MaxLen : INTEGER) : INT64; OVERLOAD;
 VAR
   S0   : ARRAY [0..255] OF CHAR;
-  Strg : AnsiString;
+  Strg : String;
 BEGIN
   StrLCopy (S0, P, MaxLen);
   Strg := Trim (StrPas (S0));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -406,9 +406,9 @@ BEGIN
 END;
 
 
-PROCEDURE Octal (N : INTEGER; P : PAnsiChar; Len : INTEGER);
-         // Makes a AnsiString of octal digits
-         // The AnsiString will always be "Len" characters long
+PROCEDURE Octal (N : INTEGER; P : pChar; Len : INTEGER);
+         // Makes a String of octal digits
+         // The String will always be "Len" characters long
 VAR
   I     : INTEGER;
 BEGIN
@@ -424,9 +424,9 @@ BEGIN
 END;
 
 
-PROCEDURE Octal64 (N : INT64; P : PAnsiChar; Len : INTEGER);
-         // Makes a AnsiString of octal digits
-         // The AnsiString will always be "Len" characters long
+PROCEDURE Octal64 (N : INT64; P : pChar; Len : INTEGER);
+         // Makes a String of octal digits
+         // The String will always be "Len" characters long
 VAR
   I     : INTEGER;
 BEGIN
@@ -442,7 +442,7 @@ BEGIN
 END;
 
 
-PROCEDURE OctalN (N : INTEGER; P : PAnsiChar; Len : INTEGER);
+PROCEDURE OctalN (N : INTEGER; P : pChar; Len : INTEGER);
 BEGIN
   Octal (N, P, Len-1);
   (P+Len-1)^ := #0;
@@ -459,7 +459,7 @@ VAR
   I        : INTEGER;
 BEGIN
   FillChar (Rec, RECORDSIZE, 0);
-  StrLCopy (TH.Name, PAnsiChar (DirRec.Name), NAMSIZ);
+  StrLCopy (TH.Name, pChar (DirRec.Name), NAMSIZ);
   Mode := 0;
   IF tmSaveText IN DirRec.Mode THEN Mode := Mode OR $0200;
   IF tmSetGid   IN DirRec.Mode THEN Mode := Mode OR $0400;
@@ -494,10 +494,10 @@ BEGIN
     ftMultiVolume  : TH.LinkFlag := 'M';
     ftVolumeHeader : TH.LinkFlag := 'V';
     END;
-  StrLCopy (TH.LinkName, PAnsiChar (DirRec.LinkName), NAMSIZ);
-  StrLCopy (TH.Magic, PAnsiChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
-  StrLCopy (TH.UName, PAnsiChar (DirRec.UserName), TUNMLEN);
-  StrLCopy (TH.GName, PAnsiChar (DirRec.GroupName), TGNMLEN);
+  StrLCopy (TH.LinkName, pChar (DirRec.LinkName), NAMSIZ);
+  StrLCopy (TH.Magic, pChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
+  StrLCopy (TH.UName, pChar (DirRec.UserName), TUNMLEN);
+  StrLCopy (TH.GName, pChar (DirRec.GroupName), TGNMLEN);
   OctalN (DirRec.MajorDevNo, @TH.DevMajor, 8);
   OctalN (DirRec.MinorDevNo, @TH.DevMinor, 8);
   StrMove (TH.ChkSum, CHKBLANKS, 8);
@@ -527,7 +527,7 @@ BEGIN
 END;
 
 
-CONSTRUCTOR TTarArchive.Create (Filename : AnsiString; FileMode : WORD);
+CONSTRUCTOR TTarArchive.Create (Filename : String; FileMode : WORD);
 BEGIN
   INHERITED Create;
   FStream     := TFileStream.Create (Filename, FileMode);
@@ -660,7 +660,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarArchive.ReadFile (Filename : AnsiString);
+PROCEDURE TTarArchive.ReadFile (Filename : String);
           // Reads file data for the last Directory Record.
           // The entire file is saved in the given Filename
 VAR
@@ -675,16 +675,16 @@ BEGIN
 END;
 
 
-FUNCTION  TTarArchive.ReadFile : AnsiString;
+FUNCTION  TTarArchive.ReadFile : String;
           // Reads file data for the last Directory Record. The entire file is returned
-          // as a large ANSI AnsiString.
+          // as a large ANSI String.
 VAR
   RestBytes : INTEGER;
 BEGIN
   IF FBytesToGo = 0 THEN EXIT;
   RestBytes := Records (FBytesToGo) * RECORDSIZE - FBytesToGo;
   SetLength (Result, FBytesToGo);
-  FStream.ReadBuffer (PAnsiChar (Result)^, FBytesToGo);
+  FStream.ReadBuffer (pChar (Result)^, FBytesToGo);
   FStream.Seek (RestBytes, soFromCurrent);
   FBytesToGo := 0;
 END;
@@ -738,7 +738,7 @@ BEGIN
 END;
 
 
-CONSTRUCTOR TTarWriter.Create (TargetFilename : AnsiString; Mode : INTEGER = fmCreate);
+CONSTRUCTOR TTarWriter.Create (TargetFilename : String; Mode : INTEGER = fmCreate);
 BEGIN
   CreateEmpty;
   FStream     := TFileStream.Create (TargetFilename, Mode);
@@ -758,7 +758,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddFile   (Filename : AnsiString;  TarFilename : AnsiString = '');
+PROCEDURE TTarWriter.AddFile   (Filename : String;  TarFilename : String = '');
 VAR
   S    : TFileStream;
   Date : TDateTime;
@@ -775,7 +775,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddStream (Stream : TStream; TarFilename : AnsiString; FileDateGmt : TDateTime);
+PROCEDURE TTarWriter.AddStream (Stream : TStream; TarFilename : String; FileDateGmt : TDateTime);
 VAR
   DirRec      : TTarDirRec;
   Rec         : ARRAY [0..RECORDSIZE-1] OF CHAR;
@@ -812,7 +812,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddString (Contents : AnsiString; TarFilename : AnsiString; FileDateGmt : TDateTime);
+PROCEDURE TTarWriter.AddString (Contents : String; TarFilename : String; FileDateGmt : TDateTime);
 VAR
   S : TStringStream;
 BEGIN
@@ -825,7 +825,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddDir (Dirname : AnsiString; DateGmt : TDateTime; MaxDirSize : INT64 = 0);
+PROCEDURE TTarWriter.AddDir (Dirname : String; DateGmt : TDateTime; MaxDirSize : INT64 = 0);
 VAR
   DirRec      : TTarDirRec;
 BEGIN
@@ -850,7 +850,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddSymbolicLink (Filename, Linkname : AnsiString; DateGmt : TDateTime);
+PROCEDURE TTarWriter.AddSymbolicLink (Filename, Linkname : String; DateGmt : TDateTime);
 VAR
   DirRec : TTarDirRec;
 BEGIN
@@ -875,7 +875,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddLink (Filename, Linkname : AnsiString; DateGmt : TDateTime);
+PROCEDURE TTarWriter.AddLink (Filename, Linkname : String; DateGmt : TDateTime);
 VAR
   DirRec : TTarDirRec;
 BEGIN
@@ -900,7 +900,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddVolumeHeader (VolumeId           : AnsiString; DateGmt : TDateTime);
+PROCEDURE TTarWriter.AddVolumeHeader (VolumeId           : String; DateGmt : TDateTime);
 VAR
   DirRec : TTarDirRec;
 BEGIN

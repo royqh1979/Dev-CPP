@@ -13,40 +13,40 @@ uses
 type
   TIconFile = Class
   public
-    FileName: AnsiString;
-    Target: AnsiString;
-    Icon: AnsiString;
+    FileName: String;
+    Target: String;
+    Icon: String;
   end;
 
   TInstallFile = Class
   public
-    Source: AnsiString;
-    Dest: AnsiString;
+    Source: String;
+    Dest: String;
   end;
 
   TInstallFiles = class
   private
-    FAppDir: AnsiString;
+    FAppDir: String;
     FCount: Integer;
     FIconCount: Integer;
     List, IconList: TList;
-    FInfoFile: AnsiString;
-    FMenuName: AnsiString;
+    FInfoFile: String;
+    FMenuName: String;
     function GetFiles(IIndex: Integer): TInstallFile;
     function GetIcons(IIndex: Integer): TIconFile;
-    procedure SetAppDir(Dir: AnsiString);
+    procedure SetAppDir(Dir: String);
   protected
     procedure Clear;
-    procedure ApplyConstants(var Str: AnsiString);
-    function ParseLine(Line: AnsiString; var Src, Dest, Flags: AnsiString): Boolean;
+    procedure ApplyConstants(var Str: String);
+    function ParseLine(Line: String; var Src, Dest, Flags: String): Boolean;
   public
-    constructor Create(InfoFile: AnsiString; AppDir: AnsiString; MenuName: AnsiString);
+    constructor Create(InfoFile: String; AppDir: String; MenuName: String);
     destructor Destroy; override;
     procedure Parse;
 
-    property InfoFile: AnsiString read FInfoFile;
+    property InfoFile: String read FInfoFile;
 
-    property AppDir: AnsiString read FAppDir write SetAppDir;
+    property AppDir: String read FAppDir write SetAppDir;
     property Count: Integer read FCount;
     property IconCount: Integer read FIconCount;
     property Files[IIndex: Integer]: TInstallFile read GetFiles;
@@ -55,41 +55,41 @@ type
 
   TInstallInfo = Class
   private
-    FFileName: AnsiString;
-    FAppName: AnsiString;
-    FAppVerName: AnsiString;
-    FAppVersion: AnsiString;
+    FFileName: String;
+    FAppName: String;
+    FAppVerName: String;
+    FAppVersion: String;
     FDependencies: TStringList;
-    FDescription: AnsiString;
-    FLicense: AnsiString;
-    FLicenseFile: AnsiString;
-    FMenuName: AnsiString;
-    FReadme: AnsiString;
-    FReadmeFile: AnsiString;
+    FDescription: String;
+    FLicense: String;
+    FLicenseFile: String;
+    FMenuName: String;
+    FReadme: String;
+    FReadmeFile: String;
     FReboot: Boolean;
     FFiles: TInstallFiles;
-    FURL: AnsiString;
+    FURL: String;
     FVersion: Integer;
   public
-    constructor Create(AFileName: AnsiString);
+    constructor Create(AFileName: String);
     destructor Destroy; override;
     function Parse: Boolean;
 
-    function Files(AppDir: AnsiString): TInstallFiles;
-    property FileName: AnsiString read FFileName;
+    function Files(AppDir: String): TInstallFiles;
+    property FileName: String read FFileName;
 
-    property AppName: AnsiString read FAppName;
-    property AppVerName: AnsiString read FAppVerName;
-    property AppVersion: AnsiString read FAppVersion;
+    property AppName: String read FAppName;
+    property AppVerName: String read FAppVerName;
+    property AppVersion: String read FAppVersion;
     property Dependencies: TStringList read FDependencies;
-    property Description: AnsiString read FDescription;
-    property License: AnsiString read FLicense;
-    property LicenseFile: AnsiString read FLicenseFile;
-    property MenuName: AnsiString read FMenuName;
-    property Readme: AnsiString read FReadme;
-    property ReadmeFile: AnsiString read FReadmeFile;
+    property Description: String read FDescription;
+    property License: String read FLicense;
+    property LicenseFile: String read FLicenseFile;
+    property MenuName: String read FMenuName;
+    property Readme: String read FReadme;
+    property ReadmeFile: String read FReadmeFile;
     property Reboot: Boolean read FReboot;
-    property URL: AnsiString read FURL;
+    property URL: String read FURL;
     property Version: Integer read FVersion;
   end;
 
@@ -98,7 +98,7 @@ const
 
 implementation
 
-constructor TInstallInfo.Create(AFileName: AnsiString);
+constructor TInstallInfo.Create(AFileName: String);
 begin
   inherited Create;
   FFileName := AFileName;
@@ -119,7 +119,7 @@ function TInstallInfo.Parse: Boolean;
 var
   Ini: TIniFile;
   StrList: TStringList;
-  BaseName: AnsiString;
+  BaseName: String;
 begin
   Result := False;
 
@@ -171,7 +171,7 @@ begin
   Result := True;
 end;
 
-function TInstallInfo.Files(AppDir: AnsiString): TInstallFiles;
+function TInstallInfo.Files(AppDir: String): TInstallFiles;
 begin
   if not Assigned(FFiles) then
       FFiles := TInstallFiles.Create(FFileName, AppDir, MenuName)
@@ -181,7 +181,7 @@ begin
   Result := FFiles;
 end;
 
-constructor TInstallFiles.Create(InfoFile: AnsiString; AppDir: AnsiString; MenuName: AnsiString);
+constructor TInstallFiles.Create(InfoFile: String; AppDir: String; MenuName: String);
 begin
   inherited Create;
   List := TList.Create;
@@ -215,7 +215,7 @@ begin
   Result := TheIcon;
 end;
 
-procedure TInstallFiles.SetAppDir(Dir: AnsiString);
+procedure TInstallFiles.SetAppDir(Dir: String);
 begin
   FAppDir := Dir;
   Parse;
@@ -245,10 +245,10 @@ begin
   IconList.Clear;
 end;
 
-function TInstallFiles.ParseLine(Line: AnsiString; var Src, Dest,
-  Flags: AnsiString): Boolean;
+function TInstallFiles.ParseLine(Line: String; var Src, Dest,
+  Flags: String): Boolean;
 var
-  ALine: AnsiString;
+  ALine: String;
   Sep, Sep2: Integer;
 begin
   ALine := Line;
@@ -278,7 +278,7 @@ begin
   Result := True;
 end;
 
-procedure ReplaceAll(var Str: AnsiString; SFrom, STo: AnsiString);
+procedure ReplaceAll(var Str: String; SFrom, STo: String);
 var
   i: Integer;
 begin
@@ -292,7 +292,7 @@ begin
   end;
 end;
 
-procedure TInstallFiles.ApplyConstants(var Str: AnsiString);
+procedure TInstallFiles.ApplyConstants(var Str: String);
 var
   WinDir, SysDir: array[0..1024] of Char;
 begin
@@ -310,7 +310,7 @@ var
   FileSection, IconSection: TStringList;
   Icon: TIconFile;
   i, j: Integer;
-  OrgSrc, Src, Dest, Flags: AnsiString;
+  OrgSrc, Src, Dest, Flags: String;
   TheFile: TInstallFile;
   Files: TStringList;
 label

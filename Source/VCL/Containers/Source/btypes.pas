@@ -32,7 +32,7 @@ interface
  0.14     12.11.08  we          Str127, Ptr2Inc
  0.15     14.11.08  we          BString, char8
  0.16     21.11.08  we          __P2I: type cast pointer to integer for masking etc
- 0.17     02.12.08  we          Use pchar and pAnsiChar for pchar8 if possible
+ 0.17     02.12.08  we          Use pchar and pChar for pchar8 if possible
  0.18     27.02.09  we          pBoolean
  0.19     14.02.12  we          extended = double $ifdef SIMULATE_EXT64
  0.20     06.05.14  we          extended = double $ifdef SIMULATE_EXT64 OR EXT64
@@ -147,16 +147,16 @@ type
 {$else}
   {$ifdef UNICODE}
     type
-      BString  = AnsiString;    {String of 8 bit characters}
+      BString  = String;    {String of 8 bit characters}
       pBString = pAnsiString;
-      char8    = AnsiChar;      {8 bit characters}
-      pchar8   = pAnsiChar;
+      char8    = Char;      {8 bit characters}
+      pchar8   = pChar;
     {$else}
     type
-      BString  = AnsiString;    {String of 8 bit characters}
+      BString  = String;    {String of 8 bit characters}
       pBString = pAnsiString;
-      char8    = AnsiChar;      {8 bit characters}
-      pchar8   = pAnsiChar;
+      char8    = Char;      {8 bit characters}
+      pchar8   = pChar;
   {$endif}
 {$endif}
 

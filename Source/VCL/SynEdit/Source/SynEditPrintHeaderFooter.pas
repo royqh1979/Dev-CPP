@@ -234,21 +234,11 @@ type
     constructor Create;
   end;
 
-  {$IFNDEF SYN_COMPILER_3_UP}
-  TFontCharSet = 0..255;
-  {$ENDIF}
-
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 {begin}                                                                         //gp 2000-06-24
 // Helper routine for AsString processing.
@@ -493,11 +483,7 @@ begin
     Write(aHeight, SizeOf(aHeight));
     aLen := Length(aName);
     Write(aLen, SizeOf(aLen));
-    {$IFDEF SYN_COMPILER_2}           // In D2 TFontName is a ShortString
-    Write(PChar(@aName[1])^, aLen);   // D2 cannot convert ShortStrings to PChar
-    {$ELSE}
     Write(PChar(aName)^, aLen);
-    {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
     Write(aStyle, SizeOf(aStyle));
@@ -512,15 +498,7 @@ var
 begin
   s := Value;
   FText := DecodeString(GetFirstEl(s, '/'));
-{$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-  GetFirstEl(s, '/');
-{$ELSE}
   FFont.Charset := StrToIntDef(GetFirstEl(s, '/'), 0);
-{$ENDIF}
-{$ELSE}
-  GetFirstEl(s, '/');
-{$ENDIF}
   FFont.Color := StrToIntDef(GetFirstEl(s, '/'), 0);
   FFont.Height := StrToIntDef(GetFirstEl(s, '/'), 0);
   FFont.Name := DecodeString(GetFirstEl(s, '/'));
@@ -931,9 +909,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FDefaultFont.Charset := aCharset;
-    {$ENDIF}
     FDefaultFont.Color   := aColor;
     FDefaultFont.Height  := aHeight;
     FDefaultFont.Name    := aName;
@@ -971,11 +947,7 @@ begin
     Write(FRomanNumbers, SizeOf(FRomanNumbers));
     Write(FMirrorPosition, SizeOf(FMirrorPosition));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FDefaultFont.Charset;
-    {$ELSE}
-    aCharSet := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FDefaultFont.Color;
     aHeight  := FDefaultFont.Height;
     aName    := FDefaultFont.Name;
@@ -987,11 +959,7 @@ begin
     Write(aHeight, SizeOf(aHeight));
     aLen := Length(aName);
     Write(aLen, SizeOf(aLen));
-    {$IFDEF SYN_COMPILER_2}                    // In D2 TFontName is a ShortString
-    Write(PChar(@aName[1])^, Length(aName));   // D2 cannot convert ShortStrings to PChar
-    {$ELSE}
     Write(PChar(aName)^, Length(aName));
-    {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
     Write(aStyle, SizeOf(aStyle));

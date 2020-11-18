@@ -268,7 +268,7 @@ end;
 
 procedure TCompOptForm.btnBrowseClick(Sender: TObject);
 var
-  NewItem: AnsiString;
+  NewItem: String;
 begin
   NewItem := Trim(edEntry.Text);
   if (NewItem <> '') and DirectoryExists(edEntry.Text) then
@@ -497,7 +497,7 @@ end;
 
 procedure TCompOptForm.btnAddBlankCompilerSetClick(Sender: TObject);
 var
-  S: AnsiString;
+  S: String;
 begin
   S := 'New compiler';
   if not ShowInputQuery(Lang[ID_COPT_NEWCOMPSET], Lang[ID_COPT_PROMPTNEWCOMPSET], S) or (S = '') then
@@ -516,7 +516,7 @@ end;
 
 procedure TCompOptForm.btnAddFilledCompilerSetClick(Sender: TObject);
 var
-  Directory: AnsiString;
+  Directory: String;
 begin
   if devDirs.Default <> '' then
     Directory := devDirs.Default
@@ -563,7 +563,7 @@ end;
 
 procedure TCompOptForm.btnRenameCompilerSetClick(Sender: TObject);
 var
-  S: AnsiString;
+  S: String;
   selindex: integer;
 begin
   if cmbCompilerSetComp.ItemIndex <> -1 then begin
@@ -581,7 +581,7 @@ end;
 
 procedure TCompOptForm.OptionsLinkClick(Sender: TObject);
 begin
-  ShellExecute(GetDesktopWindow(), 'open', PAnsiChar(TLabel(Sender).Caption), nil, nil, SW_SHOWNORMAL);
+  ShellExecute(GetDesktopWindow(), 'open', pChar(TLabel(Sender).Caption), nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TCompOptForm.cbCompAddClick(Sender: TObject);

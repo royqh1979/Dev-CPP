@@ -45,15 +45,9 @@ unit SynEditWordWrap;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynEditTextBuffer,
-  QSynEdit,
-{$ELSE}
   SynEditTypes,
   SynEditTextBuffer,
   SynEdit,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -71,10 +65,6 @@ type
 
   TRowLengthArray = array [TRowIndex] of TRowLength;
   PRowLengthArray = ^TRowLengthArray;
-
-  {$IFNDEF SYN_COMPILER_4_UP}
-  TSysCharSet = set of Char;
-  {$ENDIF}
 
   // For clarity, I'll refer to buffer coordinates as 'Line' and
   // 'Char' and to display (wrapped) coordinates as 'Row' and 'Column'.
@@ -126,18 +116,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
-{$ELSE}
-  {$IFDEF SYN_CLX}
-    QConsts;
-  {$ELSE}
-    Consts,
-  {$ENDIF}
-{$ENDIF}
-{$IFNDEF SYN_COMPILER_4_UP}
   SynEditMiscProcs,
-{$ENDIF}
   Math;
 
 { TSynWordWrapPlugin }

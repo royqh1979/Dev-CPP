@@ -212,7 +212,7 @@ type
     procedure SaveCodeIns;
     procedure ClearCodeIns;
     procedure UpdateCIButtons;
-    procedure LoadSyntax(const Value: AnsiString);
+    procedure LoadSyntax(const Value: String);
     procedure FillSyntaxSets;
     procedure UpdateDemoEditColor;
   public
@@ -245,7 +245,7 @@ end;
 
 procedure TEditorOptForm.FormCreate(Sender: TObject);
 var
-  AttrName: AnsiString;
+  AttrName: String;
   Attribute: TSynHighlighterAttributes;
   I: integer;
 begin
@@ -679,7 +679,7 @@ end;
 
 procedure TEditorOptForm.btnOkClick(Sender: TObject);
 var
-  s, aName: AnsiString;
+  s, aName: String;
   a, idx: integer;
 begin
   with devEditor do begin
@@ -983,7 +983,7 @@ procedure TEditorOptForm.StyleChange(Sender: TObject);
 var
   attr: TSynHighlighterAttributes;
   tc: TThemeColor;
-  s: AnsiString;
+  s: String;
   fg,bg:TColor;
   procedure ReadColor(var fg:TColor;var bg:TColor);
   begin
@@ -1006,7 +1006,7 @@ begin
   if ElementList.ItemIndex > pred(cpp.AttrCount) then begin
     ReadColor(tc.Foreground,tc.Background);
 
-    // use local AnsiString just to ease readability
+    // use local String just to ease readability
     s := ElementList.Items[ElementList.ItemIndex];
 
     if SameText(s, cSel) then
@@ -1063,7 +1063,7 @@ end;
 procedure TEditorOptForm.cppEditStatusChange(Sender: TObject;
   Changes: TSynStatusChanges);
 var
-  Token: AnsiString;
+  Token: String;
   attr: TSynHighlighterAttributes;
 begin
   if assigned(cppEdit.Highlighter) and
@@ -1370,7 +1370,7 @@ procedure TEditorOptForm.btnSaveSyntaxClick(Sender: TObject);
 var
   idx: integer;
   fINI: TIniFile;
-  S: AnsiString;
+  S: String;
   tc: TThemeColor;
 begin
   s := 'New syntax';
@@ -1407,7 +1407,7 @@ begin
   cboQuickColor.ItemIndex := cboQuickColor.Items.IndexOf(S);
 end;
 
-procedure TEditorOptForm.LoadSyntax(const Value: AnsiString);
+procedure TEditorOptForm.LoadSyntax(const Value: String);
 var
   idx: integer;
   fINI: TIniFile;

@@ -84,10 +84,8 @@ type
     procedure SetCaseSensitive(const Value: Boolean);
 
   protected
-{$IFDEF SYN_COMPILER_3_UP}
     function GetDisplayName: String; override;
     procedure SetDisplayName(const Value: String); override;
-{$ENDIF}
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -114,11 +112,9 @@ type
     fOwner: TSynMultiSyn;
     function GetItems(Index: integer): TScheme;
     procedure SetItems(Index: integer; const Value: TScheme);
-{$IFDEF SYN_COMPILER_3_UP}
   protected
     function GetOwner: TPersistent; override;
     procedure Update(Item: TCollectionItem); override;
-{$ENDIF}
   public
     constructor Create(aOwner: TSynMultiSyn);
     property Items[aIndex: integer]: TScheme read GetItems write SetItems;
@@ -733,9 +729,7 @@ end;
 procedure TSynMultiSyn.UnhookHighlighter(aHL: TSynCustomHighlighter);
 begin
   aHL.UnhookAttrChangeEvent( DefHighlightChange );
-{$IFDEF SYN_COMPILER_5_UP}
   aHL.RemoveFreeNotification( Self );
-{$ENDIF}
 end;
 
 function TSynMultiSyn.GetSampleSource: string;
@@ -918,19 +912,16 @@ begin
   Result := inherited Items[Index] as TScheme;
 end;
 
-{$IFDEF SYN_COMPILER_3_UP}
 function TSchemes.GetOwner: TPersistent;
 begin
   Result := fOwner;
 end;
-{$ENDIF}
 
 procedure TSchemes.SetItems(Index: integer; const Value: TScheme);
 begin
   inherited Items[Index] := Value;
 end;
 
-{$IFDEF SYN_COMPILER_3_UP}
 procedure TSchemes.Update(Item: TCollectionItem);
 begin
   if Item <> nil then
@@ -938,7 +929,6 @@ begin
   else // pass the MultiSyn as the Sender so Editors reparse their text
     fOwner.DefHighlightChange( fOwner );
 end;
-{$ENDIF}
 
 { TScheme }
 
@@ -969,7 +959,6 @@ begin
   fMarkerAttri.Free;
 end;
 
-{$IFDEF SYN_COMPILER_3_UP}
 function TScheme.GetDisplayName: String;
 begin
   if SchemeName <> '' then
@@ -977,7 +966,6 @@ begin
   else
     Result := inherited GetDisplayName;
 end;
-{$ENDIF SYN_COMPILER_3_UP}
 
 procedure TScheme.MarkerAttriChanged(Sender: TObject);
 begin
@@ -993,12 +981,10 @@ begin
   end;
 end;
 
-{$IFDEF SYN_COMPILER_3_UP}
 procedure TScheme.SetDisplayName(const Value: String);
 begin
   SchemeName := Value;
 end;
-{$ENDIF SYN_COMPILER_3_UP}
 
 procedure TScheme.SetEndExpr(const Value: string);
 var

@@ -32,7 +32,7 @@ type
   public
     constructor Create(config:TdevRefactorer; Parser:TCppParser);
     function RenameSymbol(Editor: TEditor;   OldCaretXY:TBufferCoord;
-      oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
+      oldName,newName: String; Target: TTarget; Project:TProject):String;
     property CppParser: TCppParser read fCppParser;
   end;
 
@@ -49,7 +49,7 @@ begin
 end;
 
 function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
-  oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
+  oldName,newName: String; Target: TTarget; Project:TProject):String;
 var
   Lines:TSynEditStringList;
   newLines : TStringList;

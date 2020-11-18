@@ -459,12 +459,12 @@ begin
     ValidDigits := [];
     i := MaxDigit;
     while i >= 10 do begin
-      Include(ValidDigits, Digits[i]);
-      Include(ValidDigits, UpCase(Digits[i]));
+      ValidDigits:=ValidDigits+[Digits[i]];
+      ValidDigits:=ValidDigits+[UpCase(Digits[i])];
       Dec(i);
     end;
     while i >= 0 do begin
-      Include(ValidDigits, Digits[i]);
+      ValidDigits:=ValidDigits+[Digits[i]];
       Dec(i);
     end;
     // advance over all valid digits, but at least one has to be there

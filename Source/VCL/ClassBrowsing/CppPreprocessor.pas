@@ -42,7 +42,7 @@ type
   PFile = ^TFile;
   TFile = record
     Index: integer; // 0-based for programming convenience
-    FileName: AnsiString; // Record filename, but not used now
+    FileName: String; // Record filename, but not used now
     Buffer: TStringList; // do not concat them all
     Branches: integer; //branch levels;
     FileIncludes: PFileIncludes; // includes of this file
@@ -51,7 +51,7 @@ type
   TCppPreprocessor = class(TComponent)
   private
     fIndex: integer; // points to current file buffer. do not free
-    fFileName: AnsiString; // idem
+    fFileName: String; // idem
     fBuffer: TStringList; // idem
     fResult: TStringList;
     fCurrentIncludes: PFileIncludes;
@@ -72,38 +72,38 @@ type
     procedure PreprocessBuffer;
     procedure SkipToEndOfPreprocessor;
     procedure SkipToPreprocessor;
-    function GetNextPreprocessor: AnsiString;
-    procedure Simplify(var Output: AnsiString);
-    procedure HandlePreprocessor(const Value: AnsiString);
-    procedure HandleDefine(const Line: AnsiString);
-    procedure HandleUndefine(const Line: AnsiString);
-    procedure HandleBranch(const Line: AnsiString);
-    procedure HandleInclude(const Line: AnsiString);
-    function ExpandMacros(const Line: AnsiString): AnsiString;
-    function RemoveGCCAttributes(const Line: AnsiString): AnsiString;
-    function RemoveSuffixes(const Input: AnsiString): AnsiString;
+    function GetNextPreprocessor: String;
+    procedure Simplify(var Output: String);
+    procedure HandlePreprocessor(const Value: String);
+    procedure HandleDefine(const Line: String);
+    procedure HandleUndefine(const Line: String);
+    procedure HandleBranch(const Line: String);
+    procedure HandleInclude(const Line: String);
+    function ExpandMacros(const Line: String): String;
+    function RemoveGCCAttributes(const Line: String): String;
+    function RemoveSuffixes(const Input: String): String;
     // current file stuff
     function GetInclude(index: integer): PFile;
-    procedure OpenInclude(const FileName: AnsiString; Stream: TMemoryStream = nil);
+    procedure OpenInclude(const FileName: String; Stream: TMemoryStream = nil);
     property Includes[index: integer]: PFile read GetInclude; default;
     procedure CloseInclude;
     // branch stuff
     function GetCurrentBranch: boolean;
     procedure SetCurrentBranch(value: boolean);
     procedure RemoveCurrentBranch;
-    function GetResult: AnsiString;
+    function GetResult: String;
     // include stuff
-    function GetFileIncludesEntry(const FileName: AnsiString): PFileIncludes;
-    procedure AddDefinesInFile(const FileName:AnsiString);
+    function GetFileIncludesEntry(const FileName: String): PFileIncludes;
+    procedure AddDefinesInFile(const FileName:String);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear;
-    procedure AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
-    procedure GetDefineParts(const Input: AnsiString; var Name, Args, Value: AnsiString);
-    procedure AddDefineByLine(const Line: AnsiString; HardCoded: boolean);
-    function GetDefine(const Name: AnsiString; var Index: integer): PDefine;
-    function GetHardDefine(const Name: AnsiString; var Index: integer): PDefine;
+    procedure AddDefineByParts(const Name, Args, Value: String; HardCoded: boolean);
+    procedure GetDefineParts(const Input: String; var Name, Args, Value: String);
+    procedure AddDefineByLine(const Line: String; HardCoded: boolean);
+    function GetDefine(const Name: String; var Index: integer): PDefine;
+    function GetHardDefine(const Name: String; var Index: integer): PDefine;
     procedure Reset; //reset but don't clear generated defines
     procedure ResetDefines;
     procedure SetScanOptions(ParseSystem, ParseLocal: boolean);
@@ -111,13 +111,13 @@ type
     procedure SetProjectIncludePaths(var List: TStringList);
     procedure SetScannedFileList(var List: TStringList);
     procedure SetIncludesList(var List: TStringList);
-    procedure PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
-    procedure PreprocessFile(const FileName: AnsiString);
-    property Result: AnsiString read GetResult;
-    procedure InvalidDefinesInFile(const FileName:AnsiString);
+    procedure PreprocessStream(const FileName: String; Stream: TMemoryStream);
+    procedure PreprocessFile(const FileName: String);
+    property Result: String read GetResult;
+    procedure InvalidDefinesInFile(const FileName:String);
     //debug procedures
-    procedure DumpIncludesListTo(FileName:ansiString);
-    procedure DumpDefinesTo(FileName:ansiString);
+    procedure DumpIncludesListTo(FileName:String);
+    procedure DumpDefinesTo(FileName:String);
   end;
 
 procedure Register;
@@ -148,7 +148,7 @@ procedure TCppPreprocessor.Clear;
 var
   I,t: integer;
   DefineList: TList;
-  FileName : AnsiString;
+  FileName : String;
 begin
   for I := 0 to fIncludes.Count - 1 do begin
     PFile(fIncludes[i])^.Buffer.Free;
@@ -209,7 +209,7 @@ begin
   result := PFile(fIncludes[index]);
 end;
 
-procedure TCppPreprocessor.AddDefinesInFile(const FileName:AnsiString);
+procedure TCppPreprocessor.AddDefinesInFile(const FileName:String);
 var
   FileIncludes:PFileIncludes;
   i,idx: integer;
@@ -239,11 +239,11 @@ begin
   end;
 end;
 
-procedure TCppPreprocessor.OpenInclude(const FileName: AnsiString; Stream: TMemoryStream = nil);
+procedure TCppPreprocessor.OpenInclude(const FileName: String; Stream: TMemoryStream = nil);
 var
   FileItem,tempItem: PFile;
   IsSystemFile: boolean;
-  IncludeLine: AnsiString;
+  IncludeLine: String;
   I,t: integer;
   FileIncludes:PFileIncludes;
 begin
@@ -431,7 +431,7 @@ end;
 procedure TCppPreprocessor.SkipToPreprocessor;
 var
   InCComment:boolean;
-  function FirstLineChar(const Line: AnsiString): Char;
+  function FirstLineChar(const Line: String): Char;
   begin
     if Length(Line) > 0 then
       Result := TrimLeft(Line)[1] // assume trimmed lines
@@ -455,7 +455,7 @@ begin
 end;
 
 procedure TCppPreprocessor.SkipToEndOfPreprocessor;
-  function LastLineChar(const Line: AnsiString): Char;
+  function LastLineChar(const Line: String): Char;
   begin
     if Length(Line) > 0 then
       Result := Line[Length(Line)] // assume trimmed lines
@@ -469,7 +469,7 @@ begin
   end;
 end;
 
-function TCppPreprocessor.GetNextPreprocessor: AnsiString;
+function TCppPreprocessor.GetNextPreprocessor: String;
 var
   I: integer;
   PreProcFrom, PreProcTo: integer;
@@ -497,7 +497,7 @@ begin
   Inc(fIndex);
 end;
 
-procedure TCppPreprocessor.Simplify(var Output: AnsiString);
+procedure TCppPreprocessor.Simplify(var Output: String);
 var
   DelimPosFrom, DelimPosTo: integer;
 begin
@@ -528,7 +528,7 @@ begin
   Output := Trim(Output); // removes spaces between # and the first word
 end;
 
-function TCppPreprocessor.GetDefine(const Name: AnsiString; var Index: integer): PDefine;
+function TCppPreprocessor.GetDefine(const Name: String; var Index: integer): PDefine;
 begin
   Index := FastIndexOf(fDefines,Name); // use sorted searching. is really fast
   if Index <> -1 then
@@ -537,7 +537,7 @@ begin
     Result := nil;
 end;
 
-function TCppPreprocessor.GetHardDefine(const Name: AnsiString; var Index: integer): PDefine;
+function TCppPreprocessor.GetHardDefine(const Name: String; var Index: integer): PDefine;
 begin
   Index := FastIndexOf(fHardDefines,Name); // use sorted searching. is really fast
   if Index <> -1 then
@@ -546,7 +546,7 @@ begin
     Result := nil;
 end;
 
-procedure TCppPreprocessor.AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
+procedure TCppPreprocessor.AddDefineByParts(const Name, Args, Value: String; HardCoded: boolean);
 var
   Item: PDefine;
   idx: integer;
@@ -577,10 +577,10 @@ end;
 
 //todo: expand macros in the macro define!
 // input should omit the define word
-procedure TCppPreprocessor.GetDefineParts(const Input: AnsiString; var Name, Args, Value: AnsiString);
+procedure TCppPreprocessor.GetDefineParts(const Input: String; var Name, Args, Value: String);
 var
   I, Level, ArgStart: integer;
-  S: AnsiString;
+  S: String;
   IsFunction: boolean;
 begin
   S := TrimLeft(Input);
@@ -625,9 +625,9 @@ begin
   Value := TrimLeft(Copy(S, I + 1, MaxInt));
 end;
 
-procedure TCppPreprocessor.AddDefineByLine(const Line: AnsiString; HardCoded: boolean);
+procedure TCppPreprocessor.AddDefineByLine(const Line: String; HardCoded: boolean);
 var
-  Name, Args, Value, S: AnsiString;
+  Name, Args, Value, S: String;
 begin
   // Remove define
   S := TrimLeft(Copy(Line, Length('define') + 1, MaxInt));
@@ -657,7 +657,7 @@ begin
   fDefines.Sorted := True;
 end;
 
-procedure TCppPreprocessor.HandlePreprocessor(const Value: AnsiString);
+procedure TCppPreprocessor.HandlePreprocessor(const Value: String);
 begin
   if StartsStr('define', Value) then
     HandleDefine(Value)
@@ -670,7 +670,7 @@ begin
     HandleInclude(Value);
 end;
 
-procedure TCppPreprocessor.HandleDefine(const Line: AnsiString);
+procedure TCppPreprocessor.HandleDefine(const Line: String);
 begin
   if GetCurrentBranch then begin
     AddDefineByLine(Line, false);
@@ -678,10 +678,10 @@ begin
   end;
 end;
 
-procedure TCppPreprocessor.HandleUndefine(const Line: AnsiString);
+procedure TCppPreprocessor.HandleUndefine(const Line: String);
 var
   Define: PDefine;
-  Name: AnsiString;
+  Name: String;
   Index,idx,i: integer;
   DefineList:TList;
   files:TStringList;
@@ -716,14 +716,14 @@ begin
   end;
 end;
 
-procedure TCppPreprocessor.HandleBranch(const Line: AnsiString);
+procedure TCppPreprocessor.HandleBranch(const Line: String);
 var
-  Name, IfLine: AnsiString;
+  Name, IfLine: String;
   OldResult: boolean;
   I, Dummy: integer;
 
   // Should start on top of the opening char
-  function SkipBraces(const Line: AnsiString; var Index: integer; Step: integer = 1): boolean;
+  function SkipBraces(const Line: String; var Index: integer; Step: integer = 1): boolean;
   var
     Level: integer;
   begin
@@ -748,13 +748,13 @@ var
   end;
 
   // Expand any token that isn't a number
-  function ExpandDefines(Line: AnsiString): AnsiString;
+  function ExpandDefines(Line: String): String;
   var
     SearchPos, Head, Tail, NameStart, NameEnd: integer;
-    Name, Args, InsertValue: AnsiString;
+    Name, Args, InsertValue: String;
     Define: PDefine;
 
-    function ExpandFunction(FunctionDefine: PDefine; const ArgValueString: AnsiString): AnsiString;
+    function ExpandFunction(FunctionDefine: PDefine; const ArgValueString: String): String;
     var
       ArgNames, ArgValues: TStringList;
       I: integer;
@@ -766,8 +766,8 @@ var
       ArgNames := TStringList.Create;
       ArgValues := TStringList.Create;
       try
-        ExtractStrings([',', '(', ')'], [], PAnsiChar(FunctionDefine^.Args), ArgNames);
-        ExtractStrings([',', '(', ')'], [], PAnsiChar(ArgValueString), ArgValues); // extract from Line string
+        ExtractStrings([',', '(', ')'], [], pChar(FunctionDefine^.Args), ArgNames);
+        ExtractStrings([',', '(', ')'], [], pChar(ArgValueString), ArgValues); // extract from Line string
 
         // If the argument count matches up, replace names by values
         if ArgNames.Count = ArgValues.Count then begin
@@ -855,9 +855,9 @@ var
     Result := Line;
   end;
 
-  function EvaluateDefines(Line: AnsiString): AnsiString;
+  function EvaluateDefines(Line: String): String;
   var
-    S: AnsiString;
+    S: String;
     I, Head, Tail: integer;
     DefineResult, InvertResult: boolean;
   begin
@@ -907,13 +907,13 @@ var
     Result := Line;
   end;
 
-  function EvaluateExpression(Line: AnsiString): AnsiString;
+  function EvaluateExpression(Line: String): String;
   var
     Head, Tail, EquatStart, EquatEnd, OperatorPos: integer;
     LeftOpValue, RightOpValue, ResultValue: Int64;
-    LeftOp, RightOp, OperatorToken, ResultLine: AnsiString;
+    LeftOp, RightOp, OperatorToken, ResultLine: String;
 
-    function GetNextOperator(var Offset: integer): AnsiString;
+    function GetNextOperator(var Offset: integer): String;
     var
       I, PastOperatorEnd: integer;
     begin
@@ -1022,7 +1022,7 @@ var
     Result := Line;
   end;
 
-  function EvaluateIf(Line: AnsiString): boolean;
+  function EvaluateIf(Line: String): boolean;
   begin
     Line := ExpandDefines(Line); // replace FOO by numerical value of FOO
     Line := EvaluateDefines(Line); // replace all defined() by 1 or 0
@@ -1100,9 +1100,9 @@ begin
     RemoveCurrentBranch;
 end;
 
-procedure TCppPreprocessor.HandleInclude(const Line: AnsiString);
+procedure TCppPreprocessor.HandleInclude(const Line: String);
 var
-  FileName: AnsiString;
+  FileName: String;
 begin
   if not GetCurrentBranch then // we're skipping due to a branch failure
     Exit;
@@ -1118,12 +1118,12 @@ begin
   OpenInclude(FileName);
 end;
 
-function TCppPreprocessor.RemoveGCCAttributes(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+function TCppPreprocessor.RemoveGCCAttributes(const Line: String): String; //we only expand non-parameter macros here
 var
-  word:AnsiString;
+  word:String;
   i:integer;
   lenLine: integer;
-  newLine: AnsiString;
+  newLine: String;
 
   procedure RemoveGCCAttribute;
   var
@@ -1174,12 +1174,12 @@ begin
 end;
 
 { We also remove gcc's __attribtue__ here }
-function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+function TCppPreprocessor.ExpandMacros(const Line: String): String; //we only expand non-parameter macros here
 var
-  word:AnsiString;
+  word:String;
   i:integer;
   lenLine: integer;
-  newLIne: AnsiString;
+  newLIne: String;
 
   procedure ExpandMacro;
   var
@@ -1234,7 +1234,7 @@ begin
   Result := newLine;
 end;
 
-function TCppPreprocessor.RemoveSuffixes(const Input: AnsiString): AnsiString;
+function TCppPreprocessor.RemoveSuffixes(const Input: String): String;
 var
   I: integer;
 begin
@@ -1249,7 +1249,7 @@ begin
   end;
 end;
 
-function TCppPreprocessor.GetFileIncludesEntry(const FileName: AnsiString): PFileIncludes;
+function TCppPreprocessor.GetFileIncludesEntry(const FileName: String): PFileIncludes;
 var
   I: integer;
 begin
@@ -1262,7 +1262,7 @@ end;
 
 procedure TCppPreprocessor.PreprocessBuffer;
 var
-  S: AnsiString;
+  S: String;
 begin
   while fIncludes.Count > 0 do begin
     repeat
@@ -1277,7 +1277,7 @@ begin
   end;
 end;
 
-procedure TCppPreprocessor.PreprocessStream(const FileName: AnsiString; Stream: TMemoryStream);
+procedure TCppPreprocessor.PreprocessStream(const FileName: String; Stream: TMemoryStream);
 begin
   fFileName:=FileName;
   Reset;
@@ -1285,7 +1285,7 @@ begin
   PreprocessBuffer;
 end;
 
-procedure TCppPreprocessor.PreprocessFile(const FileName: AnsiString);
+procedure TCppPreprocessor.PreprocessFile(const FileName: String);
 begin
   fFileName:=FileName;
   Reset;
@@ -1297,12 +1297,12 @@ begin
   //fResult.SaveToFile('C:\TCppPreprocessorResult' + ExtractFileName(FileName) + '.txt');
 end;
 
-function TCppPreprocessor.GetResult: AnsiString;
+function TCppPreprocessor.GetResult: String;
 begin
   Result := fResult.Text; // sloooow
 end;
 
-procedure TCppPreprocessor.DumpIncludesListTo(FileName:ansiString);
+procedure TCppPreprocessor.DumpIncludesListTo(FileName:String);
 var
   i:integer;
   t:integer;
@@ -1330,7 +1330,7 @@ begin
   end;
 end;
 
-procedure TCppPreprocessor.DumpDefinesTo(FileName:ansiString);
+procedure TCppPreprocessor.DumpDefinesTo(FileName:String);
 var
   i:integer;
   define:PDefine;
@@ -1347,7 +1347,7 @@ begin
   end;
 end;
 
-procedure TCppPreprocessor.InvalidDefinesInFile(const FileName:AnsiString);
+procedure TCppPreprocessor.InvalidDefinesInFile(const FileName:String);
 var
   i,idx:integer;
   DefineList:TList;

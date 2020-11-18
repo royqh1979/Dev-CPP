@@ -54,7 +54,7 @@ nWord = {$ifdef OS_BigMem}Integer;{$else}Word;{$endif}
 pLongint = ^Longint;
 
 {$ifndef __GPC__}
-TString = AnsiString;
+TString = String;
 {$endif}
 
 CONST
@@ -212,30 +212,30 @@ CONST
 
 { the various unzip methods }
 CONST
-Unzipmethods : ARRAY [ 0..9 ] OF PAnsiChar =
+Unzipmethods : ARRAY [ 0..9 ] OF pChar =
   ( 'stored', 'shrunk', 'reduced 1', 'reduced 2', 'reduced 3',
    'reduced 4', 'imploded', 'tokenized', 'deflated', 'skipped' );
 
 { unzip actions being undertaken }
 CONST
-UnzipActions : ARRAY [ 0..9 ] OF PAnsiChar =
+UnzipActions : ARRAY [ 0..9 ] OF pChar =
   ( 'copying', 'unshrinking', 'unreducing 1', 'unreducing 2', 'unreducing 3',
    'unreducing 4', 'exploding', 'un-tokenizing', 'inflating', 'skipping' );
 
 { rudimentary "uppercase" function }
-FUNCTION Upper ( s : AnsiString ) : TString;
+FUNCTION Upper ( s : String ) : TString;
 
 { rudimentary "lowercase" function }
-FUNCTION Lower ( s : AnsiString ) : TString;
+FUNCTION Lower ( s : String ) : TString;
 
 { remove path and return filename only }
-FUNCTION StripPath ( CONST s : AnsiString ) : TString;
+FUNCTION StripPath ( CONST s : String ) : TString;
 
 { Calculate the ratio between newsize and orgsize }
 FUNCTION CalcRatio ( newsize, orgsize : longint ) : Longint;
 
 { Convert Path separators to correct ones for operating system }
-PROCEDURE ConvertPath ( p : PAnsiChar );
+PROCEDURE ConvertPath ( p : pChar );
 
 VAR
 LowcaseFileNames : Boolean; { set to TRUE to convert the names of files (not
@@ -253,14 +253,14 @@ IMPLEMENTATION
  {$endif Delphi}
 {$endif}
 
-FUNCTION Upper ( s : AnsiString ) : TString;
+FUNCTION Upper ( s : String ) : TString;
 VAR i : integer;
 BEGIN
    FOR i := 1 TO length ( s ) DO s [ i ] := Upcase ( s [ i ] );
    Upper := s;
 END;
 
-FUNCTION Lower ( s : AnsiString ) : TString;
+FUNCTION Lower ( s : String ) : TString;
 VAR i, j : integer;
 BEGIN
    FOR i := 1 TO length ( s )
@@ -272,7 +272,7 @@ BEGIN
    Lower := s;
 END;
 
-FUNCTION StripPath ( CONST s : AnsiString ) : TString;
+FUNCTION StripPath ( CONST s : String ) : TString;
 VAR
 i, j : integer;
 BEGIN
@@ -300,7 +300,7 @@ BEGIN
    CalcRatio := 100 - ( ( newsize * 100 ) div orgsize );
 END;
 
-PROCEDURE ConvertPath ( p : PAnsiChar );
+PROCEDURE ConvertPath ( p : pChar );
 VAR
   i, Len : longint;
 BEGIN

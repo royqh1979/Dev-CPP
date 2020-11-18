@@ -101,11 +101,11 @@ end;
 
 procedure TProfileAnalysisForm.DoFlat;
 var
-  Params: AnsiString;
-  Dir: AnsiString;
-  FileName: AnsiString;
+  Params: String;
+  Dir: String;
+  FileName: String;
   I, J: integer;
-  Line, Phrase: AnsiString;
+  Line, Phrase: String;
   spacepos: integer;
   buffer: TStringList;
   addeditem: TListItem;
@@ -196,10 +196,10 @@ end;
 
 procedure TProfileAnalysisForm.DoGraph;
 var
-  Params: AnsiString;
-  Dir: AnsiString;
+  Params: String;
+  Dir: String;
   I, J, startcol: integer;
-  Line, Phrase: AnsiString;
+  Line, Phrase: String;
   spacepos: integer;
   buffer: TStringList;
   addeditem: TListItem;
@@ -425,7 +425,7 @@ end;
 
 procedure TProfileAnalysisForm.CommandUpdate(Sender: TObject);
 var
-  assembly: AnsiString;
+  assembly: String;
 begin
   if not chkCustom.Checked then begin
     assembly := devCompilerSets.CompilationSet.gprofName;

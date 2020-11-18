@@ -28,7 +28,7 @@ uses
 type
   PMRUItem = ^TMRUItem;
   TMRUItem = record
-    FileName: AnsiString;
+    FileName: String;
     MenuItem: TMenuItem;
     Visible: boolean; // not all items in the list are shown
   end;
@@ -81,8 +81,8 @@ type
     procedure SetMRUMenu(value: TMenuItem);
   public
     procedure RebuildMRU;
-    procedure AddtoHistory(const s: AnsiString);
-    procedure RemoveFromHistory(const s: AnsiString);
+    procedure AddtoHistory(const s: String);
+    procedure RemoveFromHistory(const s: String);
     procedure ClearHistory;
     property MRUMenu: TMenuItem read fMRUMenu write SetMRUMenu;
     property MRUClick: TNotifyEvent read fMRUClick write fMRUClick;
@@ -93,7 +93,7 @@ type
     function GetNewFileNumber: integer;
     procedure InitHighlighterFirstTime(index: integer);
     procedure UpdateHighlighter;
-    function GetHighlighter(const FileName: AnsiString): TSynCustomHighlighter;
+    function GetHighlighter(const FileName: String): TSynCustomHighlighter;
   end;
 
 var
@@ -132,7 +132,7 @@ begin
 end;
 
 procedure TdmMain.InitHighlighterFirstTime(index: integer);
-  procedure AddSpecial(AttrName: AnsiString; Offset: integer);
+  procedure AddSpecial(AttrName: String; Offset: integer);
   var
     a: integer;
   begin
@@ -175,7 +175,7 @@ end;
 procedure TdmMain.UpdateHighlighter;
 var
   Attr: TSynHighlighterAttributes;
-  aName: AnsiString;
+  aName: String;
   a,
     idx: integer;
 begin
@@ -205,9 +205,9 @@ begin
   end;
 end;
 
-function TdmMain.GetHighlighter(const FileName: AnsiString): TSynCustomHighlighter;
+function TdmMain.GetHighlighter(const FileName: String): TSynCustomHighlighter;
 var
-  ext: AnsiString;
+  ext: String;
   idx: integer;
   tmp: TStrings;
 begin
@@ -274,7 +274,7 @@ begin
   end;
 end;
 
-procedure TdmMain.AddtoHistory(const s: AnsiString);
+procedure TdmMain.AddtoHistory(const s: String);
 var
   I: integer;
   newitem: PMRUItem;
@@ -304,7 +304,7 @@ begin
   RebuildMRU;
 end;
 
-procedure TdmMain.RemoveFromHistory(const s: AnsiString);
+procedure TdmMain.RemoveFromHistory(const s: String);
 var
   I: integer;
 begin
@@ -354,10 +354,10 @@ end;
 
 procedure TdmMain.LoadSymbolUsage;
 var
-  filename:AnsiString;
+  filename:String;
   i:integer;
   KeyList:TStringList;
-  key:ansiString;
+  key:String;
 begin
   filename := devDirs.Config + DEV_SYMBOLUSAGE_INI;
 
@@ -381,7 +381,7 @@ end;
 
 procedure TdmMain.SaveSymbolUsage;
 var
-  filename:AnsiString;
+  filename:String;
   i : integer;
 begin
   filename := devDirs.Config + DEV_SYMBOLUSAGE_INI;

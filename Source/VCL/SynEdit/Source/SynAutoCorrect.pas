@@ -98,22 +98,7 @@ unit SynAutoCorrect;
 interface
 
 uses
-{$IFDEF SYN_WIN32} //Borland translation of Qt doesn't include Char handling
   Windows,
-{$ELSE}
-  Libc,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QControls,
-  QForms,
-  QDialogs,
-  Types,
-  QSynEditMiscProcs,
-  QSynEditTypes,
-  QSynEditKeyCmds,
-  QSynEdit,
-{$ELSE}
   Registry,
   Messages,
   Graphics,
@@ -125,7 +110,6 @@ uses
   SynEditKeyCmds,
   SynEdit,
   SynEditMiscClasses,   //TBetterRegistry
-{$ENDIF}
   Classes,
   SysUtils,
   IniFiles;
@@ -238,16 +222,16 @@ const
 
 constructor TCustomSynAutoCorrect.Create(AOwner: TComponent);
 var
-  i: char;
-
+  i: integer;
+  ch: Char;
 begin
   inherited Create(AOwner);
 
-{$IFDEF SYN_WIN32}
-  for i := #33 to #255 do if IsCharAlphaNumeric(i) then Include(AC_IdentChars, i);
-{$ELSE}
-  for i := #33 to #255 do if isalpha(Ord(i)) <> 0 then Include(AC_IdentChars, i);
-{$ENDIF}
+  for i := 33 to 255 do begin
+    ch := chr(i);
+    if IsCharAlphaNumeric(ch) then
+      AC_IdentChars:=AC_IdentChars+[ch];
+  end;
 
   FEnabled := True;
   FItems := TStringList.Create;
@@ -770,9 +754,7 @@ begin
     begin
       Editor.RemoveMouseDownHandler( MouseDownHandler );
       Editor.UnregisterCommandHandler( KeyboardHandler );
-{$IFDEF SYN_COMPILER_5_UP}
       Editor.RemoveFreeNotification(Self);
-{$ENDIF}
     end;
 
     FEditor := Value;

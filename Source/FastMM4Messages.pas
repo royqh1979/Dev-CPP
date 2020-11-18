@@ -98,7 +98,7 @@ const
 {$endif}
     + ': ';
   BytesMessage = ' bytes: ';
-  AnsiStringBlockMessage = 'AnsiString';
+  AnsiStringBlockMessage = 'String';
   UnicodeStringBlockMessage = 'UnicodeString';
   LeakMessageFooter = #13#10
 {$ifndef HideMemoryLeakHintMessage}

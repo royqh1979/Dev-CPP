@@ -28,7 +28,7 @@ type
 
   TCodeInsList = class(TObject)
   private
-    fFile: AnsiString;
+    fFile: String;
     fList: TList;
     procedure SetItem(index: integer; Value: PCodeIns);
     function GetItem(index: integer): PCodeIns;
@@ -40,7 +40,7 @@ type
     procedure LoadCode;
     procedure SaveCode;
     function AddItem(Value: PCodeIns): integer; overload;
-    procedure AddItem(const menutext, prefix,description, code: AnsiString; section: integer); overload;
+    procedure AddItem(const menutext, prefix,description, code: String; section: integer); overload;
     procedure Delete(index: integer);
     procedure Clear;
     property ItemList: TList read fList;
@@ -77,7 +77,7 @@ begin
   result := fList.Add(Value);
 end;
 
-procedure TCodeInsList.AddItem(const menutext, prefix,description, code: AnsiString; section: integer);
+procedure TCodeInsList.AddItem(const menutext, prefix,description, code: String; section: integer);
 var
   assembleditem: PCodeIns;
 begin
@@ -272,7 +272,7 @@ end;
 procedure TCodeInsList.SaveCode;
 var
   I: integer;
-  section: AnsiString;
+  section: String;
   item: PCodeIns;
 begin
   DeleteFile(fFile);

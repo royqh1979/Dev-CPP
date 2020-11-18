@@ -114,17 +114,13 @@ type
     procedure PutRange(Index: integer; ARange: TSynEditRange);
   protected
     function Get(Index: integer): string; override;
-    function GetCapacity: integer;
-{$IFDEF SYN_COMPILER_3_UP} override;
-{$ENDIF}
+    function GetCapacity: integer; override;
     function GetCount: integer; override;
     function GetObject(Index: integer): TObject; override;
     function GetTextStr: string; override;
     procedure Put(Index: integer; const S: string); override;
     procedure PutObject(Index: integer; AObject: TObject); override;
-    procedure SetCapacity(NewCapacity: integer);
-{$IFDEF SYN_COMPILER_3_UP} override;
-{$ENDIF}
+    procedure SetCapacity(NewCapacity: integer); override;
     procedure SetTabWidth(Value: integer);
     procedure SetUpdateState(Updating: Boolean); override;
   public
@@ -252,11 +248,7 @@ type
 
 implementation
 
-{$IFDEF SYN_COMPILER_3_UP}
 resourcestring
-{$ELSE}
-const
-{$ENDIF}
   SListIndexOutOfBounds = 'Invalid stringlist index %d';
   SInvalidCapacity = 'Stringlist capacity cannot be smaller than count';
 

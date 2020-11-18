@@ -55,7 +55,7 @@ type
     fSubFoldRegions: TFoldRegions;
     fOpen: Char;
     fClose: Char;
-    fHighlight: AnsiString;
+    fHighlight: String;
     fOpenLength: Integer;
     fCloseLength: Integer;
   public
@@ -67,7 +67,7 @@ type
     property Close: Char read fClose write fClose;
     property OpenLength: Integer read fOpenLength;
     property CloseLength: Integer read fCloseLength;
-    property Highlight: AnsiString read fHighlight write fHighlight;
+    property Highlight: String read fHighlight write fHighlight;
   end;
 
   TFoldRegions = class(TCollection)
@@ -76,7 +76,7 @@ type
   public
     constructor Create(ItemClass: TCollectionItemClass);
     destructor Destroy; override;
-    function Add(AAddEnding: boolean; AOpen, AClose: Char; AHighlight: AnsiString): TFoldRegionItem;
+    function Add(AAddEnding: boolean; AOpen, AClose: Char; AHighlight: String): TFoldRegionItem;
 
     property Items[Index: Integer]: TFoldRegionItem read GetItem; default;
   end;
@@ -251,7 +251,7 @@ end;
 
 { TFoldRegions }
 
-function TFoldRegions.Add(AAddEnding: boolean; AOpen, AClose: Char; AHighlight: AnsiString): TFoldRegionItem;
+function TFoldRegions.Add(AAddEnding: boolean; AOpen, AClose: Char; AHighlight: String): TFoldRegionItem;
 begin
   Result := TFoldRegionItem(inherited Add);
   with Result do begin

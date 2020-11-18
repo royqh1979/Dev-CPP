@@ -52,18 +52,10 @@ unit SynHighlighterPython;
 interface
 
 uses
-{$IFDEF SYN_COMPILER_6_UP}
   IniFiles, //THashedStringList
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-{$ELSE}
   Graphics,
   SynEditHighlighter,
   SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -343,17 +335,7 @@ begin
 
   // Check to see if it is a keyword
   SetString (s, fToIdent, fStringLen);
-  {$IFDEF SYN_COMPILER_6_UP}
   index := FKeywords.IndexOf (s);
-  {$ELSE}
-  if FKeywords.Find (s, index) then begin
-    // TStringList is not case sensitive!
-    if s <> FKeywords[index] then
-      index := -1;
-  end else begin
-    index := -1;
-  end; // if
-  {$ENDIF}
 
   if index <> -1 then
     Result := TtkTokenKind (FKeywords.Objects[index])
@@ -403,15 +385,8 @@ constructor TSynPythonSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   
-  {$IFDEF SYN_COMPILER_6_UP}
   FKeywords := THashedStringList.Create;
   FKeywords.CaseSensitive := True;
-  {$ELSE}
-  // Older compilers do not ave hashed string list - so use less efficient
-  //   TStringList instead - but keep it sorted
-  FKeywords := TStringList.Create;
-  FKeywords.Sorted := True; 
-  {$ENDIF}
   FKeywords.Duplicates := dupError;
   FKeywords.Assign (GetKeywordIdentifiers);
 

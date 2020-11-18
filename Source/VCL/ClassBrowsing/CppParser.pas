@@ -37,7 +37,7 @@ type
     fIndex: integer;
     fIsHeader: boolean;
     fIsSystemHeader: boolean;
-    fCurrentFile: AnsiString;
+    fCurrentFile: String;
     { stack list , each element is a list of one/many scopes(like intypedef struct  s1,s2;}
     { It's used for store scope nesting infos }
     fCurrentScope: TList;  //TList<TList<PStatement>>
@@ -62,7 +62,7 @@ type
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
     fParseLocalHeaders: boolean;
     fParseGlobalHeaders: boolean;
-    fProjectDir: AnsiString;
+    fProjectDir: String;
     fOnBusy: TNotifyEvent;
     fOnUpdate: TNotifyEvent;
     fOnTotalProgress: TProgressEvent;
@@ -82,12 +82,12 @@ type
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
       Parents: TList;
-      const FileName: AnsiString;
-      const HintText: AnsiString;
-      const aType: AnsiString; // "Type" is already in use
-      const Command: AnsiString;
-      const Args: AnsiString;
-      const Value: AnsiString;
+      const FileName: String;
+      const HintText: String;
+      const aType: String; // "Type" is already in use
+      const Command: String;
+      const Args: String;
+      const Value: String;
       Line: integer;
       Kind: TStatementKind;
       Scope: TStatementScope;
@@ -97,12 +97,12 @@ type
       isStatic: boolean): PStatement; // TODO: InheritanceList not supported
     function AddStatement(
       Parent: PStatement;
-      const FileName: AnsiString;
-      const HintText: AnsiString;
-      const aType: AnsiString; // "Type" is already in use
-      const Command: AnsiString;
-      const Args: AnsiString;
-      const Value: AnsiString;
+      const FileName: String;
+      const HintText: String;
+      const aType: String; // "Type" is already in use
+      const Command: String;
+      const Args: String;
+      const Value: String;
       Line: integer;
       Kind: TStatementKind;
       Scope: TStatementScope;
@@ -114,7 +114,7 @@ type
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetLastCurrentScope: PStatement; // gets last item from last level
     function GetCurrentScopeLevel: TList;
-    function IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
+    function IsInCurrentScopeLevel(const Command: String): PStatement;
     procedure AddSoloScopeLevel(Statement: PStatement); // adds new solo level
     procedure AddMultiScopeLevel(StatementList: TList); // adds new multi level
     procedure RemoveScopeLevel; // removes level
@@ -129,7 +129,7 @@ type
     function CheckForTypedefEnum: boolean;
     function CheckForTypedefStruct: boolean;
     function CheckForStructs: boolean;
-    function CheckForMethod(var sType, sName, sArgs: AnsiString;
+    function CheckForMethod(var sType, sName, sArgs: String;
       var IsStatic:boolean; var IsFriend:boolean): boolean; // caching of results
     function CheckForScope: boolean;
     function CheckForVar: boolean;
@@ -138,8 +138,8 @@ type
     procedure HandlePreprocessor;
     procedure HandleOtherTypedefs;
     procedure HandleStructs(IsTypedef: boolean = False);
-    procedure HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean;IsFriend:boolean);
-    procedure ScanMethodArgs(const ArgStr: AnsiString; const Filename: AnsiString; Line: Integer);
+    procedure HandleMethod(const sType, sName, sArgs: String; isStatic: boolean;IsFriend:boolean);
+    procedure ScanMethodArgs(const ArgStr: String; const Filename: String; Line: Integer);
     procedure HandleScope;
     procedure HandleKeyword;
     procedure HandleVar;
@@ -147,70 +147,70 @@ type
     procedure HandleNamespace;
     procedure HandleUsing;
     function HandleStatement: boolean;
-    procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
+    procedure InternalParse(const FileName: String; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
     procedure DeleteTemporaries;
-    function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
-//    function FindMacroDefine(const Command: AnsiString): PStatement;
-    function expandMacroType(const name:AnsiString): AnsiString;
+    function FindFileIncludes(const Filename: String; DeleteIt: boolean = False): PFileIncludes;
+//    function FindMacroDefine(const Command: String): PStatement;
+    function expandMacroType(const name:String): String;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
-    function GetIncompleteClass(const Command: AnsiString): PStatement;
+    function GetIncompleteClass(const Command: String): PStatement;
     procedure ReProcessInheritance;
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
   public
-    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
-    function IsProjectHeaderFile(const FileName: AnsiString): boolean;
+    function IsSystemHeaderFile(const FileName: String): boolean;
+    function IsProjectHeaderFile(const FileName: String): boolean;
     procedure ResetDefines;
-    procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
-    procedure AddHardDefineByLine(const Line: AnsiString);
-    procedure InvalidateFile(const FileName: AnsiString);
-    procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
-    procedure GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
-    function IsCfile(const Filename: AnsiString): boolean;
-    function IsHfile(const Filename: AnsiString): boolean;
-    procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
+    procedure AddHardDefineByParts(const Name, Args, Value: String);
+    procedure AddHardDefineByLine(const Line: String);
+    procedure InvalidateFile(const FileName: String);
+    procedure GetFileIncludes(const Filename: String; var List: TStringList);
+    procedure GetFileUsings(const Filename: String; var List: TDevStringList);
+    function IsCfile(const Filename: String): boolean;
+    function IsHfile(const Filename: String): boolean;
+    procedure GetSourcePair(const FName: String; var CFile, HFile: String);
     procedure GetClassesList(var List: TStringList);
     function SuggestMemberInsertionLine(ParentStatement: PStatement; Scope: TStatementClassScope; var AddScopeStr:
       boolean):
       integer;
-    function GetSystemHeaderFileName(const FileName: AnsiString): AnsiString; // <file.h>
-    function GetProjectHeaderFileName(const FileName: AnsiString): AnsiString; // <file.h>
-    function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString; // "file.h"
-    function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
-    function IsIncludeLine(const Line: AnsiString): boolean;
+    function GetSystemHeaderFileName(const FileName: String): String; // <file.h>
+    function GetProjectHeaderFileName(const FileName: String): String; // <file.h>
+    function GetLocalHeaderFileName(const RelativeTo, FileName: String): String; // "file.h"
+    function GetHeaderFileName(const RelativeTo, Line: String): String; // both
+    function IsIncludeLine(const Line: String): boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure ParseFileList;
-    procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
+    procedure ParseFile(const FileName: String; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
       boolean = True; Stream: TMemoryStream = nil);
-    function StatementKindStr(Value: TStatementKind): AnsiString;
-    function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
-    function FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
+    function StatementKindStr(Value: TStatementKind): String;
+    function StatementClassScopeStr(Value: TStatementClassScope): String;
+    function FetchPendingDeclaration(const Command, Args: String; Kind: TStatementKind; Parent: PStatement):
       PStatement;
     procedure Reset;
     procedure ClearIncludePaths;
     procedure ClearProjectIncludePaths;
     procedure ClearProjectFiles;
-    procedure AddIncludePath(const Value: AnsiString);
-    procedure AddProjectIncludePath(const Value: AnsiString);
-    procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
-    function PrettyPrintStatement(Statement: PStatement): AnsiString;
-    procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
-    function FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
-    function FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement; overload;
-    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
+    procedure AddIncludePath(const Value: String);
+    procedure AddProjectIncludePath(const Value: String);
+    procedure AddFileToScan(Value: String; InProject: boolean = False);
+    function PrettyPrintStatement(Statement: PStatement): String;
+    procedure FillListOfFunctions(const Full: String; List: TStringList);
+    function FindAndScanBlockAt(const Filename: String; Row: integer; Stream: TMemoryStream): PStatement;
+    function FindStatementOf(FileName, Phrase: String; Row: integer; Stream: TMemoryStream): PStatement; overload;
+    function FindStatementOf(FileName, Phrase: String; CurrentClass: PStatement): PStatement; overload;
     {Find statement starting from startScope}
-    function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
-    function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
-    function GetClass(const Phrase: AnsiString): AnsiString;
-    function GetMember(const Phrase: AnsiString): AnsiString;
-    function GetOperator(const Phrase: AnsiString): AnsiString;
-    function FindLastOperator(const Phrase: AnsiString): integer;
-    function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
-    procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
+    function FindStatementStartingFrom(const FileName, Phrase: String; startScope: PStatement): PStatement;
+    function FindTypeDefinitionOf(const FileName: String;const aType: String; CurrentClass: PStatement): PStatement;
+    function GetClass(const Phrase: String): String;
+    function GetMember(const Phrase: String): String;
+    function GetOperator(const Phrase: String): String;
+    function FindLastOperator(const Phrase: String): integer;
+    function FindNamespace(const name:String):TList; // return a list of PSTATEMENTS (of the namespace)
+    procedure Freeze(FileName:String; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
-    procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
-    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isLocal:boolean=False):PStatement;
+    procedure getFullNameSpace(const Phrase:String; var namespace:String; var member:String);
+    function FindMemberOfStatement(const Phrase: String; ScopeStatement: PStatement; isLocal:boolean=False):PStatement;
   published
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
@@ -222,7 +222,7 @@ type
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property ScannedFiles: TStringList read fScannedFiles;
-    property ProjectDir: AnsiString read fProjectDir write fProjectDir;
+    property ProjectDir: String read fProjectDir write fProjectDir;
     property OnStartParsing: TNotifyEvent read fOnStartParsing write fOnStartParsing;
     property OnEndParsing: TProgressEndEvent read fOnEndParsing write fOnEndParsing;
     property FilesToScan: TStringList read fFilesToScan;
@@ -311,7 +311,7 @@ begin
   inherited Destroy;
 end;
 
-function TCppParser.StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
+function TCppParser.StatementClassScopeStr(Value: TStatementClassScope): String;
 begin
   case Value of
     scsPublic: Result := 'public';
@@ -321,7 +321,7 @@ begin
   end;
 end;
 
-function TCppParser.StatementKindStr(Value: TStatementKind): AnsiString;
+function TCppParser.StatementKindStr(Value: TStatementKind): String;
 begin
   case Value of
 //    skPreprocessor: Result := 'preprocessor';
@@ -369,7 +369,7 @@ begin
 end;
 
 {
-function TCppParser.FindMacroDefine(const Command:AnsiString):PStatement;
+function TCppParser.FindMacroDefine(const Command:String):PStatement;
 var
   Statement: PStatement;
   I: integer;
@@ -385,7 +385,7 @@ begin
   Result := nil;
 end;
 }
-function TCppParser.expandMacroType(const name:AnsiString): AnsiString;
+function TCppParser.expandMacroType(const name:String): String;
 //var
 //  Statement: PStatement;
 begin
@@ -408,20 +408,20 @@ end;
 
 // When finding declaration/definition pairs only search the separate incomplete pair list
 
-function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
+function TCppParser.FetchPendingDeclaration(const Command, Args: String; Kind: TStatementKind; Parent: PStatement):
   PStatement;
 var
   Statement: PStatement;
   I,j: integer;
   lst1,lst2:TStringList;
   lst1Getted:boolean;
-  word1,word2:AnsiString;
+  word1,word2:String;
   isSame:boolean;
 
-  procedure ParseArgs(const Args:AnsiString; lst:TStringList);
+  procedure ParseArgs(const Args:String; lst:TStringList);
   var
     argsLen,i:integer;
-    word:AnsiString;
+    word:String;
   begin
     lst.Clear;
     argsLen := Length(Args);
@@ -492,7 +492,7 @@ end;
 
 // When finding a parent class for a function definition, only search classes of incomplete decl/def pairs
 
-function TCppParser.GetIncompleteClass(const Command: AnsiString): PStatement;
+function TCppParser.GetIncompleteClass(const Command: String): PStatement;
 var
   Statement, ParentStatement: PStatement;
   I: integer;
@@ -514,12 +514,12 @@ end;
 
 function TCppParser.AddChildStatement(
   Parents: TList;
-  const FileName: AnsiString;
-  const HintText: AnsiString;
-  const aType: AnsiString; // "Type" is already in use
-  const Command: AnsiString;
-  const Args: AnsiString;
-  const Value: AnsiString;
+  const FileName: String;
+  const HintText: String;
+  const aType: String; // "Type" is already in use
+  const Command: String;
+  const Args: String;
+  const Value: String;
   Line: integer;
   Kind: TStatementKind;
   Scope: TStatementScope;
@@ -571,12 +571,12 @@ end;
 
 function TCppParser.AddStatement(
   Parent: PStatement;
-  const FileName: AnsiString;
-  const HintText: AnsiString;
-  const aType: AnsiString; // "Type" is already in use
-  const Command: AnsiString;
-  const Args: AnsiString;
-  const Value: AnsiString;
+  const FileName: String;
+  const HintText: String;
+  const aType: String; // "Type" is already in use
+  const Command: String;
+  const Args: String;
+  const Value: String;
   Line: integer;
   Kind: TStatementKind;
   Scope: TStatementScope;
@@ -588,7 +588,7 @@ function TCppParser.AddStatement(
 var
   Declaration: PStatement;
   //NewKind: TStatementKind;
-  NewType, NewCommand: AnsiString;
+  NewType, NewCommand: String;
   node: PStatementNode;
   fileIncludes1:PFileIncludes;
   //t,lenCmd:integer;
@@ -770,12 +770,12 @@ begin
   end;
 end;
 
-function TCppParser.IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
+function TCppParser.IsInCurrentScopeLevel(const Command: String): PStatement;
 var
   CurrentScopeLevel: TList;
   I: integer;
   Statement: PStatement;
-  //s:AnsiString;
+  //s:String;
 begin
   Result := nil;
   CurrentScopeLevel := GetCurrentScopeLevel;
@@ -880,7 +880,7 @@ var
   Statement: PStatement;
   inheritScopeType: TStatementClassScope;
   lastInheritScopeType : TStatementClassScope;
-  basename: AnsiString;
+  basename: String;
   
   function CheckForInheritScopeType(Index: integer): TStatementClassScope;
   begin
@@ -1042,13 +1042,13 @@ begin
   end;
 end;
 
-function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;
+function TCppParser.CheckForMethod(var sType, sName, sArgs: String;
   var isStatic:boolean;var IsFriend:boolean): boolean;
 var
   CurrentScopeLevel: TList;
   fIndexBackup, DelimPos,pos1: integer;
   bTypeOK, bNameOK, bArgsOK: boolean;
-  s:AnsiString;
+  s:String;
 begin
 
   // Function template:
@@ -1217,7 +1217,7 @@ end;
 
 procedure TCppParser.HandleOtherTypedefs;
 var
-  NewType, OldType: AnsiString;
+  NewType, OldType: String;
   startLine: integer;
   p:integer;
 begin
@@ -1329,7 +1329,7 @@ end;
 procedure TCppParser.HandlePreprocessor;
 var
   DelimPos, Line: Integer;
-  S, Name, Args, Value, HintText: AnsiString;
+  S, Name, Args, Value, HintText: String;
 begin
   if StartsStr('#include ', fTokenizer[fIndex]^.Text) then begin // start of new file
     // format: #include fullfilename:line
@@ -1393,7 +1393,7 @@ end;
 procedure TCppParser.HandleUsing;
 var
   scopeStatement: PStatement;
-  usingName,fullname: AnsiString;
+  usingName,fullname: String;
   usingList : TStringList;
   i: integer;
   fileInfo:PFileIncludes;
@@ -1438,7 +1438,7 @@ end;
 
 procedure TCppParser.HandleNamespace;
 var
-  Command, aliasName: AnsiString;
+  Command, aliasName: String;
   NamespaceStatement: PStatement;
   startLine: integer;
 begin
@@ -1502,7 +1502,7 @@ end;
 
 procedure TCppParser.HandleStructs(IsTypedef: boolean = False);
 var
-  Command, Prefix, OldType, NewType: AnsiString;
+  Command, Prefix, OldType, NewType: String;
   I: integer;
   IsStruct: boolean;
   IsFriend: boolean;
@@ -1713,12 +1713,12 @@ begin
   end;
 end;
 
-procedure TCppParser.HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean; IsFriend:boolean);
+procedure TCppParser.HandleMethod(const sType, sName, sArgs: String; isStatic: boolean; IsFriend:boolean);
 var
   IsValid, IsDeclaration: boolean;
   I, DelimPos: integer;
   FunctionKind: TStatementKind;
-  ParentClassName, ScopelessName: AnsiString;
+  ParentClassName, ScopelessName: String;
   FunctionClass: PStatement;
   startLine : integer;
 
@@ -1913,7 +1913,7 @@ end;
 
 procedure TCppParser.HandleVar;
 var
-  LastType, Args, Cmd, S: AnsiString;
+  LastType, Args, Cmd, S: String;
   IsFunctionPointer: boolean;
   IsStatic : boolean;
 begin
@@ -2035,10 +2035,10 @@ end;
 
 procedure TCppParser.HandleEnum;
 var
-  LastType: AnsiString;
-  Args: AnsiString;
-  Cmd: AnsiString;
-  EnumName: AnsiString;
+  LastType: String;
+  Args: String;
+  Cmd: String;
+  EnumName: String;
   I: integer;
   startLine: integer;
 begin
@@ -2129,7 +2129,7 @@ end;
 
 function TCppParser.HandleStatement: boolean;
 var
-  S1, S2, S3: AnsiString;
+  S1, S2, S3: String;
   isStatic,isFriend: boolean;
 begin
   if fTokenizer[fIndex]^.Text[1] = '{' then begin
@@ -2173,7 +2173,7 @@ begin
   Result := fIndex < fTokenizer.Tokens.Count;
 end;
 
-procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream =
+procedure TCppParser.InternalParse(const FileName: String; ManualUpdate: boolean = False; Stream: TMemoryStream =
   nil);
 var
   i: integer;
@@ -2223,7 +2223,7 @@ begin
 
   // Tokenize the preprocessed buffer file
   try
-    fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+    fTokenizer.TokenizeBuffer(pChar(fPreprocessor.Result));
     if fTokenizer.Tokens.Count = 0 then begin
       fPreprocessor.Reset;
       fTokenizer.Reset;
@@ -2366,32 +2366,32 @@ begin
   end;
 end;
 
-function TCppParser.GetSystemHeaderFileName(const FileName: AnsiString): AnsiString;
+function TCppParser.GetSystemHeaderFileName(const FileName: String): String;
 begin
   Result := cbutils.GetSystemHeaderFileName(FileName, fIncludePaths);
 end;
 
-function TCppParser.GetProjectHeaderFileName(const FileName: AnsiString): AnsiString;
+function TCppParser.GetProjectHeaderFileName(const FileName: String): String;
 begin
   Result := cbutils.GetSystemHeaderFileName(FileName, fIncludePaths);
 end;
 
-function TCppParser.GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString;
+function TCppParser.GetLocalHeaderFileName(const RelativeTo, FileName: String): String;
 begin
   Result := cbutils.GetLocalHeaderFileName(RelativeTo, FileName);
 end;
 
-function TCppParser.GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString;
+function TCppParser.GetHeaderFileName(const RelativeTo, Line: String): String;
 begin
   Result := cbutils.GetHeaderFileName(RelativeTo, Line, fIncludePaths, fProjectIncludePaths);
 end;
 
-function TCppParser.IsIncludeLine(const Line: AnsiString): boolean;
+function TCppParser.IsIncludeLine(const Line: String): boolean;
 begin
   Result := cbutils.IsIncludeLine(Line);
 end;
 
-procedure TCppParser.AddFileToScan(Value: AnsiString; InProject: boolean);
+procedure TCppParser.AddFileToScan(Value: String; InProject: boolean);
 begin
   Value := StringReplace(Value, '/', '\', [rfReplaceAll]); // only accept full file names
 
@@ -2406,18 +2406,18 @@ begin
       fFilesToScan.Add(Value);
 end;
 
-procedure TCppParser.AddIncludePath(const Value: AnsiString);
+procedure TCppParser.AddIncludePath(const Value: String);
 var
-  S: AnsiString;
+  S: String;
 begin
   S := AnsiDequotedStr(Value, '"');
   if FastIndexOf(fIncludePaths,S) = -1 then
     fIncludePaths.Add(S);
 end;
 
-procedure TCppParser.AddProjectIncludePath(const Value: AnsiString);
+procedure TCppParser.AddProjectIncludePath(const Value: String);
 var
-  S: AnsiString;
+  S: String;
 begin
   S := AnsiDequotedStr(Value, '"');
   if FastIndexOf(fProjectIncludePaths,S) = -1 then
@@ -2445,13 +2445,13 @@ begin
     fPreprocessor.ResetDefines;
 end;
 
-procedure TCppParser.AddHardDefineByParts(const Name, Args, Value: AnsiString);
+procedure TCppParser.AddHardDefineByParts(const Name, Args, Value: String);
 begin
   if Assigned(fPreprocessor) then
     fPreprocessor.AddDefineByParts(Name, Args, Value, True);
 end;
 
-procedure TCppParser.AddHardDefineByLine(const Line: AnsiString);
+procedure TCppParser.AddHardDefineByLine(const Line: String);
 begin
   if Assigned(fPreprocessor) then begin
     if Pos('#', Line) = 1 then
@@ -2461,21 +2461,21 @@ begin
   end;
 end;
 
-function TCppParser.IsSystemHeaderFile(const FileName: AnsiString): boolean;
+function TCppParser.IsSystemHeaderFile(const FileName: String): boolean;
 begin
   Result := cbutils.IsSystemHeaderFile(FileName, fIncludePaths);
 end;
 
-function TCppParser.IsProjectHeaderFile(const FileName: AnsiString): boolean;
+function TCppParser.IsProjectHeaderFile(const FileName: String): boolean;
 begin
   Result := cbutils.IsSystemHeaderFile(FileName, fProjectIncludePaths);
 end;
 
-procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False;
+procedure TCppParser.ParseFile(const FileName: String; InProject: boolean; OnlyIfNotParsed: boolean = False;
   UpdateView: boolean = True; Stream: TMemoryStream = nil);
 var
-  FName: AnsiString;
-  CFile, HFile: AnsiString;
+  FName: String;
+  CFile, HFile: String;
   I: integer;
 begin
   if fParsing then
@@ -2542,7 +2542,7 @@ begin
   end;
 end;
 
-procedure TCppParser.InvalidateFile(const FileName: AnsiString);
+procedure TCppParser.InvalidateFile(const FileName: String);
 var
   I,j: integer;
   P: PFileIncludes;
@@ -2706,7 +2706,7 @@ begin
   end;
 end;
 
-function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
+function TCppParser.FindAndScanBlockAt(const Filename: String; Row: integer; Stream: TMemoryStream): PStatement;
   function GetFuncStartLine(Index, StartLine: integer): integer;
   begin
     Result := Index;
@@ -2865,7 +2865,7 @@ begin
         fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
         fPreprocessor.PreProcessStream(FileName, Stream);
         // Tokenize the stream so we can find the start and end of the function body
-        fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+        fTokenizer.TokenizeBuffer(pChar(fPreprocessor.Result));
         {
         with TStringList.Create do try
           Text:=fPreprocessor.Result;
@@ -2954,7 +2954,7 @@ begin
   Result := ClosestStatement;
 end;
 
-function TCppParser.GetClass(const Phrase: AnsiString): AnsiString;
+function TCppParser.GetClass(const Phrase: String): String;
 var
   I, FirstOp: integer;
 begin
@@ -2976,7 +2976,7 @@ begin
   Result := Copy(Phrase, 1, FirstOp - 1);
 end;
 
-function TCppParser.GetMember(const Phrase: AnsiString): AnsiString;
+function TCppParser.GetMember(const Phrase: String): String;
 var
   FirstOp, SecondOp, I: integer;
 begin
@@ -3021,7 +3021,7 @@ begin
     Result := Copy(Phrase, FirstOp, SecondOp - FirstOp);
 end;
 
-function TCppParser.GetOperator(const Phrase: AnsiString): AnsiString;
+function TCppParser.GetOperator(const Phrase: String): String;
 var
   I: integer;
 begin
@@ -3041,7 +3041,7 @@ begin
   end;
 end;
 
-function TCppParser.FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
+function TCppParser.FindNamespace(const name:String):TList; // return a list of PSTATEMENTS (of the namespace)
 var
   i:integer;
 begin
@@ -3053,7 +3053,7 @@ begin
 end;
 
 
-function TCppParser.FindLastOperator(const Phrase: AnsiString): integer;
+function TCppParser.FindLastOperator(const Phrase: String): integer;
 var
   I: integer;
 begin
@@ -3077,10 +3077,10 @@ begin
   Result := 0;
 end;
 
-function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
-  function GetScopePrefix: AnsiString;
+function TCppParser.PrettyPrintStatement(Statement: PStatement): String;
+  function GetScopePrefix: String;
   var
-    ScopeStr: AnsiString;
+    ScopeStr: String;
   begin
     ScopeStr := StatementClassScopeStr(Statement^._ClassScope); // can be blank
     if ScopeStr <> '' then
@@ -3088,7 +3088,7 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
     else
       Result := '';
   end;
-  function GetParentPrefix: AnsiString;
+  function GetParentPrefix: String;
   var
     WalkStatement: PStatement;
   begin
@@ -3099,7 +3099,7 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
       WalkStatement := WalkStatement^._ParentScope;
     end;
   end;
-  function GetArgsSuffix: AnsiString;
+  function GetArgsSuffix: String;
   begin
     if Statement^._Args <> '' then
       Result := ' ' + Statement^._Args
@@ -3151,13 +3151,13 @@ begin
   end;
 end;
 
-procedure TCppParser.FillListOfFunctions(const Full: AnsiString; List: TStringList);
+procedure TCppParser.FillListOfFunctions(const Full: String; List: TStringList);
 var
   Node: PStatementNode;
   Statement: PStatement;
 begin
   List.Clear;
-  // Tweaked for specific use by CodeToolTip. Also avoids AnsiString compares whenever possible
+  // Tweaked for specific use by CodeToolTip. Also avoids String compares whenever possible
   Node := fStatementList.LastNode; // Prefer user declared names
   while Assigned(Node) do begin
     Statement := Node^.Data;
@@ -3174,12 +3174,12 @@ begin
   end;
 end;
 
-function TCppParser.FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; currentClass: PStatement): PStatement;
+function TCppParser.FindTypeDefinitionOf(const FileName: String;const aType: String; currentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   Statement: PStatement;
   position: integer;
-  s: AnsiString;
+  s: String;
 //  Children: TList;
   scopeStatement:PStatement;
   
@@ -3292,7 +3292,7 @@ begin
   }
 end;
 
-function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isLocal:boolean):PStatement;
+function TCppParser.FindMemberOfStatement(const Phrase: String; ScopeStatement: PStatement; isLocal:boolean):PStatement;
 var
   ChildStatement: PStatement;
   Children : TList;
@@ -3325,14 +3325,14 @@ begin
 end;
 
 // find allStatment
-function TCppParser.FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
+function TCppParser.FindStatementStartingFrom(const FileName, Phrase: String; startScope: PStatement): PStatement;
 var
 //  Statement: PStatement;
   namespaceStatement,scopeStatement: PStatement;
 //  Children:TList;
   namespaceStatementsList :TList;
   t,k:integer;
-  namespacename: AnsiString;
+  namespacename: String;
   FileUsings: TDevStringList;
 begin
   Result := nil;
@@ -3399,13 +3399,13 @@ end;
 
 
 }
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: String; CurrentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
-  OperatorToken: AnsiString;
+  OperatorToken: String;
   currentNamespace, CurrentClassType ,Statement, MemberStatement, TypeStatement: PStatement;
   i,idx: integer;
-  namespaceName, memberName,NextScopeWord : AnsiString;
+  namespaceName, memberName,NextScopeWord : String;
   namespaceList:TList;
 begin
   Result := nil;
@@ -3557,7 +3557,7 @@ begin
   }
 end;
 
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: String; Row: integer; Stream: TMemoryStream): PStatement;
 begin
   Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Row, Stream));
   //Statements.DumpWithScope('f:\\local-statements.txt');
@@ -3598,10 +3598,10 @@ begin
   fTempStatements.Clear;
 end;
 
-procedure TCppParser.ScanMethodArgs(const ArgStr: AnsiString; const Filename: AnsiString; Line: Integer);
+procedure TCppParser.ScanMethodArgs(const ArgStr: String; const Filename: String; Line: Integer);
 var
   I, ParamStart, SpacePos, BracePos: integer;
-  S: AnsiString;
+  S: String;
 begin
 
   // Split up argument string by ,
@@ -3646,7 +3646,7 @@ begin
   end;
 end;
 
-function TCppParser.FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean): PFileIncludes;
+function TCppParser.FindFileIncludes(const Filename: String; DeleteIt: boolean): PFileIncludes;
 var
   I: integer;
 begin
@@ -3659,24 +3659,24 @@ begin
   end;
 end;
 
-function TCppParser.IsCfile(const Filename: AnsiString): boolean;
+function TCppParser.IsCfile(const Filename: String): boolean;
 begin
   result := cbutils.IsCfile(FileName);
 end;
 
-function TCppParser.IsHfile(const Filename: AnsiString): boolean;
+function TCppParser.IsHfile(const Filename: String): boolean;
 begin
   result := cbutils.IsHfile(Filename);
 end;
 
-procedure TCppParser.GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
+procedure TCppParser.GetSourcePair(const FName: String; var CFile, HFile: String);
 begin
   cbutils.GetSourcePair(FName, CFile, HFile);
 end;
 {
-procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
+procedure TCppParser.GetFileIncludes(const Filename: String; var List: TStringList);
 
-  procedure RecursiveFind(const FileName: AnsiString);
+  procedure RecursiveFind(const FileName: String);
   var
     I: integer;
     P: PFileIncludes;
@@ -3710,12 +3710,12 @@ begin
 end;
 }
 
-procedure TCppParser.GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
+procedure TCppParser.GetFileUsings(const Filename: String; var List: TDevStringList);
 var
   I,t: integer;
   P,Q: PFileIncludes;
   sl: TStrings;
-  name: AnsiString;
+  name: String;
 begin
   if FileName = '' then
     Exit;
@@ -3745,7 +3745,7 @@ begin
   List.Sorted := True;
 end;
 //Since we have save all include files info, don't need to recursive find anymore
-procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
+procedure TCppParser.GetFileIncludes(const Filename: String; var List: TStringList);
 var
   I: integer;
   P: PFileIncludes;
@@ -3891,7 +3891,7 @@ begin
     }
 end;
 
-procedure TCppParser.Freeze(FileName:AnsiString;Stream: TMemoryStream);
+procedure TCppParser.Freeze(FileName:String;Stream: TMemoryStream);
 begin
   // Preprocess the stream that contains the latest version of the current file (not on disk)
   fPreprocessor.SetIncludesList(fIncludesList);
@@ -3902,7 +3902,7 @@ begin
   fPreprocessor.PreProcessStream(FileName, Stream);
 
   // Tokenize the stream so we can find the start and end of the function body
-  fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+  fTokenizer.TokenizeBuffer(pChar(fPreprocessor.Result));
   fLocked := True;
 end;
 
@@ -3921,7 +3921,7 @@ begin
   fPreprocessor := preprocessor;
 end;
 
-procedure TCppParser.getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
+procedure TCppParser.getFullNameSpace(const Phrase:String; var namespace:String; var member:String);
 var
   lastI,i,idx,strLen:integer;
 begin

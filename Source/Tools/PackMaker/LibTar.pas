@@ -244,7 +244,7 @@ VAR
   SystemFileTime : TSystemTime;
 begin
   Result := 0.0;
-  Handle := FindFirstFile (PAnsiChar (FileName), FindData);
+  Handle := FindFirstFile (pChar (FileName), FindData);
   IF Handle <> INVALID_HANDLE_VALUE THEN BEGIN
     Windows.FindClose (Handle);
     IF (FindData.dwFileAttributes AND FILE_ATTRIBUTE_DIRECTORY) = 0 THEN
@@ -328,18 +328,18 @@ TYPE
                  DevMinor : ARRAY [0..7] OF CHAR;
                END;
 
-FUNCTION ExtractText (P : PAnsiChar) : string;
+FUNCTION ExtractText (P : pChar) : string;
 BEGIN
   Result := string (P);
 END;
 
 
-FUNCTION ExtractNumber (P : PAnsiChar) : INTEGER; OVERLOAD;
+FUNCTION ExtractNumber (P : pChar) : INTEGER; OVERLOAD;
 VAR
   Strg : string;
 BEGIN
   Strg := Trim (StrPas (P));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -348,12 +348,12 @@ BEGIN
 END;
 
 
-FUNCTION ExtractNumber64 (P : PAnsiChar) : INT64; OVERLOAD;
+FUNCTION ExtractNumber64 (P : pChar) : INT64; OVERLOAD;
 VAR
   Strg : string;
 BEGIN
   Strg := Trim (StrPas (P));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -363,14 +363,14 @@ END;
 
 
 
-FUNCTION ExtractNumber (P : PAnsiChar; MaxLen : INTEGER) : INTEGER; OVERLOAD;
+FUNCTION ExtractNumber (P : pChar; MaxLen : INTEGER) : INTEGER; OVERLOAD;
 VAR
   S0   : ARRAY [0..255] OF CHAR;
   Strg : string;
 BEGIN
   StrLCopy (S0, P, MaxLen);
   Strg := Trim (StrPas (S0));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -379,14 +379,14 @@ BEGIN
 END;
 
 
-FUNCTION ExtractNumber64 (P : PAnsiChar; MaxLen : INTEGER) : INT64; OVERLOAD;
+FUNCTION ExtractNumber64 (P : pChar; MaxLen : INTEGER) : INT64; OVERLOAD;
 VAR
   S0   : ARRAY [0..255] OF CHAR;
   Strg : string;
 BEGIN
   StrLCopy (S0, P, MaxLen);
   Strg := Trim (StrPas (S0));
-  P := PAnsiChar (Strg);
+  P := pChar (Strg);
   Result := 0;
   WHILE (P^ <> #32) AND (P^ <> #0) DO BEGIN
     Result := (ORD (P^) - ORD ('0')) OR (Result SHL 3);
@@ -403,7 +403,7 @@ BEGIN
 END;
 
 
-PROCEDURE Octal (N : INTEGER; P : PAnsiChar; Len : INTEGER);
+PROCEDURE Octal (N : INTEGER; P : pChar; Len : INTEGER);
          // Makes a string of octal digits
          // The string will always be "Len" characters long
 VAR
@@ -421,7 +421,7 @@ BEGIN
 END;
 
 
-PROCEDURE Octal64 (N : INT64; P : PAnsiChar; Len : INTEGER);
+PROCEDURE Octal64 (N : INT64; P : pChar; Len : INTEGER);
          // Makes a string of octal digits
          // The string will always be "Len" characters long
 VAR
@@ -439,7 +439,7 @@ BEGIN
 END;
 
 
-PROCEDURE OctalN (N : INTEGER; P : PAnsiChar; Len : INTEGER);
+PROCEDURE OctalN (N : INTEGER; P : pChar; Len : INTEGER);
 BEGIN
   Octal (N, P, Len-1);
   (P+Len-1)^ := #0;
@@ -456,7 +456,7 @@ VAR
   I        : INTEGER;
 BEGIN
   FillChar (Rec, RECORDSIZE, 0);
-  StrLCopy (TH.Name, PAnsiChar (DirRec.Name), NAMSIZ);
+  StrLCopy (TH.Name, pChar (DirRec.Name), NAMSIZ);
   Mode := 0;
   IF tmSaveText IN DirRec.Mode THEN Mode := Mode OR $0200;
   IF tmSetGid   IN DirRec.Mode THEN Mode := Mode OR $0400;
@@ -491,10 +491,10 @@ BEGIN
     ftMultiVolume  : TH.LinkFlag := 'M';
     ftVolumeHeader : TH.LinkFlag := 'V';
     END;
-  StrLCopy (TH.LinkName, PAnsiChar (DirRec.LinkName), NAMSIZ);
-  StrLCopy (TH.Magic, PAnsiChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
-  StrLCopy (TH.UName, PAnsiChar (DirRec.UserName), TUNMLEN);
-  StrLCopy (TH.GName, PAnsiChar (DirRec.GroupName), TGNMLEN);
+  StrLCopy (TH.LinkName, pChar (DirRec.LinkName), NAMSIZ);
+  StrLCopy (TH.Magic, pChar (DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
+  StrLCopy (TH.UName, pChar (DirRec.UserName), TUNMLEN);
+  StrLCopy (TH.GName, pChar (DirRec.GroupName), TGNMLEN);
   OctalN (DirRec.MajorDevNo, @TH.DevMajor, 8);
   OctalN (DirRec.MinorDevNo, @TH.DevMinor, 8);
   StrMove (TH.ChkSum, CHKBLANKS, 8);
@@ -681,7 +681,7 @@ BEGIN
   IF FBytesToGo = 0 THEN EXIT;
   RestBytes := Records (FBytesToGo) * RECORDSIZE - FBytesToGo;
   SetLength (Result, FBytesToGo);
-  FStream.ReadBuffer (PAnsiChar (Result)^, FBytesToGo);
+  FStream.ReadBuffer (pChar (Result)^, FBytesToGo);
   FStream.Seek (RestBytes, soFromCurrent);
   FBytesToGo := 0;
 END;

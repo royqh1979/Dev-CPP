@@ -37,20 +37,20 @@ uses
 type
   PUnitEntry = ^TUnitEntry;
   TUnitEntry = packed record
-    Name: AnsiString;
+    Name: String;
     Start: dword;
     Len: integer;
   end;
 
   PFuncsEntry = ^TFuncsEntry;
   TFuncsEntry = packed record
-    Name: AnsiString;
+    Name: String;
     Address: dword;
   end;
 
   PLineEntry = ^TLineEntry;
   TLineEntry = packed record
-    Line: AnsiString;
+    Line: String;
     Address: dword;
     UnitIndex: dword;
   end;
@@ -149,8 +149,8 @@ const
 
 var
   frmExceptionsAnalyzer: TfrmExceptionsAnalyzer;
-  fEmail: AnsiString;
-  fSubject: AnsiString;
+  fEmail: String;
+  fSubject: String;
   fReportEXEversion: boolean;
   fReportComputerName: boolean;
   fReportMachine: boolean;
@@ -164,7 +164,7 @@ var
 { Exceptions code created by Yiannis Mandravellos (mandrav@supergoal.gr)
   Used various resources to gather information }
 
-procedure ReadMapFile(Fname: AnsiString);
+procedure ReadMapFile(Fname: String);
 var
   pUn: PUnitEntry;
   pFun: PFuncsEntry;
@@ -174,7 +174,7 @@ var
   I: integer;
   idx: integer;
   iStart, iLen: longint;
-  sUnitName: AnsiString;
+  sUnitName: String;
 begin
   if not FileExists(Fname) then
     Exit;
@@ -313,13 +313,13 @@ begin
   end;
 end;
 
-function AddressInfo(Address: dword): AnsiString;
+function AddressInfo(Address: dword): String;
 var
   I: integer;
   MapAddress: dword;
-  sUnitName: AnsiString;
-  sProcName: AnsiString;
-  sLineNum: AnsiString;
+  sUnitName: String;
+  sProcName: String;
+  sLineNum: String;
   UnitIdx: integer;
 begin
   sUnitName := '';
@@ -364,7 +364,7 @@ begin
   end;
 end;
 
-function GatherSystemInfo: AnsiString;
+function GatherSystemInfo: String;
 var
   ms: TMemoryStatus;
   vi: TOSVersionInfo;
@@ -372,7 +372,7 @@ var
   Tot, Avail: double;
   Buf: array[0..MAX_PATH] of Char;
   BufSize: cardinal;
-  sVer: AnsiString;
+  sVer: String;
 begin
   if fReportEXEversion then begin
     sVer := GetVersionString(ParamStr(0));
@@ -495,8 +495,8 @@ var
   p, stackstart: ^pointer;
   sl: TStringList;
   I: integer;
-  S: AnsiString;
-  si, Res: AnsiString;
+  S: String;
+  si, Res: String;
   max: dword;
 begin
   asm
@@ -587,7 +587,7 @@ end;
 
 procedure TfrmExceptionsAnalyzer.btnSendClick(Sender: TObject);
 var
-  Cmd: AnsiString;
+  Cmd: String;
   I: integer;
 begin
 {   ** removed vRoach support ** if UseRoach then begin
@@ -607,7 +607,7 @@ begin
         Cmd := Cmd + memBugReport.Lines[I] + '%0A';
     end;
     Delete(Cmd, 1280, MaxInt); // there is problem with bigger strings in ShellExecute
-    ShellExecute(0, 'open', PAnsiChar(Cmd), nil, nil, SW_SHOWNORMAL);
+    ShellExecute(0, 'open', pChar(Cmd), nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TfrmExceptionsAnalyzer.FormCreate(Sender: TObject);
@@ -637,7 +637,7 @@ end;
 
 procedure TfrmExceptionsAnalyzer.btnHelpClick(Sender: TObject);
 var
-  Msg: AnsiString;
+  Msg: String;
 begin
   Msg := 'An error has occured in the application and this window popped-up. ' +
     'Here is a description of the available options:'#10#10 +

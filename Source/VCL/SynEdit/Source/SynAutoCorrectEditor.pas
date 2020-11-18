@@ -41,14 +41,9 @@ interface
 {$I SynEdit.inc}
 
 uses
-{$IFDEF SYN_CLX}  //js 06-04-2002
-  QGraphics, QControls, QForms, QDialogs, QExtCtrls, QStdCtrls, QButtons, Types,
-  QSynAutoCorrect,
-{$ELSE}
   Windows,  Messages, Graphics, Controls, Forms, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Registry,
   SynAutoCorrect,
-{$ENDIF}
   SysUtils,
   Classes;
 
