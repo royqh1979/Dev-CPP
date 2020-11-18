@@ -55,6 +55,7 @@ type
     fGlobalFuncImg: integer;
     fStaticFuncImg: integer;
     fTypeImg: integer;
+    fNamespaceImg: integer;
   published
     property Globals: integer read fGlobalsImg write fGlobalsImg;
     property Classes: integer read fClassesImg write fClassesImg;
@@ -75,6 +76,7 @@ type
     property GlobalFuncImg: integer read fGlobalFuncImg write fGlobalFuncImg;
     property StaticFuncImg: integer read fStaticFuncImg write fStaticFuncImg;
     property TypeImg: integer read fTypeImg write fTypeImg;
+    property NamespaceImg: integer read fNamespaceImg write fNamespaceImg;
   end;
 
   TShowFilter = (sfAll, sfProject, sfCurrent, sfSystemFiles);
@@ -232,7 +234,7 @@ begin
 
   case Statement^._Kind of
     skNamespace: begin
-        Node.ImageIndex := fImagesRecord.Classes;
+        Node.ImageIndex := fImagesRecord.NamespaceImg;
       end;
     skClass: begin
         Node.ImageIndex := fImagesRecord.Classes;
@@ -590,10 +592,16 @@ begin
 
   if Stage = cdPrePaint then begin
       Sender.Canvas.Font.Style := [fsBold];
-    if bInherited then
-      Sender.Canvas.Font.Color := fColors[InheritedColor]
-    else
-      Sender.Canvas.Font.Color := fColors[ForeColor];
+    if  Node.Selected then begin
+        Sender.Canvas.Brush.Color:=fColors[SelectedBackColor];
+        Sender.Canvas.Font.Color := fColors[SelectedForeColor];
+    end else begin
+      Sender.Canvas.Brush.Color:=fColors[BackColor];
+      if bInherited then
+        Sender.Canvas.Font.Color := fColors[InheritedColor]
+      else
+        Sender.Canvas.Font.Color := fColors[ForeColor];
+    end;
   end else if Stage = cdPostPaint then begin
     try
       st := Node.Data;

@@ -1134,6 +1134,7 @@ object MainForm: TMainForm
           ItemImages.GlobalFuncImg = 16
           ItemImages.StaticFuncImg = 17
           ItemImages.TypeImg = 15
+          ItemImages.NamespaceImg = 19
           ShowInheritedMembers = False
           TabVisible = False
           SortAlphabetically = True

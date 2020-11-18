@@ -1688,7 +1688,7 @@ var
   WordBegin, WordEnd: integer;
   s: AnsiString;
   bracketLevel:integer;
-  skipNextWord: boolean;
+  //skipNextWord: boolean;
 begin
   result := '';
   if (p.Line >= 1) and (p.Line <= fText.Lines.Count) then begin
@@ -1696,16 +1696,20 @@ begin
     WordEnd := p.Char-1;
     while True do begin
       bracketLevel:=0;
-      skipNextWord:=False;
+      //skipNextWord:=False;
       while (WordEnd > 0) do begin
         if s[WordEnd] in ['>',']'] then begin
           inc(bracketLevel);
         end else if s[WordEnd] in ['<','['] then begin
           dec(bracketLevel);
         end else if (bracketLevel=0) then begin
+        {we can't differentiate multiple definition and function parameter define here , so we don't handle ','
+        {
           if s[WordEnd] = ',' then
             skipNextWord:=True
-          else if not (s[WordEnd] in [#9,#32,'*','&']) then
+          else
+        }
+          if not (s[WordEnd] in [#9,#32,'*','&']) then
             break;
         end;
         dec(WordEnd);
@@ -1727,7 +1731,7 @@ begin
         Exit;
 
       Result := Copy(S, WordBegin , WordEnd - WordBegin+1);
-      if (Result <> 'const') and not SkipNextWord then
+      if (Result <> 'const') {and not SkipNextWord} then
         Exit;
       WordEnd:= WordBegin-1;
     end;
