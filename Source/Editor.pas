@@ -1100,7 +1100,8 @@ end;
 
 procedure TEditor.HandleSymbolCompletion(var Key: Char);
 Type
-  TQuoteStates = (NotQuote, SingleQuote, SingleQuoteEscape, DoubleQuote, DoubleQuoteEscape);
+  TQuoteStates = (NotQuote, SingleQuote, SingleQuoteEscape, DoubleQuote, DoubleQuoteEscape,
+    RawString,RawStringNoEscape);
 var
   Attr: TSynHighlighterAttributes;
   Token: AnsiString;
@@ -1130,16 +1131,31 @@ var
 
     Line := Text.Lines[fText.CaretY-1];
     posX :=fText.CaretX-1;
-    for i:=1 to posX do begin
-      if Line[i] = '"' then
+    i:=1;
+    while (i<=posX) do begin
+      if (Line[i] = 'R') and (Line[i+1] = '"') and (Result = NotQuote) then begin
+        Result := RawString;
+        inc(i); // skip R
+      end else if Line[i] = '(' then begin
+        Case Result of
+          RawString: Result:=RawStringNoEscape;
+          //RawStringNoEscape: do nothing
+        end
+      end else if Line[i] = ')' then begin
+        Case Result of
+          RawStringNoEscape: Result:=RawString;
+        end
+      end else if Line[i] = '"' then begin
         Case Result of
           NotQuote: Result := DoubleQuote;
           SingleQuote: Result := SingleQuote;
           SingleQuoteEscape: Result := SingleQuote;
           DoubleQuote: Result := NotQuote;
           DoubleQuoteEscape: Result := DoubleQuote;
+          RawString: Result:=NotQuote;
+          //RawStringNoEscape: do nothing
         end
-      else if Line[i] = '''' then
+      end else if Line[i] = '''' then
         Case Result of
           NotQuote: Result := SingleQuote;
           SingleQuote: Result := NotQuote;
@@ -1164,21 +1180,38 @@ var
           DoubleQuoteEscape: Result := DoubleQuote;
         end;
       end;
+      inc(i);
     end;
   end;
 
+
+
   procedure HandleParentheseCompletion;
+  var
+    status:TQuoteStates;
   begin
-    InsertString(')', false);
-    if FunctionTipAllowed then
+    status := GetQuoteState;
+    if (status in [RawString,NotQuote]) then begin
+      InsertString(')', false);
+    end;
+    if (status=NotQuote) and FunctionTipAllowed then
       fFunctionTip.Activated := true;
   end;
 
   procedure HandleParentheseSkip;
   var
     pos : TBufferCoord;
+    status:TQuoteStates;
   begin
     if GetCurrentChar <> ')' then
+      Exit;
+    status := GetQuoteState;
+    if status = RawStringNoEscape then begin
+      fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
+      Key := #0; // remove key press
+      Exit;
+    end;
+    if status <> NotQuote then
       Exit;
     pos:=Text.GetMatchingBracket;
     if pos.Line <> 0 then begin
@@ -1300,7 +1333,7 @@ var
     status := GetQuoteState;
     ch := GetCurrentChar;
     if ch = '"' then begin
-      if (status = DoubleQuote) then begin
+      if (status in [DoubleQuote,RawString]) then begin
         fText.CaretXY := BufferCoord(fText.CaretX + 1, fText.CaretY); // skip over
         Key := #0; // remove key press
       end;
@@ -1334,7 +1367,7 @@ begin
       if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
         Exit;
       if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
-        'Character')) and not tokenFinished and not (key in ['''','"']) then
+        'Character')) and not tokenFinished and not (key in ['''','"','(',')']) then
         Exit;
       if (key in ['<','>']) and (Attr.Name<>'Preprocessor') then begin
         Exit;

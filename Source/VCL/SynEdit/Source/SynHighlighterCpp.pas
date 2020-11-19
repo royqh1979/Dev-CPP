@@ -67,7 +67,7 @@ uses
 type
   TtkTokenKind = (tkAsm, tkComment, tkDirective, tkIdentifier, tkKey, tkNull,
     tkNumber, tkSpace, tkString, tkSymbol, tkUnknown,
-    tkChar, tkFloat, tkHex, tkOctal);
+    tkChar, tkFloat, tkHex, tkOctal,tkRawString);
 
   TxtkTokenKind = (
     xtkAdd, xtkAddAssign, xtkAnd, xtkAndAssign, xtkArrow, xtkAssign,
@@ -95,7 +95,8 @@ type
   }
   TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
-    rsMultiLineString, rsMultiLineDirective, rsCppComment);
+    rsMultiLineString, rsMultiLineDirective, rsCppComment,
+    rsRawString);
 
   TProcTableProc = procedure of object;
 
@@ -114,6 +115,7 @@ type
     fTokenPos: Integer;
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
+    fRawStringNoEscaping: boolean;
     fLineNumber: Integer;
     fAsmAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
@@ -170,6 +172,7 @@ type
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
     procedure StringEndProc;
+    procedure RawStringProc;
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetExtTokenID: TxtkTokenKind;
@@ -1073,6 +1076,25 @@ begin
   end;
 end;
 
+procedure TSynCppSyn.RawStringProc;
+begin
+  fTokenID := tkRawString;
+  fRange := rsRawString;
+  fRawStringNoEscaping := False;
+  repeat
+    if fLine[Run] = '(' then begin
+      fRawStringNoEscaping:=True;
+    end else if fLine[Run] = ')' then begin
+      fRawStringNoEscaping:=False;
+    end;
+    inc(Run);
+  until (fLine[Run] in [#0, #10, #13]) or ((not fRawStringNoEscaping) and (fLine[Run] = '"'));
+  if (FLine[Run] = #34) then begin
+    inc(Run);
+    fRange := rsUnknown;
+  end;
+end;
+
 procedure TSynCppSyn.StringProc;
 begin
   fTokenID := tkString;
@@ -1194,7 +1216,17 @@ begin
   else
     begin
       fRange := rsUnknown;
-      fProcTable[fLine[Run]];
+      if (fLine[Run]='R') and (fLine[Run+1]='"') then begin
+        inc(Run,1);
+        RawStringProc;
+      end else if (fLine[Run] in ['L','u','U'])  and (fLine[Run+1]='"') then begin
+        inc(Run,1);
+        StringProc;
+      end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+1]='"') then begin
+        inc(Run,2);
+        StringProc;
+      end else
+        fProcTable[fLine[Run]];
     end;
   end;
 end;
@@ -1239,6 +1271,8 @@ begin
         rsAnsiCAsmBlock, rsDirectiveComment,rsCppComment]);
     tkString:
       Result := (fRange <> rsMultiLineString);
+    tkRawString:
+      Result := True;
   else
     Result := False;
   end;
@@ -1272,6 +1306,7 @@ begin
     tkOctal: Result := fOctalAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
+    tkRawString: Result := fStringAttri;    
     tkChar: Result := fCharAttri;
     tkSymbol: Result := fSymbolAttri;
     tkUnknown: Result := fInvalidAttri;

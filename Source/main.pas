@@ -1245,8 +1245,6 @@ begin
 end;
 
 procedure TMainForm.ReloadColor;
-var
-  tc:TThemeColor;
 begin
   LoadColor;
   debugOutput.Repaint;
@@ -6174,7 +6172,6 @@ procedure TMainForm.CompilerOutputAdvancedCustomDrawItem(Sender: TCustomListView
   TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
   lowersubitem: AnsiString;
-  tc: TThemeColor;
 begin
   if StartsStr('[Warning] ', Item.SubItems[2]) then begin
     Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
@@ -6647,7 +6644,6 @@ var
   BoldStart, BoldLen, i: integer;
   Rect: TRect;
   OldBrushColor, OldFontColor: TColor;
-  tc:TThemeColor;
 
   procedure Draw(const s: AnsiString);
   var
