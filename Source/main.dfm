@@ -1073,6 +1073,7 @@ object MainForm: TMainForm
         Indent = 19
         MultiSelect = True
         MultiSelectStyle = [msControlSelect, msShiftSelect]
+        PopupMenu = ProjectPopup
         ReadOnly = True
         RightClickSelect = True
         SortType = stText
@@ -1988,6 +1989,15 @@ object MainForm: TMainForm
     object MenuItem18: TMenuItem
       Caption = '-'
     end
+    object OpenProjectFolder1: TMenuItem
+      Action = actOpenProjectFoloder
+    end
+    object OpenConsoleHere1: TMenuItem
+      Action = actOpenProjectConsole
+    end
+    object N53: TMenuItem
+      Caption = '-'
+    end
     object ProjectoptionsPopItem: TMenuItem
       Action = actProjectOptions
     end
@@ -2453,6 +2463,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'Project'
       Caption = '&Remove from project'
+      ImageIndex = 11
       OnExecute = actUnitRemoveExecute
       OnUpdate = actUpdateProject
     end
@@ -2474,6 +2485,7 @@ object MainForm: TMainForm
       Tag = 4
       Category = 'Project'
       Caption = '&Open'
+      ImageIndex = 4
       OnExecute = actUnitOpenExecute
       OnUpdate = actUpdateProject
     end
@@ -3085,6 +3097,20 @@ object MainForm: TMainForm
       ImageIndex = 68
       OnExecute = actLoadWatchListExecute
       OnUpdate = actAddWatchUpdate
+    end
+    object actOpenProjectFoloder: TAction
+      Category = 'Project'
+      Caption = 'Open Project Folder'
+      ImageIndex = 68
+      OnExecute = actOpenProjectFoloderExecute
+      OnUpdate = actUpdateProject
+    end
+    object actOpenProjectConsole: TAction
+      Category = 'Project'
+      Caption = 'Open Console Here'
+      ImageIndex = 38
+      OnExecute = actOpenProjectConsoleExecute
+      OnUpdate = actUpdateProject
     end
   end
   object MessagePopup: TPopupMenu

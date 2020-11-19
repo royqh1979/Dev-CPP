@@ -610,6 +610,11 @@ type
     actLoadWatchList1: TMenuItem;
     actSaveWatchList1: TMenuItem;
     N52: TMenuItem;
+    actOpenProjectFoloder: TAction;
+    actOpenProjectConsole: TAction;
+    N53: TMenuItem;
+    OpenProjectFolder1: TMenuItem;
+    OpenConsoleHere1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -892,6 +897,8 @@ type
     procedure actLoadWatchListExecute(Sender: TObject);
     procedure actSaveWatchListExecute(Sender: TObject);
     procedure actAddWatchUpdate(Sender: TObject);
+    procedure actOpenProjectFoloderExecute(Sender: TObject);
+    procedure actOpenProjectConsoleExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1481,6 +1488,8 @@ begin
   actProjectRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actProjectRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
   mnuOpenWith.Caption := Lang[ID_POP_OPENWITH];
+  self.actOpenProjectFoloder.Caption := Lang[ID_POP_PRJOPENFOLDER];
+  actOpenProjectConsole.Caption := Lang[ID_POP_PRJOPENCONSOLE];
 
   // Editor popup
   actGotoDeclEditor.Caption := Lang[ID_POP_GOTODECL];
@@ -7706,6 +7715,63 @@ begin
     TCustomAction(Sender).Enabled := (not fDebugger.Reader.CommandRunning)
   else
     TCustomAction(Sender).Enabled := (fEditorList.PageCount > 0);
+end;
+
+procedure TMainForm.actOpenProjectFoloderExecute(Sender: TObject);
+var
+  Folder: AnsiString;
+begin
+  if not Assigned(fProject) then
+    Exit;
+  Folder := fProject.Directory;
+  if Folder <> '' then
+    ShellExecute(Application.Handle, 'open', 'explorer.exe', PAnsiChar(Folder), nil, SW_SHOWNORMAL);
+end;
+
+procedure TMainForm.actOpenProjectConsoleExecute(Sender: TObject);
+var
+  Folder: AnsiString;
+  buffer: PChar;
+  size,ret,i: integer;
+  path:AnsiString;
+begin
+  if Assigned(fProject) then begin
+    Folder := fProject.Directory;
+    if Folder <> '' then begin
+      ret:=GetEnvironmentVariable(PChar('PATH'),nil,0);
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Get size of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      size:=ret;
+      buffer:=AllocMem(size*sizeof(Char));
+      try
+        ret:=GetEnvironmentVariable('PATH',buffer,size);
+        if ret = 0 then begin
+          LogError('main.pas TMainForm.actOpenConsoleExecute',
+            Format('Get content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+          Exit;
+        end;
+        path:=String(buffer);
+      finally
+        FreeMem(buffer);
+      end;
+      if Assigned(devCompilerSets.CompilationSet) then begin
+        for i:=0 to devCompilerSets.CompilationSet.BinDir.Count-1 do begin
+          path:=path+';'+devCompilerSets.CompilationSet.BinDir[i];
+        end;
+      end;
+      path:=path+';'+devDirs.Exec;
+      ret := integer(SetEnvironmentVariable(PChar('PATH'),pChar(path)));
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+    end;
+  end;
 end;
 
 end.

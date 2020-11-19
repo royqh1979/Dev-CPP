@@ -92,6 +92,7 @@ type
     lblProjectsDir: TLabel;
     edProjectsDir: TEdit;
     btnProjectsDir: TSpeedButton;
+    btnOpenOptionsDir: TSpeedButton;
     procedure BrowseClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -106,6 +107,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnResetDevClick(Sender: TObject);
     procedure btnHighDPIFixExitClick(Sender: TObject);
+    procedure btnOpenOptionsDirClick(Sender: TObject);
   private
     procedure LoadText;
   end;
@@ -290,6 +292,7 @@ begin
   lblIcoLib.Caption := Lang[ID_ENV_ICOLIB];
   lblSplash.Caption := Lang[ID_ENV_SPLASH];
   lblLangPath.Caption := Lang[ID_ENV_SELLANGDIR];
+  lblProjectsDir.Caption := Lang[ID_ENV_PROJECTSDIR];
 
   // externals tab
   lblExternal.Caption := Lang[ID_ENV_EXTERNPROGASSOCS];
@@ -498,6 +501,15 @@ begin
     lReg.Free;
   end;
   MainForm.Close;
+end;
+
+procedure TEnviroForm.btnOpenOptionsDirClick(Sender: TObject);
+var
+  Folder: AnsiString;
+begin
+  Folder:=edOptionsDir.Text;
+  if DirectoryExists(Folder) then
+    ShellExecute(Application.Handle, 'open', 'explorer.exe', PAnsiChar(Folder), nil, SW_SHOWNORMAL);
 end;
 
 end.

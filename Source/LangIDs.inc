@@ -259,6 +259,8 @@ const
   ID_POP_OPEN_CONSOLE                   = 12020;
   ID_POP_SORT_ALPHABETICALLY            = 12021;
   ID_POP_SORT_BY_TYPE                   = 12022;
+  ID_POP_PRJOPENFOLDER                  = 12023;
+  ID_POP_PRJOPENCONSOLE                 = 12024;
 
   // message control
   ID_SHEET_COMP                         = 13001;
