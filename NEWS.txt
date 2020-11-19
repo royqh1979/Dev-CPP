@@ -1,3 +1,9 @@
+Version 6.2-beta1
+
+ - enhancement: correctly process C++ 11 R""/L""/u""/U"" string literals
+ - enhancement: Add "Clear Symbol Usage Data"  button in Editor option Dialog
+ - enhancement: Add "Default Project's Directory" Setting options in Environment options dialog    
+
 Version 6.1-beta3 November 2020
 
  - enhancement: remember the times user choosed a symbol, and use it to sort symbols user usages frequently to front

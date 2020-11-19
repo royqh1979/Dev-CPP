@@ -157,6 +157,7 @@ type
     chkEnableCompletion: TCheckBox;
     cbGlobalIncludes: TCheckBox;
     chkRecordUsage: TCheckBox;
+    btnClearUsageData: TButton;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -195,6 +196,8 @@ type
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
     procedure cbShowCompletionWhileInputingClick(Sender: TObject);
+    procedure chkRecordUsageClick(Sender: TObject);
+    procedure btnClearUsageDataClick(Sender: TObject);
   private
     ffgColor: TColor;
     fbgColor: TColor;
@@ -405,6 +408,7 @@ begin
   cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
+  btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
   
   // Symbol Completion
@@ -530,6 +534,7 @@ begin
   lbCodeSuggestionShowCount.Caption := Lang[ID_EOPT_CODECOMPLETE_MAXCOUNT];
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
   chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE]; 
+  btnClearUsageData.Caption := Lang[ID_EOPT_CODECOMPLETE_CLEAR_USAGE];
   cbUseAltSlash.Caption := Lang[ID_EOPT_ALTSLASH];
   cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
   btnOk.Caption := Lang[ID_BTN_OK];
@@ -1563,6 +1568,16 @@ procedure TEditorOptForm.cbShowCompletionWhileInputingClick(
   Sender: TObject);
 begin
   txtCodeSuggestionMaxCount.Enabled := cbShowCompletionWhileInputing.Checked;
+end;
+
+procedure TEditorOptForm.chkRecordUsageClick(Sender: TObject);
+begin
+  btnClearUsageData.Enabled := chkRecordUsage.Checked;
+end;
+
+procedure TEditorOptForm.btnClearUsageDataClick(Sender: TObject);
+begin
+  dmMain.SymbolUsage.Clear;
 end;
 
 end.

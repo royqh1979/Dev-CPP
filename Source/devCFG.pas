@@ -336,6 +336,7 @@ type
     fLang: AnsiString; // Language
     fTemp: AnsiString; // Templates
     fDefault: AnsiString; // user defined default
+    fProjects: AnsiString; // default project directory
     fExec: AnsiString; // dev-c start
     fConfig: AnsiString; // config files directory
     fOldPath: AnsiString; // Enviroment Path at program start
@@ -356,6 +357,7 @@ type
     property Lang: AnsiString read fLang write fLang;
     property Templates: AnsiString read fTemp write fTemp;
     property Themes: AnsiString read fThemes write fThemes;
+    property Projects: AnsiString read fProjects write fProjects;
   end;
 
   // editor options -- syntax, synedit options, etc...
@@ -2318,6 +2320,8 @@ begin
     else
       fDefault := fExec;
   end;
+
+  fProjects := IncludeTrailingPathDelimiter(fDefault)+PROJECTS_DIR;
 end;
 
 procedure TdevDirs.LoadSettings;

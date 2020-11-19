@@ -409,6 +409,7 @@ const
   ID_EOPT_CODECOMPLETE_WHILE_INPUT      = 26033;
   ID_EOPT_CODECOMPLETE_MAXCOUNT         = 26034;
   ID_EOPT_CODECOMPLETE_RECORD_USAGE      = 26035;
+  ID_EOPT_CODECOMPLETE_CLEAR_USAGE      = 26036;
 
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;
@@ -659,6 +660,8 @@ const
   ID_ENV_RESETDEV                       = 38066;
   ID_ENV_OPTIONSDIRHINT                 = 38067;
   ID_FIND_REGEXP                        = 38068;
+
+  ID_ENV_SELPROJDIR                     = 38069;
 
   // Goto function form
   ID_GF_TEXT                            = 40001;
@@ -1135,6 +1138,8 @@ const
   ID_ENV_CACHEFAIL                      = 66023;
   ID_ENV_PRINTERFAIL                    = 66024;
   ID_ENV_MULTILINETABERROR              = 66025;
+
+  ID_ENV_PROJECTSDIR                    = 66026;
   
 
   // Execute menu

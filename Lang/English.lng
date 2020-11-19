@@ -371,6 +371,7 @@ Ver=1
 26033=Show Code Completion Suggestion while inputing
 26034=Max number of items in the suggesion window:
 26035=Show frequently used symbols first
+26036=Clear Symbol Usage Data
 
 27001=Show hidden line characters
 27002=Show mouseover hints
@@ -611,6 +612,7 @@ Ver=1
 38066=Remove settings and exit
 38067=Current options directory. Click the button to reset Dev-C++.
 38068=Regular Expression
+38069=Select Default Directory for New Projects
 
 40001=Search for:
 40002=Type
@@ -1072,7 +1074,7 @@ Ver=1
 66023=Dev-C++ was unable to load the code completion cache, which is corrupted or part of outdated settings files located at:<CR><CR>%s<CR><CR>Do you wish to backup and reset options? If so, please restart Dev-C++. Backups will be stored here:<CR><CR>%s
 66024=An error occurred while trying to load the printer setup dialog.<CR><CR>You probably have no printer installed yet.
 66025=Multiline tabs must be enabled when using vertical tabs.<CR><CR>Reverting to Top Tabs.
-
+66026=Default projects directory
 
 67001=Parameters...
 67002=Compile Current File

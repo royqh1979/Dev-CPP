@@ -462,6 +462,7 @@ begin
     if RecordUsage then begin
       TopCount:=0; SecondCount:=0; ThirdCount:=0;
       for I:=0 to tmpList.Count -1 do begin
+        usageCount := 0;
         if PStatement(tmpList[I])^._UsageCount = 0 then begin
           idx:=FastIndexOf(SymbolUsage,PStatement(tmpList[I])^._FullName);
           if idx=-1 then
