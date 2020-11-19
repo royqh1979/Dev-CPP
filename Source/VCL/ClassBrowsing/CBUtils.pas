@@ -177,6 +177,7 @@ type
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
+
   // These functions are about six times faster than the locale sensitive AnsiX() versions
 
 function StartsStr(const subtext, text: AnsiString): boolean;
@@ -279,7 +280,10 @@ end;
 
 function StartsStr(const subtext, text: AnsiString): boolean;
 begin
+  Result:=CompareMem(pChar(subText),pChar(text),Length(subtext));
+  {
   Result := SameStr(subtext, Copy(text, 1, Length(subtext)));
+  }
 end;
 
 function StartsText(const subtext, text: AnsiString): boolean;

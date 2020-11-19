@@ -1287,6 +1287,9 @@ begin
 end;
 
 function TProject.OpenUnit(index: integer): TEditor;
+var
+  FullPath:AnsiString;
+  e:TEditor;
 begin
   result := nil;
   if (index < 0) or (index > pred(fUnits.Count)) then
@@ -1294,9 +1297,13 @@ begin
 
   with fUnits[index] do begin
     if FileName <> '' then begin
+      SetCurrentDir(Directory);
+      FullPath:= ExpandFileName(FileName);
+      MainForm.EditorList.GetEditorFromFileName(FullPath);
+      if Assigned(e) then //already opened in the editors
+        Exit;
       try
-        SetCurrentDir(Directory);
-        fEditor := MainForm.EditorList.NewEditor(ExpandFileName(FileName), true, true, false);
+        fEditor := MainForm.EditorList.NewEditor(FullPath, true, true, false);
         UseUTF8 := fEditor.UseUTF8;
         LoadUnitLayout(fEditor, index);
         Result := fEditor;

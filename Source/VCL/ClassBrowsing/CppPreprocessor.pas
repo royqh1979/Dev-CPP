@@ -622,7 +622,7 @@ begin
     Name := Trim(Copy(S, 1, I));
     Args := '';
   end;
-  Value := TrimLeft(Copy(S, I + 1, MaxInt));
+  Value := RemoveGCCAttributes(TrimLeft(Copy(S, I + 1, MaxInt)));
 end;
 
 procedure TCppPreprocessor.AddDefineByLine(const Line: AnsiString; HardCoded: boolean);
@@ -1205,7 +1205,7 @@ var
     level,Index:integer;
     define:PDefine;
   begin
-    if (word='__attribute__') then begin
+    if (SameStr(word,'__attribute__')) then begin
       while (i<= lenLine) and (Line[i] in [' ',#9]) do
         inc(i);
       if (i<=LenLine) and (Line[i]='(') then begin
@@ -1223,7 +1223,8 @@ var
     end else begin
       define:=GetDefine(word,index);
       if Assigned(define) and (define^.args='') and not (define^.IsMultiLine) then begin
-        newLine:=newLine+RemoveGCCAttributes(define^.Value);
+        //newLine:=newLine+RemoveGCCAttributes(define^.Value);
+        newLine:=newLine+define^.Value;
       end else
         newLine:=newLine+word;
     end;
