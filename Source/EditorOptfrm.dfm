@@ -901,7 +901,7 @@ object EditorOptForm: TEditorOptForm
         Top = 0
         Width = 639
         Height = 558
-        ActivePage = tabSymbolCompletion
+        ActivePage = tabCodeCompletion
         Align = alClient
         TabOrder = 0
         object tabCodeCompletion: TTabSheet
@@ -913,6 +913,7 @@ object EditorOptForm: TEditorOptForm
             Width = 120
             Height = 20
             Caption = 'Background color:'
+            Visible = False
           end
           object lblCompletionDelay: TLabel
             Left = 11
@@ -937,6 +938,7 @@ object EditorOptForm: TEditorOptForm
             Style = [cbStandardColors, cbCustomColor, cbPrettyNames]
             ItemHeight = 16
             TabOrder = 0
+            Visible = False
           end
           object gbCBEngine: TGroupBox
             Left = 11
@@ -1013,6 +1015,15 @@ object EditorOptForm: TEditorOptForm
             Caption = 'Enable Code Compeltion'
             TabOrder = 6
             OnClick = chkEnableCompletionClick
+          end
+          object chkRecordUsage: TCheckBox
+            Left = 11
+            Top = 379
+            Width = 609
+            Height = 22
+            Caption = 'Save Symbol Usage Data'
+            TabOrder = 7
+            OnClick = cbShowCompletionWhileInputingClick
           end
         end
         object tabSymbolCompletion: TTabSheet
@@ -1229,6 +1240,6 @@ object EditorOptForm: TEditorOptForm
   object cpp: TSynCppSyn
     DefaultFilter = 'C++ Files (*.c,*.cpp,*.h,*.hpp)|*.c;*.cpp;*.h;*.hpp'
     Left = 5
-    Top = 458
+    Top = 474
   end
 end

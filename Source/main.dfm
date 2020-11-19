@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 592
-  Top = 231
+  Left = 504
+  Top = 220
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -198,7 +198,7 @@ object MainForm: TMainForm
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 985
+          Width = 987
           Height = 196
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -231,7 +231,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = DebugConsoleSheet
+        ActivePage = BreakpointsSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
@@ -1104,7 +1104,6 @@ object MainForm: TMainForm
           Width = 178
           Height = 310
           Align = alClient
-          Color = clWhite
           Images = dmMain.ClassImages
           ReadOnly = True
           Indent = 19
@@ -1135,6 +1134,7 @@ object MainForm: TMainForm
           ItemImages.GlobalFuncImg = 16
           ItemImages.StaticFuncImg = 17
           ItemImages.TypeImg = 15
+          ItemImages.NamespaceImg = 19
           ShowInheritedMembers = False
           TabVisible = False
           SortAlphabetically = True

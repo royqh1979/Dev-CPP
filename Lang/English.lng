@@ -370,6 +370,7 @@ Ver=1
 26032=Use Alt+/ instead of Ctrl+Space
 26033=Show Code Completion Suggestion while inputing
 26034=Max number of items in the suggesion window:
+26035=Show frequently used symbols first
 
 27001=Show hidden line characters
 27002=Show mouseover hints

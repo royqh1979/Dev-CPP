@@ -56,7 +56,7 @@ type
   TGDBCmd = record
     Cmd: AnsiString;
     Params: AnsiString;
-    ViewInUI: boolean;
+    UpdateWatch: boolean;
   end;
 
   PBreakPoint = ^TBreakPoint;
@@ -176,7 +176,7 @@ type
     property InvalidateAllVars: boolean read fInvalidateAllVars write fInvalidateAllVars;
     property OnInvalidateAllVars: TInvalidateAllVarsEvent  read fOnInvalidateAllVars write fOnInvalidateAllVars; 
 
-    procedure PostCommand(const Command, Params: AnsiString; ViewInUI: boolean);
+    procedure PostCommand(const Command, Params: AnsiString; UpdateWatch: boolean);
   end;
 
 implementation
@@ -251,8 +251,7 @@ begin
     MainForm.Debugger.OnEvalReady(fEvalValue);
 
   // show command output
-  if ((assigned(fCurrentCmd) and fCurrentCmd^.ViewInUI) or devDebugger.ShowCommandLog) then begin
-
+  if (devDebugger.ShowCommandLog) then begin
     if devDebugger.ShowAnnotations then begin
       strOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
       MainForm.DebugOutput.Lines.Add(strOutput);
@@ -1009,7 +1008,7 @@ var
   NextAnnotation: TAnnotateType;
 begin
   // Only update once per update at most
-  WatchView.Items.BeginUpdate;
+  //WatchView.Items.BeginUpdate;
 
   if fInvalidateAllVars then begin
     //invalidate all vars when there's first output
@@ -1018,7 +1017,7 @@ begin
     fInvalidateAllVars := False;
   end;
 
-  try
+  //try
 
     dobacktraceready := false;
     dodisassemblerready := false;
@@ -1063,9 +1062,9 @@ begin
     until NextAnnotation = TEOF;
 
     // Only update once per update at most
-  finally
-    WatchView.Items.EndUpdate;
-  end;
+  //finally
+    //WatchView.Items.EndUpdate;
+  //end;
 
   Synchronize(SyncFinishedParsing);
 end;
@@ -1100,10 +1099,6 @@ begin
         fOutput := tmp;
         ProcessDebugOutput;
 
-        if assigned(fCurrentCmd) then begin
-          Dispose(fCurrentCmd);
-          fCurrentCmd := nil;
-        end;
         fCmdRunning := False;
         RunNextCmd;
         // Reset storage
@@ -1113,27 +1108,27 @@ begin
   end;
   ClearCmdQueue;
 end;
-procedure TDebugReader.PostCommand(const Command, Params: AnsiString; ViewInUI: boolean);
+procedure TDebugReader.PostCommand(const Command, Params: AnsiString; UpdateWatch: boolean);
 var
   PCmd: PGDBCmd;
 begin
   EnterCriticalSection(fCSQueue);
   try
-    if fCmdQueue.Count<=0 then begin
+    if UpdateWatch and (fCmdQueue.Count<=0) then begin
       WatchView.Items.BeginUpdate;
       inc(fUpdateCount);
     end;
     pCmd:=new(PGDBCmd);
     pCmd^.Cmd := Command;
     pCmd^.Params := Params;
-    pCmd^.ViewInUI := ViewInUi;
+    pCmd^.UpdateWatch := UpdateWatch;
     fCmdQueue.Push(pCmd);
-  finally
-    LeaveCriticalSection(fCSQueue);
-  end;
   if not fCmdRunning then begin
     RunNextCmd;
   end;
+  finally
+    LeaveCriticalSection(fCSQueue);
+  end;  
 end;
 
 procedure TDebugReader.RunNextCmd;
@@ -1142,20 +1137,30 @@ var
   nBytesWrote: DWORD;
   result: boolean;
   PCmd: PGDBCmd;
+  doUpdate:boolean;
 begin
-    EnterCriticalSection(fCSQueue);
-    try
+  doUpdate:=False;
+  EnterCriticalSection(fCSQueue);
+  try
       if fCmdQueue.Count<=0 then begin
-        while (fUpdateCount>0) do begin
-          WatchView.Items.EndUpdate();
-          dec(fUpdateCount);
+        if Assigned(fCurrentCmd) and fCurrentCmd^.UpdateWatch then begin
+          doUpdate:=True;
+          while (fUpdateCount>0) do begin
+            dec(fUpdateCount);
+            if (fUpdateCount>0) then
+              WatchView.Items.EndUpdate();
+          end;
         end;
         Exit;
       end;
-    finally
-      LeaveCriticalSection(fCSQueue);
+
+    if assigned(fCurrentCmd) then begin
+      Dispose(fCurrentCmd);
+      fCurrentCmd := nil;
     end;
     pCmd := PGDBCmd(fCmdQueue.Pop);
+    fCmdRunning := True;
+    fCurrentCmd := pCmd;
     // Convert command to C string
     if Length(pCmd^.params) > 0 then begin
       GetMem(P, Length(pCmd^.Cmd) + Length(pCmd.Params) + 3);
@@ -1172,7 +1177,7 @@ begin
       MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
     }
 
-    if pCmd^.ViewInUI or devDebugger.ShowCommandLog then begin
+    if devDebugger.ShowCommandLog then begin
       if not devDebugger.ShowAnnotations then begin
         if MainForm.DebugOutput.Lines.Count>0 then begin
           MainForm.DebugOutput.Lines.Delete(MainForm.DebugOutput.Lines.Count-1);
@@ -1184,8 +1189,12 @@ begin
         MainForm.DebugOutput.Lines.Add('');
       end;
     end;
-    fCmdRunning := True;
-    fCurrentCmd := pCmd;
+  finally
+    LeaveCriticalSection(fCSQueue);
+    if doUpdate then begin // we must do the last endupdate here , or we may dead lock the ui thread
+      WatchView.Items.EndUpdate();
+    end;
+  end;
 end;
 
 procedure TDebugReader.ClearCmdQueue;

@@ -196,6 +196,7 @@ type
     fUseAltSlash : boolean;
     fShowCompletionWhileInput: boolean;
     fMaxCount: integer;
+    fRecordUsage: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -213,6 +214,7 @@ type
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property UseAltSlash: boolean read fUseAltSlash write fUseAltSlash;
     property ShowCompletionWhileInput: boolean read fShowCompletionWhileInput write fShowCompletionWhileInput;
+    property RecordUsage: boolean read fRecordUsage write fRecordUsage;
   end;
 
   // class-browsing view style
@@ -2630,6 +2632,7 @@ begin
   fParseLocalHeaders := True;
   fParseGlobalHeaders := True;
   fShowCompletionWhileInput := True;
+  fRecordUsage := False;
   if GetACP = 936 then begin //Chinese user
     fUseAltSlash := True;
   end else

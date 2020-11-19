@@ -53,7 +53,7 @@ type
     // Play/pause
     procedure Start;
     procedure Stop;
-    procedure SendCommand(const command, params: AnsiString; viewinui: boolean = false);
+    procedure SendCommand(const command, params: AnsiString; UpdateWatch: boolean = true);
 
     // breakpoints
     procedure AddBreakPoint(i: integer); overload;
@@ -265,11 +265,11 @@ begin
   end;
 end;
 
-procedure TDebugger.SendCommand(const Command, Params: AnsiString; ViewInUI: boolean);
+procedure TDebugger.SendCommand(const Command, Params: AnsiString; UpdateWatch: boolean);
 begin
   MainForm.DebugOutput.InputEnabled:=False;
   if Executing then
-    fReader.PostCommand(command,params,viewInUI);
+    fReader.PostCommand(command,params,UpdateWatch);
 end;
 
 function TDebugger.GetBreakPointFile: AnsiString;

@@ -32,7 +32,19 @@ SysUtils, StrUtils;
 const
   HeaderExts: array[0..6] of AnsiString = ('.h', '.hpp', '.rh', '.hh', '.hxx', '.inl', '');
   SourceExts: array[0..5] of AnsiString = ('.c', '.cpp', '.cc', '.cxx', '.c++', '.cp');
-
+  BackColor = 0;
+  ForeColor = 1;
+  FunctionColor = 2;
+  ClassColor = 3;
+  VarColor = 4;
+  NamespaceColor = 5;
+  TypedefColor = 6;
+  PreprocessorColor = 7;
+  EnumColor = 8;
+  SelectedBackColor = 9;
+  SelectedForeColor = 10;
+  InheritedColor = 11;
+  
 type
 
   PCodeIns = ^TCodeIns;
@@ -131,6 +143,8 @@ type
     _FullName: AnsiString; // fullname(including class and namespace)
     _Usings: TStringList;
     _Node: Pointer;
+    _UsageCount : integer;
+    _FreqTop: integer;
   end;
 
   PUsingNamespace =^TUsingNamespace;
@@ -162,6 +176,7 @@ type
 
 var
   CppKeywords : TStringHash;
+  CppTypeKeywords : TStringHash;
   // These functions are about six times faster than the locale sensitive AnsiX() versions
 
 function StartsStr(const subtext, text: AnsiString): boolean;
@@ -628,6 +643,7 @@ end;
 initialization
 begin
 
+  CppTypeKeywords := TStringHash.Create();
   CppKeywords := TStringHash.Create();
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
@@ -732,6 +748,22 @@ begin
   CppKeywords.Add('void',Ord(skNone));
   CppKeywords.Add('wchar_t',Ord(skNone));
 
+  CppTypeKeywords.Add('auto',1);
+  CppTypeKeywords.Add('bool',1);
+  CppTypeKeywords.Add('char',1);
+  CppTypeKeywords.Add('char8_t',1);
+  CppTypeKeywords.Add('char16_t',1);
+  CppTypeKeywords.Add('char32_t',1);
+  CppTypeKeywords.Add('double',1);
+  CppTypeKeywords.Add('float',1);
+  CppTypeKeywords.Add('int',1);
+  CppTypeKeywords.Add('long',1);
+  CppTypeKeywords.Add('short',1);
+  CppTypeKeywords.Add('signed',1);
+  CppTypeKeywords.Add('unsigned',1);
+  CppTypeKeywords.Add('void',1);
+  CppTypeKeywords.Add('wchar_t',1);
+
   // it's part of type info
   CppKeywords.Add('const',Ord(skNone));
   CppKeywords.Add('inline',Ord(skItself));
@@ -762,6 +794,8 @@ finalization
 begin
   CppKeywords.Clear;
   CppKeywords.Free;
+  CppTypeKeywords.Clear;
+  CppTypeKeywords.Free;
 end;
 end.
 

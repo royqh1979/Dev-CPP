@@ -927,6 +927,8 @@ type
     procedure CompSuccessProc;
     procedure RunEndProc;
     procedure LoadText;
+    procedure LoadColor;
+    procedure ReloadColor;
     procedure OpenUnit;
     function PrepareForRun(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
     function PrepareForCompile(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
@@ -964,7 +966,6 @@ type
     procedure SetStatusbarMessage(const msg: AnsiString);
     procedure OnBacktraceReady;
     procedure SetCppParserProject(Project:TProject);
-
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
     property Project: TProject read fProject write fProject;
@@ -1183,6 +1184,82 @@ begin
     msg.Result := 0;
     DragFinish(THandle(msg.WParam));
   end;
+end;
+
+procedure TMainForm.LoadColor;
+var
+  selectedTC:TThemeColor;
+  ForegroundColor :TColor;
+  BackgroundColor: TColor;
+  tc:TThemeColor;
+begin
+  BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
+  strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
+  debugOutput.Color := BackgroundColor;
+  debugOutput.Font.Color := ForegroundColor;
+  WatchView.Color := BackgroundColor;
+  WatchView.Font.Color := ForegroundColor;
+  ProjectView.Color := BackgroundColor;
+  ProjectView.Font.Color := ForegroundColor;
+  ClassBrowser.Colors[ForeColor]:=ForegroundColor;
+  ClassBrowser.Colors[BackColor]:=BackgroundColor;
+  ClassBrowser.Colors[SelectedBackColor]:=selectedTC.Background;
+  ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
+  ClassBrowser.Colors[FunctionColor]:=dmMain.Cpp.NumberAttri.Foreground;
+  ClassBrowser.Colors[ClassColor]:= dmMain.Cpp.StringAttri.Foreground;
+  ClassBrowser.Colors[InheritedColor]:=dmMain.Cpp.CommentAttri.Foreground;
+
+  //Set CompletionBox Color
+  strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
+  if tc.Background = dmMain.Cpp.WhitespaceAttribute.Background then begin
+    strToThemeColor(tc, devEditor.Syntax.Values[cAl]);
+  end;
+  CodeCompletion.Colors[BackColor] := tc.Background;
+  CodeCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.CommentAttribute.Foreground;
+  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  CodeCompletion.Colors[VarColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
+  CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+  CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
+  CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
+  CodeCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+
+  StackTrace.Color := BackgroundColor;
+  StackTrace.Font.Color := ForegroundColor;
+  BreakpointsView.Color := BackgroundColor;
+  BreakpointsView.Font.Color := ForegroundColor;
+  CompilerOutput.Color := BackgroundColor;
+  CompilerOutput.Font.Color := ForegroundColor;
+  ResourceOutput.Color := BackgroundColor;
+  ResourceOutput.Font.Color := ForegroundColor;
+  LogOutput.Color := BackgroundColor;
+  LogOutput.Font.Color := ForegroundColor;
+  FindOutput.Color := BackgroundColor;
+  FindOutput.Font.Color := ForegroundColor;
+  EvalOutput.Color := BackgroundColor;
+  EvalOutput.Font.Color := ForegroundColor;
+end;
+
+procedure TMainForm.ReloadColor;
+var
+  tc:TThemeColor;
+begin
+  LoadColor;
+  debugOutput.Repaint;
+  WatchView.Repaint;
+  ProjectView.Repaint;
+  ClassBrowser.Repaint;
+  StackTrace.Repaint;
+  BreakpointsView.Repaint;
+  CompilerOutput.Repaint;
+  ResourceOutput.Repaint;
+  LogOutput.Repaint;
+  FindOutput.Repaint;
+  EvalOutput.Repaint;
 end;
 
 procedure TMainForm.LoadText;
@@ -2596,6 +2673,8 @@ begin
         end;
       end;
 
+      ReLoadColor;
+
       // Repaint current editor to show new colors
       fEditorList.GetVisibleEditors(e1, e2);
       if Assigned(e1) then
@@ -3881,6 +3960,7 @@ begin
       if not ShowInputQuery(Lang[ID_NV_ADDWATCH], Lang[ID_NV_ENTERVAR], s) then
         Exit;
     end;
+    s:=Trim(s);
     if s <> '' then
       fDebugger.AddWatchVar(s);
   end;
@@ -6094,13 +6174,16 @@ procedure TMainForm.CompilerOutputAdvancedCustomDrawItem(Sender: TCustomListView
   TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
   lowersubitem: AnsiString;
+  tc: TThemeColor;
 begin
-  if StartsStr('[Warning] ', Item.SubItems[2]) then
-    Sender.Canvas.Font.Color := TColor($0066FF) // Orange
-  else if StartsStr('[Error] ', Item.SubItems[2]) then
-    Sender.Canvas.Font.Color := clRed
-  else if StartsStr('[Hint] ', Item.SubItems[2]) then
-    Sender.Canvas.Font.Color := clYellow;
+  if StartsStr('[Warning] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
+  end else if StartsStr('[Error] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
+  end else if StartsStr('[Hint] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Color := dmMain.Cpp.KeyAttri.Foreground;
+  end else begin
+  end;
 
   // Make direction stuff bold
   lowersubitem := Trim(LowerCase(Item.SubItems[2]));
@@ -6351,8 +6434,6 @@ begin
   // Load bookmarks, captions and hints
   LoadText;
 
-  
-
   // Load the current compiler set
   devCompilerSets.LoadSets;
 
@@ -6389,6 +6470,9 @@ begin
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
   end;
+
+  //Load Colors
+  LoadColor;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -6433,7 +6517,7 @@ end;
 
 procedure TMainForm.EvaluateInputKeyPress(Sender: TObject; var Key: Char);
 begin
-  if fDebugger.Executing then begin
+  if fDebugger.Executing and (not fDebugger.Reader.CommandRunning) then begin
     if Key = Chr(VK_RETURN) then begin
       if Length(EvaluateInput.Text) > 0 then begin
 
@@ -6443,7 +6527,7 @@ begin
         Key := #0;
 
         fDebugger.OnEvalReady := OnInputEvalReady;
-        fDebugger.SendCommand('print', EvaluateInput.Text);
+        fDebugger.SendCommand('print', EvaluateInput.Text,False);
 
         // Tell the user we're updating...
         EvalOutput.Font.Color := clGrayText;
@@ -6524,6 +6608,7 @@ procedure TMainForm.WatchViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Nod
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
   curnode: TTreeNode;
+  tc:TThemeColor;  
 begin
   curnode := node;
   while Assigned(curnode.Parent) do
@@ -6535,15 +6620,23 @@ begin
 
   // Paint top level items in red if they aren't found
   if (curnode.Level = 0) and (PWatchVar(curnode.Data)^.gdbindex = -1) then begin
-    if cdsSelected in State then
-      Sender.Canvas.Font.Color := clWhite
-    else
-      Sender.Canvas.Font.Color := clRed;
+    if cdsSelected in State then begin
+      strToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+      Sender.Canvas.Font.Color := tc.Foreground;
+      Sender.Canvas.Brush.Color := tc.Background;
+    end else begin
+      Sender.Canvas.Font.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+      Sender.Canvas.Font.Color := dmMain.Cpp.CommentAttri.Foreground;
+    end;
   end else begin
-    if cdsSelected in State then
-      Sender.Canvas.Font.Color := clWhite
-    else
-      Sender.Canvas.Font.Color := clBlack;
+    if cdsSelected in State then begin
+      strToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+      Sender.Canvas.Font.Color := tc.Foreground;
+      Sender.Canvas.Brush.Color := tc.Background;
+    end else begin
+      Sender.Canvas.Font.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+      Sender.Canvas.Font.Color := dmMain.Cpp.IdentifierAttri.Foreground;
+    end;
   end;
 end;
 
@@ -6554,12 +6647,13 @@ var
   BoldStart, BoldLen, i: integer;
   Rect: TRect;
   OldBrushColor, OldFontColor: TColor;
+  tc:TThemeColor;
 
   procedure Draw(const s: AnsiString);
   var
     sizerect: TRect;
   begin
-    DrawText(Sender.Canvas.Handle, PAnsiChar(s), Length(s), rect, DT_EXPANDTABS or DT_NOCLIP or DT_NOPREFIX);
+    DrawText(Sender.Canvas.Handle, PAnsiChar(s), Length(s), rect, DT_EXPANDTABS or DT_NOPREFIX);
 
     // Get text extent
     FillChar(sizerect, sizeof(sizerect), 0);
@@ -6576,6 +6670,18 @@ begin
 
   // Draw the find result in bold
   end else}
+
+    {
+  if (cdsSelected in State) then begin
+    StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+    Sender.Canvas.Brush.Color := tc.Background;
+    Sender.Canvas.Font.Color := tc.Foreground;
+  end else begin
+    Sender.Canvas.Brush.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+    Sender.Canvas.Font.Color := dmMain.Cpp.IdentifierAttri.Foreground;
+  end;
+     }
+
   if SubItem = 4 then begin
 
     // Get rect of subitem to draw
@@ -6585,12 +6691,12 @@ begin
       Rect.Right := Rect.Right + Sender.Column[i].Width;
     end;
 
-    // Draw blue highlight
     OldBrushColor := Sender.Canvas.Brush.Color;
     OldFontColor := Sender.Canvas.Font.Color;
+    // Draw background
     if (cdsSelected in State) then begin
       Sender.Canvas.Brush.Color := clHighlight;
-      Sender.Canvas.Font.Color := clWhite;
+      Sender.Canvas.Font.Color := clHighlightText;
       Sender.Canvas.FillRect(rect);
     end;
 
@@ -6626,8 +6732,10 @@ begin
     Sender.Canvas.Font.Color := OldFontColor;
 
     DefaultDraw := false;
-  end else
-    DefaultDraw := true;
+  end else begin
+    DefaultDraw := True;
+  end;
+
 end;
 
 procedure TMainForm.FindOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage;

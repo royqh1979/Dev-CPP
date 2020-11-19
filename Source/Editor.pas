@@ -156,6 +156,7 @@ type
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
     function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+    function GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
@@ -473,7 +474,6 @@ end;
 
 procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
 var
-  tc: TThemeColor;
   p:PEditingArea;
   spaceCount :integer;
   spaceBefore :integer;
@@ -1417,6 +1417,10 @@ begin
 end;
 
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
+var
+  lastWord:AnsiString;
+  M:TMemoryStream;
+  st,currentStatement:PStatement;
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1426,6 +1430,29 @@ begin
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
       if not fLastPressedIsIdChar then begin
         fLastPressedIsIdChar:=True;
+        lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
+        if lastWord <> '' then begin
+          if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
+          //last word is a type keyword, this is a var or param define, and dont show suggestion
+            Exit;
+          end;
+          M := TMemoryStream.Create;
+          try
+            fText.Lines.SaveToStream(M);
+            st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, Text.CaretXY.Line, M);
+            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
+              //expand macro
+              currentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
+              st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,currentStatement);
+            end;
+            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              Exit;
+            end;
+          finally
+            M.Free;
+          end;
+        end;
         fText.SelText := Key;
         ShowCompletion(False);
         Key:=#0;
@@ -1502,7 +1529,11 @@ begin
           PopUserCodeInTabStops;
           fText.InvalidateLine(fText.CaretY);
         end else begin
-          fTabStopBegin:=-1;
+          if fTabStopBegin >= 0 then begin
+            Key:=0;
+            fTabStopBegin:=-1;
+            fText.InvalidateLine(fText.CaretY);
+          end;
         end;
       end;
     VK_UP: begin
@@ -1611,10 +1642,13 @@ begin
   Inc(P.Y, fText.LineHeight + 2);
   fCompletionBox.Position := fText.ClientToScreen(P);
 
+  fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
+  fCompletionBox.SymbolUsage := dmMain.SymbolUsage;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
   //Set Font size;
   fCompletionBox.FontSize := fText.Font.Size;
+
   // Redirect key presses to completion box if applicable
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
@@ -1647,6 +1681,106 @@ procedure TEditor.DestroyCompletion;
 begin
   FreeAndNil(fCompletionTimer);
   FreeAndNil(fFunctionTipTimer);
+end;
+
+function TEditor.GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
+var
+  WordBegin, WordEnd:integer;
+  s: AnsiString;
+  bracketLevel:integer;
+  skipNextWord: boolean;
+  inFunc:boolean;
+
+  function TestInFunc(x,y:integer):boolean;
+  var
+    posX,posY: integer;
+    s: AnsiString;
+    bracketLevel:integer;
+  begin
+    Result:=False;
+    s := fText.Lines[y];
+    posY := y;
+    posX := x;
+    bracketLevel:=0;
+    while True do begin
+      while posX < 1 do begin
+        dec(posY);
+        if posY < 0 then
+          Exit;
+        s := fText.Lines[posY];
+        posX := Length(s);
+      end;
+      if s[posX] in ['>',']'] then begin
+        inc(bracketLevel);
+      end else if s[posX] in ['<','['] then begin
+        dec(bracketLevel);
+      end else if (bracketLevel=0) then begin
+        case s[posX] of
+          '(': begin
+            Result:= True;
+            Exit;
+          end;
+          ';','{': begin
+            Exit;
+          end;
+        end;
+        if not (s[posX] in [#9,#32,'*','&',',','_','0'..'9','a'..'z','A'..'Z']) then
+           break;
+      end;
+      dec(posX);
+    end;
+  end;
+  
+begin
+  result := '';
+  if (p.Line >= 1) and (p.Line <= fText.Lines.Count) then begin
+    inFunc := TestInFunc(p.Char-1,p.Line-1);
+
+    s := fText.Lines[p.Line - 1];
+    WordEnd := p.Char-1;
+    while True do begin
+      bracketLevel:=0;
+      skipNextWord:=False;
+      while (WordEnd > 0) do begin
+        if s[WordEnd] in ['>',']'] then begin
+          inc(bracketLevel);
+        end else if s[WordEnd] in ['<','['] then begin
+          dec(bracketLevel);
+        end else if (bracketLevel=0) then begin
+        {we can't differentiate multiple definition and function parameter define here , so we don't handle ','}
+          if s[WordEnd] = ',' then begin
+            if inFunc then // in func, dont skip ','
+              break
+            else
+              skipNextWord:=True;
+          end else if not (s[WordEnd] in [#9,#32,'*','&']) then
+            break;
+        end;
+        dec(WordEnd);
+      end;
+      if WordEnd<=0 then
+        Exit;
+      if bracketLevel > 0 then
+        Exit;
+      if not (s[WordEnd] in ['_','0'..'9','a'..'z','A'..'Z']) then
+        Exit;
+
+      wordBegin := WordEnd;
+      while (WordBegin > 0) and (s[WordBegin] in ['_','0'..'9','a'..'z','A'..'Z']) do begin
+        dec(WordBegin);
+      end;
+      inc(WordBegin);
+
+      if s[WordBegin] in ['0'..'9'] then // not valid word
+        Exit;
+
+      Result := Copy(S, WordBegin , WordEnd - WordBegin+1);
+      if (Result <> 'const') and not SkipNextWord then begin
+        break;
+      end;
+      WordEnd:= WordBegin-1;
+    end;
+  end;
 end;
 
 function TEditor.GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
@@ -1736,10 +1870,24 @@ var
   Statement: PStatement;
   FuncAddOn: AnsiString;
   P: TBufferCoord;
+  idx: integer;
+  usageCount:integer;
 begin
   Statement := fCompletionBox.SelectedStatement;
   if not Assigned(Statement) then
     Exit;
+
+  if devCodeCompletion.RecordUsage and (Statement^._Kind <> skUserCodeIn) then begin
+    idx:=Utils.FastIndexOf(dmMain.SymbolUsage,Statement^._FullName);
+    if idx = -1 then begin
+      usageCount:=1;
+      dmMain.SymbolUsage.AddObject(Statement^._FullName, pointer(1))
+    end else begin
+      usageCount := 1 + integer(dmMain.SymbolUsage.Objects[idx]);
+      dmMain.SymbolUsage.Objects[idx] := pointer( usageCount );
+    end;
+    Statement^._UsageCount := usageCount;
+  end;
 
   FuncAddOn := '';
 
@@ -1836,14 +1984,37 @@ var
 
   procedure ShowDebugHint;
   begin
-    // Add to list
-    if devData.WatchHint then
-      MainForm.Debugger.AddWatchVar(s);
 
-    // Evaluate s
-    fCurrentEvalWord := s; // remember name when debugger finishes
-    MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
-    MainForm.Debugger.SendCommand('print', s);
+  M := TMemoryStream.Create;
+    try
+      fText.Lines.SaveToStream(M);
+      st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
+    finally
+      M.Free;
+    end;
+
+    if not Assigned(st) then
+      Exit;
+
+    if st^._Kind = skVariable then begin //only show debug info of variables;
+      if MainForm.Debugger.Reader.CommandRunning then
+        Exit;
+
+      // Add to list
+      if devData.WatchHint then
+        MainForm.Debugger.AddWatchVar(s);
+
+      // Evaluate s
+      fCurrentEvalWord := s; // remember name when debugger finishes
+      MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
+      MainForm.Debugger.SendCommand('print', s, False);
+    end else if devEditor.ParserHints then begin
+      fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+      fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
+      // vertical bar is used to split up short and long hint versions...
+    end;
+
   end;
 
   procedure ShowParserHint;
@@ -1932,10 +2103,11 @@ begin
           ShowParserHint;
       end;
     hprIdentifier, hprSelection: begin
-        if MainForm.Debugger.Executing then
-          ShowDebugHint
-        else if devEditor.ParserHints and not fCompletionBox.Visible then
-          ShowParserHint;
+        if not fCompletionBox.Visible  then
+          if MainForm.Debugger.Executing then
+            ShowDebugHint
+          else if devEditor.ParserHints then
+            ShowParserHint;
       end;
   end;
 end;

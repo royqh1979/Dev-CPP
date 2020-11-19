@@ -156,6 +156,7 @@ type
     lbCodeSuggestionShowCount: TLabel;
     chkEnableCompletion: TCheckBox;
     cbGlobalIncludes: TCheckBox;
+    chkRecordUsage: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -403,6 +404,7 @@ begin
   chkEnableCompletionClick(nil);
   cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
+  chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
   
   // Symbol Completion
@@ -527,6 +529,7 @@ begin
 
   lbCodeSuggestionShowCount.Caption := Lang[ID_EOPT_CODECOMPLETE_MAXCOUNT];
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
+  chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE]; 
   cbUseAltSlash.Caption := Lang[ID_EOPT_ALTSLASH];
   cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
   btnOk.Caption := Lang[ID_BTN_OK];
@@ -833,6 +836,7 @@ begin
     ParseLocalHeaders := chkCBParseLocalH.Checked;
     ParseGlobalHeaders := chkCBParseGlobalH.Checked;
     UseAltSlash := cbUseAltSlash.Checked;
+    RecordUsage := chkRecordUsage.Checked;
     ShowCompletionWhileInput := cbShowCompletionWhileInputing.Checked;
     MaxCount := txtCodeSuggestionMaxCount.Value;
   end;
@@ -1357,6 +1361,7 @@ begin
     chkCBParseLocalH.Enabled := Checked;
     cbUseAltSlash.Enabled := Checked;
     cbShowCompletionWhileInputing.Enabled:=Checked;
+    chkRecordUsage.Enabled := Checked;
     txtCodeSuggestionMaxCount.Enabled:=Checked and cbShowCompletionWhileInputing.Checked;
   end;
 end;
