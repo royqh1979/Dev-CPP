@@ -156,7 +156,7 @@ type
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
     function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
-    function GetPreviousWordAtPosition(P: TBufferCoord): AnsiString;
+    function GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
     procedure IndentSelection;
     procedure UnindentSelection;
     procedure InitCompletion;
@@ -1430,7 +1430,7 @@ begin
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
       if not fLastPressedIsIdChar then begin
         fLastPressedIsIdChar:=True;
-        lastWord:=GetPreviousWordAtPosition(Text.CaretXY);
+        lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
         if lastWord <> '' then begin
           if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
           //last word is a type keyword, this is a var or param define, and dont show suggestion
@@ -1683,33 +1683,77 @@ begin
   FreeAndNil(fFunctionTipTimer);
 end;
 
-function TEditor.GetPreviousWordAtPosition(P: TBufferCoord): AnsiString;
+function TEditor.GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
 var
-  WordBegin, WordEnd: integer;
+  WordBegin, WordEnd:integer;
   s: AnsiString;
   bracketLevel:integer;
-  //skipNextWord: boolean;
+  skipNextWord: boolean;
+  inFunc:boolean;
+
+  function TestInFunc(x,y:integer):boolean;
+  var
+    posX,posY: integer;
+    s: AnsiString;
+    bracketLevel:integer;
+  begin
+    Result:=False;
+    s := fText.Lines[y];
+    posY := y;
+    posX := x;
+    bracketLevel:=0;
+    while True do begin
+      while posX < 1 do begin
+        dec(posY);
+        if posY < 0 then
+          Exit;
+        s := fText.Lines[posY];
+        posX := Length(s);
+      end;
+      if s[posX] in ['>',']'] then begin
+        inc(bracketLevel);
+      end else if s[posX] in ['<','['] then begin
+        dec(bracketLevel);
+      end else if (bracketLevel=0) then begin
+        case s[posX] of
+          '(': begin
+            Result:= True;
+            Exit;
+          end;
+          ';','{': begin
+            Exit;
+          end;
+        end;
+        if not (s[posX] in [#9,#32,'*','&',',','_','0'..'9','a'..'z','A'..'Z']) then
+           break;
+      end;
+      dec(posX);
+    end;
+  end;
+  
 begin
   result := '';
   if (p.Line >= 1) and (p.Line <= fText.Lines.Count) then begin
+    inFunc := TestInFunc(p.Char-1,p.Line-1);
+
     s := fText.Lines[p.Line - 1];
     WordEnd := p.Char-1;
     while True do begin
       bracketLevel:=0;
-      //skipNextWord:=False;
+      skipNextWord:=False;
       while (WordEnd > 0) do begin
         if s[WordEnd] in ['>',']'] then begin
           inc(bracketLevel);
         end else if s[WordEnd] in ['<','['] then begin
           dec(bracketLevel);
         end else if (bracketLevel=0) then begin
-        {we can't differentiate multiple definition and function parameter define here , so we don't handle ','
-        {
-          if s[WordEnd] = ',' then
-            skipNextWord:=True
-          else
-        }
-          if not (s[WordEnd] in [#9,#32,'*','&']) then
+        {we can't differentiate multiple definition and function parameter define here , so we don't handle ','}
+          if s[WordEnd] = ',' then begin
+            if inFunc then // in func, dont skip ','
+              break
+            else
+              skipNextWord:=True;
+          end else if not (s[WordEnd] in [#9,#32,'*','&']) then
             break;
         end;
         dec(WordEnd);
@@ -1731,8 +1775,9 @@ begin
         Exit;
 
       Result := Copy(S, WordBegin , WordEnd - WordBegin+1);
-      if (Result <> 'const') {and not SkipNextWord} then
-        Exit;
+      if (Result <> 'const') and not SkipNextWord then begin
+        break;
+      end;
       WordEnd:= WordBegin-1;
     end;
   end;

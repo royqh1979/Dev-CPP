@@ -2247,9 +2247,9 @@ begin
     until not HandleStatement;
    // fTokenizer.DumpTokens('f:\tokens.txt');
    // Statements.DumpTo('f:\stats.txt');
-//    Statements.DumpWithScope('f:\\statements.txt');
-//    fPreprocessor.DumpDefinesTo('f:\defines.txt');
-//    fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+   // Statements.DumpWithScope('f:\\statements.txt');
+   // fPreprocessor.DumpDefinesTo('f:\defines.txt');
+   // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     for i:=0 to fCurrentScope.Count-1 do
