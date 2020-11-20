@@ -270,12 +270,19 @@ type
     fTabWidth: Integer;
     fMaxLineLength: Integer;
     fModifyMaxLineLength: Boolean;
-    fIndentClasses: Boolean;
-    fIndentSwitches: Boolean;
-    fIndentCases: Boolean;
-    fIndentNamespaces: Boolean;
-    fIndentLabels: Boolean;
-    fIndentPreprocessor: Boolean;
+    //Indentation options:
+    fIndentClasses: Boolean;  // --indent-classes
+    fIndentSwitches: Boolean; //-indent-switches
+    fIndentCases: Boolean;  // --indent-cases
+    fIndentNamespaces: Boolean; // --indent-namespaces
+    fIndentLabels: Boolean; // --indent-labels
+    fIndentPreprocessor: Boolean; // --indent-preprocessor
+    //Padding options
+    fPadOper: boolean; // --pad-oper; add spaces around an operator
+    fPadHeader: boolean; // --pad-header; add spaces after 'if','for',etc.
+    fPointerAlign: integer // --align-pointer=none/type/middle/name
+    fReferenceAlign: integer // --align-reference=none/type/middle/name
+    
     fFullCommand: AnsiString; // includes customizations
     fAStyleDir: AnsiString;
     fAStyleFile: AnsiString;
@@ -304,6 +311,10 @@ type
     property FullCommand: AnsiString read fFullCommand write fFullCommand;
     property AStyleDir: AnsiString read fAStyleDir write fAStyleDir;
     property AStyleFile: AnsiString read fAStyleFile write fAStyleFile;
+    property PadOper: boolean read fPadOper write fPadOper;
+    property PadHeader: boolean read fPadHeader write fPadHeader;
+    property PointerAlign: integer read fPointerAlign write fPointerAlign;
+    property ReferenceAlign: integer read fReferenceAlign write fReferenceAlign; 
   end;
 
   // List of programs to use for unknown file extensions
@@ -2746,6 +2757,10 @@ begin
   fIndentNamespaces := True;
   fIndentLabels := False;
   fIndentPreprocessor := True;
+  fPadOper := True;
+  fPadHeader := True;
+  fPointerAlign := 0;
+  fReferenceAlign := 0;
   fFullCommand := GetFullCommand; // includes customizations
   fAStyleDir := 'AStyle\';
   fAStyleFile := 'AStyle.exe';
@@ -2784,6 +2799,24 @@ begin
     Result := Result + ' --indent-labels';
   if fIndentPreprocessor then
     Result := Result + ' --indent-preprocessor';
+  if fPadOper then
+    Result := Result + ' --pad-oper';
+  if fPadHeader then
+    Result := Result + ' --pad-header';
+
+  case fPointerAlign of
+    0: Result := Result + ' --align-pointer=none';
+    1: Result := Result + ' --align-pointer=type';
+    2: Result := Result + ' --align-pointer=middle';
+    3: Result := Result + ' --align-pointer=name';
+  end;
+
+  case fReferenceAlign of
+    0: Result := Result + ' --align-pointer=none';
+    1: Result := Result + ' --align-pointer=type';
+    2: Result := Result + ' --align-pointer=middle';
+    3: Result := Result + ' --align-pointer=name';
+  end;           
 
   Result := TrimLeft(Result);
 end;

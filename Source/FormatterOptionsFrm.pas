@@ -49,10 +49,16 @@ type
     chkCases: TCheckBox;
     chkLabels: TCheckBox;
     chkPreprocessor: TCheckBox;
-    lblIndentParts: TLabel;
     memFullCommand: TMemo;
     spinMaxLineLength: TSpinEdit;
     chkMaxLineLength: TCheckBox;
+    grpIndentParts: TGroupBox;
+    chkPadOper: TCheckBox;
+    chkPadHeader: TCheckBox;
+    lblPointerAlign: TLabel;
+    cbAlignPointer: TComboBox;
+    lblAlignReference: TLabel;
+    cbAlignReference: TComboBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -113,7 +119,7 @@ begin
   lblIndentStyle.Caption := Lang[ID_FORMATTER_INDENT];
   lblTabWidth.Caption := Lang[ID_FORMATTER_TABWIDTH];
   chkMaxLineLength.Caption := Lang[ID_FORMATTER_MAXLINELENGTH];
-  lblIndentParts.Caption := Lang[ID_FORMATTER_INDENTPARTS];
+  grpIndentParts.Caption := Lang[ID_FORMATTER_INDENTPARTS];
   chkClasses.Caption := Lang[ID_FORMATTER_CLASSES];
   chkSwitches.Caption := Lang[ID_FORMATTER_SWITCHES];
   chkCases.Caption := Lang[ID_FORMATTER_CASES];
@@ -122,6 +128,11 @@ begin
   chkPreprocessor.Caption := Lang[ID_FORMATTER_PREPROC];
   lblCommand.Caption := Lang[ID_FORMATTER_COMMAND];
   lblPreview.Caption := Lang[ID_FORMATTER_PREVIEW];
+  lblPointerAlign.Caption := LANG[ID_FORMATTER_ALIGNPOINTER];
+  lblAlignReference.Caption := LANG[ID_FORMATTER_ALIGNREFERENCE];
+  chkPadOper.Caption := LANG[ID_FORMATTER_PADOPER];
+  chkPadHeader.Caption := LANG[ID_FORMATTER_PADHEADER];
+
   if fValid then
     lblPoweredBy.Caption := Format(Lang[ID_FORMATTER_POWEREDBY], [devFormatter.GetVersion])
   else
@@ -200,8 +211,14 @@ begin
     chkLabels.Checked := IndentLabels;
     chkPreprocessor.Checked := IndentPreprocessor;
 
+    cbAlignPointer.ItemIndex := AlignPointer;
+    cbAlignReference.ItemIndex := AlignReference;
+    chkPadOper.Checked := PadOper;
+    chkPadHeader.Checked := PadHeader;
+
     // Set full command
     memFullCommand.Text := FullCommand;
+
   end;
 end;
 
@@ -227,6 +244,12 @@ begin
     IndentNamespaces := chkNamespace.Checked;
     IndentLabels := chkLabels.Checked;
     IndentPreprocessor := chkPreprocessor.Checked;
+
+    AlignPointer := cbAlignPointer.ItemIndex;
+    AlignReference := cbAlignReference.ItemIndex;
+    PadOper := chkPadOper.Checked;
+    PadHeader := chkPadHeader.Checked;
+
 
     // Set full command
     FullCommand := memFullCommand.Text;
