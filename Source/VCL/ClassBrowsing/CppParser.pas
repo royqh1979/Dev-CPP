@@ -412,12 +412,34 @@ function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kin
   PStatement;
 var
   Statement: PStatement;
+  I:integer;
+  {
   I,j: integer;
   lst1,lst2:TStringList;
   lst1Getted:boolean;
   word1,word2:AnsiString;
   isSame:boolean;
+  }
 
+begin
+  // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
+  for I := fPendingDeclarations.Count - 1 downto 0 do begin
+    Statement := fPendingDeclarations[i];
+
+    // Only do an expensive string compare with the right kinds and parents
+    if (Statement^._ParentScope = Parent)
+      and (Statement^._Kind = Kind)
+      and (Statement^._Command = Command)
+      and (Statement^._NoNameArgs = Args) then begin
+            fPendingDeclarations.Delete(i); // remove it when we have found it
+            Result := Statement;
+            Exit;
+    end;
+  end;
+
+  Result := nil;
+end;
+  {
   procedure ParseArgs(const Args:AnsiString; lst:TStringList);
   var
     argsLen,i:integer;
@@ -443,7 +465,9 @@ var
       lst.Add(word);
     word:='';
   end;
+  }
 
+  {
 begin
   lst1:=TStringList.Create;
   lst2:=TStringList.Create;
@@ -489,6 +513,7 @@ begin
     lst2.Free;
   end;
 end;
+}
 
 // When finding a parent class for a function definition, only search classes of incomplete decl/def pairs
 
@@ -640,14 +665,15 @@ var
       _Node := nil; // will set by the fStatementlist.add()
       _UsageCount :=0;
       _FreqTop:=0;
+      _NoNameArgs:='';
     end;
     node:=fStatementList.Add(Result);
     if (Result^._Temporary) then
       fTempStatements.Add(Result)
     else begin
       if (Result^._Kind = skNamespace) then begin
-      i:=FastIndexOf(fNamespaces,Result^._FullName);
-      if (i<>-1) then
+        i:=FastIndexOf(fNamespaces,Result^._FullName);
+        if (i<>-1) then
           NamespaceList := TList(fNamespaces.objects[i])
         else begin
           NamespaceList := TList.Create;
@@ -655,6 +681,7 @@ var
         end;
         NamespaceList.Add(result);
       end;
+
       fileIncludes:=FindFileIncludes(FileName);
       if Assigned(fileIncludes) then begin
         fileIncludes^.Statements.Add(Result);
@@ -662,6 +689,84 @@ var
       end;
     end;
   end;
+
+  function RemoveArgNames(args:AnsiString):AnsiString;
+  var
+    i:integer;
+    argsLen:integer;
+    word:AnsiString;
+    currentArg: AnsiString;
+    brackLevel:integer;
+    typeGetted: boolean;
+  begin
+    Result:='';
+    argsLen := Length(args);
+    if argsLen < 2 then
+      Exit;
+    i:=2;   // skip start '('
+    currentArg:='';
+    word:='';
+    brackLevel := 0;
+    typeGetted := False;
+    while i<argsLen do begin // we use the last ')' as a word seperator
+      case args[i] of
+        ',': begin
+          if brackLevel >0 then begin
+            word:=word+args[i];
+          end else begin
+            if not typeGetted then begin
+              currentArg:= currentArg + ' ' + word;
+            end else begin
+              if isKeyword(word) then begin
+                currentArg:= currentArg + ' ' + word;
+              end;
+            end;
+            word := '';
+            Result := Result + TrimLeft(currentArg) +',';
+            currentArg := '';
+            typeGetted := False;
+          end;
+        end;
+        '<','[','(': begin
+          inc(brackLevel);
+          word:=word+args[i];
+        end;
+        '>',']',')': begin
+          dec(brackLevel);
+          word:=word+args[i];
+        end;
+        ' ',#9: begin
+          if (brackLevel >0) and not (args[i-1] in [' ',#9]) then begin
+            word:=word+args[i];
+          end else begin
+            if not typeGetted then begin
+              currentArg:= currentArg + ' ' + word;
+              if (CppTypeKeywords.ValueOf(word)>0) or (not IsKeyword(word)) then
+                typeGetted := True;
+            end else begin
+              if isKeyword(word) then begin
+                currentArg:= currentArg + ' ' + word;
+              end;
+            end;
+            word := '';
+          end;
+        end;
+        '0'..'9','a'..'z','A'..'Z','_','*','&': begin
+            word:=word+args[i];
+        end;
+      end;
+      inc(i);
+    end;
+    if not typeGetted then begin
+      currentArg:= currentArg + ' ' + word;
+    end else begin
+      if isKeyword(word) then begin
+        currentArg:= currentArg + ' ' + word;
+      end;
+    end;
+    Result := Result + TrimLeft(currentArg);
+  end;
+
 begin
   // Move '*', '&' to type rather than cmd (it's in the way for code-completion)
   NewType := aType;
@@ -691,13 +796,12 @@ begin
 
   // Find a declaration/definition pair
   if FindDeclaration and IsDefinition then
-    Declaration := FetchPendingDeclaration(NewCommand, Args, Kind, Parent)
+    Declaration := FetchPendingDeclaration(NewCommand, RemoveArgNames(Args), Kind, Parent)
   else
     Declaration := nil;
 
   // We already have a statement with the same identifier...
   if Assigned(Declaration) then begin
-
     Declaration^._DefinitionLine := Line;
     Declaration^._DefinitionFileName := FileName;
     Declaration^._HasDefinition := True;
@@ -710,8 +814,11 @@ begin
     // No duplicates found. Proceed as usual
   end else begin
     Result := AddToList;
-    if not IsDefinition then // add declarations to separate list to speed up searches for them
+    if (not fIsSystemHeader) and not (IsDefinition) then begin
+      // add non system declarations to separate list to speed up searches for them
+      Result^._NoNameArgs := RemoveArgNames(Result^._Args);
       fPendingDeclarations.Add(Result);
+    end;
   end;
 
   {
@@ -1340,7 +1447,7 @@ begin
     DelimPos := LastPos(':', S);
     if DelimPos > 3 then begin // ignore full file name stuff
       fCurrentFile := Copy(S, 1, DelimPos - 1);
-      fIsSystemHeader := IsSystemHeaderFile(fCurrentFile);
+      fIsSystemHeader := IsSystemHeaderFile(fCurrentFile) or IsProjectHeaderFile(fCurrentFile);
       fIsProjectFile := FastIndexOf(fProjectFiles,fCurrentFile) <> -1;
       fIsHeader := IsHfile(fCurrentFile);
 
@@ -2246,8 +2353,8 @@ begin
     repeat
     until not HandleStatement;
    // fTokenizer.DumpTokens('f:\tokens.txt');
-   // Statements.DumpTo('f:\stats.txt');
-   // Statements.DumpWithScope('f:\\statements.txt');
+   Statements.DumpTo('f:\stats.txt');
+   Statements.DumpWithScope('f:\\statements.txt');
    // fPreprocessor.DumpDefinesTo('f:\defines.txt');
    // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -2892,7 +2999,7 @@ begin
 
       // Set current file manually because we aren't parsing whole files
       fCurrentFile := Filename;
-      fIsSystemHeader := IsSystemHeaderFile(fCurrentFile);
+      fIsSystemHeader := IsSystemHeaderFile(fCurrentFile) or IsProjectHeaderFile(fCurrentFile);
       fIsProjectFile := FastIndexOf(fProjectFiles,fCurrentFile) <> -1;
       fIsHeader := IsHfile(fCurrentFile);
 
