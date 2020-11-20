@@ -84,7 +84,7 @@ Set the default options for FastMM here.
 {Enable this option to suppress the generation of debug info for the
  FastMM4.pas unit. This will prevent the integrated debugger from stepping into
  the memory manager code.}
-{.$define NoDebugInfo}
+{$define NoDebugInfo}
 
 {Enable this option to suppress the display of all message dialogs. This is
  useful in service applications that should not be interrupted.}
@@ -197,7 +197,7 @@ Set the default options for FastMM here.
 
 {Set this option to enable reporting of memory leaks. Combine it with the two
  options below for further fine-tuning.}
-{$define EnableMemoryLeakReporting}
+{.$define EnableMemoryLeakReporting}
 
   {Set this option to suppress the display and logging of expected memory leaks
    that were registered by pointer. Leaks registered by size or class are often
