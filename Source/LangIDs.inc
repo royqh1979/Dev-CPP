@@ -662,8 +662,7 @@ const
   ID_ENV_RESETDEV                       = 38066;
   ID_ENV_OPTIONSDIRHINT                 = 38067;
   ID_FIND_REGEXP                        = 38068;
-
-  ID_ENV_SELPROJDIR                     = 38069;
+  ID_ENV_SELPROJDIR                     = 38069;                     
 
   // Goto function form
   ID_GF_TEXT                            = 40001;
@@ -1140,8 +1139,6 @@ const
   ID_ENV_CACHEFAIL                      = 66023;
   ID_ENV_PRINTERFAIL                    = 66024;
   ID_ENV_MULTILINETABERROR              = 66025;
-
-  ID_ENV_PROJECTSDIR                    = 66026;
   
 
   // Execute menu
@@ -1378,8 +1375,8 @@ const
   ID_FORMATTER_LOADERROR                = 79021;
   ID_FORMATTER_PADOPER                  = 79022;
   ID_FORMATTER_PADHEADER                = 79023;
-  ID_FORMATTER_ALIGNPOINTER             = 79023;
-  ID_FORMATTER_ALIGNREFERENCE           = 79023;
+  ID_FORMATTER_ALIGNPOINTER             = 79024;
+  ID_FORMATTER_ALIGNREFERENCE           = 79025;
 
 
   ID_RNSYM = 80000;

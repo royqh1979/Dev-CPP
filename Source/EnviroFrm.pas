@@ -292,7 +292,7 @@ begin
   lblIcoLib.Caption := Lang[ID_ENV_ICOLIB];
   lblSplash.Caption := Lang[ID_ENV_SPLASH];
   lblLangPath.Caption := Lang[ID_ENV_SELLANGDIR];
-  lblProjectsDir.Caption := Lang[ID_ENV_PROJECTSDIR];
+  lblProjectsDir.Caption := Lang[ID_ENV_SELPROJDIR];
 
   // externals tab
   lblExternal.Caption := Lang[ID_ENV_EXTERNPROGASSOCS];

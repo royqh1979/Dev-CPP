@@ -280,8 +280,8 @@ type
     //Padding options
     fPadOper: boolean; // --pad-oper; add spaces around an operator
     fPadHeader: boolean; // --pad-header; add spaces after 'if','for',etc.
-    fPointerAlign: integer // --align-pointer=none/type/middle/name
-    fReferenceAlign: integer // --align-reference=none/type/middle/name
+    fPointerAlign: integer; // --align-pointer=none/type/middle/name
+    fReferenceAlign: integer; // --align-reference=none/type/middle/name
     
     fFullCommand: AnsiString; // includes customizations
     fAStyleDir: AnsiString;
@@ -2809,17 +2809,15 @@ begin
     Result := Result + ' --pad-header';
 
   case fPointerAlign of
-    0: Result := Result + ' --align-pointer=none';
     1: Result := Result + ' --align-pointer=type';
     2: Result := Result + ' --align-pointer=middle';
     3: Result := Result + ' --align-pointer=name';
   end;
 
   case fReferenceAlign of
-    0: Result := Result + ' --align-pointer=none';
-    1: Result := Result + ' --align-pointer=type';
-    2: Result := Result + ' --align-pointer=middle';
-    3: Result := Result + ' --align-pointer=name';
+    1: Result := Result + ' --align-reference=type';
+    2: Result := Result + ' --align-reference=middle';
+    3: Result := Result + ' --align-reference=name';
   end;           
 
   Result := TrimLeft(Result);
