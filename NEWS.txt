@@ -6,6 +6,7 @@ Version 6.2-beta1
  - enhancement: Add "Open Project Folder" and "Open Console here" in Left Project Panel's Context Menu
  - optimize Code Completion 
  - fix: If a file is already opened in the editor, open a project containing it will still open another editor
+ - enhancement: Differentiate forward struct declaration from struct varaible definitions
 
 
 Version 6.1-beta3 November 2020

@@ -1022,7 +1022,9 @@ begin
     SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
 
   if Result then begin
-    if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
+    if fTokenizer[fIndex + 3+dis]^.Text[1] in [';',','] then begin
+      Result:=False;
+    end  else if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
       I := fIndex+dis;
       // the check for ']' was added because of this example:
       // struct option long_options[] = {
@@ -2209,16 +2211,14 @@ begin
     Exit;
   end;
 
-
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-  
-
-
+  }
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
@@ -2246,8 +2246,8 @@ begin
     repeat
     until not HandleStatement;
    // fTokenizer.DumpTokens('f:\tokens.txt');
-   // Statements.DumpTo('f:\stats.txt');
-   // Statements.DumpWithScope('f:\\statements.txt');
+    Statements.DumpTo('f:\stats.txt');
+    Statements.DumpWithScope('f:\\statements.txt');
    // fPreprocessor.DumpDefinesTo('f:\defines.txt');
    // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
