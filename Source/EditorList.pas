@@ -47,6 +47,7 @@ type
     function GetEditor(PageIndex: integer = -1; PageControl: TPageControl = nil): TEditor;
     function GetEditorFromFileName(const FileName: AnsiString): TEditor;
     function GetEditorFromTag(tag: integer): TEditor;
+    function IsFileOpened(const FileName: AnsiString):boolean;
     function GetPreviousEditor(Editor: TEditor): TEditor;
     procedure ForceCloseEditor(Editor: TEditor); // close, no questions asked
     function CloseEditor(Editor: TEditor): Boolean;
@@ -416,6 +417,40 @@ begin
   end;
 
   Result := True;
+end;
+
+function TEditorList.IsFileOpened(const FileName: AnsiString): boolean;
+var
+  FullFileName: AnsiString;
+  I: integer;
+  e: TEditor;
+begin
+  Result := False;
+
+  // ExpandFileName reduces all the "\..\" in the path
+  FullFileName := ExpandFileName(FileName);
+
+  // First, check wether the file is already open
+  for I := 0 to fLeftPageControl.PageCount - 1 do begin
+    e := GetEditor(I, fLeftPageControl);
+    if Assigned(e) then begin
+      if SameFileName(e.FileName, FullFileName) then begin
+        Result := True;
+        Exit;
+      end;
+    end;
+  end;
+
+  // Same for the right page control
+  for I := 0 to fRightPageControl.PageCount - 1 do begin
+    e := GetEditor(I, fRightPageControl);
+    if Assigned(e) then begin
+      if SameFileName(e.FileName, FullFileName) then begin
+        Result := True;
+        Exit;
+      end;
+    end;
+  end;
 end;
 
 function TEditorList.GetEditorFromFileName(const FileName: AnsiString): TEditor;

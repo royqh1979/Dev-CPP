@@ -1299,9 +1299,10 @@ begin
     if FileName <> '' then begin
       SetCurrentDir(Directory);
       FullPath:= ExpandFileName(FileName);
-      MainForm.EditorList.GetEditorFromFileName(FullPath);
-      if Assigned(e) then //already opened in the editors
+      if MainForm.EditorList.IsFileOpened(FullPath) then begin//already opened in the editors
+        Result := MainForm.EditorList.GetEditorFromFileName(FullPath);
         Exit;
+      end;
       try
         fEditor := MainForm.EditorList.NewEditor(FullPath, true, true, false);
         UseUTF8 := fEditor.UseUTF8;
