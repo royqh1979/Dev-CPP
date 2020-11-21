@@ -709,6 +709,8 @@ begin
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
                   fIncludesParams, fLibrariesParams]);
 
+              DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+
               DoLogEntry(Lang[ID_LOG_PROCESSINGCSRC]);
               DoLogEntry('--------');
               DoLogEntry(Format(Lang[ID_LOG_GCCNAME],
@@ -723,6 +725,8 @@ begin
               else
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
+
+              DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGCPPSRC]);
               DoLogEntry('--------');
