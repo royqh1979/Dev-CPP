@@ -10,7 +10,7 @@ Version 6.1-beta3 November 2020
  - fix: trim left spaces when add watch var
  - fix: #if parse error if there are spaces between ! and defined
  - fix: #if parse error for defined xxx 
- - fix: Installed get wrong install directory when uninstall old version
+ - fix: Installer get wrong install directory when uninstall old version
 
 Version 6.1-beta2.2 November 2020
 
