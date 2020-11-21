@@ -1679,7 +1679,7 @@ var
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then
-    e.InsertString(dmMain.CodeInserts[TMenuItem(Sender).Tag].Code, TRUE);
+    e.InsertUserCodeIn(dmMain.CodeInserts[TMenuItem(Sender).Tag].Code);
 end;
 
 procedure TMainForm.ToolItemClick(Sender: TObject);

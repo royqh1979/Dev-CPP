@@ -1,3 +1,7 @@
+Version 6.1 November 2020
+
+ - fix: insert user code template from code menu
+
 Version 6.1-beta3 November 2020
 
  - enhancement: remember the times user choosed a symbol, and use it to sort symbols user usages frequently to front
