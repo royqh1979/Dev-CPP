@@ -476,7 +476,7 @@ Function UninstallExisting
         ClearErrors
         HideWindow
         ClearErrors
-        ExecWait '"$R0" _?=$INSTDIR'
+        ExecWait '"$R0" _?=$R1'
         BringToFront
 
     done:
