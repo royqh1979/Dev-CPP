@@ -11,7 +11,10 @@ Version 6.2-beta1
  - enhancement: Use TEMP dir to save temp astyle files
  - fix: can't rename symbol to a name which is not in the same scope
  - enhancement: Refactor: Extract Macro
- - fix: Correctly insert code template from code menu 
+
+Version 6.1 November 2020
+
+ - fix: insert user code template from code menu
 
 Version 6.1-beta3 November 2020
 
