@@ -10,7 +10,8 @@ Version 6.2-beta1
  - enhancement: Parse and save no name args for non-system header function declarations  
  - enhancement: AStyle(Code Formatter) add space padding support
  - enhancement: Use TEMP dir to save temp astyle files
-
+ - fix: can't rename symbol to a name which is not in the same scope
+ - enhancement: Refactor: Extract Macro
 
 Version 6.1-beta3 November 2020
 

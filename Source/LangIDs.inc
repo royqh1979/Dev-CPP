@@ -190,6 +190,7 @@ const
 
   // Refactor menu
   ID_ITEM_RENAMESYMBOL                =9101;
+  ID_ITEM_EXTRACTMACRO                =9102;
   
   //debug menu
   ID_ITEM_DEBUG                         = 10001;
@@ -342,6 +343,7 @@ const
   ID_NV_RENAMEWATCH                      = 20008;
   ID_NV_LOADWATCH                        = 20009;
   ID_NV_SAVEWATCH                        = 20010;
+  ID_NV_EXTRACT_MACRO_NAME              =20011;
 
   // Project Manager/Class Browser
   ID_LP_PROJECT                         = 21001;
@@ -1037,6 +1039,11 @@ const
   ID_ERR_IS_KEYWORD                = 61031;
   ID_ERR_GDBNOTEXIST               = 61032;
   ID_ERR_COMPILER_NOT_EXISTS       = 61033;
+  ID_ERR_EMPTY_NAME                 = 61034;
+  ID_ERR_MACRO_EXISTS               =61035;
+  ID_ERR_MULTI_LINE_SELECTED        =61036;
+  ID_ERR_SELECTION_NOT_COMPLETE     =61037;
+  ID_ERR_SELECTION_HAS_INVALID_IDENTIFIER     =61038;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;

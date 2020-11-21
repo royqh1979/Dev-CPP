@@ -144,7 +144,7 @@ Ver=1
 9007=Tip Of The Day...
 
 9101=Rename Symbol
-
+9102=Extract Macro
 
 10001=&Debug
 10002=Toggle &Breakpoint
@@ -287,6 +287,7 @@ Ver=1
 20008=Change Watch
 20009=Load Watch
 20010=Save Watch
+20011=Macro Name
 
 
 21001=Project
@@ -969,6 +970,11 @@ Ver=1
 61031='%s' is a C/C++ key word.
 61032=GDB executable '%s' not exists.
 61033=Compiler executalbe '%s' not exists.
+61034=Name is empty.
+61035=Macro '%s% alread defined.
+61036=Can't process multiline selection.
+61037=The selected expression is imcomplete.
+61038=The selected expression has identifiers which can't be extract.
 
 
 62001=Untitled

@@ -1289,7 +1289,6 @@ end;
 function TProject.OpenUnit(index: integer): TEditor;
 var
   FullPath:AnsiString;
-  e:TEditor;
 begin
   result := nil;
   if (index < 0) or (index > pred(fUnits.Count)) then

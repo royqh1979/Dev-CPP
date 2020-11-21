@@ -1784,6 +1784,9 @@ object MainForm: TMainForm
       object Rename: TMenuItem
         Action = actRenameSymbol
       end
+      object ExtractMacro1: TMenuItem
+        Action = actExtractMacro
+      end
     end
     object WindowMenu: TMenuItem
       Caption = '&Window'
@@ -3111,6 +3114,12 @@ object MainForm: TMainForm
       ImageIndex = 38
       OnExecute = actOpenProjectConsoleExecute
       OnUpdate = actUpdateProject
+    end
+    object actExtractMacro: TAction
+      Category = 'Refactor'
+      Caption = 'Extract Macro'
+      OnExecute = actExtractMacroExecute
+      OnUpdate = actUpdateEmptyEditor
     end
   end
   object MessagePopup: TPopupMenu

@@ -615,6 +615,8 @@ type
     N53: TMenuItem;
     OpenProjectFolder1: TMenuItem;
     OpenConsoleHere1: TMenuItem;
+    actExtractMacro: TAction;
+    ExtractMacro1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -899,6 +901,7 @@ type
     procedure actAddWatchUpdate(Sender: TObject);
     procedure actOpenProjectFoloderExecute(Sender: TObject);
     procedure actOpenProjectConsoleExecute(Sender: TObject);
+    procedure actExtractMacroExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1460,6 +1463,7 @@ begin
 
   //Refactor menu
   actRenameSymbol.Caption := Lang[ID_ITEM_RENAMESYMBOL];
+  actExtractMacro.Caption := Lang[ID_ITEM_EXTRACTMACRO];
 
   // Debugging buttons
   actAddWatch.Caption := Lang[ID_ITEM_WATCHADD];
@@ -7249,8 +7253,6 @@ begin
 
       with TRefactorer.Create(devRefactorer,CppParser) do try
         ErrorMsg:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
-        LogEntryProc(ErrorMsg);
-        LogEntryProc('------');
         if ErrorMsg <> '' then begin
           MessageBeep($F);
           MessageDlg(ErrorMsg, mtError, [MbOK], 0);
@@ -7770,6 +7772,26 @@ begin
         Exit;
       end;
       ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+    end;
+  end;
+end;
+
+procedure TMainForm.actExtractMacroExecute(Sender: TObject);
+var
+  e:TEditor;
+  newName:AnsiString;
+begin
+  e:=EditorList.GetEditor();
+  if Assigned(e) then begin
+    e.Save;
+    with TRefactorer.Create(devRefactorer,CppParser) do try
+      if not TestExtractMacro(e) then
+        Exit;
+      newName := 'NEW_MACRO';
+      if ShowInputQuery(LANG[ID_ITEM_EXTRACTMACRO], LANG[ID_NV_EXTRACT_MACRO_NAME],newName) then
+        ExtractMacro(e,newName);
+    finally
+      Free;
     end;
   end;
 end;
