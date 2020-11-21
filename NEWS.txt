@@ -4,7 +4,6 @@ Version 6.2-beta1
  - enhancement: Add "Clear Symbol Usage Data"  button in Editor option Dialog
  - enhancement: Add "Default Project's Directory" Setting options in Environment options dialog    
  - enhancement: Add "Open Project Folder" and "Open Console here" in Left Project Panel's Context Menu
- - optimize Code Completion 
  - fix: If a file is already opened in the editor, open a project containing it will still open another editor
  - enhancement: Differentiate forward struct declaration from struct varaible definitions
  - enhancement: Parse and save no name args for non-system header function declarations  
@@ -12,6 +11,7 @@ Version 6.2-beta1
  - enhancement: Use TEMP dir to save temp astyle files
  - fix: can't rename symbol to a name which is not in the same scope
  - enhancement: Refactor: Extract Macro
+ - fix: Correctly insert code template from code menu 
 
 Version 6.1-beta3 November 2020
 
