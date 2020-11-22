@@ -89,6 +89,10 @@ type
     cbShowDbgCmd: TCheckBox;
     cbShowDbgFullAnnotation: TCheckBox;
     btnHighDPIFixExit: TButton;
+    lblProjectsDir: TLabel;
+    edProjectsDir: TEdit;
+    btnProjectsDir: TSpeedButton;
+    btnOpenOptionsDir: TSpeedButton;
     procedure BrowseClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -103,6 +107,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnResetDevClick(Sender: TObject);
     procedure btnHighDPIFixExitClick(Sender: TObject);
+    procedure btnOpenOptionsDirClick(Sender: TObject);
   private
     procedure LoadText;
   end;
@@ -147,6 +152,12 @@ begin
         s := ExpandFileto(edLang.Text, devDirs.Exec);
         if NewSelectDirectory(Lang[ID_ENV_SELLANGDIR], '', s) then
           edLang.Text := IncludeTrailingPathDelimiter(ExtractRelativePath(devDirs.Exec, s));
+      end;
+
+    6: {// Project Dir} begin
+        s := edProjectsDir.Text;
+        if NewSelectDirectory(Lang[ID_ENV_SELPROJDIR], '', s) then
+          edProjectsDir.Text := IncludeTrailingPathDelimiter(s);
       end;
   end;
 end;
@@ -210,6 +221,8 @@ begin
   devDirs.Icons := IncludeTrailingPathDelimiter(ExpandFileto(edIcoLib.Text, devDirs.Exec));
   devDirs.Templates := IncludeTrailingPathDelimiter(ExpandFileto(edTemplatesDir.Text, devDirs.Exec));
   devDirs.Default := edUserDir.Text;
+  devDirs.Projects := edProjectsDir.Text;
+
 
   if edLang.Text <> ExtractRelativePath(devDirs.Exec, devDirs.Lang) then begin
     devDirs.Lang := IncludeTrailingPathDelimiter(ExpandFileto(edLang.Text, devDirs.Exec));
@@ -279,6 +292,7 @@ begin
   lblIcoLib.Caption := Lang[ID_ENV_ICOLIB];
   lblSplash.Caption := Lang[ID_ENV_SPLASH];
   lblLangPath.Caption := Lang[ID_ENV_SELLANGDIR];
+  lblProjectsDir.Caption := Lang[ID_ENV_SELPROJDIR];
 
   // externals tab
   lblExternal.Caption := Lang[ID_ENV_EXTERNPROGASSOCS];
@@ -368,6 +382,7 @@ begin
     edIcoLib.Text := ExtractRelativePath(devDirs.Exec, devDirs.Icons);
     edLang.Text := ExtractRelativePath(devDirs.Exec, devDirs.Lang);
     edSplash.Text := Splash;
+    edProjectsDir.Text := devDirs.Projects;
 
     // External Programs tab
     vleExternal.Strings.Assign(devExternalPrograms.Programs);
@@ -486,6 +501,15 @@ begin
     lReg.Free;
   end;
   MainForm.Close;
+end;
+
+procedure TEnviroForm.btnOpenOptionsDirClick(Sender: TObject);
+var
+  Folder: AnsiString;
+begin
+  Folder:=edOptionsDir.Text;
+  if DirectoryExists(Folder) then
+    ShellExecute(Application.Handle, 'open', 'explorer.exe', PAnsiChar(Folder), nil, SW_SHOWNORMAL);
 end;
 
 end.

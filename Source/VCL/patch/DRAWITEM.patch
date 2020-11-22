@@ -1,0 +1,16 @@
+6615c6615
+<   if not DoControlMsg(Message.CompareItemStruct^.CtlID, Message) then inherited;
+---
+>   if not DoControlMsg(Message.CompareItemStruct^.hwndItem, Message) then inherited;
+6620c6620
+<   if not DoControlMsg(Message.DeleteItemStruct^.CtlID, Message) then inherited;
+---
+>   if not DoControlMsg(Message.DeleteItemStruct^.hwndItem, Message) then inherited;
+6625c6625
+<   if not DoControlMsg(Message.DrawItemStruct^.CtlID, Message) then inherited;
+---
+>   if not DoControlMsg(Message.DrawItemStruct^.hwndItem, Message) then inherited;
+6630c6630
+<   if not DoControlMsg(Message.MeasureItemStruct^.CtlID, Message) then inherited;
+---
+>   if not DoControlMsg(Message.IDCtl, Message) then inherited;

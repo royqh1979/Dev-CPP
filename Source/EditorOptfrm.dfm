@@ -1,6 +1,6 @@
 object EditorOptForm: TEditorOptForm
-  Left = 925
-  Top = 182
+  Left = 699
+  Top = 183
   BorderStyle = bsDialog
   Caption = 'Editor Options'
   ClientHeight = 645
@@ -1023,7 +1023,16 @@ object EditorOptForm: TEditorOptForm
             Height = 22
             Caption = 'Save Symbol Usage Data'
             TabOrder = 7
-            OnClick = cbShowCompletionWhileInputingClick
+            OnClick = chkRecordUsageClick
+          end
+          object btnClearUsageData: TButton
+            Left = 32
+            Top = 408
+            Width = 241
+            Height = 33
+            Caption = 'Clear Symbol Usage Data'
+            TabOrder = 8
+            OnClick = btnClearUsageDataClick
           end
         end
         object tabSymbolCompletion: TTabSheet

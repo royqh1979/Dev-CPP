@@ -64,6 +64,7 @@ type
     procedure SkipToEOL;
     procedure SkipToNextToken;
     procedure SkipDoubleQuotes;
+    procedure SkipRawString;
     procedure SkipSingleQuote;
     procedure SkipPair(cStart, cEnd: Char; FailChars: TSysCharSet = []);
     procedure SkipAssignment;
@@ -240,6 +241,22 @@ begin
     Advance;
 end;
 
+procedure TCppTokenizer.SkipRawString;
+var
+  noEscape:boolean;
+begin
+  inc(pCurrent); //skip R
+  noEscape:=False;
+  repeat
+    Inc(pCurrent);
+    case pCurrent^ of
+      '(': noEscape:=True;
+      ')': noEscape:=False;
+    end;
+  until (pCurrent^ = #0) or ( (pCurrent^ = '"') and (not noEscape));
+  Inc(pCurrent);
+end;
+
 procedure TCppTokenizer.SkipDoubleQuotes;
 begin
   repeat
@@ -269,6 +286,11 @@ begin
     end else if pCurrent^ = cEnd then begin
       Inc(pCurrent); // skip over end
       break;
+    end else if (pCurrent^ = 'R') and ((pCurrent+1)^ = '"') then begin
+      if cStart <> '''' then
+        SkipRawString // don't do it inside AnsiString!
+      else
+        Inc(pCurrent);
     end else if pCurrent^ = '"' then begin
       if cStart <> '''' then
         SkipDoubleQuotes // don't do it inside AnsiString!
@@ -307,7 +329,10 @@ begin
             Inc(pCurrent);
         end;
     else
-      Inc(pCurrent);
+      if (pCurrent^ = 'R') and ((pCurrent+1)^ = '"') then begin
+        skipRawString;
+      end else
+        Inc(pCurrent);
     end;
   until pCurrent^ in [',', ';', ')', '}', #0];
 end;
@@ -389,7 +414,10 @@ begin
       else
         Inc(pCurrent);
   else
-    Inc(pCurrent);
+    if (pCurrent^ = 'R') and ((pCurrent+1)^ = '"') then begin
+      skipRawString;
+    end else
+      Inc(pCurrent);
   end;
 end;
 
@@ -566,6 +594,8 @@ end;
 function TCppTokenizer.IsWord: boolean;
 begin
   Result := pCurrent^ in LetterChars;
+  if Result{ and (pCurrent^ = 'R') }and ((pCurrent+1)^ = '"') then
+    Result := False;
 end;
 
 function TCppTokenizer.IsNumber: boolean;

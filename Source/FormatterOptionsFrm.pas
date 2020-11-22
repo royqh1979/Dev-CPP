@@ -49,10 +49,16 @@ type
     chkCases: TCheckBox;
     chkLabels: TCheckBox;
     chkPreprocessor: TCheckBox;
-    lblIndentParts: TLabel;
     memFullCommand: TMemo;
     spinMaxLineLength: TSpinEdit;
     chkMaxLineLength: TCheckBox;
+    grpIndentParts: TGroupBox;
+    chkPadOper: TCheckBox;
+    chkPadHeader: TCheckBox;
+    lblPointerAlign: TLabel;
+    cbAlignPointer: TComboBox;
+    lblAlignReference: TLabel;
+    cbAlignReference: TComboBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -113,7 +119,7 @@ begin
   lblIndentStyle.Caption := Lang[ID_FORMATTER_INDENT];
   lblTabWidth.Caption := Lang[ID_FORMATTER_TABWIDTH];
   chkMaxLineLength.Caption := Lang[ID_FORMATTER_MAXLINELENGTH];
-  lblIndentParts.Caption := Lang[ID_FORMATTER_INDENTPARTS];
+  grpIndentParts.Caption := Lang[ID_FORMATTER_INDENTPARTS];
   chkClasses.Caption := Lang[ID_FORMATTER_CLASSES];
   chkSwitches.Caption := Lang[ID_FORMATTER_SWITCHES];
   chkCases.Caption := Lang[ID_FORMATTER_CASES];
@@ -122,6 +128,11 @@ begin
   chkPreprocessor.Caption := Lang[ID_FORMATTER_PREPROC];
   lblCommand.Caption := Lang[ID_FORMATTER_COMMAND];
   lblPreview.Caption := Lang[ID_FORMATTER_PREVIEW];
+  lblPointerAlign.Caption := LANG[ID_FORMATTER_ALIGNPOINTER];
+  lblAlignReference.Caption := LANG[ID_FORMATTER_ALIGNREFERENCE];
+  chkPadOper.Caption := LANG[ID_FORMATTER_PADOPER];
+  chkPadHeader.Caption := LANG[ID_FORMATTER_PADHEADER];
+
   if fValid then
     lblPoweredBy.Caption := Format(Lang[ID_FORMATTER_POWEREDBY], [devFormatter.GetVersion])
   else
@@ -172,9 +183,12 @@ begin
 end;
 
 procedure TFormatterOptionsForm.CreateScratchFile;
+var
+  TempDir: AnsiString;
 begin
+  TempDir := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP'));
   synExample.Lines.SaveToFile(
-    devDirs.Exec + devFormatter.AStyleDir + 'DummyInput.txt');
+    TempDir + 'AStyleDummyInput.txt');
 end;
 
 procedure TFormatterOptionsForm.LoadSettings;
@@ -200,8 +214,14 @@ begin
     chkLabels.Checked := IndentLabels;
     chkPreprocessor.Checked := IndentPreprocessor;
 
+    cbAlignPointer.ItemIndex := PointerAlign;
+    cbAlignReference.ItemIndex := ReferenceAlign;
+    chkPadOper.Checked := PadOper;
+    chkPadHeader.Checked := PadHeader;
+
     // Set full command
     memFullCommand.Text := FullCommand;
+
   end;
 end;
 
@@ -228,6 +248,11 @@ begin
     IndentLabels := chkLabels.Checked;
     IndentPreprocessor := chkPreprocessor.Checked;
 
+    PointerAlign := cbAlignPointer.ItemIndex;
+    ReferenceAlign := cbAlignReference.ItemIndex;
+    PadOper := chkPadOper.Checked;
+    PadHeader := chkPadHeader.Checked;  
+
     // Set full command
     FullCommand := memFullCommand.Text;
   end;
@@ -245,11 +270,19 @@ end;
 procedure TFormatterOptionsForm.CommandChange(Sender: TObject);
 var
   AStyleOutput, DummyFileName: AnsiString;
+  TempDir: AnsiString;
 begin
   if fCreating then
     Exit;
+
+  LoadSampleText;
+
+  // Create scratch file
+  CreateScratchFile;
+
   // Apply to dummy file
-  DummyFileName := devDirs.Exec + devFormatter.AStyleDir + 'DummyInput.txt';
+  TempDir := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP'));
+  DummyFileName := TempDir + 'AStyleDummyInput.txt';
   AStyleOutput := devFormatter.FormatFile(DummyFileName, memFullCommand.Text);
 
   // Check if formatting finished correctly
@@ -298,13 +331,34 @@ begin
     Result := Result + ' --indent-labels';
   if chkPreprocessor.Checked then
     Result := Result + ' --indent-preprocessor';
+  if self.chkPadOper.Checked then
+    Result := Result + ' --pad-oper';
+  if self.chkPadHeader.Checked then
+    Result := Result + ' --pad-header';
 
+  case cbAlignPointer.ItemIndex of
+    1: Result := Result + ' --align-pointer=type';
+    2: Result := Result + ' --align-pointer=middle';
+    3: Result := Result + ' --align-pointer=name';
+  end;
+
+  case cbAlignReference.ItemIndex of
+    1: Result := Result + ' --align-reference=type';
+    2: Result := Result + ' --align-reference=middle';
+    3: Result := Result + ' --align-reference=name';
+  end;
   Result := TrimLeft(Result);
 end;
 
 procedure TFormatterOptionsForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
+var
+  TempDir,DummyFileName :AnsiString;
 begin
+  TempDir := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP'));
+  DummyFileName := TempDir + 'AStyleDummyInput.txt';
+  DeleteFile(DummyFileName);
+  DeleteFile(DummyFileName+'.orig');
   Action := caFree;
 end;
 

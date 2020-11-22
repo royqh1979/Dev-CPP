@@ -4,7 +4,7 @@ object EnviroForm: TEnviroForm
   BorderStyle = bsDialog
   Caption = 'Environment Options'
   ClientHeight = 616
-  ClientWidth = 645
+  ClientWidth = 648
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,12 +16,12 @@ object EnviroForm: TEnviroForm
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    645
+    648
     616)
   PixelsPerInch = 120
   TextHeight = 20
   object btnOk: TBitBtn
-    Left = 280
+    Left = 283
     Top = 573
     Width = 113
     Height = 34
@@ -51,7 +51,7 @@ object EnviroForm: TEnviroForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 400
+    Left = 403
     Top = 573
     Width = 113
     Height = 34
@@ -60,7 +60,7 @@ object EnviroForm: TEnviroForm
     Kind = bkCancel
   end
   object btnHelp: TBitBtn
-    Left = 520
+    Left = 523
     Top = 573
     Width = 113
     Height = 34
@@ -360,7 +360,7 @@ object EnviroForm: TEnviroForm
       ShowHint = False
       object lblUserDir: TLabel
         Left = 11
-        Top = 107
+        Top = 91
         Width = 533
         Height = 20
         AutoSize = False
@@ -368,7 +368,7 @@ object EnviroForm: TEnviroForm
       end
       object lblTemplatesDir: TLabel
         Left = 11
-        Top = 192
+        Top = 240
         Width = 533
         Height = 20
         AutoSize = False
@@ -384,7 +384,7 @@ object EnviroForm: TEnviroForm
       end
       object lblIcoLib: TLabel
         Left = 11
-        Top = 277
+        Top = 309
         Width = 533
         Height = 20
         AutoSize = False
@@ -392,7 +392,7 @@ object EnviroForm: TEnviroForm
       end
       object lblLangPath: TLabel
         Left = 11
-        Top = 364
+        Top = 380
         Width = 533
         Height = 20
         AutoSize = False
@@ -401,7 +401,7 @@ object EnviroForm: TEnviroForm
       object btnDefBrws: TSpeedButton
         Tag = 1
         Left = 584
-        Top = 133
+        Top = 117
         Width = 31
         Height = 30
         Glyph.Data = {
@@ -436,7 +436,7 @@ object EnviroForm: TEnviroForm
       object btnOutputbrws: TSpeedButton
         Tag = 2
         Left = 583
-        Top = 219
+        Top = 267
         Width = 30
         Height = 29
         Glyph.Data = {
@@ -471,7 +471,7 @@ object EnviroForm: TEnviroForm
       object btnBrwIcon: TSpeedButton
         Tag = 3
         Left = 583
-        Top = 304
+        Top = 336
         Width = 30
         Height = 29
         Glyph.Data = {
@@ -506,7 +506,7 @@ object EnviroForm: TEnviroForm
       object btnBrwLang: TSpeedButton
         Tag = 5
         Left = 583
-        Top = 391
+        Top = 407
         Width = 30
         Height = 29
         Glyph.Data = {
@@ -581,9 +581,86 @@ object EnviroForm: TEnviroForm
         AutoSize = False
         Caption = 'Current Options directory. Click the button to reset Dev-C++.'
       end
+      object lblProjectsDir: TLabel
+        Left = 11
+        Top = 168
+        Width = 533
+        Height = 20
+        AutoSize = False
+        Caption = 'Projects Directory'
+      end
+      object btnProjectsDir: TSpeedButton
+        Tag = 6
+        Left = 583
+        Top = 195
+        Width = 30
+        Height = 29
+        Glyph.Data = {
+          36030000424D3603000000000000360000002800000010000000100000000100
+          18000000000000030000120B0000120B00000000000000000000BFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+          BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF0000000000000000
+          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000BF
+          BFBF000000BFBFBF0000005DCCFF5DCCFF5DCCFF000000BFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBF6868680000000000
+          00000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF000000000000
+          000000000000000000000000000000000000000000000000000000BFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBF00000000AEFF0096DB0096DB0096DB0096DB0096DB00
+          96DB0096DB0082BE000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+          00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF00AEFF00AEFF00AEFF00
+          AEFF00AEFF0096DB000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000005DCCFF
+          00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF00AEFF0096DB000000BFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBF0000005DCCFF00AEFF00AEFF5DCCFF5DCCFF5DCCFF5D
+          CCFF5DCCFF00AEFF000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF686868BDEBFF
+          5DCCFF5DCCFF000000000000000000000000000000000000BFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBF000000000000000000BFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+        OnClick = BrowseClick
+      end
+      object btnOpenOptionsDir: TSpeedButton
+        Left = 408
+        Top = 43
+        Width = 33
+        Height = 33
+        Glyph.Data = {
+          36030000424D3603000000000000360000002800000010000000100000000100
+          18000000000000030000C30E0000C30E00000000000000000000BFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBF000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00000000000000
+          C5DE000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBF00000000000000C5DE00BDD600BDD6000000BFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00000000ADBD00000000
+          BDD600ADBD00C5DE00C5DE000000000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBF00000000BDD600000000C5DE00BDCE00BDD600BDD600BDD600C5
+          DE000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00000000ADBD00ADBD00000000
+          BDD600ADBD00C5DE00BDD600BDD600C5DE00BDD6000000BFBFBFBFBFBFBFBFBF
+          BFBFBF00000000C5DE00C5DE00000000C5DE00BDCE00ADBD00BDD600BDCE00BD
+          CE00ADBD00BDD6000000BFBFBFBFBFBF00000000BDD600C5DE00C5DE00000000
+          BDD600BDD600C5DE00BDD600ADBD00BDD600C5DE00BDD6000000BFBFBFBFBFBF
+          00000000BDD600C5DE00C5DE00000000BDCE00ADBD00BDD600ADBD00BDD600BD
+          CE00ADBD00ADBD000000BFBFBF00000000C5DE00C5DE00C5DE00C5DE00C5DE00
+          000000000000000000BDCE00BDCE00ADBD00BDCE00ADBD000000BFBFBF000000
+          00BDD600BDD600C5DE00C5DE00C5DE00C5DE00C5DE00C5DE00000000ADBD00AD
+          BD00ADBD00BDCE00000000000000BDD600ADBD00BDD600C5DE00C5DE00C5DE00
+          C5DE00C5DE00C5DE00C5DE00000000000000BDCE00ADBD00000000000000C5DE
+          00BDD600000000000000C5DE00BDD600C5DE00C5DE00C5DE00C5DE00C5DE00C5
+          DE00000000ADBD000000BFBFBF000000000000BFBFBFBFBFBF00000000000000
+          000000ADBD00BDD600C5DE00C5DE000000BFBFBF000000000000BFBFBFBFBFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00000000000000ADBD000000BFBF
+          BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+          BFBFBFBFBFBFBFBF000000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+        OnClick = btnOpenOptionsDirClick
+      end
       object edUserDir: TEdit
         Left = 21
-        Top = 133
+        Top = 117
         Width = 546
         Height = 28
         ReadOnly = True
@@ -592,7 +669,7 @@ object EnviroForm: TEnviroForm
       end
       object edTemplatesDir: TEdit
         Left = 21
-        Top = 219
+        Top = 267
         Width = 546
         Height = 28
         ReadOnly = True
@@ -610,7 +687,7 @@ object EnviroForm: TEnviroForm
       end
       object edIcoLib: TEdit
         Left = 21
-        Top = 304
+        Top = 336
         Width = 546
         Height = 28
         ReadOnly = True
@@ -619,7 +696,7 @@ object EnviroForm: TEnviroForm
       end
       object edLang: TEdit
         Left = 21
-        Top = 391
+        Top = 407
         Width = 546
         Height = 28
         ReadOnly = True
@@ -636,13 +713,21 @@ object EnviroForm: TEnviroForm
         Text = 'edOptionsDir'
       end
       object btnResetDev: TButton
-        Left = 405
+        Left = 448
         Top = 43
-        Width = 207
+        Width = 185
         Height = 33
         Caption = 'Remove settings and exit'
         TabOrder = 6
         OnClick = btnResetDevClick
+      end
+      object edProjectsDir: TEdit
+        Left = 21
+        Top = 195
+        Width = 546
+        Height = 28
+        ReadOnly = True
+        TabOrder = 7
       end
     end
     object tabExternal: TTabSheet
@@ -691,7 +776,7 @@ object EnviroForm: TEnviroForm
         OnValidate = vleExternalValidate
         ColWidths = (
           84
-          327)
+          466)
       end
     end
     object tabAssocs: TTabSheet

@@ -190,6 +190,7 @@ const
 
   // Refactor menu
   ID_ITEM_RENAMESYMBOL                =9101;
+  ID_ITEM_EXTRACTMACRO                =9102;
   
   //debug menu
   ID_ITEM_DEBUG                         = 10001;
@@ -259,6 +260,8 @@ const
   ID_POP_OPEN_CONSOLE                   = 12020;
   ID_POP_SORT_ALPHABETICALLY            = 12021;
   ID_POP_SORT_BY_TYPE                   = 12022;
+  ID_POP_PRJOPENFOLDER                  = 12023;
+  ID_POP_PRJOPENCONSOLE                 = 12024;
 
   // message control
   ID_SHEET_COMP                         = 13001;
@@ -340,6 +343,7 @@ const
   ID_NV_RENAMEWATCH                      = 20008;
   ID_NV_LOADWATCH                        = 20009;
   ID_NV_SAVEWATCH                        = 20010;
+  ID_NV_EXTRACT_MACRO_NAME              =20011;
 
   // Project Manager/Class Browser
   ID_LP_PROJECT                         = 21001;
@@ -409,6 +413,7 @@ const
   ID_EOPT_CODECOMPLETE_WHILE_INPUT      = 26033;
   ID_EOPT_CODECOMPLETE_MAXCOUNT         = 26034;
   ID_EOPT_CODECOMPLETE_RECORD_USAGE      = 26035;
+  ID_EOPT_CODECOMPLETE_CLEAR_USAGE      = 26036;
 
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;
@@ -659,6 +664,7 @@ const
   ID_ENV_RESETDEV                       = 38066;
   ID_ENV_OPTIONSDIRHINT                 = 38067;
   ID_FIND_REGEXP                        = 38068;
+  ID_ENV_SELPROJDIR                     = 38069;                     
 
   // Goto function form
   ID_GF_TEXT                            = 40001;
@@ -1033,6 +1039,12 @@ const
   ID_ERR_IS_KEYWORD                = 61031;
   ID_ERR_GDBNOTEXIST               = 61032;
   ID_ERR_COMPILER_NOT_EXISTS       = 61033;
+  ID_ERR_EMPTY_NAME                 = 61034;
+  ID_ERR_MACRO_EXISTS               =61035;
+  ID_ERR_MULTI_LINE_SELECTED        =61036;
+  ID_ERR_SELECTION_NOT_COMPLETE     =61037;
+  ID_ERR_SELECTION_HAS_INVALID_IDENTIFIER     =61038;
+  ID_ERR_STATEMENT_NOT_IN_PROJECT     = 61039;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;
@@ -1369,6 +1381,11 @@ const
   ID_FORMATTER_POWEREDBY                = 79019;
   ID_FORMATTER_MAXLINELENGTH            = 79020;
   ID_FORMATTER_LOADERROR                = 79021;
+  ID_FORMATTER_PADOPER                  = 79022;
+  ID_FORMATTER_PADHEADER                = 79023;
+  ID_FORMATTER_ALIGNPOINTER             = 79024;
+  ID_FORMATTER_ALIGNREFERENCE           = 79025;
+
 
   ID_RNSYM = 80000;
   ID_RNSYM_NEWNAME = 80001;

@@ -1,4 +1,6 @@
 Debug version:
 "d:\program files (x86)\borland\delphi7\bin\dcc32.exe" -O+ -Q -M -Y -Z -$D+ StdCtrls.pas
+"d:\program files (x86)\borland\delphi7\bin\dcc32.exe" -O+ -Q -M -Y -Z -$D+ Controls.pas
 Runtime version
 "d:\program files (x86)\borland\delphi7\bin\dcc32.exe" -O+ -Q -M -Y -Z -$D- -$L- StdCtrls.pas
+"d:\program files (x86)\borland\delphi7\bin\dcc32.exe" -O+ -Q -M -Y -Z -$D- -$L- Controls.pas

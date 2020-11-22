@@ -144,7 +144,7 @@ Ver=1
 9007=Tip Of The Day...
 
 9101=Rename Symbol
-
+9102=Extract Macro
 
 10001=&Debug
 10002=Toggle &Breakpoint
@@ -208,6 +208,8 @@ Ver=1
 12020=Open Console here
 12021=Sort Alphabetically
 12022=Sort By Type
+12023=Open Project Folder
+12024=Open Console here
 
 
 13001=Compiler
@@ -285,6 +287,7 @@ Ver=1
 20008=Change Watch
 20009=Load Watch
 20010=Save Watch
+20011=Macro Name
 
 
 21001=Project
@@ -371,6 +374,7 @@ Ver=1
 26033=Show Code Completion Suggestion while inputing
 26034=Max number of items in the suggesion window:
 26035=Show frequently used symbols first
+26036=Clear Symbol Usage Data
 
 27001=Show hidden line characters
 27002=Show mouseover hints
@@ -611,6 +615,7 @@ Ver=1
 38066=Remove settings and exit
 38067=Current options directory. Click the button to reset Dev-C++.
 38068=Regular Expression
+38069=Select Default Directory for New Projects
 
 40001=Search for:
 40002=Type
@@ -965,7 +970,12 @@ Ver=1
 61031='%s' is a C/C++ key word.
 61032=GDB executable '%s' not exists.
 61033=Compiler executalbe '%s' not exists.
-
+61034=Name is empty.
+61035=Macro '%s% alread defined.
+61036=Can't process multiline selection.
+61037=The selected expression is imcomplete.
+61038=The selected expression has identifiers which can't be extract.
+61028=Definition of %s is not in the project files.
 
 62001=Untitled
 62002=ReadOnly
@@ -1072,7 +1082,7 @@ Ver=1
 66023=Dev-C++ was unable to load the code completion cache, which is corrupted or part of outdated settings files located at:<CR><CR>%s<CR><CR>Do you wish to backup and reset options? If so, please restart Dev-C++. Backups will be stored here:<CR><CR>%s
 66024=An error occurred while trying to load the printer setup dialog.<CR><CR>You probably have no printer installed yet.
 66025=Multiline tabs must be enabled when using vertical tabs.<CR><CR>Reverting to Top Tabs.
-
+66026=Default projects directory
 
 67001=Parameters...
 67002=Compile Current File
@@ -1308,6 +1318,10 @@ Ver=1
 79019=Powered by %s
 79020=Max. line length:
 79021=// Could not find the AStyle output file:<CR>// %s
+79022=在运算符前后添加空格
+79023=在if for等指令后添加空格
+79024=指针*放在：
+79025=引用&放在：
 
 80000=Rename Symbol
 80001=New Name

@@ -1,92 +1,92 @@
 object ExceptionFrm: TExceptionFrm
-  Left = 1323
-  Top = 428
+  Left = 808
+  Top = 466
   BorderStyle = bsDialog
   Caption = 'Oops!'
-  ClientHeight = 340
-  ClientWidth = 600
+  ClientHeight = 418
+  ClientWidth = 738
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Shape1: TShape
     Left = 0
     Top = 0
-    Width = 600
-    Height = 45
+    Width = 738
+    Height = 55
     Align = alTop
     Pen.Style = psClear
   end
   object lblError: TLabel
-    Left = 94
-    Top = 68
-    Width = 495
-    Height = 53
+    Left = 116
+    Top = 84
+    Width = 609
+    Height = 65
     AutoSize = False
     Caption = 'lblError'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
     WordWrap = True
   end
   object lblTitle: TLabel
-    Left = 52
-    Top = 16
-    Width = 304
-    Height = 13
+    Left = 64
+    Top = 20
+    Width = 363
+    Height = 16
     Caption = 'An unexpected error has occured in the application...'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
     Transparent = True
   end
   object lblAddressTitle: TLabel
-    Left = 8
-    Top = 52
-    Width = 41
-    Height = 13
+    Left = 10
+    Top = 64
+    Width = 54
+    Height = 16
     Caption = 'Address:'
   end
   object lblAddress: TLabel
-    Left = 94
-    Top = 52
-    Width = 48
-    Height = 13
+    Left = 116
+    Top = 64
+    Width = 65
+    Height = 16
     Caption = 'lblAddress'
   end
   object lblErrorTitle: TLabel
-    Left = 8
-    Top = 68
-    Width = 70
-    Height = 13
+    Left = 10
+    Top = 84
+    Width = 92
+    Height = 16
     Caption = 'Error message:'
   end
   object Bevel2: TBevel
     Left = 0
-    Top = 45
-    Width = 600
-    Height = 2
+    Top = 55
+    Width = 738
+    Height = 3
     Align = alTop
   end
   object Image1: TImage
-    Left = 8
-    Top = 4
-    Width = 32
-    Height = 32
+    Left = 10
+    Top = 5
+    Width = 40
+    Height = 40
     AutoSize = True
     Picture.Data = {
       055449636F6E0000010001002020000001000800B00800001600000028000000
@@ -163,35 +163,35 @@ object ExceptionFrm: TExceptionFrm
   end
   object lblUpdateSuggest: TLabel
     Left = 0
-    Top = 294
-    Width = 600
-    Height = 15
+    Top = 362
+    Width = 738
+    Height = 18
     Alignment = taCenter
     AutoSize = False
     Caption = 'Please check for updates here, which might solve this bug:'
   end
   object lblUpdateLink: TLabel
-    Left = 100
-    Top = 314
-    Width = 400
-    Height = 15
+    Left = 123
+    Top = 386
+    Width = 492
+    Height = 19
     Cursor = crHandPoint
     Alignment = taCenter
     AutoSize = False
     Caption = 'http://sourceforge.net/projects/orwelldevcpp/'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsUnderline]
     ParentFont = False
     OnClick = lblUpdateLinkClick
   end
   object btnSend: TButton
-    Left = 8
-    Top = 130
-    Width = 200
-    Height = 25
+    Left = 10
+    Top = 160
+    Width = 246
+    Height = 31
     Hint = 
       'Sends a bug report to the application support team describing th' +
       'e error'
@@ -199,7 +199,7 @@ object ExceptionFrm: TExceptionFrm
     Default = True
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
@@ -209,10 +209,10 @@ object ExceptionFrm: TExceptionFrm
     OnClick = btnSendClick
   end
   object btnContinue: TButton
-    Left = 400
-    Top = 130
-    Width = 92
-    Height = 25
+    Left = 492
+    Top = 160
+    Width = 114
+    Height = 31
     Hint = 
       'Closes this window and attempts to continue the application exec' +
       'ution'
@@ -225,10 +225,10 @@ object ExceptionFrm: TExceptionFrm
     OnClick = btnContinueClick
   end
   object btnTerminate: TButton
-    Left = 500
-    Top = 130
-    Width = 92
-    Height = 25
+    Left = 615
+    Top = 160
+    Width = 114
+    Height = 31
     Hint = 'Closes this window and terminates the application execution'
     Caption = '&Terminate'
     ParentShowHint = False
@@ -237,13 +237,13 @@ object ExceptionFrm: TExceptionFrm
     OnClick = btnTerminateClick
   end
   object memBugReport: TMemo
-    Left = 8
-    Top = 340
-    Width = 584
-    Height = 182
+    Left = 10
+    Top = 418
+    Width = 719
+    Height = 224
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'Courier New'
     Font.Style = []
     Lines.Strings = (
@@ -255,13 +255,13 @@ object ExceptionFrm: TExceptionFrm
     WordWrap = False
   end
   object memUserReport: TMemo
-    Left = 8
-    Top = 160
-    Width = 584
-    Height = 60
+    Left = 10
+    Top = 197
+    Width = 719
+    Height = 74
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'Courier New'
     Font.Style = []
     Lines.Strings = (
@@ -273,13 +273,13 @@ object ExceptionFrm: TExceptionFrm
     OnExit = memUserReportExit
   end
   object memEmailReport: TMemo
-    Left = 8
-    Top = 226
-    Width = 584
-    Height = 60
+    Left = 10
+    Top = 278
+    Width = 719
+    Height = 74
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'Courier New'
     Font.Style = []
     Lines.Strings = (
@@ -291,10 +291,10 @@ object ExceptionFrm: TExceptionFrm
     OnExit = memEmailReportExit
   end
   object btnShowReport: TButton
-    Left = 8
-    Top = 306
-    Width = 75
-    Height = 25
+    Left = 10
+    Top = 377
+    Width = 92
+    Height = 30
     Hint = 'Show bug report'
     Caption = 'Show report'
     ParentShowHint = False

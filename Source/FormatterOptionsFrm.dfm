@@ -1,14 +1,14 @@
 object FormatterOptionsForm: TFormatterOptionsForm
-  Left = 412
-  Top = 756
+  Left = 698
+  Top = 84
   BorderStyle = bsDialog
   Caption = 'Formatter Options'
-  ClientHeight = 600
-  ClientWidth = 600
+  ClientHeight = 714
+  ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -12
+  Font.Height = -15
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
@@ -18,31 +18,32 @@ object FormatterOptionsForm: TFormatterOptionsForm
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    600
-    600)
-  PixelsPerInch = 96
-  TextHeight = 15
+    800
+    714)
+  PixelsPerInch = 120
+  TextHeight = 20
   object lblPoweredBy: TLabel
     Left = 0
-    Top = 572
-    Width = 321
-    Height = 15
+    Top = 680
+    Width = 428
+    Height = 20
     Alignment = taCenter
+    Anchors = [akLeft, akBottom]
     AutoSize = False
     Caption = 'Powered by AStyle'
   end
   object lblPreview: TLabel
-    Left = 8
-    Top = 296
-    Width = 44
-    Height = 15
+    Left = 11
+    Top = 411
+    Width = 54
+    Height = 20
     Caption = 'Preview:'
   end
   object btnOk: TBitBtn
-    Left = 330
-    Top = 568
-    Width = 85
-    Height = 25
+    Left = 440
+    Top = 671
+    Width = 113
+    Height = 34
     Anchors = [akLeft, akBottom]
     Caption = '&OK'
     Default = True
@@ -69,10 +70,10 @@ object FormatterOptionsForm: TFormatterOptionsForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 420
-    Top = 568
-    Width = 85
-    Height = 25
+    Left = 560
+    Top = 671
+    Width = 113
+    Height = 34
     Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = '&Cancel'
@@ -99,23 +100,23 @@ object FormatterOptionsForm: TFormatterOptionsForm
     NumGlyphs = 2
   end
   object btnHelp: TBitBtn
-    Left = 510
-    Top = 568
-    Width = 85
-    Height = 25
+    Left = 680
+    Top = 671
+    Width = 113
+    Height = 34
     Anchors = [akLeft, akBottom]
     TabOrder = 3
     OnClick = btnHelpClick
     Kind = bkHelp
   end
   object synExample: TSynEdit
-    Left = 8
-    Top = 314
-    Width = 584
-    Height = 249
+    Left = 11
+    Top = 440
+    Width = 778
+    Height = 225
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -18
     Font.Name = 'Courier New'
     Font.Style = []
     TabOrder = 0
@@ -138,60 +139,67 @@ object FormatterOptionsForm: TFormatterOptionsForm
     FontSmoothing = fsmNone
   end
   object grpOptions: TGroupBox
-    Left = 8
-    Top = 8
-    Width = 584
-    Height = 263
+    Left = 11
+    Top = 11
+    Width = 778
+    Height = 390
     Caption = 'Options'
     TabOrder = 4
     object lblBracketStyle: TLabel
-      Left = 16
-      Top = 24
-      Width = 69
-      Height = 15
+      Left = 21
+      Top = 32
+      Width = 86
+      Height = 20
       Caption = 'Bracket style:'
     end
     object lblIndentStyle: TLabel
-      Left = 16
-      Top = 56
-      Width = 64
-      Height = 15
+      Left = 21
+      Top = 75
+      Width = 79
+      Height = 20
       Caption = 'Indent style:'
     end
     object lblTabWidth: TLabel
-      Left = 16
-      Top = 88
-      Width = 56
-      Height = 15
+      Left = 21
+      Top = 117
+      Width = 67
+      Height = 20
       Caption = 'Tab width:'
     end
     object lblCommand: TLabel
-      Left = 16
-      Top = 154
-      Width = 226
-      Height = 15
+      Left = 21
+      Top = 285
+      Width = 281
+      Height = 20
       Caption = 'Final command (add customizations here):'
     end
     object bvCustom: TBevel
-      Left = 20
-      Top = 146
-      Width = 544
+      Left = 27
+      Top = 275
+      Width = 725
       Height = 2
     end
-    object lblIndentParts: TLabel
-      Left = 280
-      Top = 16
-      Width = 184
-      Height = 15
-      Caption = 'Indent the following kinds of code:'
+    object lblPointerAlign: TLabel
+      Left = 21
+      Top = 200
+      Width = 88
+      Height = 20
+      Caption = 'Align Pointer:'
+    end
+    object lblAlignReference: TLabel
+      Left = 21
+      Top = 240
+      Width = 108
+      Height = 20
+      Caption = 'Align Reference:'
     end
     object cmbBracketStyle: TComboBox
-      Left = 104
-      Top = 20
-      Width = 145
-      Height = 23
+      Left = 139
+      Top = 27
+      Width = 193
+      Height = 28
       Style = csDropDownList
-      ItemHeight = 15
+      ItemHeight = 20
       ItemIndex = 0
       TabOrder = 0
       Text = '(do not modify)'
@@ -212,12 +220,12 @@ object FormatterOptionsForm: TFormatterOptionsForm
         'Lisp')
     end
     object cmbIndentStyle: TComboBox
-      Left = 104
-      Top = 52
-      Width = 145
-      Height = 23
+      Left = 139
+      Top = 69
+      Width = 193
+      Height = 28
       Style = csDropDownList
-      ItemHeight = 15
+      ItemHeight = 20
       ItemIndex = 0
       TabOrder = 1
       Text = '(do not modify)'
@@ -230,97 +238,153 @@ object FormatterOptionsForm: TFormatterOptionsForm
         'Force Tab X')
     end
     object spinTabWidth: TSpinEdit
-      Left = 130
-      Top = 84
-      Width = 50
-      Height = 24
+      Left = 181
+      Top = 112
+      Width = 67
+      Height = 31
       MaxValue = 20
       MinValue = 2
       TabOrder = 2
       Value = 4
       OnChange = OptionChange
     end
-    object chkClasses: TCheckBox
-      Left = 288
-      Top = 40
-      Width = 129
-      Height = 17
-      Caption = 'Classes'
-      TabOrder = 3
-      OnClick = OptionChange
-    end
-    object chkSwitches: TCheckBox
-      Left = 288
-      Top = 64
-      Width = 129
-      Height = 17
-      Caption = 'Switches'
-      TabOrder = 4
-      OnClick = OptionChange
-    end
-    object chkNamespace: TCheckBox
-      Left = 432
-      Top = 40
-      Width = 129
-      Height = 17
-      Caption = 'Namespaces'
-      TabOrder = 6
-      OnClick = OptionChange
-    end
-    object chkCases: TCheckBox
-      Left = 288
-      Top = 88
-      Width = 129
-      Height = 17
-      Caption = 'Cases'
-      TabOrder = 5
-      OnClick = OptionChange
-    end
-    object chkLabels: TCheckBox
-      Left = 432
-      Top = 64
-      Width = 129
-      Height = 17
-      Caption = 'Labels'
-      TabOrder = 7
-      OnClick = OptionChange
-    end
-    object chkPreprocessor: TCheckBox
-      Left = 432
-      Top = 88
-      Width = 129
-      Height = 17
-      Caption = 'Preprocessor'
-      TabOrder = 8
-      OnClick = OptionChange
-    end
     object memFullCommand: TMemo
-      Left = 16
-      Top = 174
-      Width = 552
-      Height = 81
-      TabOrder = 9
+      Left = 21
+      Top = 312
+      Width = 736
+      Height = 68
+      TabOrder = 3
       OnChange = CommandChange
     end
     object spinMaxLineLength: TSpinEdit
-      Left = 130
-      Top = 116
-      Width = 50
-      Height = 24
+      Left = 181
+      Top = 155
+      Width = 67
+      Height = 31
       MaxValue = 200
       MinValue = 50
-      TabOrder = 10
+      TabOrder = 4
       Value = 80
       OnChange = OptionChange
     end
+    object grpIndentParts: TGroupBox
+      Left = 360
+      Top = 16
+      Width = 401
+      Height = 137
+      Caption = 'Indent the following kinds of code:'
+      TabOrder = 5
+      object chkClasses: TCheckBox
+        Left = 13
+        Top = 29
+        Width = 172
+        Height = 23
+        Caption = 'Classes'
+        TabOrder = 0
+        OnClick = OptionChange
+      end
+      object chkSwitches: TCheckBox
+        Left = 13
+        Top = 63
+        Width = 172
+        Height = 23
+        Caption = 'Switches'
+        TabOrder = 1
+        OnClick = OptionChange
+      end
+      object chkPreprocessor: TCheckBox
+        Left = 205
+        Top = 98
+        Width = 172
+        Height = 23
+        Caption = 'Preprocessor'
+        TabOrder = 2
+        OnClick = OptionChange
+      end
+      object chkNamespace: TCheckBox
+        Left = 205
+        Top = 29
+        Width = 172
+        Height = 23
+        Caption = 'Namespaces'
+        TabOrder = 3
+        OnClick = OptionChange
+      end
+      object chkLabels: TCheckBox
+        Left = 205
+        Top = 63
+        Width = 172
+        Height = 23
+        Caption = 'Labels'
+        TabOrder = 4
+        OnClick = OptionChange
+      end
+      object chkCases: TCheckBox
+        Left = 13
+        Top = 98
+        Width = 172
+        Height = 23
+        Caption = 'Cases'
+        TabOrder = 5
+        OnClick = OptionChange
+      end
+    end
     object chkMaxLineLength: TCheckBox
-      Left = 16
-      Top = 120
-      Width = 112
-      Height = 17
+      Left = 21
+      Top = 162
+      Width = 150
+      Height = 23
       Caption = 'Max line length:'
-      TabOrder = 11
+      TabOrder = 6
       OnClick = OptionChange
+    end
+    object chkPadOper: TCheckBox
+      Left = 357
+      Top = 170
+      Width = 348
+      Height = 23
+      Caption = 'Add spaces around operators (+,-,...)'
+      TabOrder = 7
+      OnClick = OptionChange
+    end
+    object chkPadHeader: TCheckBox
+      Left = 357
+      Top = 210
+      Width = 348
+      Height = 23
+      Caption = 'Add spaces after command (if, for,...)'
+      TabOrder = 8
+      OnClick = OptionChange
+    end
+    object cbAlignPointer: TComboBox
+      Left = 139
+      Top = 197
+      Width = 193
+      Height = 28
+      Style = csDropDownList
+      ItemHeight = 20
+      TabOrder = 9
+      OnChange = OptionChange
+      Items.Strings = (
+        'None'
+        'Type'
+        'Middle'
+        'Name')
+    end
+    object cbAlignReference: TComboBox
+      Left = 139
+      Top = 237
+      Width = 193
+      Height = 28
+      Style = csDropDownList
+      ItemHeight = 20
+      TabOrder = 10
+      OnChange = OptionChange
+      Items.Strings = (
+        'None'
+        'Type'
+        'Middle'
+        'Name')
     end
   end
 end

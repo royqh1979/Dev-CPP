@@ -445,13 +445,17 @@ procedure TCodeCompletion.FilterList(const Member: AnsiString);
 var
   I,idx: integer;
   tmpList:TList;
-  lastCmd:String;
+//  lastCmd:String;
   TopCount,SecondCount,ThirdCount:integer;
   usageCount:integer;
 begin
   fCompletionStatementList.Clear;
+  
+    {
   tmpList:=TList.Create;
   try
+  }
+  tmpList:=fCompletionStatementList;
     if Member <> '' then begin // filter, case sensitive
       tmpList.Capacity := fFullCompletionStatementList.Count;
       for I := 0 to fFullCompletionStatementList.Count - 1 do
@@ -496,7 +500,8 @@ begin
     end else begin
       tmpList.sort(@ListSort);
     end;
-
+{
+    //don't need to do this because we have done it when fill fFullCompletionStatementList
     // filter duplicates
     lastCmd := '';
     for I:=0 to tmpList.Count -1 do begin
@@ -507,6 +512,7 @@ begin
   finally
     tmpList.Free;
   end;
+    }
 
 end;
 

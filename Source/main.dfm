@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 504
-  Top = 220
+  Left = 474
+  Top = 201
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1046,7 +1046,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 351
-    ActivePage = LeftProjectSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -1073,6 +1073,7 @@ object MainForm: TMainForm
         Indent = 19
         MultiSelect = True
         MultiSelectStyle = [msControlSelect, msShiftSelect]
+        PopupMenu = ProjectPopup
         ReadOnly = True
         RightClickSelect = True
         SortType = stText
@@ -1783,6 +1784,9 @@ object MainForm: TMainForm
       object Rename: TMenuItem
         Action = actRenameSymbol
       end
+      object ExtractMacro1: TMenuItem
+        Action = actExtractMacro
+      end
     end
     object WindowMenu: TMenuItem
       Caption = '&Window'
@@ -1986,6 +1990,15 @@ object MainForm: TMainForm
       Action = actProjectNewFolder
     end
     object MenuItem18: TMenuItem
+      Caption = '-'
+    end
+    object OpenProjectFolder1: TMenuItem
+      Action = actOpenProjectFoloder
+    end
+    object OpenConsoleHere1: TMenuItem
+      Action = actOpenProjectConsole
+    end
+    object N53: TMenuItem
       Caption = '-'
     end
     object ProjectoptionsPopItem: TMenuItem
@@ -2453,6 +2466,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'Project'
       Caption = '&Remove from project'
+      ImageIndex = 11
       OnExecute = actUnitRemoveExecute
       OnUpdate = actUpdateProject
     end
@@ -2474,6 +2488,7 @@ object MainForm: TMainForm
       Tag = 4
       Category = 'Project'
       Caption = '&Open'
+      ImageIndex = 4
       OnExecute = actUnitOpenExecute
       OnUpdate = actUpdateProject
     end
@@ -3085,6 +3100,26 @@ object MainForm: TMainForm
       ImageIndex = 68
       OnExecute = actLoadWatchListExecute
       OnUpdate = actAddWatchUpdate
+    end
+    object actOpenProjectFoloder: TAction
+      Category = 'Project'
+      Caption = 'Open Project Folder'
+      ImageIndex = 68
+      OnExecute = actOpenProjectFoloderExecute
+      OnUpdate = actUpdateProject
+    end
+    object actOpenProjectConsole: TAction
+      Category = 'Project'
+      Caption = 'Open Console Here'
+      ImageIndex = 38
+      OnExecute = actOpenProjectConsoleExecute
+      OnUpdate = actUpdateProject
+    end
+    object actExtractMacro: TAction
+      Category = 'Refactor'
+      Caption = 'Extract Macro'
+      OnExecute = actExtractMacroExecute
+      OnUpdate = actUpdateEmptyEditor
     end
   end
   object MessagePopup: TPopupMenu

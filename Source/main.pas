@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole;
+  RenameFrm, Refactorer, devConsole, FileCtrl;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -610,6 +610,13 @@ type
     actLoadWatchList1: TMenuItem;
     actSaveWatchList1: TMenuItem;
     N52: TMenuItem;
+    actOpenProjectFoloder: TAction;
+    actOpenProjectConsole: TAction;
+    N53: TMenuItem;
+    OpenProjectFolder1: TMenuItem;
+    OpenConsoleHere1: TMenuItem;
+    actExtractMacro: TAction;
+    ExtractMacro1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -892,6 +899,13 @@ type
     procedure actLoadWatchListExecute(Sender: TObject);
     procedure actSaveWatchListExecute(Sender: TObject);
     procedure actAddWatchUpdate(Sender: TObject);
+    procedure actOpenProjectFoloderExecute(Sender: TObject);
+    procedure actOpenProjectConsoleExecute(Sender: TObject);
+    procedure actExtractMacroExecute(Sender: TObject);
+    {
+    procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
+      const Rect: TRect; Active: Boolean);
+      }
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1198,6 +1212,7 @@ begin
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
   debugOutput.Color := BackgroundColor;
   debugOutput.Font.Color := ForegroundColor;
+
   WatchView.Color := BackgroundColor;
   WatchView.Font.Color := ForegroundColor;
   ProjectView.Color := BackgroundColor;
@@ -1245,8 +1260,6 @@ begin
 end;
 
 procedure TMainForm.ReloadColor;
-var
-  tc:TThemeColor;
 begin
   LoadColor;
   debugOutput.Repaint;
@@ -1455,6 +1468,7 @@ begin
 
   //Refactor menu
   actRenameSymbol.Caption := Lang[ID_ITEM_RENAMESYMBOL];
+  actExtractMacro.Caption := Lang[ID_ITEM_EXTRACTMACRO];
 
   // Debugging buttons
   actAddWatch.Caption := Lang[ID_ITEM_WATCHADD];
@@ -1483,6 +1497,8 @@ begin
   actProjectRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actProjectRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
   mnuOpenWith.Caption := Lang[ID_POP_OPENWITH];
+  self.actOpenProjectFoloder.Caption := Lang[ID_POP_PRJOPENFOLDER];
+  actOpenProjectConsole.Caption := Lang[ID_POP_PRJOPENCONSOLE];
 
   // Editor popup
   actGotoDeclEditor.Caption := Lang[ID_POP_GOTODECL];
@@ -6063,7 +6079,7 @@ begin
   if Assigned(e) then begin
 
     // Exit early, don't bother creating a stream (which is slow)
-    phrase := e.GetWordAtPosition(e.Text.CaretXY, wpInformation);
+    phrase := GetWordAtPosition(e.Text,e.Text.CaretXY, wpInformation);
     if Phrase = '' then
       Exit;
 
@@ -6174,7 +6190,6 @@ procedure TMainForm.CompilerOutputAdvancedCustomDrawItem(Sender: TCustomListView
   TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
   lowersubitem: AnsiString;
-  tc: TThemeColor;
 begin
   if StartsStr('[Warning] ', Item.SubItems[2]) then begin
     Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
@@ -6647,7 +6662,6 @@ var
   BoldStart, BoldLen, i: integer;
   Rect: TRect;
   OldBrushColor, OldFontColor: TColor;
-  tc:TThemeColor;
 
   procedure Draw(const s: AnsiString);
   var
@@ -7218,7 +7232,6 @@ var
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
-  ErrorMsg: ansiString;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -7243,14 +7256,7 @@ begin
       OldCaretXY := Editor.Text.CaretXY;
 
       with TRefactorer.Create(devRefactorer,CppParser) do try
-        ErrorMsg:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
-        LogEntryProc(ErrorMsg);
-        LogEntryProc('------');
-        if ErrorMsg <> '' then begin
-          MessageBeep($F);
-          MessageDlg(ErrorMsg, mtError, [MbOK], 0);
-        end;
-
+        RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
       end;
@@ -7712,5 +7718,152 @@ begin
     TCustomAction(Sender).Enabled := (fEditorList.PageCount > 0);
 end;
 
+procedure TMainForm.actOpenProjectFoloderExecute(Sender: TObject);
+var
+  Folder: AnsiString;
+begin
+  if not Assigned(fProject) then
+    Exit;
+  Folder := fProject.Directory;
+  if Folder <> '' then
+    ShellExecute(Application.Handle, 'open', 'explorer.exe', PAnsiChar(Folder), nil, SW_SHOWNORMAL);
+end;
+
+procedure TMainForm.actOpenProjectConsoleExecute(Sender: TObject);
+var
+  Folder: AnsiString;
+  buffer: PChar;
+  size,ret,i: integer;
+  path:AnsiString;
+begin
+  if Assigned(fProject) then begin
+    Folder := fProject.Directory;
+    if Folder <> '' then begin
+      ret:=GetEnvironmentVariable(PChar('PATH'),nil,0);
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Get size of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      size:=ret;
+      buffer:=AllocMem(size*sizeof(Char));
+      try
+        ret:=GetEnvironmentVariable('PATH',buffer,size);
+        if ret = 0 then begin
+          LogError('main.pas TMainForm.actOpenConsoleExecute',
+            Format('Get content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+          Exit;
+        end;
+        path:=String(buffer);
+      finally
+        FreeMem(buffer);
+      end;
+      if Assigned(devCompilerSets.CompilationSet) then begin
+        for i:=0 to devCompilerSets.CompilationSet.BinDir.Count-1 do begin
+          path:=path+';'+devCompilerSets.CompilationSet.BinDir[i];
+        end;
+      end;
+      path:=path+';'+devDirs.Exec;
+      ret := integer(SetEnvironmentVariable(PChar('PATH'),pChar(path)));
+      if ret = 0 then begin
+        LogError('main.pas TMainForm.actOpenConsoleExecute',
+          Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+        Exit;
+      end;
+      ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+    end;
+  end;
+end;
+
+procedure TMainForm.actExtractMacroExecute(Sender: TObject);
+var
+  e:TEditor;
+  newName:AnsiString;
+begin
+  e:=EditorList.GetEditor();
+  if Assigned(e) then begin
+    e.Save;
+    with TRefactorer.Create(devRefactorer,CppParser) do try
+      if not TestExtractMacro(e) then
+        Exit;
+      newName := 'NEW_MACRO';
+      if ShowInputQuery(LANG[ID_ITEM_EXTRACTMACRO], LANG[ID_NV_EXTRACT_MACRO_NAME],newName) then
+        ExtractMacro(e,newName);
+    finally
+      Free;
+    end;
+  end;
+end;
+
+{
+procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
+  TabIndex: Integer; const Rect: TRect; Active: Boolean);
+var
+  y    : Integer;
+  x    : Integer;
+  aRect: TRect;
+  bgColor,fgColor : TColor;
+  tc : TThemeColor;
+  tabs:integer;
+  tabRect: TRect;
+begin
+  bgColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  fgColor := dmMain.Cpp.IdentifierAttri.Foreground;
+  strToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+  if Active then begin
+    //Fill the tab rect
+    Control.Canvas.Brush.Color := tc.Background;
+    Control.Canvas.Font.Color := tc.Foreground;
+    Control.Canvas.FillRect(Rect);
+  end else begin
+    //Fill the tab rect
+    Control.Canvas.Brush.Color := bgColor;
+    Control.Canvas.Font.Color := fgColor;
+    Control.Canvas.FillRect(Rect);
+  end;
+  tabs:=TTabControl(Control).Tabs.Count;
+
+  //Fill the background
+  if tabs>0 then begin
+    tabRect:=Control.TabRect(tabs-1);
+    case TTabControl(Control).TabPosition of
+      tpLeft,tpRight: begin
+        aRect.Left:=0;
+        aRect.Right:=Control.Width;
+        aRect.Bottom:=Control.Height;
+        aRect.Top:=tabRect.Bottom+1;
+      end;
+      tpTop,tpBottom: begin
+        aRect.Left:=tabRect.Right+1;
+        aRect.Right:=Control.Width;
+        aRect.Bottom:=Control.Height;
+        aRect.Top:=Rect.Top;
+      end;
+    end;
+  end else begin
+    aRect.Left:=0;
+    aRect.Right:=Control.Width;
+    aRect.Bottom:=Control.Height;
+    aRect.Top:=Rect.Top;
+  end;
+  Control.Canvas.Brush.Color := bgColor;
+  Control.Canvas.FillRect(aRect);
+
+  //draw the tab title
+  case TTabControl(Control).TabPosition of
+    tpLeft,tpRight: begin
+      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      y  := Rect.Bottom - ((Rect.Bottom - Rect.Top - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])) div 2) - 1;
+      AngleTextOut(Control.Canvas,TTabControl(Control).Tabs[TabIndex],x,y,90);
+    end;
+    tpTop,tpBottom: begin
+      y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      Control.Canvas.TextOut(x,y,TTabControl(Control).Tabs[TabIndex]);
+    end;
+  end;
+end;
+
+}
 end.
 

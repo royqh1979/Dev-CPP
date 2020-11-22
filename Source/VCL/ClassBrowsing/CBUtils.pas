@@ -142,9 +142,10 @@ type
     _Inherited: boolean; // inherted member;
     _FullName: AnsiString; // fullname(including class and namespace)
     _Usings: TStringList;
-    _Node: Pointer;
-    _UsageCount : integer;
-    _FreqTop: integer;
+    _Node: Pointer;    // the Node TStatementList used to save this statement
+    _UsageCount : integer; //Usage Count, used by TCodeCompletion
+    _FreqTop: integer; // Usage Count Rank, used by TCodeCompletion
+    _NoNameArgs: AnsiString; // Args without name
   end;
 
   PUsingNamespace =^TUsingNamespace;
@@ -177,6 +178,7 @@ type
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
+
   // These functions are about six times faster than the locale sensitive AnsiX() versions
 
 function StartsStr(const subtext, text: AnsiString): boolean;
@@ -279,7 +281,10 @@ end;
 
 function StartsStr(const subtext, text: AnsiString): boolean;
 begin
+  Result:=CompareMem(pChar(subText),pChar(text),Length(subtext));
+  {
   Result := SameStr(subtext, Copy(text, 1, Length(subtext)));
+  }
 end;
 
 function StartsText(const subtext, text: AnsiString): boolean;
