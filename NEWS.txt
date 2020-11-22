@@ -4,14 +4,15 @@ Version 6.2-beta1
  - enhancement: Add "Clear Symbol Usage Data"  button in Editor option Dialog
  - enhancement: Add "Default Project's Directory" Setting options in Environment options dialog    
  - enhancement: Add "Open Project Folder" and "Open Console here" in Left Project Panel's Context Menu
- - fix: If a file is already opened in the editor, open a project containing it will still open another editor
  - enhancement: Differentiate forward struct declaration from struct varaible definitions
  - enhancement: Parse and save no name args for non-system header function declarations  
  - enhancement: AStyle(Code Formatter) add space padding support
  - enhancement: Use TEMP dir to save temp astyle files
- - fix: can't rename symbol to a name which is not in the same scope
  - enhancement: Refactor: Extract Macro
  - change: Delete .exe file before compile (so that if compile failed, user can't run the executable and wonder why the changes dont work)
+ - fix: can't rename symbol to a name which is not in the same scope
+ - fix: If a file is already opened in the editor, open a project containing it will still open another editor
+ - enhancement: Refactor: Rename Symbol in project files
 
 Version 6.1 November 2020
 

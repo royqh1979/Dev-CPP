@@ -190,6 +190,8 @@ procedure LogError(source:AnsiString; msg:AnsiString);
 
 function CreateDirRecursive(const Dir: string): Boolean;
 
+procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
+
 implementation
 
 uses
@@ -1609,6 +1611,32 @@ begin
   Result:=CreateDir(Dir);
 end;
 
+procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
+var
+  LogFont: TLogFont;
+  OldFont,NewFont : hFont;
+begin
+{
+  if Printer.Printing then
+    Printer.Canvas.Font.PixelsPerInch:= GetDeviceCaps(Printer.Canvas.Handle,
+LOGPIXELSY);
+}
+  GetObject(PCanvas.Font.Handle, sizeof(TLogFont), @LogFont);
+  with LogFont do
+  begin
+    lfEscapement:= angle * 10;
+    lfQuality:=PROOF_QUALITY;
+  end;
+  NewFont:=CreateFontIndirect(LogFont);
+  OldFont := SelectObject(PCanvas.Handle, NewFont);
+  try
+    SetBkMode(PCanvas.Handle, TRANSPARENT);
+    Windows.TextOut(PCanvas.Handle,x,y, PChar(sText), Length(sText));
+  finally
+    SelectObject(PCanvas.Handle, OldFont);
+    DeleteObject(NewFont);
+  end;
+end;
 
 end.
 

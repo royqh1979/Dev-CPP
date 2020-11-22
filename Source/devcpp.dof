@@ -113,7 +113,7 @@ RootDir=
 IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=6
-MinorVer=0
+MinorVer=1
 Release=0
 Build=0
 Debug=0
@@ -124,13 +124,25 @@ DLL=0
 Locale=1033
 CodePage=1252
 [Version Info Keys]
-CompanyName=Bloodshed Software
+CompanyName=Roy Qu
 FileDescription=Dev-C++ IDE
-FileVersion=6.0.0.0
+FileVersion=6.1.0.0
 InternalName=devcpp.exe
-LegalCopyright=Copyright Bloodshed Software
+LegalCopyright=Roy Qu(royqh1979@gmail.com)
 LegalTrademarks=
 OriginalFilename=devcpp.exe
 ProductName=Dev-C++
-ProductVersion=5
+ProductVersion=6
 Comments=Under the GNU General Public License
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=1
+Item0=VCL\ClassBrowsing;VCL\DevCpp;VCL\DevCpp\devFileMonitor;VCL\DevCpp\devShortcuts;VCL\DevCpp\CompOptionsList;VCL\SynEdit\Source
+[HistoryLists\hlUnitOutputDirectory]
+Count=1
+Item0=Units
+[HistoryLists\hlOutputDirectorry]
+Count=1
+Item0=..

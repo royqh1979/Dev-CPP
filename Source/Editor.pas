@@ -155,7 +155,7 @@ type
     procedure ToggleBreakPoint(Line: integer);
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
-    function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+//    function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
     function GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
     procedure IndentSelection;
     procedure UnindentSelection;
@@ -175,7 +175,8 @@ type
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property GutterClickedLine: integer read fGutterClickedLine;
   end;
-  
+
+  function GetWordAtPosition(editor:TSynEdit; P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
 implementation
 
 uses
@@ -1057,7 +1058,7 @@ begin
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
 
       fCompletionBox.Search(phrase , fFileName,False);
       //we don't auto use the completion even if there's only one suggestion
@@ -1077,7 +1078,7 @@ begin
       }
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      phrase := GetWordAtPosition(fText.CaretXY, wpCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
       if phrase = '' then
         fLastPressedIsIdChar:=False;
       fCompletionBox.Search(phrase, fFileName, False);
@@ -1701,7 +1702,7 @@ begin
   finally
     M.Free;
   end;
-  word:=GetWordAtPosition(fText.CaretXY, wpCompletion);
+  word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
 
@@ -1816,14 +1817,14 @@ begin
   end;
 end;
 
-function TEditor.GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+function GetWordAtPosition(editor: TSynEdit; P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
 var
   WordBegin, WordEnd, ParamBegin, ParamEnd, len: integer;
   s: AnsiString;
 begin
   result := '';
-  if (p.Line >= 1) and (p.Line <= fText.Lines.Count) then begin
-    s := fText.Lines[p.Line - 1];
+  if (p.Line >= 1) and (p.Line <= editor.Lines.Count) then begin
+    s := editor.Lines[p.Line - 1];
     len := Length(s);
 
     WordBegin := p.Char - 1;
@@ -1835,7 +1836,7 @@ begin
         if (Purpose = wpEvaluation) and (s[WordEnd + 1] = '[') then begin
           if not FindComplement(s, '[', ']', WordEnd, 1) then
             break;
-        end else if (s[WordEnd + 1] in fText.IdentChars) then
+        end else if (s[WordEnd + 1] in editor.IdentChars) then
           Inc(WordEnd)
         else
           break;
@@ -1850,7 +1851,7 @@ begin
             break
           else
             Dec(WordBegin); // step over [
-        end else if (s[WordBegin] in fText.IdentChars) then begin
+        end else if (s[WordBegin] in editor.IdentChars) then begin
           Dec(WordBegin);
         end else if s[WordBegin] in ['.', ':', '~'] then begin // allow destructor signs
           Dec(WordBegin);
@@ -2098,9 +2099,9 @@ begin
       end;
     hprIdentifier: begin
         if MainForm.Debugger.Executing then
-          s := GetWordAtPosition(p, wpEvaluation) // debugging
+          s := GetWordAtPosition(fText, p, wpEvaluation) // debugging
         else if devEditor.ParserHints and not fCompletionBox.Visible then
-          s := GetWordAtPosition(p, wpInformation) // information during coding
+          s := GetWordAtPosition(fText, p, wpInformation) // information during coding
         else
           s := '';
       end;

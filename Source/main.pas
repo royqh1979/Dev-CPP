@@ -902,6 +902,10 @@ type
     procedure actOpenProjectFoloderExecute(Sender: TObject);
     procedure actOpenProjectConsoleExecute(Sender: TObject);
     procedure actExtractMacroExecute(Sender: TObject);
+    {
+    procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
+      const Rect: TRect; Active: Boolean);
+      }
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1208,6 +1212,7 @@ begin
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
   debugOutput.Color := BackgroundColor;
   debugOutput.Font.Color := ForegroundColor;
+
   WatchView.Color := BackgroundColor;
   WatchView.Font.Color := ForegroundColor;
   ProjectView.Color := BackgroundColor;
@@ -6074,7 +6079,7 @@ begin
   if Assigned(e) then begin
 
     // Exit early, don't bother creating a stream (which is slow)
-    phrase := e.GetWordAtPosition(e.Text.CaretXY, wpInformation);
+    phrase := GetWordAtPosition(e.Text,e.Text.CaretXY, wpInformation);
     if Phrase = '' then
       Exit;
 
@@ -7227,7 +7232,6 @@ var
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
-  ErrorMsg: ansiString;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -7252,12 +7256,7 @@ begin
       OldCaretXY := Editor.Text.CaretXY;
 
       with TRefactorer.Create(devRefactorer,CppParser) do try
-        ErrorMsg:=RenameSymbol(Editor,OldCaretXY,word,newword,GetCompileTarget,fProject);
-        if ErrorMsg <> '' then begin
-          MessageBeep($F);
-          MessageDlg(ErrorMsg, mtError, [MbOK], 0);
-        end;
-
+        RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
       end;
@@ -7796,5 +7795,75 @@ begin
   end;
 end;
 
+{
+procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
+  TabIndex: Integer; const Rect: TRect; Active: Boolean);
+var
+  y    : Integer;
+  x    : Integer;
+  aRect: TRect;
+  bgColor,fgColor : TColor;
+  tc : TThemeColor;
+  tabs:integer;
+  tabRect: TRect;
+begin
+  bgColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  fgColor := dmMain.Cpp.IdentifierAttri.Foreground;
+  strToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+  if Active then begin
+    //Fill the tab rect
+    Control.Canvas.Brush.Color := tc.Background;
+    Control.Canvas.Font.Color := tc.Foreground;
+    Control.Canvas.FillRect(Rect);
+  end else begin
+    //Fill the tab rect
+    Control.Canvas.Brush.Color := bgColor;
+    Control.Canvas.Font.Color := fgColor;
+    Control.Canvas.FillRect(Rect);
+  end;
+  tabs:=TTabControl(Control).Tabs.Count;
+
+  //Fill the background
+  if tabs>0 then begin
+    tabRect:=Control.TabRect(tabs-1);
+    case TTabControl(Control).TabPosition of
+      tpLeft,tpRight: begin
+        aRect.Left:=0;
+        aRect.Right:=Control.Width;
+        aRect.Bottom:=Control.Height;
+        aRect.Top:=tabRect.Bottom+1;
+      end;
+      tpTop,tpBottom: begin
+        aRect.Left:=tabRect.Right+1;
+        aRect.Right:=Control.Width;
+        aRect.Bottom:=Control.Height;
+        aRect.Top:=Rect.Top;
+      end;
+    end;
+  end else begin
+    aRect.Left:=0;
+    aRect.Right:=Control.Width;
+    aRect.Bottom:=Control.Height;
+    aRect.Top:=Rect.Top;
+  end;
+  Control.Canvas.Brush.Color := bgColor;
+  Control.Canvas.FillRect(aRect);
+
+  //draw the tab title
+  case TTabControl(Control).TabPosition of
+    tpLeft,tpRight: begin
+      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      y  := Rect.Bottom - ((Rect.Bottom - Rect.Top - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])) div 2) - 1;
+      AngleTextOut(Control.Canvas,TTabControl(Control).Tabs[TabIndex],x,y,90);
+    end;
+    tpTop,tpBottom: begin
+      y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      Control.Canvas.TextOut(x,y,TTabControl(Control).Tabs[TabIndex]);
+    end;
+  end;
+end;
+
+}
 end.
 

@@ -21,7 +21,7 @@ unit Refactorer;
 interface
 
 uses
- Editor,devCFG,SynEdit,Project,Compiler,CppParser, Dialogs;
+ Editor,devCFG,SynEdit,Project,Compiler,CppParser, Dialogs, CBUtils;
 
 type
 
@@ -29,15 +29,17 @@ type
   private
     fConfig: TdevRefactorer;
     fCppParser: TCppParser;
-
-  public
-    constructor Create(config:TdevRefactorer; Parser:TCppParser);
-    function RenameSymbol(Editor: TEditor;   OldCaretXY:TBufferCoord;
-      oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
     function CheckNotSpanTokens(FileName:AnsiString;edit: TSynEdit;
       startLine,startChar,endChar:integer):boolean;
     function CheckOnlyLiteralAndFunc(FileName:AnsiString;edit: TSynEdit;
       startLine,startChar,endChar:integer):boolean;
+
+   function RenameSymbolInFile(const FileName: AnsiString; pOldStatement:PStatement;
+      oldName,newName: AnsiString):boolean;
+  public
+    constructor Create(config:TdevRefactorer; Parser:TCppParser);
+    function RenameSymbol(Editor: TEditor;   OldCaretXY:TBufferCoord;
+      oldName,newName: AnsiString; Project:TProject):boolean;
     function TestExtractMacro(e: TEditor):boolean;
     {
     function GuessConstType(e:TEditor):AnsiString;
@@ -49,8 +51,8 @@ type
 implementation
 
 uses
-  sysutils,CBUtils,SynEditTextBuffer,SynEditHighlighter,utils,Classes,
-  MultiLangSupport, DataFrm;
+  sysutils,SynEditTextBuffer,SynEditHighlighter,utils,Classes,
+  MultiLangSupport, DataFrm, main;
 
 constructor TRefactorer.Create(config:TdevRefactorer;Parser:TCppParser);
 begin
@@ -58,16 +60,16 @@ begin
   fCppParser := Parser;
 end;
 
-function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
-  oldName,newName: AnsiString; Target: TTarget; Project:TProject):AnsiString;
+function TRefactorer.RenameSymbolInFile(const FileName: AnsiString;   pOldStatement:PStatement;
+      oldName,newName: AnsiString):boolean;
 var
   Lines:TSynEditStringList;
   newLines : TStringList;
   PosY:integer;
-  CurrentNewLine,phrase,newphrase,oldScopeName : string;
-  pOldStatement,pNewStatement: PStatement;
-  oldStatement : TStatement;
+  CurrentNewLine,phrase: string;
   M: TMemoryStream;
+  Editor:TSynEdit;
+  ownEditor:boolean;
 
   procedure ProcessLine;
   var
@@ -82,23 +84,23 @@ var
       Exit;
 
     if PosY = 0 then
-      Editor.Text.Highlighter.ResetRange
+      Editor.Highlighter.ResetRange
     else
-      Editor.Text.Highlighter.SetRange(Lines.Ranges[PosY - 1]);
-    Editor.Text.Highlighter.SetLine(Line, PosY);
-    while not Editor.Text.Highlighter.GetEol do begin
-        Start := Editor.Text.Highlighter.GetTokenPos + 1;
-        Token := Editor.Text.Highlighter.GetToken;
+      Editor.Highlighter.SetRange(Lines.Ranges[PosY - 1]);
+    Editor.Highlighter.SetLine(Line, PosY);
+    while not Editor.Highlighter.GetEol do begin
+        Start := Editor.Highlighter.GetTokenPos + 1;
+        Token := Editor.Highlighter.GetToken;
         if SameStr(oldname,Token) then begin
           //same name symbol , test if the same statement;
           p.Line := PosY+1;
           p.Char := Start;
-          phrase := Editor.GetWordAtPosition(p,wpInformation);
+          phrase := GetWordAtPosition(Editor, p,wpInformation);
           statement := CppParser.FindStatementOf(
-            Editor.FileName,
+            FileName,
             phrase, p.Line, M);
-          if assigned(statement) and ((statement^._DefinitionFileName = oldStatement._DefinitionFileName)
-            and (statement^._DefinitionLine = oldStatement._DefinitionLine)) then // same statement
+          if assigned(statement) and ((statement^._FileName = pOldStatement^._FileName)
+            and (statement^._Line = pOldStatement^._Line)) then // same statement
             CurrentNewLine := Concat(CurrentNewLine,NewName)
           else
             CurrentNewLine := Concat(CurrentNewLine,Token);
@@ -106,9 +108,79 @@ var
           //not same name symbol
           CurrentNewLine := Concat(CurrentNewLine,Token);
         end;
-        Editor.Text.Highlighter.Next;
+        Editor.Highlighter.Next;
       end;
   end;
+
+begin
+  Result:=False;
+  ownEditor := False;
+  if mainForm.EditorList.IsFileOpened(FileName) then begin
+    Editor := mainForm.EditorList.GetEditorFromFileName(FileName).Text;
+  end else begin
+    ownEditor := True;
+    Editor := TSynEdit.Create(nil);
+    devEditor.AssignEditor(editor,FileName);
+    with TStringList.Create do try
+      LoadFromFile(FileName);
+      editor.Lines.Text:=Text;
+    finally
+      Free;
+    end;
+  end;
+
+  Lines := Editor.Lines;
+  if Lines.Count<1 then
+    Exit;
+  newLines := TStringList.Create;
+  M := TMemoryStream.Create;
+  try
+    Lines.SaveToStream(M);
+    CppParser.Freeze(FileName,M);  // freeze it so it will not reprocess file each search
+    PosY := 0;
+    while (PosY < Lines.Count) do begin
+      ProcessLine;
+      newLines.Add(currentNewLine);
+      inc(PosY);
+    end;
+    // Use replace all functionality
+    Editor.BeginUpdate;
+    try
+      Editor.SelectAll;
+      Editor.SelText := newLines.Text;
+    finally
+      Editor.EndUpdate; // repaint once
+    end;
+    if ownEditor then begin
+      with TStringList.Create do try
+        Text:=editor.Lines.Text;
+        SaveToFile(FileName);
+      finally
+        Free;
+      end;
+    end;
+    Result := True;
+  finally
+    CppParser.UnFreeze();
+    M.Free;
+    newLines.Free;
+    if ownEditor then begin
+      Editor.Free;
+    end;
+  end;
+
+end;
+
+function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
+  oldName,newName: AnsiString; Project:TProject):boolean;
+var
+  Lines:TSynEditStringList;
+  newLines : TStringList;
+  phrase,newphrase,oldScopeName : string;
+  pOldStatement,pNewStatement: PStatement;
+  oldStatement : TStatement;
+  M: TMemoryStream;
+  i:integer;
 
   function getFullName(statement:PStatement):AnsiString;
   begin
@@ -117,19 +189,20 @@ var
     else
       Result := '';
   end;
+
 begin
 //TODO: 1. 检查定义是否在本文件中（单文件） 或者 在本项目文件列表中（项目）
 //TODO: 2.修改项目中其他文件（定义所在文件放在最后修改）
-  Result:='';
+  Result:=False;
   //Test if newword is a valid id
   if not IsIdentifier(newName) then begin
-    Result := Format(Lang[ID_ERR_NOT_IDENTIFIER],[newName]);
+    MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[newName]), mtInformation, [mbOK], 0);
     Exit;
   end;
 
   //Test if newName is a C++ keyword
   if IsKeyword(newName) then begin
-    Result := Format(Lang[ID_ERR_IS_KEYWORD],[newName]);
+    MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[newName]), mtInformation, [mbOK], 0);
     Exit;
   end;
 
@@ -142,19 +215,14 @@ begin
     Lines.SaveToStream(M);
     CppParser.Freeze(Editor.FileName,M);  // freeze it so it will not reprocess file each search
     // get full phrase (such as s.name instead of name)
-    phrase := Editor.GetWordAtPosition(oldCaretXY,wpInformation);
+    phrase := GetWordAtPosition(Editor.Text,oldCaretXY,wpInformation);
     // Find it's definition
     pOldStatement := CppParser.FindStatementOf(
       Editor.FileName,
       phrase, oldCaretXY.Line, M);
     // definition of the old name is not found
     if not Assigned(pOldStatement) then begin
-      Result := Format(Lang[ID_ERR_STATEMENT_NOT_FOUND],[phrase]);
-      Exit;
-    end;
-    // found but not in this file
-    if not SameStr(pOldStatement^._DefinitionFileName, Editor.FileName) then begin
-      Result := Format(Lang[ID_ERR_STATEMENT_OUT_OF_BOUND],[phrase,Editor.FileName]);
+      MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_FOUND],[phrase]), mtInformation, [mbOK], 0);
       Exit;
     end;
     oldStatement := pOldStatement^; // save it  (cause statement node may change each time of find)
@@ -165,28 +233,38 @@ begin
       Editor.FileName,
       newphrase, oldCaretXY.Line, M);
     if Assigned(pNewStatement) and (getFullName(pNewStatement^._ParentScope) = oldScopeName) then begin // definition with same name existing
-      Result := Format(Lang[ID_ERR_STATEMENT_EXISTING],[newphrase,pNewStatement^._DefinitionFileName,
-        pNewStatement^._DefinitionLine]);
+      MessageDlg(Format(Lang[ID_ERR_STATEMENT_EXISTING],[newphrase,pNewStatement^._DefinitionFileName,
+        pNewStatement^._DefinitionLine]), mtInformation, [mbOK], 0);
       Exit;
-    end;
-    PosY := 0;
-    while (PosY < Lines.Count) do begin
-      ProcessLine;
-      newLines.Add(currentNewLine);
-      inc(PosY);
-    end;
-    // Use replace all functionality
-    Editor.Text.BeginUpdate;
-    try
-      Editor.Text.SelectAll;
-      Editor.Text.SelText := newLines.Text;
-    finally
-      Editor.Text.EndUpdate; // repaint once
     end;
   finally
     CppParser.UnFreeze();
     M.Free;
     newLines.Free;
+  end;
+  if assigned(project) and (project.Units.IndexOf(editor.FileName)>=0) then begin
+    // found but not in this project
+    if not ((project.Units.IndexOf(oldStatement._FileName)>=0)
+        and  (project.Units.IndexOf(oldStatement._DefinitionFileName)>=0))  then begin
+      MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_IN_PROJECT],[phrase,Editor.FileName]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
+    for i:=0 to project.Units.Count-1 do begin
+      if not SameText(project.Units[i].FileName,oldStatement._FileName) then begin
+        Result:=RenameSymbolInFile(project.Units[i].FileName,@oldStatement,oldName,newName);
+        if not Result then
+          Exit;
+      end;
+    end;
+    Result:=RenameSymbolInFile(oldStatement._FileName,@oldStatement,oldName,newName);
+  end else begin
+    // found but not in this file
+    if not SameStr(oldStatement._FileName, Editor.FileName)
+      or not SameStr(oldStatement._DefinitionFileName, Editor.FileName) then begin
+      MessageDlg(Format(Lang[ID_ERR_STATEMENT_OUT_OF_BOUND],[phrase,Editor.FileName]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
+    Result:=RenameSymbolInFile(editor.FileName,@oldStatement,oldName,newName);
   end;
 
 end;
@@ -349,7 +427,6 @@ function TRefactorer.ExtractMacro(e:TEditor; MacroName:AnsiString):boolean;
 var
   s:AnsiString;
   newName : AnsiString;
-  idx:integer;
   statement:PStatement;
   caretXY,  insertXY:TBufferCoord;
   insertLine : integer;
