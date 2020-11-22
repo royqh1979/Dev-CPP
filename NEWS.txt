@@ -1,3 +1,7 @@
+Version 6.1 November 2020
+
+ - fix: insert user code template from code menu
+
 Version 6.1-beta3 November 2020
 
  - enhancement: remember the times user choosed a symbol, and use it to sort symbols user usages frequently to front
@@ -10,6 +14,7 @@ Version 6.1-beta3 November 2020
  - fix: trim left spaces when add watch var
  - fix: #if parse error if there are spaces between ! and defined
  - fix: #if parse error for defined xxx 
+ - fix: Installer get wrong install directory when uninstall old version
 
 Version 6.1-beta2.2 November 2020
 

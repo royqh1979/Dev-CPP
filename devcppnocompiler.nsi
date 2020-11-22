@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "No.Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.1-beta3"
+!define DEVCPP_VERSION "6.1"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -429,10 +429,42 @@ Function un.DeleteDirIfEmpty
    FindClose $R0
 FunctionEnd
 
+
+Function GetParent
+ 
+  Exch $R0
+  Push $R1
+  Push $R2
+  Push $R3
+ 
+  StrCpy $R1 0
+  StrLen $R2 $R0
+ 
+  loop:
+    IntOp $R1 $R1 + 1
+    IntCmp $R1 $R2 get 0 get
+    StrCpy $R3 $R0 1 -$R1
+    StrCmp $R3 "\" get
+  Goto loop
+ 
+  get:
+    StrCpy $R0 $R0 -$R1
+ 
+    Pop $R3
+    Pop $R2
+    Pop $R1
+    Exch $R0
+ 
+FunctionEnd
+
 Function UninstallExisting
     ReadRegStr $R0 HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++"  "UninstallString"
 
     StrCmp $R0 "" done
+
+    Push $R0
+    Call GetParent
+    Pop $R1
 
     MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
         "$(MessageUninstallExisting)" \
@@ -444,7 +476,7 @@ Function UninstallExisting
         ClearErrors
         HideWindow
         ClearErrors
-        ExecWait '"$R0" _?=$INSTDIR'
+        ExecWait '"$R0" _?=$R1'
         BringToFront
 
     done:
