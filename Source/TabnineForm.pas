@@ -22,15 +22,11 @@ unit TabnineForm;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Classes, Graphics, Forms, StdCtrls, Controls,
-  CodeCompletion, CppParser, CBUtils,Messages;
-{$ENDIF}
-{$IFDEF LINUX}
-Xlib, SysUtils, Classes, QGraphics, QForms, QStdCtrls, QControls,
-CodeCompletion, CppParser, QGrids, QDialogs, Types;
-{$ENDIF}
+  Messages;
 
+
+type
 type
   TTabnineForm = class(TForm)
     lbCompletion: TListBox;
@@ -39,38 +35,45 @@ type
     procedure lbCompletionDblClick(Sender: TObject);
     procedure lbCompletionDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure lbCompletionKeyPress(Sender: TObject; var Key: Char);
-    procedure FormCreate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);              
   private
     { Private declarations }
-    fOwner: TCodeCompletion;
+    fOwner: TObject;
     FOldWndProc: TWndMethod;
+    fColors : array[0..11] of TColor;
     procedure lbCompletionWindowProc(var Message: TMessage);
+    function GetColor(i:integer):TColor;
+    procedure SetColor(i:integer; const Color:TColor);    protected
+    procedure CreateParams(var Params: TCreateParams); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure CreateParams(var Params: TCreateParams); override;
+    property Colors[Index: Integer]: TColor read GetColor write SetColor;
   end;
+
+var
+  CodeComplForm: TTabnineForm;
 
 implementation
 
+uses Tabnine;
 {$R *.dfm}
 
 procedure TTabnineForm.FormShow(Sender: TObject);
 begin
-  Width := fOwner.Width;
-  Height := fOwner.Height;
+  Width := TTabnine(fOwner).Width;
+  Height := TTabnine(fOwner).Height;
   lbCompletion.DoubleBuffered := true; // performance hit, but reduces flicker a lit
 end;
 
 procedure TTabnineForm.FormDeactivate(Sender: TObject);
 begin
-  fOwner.Hide;
+  TTabnine(fOwner).Hide;
 end;
 
 procedure TTabnineForm.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
-
-  Params.Style := Params.Style or WS_SIZEBOX;
+//  Params.Style := (Params.Style or WS_SIZEBOX) ;
 end;
 
 constructor TTabnineForm.Create(AOwner: TComponent);
@@ -95,55 +98,25 @@ procedure TTabnineForm.lbCompletionDrawItem(Control: TWinControl; Index: Integer
   TOwnerDrawState);
 var
   Offset: integer;
-  statement: PStatement;
+  suggestion: PTabnineSuggestion;
 begin
   Offset := 4;
 
   with lbCompletion do begin
-    statement := PStatement(Items.Objects[Index]);
+    suggestion := PTabnineSuggestion(Items.Objects[Index]);
 
     // Draw statement kind string, like 'Preprocessor'
     if odSelected in State then begin
-      Canvas.Brush.Color := clHighlight;
+      Canvas.Brush.Color := Colors[SelectedBackColor];
       Canvas.FillRect(Rect);
-      Canvas.Font.Color := clHighlightText;
+      Canvas.Font.Color := Colors[SelectedForeColor];
     end else begin
-      Canvas.Brush.Color := fOwner.Color;
+      Canvas.Brush.Color := Colors[BackColor];
       Canvas.FillRect(Rect);
-      case statement^._Kind of
-        skFunction: Canvas.Font.Color := clGreen;
-        skClass: Canvas.Font.Color := clMaroon;
-        skVariable: Canvas.Font.Color := clBlue;
-        skTypedef: Canvas.Font.Color := clOlive;
-        skPreprocessor: Canvas.Font.Color := clPurple;
-        skEnum: Canvas.Font.Color := clNavy;
-      else
-        Canvas.Font.Color := clGray;
-      end;
+      Canvas.Font.Color := Colors[ForeColor];
     end;
-    Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
-    Offset := Offset +
-      Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing
-    if not (odSelected in State) then
-      Canvas.Font.Color := clWindowText;
-
-    // Draw data type string, like 'int', hide for defines/others that don't have this property
-// MinGW gcc's type info is too long , so we don't print it
-//    if Length(statement^._Type) > 0 then begin
-//      Canvas.TextOut(Offset, Rect.Top, statement^._Type);
-//      Offset := Offset + Canvas.TextWidth(statement^._Type + ' ');
-//    end;
-
-    // draw statement name, like 'foo'
-    Canvas.Font.Style := [fsBold];
-    Canvas.TextOut(Offset, Rect.Top, statement^._Command);
-//    Offset := Offset + Canvas.TextWidth(statement^._Command + ' ');
-    Offset := Offset + Canvas.TextWidth(statement^._Command );
-    // if applicable, draw arguments
-    if statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
-      Canvas.Font.Style := [];
-      Canvas.TextOut(Offset, Rect.Top, statement^._Args);
-    end;
+    Canvas.TextOut(Offset, Rect.Top,
+      suggestion.new_prefix + suggestion.new_suffix);
   end;
 end;
 
@@ -184,5 +157,21 @@ begin
     Message.Result:= Message.Result or DLGC_WANTTAB;
 end;
 
+function TTabnineForm.GetColor(i:integer):TColor;
+begin
+  Result := fColors[i];
+end;
+
+procedure TTabnineForm.SetColor(i:integer; const Color:TColor);
+begin
+  fColors[i] := Color;
+  if i=BackColor then begin
+    self.Color := Color;
+  end;
+end;
+
+
 end.
+
+
 

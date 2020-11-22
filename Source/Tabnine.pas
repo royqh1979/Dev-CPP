@@ -30,6 +30,7 @@ TTabnineSuggestion = record
   OldSuffix:String;
   NewPrefix:String;
   NewSuffix:String;
+  Detail: String;
 end;
 
 TTabnineThread = Class;
@@ -115,7 +116,7 @@ end;
 
 implementation
 
-uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms;
+uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms, main;
 
 constructor TTabnine.Create(AOwner: TComponent);
 begin
@@ -212,13 +213,13 @@ begin
   try
     if not FileExists(fPath) then begin
       LogError('Tabnine.pas TTabnine.Start',Format('Can''t find Tabnine in : %s',[fPath]));
-      MessageDlg(Lang[ID_ERR_GDBNOTEXIST], mtError, [mbOK], 0);
+      MessageDlg(Format(Lang[ID_ERR_GDBNOTEXIST],[fPath]), mtError, [mbOK], 0);
       fExecuting:=False;
       Exit;
     end;
     TabnineCmd := '"' + fPath + '"';
-    if not CreateProcess(nil, pChar(TabnineCmd), nil, nil, true, 0, nil, nil, si, pi) then begin
-      LogError('Tabnine.pas TTabnine.Start',Format('Create GDB process failed: %s',[SysErrorMessage(GetLastError)]));
+    if not CreateProcess(nil, pChar(TabnineCmd), nil, nil, true,0, nil, nil, si, pi) then begin
+      LogError('Tabnine.pas TTabnine.Start',Format('Create Tabnine process failed: %s',[SysErrorMessage(GetLastError)]));
       MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [fPath, SysErrorMessage(GetLastError)]), mtError,
         [mbOK], 0);
       fExecuting := false;
@@ -246,7 +247,7 @@ begin
     Exit;
   fExecuting := false;
 
-  // stop gdb
+  // stop tabnine
   TerminateProcess(fProcessID, 0);
 
   fThread.Terminate;
@@ -289,7 +290,7 @@ procedure TTabnine.Query(const FileName:String;Before:String; After:String);
 var
   nBytesWrote: DWORD;
   cmd:String;
-  P:pChar;  
+  P:pChar;
 begin
   if not fExecuting then
     Exit;
@@ -298,24 +299,46 @@ begin
     fOnQueryBegin(self);
   cmd := '{"version":"'+fVersion+'", "request":{'
             + '"Autocomplete":{'
-                + '"before":"'+Before+'",'
-                + '"after":"'+After+'",'
-                + '"filename":"'+FileName+'",'
-                + '"region_includes_beginning":"true",'
-                + '"region_includes_end":"true",'
-                + '"max_num_results":"' + IntToStr(fMaxResultCount)+'"'
+                + '"before": "'+TrimLeft(Before)+'",'
+                + '"after": "'+TrimRight(After)+'",'
+//                + '"filename": "'+AnsiToUTF8(FileName)+'",'
+                + '"filename": null,'
+                + '"region_includes_beginning": true,'
+                + '"region_includes_end": true'
+//                + '"max_num_results":"' + IntToStr(fMaxResultCount)+'"'
             + '}'
-        +'}}'#10;
-  p:=pChar(cmd);
-  WriteFile(fInputWrite, p, Length(cmd), nBytesWrote, nil);
+        +'}}'+#10;
+  MainForm.LogOutput.Lines.Add(cmd);
+  GetMem(P, Length(Cmd) + 1);
+  try
+    StrPCopy(P, cmd);
+    WriteFile(fInputWrite, p^, Length(cmd), nBytesWrote, nil);
+  finally
+    FreeMem(P);
+  end;
   fBefore:=Before;
   fAfter:=After;
 end;
 
 procedure TTabnine.QueryReady;
+var
+  i:integer;
+  suggest:PTabnineSuggestion;
 begin
   if assigned(fOnQueryEnd) then
     fOnQueryEnd(self);
+
+    
+  MainForm.LogOutput.Lines.Add('----------');
+  for i:=0 to fSuggestions.Count-1 do begin
+    suggest:=PTabnineSuggestion(fSuggestions[i]);
+    MainForm.LogOutput.Lines.Add(inttostr(i)
+    + suggest.OldPrefix
+    + ' - '
+    + suggest.OldSuffix );
+    MainForm.LogOutput.Lines.Add('     '
+    + suggest.NewPrefix + ' - ' + suggest.NewSuffix );
+  end;
 
   fQuerying:=False;
 end;
@@ -337,10 +360,11 @@ begin
   Items := js.Field['results'];
   for I := 0 to Pred(Items.Count) do begin
     new(p);
-    p.OldPrefix:=defaultOldPrefix;
-    p.OldSuffix:=VarToStr(Items.Child[i].Field['old_suffix'].Value) ;
-    p.NewPrefix:=VarToStr(Items.Child[i].Field['new_prefix'].Value) ;
-    p.NewSuffix:=VarToStr(Items.Child[i].Field['new_suffix'].Value) ;
+    p^.OldPrefix:=defaultOldPrefix;
+    p^.OldSuffix:=VarToStr(Items.Child[i].Field['old_suffix'].Value) ;
+    p^.NewPrefix:=VarToStr(Items.Child[i].Field['new_prefix'].Value) ;
+    p^.NewSuffix:=VarToStr(Items.Child[i].Field['new_suffix'].Value) ;
+    p^.Detail := VarToStr(Items.Child[i].Field['detail'].Value) ;
     fTabnine.Suggestions.Add(p);
   end;
 end;

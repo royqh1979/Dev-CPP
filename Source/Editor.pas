@@ -1495,6 +1495,14 @@ begin
     end
   end else begin
     fLastPressedIsIdChar:=False;
+    if key in [' ','+','-','*','/'] then begin
+      fText.SelText := Key;
+      Key:=#0;
+      MainForm.LogOutput.Lines.Add('Do Query');
+      mainForm.Tabnine.Query(FileName,
+        Copy(fText.LineText,1,fText.CaretX-1),
+        Copy(fText.LineText,fText.CaretX,MaxInt));
+    end;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
 

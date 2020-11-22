@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, FileCtrl;
+  RenameFrm, Refactorer, devConsole, Tabnine;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -927,6 +927,7 @@ type
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
     fQuitting: boolean ;
+    fTabnine: TTabnine;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -986,6 +987,7 @@ type
     property Debugger: TDebugger read fDebugger write fDebugger;
     property EditorList: TEditorList read fEditorList write fEditorList;
     property CurrentPageHint: AnsiString read fCurrentPageHint write fCurrentPageHint;
+    property Tabnine: TTabnine read fTabnine;
   end;
 
 var
@@ -1111,6 +1113,9 @@ begin
   finally
     Action := caFree;
   end;
+  if fTabnine.Executing then
+    fTabnine.Stop;
+  fTabnine.Free;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -6485,6 +6490,11 @@ begin
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
   end;
+
+  //Tabnine
+  fTabnine := TTabnine.Create(self);
+  fTabnine.Path := devDirs.Exec + 'tabnine.exe';
+  fTabnine.Start;
 
   //Load Colors
   LoadColor;
