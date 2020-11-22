@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole;
+  RenameFrm, Refactorer, devConsole, FileCtrl;
 
 type
   TRunEndAction = (reaNone, reaProfile);

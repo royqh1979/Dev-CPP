@@ -301,8 +301,9 @@ begin
             Exit;
           end;
           if ( (start<startChar) and (endPos>=startChar) )
-            or ( (start<=endChar) and (endPos>endChar) ) then begin // we are span tokens
-            Exit;
+            or ( (start<=endChar) and (endPos>endChar) ) then begin // we are span a token
+            if Attri <> dmMain.Cpp.SpaceAttri then //and the token is not whitespaces
+              Exit;
           end;
           if (start>=startChar) and (endPos<=endChar) then begin
             if (start=startChar) and (endPos=endChar) then begin

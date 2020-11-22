@@ -1046,7 +1046,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 351
-    ActivePage = LeftProjectSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
