@@ -60,7 +60,7 @@ TTabnine = Class(TObject)
     fColor: TColor;
     fWidth: integer;
     fHeight: integer;
-    fEnabled: boolean;  
+
     procedure GetVersion;
     procedure SetPath(Path:String);
     procedure SetPosition(Value: TPoint);
@@ -80,6 +80,7 @@ TTabnine = Class(TObject)
     procedure PrefetchFile(const FileName: String);
     procedure Query(const FileName:String;Before:String; After:String);
     procedure QueryReady;
+    function SelectedSuggestion: PTabnineSuggestion;
     property Path:String read fPath write SetPath;
     property MaxResultCount: integer read fMaxResultCount write fMaxResultCount;
     property Before: String read fBefore;
@@ -96,7 +97,6 @@ TTabnine = Class(TObject)
     property Color: TColor read fColor write fColor;
     property Width: integer read fWidth write fWidth;
     property Height: integer read fHeight write fHeight;
-    property Enabled: boolean read fEnabled write fEnabled;
     property MinWidth: integer read fMinWidth write fMinWidth;
     property MinHeight: integer read fMinHeight write fMinHeight;
     property MaxWidth: integer read fMaxWidth write fMaxWidth;
@@ -123,6 +123,7 @@ begin
   fVersion:='2.0.2';
   fExecuting:=False;
   fQuerying:=False;
+  self.Width:=700;
 end;
 
 destructor TTabnine.Destroy;
@@ -137,6 +138,7 @@ procedure TTabnine.ClearSuggestions;
 var
   i:integer;
 begin
+  fTabnineForm.lbCompletion.Items.Clear;
   for i:=0 to fSuggestions.Count-1 do begin
     dispose(PTabnineSuggestion(fSuggestions[i]));
   end;
@@ -322,7 +324,7 @@ begin
             + '}'
         +'}}'+#10;
 
-  MainForm.LogOutput.Lines.Add(cmd);
+  //MainForm.LogOutput.Lines.Add(cmd);
   fBefore:=Before;
   fAfter:=After;
   response := sendCommand(cmd,True);
@@ -355,7 +357,7 @@ begin
   try
     for i:=0 to fSuggestions.Count-1 do begin
       suggest:=PTabnineSuggestion(fSuggestions[i]);
-      fTabnineForm.lbCompletion.Items.AddObject('',suggest);
+      fTabnineForm.lbCompletion.Items.AddObject('',TObject(suggest));
     end;
   finally
     fTabnineForm.lbCompletion.Items.EndUpdate;
@@ -365,11 +367,23 @@ end;
 
 procedure TTabnine.ProcessQueryResult(response:String);
 var
-  js,field: TlkJSONBase;
+  js,field,child: TlkJSONBase;
   Items: TlkJSONbase;
   i:integer;
   defaultOldprefix: String;
   p:PTabnineSuggestion;
+
+  function getValue(node:TlkJSONBase;name:AnsiString):AnsiString;
+  var
+    f:TlkJSONBase;
+  begin
+    f:=node.Field[WideString(name)];
+    if assigned(f) then
+    Result := VarToStr(f.Value)
+    else
+      Result := '';
+  end;
+
 begin
   ClearSuggestions;
   js := TlkJSON.ParseText(response);
@@ -379,19 +393,20 @@ begin
     defaultOldPrefix:=VarToStr(field.Value);
   Items := js.Field['results'];
   for I := 0 to Pred(Items.Count) do begin
+    child := Items.Child[i];
     new(p);
     p^.OldPrefix:=defaultOldPrefix;
-    p^.OldSuffix:=VarToStr(Items.Child[i].Field['old_suffix'].Value) ;
-    p^.NewPrefix:=VarToStr(Items.Child[i].Field['new_prefix'].Value) ;
-    p^.NewSuffix:=VarToStr(Items.Child[i].Field['new_suffix'].Value) ;
-    p^.Detail := VarToStr(Items.Child[i].Field['detail'].Value) ;
-    Suggestions.Add(p);
+    p^.OldSuffix:=getValue(child,'old_prefix');
+    p^.NewPrefix:=getValue(child,'new_prefix') ;
+    p^.NewSuffix:=getValue(child,'new_suffix') ;
+    p^.Detail := getValue(child,'detail') ;
+    fSuggestions.Add(p);
   end;
 end;
 
 function TTabnine.IsVisible: boolean;
 begin
-  Result := fEnabled and fTabnineForm.Visible;
+  Result := fTabnineForm.Visible;
 end;
 
 procedure TTabnine.SetPosition(Value: TPoint);
@@ -419,12 +434,29 @@ end;
 
 procedure TTabnine.Show;
 begin
+  fTabnineForm.lbCompletion.Font.Size := FontSize;
+  fTabnineForm.lbCompletion.ItemHeight := Round(2 * FontSize);
   fTabnineForm.Show;
+
 end;
 
 procedure TTabnine.Hide;
 begin
   fTabnineForm.Hide;
+
+end;
+
+function TTabnine.SelectedSuggestion: PTabnineSuggestion;
+begin
+  if (fSuggestions.Count > fTabnineForm.lbCompletion.ItemIndex) and (fTabnineForm.lbCompletion.ItemIndex
+      <> -1) then
+      Result := PTabnineSuggestion(fSuggestions[fTabnineForm.lbCompletion.ItemIndex])
+  else begin
+    if fSuggestions.Count > 0 then
+      Result := PTabnineSuggestion(fSuggestions[0])
+    else
+      Result := nil;
+  end;
 end;
 
 end.

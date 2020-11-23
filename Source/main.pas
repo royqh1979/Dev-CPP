@@ -1116,6 +1116,7 @@ begin
     Action := caFree;
   end;
   StopTabnine;
+  FreeAndNil(fTabnine);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1247,6 +1248,21 @@ begin
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
   CodeCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+
+  if Assigned(fTabnine) then begin
+    fTabnine.Colors[BackColor] := tc.Background;
+    fTabnine.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[FunctionColor] := dmMain.Cpp.CommentAttribute.Foreground;
+    fTabnine.Colors[ClassColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+    fTabnine.Colors[VarColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
+    fTabnine.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+    fTabnine.Colors[PreprocessorColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[SelectedBackColor] := BackgroundColor;
+    fTabnine.Colors[SelectedForeColor] := ForegroundColor;
+    fTabnine.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+  end;
 
   StackTrace.Color := BackgroundColor;
   StackTrace.Font.Color := ForegroundColor;
@@ -6498,7 +6514,9 @@ begin
   end;
 
   //Tabnine
-  startTabnine;
+  fTabnine:=TTabnine.Create;
+  if devEditor.UseTabnine then
+    startTabnine;
 
   //Load Colors
   LoadColor;
@@ -7811,19 +7829,15 @@ end;
 
 procedure TMainForm.StartTabnine;
 begin
-  if not Assigned(fTabnine) then begin
-    fTabnine:=TTabnine.Create;
+  if not fTabnine.Executing then begin
     fTabnine.Path := devDirs.Exec + 'tabnine.exe';
     fTabnine.Start;
   end;
 end;
 procedure TMainForm.StopTabnine;
 begin
-  if Assigned(fTabnine) then begin
-    if fTabnine.Executing then
+  if fTabnine.Executing then
       fTabnine.Stop;
-    FreeAndNil(fTabnine);
-  end;
 end;
 
 {

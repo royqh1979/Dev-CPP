@@ -122,7 +122,7 @@ type
     procedure TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
     procedure TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
-    procedure TabineCompletionInsert(appendFunc:boolean=False);
+    procedure TabnineCompletionInsert(appendFunc:boolean=False);
 
     procedure CompletionInsert(appendFunc:boolean=False);
     procedure CompletionTimer(Sender: TObject);
@@ -139,6 +139,7 @@ type
     procedure SetPageControl(Value: TPageControl);
     procedure ClearUserCodeInTabStops;
     procedure PopUserCodeInTabStops;
+    procedure ShowTabnineCompletion;
     //procedure TextWindowProc(var Message: TMessage);
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
@@ -1052,6 +1053,8 @@ end;
 procedure TEditor.TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
+  if not fTabnine.Visible then
+    Exit;
   fTabnine.Hide;
   //Send the key to the SynEdit
   PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
@@ -1061,30 +1064,43 @@ procedure TEditor.TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
 begin
+  if not fTabnine.Visible then
+    Exit;
   // We received a key from the completion box...
-    if (Key in fTabnine.TriggerChars) then begin // Continue filtering
+    if (Key in [' ',',','(',')','[',']','+','-','/','*','&','|','!','~']) then begin // Continue filtering
+      fLastPressedIsIdChar := False;
       fText.SelText := Key;
-      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
-
-      fTabnine.Search(phrase , fFileName,False);
+      fTabnine.Query(fFileName,
+        Copy(fText.LineText, 1, fText.CaretX-1),
+        Copy(fText.LineText, fText.CaretX,MaxInt));
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
-      if phrase = '' then
+      if phrase = '' then begin
         fLastPressedIsIdChar:=False;
-      fCompletionBox.Search(phrase, fFileName, False);
+        fTabnine.Hide;
+      end else begin
+        fTabnine.Query(fFileName,
+          Copy(fText.LineText, 1, fText.CaretX-1),
+          Copy(fText.LineText, fText.CaretX,MaxInt));
+      end;
     end else if Key = Char(VK_ESCAPE) then begin
-      fCompletionBox.Hide;
+      fTabnine.Hide;
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
-      TabnineCompletionInsert(True);
-      fCompletionBox.Hide;
+      TabnineCompletionInsert;
+      fTabnine.Hide;
+    end else if fLastPressedIsIdChar then begin
+      fLastPressedIsIdChar := True;
+      fText.SelText := Key;
+      fTabnine.Query(fFileName,
+        Copy(fText.LineText, 1, fText.CaretX-1),
+        Copy(fText.LineText, fText.CaretX,MaxInt));
     end else begin  // other keys, stop completion
       //stop completion now
       fTabnine.Hide;
       //Send the key to the SynEdit
       PostMessage(fText.Handle, WM_CHAR, Ord(Key), 0);
     end;
-  end;
 end;
 
 procedure TEditor.CompletionKeyDown(Sender: TObject; var Key: Word;
@@ -1303,7 +1319,7 @@ var
     s: AnsiString;
   begin
     s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
-    if not StartsStr('include',s) then //it'ss not #include
+    if not StartsStr('include',s) then //it's not #include
       Exit;
     InsertString('>', false);
   end;
@@ -1513,6 +1529,7 @@ begin
         if lastWord <> '' then begin
           if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
           //last word is a type keyword, this is a var or param define, and dont show suggestion
+            ShowTabnineCompletion;
             Exit;
           end;
           M := TMemoryStream.Create;
@@ -1525,7 +1542,8 @@ begin
               st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,currentStatement);
             end;
             if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
-            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              ShowTabnineCompletion;
               Exit;
             end;
           finally
@@ -1540,19 +1558,17 @@ begin
     end
   end else begin
     fLastPressedIsIdChar:=False;
-    if key in [' ','+','-','*','/'] then begin
-      fText.SelText := Key;
-      Key:=#0;
-      MainForm.LogOutput.Lines.Add('Do Query');
-      mainForm.Tabnine.Query(FileName,
-        Copy(fText.LineText,1,fText.CaretX-1),
-        Copy(fText.LineText,fText.CaretX,MaxInt));
-    end;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
 
-    // Spawn code completion window if we are allowed to
-    HandleCodeCompletion(Key);
+    if key in [' ','+','-','*','/','<','&','|','!','~'] then begin
+      fText.SelText := Key;
+      Key:=#0;
+      ShowTabnineCompletion;
+    end else begin
+      // Spawn code completion window if we are allowed to
+      HandleCodeCompletion(Key);
+    end;
   end;
 end;
 
@@ -1709,6 +1725,39 @@ begin
   end;
 end;
 
+procedure TEditor.ShowTabnineCompletion;
+var
+  P: TPoint;
+  s: AnsiString;
+  attr: TSynHighlighterAttributes;
+begin
+  if not fTabnine.Executing then
+    exit;
+  if fTabnine.Visible then // already in search, don't do it again
+    Exit;
+
+  // Only scan when cursor is not placed in a comment
+  if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
+    if (attr = fText.Highlighter.CommentAttribute) then
+      Exit;
+
+  // Position it at the top of the next line
+  P := fText.RowColumnToPixels(fText.DisplayXY);
+  Inc(P.Y, fText.LineHeight + 2);
+  fTabnine.Position := fText.ClientToScreen(P);
+
+
+  //Set Font size;
+  fTabnine.FontSize := fText.Font.Size;
+
+  // Redirect key presses to completion box if applicable
+  fTabnine.OnKeyPress := TabnineCompletionKeyPress;
+  fTabnine.OnKeyDown := TabnineCompletionKeyDown;
+  fTabnine.Show;
+  fTabnine.Query(FileName,Copy(fText.LineText,1,fText.CaretX-1),
+    Copy(fText.LineText,fText.CaretX,MaxInt));
+end;
+
 procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
@@ -1722,11 +1771,16 @@ begin
     Exit;
 
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
-  if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
+  if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then begin
+    if attr = dmMain.Cpp.DirecAttri then begin //Preprocessor
+      ShowTabnineCompletion;
+      Exit;
+    end;
     if (attr <> fText.Highlighter.SymbolAttribute) and
       (attr <> fText.Highlighter.WhitespaceAttribute) and
       (attr <> fText.Highlighter.IdentifierAttribute) then
       Exit;
+  end;
 
   // Position it at the top of the next line
   P := fText.RowColumnToPixels(fText.DisplayXY);
@@ -1759,6 +1813,7 @@ begin
   finally
     M.Free;
   end;
+  
   word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
@@ -1956,9 +2011,35 @@ begin
     end;
 end;
 
+procedure TEditor.TabnineCompletionInsert;
+var
+  suggestion: PTabnineSuggestion;
+  P,P1: TBufferCoord;
+
+begin
+  try
+    suggestion := fTabnine.SelectedSuggestion;
+    if not Assigned(suggestion) then
+      Exit;
+
+    // delete the part of the word that's already been typed ...
+    p:=fText.CaretXY ; // CaretXY will change after call WordStart
+    p1:=p;
+    p1.Char := p.Char - length(suggestion^.OldPrefix);
+    fText.BlockBegin := p1;
+    p1.Char :=  p.Char + length(suggestion^.OldSuffix);
+    fText.BlockEnd :=p1;
+    fText.SelText := suggestion^.NewPrefix+suggestion^.NewSuffix;
+    p.Char := p.Char-length(suggestion^.OldPrefix) + length(suggestion^.NewPrefix);
+    fText.CaretXY := p;
+  finally
+    fTabnine.Hide;
+  end;
+end;
+
 procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
-  Statement: PStatement;
+  statement: PStatement;
   FuncAddOn: AnsiString;
   P: TBufferCoord;
   idx: integer;

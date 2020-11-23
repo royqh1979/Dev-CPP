@@ -101,6 +101,7 @@ begin
     suggestion := PTabnineSuggestion(Items.Objects[Index]);
 
     // Draw statement kind string, like 'Preprocessor'
+    Canvas.Font.Style:= [fsBold, fsUnderline];
     if odSelected in State then begin
       Canvas.Brush.Color := Colors[SelectedBackColor];
       Canvas.FillRect(Rect);
@@ -111,7 +112,14 @@ begin
       Canvas.Font.Color := Colors[ForeColor];
     end;
     Canvas.TextOut(Offset, Rect.Top,
-      suggestion.newPrefix + suggestion.newSuffix + #9 + suggestion.detail);
+      suggestion^.oldPrefix);
+    Offset:=Offset+Canvas.TextWidth(suggestion^.oldPrefix);
+
+    Canvas.Font.Style:= [];
+    Canvas.TextOut(Offset, Rect.Top,
+      Copy(suggestion^.newPrefix, length(suggestion^.oldPrefix)+1,MaxInt)+suggestion^.newSuffix );
+    Canvas.TextOut(Rect.Right-Canvas.TextWidth(suggestion^.detail)-4, Rect.Top,
+      suggestion^.detail);
   end;
 end;
 
