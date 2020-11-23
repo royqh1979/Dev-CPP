@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, CBUtils;
+  CodeToolTip, Tabnine,CBUtils;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
@@ -95,6 +95,8 @@ type
     fUseUTF8: boolean;
 
     fLastPressedIsIdChar: boolean;
+
+    fTabnine:TTabnine;
     //fSingleQuoteCompleteState: TSymbolCompleteState;
     //fDoubleQuoteCompleteState: TSymbolCompleteState;
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
@@ -117,6 +119,11 @@ type
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
+    procedure TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
+    procedure TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+    procedure TabineCompletionInsert(appendFunc:boolean=False);
+
     procedure CompletionInsert(appendFunc:boolean=False);
     procedure CompletionTimer(Sender: TObject);
     function FunctionTipAllowed: boolean;
@@ -1042,6 +1049,44 @@ begin
   fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
 end;
 
+procedure TEditor.TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  fTabnine.Hide;
+  //Send the key to the SynEdit
+  PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
+procedure TEditor.TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
+var
+  phrase:AnsiString;
+begin
+  // We received a key from the completion box...
+    if (Key in fTabnine.TriggerChars) then begin // Continue filtering
+      fText.SelText := Key;
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
+
+      fTabnine.Search(phrase , fFileName,False);
+    end else if Key = Char(VK_BACK) then begin
+      fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
+      if phrase = '' then
+        fLastPressedIsIdChar:=False;
+      fCompletionBox.Search(phrase, fFileName, False);
+    end else if Key = Char(VK_ESCAPE) then begin
+      fCompletionBox.Hide;
+    end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
+      TabnineCompletionInsert(True);
+      fCompletionBox.Hide;
+    end else begin  // other keys, stop completion
+      //stop completion now
+      fTabnine.Hide;
+      //Send the key to the SynEdit
+      PostMessage(fText.Handle, WM_CHAR, Ord(Key), 0);
+    end;
+  end;
+end;
+
 procedure TEditor.CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
@@ -1631,6 +1676,7 @@ end;
 
 procedure TEditor.InitCompletion;
 begin
+  fTabnine := MainForm.Tabnine;
   fCompletionBox := MainForm.CodeCompletion;
   fCompletionBox.Enabled := devCodeCompletion.Enabled;
 

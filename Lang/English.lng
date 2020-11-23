@@ -976,7 +976,6 @@ Ver=1
 61037=The selected expression is imcomplete.
 61038=The selected expression has identifiers which can't be extract.
 61039=Definition of %s is not in the project files.
-
 62001=Untitled
 62002=ReadOnly
 62003=Insert

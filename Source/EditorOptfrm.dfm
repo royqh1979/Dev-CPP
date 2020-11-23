@@ -690,7 +690,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1118,6 +1118,26 @@ object EditorOptForm: TEditorOptForm
             Height = 23
             Caption = 'Delete completed symbols as pairs'
             TabOrder = 2
+          end
+        end
+        object tabTabnine: TTabSheet
+          Caption = 'Tabnine'
+          ImageIndex = 2
+          object lblUseTabnine: TLabel
+            Left = 8
+            Top = 56
+            Width = 617
+            Height = 169
+            AutoSize = False
+            Caption = 'Tabnine will consume large amount of memory (> 1G) and CPU! '
+          end
+          object chkUseTabnine: TCheckBox
+            Left = 3
+            Top = 16
+            Width = 598
+            Height = 23
+            Caption = 'Enable Tabnine Completion'
+            TabOrder = 0
           end
         end
       end

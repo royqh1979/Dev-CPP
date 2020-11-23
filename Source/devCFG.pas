@@ -437,6 +437,8 @@ type
     fDeleteSymbolPairs: boolean;
 
     fUseUTF8ByDefault : boolean;
+
+    fUseTabnine: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -510,7 +512,9 @@ type
     property GlobalIncludeCompletion: boolean read fGlobalIncludeCompletion write fGlobalIncludeCompletion;
     property CompleteSymbols: boolean read fCompleteSymbols write fCompleteSymbols;
     property DeleteSymbolPairs: boolean read fDeleteSymbolPairs write fDeleteSymbolPairs;
+
     property UseUTF8ByDefault: boolean read fUseUTF8ByDefault write fUseUTF8ByDefault;
+    property UseTabnine: boolean read fUseTabnine write fUseTabnine;
   end;
 
   TWindowState = class(TPersistent)
@@ -2489,6 +2493,7 @@ begin
 
   fUseUTF8ByDefault := True;
 
+  fUseTabnine:= False;
   fSyntax.Clear;
 
 end;

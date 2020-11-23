@@ -25,8 +25,6 @@ uses
   Windows, Classes, Graphics, Forms, StdCtrls, Controls,
   Messages;
 
-
-type
 type
   TTabnineForm = class(TForm)
     lbCompletion: TListBox;
@@ -46,16 +44,13 @@ type
     procedure SetColor(i:integer; const Color:TColor);    protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; owner: TObject); 
     property Colors[Index: Integer]: TColor read GetColor write SetColor;
   end;
 
-var
-  CodeComplForm: TTabnineForm;
-
 implementation
 
-uses Tabnine;
+uses Tabnine,CBUtils;
 {$R *.dfm}
 
 procedure TTabnineForm.FormShow(Sender: TObject);
@@ -67,7 +62,7 @@ end;
 
 procedure TTabnineForm.FormDeactivate(Sender: TObject);
 begin
-  TTabnine(fOwner).Hide;
+//  TTabnine(fOwner).Hide;
 end;
 
 procedure TTabnineForm.CreateParams(var Params: TCreateParams);
@@ -76,11 +71,11 @@ begin
 //  Params.Style := (Params.Style or WS_SIZEBOX) ;
 end;
 
-constructor TTabnineForm.Create(AOwner: TComponent);
+constructor TTabnineForm.Create(AOwner: TComponent; owner:TObject);
 begin
   inherited Create(AOwner);
 
-  fOwner := TCodeCompletion(AOwner);
+  fOwner := owner;
 end;
 
 procedure TTabnineForm.lbCompletionDblClick(Sender: TObject);
@@ -88,9 +83,9 @@ var
   Key: Char;
 begin
   // Send command to TEditor
-  if Assigned(fOwner.OnKeyPress) then begin
+  if Assigned(TTabnine(fOwner).OnKeyPress) then begin
     Key := Char(VK_RETURN);
-    fOwner.OnKeyPress(self, Key);
+    TTabnine(fOwner).OnKeyPress(self, Key);
   end;
 end;
 
@@ -116,14 +111,14 @@ begin
       Canvas.Font.Color := Colors[ForeColor];
     end;
     Canvas.TextOut(Offset, Rect.Top,
-      suggestion.new_prefix + suggestion.new_suffix);
+      suggestion.newPrefix + suggestion.newSuffix + #9 + suggestion.detail);
   end;
 end;
 
 procedure TTabnineForm.lbCompletionKeyPress(Sender: TObject; var Key: Char);
 begin
-  if Assigned(fOwner.OnKeyPress) then
-    fOwner.OnKeyPress(self, Key);
+  if Assigned(TTabnine(fOwner).OnKeyPress) then
+    TTabnine(fOwner).OnKeyPress(self, Key);
 end;
 
 procedure TTabnineForm.FormCreate(Sender: TObject);
@@ -146,8 +141,8 @@ begin
         Exit;
       end;
       VK_LEFT,VK_RIGHT,VK_HOME,VK_END: begin
-        if Assigned(fOwner) and Assigned(fOwner.OnKeyDown) then
-          fOwner.OnKeyDown(self, code, [] );
+        if Assigned(fOwner) and Assigned(TTabnine(fOwner).OnKeyDown) then
+          TTabnine(fOwner).OnKeyDown(self, code, [] );
       end;
     end;
   end;

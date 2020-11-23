@@ -960,6 +960,8 @@ type
     function ParseParameters(const Parameters: WideString): Integer;
     procedure OnClassBrowserUpdated(sender:TObject);
     procedure CloseProject(RefreshEditor:boolean);
+    procedure StartTabnine;
+    procedure StopTabnine;
   public
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -1113,9 +1115,7 @@ begin
   finally
     Action := caFree;
   end;
-  if fTabnine.Executing then
-    fTabnine.Stop;
-  fTabnine.Free;
+  StopTabnine;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -2709,6 +2709,12 @@ begin
         if not oldCodeCompletion and devCodeCompletion.Enabled then
           ScanActiveProject;
       end;
+
+      //start/stop tabnine
+      if devEditor.UseTabnine then
+        startTabnine
+      else
+        stopTabnine;
     end;
   finally
     Free;
@@ -6492,9 +6498,7 @@ begin
   end;
 
   //Tabnine
-  fTabnine := TTabnine.Create(self);
-  fTabnine.Path := devDirs.Exec + 'tabnine.exe';
-  fTabnine.Start;
+  startTabnine;
 
   //Load Colors
   LoadColor;
@@ -7802,6 +7806,23 @@ begin
     finally
       Free;
     end;
+  end;
+end;
+
+procedure TMainForm.StartTabnine;
+begin
+  if not Assigned(fTabnine) then begin
+    fTabnine:=TTabnine.Create;
+    fTabnine.Path := devDirs.Exec + 'tabnine.exe';
+    fTabnine.Start;
+  end;
+end;
+procedure TMainForm.StopTabnine;
+begin
+  if Assigned(fTabnine) then begin
+    if fTabnine.Executing then
+      fTabnine.Stop;
+    FreeAndNil(fTabnine);
   end;
 end;
 

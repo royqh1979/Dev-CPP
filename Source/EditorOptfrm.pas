@@ -158,6 +158,9 @@ type
     cbGlobalIncludes: TCheckBox;
     chkRecordUsage: TCheckBox;
     btnClearUsageData: TButton;
+    tabTabnine: TTabSheet;
+    chkUseTabnine: TCheckBox;
+    lblUseTabnine: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -410,6 +413,7 @@ begin
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
   btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
+  chkUseTabnine.Checked := devEditor.UseTabnine;
   
   // Symbol Completion
   with devEditor do begin
@@ -747,6 +751,8 @@ begin
     DoubleQuoteComplete := cbDoubleQuotes.Checked;
     GlobalIncludeCompletion := cbGlobalIncludes.Checked;
     DeleteSymbolPairs := cbDeleteCompleted.Checked;
+
+    UseTabnine := chkUseTabnine.Checked;
 
     // Autosave
     EnableAutoSave := cbAutoSave.Checked;

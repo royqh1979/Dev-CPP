@@ -33,9 +33,7 @@ TTabnineSuggestion = record
   Detail: String;
 end;
 
-TTabnineThread = Class;
-
-TTabnine = Class(TComponent)
+TTabnine = Class(TObject)
   private
     fTabnineForm : TTabnineForm;
     fOutputRead: THandle;
@@ -51,7 +49,6 @@ TTabnine = Class(TComponent)
     fQuerying: boolean;
     fOnQueryBegin: TNotifyEvent;
     fOnQueryEnd: TNotifyEvent;
-    fThread : TTabnineThread;
     fOnKeyPress: TKeyPressEvent;
     fOnKeyDown: TKeyEvent;
     fMinWidth: integer;
@@ -67,14 +64,19 @@ TTabnine = Class(TComponent)
     procedure GetVersion;
     procedure SetPath(Path:String);
     procedure SetPosition(Value: TPoint);
-    function IsVisible: boolean;    
+    function GetColor(i:integer):TColor;
+    procedure SetColor(i:integer; const Color:TColor);    
+    function IsVisible: boolean;
+    function SendCommand(cmd:AnsiString; wantResponse:boolean=True):AnsiString;
+    procedure ProcessQueryResult(response:String);
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create; 
     destructor Destroy; override;
-    procedure Clear;
     procedure ClearSuggestions;
     procedure Start;
     procedure Stop;
+    procedure Show;
+    procedure Hide;
     procedure PrefetchFile(const FileName: String);
     procedure Query(const FileName:String;Before:String; After:String);
     procedure QueryReady;
@@ -102,26 +104,17 @@ TTabnine = Class(TComponent)
     property FontSize: integer read fFontSize write fFontSize;
     property Visible: boolean read IsVisible;
     property Position: TPoint read fPos write SetPosition;
-end;
-
-TTabnineThread = class(TThread)
-  private
-    fTabnine: TTabnine;
-    procedure ProcessResult(output:String);
-  protected
-    procedure execute; override;
-  public
-    property Tabnine: TTabnine read fTabnine write fTabnine;
+    property Colors[Index: Integer]: TColor read GetColor write SetColor;
+    
 end;
 
 implementation
 
 uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms, main;
 
-constructor TTabnine.Create(AOwner: TComponent);
+constructor TTabnine.Create;
 begin
-  inherited;
-  fTabnineForm:=TTabnineForm.Create(self);
+  fTabnineForm:=TTabnineForm.Create(MainForm,self);
   fPath:='';
   fMaxResultCount:=10;
   fBefore:='';
@@ -148,17 +141,6 @@ begin
     dispose(PTabnineSuggestion(fSuggestions[i]));
   end;
   fSuggestions.Clear;
-end;
-
-procedure TTabnine.Clear;
-begin
-  fBefore:='';
-  fAfter:='';
-  ClearSuggestions;
-  fVersion:='';
-  fExecuting:=False;
-  fQuerying:=False;
-  fThread:=nil;
 end;
 
 procedure TTabnine.Start;
@@ -232,26 +214,16 @@ begin
 
   fProcessID := pi.hProcess;
 
-  // Create a thread that will read Tabnine output.
-  fThread := TTabnineThread.Create(true);
-  fThread.Tabnine := self;
-  fThread.FreeOnTerminate := true;
-  fThread.Resume;
-
-//  MainForm.UpdateAppTitle;
 end;
 
 procedure TTabnine.Stop;
 begin
-  if fExecuting then
+  if not fExecuting then
     Exit;
   fExecuting := false;
 
   // stop tabnine
   TerminateProcess(fProcessID, 0);
-
-  fThread.Terminate;
-  fThread := nil;
 
   // Free resources
   CloseHandle(fProcessID);
@@ -269,11 +241,52 @@ begin
   fPath:=Path;
 end;
 
-procedure TTabnine.PrefetchFile(const FileName: String);
+function TTabnine.SendCommand(cmd:AnsiString; wantResponse:boolean):AnsiString;
 var
   nBytesWrote: DWORD;
-  cmd:String;
   P:pChar;
+
+  function ReadResponse:AnsiString;
+  var
+    tmp: String;
+    bytesread, totalbytesread: DWORD;
+  const
+    chunklen = 4096; //
+  begin
+  bytesread := 0;
+  totalbytesread := 0;
+  while True do begin
+    // Add chunklen bytes to length, and set chunklen extra bytes to zero
+    SetLength(tmp, 1 + totalbytesread + chunklen);
+    FillChar(tmp[1 + totalbytesread], chunklen + 1, 0);
+    // ReadFile returns when there's something to read
+    if not ReadFile(fOutputRead, tmp[1 + totalbytesread], chunklen, bytesread, nil) or (bytesread = 0) then
+      break;
+
+    Inc(totalbytesread, bytesread);
+
+    if tmp[totalbytesread]=#10 then begin// result finished
+      Result:=tmp;
+      Exit;
+    end;
+  end;
+end;
+begin
+  GetMem(P, Length(Cmd) + 2);
+  try
+    StrPCopy(P, cmd+#10);
+    WriteFile(fInputWrite, p^, Length(cmd), nBytesWrote, nil);
+  finally
+    FreeMem(P);
+  end;
+  Result:='';
+  if wantResponse then
+    Result:=ReadResponse;
+end;
+
+procedure TTabnine.PrefetchFile(const FileName: String);
+var
+  cmd:String;
 begin
   if not fExecuting then
     Exit;
@@ -282,8 +295,7 @@ begin
                 + '"filename":"'+FileName+'"'
             + '}'
         +'}}'#10;
-  p:=pChar(cmd);
-  WriteFile(fInputWrite, p, Length(cmd), nBytesWrote, nil);
+  SendCommand(cmd,False);
 end;
 
 procedure TTabnine.Query(const FileName:String;Before:String; After:String);
@@ -291,10 +303,11 @@ var
   nBytesWrote: DWORD;
   cmd:String;
   P:pChar;
+  response : AnsiString;
 begin
+  fQuerying:=True;
   if not fExecuting then
     Exit;
-  fQuerying:=True;
   if assigned(fOnQueryBegin) then
     fOnQueryBegin(self);
   cmd := '{"version":"'+fVersion+'", "request":{'
@@ -308,16 +321,14 @@ begin
 //                + '"max_num_results":"' + IntToStr(fMaxResultCount)+'"'
             + '}'
         +'}}'+#10;
+
   MainForm.LogOutput.Lines.Add(cmd);
-  GetMem(P, Length(Cmd) + 1);
-  try
-    StrPCopy(P, cmd);
-    WriteFile(fInputWrite, p^, Length(cmd), nBytesWrote, nil);
-  finally
-    FreeMem(P);
-  end;
   fBefore:=Before;
   fAfter:=After;
+  response := sendCommand(cmd,True);
+  ProcessQueryResult(response);
+  QueryReady;
+  fQuerying:=False;
 end;
 
 procedure TTabnine.QueryReady;
@@ -327,8 +338,9 @@ var
 begin
   if assigned(fOnQueryEnd) then
     fOnQueryEnd(self);
-
-    
+    fTabnineForm.lbCompletion.Items.Clear;
+    fTabnineForm.lbCompletion.Items.BeginUpdate;
+{
   MainForm.LogOutput.Lines.Add('----------');
   for i:=0 to fSuggestions.Count-1 do begin
     suggest:=PTabnineSuggestion(fSuggestions[i]);
@@ -339,11 +351,19 @@ begin
     MainForm.LogOutput.Lines.Add('     '
     + suggest.NewPrefix + ' - ' + suggest.NewSuffix );
   end;
-
-  fQuerying:=False;
+}
+  try
+    for i:=0 to fSuggestions.Count-1 do begin
+      suggest:=PTabnineSuggestion(fSuggestions[i]);
+      fTabnineForm.lbCompletion.Items.AddObject('',suggest);
+    end;
+  finally
+    fTabnineForm.lbCompletion.Items.EndUpdate;
+    fQuerying:=False;
+  end;
 end;
 
-procedure TTabnineThread.ProcessResult(output:String);
+procedure TTabnine.ProcessQueryResult(response:String);
 var
   js,field: TlkJSONBase;
   Items: TlkJSONbase;
@@ -351,8 +371,8 @@ var
   defaultOldprefix: String;
   p:PTabnineSuggestion;
 begin
-  fTabnine.ClearSuggestions;
-  js := TlkJSON.ParseText(output);
+  ClearSuggestions;
+  js := TlkJSON.ParseText(response);
   defaultOldprefix := '';
   field:=js.Field['old_prefix'];
   if assigned(field) then
@@ -365,39 +385,7 @@ begin
     p^.NewPrefix:=VarToStr(Items.Child[i].Field['new_prefix'].Value) ;
     p^.NewSuffix:=VarToStr(Items.Child[i].Field['new_suffix'].Value) ;
     p^.Detail := VarToStr(Items.Child[i].Field['detail'].Value) ;
-    fTabnine.Suggestions.Add(p);
-  end;
-end;
-
-procedure TTabnineThread.Execute;
-var
-  tmp: String;
-  bytesread, totalbytesread: DWORD;
-const
-  chunklen = 4096; //
-begin
-  bytesread := 0;
-  totalbytesread := 0;
-  while not Terminated do begin
-
-    // Add chunklen bytes to length, and set chunklen extra bytes to zero
-    SetLength(tmp, 1 + totalbytesread + chunklen);
-    FillChar(tmp[1 + totalbytesread], chunklen + 1, 0);
-
-    // ReadFile returns when there's something to read
-    if not ReadFile(fTabnine.fOutputRead, tmp[1 + totalbytesread], chunklen, bytesread, nil) or (bytesread = 0) then
-      break;
-
-    Inc(totalbytesread, bytesread);
-
-    if not Terminated then begin
-      if tmp[totalbytesread]=#10 then begin// result finished
-        ProcessResult(tmp);
-        fTabnine.QueryReady;
-        // Reset storage
-        totalbytesread := 0;
-      end;
-    end;
+    Suggestions.Add(p);
   end;
 end;
 
@@ -418,4 +406,25 @@ begin
   else
     fTabnineForm.Top := fPos.Y;
 end;
+
+function TTabnine.GetColor(i:integer):TColor;
+begin
+  Result := fTabnineForm.Colors[i];
+end;
+
+procedure TTabnine.SetColor(i:integer; const Color:TColor);
+begin
+  fTabnineForm.Colors[i] := Color;
+end;
+
+procedure TTabnine.Show;
+begin
+  fTabnineForm.Show;
+end;
+
+procedure TTabnine.Hide;
+begin
+  fTabnineForm.Hide;
+end;
+
 end.
