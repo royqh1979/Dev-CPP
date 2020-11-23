@@ -1,3 +1,7 @@
+Version 6.2-beta2
+    
+    fix: Shortcut '/' and Shift+/ for Indent and Unindent doesn't work
+
 Version 6.2-beta1
 
  - enhancement: correctly process C++ 11 R""/L""/u""/U"" string literals

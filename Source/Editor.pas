@@ -1620,6 +1620,9 @@ begin
             Key:=0;
             fTabStopBegin:=-1;
             fText.InvalidateLine(fText.CaretY);
+          end else begin
+            Key:=0;
+            IndentSelection;
           end;
         end;
       end;

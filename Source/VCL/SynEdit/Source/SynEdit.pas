@@ -5674,7 +5674,10 @@ var
   code: word;
   temp: char;
 begin
-  if Msg.Msg = CN_KEYDOWN then begin
+  if (Msg.Msg = CN_KEYDOWN)
+    and ((GetKeyState(VK_SHIFT) and $8000 )=0)
+    and ((GetKeyState(VK_MENU) and $8000 )=0)
+    and ((GetKeyState(VK_CONTROL) and $8000 )=0) then begin
     keyMsg := TWMKey(Msg);
     code := keyMsg.CharCode;
     case code of
