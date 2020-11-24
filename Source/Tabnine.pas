@@ -160,6 +160,12 @@ var
   TabnineCmd:String;
 begin
   fExecuting := true;
+  if not FileExists(fPath) then begin
+    LogError('Tabnine.pas TTabnine.Start',Format('Can''t find Tabnine in : %s',[fPath]));
+    MessageDlg(Format(Lang[ID_ERR_TABNINENOTEXIST],[fPath]), mtError, [mbOK], 0);
+    fExecuting:=False;
+    Exit;
+  end;
   // Set up the security attributes struct.
   sa.nLength := sizeof(TSecurityAttributes);
   sa.lpSecurityDescriptor := nil;
@@ -200,12 +206,6 @@ begin
   si.wShowWindow := SW_HIDE;
 
   try
-    if not FileExists(fPath) then begin
-      LogError('Tabnine.pas TTabnine.Start',Format('Can''t find Tabnine in : %s',[fPath]));
-      MessageDlg(Format(Lang[ID_ERR_GDBNOTEXIST],[fPath]), mtError, [mbOK], 0);
-      fExecuting:=False;
-      Exit;
-    end;
     TabnineCmd := '"' + fPath + '"';
     if not CreateProcess(nil, pChar(TabnineCmd), nil, nil, true,0, nil, nil, si, pi) then begin
       LogError('Tabnine.pas TTabnine.Start',Format('Create Tabnine process failed: %s',[SysErrorMessage(GetLastError)]));
@@ -320,7 +320,7 @@ begin
     fOnQueryBegin(self);
   newName := ExtractFileName(FileName);
   if Pos('.', newName) < 1 then
-    newName := newName + ".cpp";
+    newName := newName + '.cpp';
   cmd := '{"version":"'+fVersion+'", "request":{'
             + '"Autocomplete":{'
                 + '"before": "'+AnsiToUTF8(Before)+'",'

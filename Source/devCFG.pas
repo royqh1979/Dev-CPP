@@ -599,6 +599,10 @@ type
     fToolbarCompilers: boolean;
     fToolbarCompilersX: integer;
     fToolbarCompilersY: integer;
+    fToolbarDebug: boolean;
+    fToolbarDebugX: integer;
+    fToolbarDebugY: integer;
+
 
     // file associations (see FileAssocs.pas)
     fAssociateC: boolean;
@@ -717,6 +721,10 @@ type
     property ToolbarCompilers: boolean read fToolbarCompilers write fToolbarCompilers;
     property ToolbarCompilersX: integer read fToolbarCompilersX write fToolbarCompilersX;
     property ToolbarCompilersY: integer read fToolbarCompilersY write fToolbarCompilersY;
+    property ToolbarDebug: boolean read fToolbarDebug write fToolbarDebug;
+    property ToolbarDebugX: integer read fToolbarDebugX write fToolbarDebugX;
+    property ToolbarDebugY: integer read fToolbarDebugY write fToolbarDebugY;
+
 
     // file associations
     property AssociateC: boolean read fAssociateC write fAssociateC;
@@ -993,30 +1001,35 @@ begin
   fShortenCompPaths := False;
 
   // TODO: retrieve directly from visual editor
+
   fToolbarMain := TRUE;
   fToolbarMainX := 11;
   fToolbarMainY := 2;
   fToolbarEdit := TRUE;
-  fToolbarEditX := 196;
+  fToolbarEditX := 138;
   fToolbarEditY := 2;
   fToolbarCompile := TRUE;
-  fToolbarCompileX := 464;
+  fToolbarCompileX := 209;
   fToolbarCompileY := 2;
-  fToolbarProject := TRUE;
-  fToolbarProjectX := 373;
-  fToolbarProjectY := 2;
-  fToolbarSpecials := TRUE;
-  fToolbarSpecialsX := 11;
-  fToolbarSpecialsY := 30;
-  fToolbarSearch := TRUE;
-  fToolbarSearchX := 233;
-  fToolbarSearchY := 2;
-  fToolbarClasses := TRUE;
-  fToolbarClassesX := 95;
-  fToolbarClassesY := 30;
+  fToolbarDebug := TRUE;
+  fToolbarDebugX := 335;
+  fToolbarDebugY := 2;
   fToolbarCompilers := TRUE;
-  fToolbarCompilersX := 686;
+  fToolbarCompilersX := 554;
   fToolbarCompilersY := 2;
+
+  fToolbarSearch := FALSE;
+  fToolbarSearchX := 11;
+  fToolbarSearchY := 34;
+  fToolbarSpecials := FALSE;
+  fToolbarSpecialsX := 146;
+  fToolbarSpecialsY := 34;
+  fToolbarProject := FALSE;
+  fToolbarProjectX := 244;
+  fToolbarProjectY := 34;
+  fToolbarClasses := False;
+  fToolbarClassesX := 349;
+  fToolbarClassesY := 34;
 
   // Office 2007 / Vista support
   osinfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);

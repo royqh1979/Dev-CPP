@@ -118,9 +118,6 @@ type
     tbCompile: TToolBar;
     NewFileBtn: TToolButton;
     SaveBtn: TToolButton;
-    CloseBtn: TToolButton;
-    ToolButton7: TToolButton;
-    PrintBtn: TToolButton;
     CompileBtn: TToolButton;
     RunBtn: TToolButton;
     CompileAndRunBtn: TToolButton;
@@ -467,7 +464,6 @@ type
     actSwapEditor: TAction;
     N57: TMenuItem;
     Movetootherview1: TMenuItem;
-    CloseAllBtn: TToolButton;
     N14: TMenuItem;
     MoveToOtherViewItem: TMenuItem;
     SwapHeaderSourceItem: TMenuItem;
@@ -617,6 +613,7 @@ type
     OpenConsoleHere1: TMenuItem;
     actExtractMacro: TAction;
     ExtractMacro1: TMenuItem;
+    ToolDebugItem: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1097,6 +1094,8 @@ begin
   devData.ToolbarClassesY := tbClasses.Top;
   devData.ToolbarCompilersX := tbCompilers.Left;
   devData.ToolbarCompilersY := tbCompilers.Top;
+  devData.ToolbarDebugX := tbDebug.Left;
+  devData.ToolbarDebugY := tbDebug.Top;
 
   // Save left page control states
   devData.ProjectWidth := LeftPageControl.Width;
@@ -1427,6 +1426,8 @@ begin
   ToolSpecialsItem.Caption := Lang[ID_TOOLSPECIAL];
   ToolClassesItem.Caption := Lang[ID_LP_CLASSES];
   ToolCompilersItem.Caption := Lang[ID_TOOLCOMPILERS];
+  ToolDebugItem.Caption := Lang[ID_TOOLDEBUG];
+
 
   // Top level
   actViewToDoList.Caption := Lang[ID_VIEWTODO_MENUITEM];
@@ -3676,6 +3677,7 @@ begin
   tbSearch.Visible := ToolSearchItem.Checked;
   tbClasses.Visible := ToolClassesItem.Checked;
   tbCompilers.Visible := ToolCompilersItem.Checked;
+  tbDebug.Visible := ToolDebugItem.Checked;
 
   devData.ToolbarMain := ToolMainItem.Checked;
   devData.ToolbarEdit := ToolEditItem.Checked;
@@ -3685,6 +3687,7 @@ begin
   devData.ToolbarSearch := ToolSearchItem.Checked;
   devData.ToolbarClasses := ToolClassesItem.Checked;
   devData.ToolbarCompilers := ToolCompilersItem.Checked;
+  devData.ToolbarDebug := ToolDebugItem.Checked;
 end;
 
 procedure TMainForm.ToolbarDockContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
@@ -6430,6 +6433,8 @@ begin
   tbClasses.Top := devData.ToolbarClassesY;
   tbCompilers.Left := devData.ToolbarCompilersX;
   tbCompilers.Top := devData.ToolbarCompilersY;
+  tbDebug.Left := devData.ToolbarDebugX;
+  tbDebug.Top := devData.ToolbarDebugY;
 
   // Set toolbars to previous state.
   // 2) Visibility
@@ -6441,6 +6446,7 @@ begin
   tbSearch.Visible := devData.ToolbarSearch;
   tbClasses.Visible := devData.ToolbarClasses;
   tbCompilers.Visible := devData.ToolbarCompilers;
+  tbDebug.Visible := devData.ToolbarDebug;
 
   // Set toolbars to previous state.
   // 3) UI components
@@ -6452,6 +6458,7 @@ begin
   ToolSearchItem.Checked := devData.ToolbarSearch;
   ToolClassesItem.Checked := devData.ToolbarClasses;
   ToolCompilersItem.Checked := devData.ToolbarCompilers;
+  ToolDebugItem.Checked := devData.ToolbarDebug;
 
   // PageControl settings
   fEditorList.SetPreferences(devData.MsgTabs, devData.MultiLineTab);

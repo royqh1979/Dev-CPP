@@ -654,6 +654,8 @@ begin
   gbCBEngine.Caption := Lang[ID_EOPT_BROWSERENGINE];
   chkCBParseLocalH.Caption := Lang[ID_EOPT_BROWSERLOCAL];
   chkCBParseGlobalH.Caption := Lang[ID_EOPT_BROWSERGLOBAL];
+  chkUseTabnine.Caption := Lang[ID_EOPT_USETABNINE];
+  lblUseTabnine.Caption := Lang[ID_EOPT_USETABNINE_NOTE];
 
   // Completion tab, symbol
   cbSymbolComplete.Caption := Lang[ID_EOPT_SYMBOLCOMPLETE];

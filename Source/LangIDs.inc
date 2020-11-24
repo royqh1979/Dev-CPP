@@ -135,6 +135,7 @@ const
   ID_ITEM_REPLACEFILES                  = 5025;
   ID_TOOLCOMPILERS                      = 5026;
   ID_ITEM_FINDPREV                      = 5027;
+  ID_TOOLDEBUG                          = 5028;
 
   // project menu
   ID_ITEM_NEWFILE                       = 6001;
@@ -500,6 +501,8 @@ const
   ID_EOPT_SYMBOLDOUBLEQUOTE             = 27069;
 
   ID_EOPT_CIPREFIX                     = 27070;
+  ID_EOPT_USETABNINE                    = 27071;
+  ID_EOPT_USETABNINE_NOTE               = 27072;
 
   // new project
   ID_NP_PRJNAME                         = 28001;
@@ -1045,6 +1048,7 @@ const
   ID_ERR_SELECTION_NOT_COMPLETE     =61037;
   ID_ERR_SELECTION_HAS_INVALID_IDENTIFIER     =61038;
   ID_ERR_STATEMENT_NOT_IN_PROJECT     = 61039;
+  ID_ERR_TABNINENOTEXIST               = 61040;
 
   ID_UNTITLED                           = 62001;
   ID_READONLY                           = 62002;

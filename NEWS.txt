@@ -1,12 +1,10 @@
-Version ??? (Tabnine Experiment)
-
-  - enhancement: tabnine integration (experiment)
-
 Version 6.2-beta2
-    
+
   - fix: Shortcut '/' and Shift+/ for Indent and Unindent doesn't work
   - enhancement: use different colors for embedded ()/{}/[]
   - enhancement: use hex format to save color settings in the config file
+  - enhancement: tabnine integration (experiment)
+  - enhancement: save debug toolbar position; streamline default toolbar
 
 Version 6.2-beta1
 

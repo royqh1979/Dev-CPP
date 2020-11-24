@@ -690,7 +690,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1129,7 +1129,8 @@ object EditorOptForm: TEditorOptForm
             Width = 617
             Height = 169
             AutoSize = False
-            Caption = 'Tabnine will consume large amount of memory (> 1G) and CPU! '
+            Caption = 'Tabnine will consume large amount of memory (> 1G) and CPU!  '
+            WordWrap = True
           end
           object chkUseTabnine: TCheckBox
             Left = 3
