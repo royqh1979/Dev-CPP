@@ -662,7 +662,7 @@ end;
 function TSynEditStringList.GetRange(Index: integer): TSynEditRange;
 begin
   if (Index >= 0) and (Index < fCount) then
-    Result := fList^[Index].fRange;
+    Result := fList^[Index].fRange
   else
     Result := NullRange;
 end;

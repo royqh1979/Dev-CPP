@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = DebugSheet
+    ActivePage = CompSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
