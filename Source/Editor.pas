@@ -115,7 +115,8 @@ type
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
-    procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
+    procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList;
+      var Colborder: TColor;  var areaType:TEditingAreaType);
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
@@ -482,12 +483,13 @@ begin
       end;
 end;
 
-procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
+procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor; var areaType: TEditingAreaType);
 var
   p:PEditingArea;
   spaceCount :integer;
   spaceBefore :integer;
 begin
+  areaType:=eatEditing;
   if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
     System.new(p);
     spaceCount := fText.LeftSpacesEx(fLineBeforeTabStop,True);

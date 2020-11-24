@@ -154,8 +154,12 @@ type
     endX: integer;
   end;
 
+  TEditingAreaType = (
+    eatEditing,
+    eatError);
+
   TEditingAreasEvent = procedure(Sender: TObject; Line:integer;
-    areaList:TList; var borderColor:TColor) of object;  // areaList : TList<TEditingArea>
+    areaList:TList; var borderColor:TColor; var areaType:TEditingAreaType) of object;  // areaList : TList<TEditingArea>
 
   TTransientType = (ttBefore, ttAfter);
   TPaintTransient = procedure(Sender: TObject; Canvas: TCanvas;
@@ -629,7 +633,7 @@ type
       Line, Column, wordlen: integer): TSynReplaceAction; virtual;
     function DoOnSpecialLineColors(Line: integer;
       var Foreground, Background: TColor): boolean; virtual;
-    function DoOnEditAreas(Line:integer; areaList:TList; var borderColor:TColor): boolean; virtual;
+    function DoOnEditAreas(Line:integer; areaList:TList; var borderColor:TColor;var areaType:TEditingAreaType): boolean; virtual;
     procedure DoOnStatusChange(Changes: TSynStatusChanges); virtual;
     function GetSelEnd: integer;
     function GetSelStart: integer;
@@ -2926,7 +2930,7 @@ var
       Inc(rcToken.Left, iCharWidth);
   end;
 {$ENDIF}
-  procedure PaintEditAreas(areaList:TList; colBorder:TColor);
+  procedure PaintEditAreas(areaList:TList; colBorder:TColor;areaType:TEditingAreaType);
   var
     rc:TRect;
     i:integer;
@@ -3243,6 +3247,7 @@ var
     vLastChar: integer;
     areaList:TList;
     colBorder: TColor;
+    areaType:TEditingAreaType;
   begin
     areaList:=TList.Create;
     try
@@ -3277,7 +3282,7 @@ var
       end else begin
         colSelFG := fSelectedColor.Foreground;
         colSelBG := fSelectedColor.Background;
-        DoOnEditAreas(vLine, areaList,colBorder);
+        DoOnEditAreas(vLine, areaList,colBorder,areaType);
       end;
 
       // Removed word wrap support
@@ -3359,10 +3364,17 @@ var
         // Initialize highlighter with line text and range info. It is
         // necessary because we probably did not scan to the end of the last
         // line - the internal highlighter range might be wrong.
-        if vLine = 1 then
-          fHighlighter.ResetRange
-        else
+        if vLine = 1 then begin
+          fHighlighter.ResetRange;
+          fHighlighter.ResetParenthesisLevel;
+          fHighlighter.ResetBracketLevel;
+          fHighlighter.ResetBraceLevel;
+        end else begin
           fHighlighter.SetRange(Lines.Ranges[vLine - 2]);
+          fHighlighter.SetParenthesisLevel(Lines.ParenthesisLevels[vLine - 2]);
+          fHighlighter.SetBracketLevel(Lines.BracketLevels[vLine - 2]);
+          fHighlighter.SetBraceLevel(Lines.BraceLevels[vLine - 2]);
+        end;
         fHighlighter.SetLine(sLine, vLine - 1);
         // Try to concatenate as many tokens as possible to minimize the count
         // of ExtTextOut calls necessary. This depends on the selection state
@@ -3394,6 +3406,97 @@ var
             end;
             // It's at least partially visible. Get the token attributes now.
             attr := fHighlighter.GetTokenAttribute;
+            if sToken = '[' then begin
+              case (fHighlighter.GetBracketLevel mod 4) of
+                0: begin
+                  attr := fHighlighter.KeywordAttribute;
+                end;
+                1: begin
+                  attr := fHighlighter.SymbolAttribute;
+                end;
+                2: begin
+                  attr := fHighlighter.CommentAttribute;
+                end;
+                3: begin
+                  attr := fHighlighter.StringAttribute;
+                end;
+              end;
+            end else if sToken = ']' then begin
+              case ((fHighlighter.GetBracketLevel+1) mod 4) of
+                0: begin
+                  attr := fHighlighter.KeywordAttribute;
+                end;
+                1: begin
+                  attr := fHighlighter.SymbolAttribute;
+                end;
+                2: begin
+                  attr := fHighlighter.CommentAttribute;
+                end;
+                3: begin
+                  attr := fHighlighter.StringAttribute;
+                end;
+              end;
+            end else if sToken = '(' then begin
+              case (fHighlighter.GetParenthesisLevel mod 4) of
+                0: begin
+                  attr := fHighlighter.KeywordAttribute;
+                end;
+                1: begin
+                  attr := fHighlighter.SymbolAttribute;
+                end;
+                2: begin
+                  attr := fHighlighter.CommentAttribute;
+                end;
+                3: begin
+                  attr := fHighlighter.StringAttribute;
+                end;
+              end;
+            end else if sToken = ')' then begin
+              case ((fHighlighter.GetParenthesisLevel+1) mod 4) of
+                0: begin
+                  attr := fHighlighter.KeywordAttribute;
+                end;
+                1: begin
+                  attr := fHighlighter.SymbolAttribute;
+                end;
+                2: begin
+                  attr := fHighlighter.CommentAttribute;
+                end;
+                3: begin
+                  attr := fHighlighter.StringAttribute;
+                end;
+              end;
+            end else if sToken = '{' then begin
+              case (fHighlighter.GetBraceLevel mod 4) of
+                0: begin
+                  attr := fHighlighter.KeywordAttribute;
+                end;
+                1: begin
+                  attr := fHighlighter.SymbolAttribute;
+                end;
+                2: begin
+                  attr := fHighlighter.CommentAttribute;
+                end;
+                3: begin
+                  attr := fHighlighter.StringAttribute;
+                end;
+              end;
+            end else if sToken = '}' then begin
+              case ((fHighlighter.GetBraceLevel+1) mod 4) of
+                0: begin
+                  attr := fHighlighter.KeywordAttribute;
+                end;
+                1: begin
+                  attr := fHighlighter.SymbolAttribute;
+                end;
+                2: begin
+                  attr := fHighlighter.CommentAttribute;
+                end;
+                3: begin
+                  attr := fHighlighter.StringAttribute;
+                end;
+              end; 
+            end;
             AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
               nTokenLen, attr);
           end;
@@ -3426,7 +3529,7 @@ var
         PaintHighlightToken(TRUE);
 
         //Paint editingAreaBorders
-        PaintEditAreas(areaList,colBorder);
+        PaintEditAreas(areaList,colBorder,areaType);
       end;
 
       // Now paint the right edge if necessary. We do it line by line to reduce
@@ -5023,10 +5126,17 @@ begin
   if Result >= Lines.Count then
     Exit;
 
-  if Result = 0 then
-    fHighlighter.ResetRange
-  else
+  if Result = 0 then begin
+    fHighlighter.ResetRange;
+    fHighlighter.ResetParenthesisLevel;
+    fHighlighter.ResetBracketLevel;
+    fHighlighter.ResetBraceLevel;
+  end else begin
     fHighlighter.SetRange(Lines.Ranges[Result - 1]);
+    fHighlighter.SetParenthesisLevel(Lines.ParenthesisLevels[Result - 1]);
+    fHighlighter.SetBracketLevel(Lines.BracketLevels[Result - 1]);
+    fHighlighter.SetBraceLevel(Lines.BraceLevels[Result - 1]);
+  end;
 
   repeat
     fHighlighter.SetLine(Lines[Result], Result);
@@ -5035,6 +5145,9 @@ begin
     if Lines.Ranges[Result] = iRange then
       Exit; // avoid the final Decrement
     Lines.Ranges[Result] := iRange;
+    Lines.ParenthesisLevels[Result] := fHighlighter.GetParenthesisLevel;
+    Lines.BracketLevels[Result] := fHighlighter.GetBracketLevel;
+    Lines.BraceLevels[Result] := fHighlighter.GetBraceLevel;
     Inc(Result);
   until (Result = Lines.Count);
   Dec(Result);
@@ -5120,11 +5233,17 @@ var
 begin
   if Assigned(fHighlighter) and (Lines.Count > 0) then begin
     fHighlighter.ResetRange;
+    fHighlighter.ResetParenthesisLevel;
+    fHighlighter.ResetBracketLevel;
+    fHighlighter.ResetBraceLevel;
     i := 0;
     repeat
       fHighlighter.SetLine(Lines[i], i);
       fHighlighter.NextToEol;
       Lines.Ranges[i] := fHighlighter.GetRange;
+      Lines.ParenthesisLevels[i] := fHighlighter.GetParenthesisLevel;
+      Lines.BracketLevels[i] := fHighlighter.GetBracketLevel;
+      Lines.BraceLevels[i] := fHighlighter.GetBraceLevel;
       Inc(i);
     until i >= Lines.Count;
   end;
@@ -9195,12 +9314,12 @@ begin
   areaList.Clear;
 end;
 
-function TCustomSynEdit.DoOnEditAreas(Line:integer; areaList:TList; var borderColor: TColor): boolean;
+function TCustomSynEdit.DoOnEditAreas(Line:integer; areaList:TList; var borderColor: TColor;var areaType:TEditingAreaType): boolean;
 begin
   Result := FALSE;
   clearAreaList(areaList);
   if Assigned(fOnEditingAreas) then begin
-    fOnEditingAreas(Self, Line, areaList, borderColor);
+    fOnEditingAreas(Self, Line, areaList, borderColor, areaType);
     Result := areaList.Count > 0;
   end;
 end;

@@ -162,6 +162,9 @@ type
     function GetIsLastLineStringNotFinish(value:Pointer):boolean; virtual;
     function GetEol: Boolean; virtual; abstract;
     function GetRange: Pointer; virtual;
+    function GetBraceLevel: integer; virtual;
+    function GetBracketLevel: integer; virtual;
+    function GetParenthesisLevel: integer; virtual;
     function GetToken: String; virtual; abstract;
     function GetTokenAttribute: TSynHighlighterAttributes; virtual; abstract;
     function GetTokenKind: integer; virtual; abstract;
@@ -171,7 +174,13 @@ type
     procedure NextToEol;
     procedure SetLine(NewValue: String; LineNumber:Integer); virtual; abstract;
     procedure SetRange(Value: Pointer); virtual;
+    procedure SetParenthesisLevel(Value: integer); virtual;
+    procedure SetBracketLevel(Value: integer); virtual;
+    procedure SetBraceLevel(Value: integer); virtual;
     procedure ResetRange; virtual;
+    procedure ResetParenthesisLevel; virtual;
+    procedure ResetBracketLevel; virtual;
+    procedure ResetBraceLevel; virtual;
     function UseUserSettings(settingIndex: integer): boolean; virtual;
     procedure EnumUserSettings(Settings: TStrings); virtual;
 {$IFNDEF SYN_CLX}
@@ -879,6 +888,19 @@ begin
   Result := nil;
 end;
 
+function TSynCustomHighlighter.GetBraceLevel: integer;
+begin
+  Result := 0;
+end;
+function TSynCustomHighlighter.GetBracketLevel: integer;
+begin
+  Result := 0;
+end;
+function TSynCustomHighlighter.GetParenthesisLevel: integer;
+begin
+  Result := 0;
+end;
+
 {note: Implementation subclass should override this }
 function TSynCustomHighlighter.GetTokenFinished: boolean;
 begin
@@ -926,6 +948,18 @@ procedure TSynCustomHighlighter.ResetRange;
 begin
 end;
 
+procedure TSynCustomHighlighter.ResetParenthesisLevel;
+begin
+end;
+
+procedure TSynCustomHighlighter.ResetBracketLevel;
+begin
+end;
+
+procedure TSynCustomHighlighter.ResetBraceLevel;
+begin
+end;
+
 procedure TSynCustomHighlighter.SetAttributesOnChange(AEvent: TNotifyEvent);
 var
   i: integer;
@@ -943,6 +977,18 @@ end;
 procedure TSynCustomHighlighter.SetRange(Value: Pointer);
 begin
 end;
+
+procedure TSynCustomHighlighter.SetParenthesisLevel(Value: integer);
+begin
+end;
+
+procedure TSynCustomHighlighter.SetBracketLevel(Value: integer);
+begin
+end;
+procedure TSynCustomHighlighter.SetBraceLevel(Value: integer);
+begin
+end;
+
 
 procedure TSynCustomHighlighter.SetDefaultFilter(Value: string);
 begin

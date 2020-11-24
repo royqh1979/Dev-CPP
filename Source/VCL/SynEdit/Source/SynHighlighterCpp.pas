@@ -107,6 +107,9 @@ type
   private
     fAsmStart: Boolean;
     fRange: TRangeState;
+    fParenthesisLevel: integer;
+    fBracketLevel: integer;
+    fBraceLevel:integer;
     fLine: PChar;
     fProcTable: array[#0..#255] of TProcTableProc;
     Run: LongInt;
@@ -187,6 +190,9 @@ type
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
+    function GetBraceLevel: integer; override;
+    function GetBracketLevel: integer; override;
+    function GetParenthesisLevel: integer; override;
     function GetTokenID: TtkTokenKind;
     procedure SetLine(NewValue: String; LineNumber:Integer); override;
     function GetToken: String; override;
@@ -198,7 +204,13 @@ type
     function GetIsLastLineStringNotFinish(value:Pointer):boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
+    procedure SetParenthesisLevel(Value: integer); override;
+    procedure SetBracketLevel(Value: integer); override;
+    procedure SetBraceLevel(Value: integer); override;
     procedure ResetRange; override;
+    procedure ResetParenthesisLevel; override;
+    procedure ResetBracketLevel; override;
+    procedure ResetBraceLevel; override;
     function UseUserSettings(settingIndex: integer): boolean; override;
     procedure EnumUserSettings(settings: TStrings); override;
     property ExtTokenID: TxtkTokenKind read GetExtTokenID;
@@ -372,6 +384,9 @@ begin
   SetAttributesOnChange(DefHighlightChange);
   MakeMethodTables;
   fRange := rsUnknown;
+  fParenthesisLevel := 0;
+  fBracketLevel := 0;
+  fBraceLevel := 0;
   fAsmStart := False;
   fDefaultFilter := SYNS_FilterCPP;
 end; { Create }
@@ -491,6 +506,7 @@ begin
   fTokenId := tkSymbol;
   FExtTokenID := xtkBraceClose;
   if fRange = rsAsmBlock then fRange := rsUnknown;
+  dec(fBraceLevel);
 end;
 
 procedure TSynCppSyn.BraceOpenProc;
@@ -503,6 +519,7 @@ begin
     fRange := rsAsmBlock;
     fAsmStart := True;
   end;
+  inc(fBraceLevel);
 end;
 
 procedure TSynCppSyn.CRProc;
@@ -980,6 +997,7 @@ begin
   inc(Run);
   fTokenID := tkSymbol;
   FExtTokenID := xtkRoundClose;
+  dec(fParenthesisLevel);
 end;
 
 procedure TSynCppSyn.RoundOpenProc;
@@ -987,6 +1005,7 @@ begin
   inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkRoundOpen;
+  inc(fParenthesisLevel);
 end;
 
 procedure TSynCppSyn.SemiColonProc;
@@ -1050,6 +1069,7 @@ begin
   inc(Run);
   fTokenID := tkSymbol;
   FExtTokenID := xtkSquareClose;
+  dec(fBracketLevel);
 end;
 
 procedure TSynCppSyn.SquareOpenProc;
@@ -1057,6 +1077,7 @@ begin
   inc(Run);
   fTokenID := tkSymbol;
   FExtTokenID := xtkSquareOpen;
+  inc(fBracketLevel);
 end;
 
 procedure TSynCppSyn.StarProc;
@@ -1255,6 +1276,21 @@ begin
   Result := Pointer(fRange);
 end;
 
+function TSynCppSyn.GetParenthesisLevel: integer;
+begin
+  Result := fParenthesisLevel;
+end;
+
+function TSynCppSyn.GetBracketLevel: integer;
+begin
+  Result := fBracketLevel;
+end;
+
+function TSynCppSyn.GetBraceLevel: integer;
+begin
+  Result := fBraceLevel;
+end;
+
 function TSynCppSyn.GetToken: String;
 var
   Len: LongInt;
@@ -1329,10 +1365,41 @@ begin
   fRange:= rsUnknown;
 end;
 
+procedure TSynCppSyn.ResetParenthesisLevel;
+begin
+  fParenthesisLevel := 0;
+end;
+
+procedure TSynCppSyn.ResetBracketLevel;
+begin
+  fBracketLevel := 0;
+end;
+
+procedure TSynCppSyn.ResetBraceLevel;
+begin
+  fBraceLevel := 0;
+end;
+
 procedure TSynCppSyn.SetRange(Value: Pointer);
 begin
   fRange := TRangeState(Value);
 end;
+
+procedure TSynCppSyn.SetParenthesisLevel(Value: integer);
+begin
+  fParenthesisLevel := Value;
+end;
+
+procedure TSynCppSyn.SetBracketLevel(Value: integer);
+begin
+  fBracketLevel := Value;
+end;
+
+procedure TSynCppSyn.SetBraceLevel(Value: integer);
+begin
+  fBraceLevel := Value;
+end;
+
 
 function TSynCppSyn.GetIsLastLineCommentNotFinish(Value:Pointer):boolean;
 var

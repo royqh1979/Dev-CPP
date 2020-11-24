@@ -71,6 +71,9 @@ type
     fRange: TSynEditRange;
     fExpandedLength: integer;
     fFlags: TSynEditStringFlags;
+    fParenthesisLevel: integer;
+    fBracketLevel:integer;
+    fBraceLevel:integer;
   end;
 
 const
@@ -112,6 +115,13 @@ type
     procedure Grow;
     procedure InsertItem(Index: integer; const S: string);
     procedure PutRange(Index: integer; ARange: TSynEditRange);
+    procedure PutParenthesisLevel(Index:integer; level:integer);
+    procedure PutBracketLevel(Index:integer; level:integer);
+    procedure PutBraceLevel(Index:integer; level:integer);
+    function GetParenthesisLevel(Index:integer):integer;
+    function GetBracketLevel(Index:integer):integer;
+    function GetBraceLevel(Index:integer):integer;
+
   protected
     function Get(Index: integer): string; override;
     function GetCapacity: integer;
@@ -151,6 +161,9 @@ type
     property ExpandedStringLengths[Index: integer]: integer read GetExpandedStringLength;
     property LengthOfLongestLine: integer read GetLengthOfLongestLine;
     property Ranges[Index: integer]: TSynEditRange read GetRange write PutRange;
+    property ParenthesisLevels[Index: integer]: integer read GetParenthesisLevel write PutParenthesisLevel;
+    property BracketLevels[Index: integer]: integer read GetBracketLevel write PutBracketLevel;
+    property BraceLevels[Index: integer]: integer read GetBraceLevel write PutBraceLevel;
     property TabWidth: integer read fTabWidth write SetTabWidth;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
     property OnChanging: TNotifyEvent read fOnChanging write fOnChanging;
@@ -457,6 +470,9 @@ begin
           fRange := NullRange;
           fExpandedLength := -1;
           fFlags := [sfExpandedLengthUnknown];
+          fParenthesisLevel:=0;
+          fBracketLevel:=0;
+          fBraceLevel:=0;
         end;
         Inc(fCount);
       end;
@@ -648,8 +664,33 @@ begin
   if (Index >= 0) and (Index < fCount) then
     Result := fList^[Index].fRange
   else
-    Result := nil;
+    Result := NullRange;
 end;
+
+function TSynEditStringList.GetParenthesisLevel(Index: integer): integer;
+begin
+  if (Index >= 0) and (Index < fCount) then
+    Result := fList^[Index].fParenthesisLevel
+  else
+    Result := 0;
+end;
+
+function TSynEditStringList.GetBracketLevel(Index: integer): integer;
+begin
+  if (Index >= 0) and (Index < fCount) then
+    Result := fList^[Index].fBracketLevel
+  else
+    Result := 0;
+end;
+
+function TSynEditStringList.GetBraceLevel(Index: integer): integer;
+begin
+  if (Index >= 0) and (Index < fCount) then
+    Result := fList^[Index].fBraceLevel
+  else
+    Result := 0;
+end;
+
 
 function TSynEditStringList.GetTextStr: string;
 begin
@@ -695,6 +736,9 @@ begin
     fObject := nil;
     fRange := NullRange;
     fExpandedLength := -1;
+    fParenthesisLevel:=0;
+    fBracketLevel:=0;
+    fBraceLevel:=0;
     fFlags := [sfExpandedLengthUnknown];
   end;
   Inc(fCount);
@@ -721,6 +765,9 @@ begin
           fObject := nil;
           fRange := NullRange;
           fExpandedLength := -1;
+          fParenthesisLevel:=0;
+          fBracketLevel:=0;
+          fBraceLevel:=0;
           fFlags := [sfExpandedLengthUnknown];
         end;
       Inc(fCount, NumLines);
@@ -934,6 +981,35 @@ begin
     ListIndexOutOfBounds(Index);
   BeginUpdate;
   fList^[Index].fRange := ARange;
+  EndUpdate;
+end;
+
+procedure TSynEditStringList.PutParenthesisLevel(Index: integer; level: integer);
+begin
+  if (Index < 0) or (Index >= fCount) then
+    ListIndexOutOfBounds(Index);
+  BeginUpdate;
+  fList^[Index].fParenthesisLevel := level;
+  EndUpdate;
+end;
+
+
+
+procedure TSynEditStringList.PutBracketLevel(Index: integer; level: integer);
+begin
+  if (Index < 0) or (Index >= fCount) then
+    ListIndexOutOfBounds(Index);
+  BeginUpdate;
+  fList^[Index].fBracketLevel := level;
+  EndUpdate;
+end;
+
+procedure TSynEditStringList.PutBraceLevel(Index: integer; level: integer);
+begin
+  if (Index < 0) or (Index >= fCount) then
+    ListIndexOutOfBounds(Index);
+  BeginUpdate;
+  fList^[Index].fBraceLevel := level;
   EndUpdate;
 end;
 
