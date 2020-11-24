@@ -123,6 +123,7 @@ type
     procedure TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
     procedure TabnineCompletionInsert(appendFunc:boolean=False);
+    procedure TabnineQuery;
 
     procedure CompletionInsert(appendFunc:boolean=False);
     procedure CompletionTimer(Sender: TObject);
@@ -1060,6 +1061,43 @@ begin
   PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
 end;
 
+procedure TEditor.TabnineQuery;
+var
+  pos:integer;
+  posBefore,posAfter:integer;
+  function EscapeString(s:AnsiString):AnsiString;
+  var
+    i:integer;
+    inQuote:boolean;
+  begin
+    inQuote:=False;
+    Result:='';
+    i:=1;
+    while (i<=Length(s)) do begin
+      if (s[i] = '"') then begin
+        Result:=Result+'\"';
+        inQuote := not inQuote;
+      end else if (s[i]='\') and inQuote and ((i+1)<=Length(s)) then begin
+        if s[i+1]='"' then
+          Result:=Result+'\\"'
+        else
+          Result:=Result+s[i]+s[i+1];
+        inc(i);
+      end else begin
+        Result:=Result+s[i];
+      end;
+      inc(i);
+    end;
+  end;
+begin
+  pos := fText.RowColToCharIndex(fText.CaretXY);
+  fTabnine.Query(fFileName,
+        TrimLeft(EscapeString(Copy(fText.LineText, 1, fText.CaretX-1))),
+        TrimRight(EscapeString(Copy(fText.LineText, fText.CaretX,MaxInt))),
+        False,
+        False);
+end;
+
 procedure TEditor.TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
@@ -1070,9 +1108,7 @@ begin
     if (Key in [' ',',','(',')','[',']','+','-','/','*','&','|','!','~']) then begin // Continue filtering
       fLastPressedIsIdChar := False;
       fText.SelText := Key;
-      fTabnine.Query(fFileName,
-        Copy(fText.LineText, 1, fText.CaretX-1),
-        Copy(fText.LineText, fText.CaretX,MaxInt));
+      TabnineQuery;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
@@ -1080,9 +1116,7 @@ begin
         fLastPressedIsIdChar:=False;
         fTabnine.Hide;
       end else begin
-        fTabnine.Query(fFileName,
-          Copy(fText.LineText, 1, fText.CaretX-1),
-          Copy(fText.LineText, fText.CaretX,MaxInt));
+        TabnineQuery;
       end;
     end else if Key = Char(VK_ESCAPE) then begin
       fTabnine.Hide;
@@ -1092,9 +1126,7 @@ begin
     end else if fLastPressedIsIdChar then begin
       fLastPressedIsIdChar := True;
       fText.SelText := Key;
-      fTabnine.Query(fFileName,
-        Copy(fText.LineText, 1, fText.CaretX-1),
-        Copy(fText.LineText, fText.CaretX,MaxInt));
+      TabnineQuery;
     end else begin  // other keys, stop completion
       //stop completion now
       fTabnine.Hide;
@@ -1754,8 +1786,7 @@ begin
   fTabnine.OnKeyPress := TabnineCompletionKeyPress;
   fTabnine.OnKeyDown := TabnineCompletionKeyDown;
   fTabnine.Show;
-  fTabnine.Query(FileName,Copy(fText.LineText,1,fText.CaretX-1),
-    Copy(fText.LineText,fText.CaretX,MaxInt));
+  TabnineQuery;
 end;
 
 procedure TEditor.ShowCompletion(autoComplete:boolean);

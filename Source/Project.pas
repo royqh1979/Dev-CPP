@@ -1022,6 +1022,10 @@ begin
         MessageBox(Application.Handle, PAnsiChar(Format(Lang[ID_ERR_FILENOTFOUND], [FileName])), 'Error', MB_ICONERROR);
         SetModified(TRUE);
       end else begin
+      {
+        if MainForm.Tabnine.Executing then
+          MainForm.Tabnine.PrefetchFile(FileName);
+      }
 
         Folder := finifile.ReadString('Unit' + IntToStr(i + 1), 'Folder', '');
         Compile := finifile.ReadBool('Unit' + IntToStr(i + 1), 'Compile', True);

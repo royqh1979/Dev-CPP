@@ -1790,6 +1790,12 @@ begin
     Exit;
   end;
 
+  {
+  if fTabnine.Executing then begin
+    fTabnine.PrefetchFile(FileName);
+  end;
+  }
+
   // Open the file in an editor
   e := fEditorList.NewEditor(FileName,OpenUseUTF8, False, False);
   if Assigned(fProject) then begin

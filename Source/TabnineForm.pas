@@ -62,7 +62,7 @@ end;
 
 procedure TTabnineForm.FormDeactivate(Sender: TObject);
 begin
-//  TTabnine(fOwner).Hide;
+  TTabnine(fOwner).Hide;
 end;
 
 procedure TTabnineForm.CreateParams(var Params: TCreateParams);

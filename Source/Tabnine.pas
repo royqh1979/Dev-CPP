@@ -22,6 +22,9 @@ interface
 uses
   Messages, Classes, Windows , TabnineForm, Variants,Controls,Graphics;
 
+const
+  TABNINE_AUTOCOMPLETE_CHAR_LIMIT = 100000;
+  
 type
 
 PTabnineSuggestion = ^TTabnineSuggestion;
@@ -78,7 +81,9 @@ TTabnine = Class(TObject)
     procedure Show;
     procedure Hide;
     procedure PrefetchFile(const FileName: String);
-    procedure Query(const FileName:String;Before:String; After:String);
+    procedure Query(const FileName:String;Before:String; After:String;
+      region_includes_beginning:boolean;
+      region_includes_end:boolean);
     procedure QueryReady;
     function SelectedSuggestion: PTabnineSuggestion;
     property Path:String read fPath write SetPath;
@@ -120,7 +125,7 @@ begin
   fBefore:='';
   fAfter:='';
   fSuggestions:=TList.Create;
-  fVersion:='2.0.2';
+  fVersion:='3.2.2';
   fExecuting:=False;
   fQuerying:=False;
   self.Width:=700;
@@ -294,35 +299,50 @@ begin
     Exit;
   cmd := '{"version":"'+fVersion+'", "request":{'
             + '"Prefetch":{'
-                + '"filename":"'+FileName+'"'
+                + '"filename":"'+AnsiToUTF8(FileName)+'"'
             + '}'
         +'}}'#10;
   SendCommand(cmd,False);
 end;
 
-procedure TTabnine.Query(const FileName:String;Before:String; After:String);
+procedure TTabnine.Query(const FileName:String;Before:String; After:String;
+      region_includes_beginning:boolean;
+      region_includes_end:boolean);
 var
-  nBytesWrote: DWORD;
   cmd:String;
-  P:pChar;
   response : AnsiString;
+  newName:AnsiString;
 begin
   fQuerying:=True;
   if not fExecuting then
     Exit;
   if assigned(fOnQueryBegin) then
     fOnQueryBegin(self);
+  newName := StringReplace(FileName,'\','/',[rfReplaceAll]);
   cmd := '{"version":"'+fVersion+'", "request":{'
             + '"Autocomplete":{'
-                + '"before": "'+TrimLeft(Before)+'",'
-                + '"after": "'+TrimRight(After)+'",'
-//                + '"filename": "'+AnsiToUTF8(FileName)+'",'
-                + '"filename": null,'
-                + '"region_includes_beginning": true,'
-                + '"region_includes_end": true'
-//                + '"max_num_results":"' + IntToStr(fMaxResultCount)+'"'
-            + '}'
+                + '"before": "'+AnsiToUTF8(Before)+'",'
+                + '"after": "'+AnsiToUTF8(After)+'",'
+                + '"filename": null,';
+//                + '"filename": "'+AnsiToUTF8(newName)+'",';
+  if region_includes_beginning then
+      cmd:=cmd  + '"region_includes_beginning": true,'
+  else
+      cmd:=cmd  + '"region_includes_beginning": false,';
+  if region_includes_end then
+      cmd:=cmd  + '"region_includes_end": true'
+  else
+      cmd:=cmd  + '"region_includes_end": false';
+//                + '"max_num_results": "' + IntToStr(fMaxResultCount)+'"'
+  cmd:= cmd + '}'
         +'}}'+#10;
+
+  with TStringLIst.Create do try
+    Text:=cmd;
+    SaveToFile('f:\\cmd.txt');
+  finally
+    Free;
+  end;
 
   //MainForm.LogOutput.Lines.Add(cmd);
   fBefore:=Before;
