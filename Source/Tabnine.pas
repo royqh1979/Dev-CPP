@@ -318,13 +318,15 @@ begin
     Exit;
   if assigned(fOnQueryBegin) then
     fOnQueryBegin(self);
-  newName := StringReplace(FileName,'\','/',[rfReplaceAll]);
+  newName := ExtractFileName(FileName);
+  if Pos('.', newName) < 1 then
+    newName := newName + ".cpp";
   cmd := '{"version":"'+fVersion+'", "request":{'
             + '"Autocomplete":{'
                 + '"before": "'+AnsiToUTF8(Before)+'",'
                 + '"after": "'+AnsiToUTF8(After)+'",'
-                + '"filename": null,';
-//                + '"filename": "'+AnsiToUTF8(newName)+'",';
+//                + '"filename": null,';
+                + '"filename": "'+AnsiToUTF8(newName)+'",';
   if region_includes_beginning then
       cmd:=cmd  + '"region_includes_beginning": true,'
   else
