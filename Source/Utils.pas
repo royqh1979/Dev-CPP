@@ -808,7 +808,7 @@ end;
 
 function ThemeColortoStr(tc: TThemeColor): AnsiString;
 begin
-  result := format('%d, %d', [tc.Foreground, tc.Background]);
+  result := ColorToString(tc.Foreground)+','+ColorToString(tc.Background);
 end;
 
 function AttrtoStr(Attr: TSynHighlighterAttributes): AnsiString;
