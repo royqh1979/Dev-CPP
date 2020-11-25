@@ -52,14 +52,9 @@ unit SynHighlighterHP48;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -216,11 +211,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   tkTokenName: array[TtkTokenKind] of string = (SYNS_AttrNull,

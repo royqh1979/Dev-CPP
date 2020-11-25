@@ -55,19 +55,11 @@ unit SynHighlighterSQL;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Types,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-{$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -225,11 +217,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: TIdentifierTable;

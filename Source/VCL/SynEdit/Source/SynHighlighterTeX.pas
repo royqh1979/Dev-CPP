@@ -43,15 +43,9 @@ unit SynHighlighterTeX;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   Classes;
 
 type
@@ -134,11 +128,7 @@ fControlSequenceAttri
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 procedure TSynTeXSyn.MakeMethodTables;
 var

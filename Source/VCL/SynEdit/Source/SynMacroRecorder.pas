@@ -43,19 +43,6 @@ unit SynMacroRecorder;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QConsts,
-  QStdCtrls,
-  QControls,
-  Qt,
-  Types,
-  QGraphics,
-  QMenus,
-  QSynEdit,
-  QSynEditKeyCmds,
-  QSynEditPlugins,
-  QSynEditTypes,
-{$ELSE}
   StdCtrls,
   Controls,
   Windows,
@@ -66,7 +53,6 @@ uses
   SynEditKeyCmds,
   SynEditPlugins,
   SynEditTypes,
-{$ENDIF}
   Classes;
 
 resourcestring
@@ -333,13 +319,8 @@ begin
   fMacroName := 'unnamed';
   fCommandIDs[mcRecord] := NewPluginCommand;
   fCommandIDs[mcPlayback] := NewPluginCommand;
-  {$IFDEF SYN_CLX}
-  fShortCuts[mcRecord] := QMenus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
-  fShortCuts[mcPlayback] := QMenus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
-  {$ELSE}
   fShortCuts[mcRecord] := Menus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
   fShortCuts[mcPlayback] := Menus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
-  {$ENDIF}
 end;
 
 function TCustomSynMacroRecorder.CreateMacroEvent(aCmd: TSynEditorCommand): TSynMacroEvent;

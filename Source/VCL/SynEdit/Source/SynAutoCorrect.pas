@@ -485,24 +485,11 @@ begin
     begin
       CurBuf := PChar( @Buf[StartPos] );
       for C := Low(CharMap) to High(CharMap) do
-      {$IFDEF SYN_CLX}
-      begin
-        if not MatchCase then
-          CharMap[C] := UpCase(C)
-        else
-          CharMap[C] := C;
-      end;
-      {$ELSE}
         CharMap[C] := C;
-      {$ENDIF}
       if not MatchCase then
       begin
-      {$IFDEF SYN_CLX}
-        SearchString := UpperCase(SearchString);
-      {$ELSE}
         CharUpperBuff(PChar(@CharMap), SizeOf(CharMap));
         CharUpperBuff(@SearchString[1], Length(SearchString));
-      {$ENDIF}
       end;
       if not ScanText(CurBuf) then
         CurBuf := nil

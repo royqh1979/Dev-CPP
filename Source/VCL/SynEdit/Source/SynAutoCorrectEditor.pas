@@ -41,14 +41,9 @@ interface
 {$I SynEdit.inc}
 
 uses
-{$IFDEF SYN_CLX}  //js 06-04-2002
-  QGraphics, QControls, QForms, QDialogs, QExtCtrls, QStdCtrls, QButtons, Types,
-  QSynAutoCorrect,
-{$ELSE}
   Windows,  Messages, Graphics, Controls, Forms, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Registry,
   SynAutoCorrect,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -158,12 +153,7 @@ procedure TfrmAutoCorrectEditor.btnDeleteClick(Sender: TObject);
 begin
   if lbxItems.ItemIndex < 0 then
   begin
-  {$IFDEF SYN_CLX}
-    ShowMessage(SPleaseSelectItem);
-  {$ELSE} //js 06-04-2002 no messagebox in clx
     MessageBox(0, SPleaseSelectItem, SError, MB_ICONERROR or MB_OK);
-  {$ENDIF}
-
     Exit;
   end;
 
@@ -181,11 +171,7 @@ var
 begin
   if lbxItems.ItemIndex < 0 then
   begin
-  {$IFDEF SYN_CLX}
-    ShowMessage(SPleaseSelectItem);
-  {$ELSE} //js 06-04-2002 no messagebox in clx
     MessageBox(0, SPleaseSelectItem, SError, MB_ICONERROR or MB_OK);
-  {$ENDIF}
     Exit;
   end;
 
@@ -234,13 +220,8 @@ procedure TfrmAutoCorrectEditor.FormCreate(Sender: TObject);
 begin
   ClientWidth := 521;
   ClientHeight := 377;
-{$IFDEF SYN_CLX}
-  lbxItems.OnDrawItem := lbxItemsDrawItemCLX;
-  BorderStyle := fbsSingle;
-{$ELSE}
   lbxItems.OnDrawItem := lbxItemsDrawItem;
   BorderStyle := bsSingle;
-{$ENDIF}
 end;
 
 procedure TfrmAutoCorrectEditor.FormPaint(Sender: TObject);

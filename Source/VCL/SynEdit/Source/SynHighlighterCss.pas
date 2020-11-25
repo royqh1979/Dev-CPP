@@ -58,17 +58,10 @@ unit SynHighlighterCSS;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -177,11 +170,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   mHashTable: array[#0..#255] of Integer;

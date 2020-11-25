@@ -40,16 +40,10 @@ unit SynHighlighterRC;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics, 
-  QSynEditTypes, 
-  QSynEditHighlighter, 
-{$ELSE}
-  Windows, Controls, 
-  Graphics, 
-  SynEditTypes, 
-  SynEditHighlighter, 
-{$ENDIF}
+  Windows, Controls,
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
   SysUtils,
   Classes;
 
@@ -204,11 +198,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
  MAXNumFunc = 199; // ** don't forget to change

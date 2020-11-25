@@ -46,13 +46,8 @@ unit SynExportRTF;
 interface
 
 uses
-  {$IFDEF SYN_CLX}
-  Qt, QGraphics,
-  QSynEditExport,
-  {$ELSE}
   Windows, Graphics, RichEdit,
   SynEditExport,
-  {$ENDIF}
   Classes;
 
 type
@@ -93,12 +88,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst,
-  QSynEditMiscProcs,
-{$ELSE}
   SynEditStrConst,
-{$ENDIF}
   SysUtils;
 
 { TSynExporterRTF }

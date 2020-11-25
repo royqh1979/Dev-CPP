@@ -120,13 +120,6 @@ function EncodeString(s: string): string;
 // Decodes string, encoded with EncodeString.
 function DecodeString(s: string): string;
 
-{$IFDEF SYN_CLX}
-function GetRValue(RGBValue: TColor): byte;
-function GetGValue(RGBValue: TColor): byte;
-function GetBValue(RGBValue: TColor): byte;
-function RGB(r, g, b: Byte): Cardinal;
-{$ENDIF}
-
 type
   THighlighterAttriProc = function (Highlighter: TSynCustomHighlighter;
     Attri: TSynHighlighterAttributes; UniqueAttriName: string;
@@ -151,12 +144,7 @@ implementation
 
 uses
   SysUtils,
-  {$IFDEF SYN_CLX}
-  QSynHighlighterMulti;
-  {$ELSE}
   SynHighlighterMulti;
-  {$ENDIF}
-
 {***}
 
 function MinMax(x, mi, ma: integer): integer;

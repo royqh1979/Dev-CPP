@@ -45,16 +45,9 @@ unit SynEditTextBuffer;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  kTextDrawer,
-  Types,
-  QSynEditTypes,
-  QSynEditMiscProcs,
-{$ELSE}
   Windows,
   SynEditTypes,
   SynEditMiscProcs,
-{$ENDIF}
   SysUtils,
   Classes;
 

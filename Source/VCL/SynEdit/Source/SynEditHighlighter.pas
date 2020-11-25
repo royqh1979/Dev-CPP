@@ -34,20 +34,12 @@ unit SynEditHighlighter;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  kTextDrawer,
-  Types,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditMiscClasses,
-{$ELSE}
   Graphics,
   Windows,
   Registry,
   IniFiles,
   SynEditTypes,
   SynEditMiscClasses,
-{$ENDIF}
   SysUtils,
   Classes;
 

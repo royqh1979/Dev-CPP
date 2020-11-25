@@ -52,11 +52,7 @@ unit SynHighlighterHashEntries;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-{$ELSE}
   SynEditTypes,
-{$ENDIF}
   Classes;
 
 type

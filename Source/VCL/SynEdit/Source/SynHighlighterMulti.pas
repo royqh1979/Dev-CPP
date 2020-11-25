@@ -51,14 +51,9 @@ unit SynHighlighterMulti;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   Classes;
 
 type
@@ -252,17 +247,10 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditMiscProcs,
-  QSynRegExpr,
-  QSynEditStrConst,
-{$ELSE}
   Graphics,
   SynEditMiscProcs,
   SynRegExpr,
   SynEditStrConst,
-{$ENDIF}
   SysUtils;
 
 procedure CheckExpression(const aExpr: string);

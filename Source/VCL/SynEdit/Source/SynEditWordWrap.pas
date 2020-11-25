@@ -45,15 +45,9 @@ unit SynEditWordWrap;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynEditTextBuffer,
-  QSynEdit,
-{$ELSE}
   SynEditTypes,
   SynEditTextBuffer,
   SynEdit,
-{$ENDIF}
   SysUtils,
   Classes;
 

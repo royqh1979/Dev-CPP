@@ -49,13 +49,8 @@ unit SynEditPrinterInfo;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QPrinters;
-{$ELSE}
   Windows,
   Printers;
-{$ENDIF}
 
 type
   //Printer info class - getting dimensions of paper

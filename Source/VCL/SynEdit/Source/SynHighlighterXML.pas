@@ -57,15 +57,9 @@ interface
 {$I SynEdit.inc}
 
 uses
-{$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -199,11 +193,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   NameChars : set of char = ['0'..'9', 'a'..'z', 'A'..'Z', '_', '.', ':', '-'];

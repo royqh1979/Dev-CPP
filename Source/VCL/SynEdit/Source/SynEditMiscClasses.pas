@@ -44,22 +44,6 @@ unit SynEditMiscClasses;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  {$IFDEF SYN_LINUX}
-  Xlib,
-  {$ENDIF}
-  Types,
-  Qt,
-  QConsts,
-  QGraphics,
-  QControls,
-  QImgList,
-  QStdCtrls,
-  QMenus,
-  kTextDrawer,
-  QSynEditTypes,
-  QSynEditKeyConst,
-{$ELSE}
   Consts,
   Windows,
   Messages,
@@ -71,10 +55,7 @@ uses
   Registry,
   SynEditTypes,
   SynEditKeyConst,
-{$ENDIF}
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -298,18 +279,10 @@ type
 { TSynHotKey }
 
 const
-  {$IFDEF SYN_CLX}
-  BorderWidth = 2;
-  {$ELSE}
   BorderWidth = 0;
-  {$ENDIF}
 
 type
-  {$IFDEF SYN_CLX}
-  TSynBorderStyle = bsNone..bsSingle;
-  {$ELSE}
   TSynBorderStyle = TBorderStyle;
-  {$ENDIF}
 
   THKModifier = (hkShift, hkCtrl, hkAlt);
   THKModifiers = set of THKModifier;
@@ -332,20 +305,12 @@ type
      procedure WMKillFocus(var Msg: TWMKillFocus); message WM_KILLFOCUS;
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
   protected
-    {$IFNDEF SYN_CLX}
     procedure CreateParams(var Params: TCreateParams); override;
-    {$ENDIF}
-    {$IFDEF SYN_CLX}
-    function EventFilter(Sender: QObjectH; Event: QEventH): Boolean; override;
-    {$ENDIF}
     procedure DoExit; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure Paint; override;
-    {$IFDEF SYN_CLX}
-    function WidgetFlags: Integer; override;
-    {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -433,11 +398,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 { TSynSelectedColor }
 
@@ -912,17 +873,7 @@ begin
     rcSrc := Rect(0, aY, vGlyph.Width, aY + aLineHeight);
   end;
 
-{$IFDEF SYN_CLX}
-  if vMaskColor = clNone then
-    vGlyph.Transparent := False
-  else begin
-    vGlyph.TransparentColor := vMaskColor;
-    vGlyph.Transparent := True;
-  end;
-  aCanvas.CopyRect(rcDest, vGlyph.Canvas, rcSrc);
-{$ELSE}
   aCanvas.BrushCopy(rcDest, vGlyph, rcSrc, vMaskColor);
-{$ENDIF}
 end;
 
 procedure TSynGlyph.SetGlyph(Value: TBitmap);
@@ -1226,12 +1177,7 @@ begin
       rcSrc := Rect(Number * fWidth, Y, (Number + 1) * fWidth,
         Y + LineHeight);
     end;
-{$IFDEF SYN_CLX}
-    ACanvas.CopyMode := cmMergeCopy;
-    ACanvas.CopyRect(rcDest, fImages.Canvas, rcSrc);
-{$ELSE}
     ACanvas.BrushCopy(rcDest, fImages, rcSrc, TransparentColor);
-{$ENDIF}
   end;
 end;
 
@@ -1279,12 +1225,7 @@ begin
   if ssShift in Shift then Result := Result + SmkcShift;
   if ssAlt in Shift then Result := Result + SmkcAlt;
 
-  {$IFDEF SYN_CLX}
-  if Lo(Key) > Ord('Z') then
-    Result := Result + Chr(Key)
-  else
-  {$ENDIF}
-    Result := Result + ShortCutToText(TShortCut(Key));
+  Result := Result + ShortCutToText(TShortCut(Key));
   if Result = '' then
     Result := srNone;
 end;
@@ -1292,10 +1233,6 @@ end;
 constructor TSynHotKey.Create(AOwner: TComponent);
 begin
   inherited;
-  {$IFDEF SYN_CLX}
-  InputKeys := [ikAll];
-  {$ENDIF}
-
   BorderStyle := bsSingle;
   ControlStyle := ControlStyle + [csNeedsBorderPaint];
 
@@ -1337,44 +1274,11 @@ begin
   end;
 end;
 
-{$IFDEF SYN_CLX}
-function TSynHotKey.EventFilter(Sender: QObjectH; Event: QEventH): Boolean;
-begin
-  Result := inherited EventFilter(Sender, Event);
-  case QEvent_type(Event) of
-    QEventType_FocusIn:
-      begin
-        Canvas.Font := Font;
-        CreateCaret(Self, 0, 1, Canvas.TextHeight('x') + 2);
-        SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
-        ShowCaret(Self);
-      end;
-    QEventType_FocusOut:
-      begin
-        DestroyCaret;
-      end;
-  end;
-end;
-{$ENDIF}
-
 procedure TSynHotKey.KeyDown(var Key: Word; Shift: TShiftState);
 var
   MaybeInvalidKey: THKInvalidKey;
   SavedKey: Word;
-  {$IFDEF SYN_LINUX}
-  Code: Byte;
-  {$ENDIF}
 begin
-  {$IFDEF SYN_LINUX}
-  // uniform Keycode: key has the same value wether Shift is pressed or not
-  if Key <= 255 then
-  begin
-    Code := XKeysymToKeycode(Xlib.PDisplay(QtDisplay), Key);
-    Key := XKeycodeToKeysym(Xlib.PDisplay(QtDisplay), Code, 0);
-    if Char(Key) in ['a'..'z'] then Key := Ord(UpCase(Char(Key)));
-  end;
-  {$ENDIF}
-  
   SavedKey := Key;
   FPressedOnlyModifiers := KeySameAsShiftState(Key, Shift);
 
@@ -1384,10 +1288,6 @@ begin
 
   if not FPressedOnlyModifiers then
   begin
-    {$IFDEF SYN_CLX}
-    if Lo(Key) > Ord('Z') then
-      Key := Lo(Key);
-    {$ENDIF}
     FHotKey := ShortCut(Key, Shift)
   end
   else
@@ -1407,21 +1307,7 @@ begin
 end;
 
 procedure TSynHotKey.KeyUp(var Key: Word; Shift: TShiftState);
-{$IFDEF SYN_LINUX}
-var
-  Code: Byte;
-{$ENDIF}
 begin
-  {$IFDEF SYN_LINUX}
-  // uniform Keycode: key has the same value wether Shift is pressed or not
-  if Key <= 255 then
-  begin
-    Code := XKeysymToKeycode(Xlib.PDisplay(QtDisplay), Key);
-    Key := XKeycodeToKeysym(Xlib.PDisplay(QtDisplay), Code, 0);
-    if Char(Key) in ['a'..'z'] then Key := Ord(UpCase(Char(Key)));
-  end;
-  {$ENDIF}
-  
   if FPressedOnlyModifiers then
   begin
     Text := srNone;
@@ -1443,11 +1329,6 @@ var
 begin
   r := ClientRect;
   
-  {$IFDEF SYN_CLX}
-  QClxDrawUtil_DrawWinPanel(Canvas.Handle, @r, Palette.ColorGroup(cgActive), True,
-    QBrushH(0));
-  {$ENDIF}
-
   Canvas.Brush.Style := bsSolid;
   Canvas.Brush.Color := Color;
   InflateRect(r, -BorderWidth, -BorderWidth);
@@ -1460,12 +1341,7 @@ begin
   if FBorderStyle <> Value then
   begin
     FBorderStyle := Value;
-{$IFDEF SYN_CLX}
-    Resize;
-    Invalidate;
-{$ELSE}
     RecreateWnd;
-{$ENDIF}
   end;
 end;
 
@@ -1499,13 +1375,6 @@ begin
   FModifiers := Value;
   SetHotKey(FHotKey);
 end;
-
-{$IFDEF SYN_CLX}
-function TSynHotKey.WidgetFlags: Integer;
-begin
-  Result := inherited WidgetFlags or Integer(WidgetFlags_WRepaintNoErase);
-end;
-{$ENDIF}
 
 procedure TSynHotKey.WMGetDlgCode(var Message: TMessage);
 begin

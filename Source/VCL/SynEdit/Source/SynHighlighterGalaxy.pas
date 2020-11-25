@@ -53,14 +53,9 @@ unit SynHighlighterGalaxy;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils, Classes;
 
 type
@@ -138,11 +133,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;

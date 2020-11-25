@@ -151,11 +151,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   MARGIN_X = 12; // margin width left and right of page
@@ -224,13 +220,9 @@ var
   ScreenDPI: Integer;
 begin
   Result := 0;
-{$IFDEF SYN_CLX}
-  ScreenDPI := Screen.Height;
-{$ELSE}
   DC := GetDC(0);
   ScreenDPI := GetDeviceCaps(DC, LogPixelsY);
   ReleaseDC(0, DC);
-{$ENDIF}
   if Assigned(FSynEditPrint) then
     with FSynEditPrint.PrinterInfo do
       Result := MulDiv(PhysicalHeight, ScreenDPI, YPixPrInch);
@@ -242,13 +234,9 @@ var
   ScreenDPI: Integer;
 begin
   Result := 0;
-{$IFDEF SYN_CLX}
-  ScreenDPI := Screen.Height;
-{$ELSE}
   DC := GetDC(0);
   ScreenDPI := GetDeviceCaps(DC, LogPixelsX);
   ReleaseDC(0, DC);
-{$ENDIF}
   if Assigned(FSynEditPrint) then
     with FSynEditPrint.PrinterInfo do
       Result := MulDiv(PhysicalWidth, ScreenDPI, XPixPrInch);

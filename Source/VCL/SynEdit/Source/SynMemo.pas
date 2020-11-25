@@ -46,20 +46,12 @@ unit SynMemo;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  Types,
-  QSynEdit,
-  QSynEditTextBuffer,
-  QSynEditTypes,
-{$ELSE}
   RichEdit,
   Windows,
   Messages,
   SynEdit,
   SynEditTextBuffer,
   SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -202,11 +194,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 
 { TSynMemo }

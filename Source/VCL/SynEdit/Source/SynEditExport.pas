@@ -49,23 +49,11 @@ unit SynEditExport;
 interface
 
 uses
-{$IFDEF SYN_KYLIX}
-  Libc,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  Types,
-  QClipbrd,
-  QSynEditHighlighter,
-  QSynEditTypes,
-{$ELSE}
   Windows,
   Graphics,
   Clipbrd,
   SynEditHighlighter,
   SynEditTypes,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -282,11 +270,7 @@ end;
 procedure TSynCustomExporter.CopyToClipboard;
 begin
   if fExportAsText then
-  {$IFDEF SYN_CLX}
-    CopyToClipboardFormat(0)
-  {$ELSE}
     CopyToClipboardFormat(CF_TEXT)
-  {$ENDIF}
   else
     CopyToClipboardFormat(GetClipboardFormat);
 end;
@@ -332,20 +316,12 @@ begin
   if not Assigned(ALines) or not Assigned(Highlighter) or (ALines.Count = 0)
     or (Start.Line > ALines.Count) or (Start.Line > Stop.Line)
   then
-  {$IFDEF SYN_CLX}
-    exit;
-  {$ELSE}
     Abort;
-  {$ENDIF}
   Stop.Line := Max(1, Min(Stop.Line, ALines.Count));
   Stop.Char := Max(1, Min(Stop.Char, Length(ALines[Stop.Line - 1]) + 1));
   Start.Char := Max(1, Min(Start.Char, Length(ALines[Start.Line - 1]) + 1));
   if (Start.Line = Stop.Line) and (Start.Char >= Stop.Char) then
-  {$IFDEF SYN_CLX}
-    exit;
-  {$ELSE}
     Abort;
-  {$ENDIF}
   // initialization
   fBuffer.Position := 0;
   // Size is ReadOnly in Delphi 2

@@ -52,16 +52,10 @@ unit SynHighlighterJScript;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils, Classes;
 
 type
@@ -300,11 +294,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;

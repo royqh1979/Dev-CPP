@@ -51,15 +51,9 @@ unit SynHighlighterUNIXShellScript;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -173,13 +167,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst;
-{$ELSE}
   SynEditMiscProcs,
   SynEditStrConst;
-{$ENDIF}
 
 const
   ShellScriptKeysCount = 110;

@@ -103,17 +103,10 @@ unit SynEditPrintHeaderFooter;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditPrintTypes,
-  QSynEditPrintMargins,
-{$ELSE}
   Windows,
   Graphics,
   SynEditPrintTypes,
   SynEditPrintMargins,
-{$ENDIF}
   Classes,
   SysUtils;
 

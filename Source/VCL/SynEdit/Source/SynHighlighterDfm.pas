@@ -52,15 +52,9 @@ unit SynHighlighterDfm;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -152,11 +146,7 @@ function SaveStrings2DFMFile(AStrings: TStrings; const AFile: string): integer;
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 { A couple of useful Delphi Form functions }
 

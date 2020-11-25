@@ -44,20 +44,12 @@ unit SynDBEdit;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QControls,
-  QDBCtrls,
-  QSynEdit,
-  QSynEditKeyCmds,
-{$ELSE}
   Windows,
   Messages,
   Controls,
   DbCtrls,
   SynEdit,
   SynEditKeyCmds,
-{$ENDIF}
   SysUtils,
   Classes,
   DB;
@@ -100,9 +92,6 @@ type
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
-  {$IFDEF SYN_CLX}
-    function EventFilter(Sender: QObjectH; Event: QEventH): Boolean; override;
-  {$ENDIF}
   protected
     property DataField: string read GetDataField write SetDataField;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
@@ -216,16 +205,13 @@ begin
 end;
 
 {*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMEnter(var Msg: TCMEnter);
 begin
   SetEditing(True);
   inherited;
 end;
-{$ENDIF}
 
 {*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMExit(var Msg: TCMExit);
 begin
   try
@@ -237,15 +223,12 @@ begin
   SetEditing(False);
   inherited;
 end;
-{$ENDIF}
 
 {*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMGetDataLink(var Msg: TMessage);
 begin
   Msg.Result := Integer(FDataLink);
 end;
-{$ENDIF}
 
 procedure TCustomDBSynEdit.DataChange(Sender: TObject);
 begin
@@ -400,20 +383,6 @@ begin
   end else
     FDataLink.Field.AsString := Text;
 end;
-
-{$IFDEF SYN_CLX}
-function TCustomDBSynEdit.EventFilter(Sender: QObjectH;
-  Event: QEventH): Boolean;
-begin
-  Result := inherited EventFilter( Sender, Event );
-  case QEvent_type(Event) of
-    QEventType_FocusIn:
-      SetEditing( True );
-    QEventType_FocusOut:
-      SetEditing( False );
-  end;
-end;
-{$ENDIF}
 
 end.
 
