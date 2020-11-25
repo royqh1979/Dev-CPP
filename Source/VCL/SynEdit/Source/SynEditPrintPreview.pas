@@ -53,24 +53,13 @@ unit SynEditPrintPreview;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QControls,
-  QGraphics,
-  QForms,
-  Types,
-  QSynEditPrint,
-{$ELSE}
-  {$IFDEF SYN_COMPILER_7}
   Themes,
-  {$ENDIF}
   Windows,
   Controls,
   Messages,
   Graphics,
   Forms,
   SynEditPrint,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -78,21 +67,6 @@ type
 //Event raised when page is changed in preview
   TPreviewPageEvent = procedure(Sender: TObject; PageNumber: Integer) of object;
   TSynPreviewScale = (pscWholePage, pscPageWidth, pscUserScaled);
-
-  {$IFNDEF SYN_COMPILER_4_UP}
-  TWMMouseWheel = record
-    Msg: Cardinal;
-    Keys: SmallInt;
-    WheelDelta: SmallInt;
-    case Integer of
-      0: (
-        XPos: Smallint;
-        YPos: Smallint);
-      1: (
-        Pos: TSmallPoint;
-        Result: Longint);
-  end;
-  {$ENDIF}
 
   TSynEditPrintPreview = class(TCustomControl)
   protected
@@ -195,11 +169,7 @@ const
 constructor TSynEditPrintPreview.Create(AOwner: TComponent);
 begin
   inherited;
-{$IFDEF SYN_COMPILER_7_UP}
-  {$IFNDEF SYN_CLX}
   ControlStyle := ControlStyle + [csNeedsBorderPaint];
-  {$ENDIF}
-{$ENDIF}
   FBorderStyle := bsSingle;
   FScaleMode := pscUserScaled;
   FScalePercent := 100;

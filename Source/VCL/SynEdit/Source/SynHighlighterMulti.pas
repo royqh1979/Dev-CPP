@@ -729,9 +729,7 @@ end;
 procedure TSynMultiSyn.UnhookHighlighter(aHL: TSynCustomHighlighter);
 begin
   aHL.UnhookAttrChangeEvent( DefHighlightChange );
-{$IFDEF SYN_COMPILER_5_UP}
   aHL.RemoveFreeNotification( Self );
-{$ENDIF}
 end;
 
 function TSynMultiSyn.GetSampleSource: string;

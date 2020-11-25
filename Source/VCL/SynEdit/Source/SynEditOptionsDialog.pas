@@ -257,11 +257,6 @@ type
     InChanging: Boolean;
     FExtended: Boolean;
 
-    {$IFNDEF SYN_COMPILER_4_UP}
-    FOldWndProc: TWndMethod;
-    procedure OverridingWndProc(var Message: TMessage);
-    {$ENDIF}
-
     function GetColor(Item : TMenuItem) : TColor;
     procedure GetData;
     procedure PutData;
@@ -726,13 +721,7 @@ var I : Integer;
     C : TColor;
     B : TBitmap;
 begin
-  {$IFDEF SYN_COMPILER_4_UP}
   KeyList.OnSelectItem := KeyListSelectItem;
-  {$ELSE}
-  FOldWndProc := KeyList.WindowProc;
-  KeyList.WindowProc := OverridingWndProc;
-  FOnSelectItem := KeyListSelectItem;
-  {$ENDIF}
 
   InChanging := False;
   B:= TBitmap.Create;
@@ -750,9 +739,7 @@ begin
       B.Canvas.Pen.Color:= clBlack;
       B.Canvas.Rectangle(0,0,16,16);
       ImageList1.Add(B, nil);
-{$IFDEF SYN_COMPILER_4_UP}
       ColorPopup.Items[I].ImageIndex:= ColorPopup.Items[I].Tag;
-{$ENDIF}
     end;
   finally
     B.Free;
@@ -1049,31 +1036,5 @@ begin
   end;
   InChanging := False;
 end;
-
-{$IFNDEF SYN_COMPILER_4_UP}
-procedure TfmEditorOptionsDialog.OverridingWndProc(var Message: TMessage);
-var
-  Item: TListItem;
-begin
-  FOldWndProc(Message);
-
-  if Message.Msg = CN_NOTIFY then
-    with TWMNotify(Message) do
-      if NMHdr.code = LVN_ITEMCHANGED then
-        with PNMListView(NMHdr)^ do
-        begin
-          Item := KeyList.Items[iItem];
-          if Assigned(FOnSelectItem) and (uChanged = LVIF_STATE) then
-          begin
-            if (uOldState and LVIS_SELECTED <> 0) and
-              (uNewState and LVIS_SELECTED = 0) then
-              FOnSelectItem(Self, Item, False)
-            else if (uOldState and LVIS_SELECTED = 0) and
-              (uNewState and LVIS_SELECTED <> 0) then
-              FOnSelectItem(Self, Item, True);
-          end;
-        end;
-end;
-{$ENDIF}
 
 end.

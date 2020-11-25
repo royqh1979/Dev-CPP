@@ -261,16 +261,9 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QForms,
-  QSynEditMiscProcs,
-{$ELSE}
   Forms,
   SynEditMiscProcs,
-{$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
-{$ENDIF}
-{$ENDIF}
   SysUtils;
 
 { TSynDataEvent }

@@ -237,14 +237,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 {begin}                                                                         //gp 2000-06-24
 // Helper routine for AsString processing.

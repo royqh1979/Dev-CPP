@@ -122,22 +122,16 @@ type
     property OnLoadData;
     // inherited properties
     property Align;
-{$IFDEF SYN_COMPILER_4_UP}
     property Anchors;
     property Constraints;
-{$ENDIF}
     property Color;
-  {$IFNDEF SYN_CLX}
     property Ctl3D;
-  {$ENDIF}
     property Enabled;
     property Font;
     property Height;
     property Name;
     property ParentColor;
-  {$IFNDEF SYN_CLX}
     property ParentCtl3D;
-  {$ENDIF}
     property ParentFont;
     property ParentShowHint;
     property PopupMenu;
@@ -152,11 +146,7 @@ type
     property OnDblClick;
     property OnDragDrop;
     property OnDragOver;
-{$IFDEF SYN_COMPILER_4_UP}
-  {$IFNDEF SYN_CLX}
     property OnEndDock;
-  {$ENDIF}
-{$ENDIF}
     property OnEndDrag;
     property OnEnter;
     property OnExit;
@@ -166,11 +156,7 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-{$IFDEF SYN_COMPILER_4_UP}
-  {$IFNDEF SYN_CLX}
     property OnStartDock;
-  {$ENDIF}
-{$ENDIF}
     property OnStartDrag;
     // TCustomSynEdit properties
     property BookMarkOptions;

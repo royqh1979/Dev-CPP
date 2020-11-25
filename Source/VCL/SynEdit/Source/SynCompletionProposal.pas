@@ -567,23 +567,15 @@ procedure FormattedTextOut(TargetCanvas: TCanvas; const Rect: TRect;
 function FormattedTextWidth(TargetCanvas: TCanvas; const Text: string;
   Columns: TProposalColumns; Images: TImageList): Integer;
 function PrettyTextToFormattedString(const APrettyText: string;
-  AlternateBoldStyle: Boolean {$IFDEF SYN_COMPILER_4_UP} = False {$ENDIF}): string;
+  AlternateBoldStyle: Boolean = False): string;
 
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditTextBuffer,
-  QSynEditMiscProcs,
-  QSynEditKeyConst;
-{$ELSE}
   SynEditTextBuffer,
   SynEditMiscProcs,
   SynEditKeyConst;
-{$ENDIF}
 
 const
   TextHeightString = 'CompletionProposal';
@@ -1046,7 +1038,7 @@ begin
 end;
 
 function PrettyTextToFormattedString(const APrettyText: string;
-  AlternateBoldStyle: Boolean {$IFDEF SYN_COMPILER_4_UP} = False {$ENDIF}): string;
+  AlternateBoldStyle: Boolean  = False ): string;
 var
   i: Integer;
   Color: TColor;
@@ -1901,10 +1893,8 @@ procedure TSynBaseCompletionProposalForm.SetImages(const Value: TImageList);
 begin
   if FImages <> Value then
   begin
-    {$IFDEF SYN_COMPILER_5_UP}
     if Assigned(FImages) then
       FImages.RemoveFreeNotification(Self);
-    {$ENDIF SYN_COMPILER_5_UP}
 
     FImages := Value;
     if Assigned(FImages) then
@@ -2199,28 +2189,12 @@ procedure TSynBaseCompletionProposal.ExecuteEx(s: string; x, y: integer; Kind : 
 
   function GetWorkAreaWidth: Integer;
   begin
-  {$IFDEF SYN_CLX}
-    Result := Screen.Width
-  {$ELSE}
-    {$IFDEF SYN_COMPILER_5_UP}
     Result := Screen.DesktopWidth;
-    {$ELSE}
-    Result := Screen.Width;
-    {$ENDIF}
-  {$ENDIF}
   end;
 
   function GetWorkAreaHeight: Integer;
   begin
-  {$IFDEF SYN_CLX}
-    Result := Screen.Height
-  {$ELSE}
-    {$IFDEF SYN_COMPILER_5_UP}
     Result := Screen.DesktopHeight;
-    {$ELSE}
-    Result := Screen.Height;
-    {$ENDIF}
-  {$ENDIF}
   end;
 
   function GetParamWidth(const S: string): Integer;
@@ -3213,9 +3187,7 @@ begin
     AEditor.RemoveKeyDownHandler(EditorKeyDown);
     AEditor.RemoveKeyPressHandler(EditorKeyPress);
     AEditor.UnregisterCommandHandler(HookedEditorCommand);
-    {$IFDEF SYN_COMPILER_5_UP}
     RemoveFreeNotification( AEditor );
-    {$ENDIF}
     if fEditor = AEditor then
       fEditor := nil;
   end;
@@ -3594,9 +3566,7 @@ begin
     begin
       Editor.RemoveKeyDownHandler( EditorKeyDown );
       Editor.RemoveKeyPressHandler( EditorKeyPress );
-      {$IFDEF SYN_COMPILER_5_UP}
       RemoveFreeNotification( Editor );
-      {$ENDIF}
     end;
     fEditor := Value;
     if Editor <> nil then

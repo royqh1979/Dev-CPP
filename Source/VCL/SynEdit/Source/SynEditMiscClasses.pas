@@ -376,15 +376,7 @@ type
     property Options: TSynSearchOptions write SetOptions;
   end;
 
-{$IFNDEF SYN_CLX}
-  {$IFNDEF SYN_COMPILER_4_UP}
-  TBetterRegistry = class(TRegistry)
-    function OpenKeyReadOnly(const Key: string): Boolean;
-  end;
-  {$ELSE}
   TBetterRegistry = TRegistry;
-  {$ENDIF}
-{$ENDIF}
 
   TSynEditMark = class
   protected
@@ -1307,11 +1299,7 @@ begin
   {$ENDIF}
 
   BorderStyle := bsSingle;
-  {$IFNDEF SYN_CLX}
-  {$IFDEF SYN_COMPILER_7_UP}
   ControlStyle := ControlStyle + [csNeedsBorderPaint];
-  {$ENDIF}
-  {$ENDIF}
 
   FInvalidKeys := [hcNone, hcShift];
   FModifiers := [hkAlt];
@@ -1542,40 +1530,6 @@ begin
   ShowCaret(Handle);
 end;
 {$ENDIF}
-
-{$IFNDEF SYN_CLX}
-  {$IFNDEF SYN_COMPILER_4_UP}
-
-{ TBetterRegistry }
-
-function TBetterRegistry.OpenKeyReadOnly(const Key: string): Boolean;
-
-  function IsRelative(const Value: string): Boolean;
-  begin
-    Result := not ((Value <> '') and (Value[1] = '\'));
-  end;
-
-var
-  TempKey: HKey;
-  S: string;
-  Relative: Boolean;
-begin
-  S := Key;
-  Relative := IsRelative(S);
-
-  if not Relative then Delete(S, 1, 1);
-  TempKey := 0;
-  Result := RegOpenKeyEx(GetBaseKey(Relative), PChar(S), 0,
-      KEY_READ, TempKey) = ERROR_SUCCESS;
-  if Result then
-  begin
-    if (CurrentKey <> 0) and Relative then S := CurrentPath + '\' + S;
-    ChangeKey(TempKey, S);
-  end;
-end; { TBetterRegistry.OpenKeyReadOnly }
-
-  {$ENDIF SYN_COMPILER_4_UP}
-{$ENDIF SYN_CLX}
 
 { TSynEditMark }
 

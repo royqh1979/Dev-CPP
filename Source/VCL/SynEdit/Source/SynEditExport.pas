@@ -212,16 +212,9 @@ type
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst;
-{$ELSE}
   SynEditMiscProcs,
   SynEditStrConst;
-{$ENDIF}
 
 { TSynCustomExporter }
 
