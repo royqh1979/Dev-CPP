@@ -4331,61 +4331,6 @@ begin
   end;
 end;
 
-{$IFDEF SYN_CLX}
-
-procedure TCustomSynEdit.ScrollEvent(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
-var
-  ScrollKind: TScrollBarKind;
-begin
-  if Sender = FHScrollBar then begin
-    ScrollKind := sbHorizontal;
-    LeftChar := ScrollPos;
-  end else if Sender = FVScrollBar then begin
-    ScrollKind := sbVertical;
-    TopLine := ScrollPos;
-  end else
-    Exit;
-  if Visible and CanFocus and not (csDesigning in ComponentState) then
-    SetFocus
-  else
-    UpdateCaret;
-  if Assigned(OnScroll) then
-    OnScroll(Self, ScrollKind);
-end;
-
-function TCustomSynEdit.GetClientRect: TRect;
-begin
-  Result := inherited GetClientRect;
-  if FHScrollBar.Visible then
-    Result.Bottom := Result.Bottom - CYHSCROLL;
-  if FVScrollBar.Visible then
-    Result.Right := Result.Right - CXVSCROLL;
-  if BorderStyle <> bsNone then
-    InflateRect(Result, -FrameWidth, -FrameWidth);
-end;
-
-function TCustomSynEdit.GetClientOrigin: TPoint;
-begin
-  Result := inherited GetClientOrigin;
-  if BorderStyle <> bsNone then begin
-    Inc(Result.X, FrameWidth);
-    Inc(Result.Y, FrameWidth);
-  end;
-end;
-
-procedure TCustomSynEdit.Resize;
-begin
-  inherited Resize;
-  SizeOrFontChanged(FALSE);
-end;
-
-function TCustomSynEdit.WidgetFlags: integer;
-begin
-  Result := integer(WidgetFlags_WRepaintNoErase);
-end;
-{$ENDIF SYN_CLX}
-
-
 function TCustomSynEdit.DoMouseWheel(Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint): Boolean;
 const
