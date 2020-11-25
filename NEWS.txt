@@ -5,6 +5,8 @@ Version 6.2-beta2
   - enhancement: use hex format to save color settings in the config file
   - enhancement: tabnine integration (experiment)
   - enhancement: save debug toolbar position; streamline default toolbar
+  - fix: devcpp deadlock when define a function
+  - fix: Debug Console don't show the commands entered when "Display Debug Commands" option is disabled.
 
 Version 6.2-beta1
 

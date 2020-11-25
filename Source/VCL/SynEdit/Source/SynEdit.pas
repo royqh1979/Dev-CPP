@@ -118,7 +118,8 @@ type
 
   TEditingAreaType = (
     eatEditing,
-    eatError);
+    eatError,
+    eatWarning);
 
   TEditingAreasEvent = procedure(Sender: TObject; Line:integer;
     areaList:TList; var borderColor:TColor; var areaType:TEditingAreaType) of object;  // areaList : TList<TEditingArea>

@@ -925,6 +925,7 @@ type
     fFilesToOpen: TStringList; // files to open on show
     fQuitting: boolean ;
     fTabnine: TTabnine;
+    fCheckSyntax : boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1955,6 +1956,8 @@ begin
 end;
 
 procedure TMainForm.CompOutputProc(const _Line, _Col, _Unit, _Message: AnsiString);
+var
+  e:TEditor;
 begin
   with CompilerOutput.Items.Add do begin
     Caption := _Line;
@@ -1964,7 +1967,16 @@ begin
   end;
 
   // Update tab caption
-  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')'
+  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
+
+  if ( StartsStr('[Error]',_Message)
+      or StartsStr('[Warning]',_Message)
+      ) then begin
+    if EditorList.IsFileOpened(_Unit) then begin
+      e:=EditorList.GetEditorFromFileName(_Unit);
+      e.AddSyntaxError(StrToInt(_Line),StrToInt(_Col),setError,_Message);
+    end;
+  end;
 end;
 
 procedure TMainForm.CompResOutputProc(const _Line, _Col, _Unit, _Message: AnsiString);
@@ -1983,6 +1995,7 @@ end;
 procedure TMainForm.CompEndProc;
 var
   I: integer;
+  e:TEditor;
 begin
   // Close it if there's nothing to show
   if (CompilerOutput.Items.Count = 0) and (ResourceOutput.Items.Count = 0) and devData.AutoCloseProgress then begin
@@ -1998,10 +2011,14 @@ begin
         MessageControl.ActivePage := ResSheet;
     end;
     OpenCloseMessageSheet(TRUE);
+    e:=EditorList.GetEditor();
+    if Assigned(e) then begin
+      e.Text.Invalidate;
+    end;
   end;
 
   // Jump to problem location, sorted by significance
-  if fCompiler.ErrorCount > 0 then begin
+  if (fCompiler.ErrorCount > 0) and (not fCheckSyntax) then begin
 
     // First try to find errors
     for I := 0 to CompilerOutput.Items.Count - 1 do begin
@@ -2049,6 +2066,7 @@ begin
       CompilerOutputDblClick(ResourceOutput);
     end;
   end;
+  fCheckSyntax:=False;  
 end;
 
 procedure TMainForm.CompSuccessProc;
@@ -3173,6 +3191,7 @@ begin
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
+        e.ClearSyntaxErrors;
       end;
     ctProject: begin
         fCompiler.Project := fProject;
@@ -4395,6 +4414,7 @@ begin
   end;
   if not PrepareForCompile then
     Exit;
+  fCheckSyntax:=True;
   fCompiler.CheckSyntax;
 end;
 
@@ -6326,6 +6346,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   fQuitting:=False;
   fFirstShow := true;
+  fCheckSyntax:=False;
 
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
@@ -7063,6 +7084,7 @@ begin
   end;
   if not PrepareForCompile(ctFile) then
     Exit;
+  fCheckSyntax:=True;
   fCompiler.CheckSyntax;
 end;
 
@@ -7613,7 +7635,7 @@ begin
         EvaluateInput.SelLength := 0;
         }
 
-    fDebugger.SendCommand(s, '',true);
+    fDebugger.SendCommand(s, '',true, true);
 
   end;
 

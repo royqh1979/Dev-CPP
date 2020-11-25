@@ -35,6 +35,8 @@ type
 
   TTarget = (ctInvalid, ctNone, ctFile, ctProject);
 
+  TGCCMessageType = (gmtError,gmtWarning,gmtInfo,gmtNote,gmtNone);
+
   TCompiler = class
   private
     fOnLogEntry: TLogEntryEvent;
@@ -1084,6 +1086,7 @@ procedure TCompiler.ProcessOutput(const line: AnsiString);
 var
   OLine, OCol, OFile, OMsg, S: AnsiString;
   delim: integer;
+  messageType : TGCCMessageType;
 
   procedure GetFileName; // obtain delimiter AFTER (full) filename
   begin
@@ -1136,8 +1139,9 @@ var
     end;
   end;
 
-  procedure GetMessageType;
+  function GetMessageType:TGCCMessageType;
   begin
+    Result := gmtNone;
     OMsg := Trim(OMsg);
     delim := FPos(':', OMsg, 1);
     if delim > 0 then begin
@@ -1146,18 +1150,22 @@ var
         Inc(fErrCount);
         Delete(OMsg, 1, delim + 1);
         OMsg := '[Error] ' + Trim(OMsg);
+        Result:=gmtError;
       end else if SameStr(S, 'warning') then begin
         Inc(fWarnCount);
         Delete(OMsg, 1, delim + 1);
         OMsg := '[Warning] ' + Trim(OMsg);
+        Result:=gmtWarning;
       end else if SameStr(S, 'info') then begin
         //Inc(fInfoCount);
         Delete(OMsg, 1, delim + 1);
         OMsg := '[Info] ' + Trim(OMsg);
+        Result:=gmtInfo;
       end else if SameStr(S, 'note') then begin
         //Inc(fInfoCount);
         Delete(OMsg, 1, delim + 1);
         OMsg := '[Note] ' + Trim(OMsg);
+        Result:=gmtNote;
       end;
     end;
   end;
@@ -1213,7 +1221,7 @@ begin
   end else begin
     GetLineNumber;
     GetColNumber;
-    GetMessageType;
+    messageType:= GetMessageType;
 
     DoOutput(OLine, OCol, OFile, OMsg);
   end;

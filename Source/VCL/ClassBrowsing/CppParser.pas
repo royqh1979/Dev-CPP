@@ -1843,7 +1843,7 @@ begin
 
   FunctionClass := GetLastCurrentScope;
   // Check if this is a prototype
-  if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] in [';', '}']) then begin // prototype
+  if (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';', '}']) then begin // prototype
     IsDeclaration := True;
     {
     if not fIsHeader and not Assigned(FunctionClass) then // in a CPP file

@@ -31,6 +31,19 @@ const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
 
 type
+
+  TSyntaxErrorType = (
+    setError,
+    setWarning);
+  PSyntaxError = ^TSyntaxError;
+  TSyntaxError = record
+    line:integer;
+    col:integer;
+    endCol:integer;
+    errorType: TSyntaxErrorType;
+    Hint: String;
+  end;
+
   TEditor = class;
   TDebugGutter = class(TSynEditPlugin)
   protected
@@ -97,6 +110,9 @@ type
     fLastPressedIsIdChar: boolean;
 
     fTabnine:TTabnine;
+
+    //TDevString<Line,TList<PSyntaxError>>
+    fErrorList: TDevStringList; // syntax check errors
     //fSingleQuoteCompleteState: TSymbolCompleteState;
     //fDoubleQuoteCompleteState: TSymbolCompleteState;
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
@@ -172,6 +188,8 @@ type
     procedure InitCompletion;
     procedure ShowCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
+    procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
+    procedure ClearSyntaxErrors;
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
     property InProject: boolean read fInProject write fInProject;
@@ -377,6 +395,10 @@ begin
   fLineBeforeTabStop:='';
   fLineAfterTabStop := '';
 
+  fErrorList := TDevStringList.Create;
+  fErrorList.Sorted:=True;
+  fErrorList.Duplicates:= dupIgnore;
+
   // Setup a monitor which keeps track of outside-of-editor changes
   MainForm.FileMonitor.Monitor(fFileName);
 
@@ -404,6 +426,9 @@ begin
   FreeAndNil(fText);
   FreeAndNil(fTabSheet);
   FreeAndNil(fPreviousEditors);
+
+  ClearSyntaxErrors;
+  FreeAndNil(fErrorList);
 
   // Move into TObject.Destroy...
   inherited;
@@ -488,9 +513,12 @@ var
   p:PEditingArea;
   spaceCount :integer;
   spaceBefore :integer;
+  lst:TList;
+  i,idx: integer;
+  pError: PSyntaxError;
 begin
-  areaType:=eatEditing;
   if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
+    areaType:=eatEditing;
     System.new(p);
     spaceCount := fText.LeftSpacesEx(fLineBeforeTabStop,True);
     spaceBefore := Length(fLineBeforeTabStop) - Length(TrimLeft(fLineBeforeTabStop));
@@ -498,7 +526,23 @@ begin
     p.endX := fTabStopEnd + spaceCount - spaceBefore ;
     areaList.Add(p);
     ColBorder := clRed;
+    Exit;
   end;
+  idx:=CBUtils.FastIndexOf(fErrorList,IntToStr(line));
+  if idx >=0 then begin
+    areaType:=eatEditing;
+    lst:=TList(fErrorList.Objects[idx]);
+    for i:=0 to lst.Count-1 do begin
+      System.new(p);
+      pError := PSyntaxError(lst[i]);
+      p.beginX := pError.col;
+      p.endX := pError.endCol;
+      areaList.Add(p);
+    end;
+    ColBorder := clRed;
+    Exit;
+  end;
+
 end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
@@ -539,6 +583,8 @@ begin
     else if HasBreakpoint(Line) <> -1 then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 0)
     else if fErrorLine = Line then
+      dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
+    if CBUtils.FastIndexOf(fErrorList, IntToStr(Line))>=0 then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
 
     Inc(Y, fText.LineHeight);
@@ -2709,6 +2755,59 @@ end;
       fUserCodeInTabStops.Delete(0);
     end;
   end;
+
+procedure TEditor.ClearSyntaxErrors;
+var
+  i,t:integer;
+  lst:TList;
+begin
+  for i:=0 to fErrorList.Count -1 do begin
+    lst:=TList(fErrorList.Objects[i]);
+    for t:=0 to lst.Count-1 do begin
+      dispose(PSyntaxError(lst[t]));
+    end;
+    lst.Free;
+  end;
+  fErrorList.Clear;
+end;
+
+procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
+var
+  lineNo:String;
+  pError:PSyntaxError;
+  p:TBufferCoord;
+  p1:TDisplayCoord;
+  token:String;
+  tokenType,start:integer;
+  Attri: TSynHighlighterAttributes;
+  idx:integer;
+  lst:TList;
+begin
+  System.new(pError);
+  p.Char:=col;
+  p.Line:=line;
+  fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
+  pError^.line:=line;
+  p.Line:=line;
+  p.Char := start;
+  p1:=fText.BufferToDisplayPos(p);
+  pError^.col:=p1.Column;
+  p.Line:=line;
+  p.Char := start+length(token);
+  p1:=fText.BufferToDisplayPos(p);
+  pError^.endCol:=p1.Column;
+  pError^.Hint:=hint;
+  pError^.errorType:=errorType;
+  lineNo := IntToStr(line);
+  idx:=CBUtils.FastIndexOf(fErrorList,lineNo);
+  if idx >= 0 then
+    lst := TList(fErrorList.Objects[idx])
+  else begin
+    lst := TList.Create;
+    fErrorList.AddObject(lineNo,lst);
+  end;
+  lst.Add(pError);
+end;
 
 end.
 

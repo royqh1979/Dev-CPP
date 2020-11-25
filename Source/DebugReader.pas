@@ -57,6 +57,7 @@ type
     Cmd: AnsiString;
     Params: AnsiString;
     UpdateWatch: boolean;
+    ShowInConsole: boolean;
   end;
 
   PBreakPoint = ^TBreakPoint;
@@ -176,7 +177,8 @@ type
     property InvalidateAllVars: boolean read fInvalidateAllVars write fInvalidateAllVars;
     property OnInvalidateAllVars: TInvalidateAllVarsEvent  read fOnInvalidateAllVars write fOnInvalidateAllVars; 
 
-    procedure PostCommand(const Command, Params: AnsiString; UpdateWatch: boolean);
+    procedure PostCommand(const Command, Params: AnsiString;
+      UpdateWatch: boolean; ShowInConsole: boolean);
   end;
 
 implementation
@@ -251,7 +253,7 @@ begin
     MainForm.Debugger.OnEvalReady(fEvalValue);
 
   // show command output
-  if (devDebugger.ShowCommandLog) then begin
+  if (devDebugger.ShowCommandLog) or (assigned(fCurrentCmd) and fCurrentCmd^.ShowInConsole) then begin
     if devDebugger.ShowAnnotations then begin
       strOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
       MainForm.DebugOutput.Lines.Add(strOutput);
@@ -1108,7 +1110,8 @@ begin
   end;
   ClearCmdQueue;
 end;
-procedure TDebugReader.PostCommand(const Command, Params: AnsiString; UpdateWatch: boolean);
+procedure TDebugReader.PostCommand(const Command, Params: AnsiString;
+  UpdateWatch: boolean; ShowInConsole: boolean);
 var
   PCmd: PGDBCmd;
 begin
@@ -1122,6 +1125,7 @@ begin
     pCmd^.Cmd := Command;
     pCmd^.Params := Params;
     pCmd^.UpdateWatch := UpdateWatch;
+    pCmd^.ShowInConsole := ShowInConsole;
     fCmdQueue.Push(pCmd);
   if not fCmdRunning then begin
     RunNextCmd;
@@ -1177,7 +1181,7 @@ begin
       MessageDlg(Lang[ID_ERR_WRITEGDB], mtError, [mbOK], 0);
     }
 
-    if devDebugger.ShowCommandLog then begin
+    if devDebugger.ShowCommandLog or pCmd^.ShowInConsole then begin
       if not devDebugger.ShowAnnotations then begin
         if MainForm.DebugOutput.Lines.Count>0 then begin
           MainForm.DebugOutput.Lines.Delete(MainForm.DebugOutput.Lines.Count-1);
