@@ -80,14 +80,12 @@ type
     procedure UpdateData(Sender: TObject);
   private
     {*****************}
-  {$IFNDEF SYN_CLX}
     procedure CMEnter(var Msg: TCMEnter);
       message CM_ENTER;
     procedure CMExit(var Msg: TCMExit);
       message CM_EXIT;
     procedure CMGetDataLink(var Msg: TMessage);
       message CM_GETDATALINK;
-  {$ENDIF}
   protected
     function GetReadOnly: boolean; override;
     procedure Loaded; override;

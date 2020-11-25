@@ -62,7 +62,7 @@ const
   SynLineBreakGlyph = Chr($B6); //'¶'
   SynSpaceGlyph = Chr($B7);     //'·'
 
-  SLineBreak = {$IFDEF SYN_WIN32} #13#10 {$ELSE} #10 {$ENDIF};
+  SLineBreak = #13#10;
 
 type
   TSynSearchOption = (ssoMatchCase, ssoWholeWord, ssoBackwards,

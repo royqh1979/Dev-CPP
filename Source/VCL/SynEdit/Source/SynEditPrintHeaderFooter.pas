@@ -616,9 +616,7 @@ var
   AItem: THeaderFooterItem;
   FOrgHeight: Integer;
   {************}
-{$IFNDEF SYN_CLX}
   TextMetric: TTextMetric;
-{$ENDIF}
 begin
   FFrameHeight := -1;
   if FItems.Count <= 0 then Exit;
@@ -636,14 +634,12 @@ begin
     end;
     ACanvas.Font.Assign(AItem.Font);
     {************}
-  {$IFNDEF SYN_CLX}
     GetTextMetrics(ACanvas.Handle, TextMetric);
     with TLineInfo(FLineInfo[CurLine - 1]), TextMetric do
     begin
       LineHeight := Max(LineHeight, ACanvas.TextHeight('W'));
       MaxBaseDist := Max(MaxBaseDist, tmHeight - tmDescent);
     end;
-  {$ENDIF}
     FFrameHeight := Max(FFrameHeight, FOrgHeight + ACanvas.TextHeight('W'));
   end;
   FFrameHeight := FFrameHeight + 2 * FMargins.PHFInternalMargin;
@@ -740,9 +736,7 @@ var
   i, X, Y, CurLine: Integer;
   AStr: string;
   AItem: THeaderFooterItem;
-{$IFNDEF SYN_CLX}
   OldAlign: UINT;
-{$ENDIF}
   TheAlignment: TAlignment;
 begin
   if (FFrameHeight <= 0) then Exit; //No header/footer
@@ -782,14 +776,10 @@ begin
     end;
       {Aligning at base line - Fonts can have different size in headers and footers}
     {************}
-  {$IFNDEF SYN_CLX}
     OldAlign := SetTextAlign(ACanvas.Handle, TA_BASELINE);
-  {$ENDIF}
     ACanvas.TextOut(X, Y + TLineInfo(FLineInfo[CurLine - 1]).MaxBaseDist, AStr);
     {************}
-  {$IFNDEF SYN_CLX}
     SetTextAlign(ACanvas.Handle, OldAlign);
-  {$ENDIF}
   end;
   RestoreFontPenBrush(ACanvas);
 end;

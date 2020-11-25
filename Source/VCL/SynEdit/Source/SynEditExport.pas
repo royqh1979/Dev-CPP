@@ -223,9 +223,7 @@ begin
   inherited Create(AOwner);
   fBuffer := TMemoryStream.Create;
   {*****************}
-{$IFNDEF SYN_CLX}
   fClipboardFormat := CF_TEXT;
-{$ENDIF}
   fFont := TFont.Create;
   fBackgroundColor := clWindow;
   AssignFont(nil);
@@ -294,14 +292,11 @@ begin
 end;
 
 procedure TSynCustomExporter.CopyToClipboardFormat(AFormat: UINT);
-{$IFNDEF SYN_CLX}
 var
   hData: THandle;
   hDataSize: UINT;
   PtrData: PChar;
-{$ENDIF}
 begin
-{$IFNDEF SYN_CLX}
   hDataSize := GetBufferSize + 1;
   hData := GlobalAlloc(GMEM_MOVEABLE or GMEM_ZEROINIT or GMEM_SHARE, hDataSize);
   if hData <> 0 then try
@@ -320,7 +315,6 @@ begin
     GlobalFree(hData);
     OutOfMemoryError;
   end;
-{$ENDIF}
 end;
 
 procedure TSynCustomExporter.ExportAll(ALines: TStrings);

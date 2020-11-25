@@ -1541,7 +1541,6 @@ end;
 procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
 begin
   { returns the user settings that exist in the registry }
-{$IFNDEF SYN_CLX}
   with TBetterRegistry.Create do
   begin
     try
@@ -1558,7 +1557,6 @@ begin
       Free;
     end;
   end;
-{$ENDIF}
 end;
 
 function TSynPasSyn.UseUserSettings(VersionIndex: integer): boolean;
@@ -1569,7 +1567,6 @@ function TSynPasSyn.UseUserSettings(VersionIndex: integer): boolean;
 //   false: problem reading settings or invalid version specified - old settings
 //          were preserved
 
-{$IFNDEF SYN_CLX}
   function ReadDelphiSettings(settingIndex: integer): boolean;
 
     function ReadDelphiSetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): boolean;
@@ -1611,7 +1608,7 @@ function TSynPasSyn.UseUserSettings(VersionIndex: integer): boolean;
     iVersionTag       : string;
   begin { ReadDelphiSettings }
     {$IFDEF SYN_DELPHI_7_UP}
-    Result := False; // Silence the compiler warning 
+    Result := False; // Silence the compiler warning
     {$ENDIF}
     iVersions := TStringList.Create;
     try
@@ -1642,7 +1639,7 @@ function TSynPasSyn.UseUserSettings(VersionIndex: integer): boolean;
       ReadDelphiSetting( iVersionTag, tmpSpaceAttri,'Whitespace') and
       ReadDelphiSetting( iVersionTag, tmpStringAttri,'String') and
       ReadDelphiSetting( iVersionTag, tmpSymbolAttri,'Symbol');
-      
+
     if Result then
     begin
       fAsmAttri.AssignColorAndStyle( tmpAsmAttri );
@@ -1667,14 +1664,9 @@ function TSynPasSyn.UseUserSettings(VersionIndex: integer): boolean;
     tmpStringAttri.Free;
     tmpSymbolAttri.Free;
   end; { ReadDelphiSettings }
-{$ENDIF}
 
 begin
-{$IFNDEF SYN_CLX}
   Result := ReadDelphiSettings( VersionIndex );
-{$ELSE}
-  Result := False;
-{$ENDIF}
 end; { TSynPasSyn.UseUserSettings }
 
 function TSynPasSyn.GetIdentChars: TSynIdentChars;

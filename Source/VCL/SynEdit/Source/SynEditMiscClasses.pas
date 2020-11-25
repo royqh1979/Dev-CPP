@@ -328,11 +328,9 @@ type
     procedure SetHotKey(const Value: TShortCut);
     procedure SetInvalidKeys(const Value: THKInvalidKeys);
     procedure SetModifiers(const Value: THKModifiers);
-    {$IFNDEF SYN_CLX}
     procedure WMGetDlgCode(var Message: TMessage); message WM_GETDLGCODE;
      procedure WMKillFocus(var Msg: TWMKillFocus); message WM_KILLFOCUS;
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
-    {$ENDIF}
   protected
     {$IFNDEF SYN_CLX}
     procedure CreateParams(var Params: TCreateParams); override;
@@ -1310,7 +1308,6 @@ begin
   TabStop := True;
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TSynHotKey.CreateParams(var Params: TCreateParams);
 const
   BorderStyles: array[TSynBorderStyle] of DWORD = (0, WS_BORDER);
@@ -1329,7 +1326,6 @@ begin
     end;
   end;
 end;
-{$ENDIF}
 
 procedure TSynHotKey.DoExit;
 begin
@@ -1511,7 +1507,6 @@ begin
 end;
 {$ENDIF}
 
-{$IFNDEF SYN_CLX}
 procedure TSynHotKey.WMGetDlgCode(var Message: TMessage);
 begin
   Message.Result := DLGC_WANTTAB or DLGC_WANTARROWS;
@@ -1529,7 +1524,6 @@ begin
   SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
   ShowCaret(Handle);
 end;
-{$ENDIF}
 
 { TSynEditMark }
 

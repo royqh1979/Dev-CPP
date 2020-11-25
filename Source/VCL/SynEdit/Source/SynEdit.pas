@@ -249,7 +249,6 @@ type
 
   TCustomSynEdit = class(TCustomControl)
   private
-{$IFNDEF SYN_CLX}
     procedure WMCancelMode(var Message: TMessage); message WM_CANCELMODE;
     procedure WMCaptureChanged(var Msg: TMessage); message WM_CAPTURECHANGED;
     procedure WMClear(var Msg: TMessage); message WM_CLEAR;
@@ -273,7 +272,6 @@ type
     procedure WMSize(var Msg: TWMSize); message WM_SIZE;
     procedure WMUndo(var Msg: TMessage); message WM_UNDO;
     procedure WMVScroll(var Msg: TWMScroll); message WM_VSCROLL;
-{$ENDIF}
   private
     fAllFoldRanges: TSynEditFoldRanges;
     fCodeFolding: TSynCodeFolding;
@@ -1253,10 +1251,8 @@ begin
   Width := 200;
   Cursor := crIBeam;
   Color := clWindow;
-{$IFDEF SYN_WIN32}
   fFontDummy.Name := 'Courier New';
   fFontDummy.Size := 10;
-{$ENDIF}
 {$IFDEF SYN_KYLIX}
   fFontDummy.Name := 'adobe-courier';
   if fFontDummy.Name = 'adobe-courier' then
@@ -2081,9 +2077,7 @@ begin
   end;
 
   SetFocus;
-{$IFNDEF SYN_CLX}
   Windows.SetFocus(Handle);
-{$ENDIF}
 end;
 
 procedure TCustomSynEdit.MouseMove(Shift: TShiftState; X, Y: Integer);
@@ -2369,10 +2363,8 @@ var
   vMarkRow: integer;
   vGutterRow: integer;
   vLineTop: integer;
-{$IFNDEF SYN_CLX}
   dc: HDC;
   TextSize: TSize;
-{$ENDIF}
   x: Integer;
   FoldRange: TSynEditFoldRange;
 begin
@@ -2467,17 +2459,13 @@ begin
   end else if not fGutter.Gradient then
     Canvas.FillRect(AClip);
 
-{$IFDEF SYN_WIN32}
   // draw word wrap glyphs transparently over gradient
   if fGutter.Gradient then
     Canvas.Brush.Style := bsClear;
-{$ENDIF}
 
-{$IFDEF SYN_WIN32}
   // restore brush
   if fGutter.Gradient then
     Canvas.Brush.Style := bsSolid;
-{$ENDIF}
 
   // Draw the folding lines and squares
   if fUseCodeFolding then begin
@@ -2634,9 +2622,7 @@ var
     FG, BG: TColor;
     Style: TFontStyles;
   end;
-{$IFNDEF SYN_CLX}
   dc: HDC;
-{$ENDIF}
   SynTabGlyphString: string;
 
   vFirstLine: integer;
@@ -2816,7 +2802,6 @@ var
     end;
   end;
 
-{$IFNDEF SYN_CLX}
   //todo: eliminate AdjustEndRect
   procedure AdjustEndRect;
     { trick to avoid clipping the last pixels of text in italic }
@@ -2836,7 +2821,6 @@ var
     if iCharWidth > 0 then
       Inc(rcToken.Left, iCharWidth);
   end;
-{$ENDIF}
   procedure PaintEditAreas(areaList:TList; colBorder:TColor;areaType:TEditingAreaType);
   var
     rc:TRect;
@@ -2946,10 +2930,8 @@ var
         if (rcToken.Left < nX1) then begin
           SetDrawingColors(FALSE);
           rcToken.Right := nX1;
-{$IFNDEF SYN_CLX}
           if (TokenAccu.Len <> 0) and (TokenAccu.Style <> []) then
             AdjustEndRect;
-{$ENDIF}
           Canvas.FillRect(rcToken);
           rcToken.Left := nX1;
         end;
@@ -2967,10 +2949,8 @@ var
       end else begin
         SetDrawingColors(bLineSelected);
         rcToken.Right := rcLine.Right;
-{$IFNDEF SYN_CLX}
         if (TokenAccu.Len <> 0) and (TokenAccu.Style <> []) then
           AdjustEndRect;
-{$ENDIF}
         Canvas.FillRect(rcToken);
       end;
     end;
@@ -3536,11 +3516,9 @@ var
   vEndOfBlock: TBufferCoord;
   StoredPaintLock: integer;
 
-{$IFNDEF SYN_CLX}
   PasteMode: TSynSelectionMode;
   Mem: HGLOBAL;
   P: PChar;
-{$ENDIF}
 begin
   if not CanPaste then
     exit;
@@ -4477,64 +4455,9 @@ end;
 procedure TCustomSynEdit.UpdateScrollBars;
 var
   nMaxScroll: integer;
-{$IFNDEF SYN_CLX}
   ScrollInfo: TScrollInfo;
   iRightChar: Integer;
-{$ELSE}
-  iClientRect: TRect;
-
-  procedure CalcScrollbarsVisible;
-  begin
-    if not HandleAllocated or (PaintLock <> 0) then
-      Include(fStateFlags, sfScrollbarChanged)
-    else begin
-      Exclude(fStateFlags, sfScrollbarChanged);
-      if fScrollBars <> ssNone then begin
-        if (fScrollBars in [ssBoth, ssHorizontal]) then begin
-          if eoScrollPastEol in Options then
-            nMaxScroll := MaxScrollWidth
-          else
-            nMaxScroll := Max(Lines.LengthOfLongestLine, 1);
-
-          FHScrollBar.Min := 1;
-          FHScrollBar.Max := nMaxScroll; // Qt handles values above MAX_SCROLL
-          FHScrollBar.Position := LeftChar;
-          FHScrollBar.LargeChange := CharsInWindow - Ord(eoScrollByOneLess in fOptions);
-
-          if eoHideShowScrollbars in Options then
-            FHScrollBar.Visible := nMaxScroll > CharsInWindow
-          else
-            FHScrollBar.Visible := TRUE;
-
-        end else
-          FHScrollBar.Visible := FALSE;
-
-        if fScrollBars in [ssBoth, ssVertical] then begin
-          nMaxScroll := DisplayLineCount;
-          if eoScrollPastEof in Options then
-            Inc(nMaxScroll, LinesInWindow - 1);
-
-          FVScrollBar.Min := 1;
-          FVScrollBar.Max := Max(1, nMaxScroll);
-          FVScrollBar.LargeChange := LinesInWindow shr Ord(eoHalfPageScroll in fOptions);
-          FVScrollBar.Position := TopLine;
-
-          if eoHideShowScrollbars in Options then
-            FVScrollBar.Visible := nMaxScroll > LinesInWindow
-          else
-            FVScrollBar.Visible := TRUE;
-        end else
-          FVScrollBar.Visible := FALSE;
-      end else begin
-        FHScrollBar.Visible := False;
-        FVScrollBar.Visible := False;
-      end;
-    end;
-  end;
-
-{$ENDIF}
 begin
-{$IFNDEF SYN_CLX}
   if not HandleAllocated or (PaintLock <> 0) then
     Include(fStateFlags, sfScrollbarChanged)
   else begin
@@ -4622,21 +4545,6 @@ begin
     else
       ShowScrollBar(Handle, SB_BOTH, False);
   end;
-{$ELSE}
-  if FHScrollBar <> nil then begin
-    CalcScrollBarsVisible;
-
-    iClientRect := GetClientRect;
-
-    FHScrollBar.Left := iClientRect.Left;
-    FHScrollBar.Top := iClientRect.Bottom;
-    FHScrollBar.Width := iClientRect.Right - iClientRect.Left;
-
-    FVScrollBar.Top := iClientRect.Top;
-    FVScrollBar.Left := iClientRect.Right;
-    FVScrollBar.Height := iClientRect.Bottom - iClientRect.Top;
-  end;
-{$ENDIF}
 end;
 
 {$IFDEF SYN_CLX}
@@ -7733,8 +7641,6 @@ begin
   fRedoList.Unlock;
 end;
 
-{$IFNDEF SYN_CLX}
-
 procedure TCustomSynEdit.WMSetCursor(var Msg: TWMSetCursor);
 begin
   if (Msg.HitTest = HTCLIENT) and (Msg.CursorWnd = Handle) and
@@ -7743,7 +7649,6 @@ begin
   end else
     inherited;
 end;
-{$ENDIF}
 
 procedure TCustomSynEdit.SetTabWidth(Value: integer);
 begin
@@ -8052,17 +7957,13 @@ const
   ScrollOptions = [eoDisableScrollArrows, eoHideShowScrollbars,
     eoScrollPastEof, eoScrollPastEol];
 var
-{$IFNDEF SYN_CLX}
   bSetDrag: boolean;
-{$ENDIF}
   TmpBool: Boolean;
   bUpdateScroll: boolean;
   vTempBlockBegin, vTempBlockEnd: TBufferCoord;
 begin
   if (Value <> fOptions) then begin
-{$IFNDEF SYN_CLX}
     bSetDrag := (eoDropFiles in fOptions)<>(eoDropFiles in Value);
-{$ENDIF}
 
     if not (eoScrollPastEol in Options) then
       LeftChar := LeftChar;
@@ -8082,12 +7983,9 @@ begin
       SetBlockEnd(vTempBlockEnd);
     end;
 
-{$IFDEF SYN_CLX}
-{$ELSE}
     // (un)register HWND as drop target
     if bSetDrag and not (csDesigning in ComponentState) and HandleAllocated then
       DragAcceptFiles(Handle, (eoDropFiles in fOptions));
-{$ENDIF}
     TmpBool := eoShowSpecialChars in Value;
     if TmpBool <> fShowSpecChar then begin
       fShowSpecChar := TmpBool;
@@ -9965,12 +9863,10 @@ end;
 
 procedure TCustomSynEdit.DefineProperties(Filer: TFiler);
 
-{$IFDEF SYN_COMPILER_6_UP}
   function CollectionsEqual(C1, C2: TCollection): boolean;
   begin
     Result := Classes.CollectionsEqual(C1, C2, nil, nil);
   end;
-{$ENDIF}
 
   function HasKeyData: boolean;
   var

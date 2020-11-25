@@ -109,9 +109,7 @@ begin
   fListColors := TList.Create;
   fDefaultFilter := SYNS_FilterRTF;
   {*****************}
-{$IFNDEF SYN_CLX}
   fClipboardFormat := RegisterClipboardFormat(CF_RTF);
-{$ENDIF}
   // setup array of chars to be replaced
   fReplaceReserved['\'] := '\\';
   fReplaceReserved['{'] := '\{';

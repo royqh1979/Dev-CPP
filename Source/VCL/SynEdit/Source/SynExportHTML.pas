@@ -126,9 +126,7 @@ const
 begin
   inherited Create(AOwner);
   {**************}
-  {$IFNDEF SYN_CLX}
   fClipboardFormat := RegisterClipboardFormat(CF_HTML);
-  {$ENDIF}
   fDefaultFilter := SYNS_FilterHTML;
   // setup array of chars to be replaced
   fReplaceReserved['&'] := '&amp;';

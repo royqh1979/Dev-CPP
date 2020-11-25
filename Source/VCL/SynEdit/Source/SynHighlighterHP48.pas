@@ -185,10 +185,8 @@ type
     function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
-    {$IFNDEF SYN_CLX}
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
-    {$ENDIF}
     procedure Assign(Source: TPersistent); override;
     property AsmKeyWords: TSpeedStringList read FAsmKeyWords;
     property SAsmFoField: TSpeedStringList read FSAsmNoField;
@@ -835,7 +833,6 @@ begin
     Inc(Run);
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynHP48Syn.LoadFromRegistry(RootKey: HKEY; Key: string): boolean;
 var
   r: TBetterRegistry;
@@ -874,7 +871,6 @@ begin
   finally r.Free;
   end;
 end;
-{$ENDIF}
 
 procedure TSynHP48Syn.Assign(Source: TPersistent);
 var

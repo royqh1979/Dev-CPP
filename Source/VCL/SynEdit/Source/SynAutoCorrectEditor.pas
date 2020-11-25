@@ -75,10 +75,8 @@ type
   private
     procedure lbxItemsDrawItemCLX(Sender: TObject; Index: Integer;
       Rect: TRect; State: TOwnerDrawState; var Handled: Boolean);
-{$IFNDEF SYN_CLX}
     procedure lbxItemsDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
-{$ENDIF}
   public
     SynAutoCorrect: TSynAutoCorrect;
   end;
@@ -124,7 +122,6 @@ begin
   end;
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TfrmAutoCorrectEditor.lbxItemsDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var
@@ -133,7 +130,6 @@ begin
   Dummy := True;
   lbxItemsDrawItemCLX( Control, Index, Rect, State, Dummy );
 end;
-{$ENDIF}
 
 procedure TfrmAutoCorrectEditor.btnAddClick(Sender: TObject);
 var
@@ -219,10 +215,8 @@ end;
 
 procedure TfrmAutoCorrectEditor.btnClearClick(Sender: TObject);
 begin
-{$IFNDEF SYN_CLX} //js 06-04-2002
   if MessageBox(0, SClearListConfirmation, SConfirmation,
     MB_YESNO or MB_ICONQUESTION) <> IDYES then Exit;
-{$ENDIF}
   SynAutoCorrect.Items.Clear;
   lbxItems.Items.Clear;
 

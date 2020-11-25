@@ -51,10 +51,8 @@ uses
   SysUtils,
   Classes;
 
-{$IFNDEF SYN_CLX}
 type
   TBetterRegistry = SynEditMiscClasses.TBetterRegistry;
-{$ENDIF}
 
 type
   TSynHighlighterAttributes = class(TPersistent)
@@ -81,14 +79,12 @@ type
     procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
     constructor Create(attribName: string);
     procedure InternalSaveDefaultValues;
-{$IFNDEF SYN_CLX}
     function LoadFromBorlandRegistry(rootKey: HKEY; attrKey, attrName: string;
       oldStyle: boolean): boolean; virtual;
     function LoadFromRegistry(Reg: TBetterRegistry): boolean;
     function SaveToRegistry(Reg: TBetterRegistry): boolean;
     function LoadFromFile(Ini : TIniFile): boolean;
     function SaveToFile(Ini : TIniFile): boolean;
-{$ENDIF}
   public
     property IntegerStyle: integer read GetStyleFromInt write SetStyleFromInt;
     property Name: string read fName;
@@ -183,12 +179,10 @@ type
     procedure ResetBraceLevel; virtual;
     function UseUserSettings(settingIndex: integer): boolean; virtual;
     procedure EnumUserSettings(Settings: TStrings); virtual;
-{$IFNDEF SYN_CLX}
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; virtual;
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; virtual;
     function LoadFromFile(AFileName: String): boolean;
     function SaveToFile(AFileName: String): boolean;
-{$ENDIF}
     procedure HookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
     procedure UnhookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
     property IdentChars: TSynIdentChars read GetIdentChars;
@@ -377,7 +371,6 @@ begin
   fStyleDefault := fStyle;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynHighlighterAttributes.LoadFromBorlandRegistry(rootKey: HKEY;
   attrKey, attrName: string; oldStyle: boolean): boolean;
   // How the highlighting information is stored:
@@ -545,7 +538,6 @@ begin
   if oldStyle then Result := LoadOldStyle(rootKey, attrKey, attrName)
               else Result := LoadNewStyle(rootKey, attrKey, attrName);
 end; { TSynHighlighterAttributes.LoadFromBorlandRegistry }
-{$ENDIF}
 
 procedure TSynHighlighterAttributes.SetBackground(Value: TColor);
 begin
@@ -571,7 +563,6 @@ begin
   end;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynHighlighterAttributes.LoadFromRegistry(Reg: TBetterRegistry): boolean;
 var
   key: string;
@@ -635,7 +626,6 @@ begin
   Result := true;
 end;
 
-{$ENDIF}
 
 function TSynHighlighterAttributes.GetStyleFromInt: integer;
 begin
@@ -742,7 +732,6 @@ begin
   Result := false;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynCustomHighlighter.LoadFromRegistry(RootKey: HKEY;
   Key: string): boolean;
 var
@@ -812,8 +801,6 @@ begin
     AIni.Free;
   end;
 end;
-
-{$ENDIF}
 
 procedure TSynCustomHighlighter.AddAttribute(AAttrib: TSynHighlighterAttributes);
 begin

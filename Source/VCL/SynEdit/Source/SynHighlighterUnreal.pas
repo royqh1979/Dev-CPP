@@ -1752,7 +1752,6 @@ end;
 procedure TSynUnrealSyn.EnumUserSettings(settings: TStrings);
 begin
   { returns the user settings that exist in the registry }
-{$IFNDEF SYN_CLX}
   with TBetterRegistry.Create do
   begin
     try
@@ -1769,7 +1768,6 @@ begin
       Free;
     end;
   end;
-{$ENDIF}
 end;
 
 function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
@@ -1780,7 +1778,6 @@ function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
 //   false: problem reading settings or invalid version specified - old settings
 //          were preserved
 
-{$IFNDEF SYN_CLX}
   function ReadCPPBSettings(settingIndex: integer): boolean;
 
     function ReadCPPBSetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): boolean;
@@ -1880,14 +1877,9 @@ function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
       end;
     finally s.Free; end;
   end; { ReadCPPBSettings }
-{$ENDIF}
 
 begin
-{$IFDEF SYN_CLX}
-  Result := False;
-{$ELSE}
   Result := ReadCPPBSettings(settingIndex);
-{$ENDIF}
 end; { TSynUnrealSyn.UseUserSettings }
 
 function TSynUnrealSyn.GetIdentChars: TSynIdentChars;

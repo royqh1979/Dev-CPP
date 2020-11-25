@@ -98,22 +98,7 @@ unit SynAutoCorrect;
 interface
 
 uses
-{$IFDEF SYN_WIN32} //Borland translation of Qt doesn't include Char handling
   Windows,
-{$ELSE}
-  Libc,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QControls,
-  QForms,
-  QDialogs,
-  Types,
-  QSynEditMiscProcs,
-  QSynEditTypes,
-  QSynEditKeyCmds,
-  QSynEdit,
-{$ELSE}
   Registry,
   Messages,
   Graphics,
@@ -125,7 +110,6 @@ uses
   SynEditKeyCmds,
   SynEdit,
   SynEditMiscClasses,   //TBetterRegistry
-{$ENDIF}
   Classes,
   SysUtils,
   IniFiles;
@@ -189,10 +173,8 @@ type
     procedure LoadFromINI(AFileName, ASection: string);
     procedure SaveToINI(AFileName, ASection: string);
 
-{$IFNDEF SYN_CLX}
     procedure LoadFromRegistry(ARoot: DWORD; AKey: string);
     procedure SaveToRegistry(ARoot: DWORD; AKey: string);
-{$ENDIF}
 
     function LoadFromList(AFileName: string): Boolean;
     procedure SaveToList(AFileName: string);
@@ -243,11 +225,7 @@ var
 begin
   inherited Create(AOwner);
 
-{$IFDEF SYN_WIN32}
   for i := #33 to #255 do if IsCharAlphaNumeric(i) then Include(AC_IdentChars, i);
-{$ELSE}
-  for i := #33 to #255 do if isalpha(Ord(i)) <> 0 then Include(AC_IdentChars, i);
-{$ENDIF}
 
   FEnabled := True;
   FItems := TStringList.Create;
@@ -342,7 +320,6 @@ begin
   FItems.SaveToFile(AFileName);
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TCustomSynAutoCorrect.LoadFromRegistry(ARoot: DWORD; AKey: string);
 var
   i: Integer;
@@ -394,7 +371,6 @@ begin
     Reg.Free;
   end;
 end;
-{$ENDIF}
 
 procedure TCustomSynAutoCorrect.Add(AOriginal, ACorrection: string);
 begin
