@@ -321,15 +321,6 @@ uses
 
 { Command mapping routines }
 
-{$IFDEF SYN_COMPILER_2}
-// This is defined in D3/C3 and up.
-type
-  TIdentMapEntry = record
-    Value: TSynEditorCommand;
-    Name: string;
-  end;
-{$ENDIF}
-
 const
   EditorCommandStrs: array[0..100] of TIdentMapEntry = (
     (Value: ecNone; Name: 'ecNone'),
@@ -451,43 +442,13 @@ begin
 end;
 
 function IdentToEditorCommand(const Ident: string; var Cmd: longint): boolean;
-{$IFDEF SYN_COMPILER_2}
-var
-  I: Integer;
-{$ENDIF}
 begin
-{$IFDEF SYN_COMPILER_2}
-  Result := FALSE;
-  for I := Low(EditorCommandStrs) to High(EditorCommandStrs) do
-    if CompareText(EditorCommandStrs[I].Name, Ident) = 0 then
-    begin
-      Result := TRUE;
-      Cmd := EditorCommandStrs[I].Value;
-      break;
-    end;
-{$ELSE}
-    Result := IdentToInt(Ident, Cmd, EditorCommandStrs);
-{$ENDIF}
+  Result := IdentToInt(Ident, Cmd, EditorCommandStrs);
 end;
 
 function EditorCommandToIdent(Cmd: longint; var Ident: string): boolean;
-{$IFDEF SYN_COMPILER_2}
-var
-  I: Integer;
-{$ENDIF}
 begin
-{$IFDEF SYN_COMPILER_2}
-  Result := FALSE;
-  for I := Low(EditorCommandStrs) to High(EditorCommandStrs) do
-    if EditorCommandStrs[I].Value = Cmd then
-    begin
-      Result := TRUE;
-      Ident := EditorCommandStrs[I].Name;
-      break;
-    end;
-{$ELSE}
   Result := IntToIdent(Cmd, Ident, EditorCommandStrs);
-{$ENDIF}
 end;
 
 function EditorCommandToDescrString(Cmd: TSynEditorCommand): string;
