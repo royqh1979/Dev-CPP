@@ -119,20 +119,15 @@ type
     procedure SetScaleMode(Value: TSynPreviewScale);
     procedure SetScalePercent(Value: Integer);
   private
-  {$IFNDEF SYN_CLX}
     procedure WMEraseBkgnd(var Msg: TWMEraseBkgnd); message WM_ERASEBKGND;
     procedure WMHScroll(var Msg: TWMHScroll); message WM_HSCROLL;
     procedure WMSize(var Msg: TWMSize); message WM_SIZE;
     procedure WMVScroll(var Msg: TWMVScroll); message WM_VSCROLL;
-    procedure WMMouseWheel(var Message: TWMMouseWheel); message
-      {$IFDEF SYN_COMPILER_3_UP} WM_MOUSEWHEEL {$ELSE} $020A {$ENDIF};
-  {$ENDIF}
+    procedure WMMouseWheel(var Message: TWMMouseWheel); message WM_MOUSEWHEEL;
     procedure PaintPaper;
     function GetPageCount: Integer;
   protected
-  {$IFNDEF SYN_CLX}
     procedure CreateParams(var Params: TCreateParams); override;
-  {$ENDIF}
     function GetPageHeightFromWidth(AWidth: Integer): Integer;
     function GetPageHeight100Percent: Integer;
     function GetPageWidthFromHeight(AHeight: Integer): Integer;
@@ -693,21 +688,10 @@ begin
                 ScrollHint.Visible := TRUE;
               end;
               s := Format(SYNS_PreviewScrollInfoFmt, [FPageNumber]);
-{$IFDEF SYN_COMPILER_3_UP}
               rc := ScrollHint.CalcHintRect(200, s, nil);
-{$ELSE}
-              rc := Rect(0, 0, ScrollHint.Canvas.TextWidth(s) + 6,
-                ScrollHint.Canvas.TextHeight(s) + 4);
-{$ENDIF}
               pt := ClientToScreen(Point(ClientWidth - rc.Right - 4, 10));
               OffsetRect(rc, pt.x, pt.y);
               ScrollHint.ActivateHint(rc, s);
-{$IFDEF SYN_COMPILER_3}
-              SendMessage(ScrollHint.Handle, WM_NCPAINT, 1, 0);
-{$ENDIF}
-{$IFNDEF SYN_COMPILER_3_UP}
-              ScrollHint.Invalidate;
-{$ENDIF}
               ScrollHint.Update;
             end;
           end;
@@ -742,11 +726,6 @@ begin
 end;
 
 procedure TSynEditPrintPreview.WMMouseWheel(var Message: TWMMouseWheel);
-{$IFNDEF SYN_COMPILER_3_UP}
-const
-  WHEEL_DELTA = 120;
-{$ENDIF}
-
   procedure MouseWheelUp;
   begin
     ScrollVertFor(WHEEL_DELTA);

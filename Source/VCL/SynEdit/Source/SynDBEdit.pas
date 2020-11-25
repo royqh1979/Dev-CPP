@@ -44,9 +44,6 @@ unit SynDBEdit;
 interface
 
 uses
-{$IFNDEF SYN_COMPILER_3_UP}
-  DbTables,
-{$ENDIF}
 {$IFDEF SYN_CLX}
   Qt,
   QControls,
@@ -274,11 +271,9 @@ begin
       FBeginEdit := False;
       Exit;
     end;
-{$IFDEF SYN_COMPILER_3_UP}
     if FDataLink.Field.IsBlob then
       LoadMemo
     else
-{$ENDIF}
       Text := FDataLink.Field.Text;
     if Assigned(FLoadData) then
       FLoadData(Self);
@@ -348,22 +343,11 @@ begin
 end;
 
 procedure TCustomDBSynEdit.LoadMemo;
-{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
-{$ELSE}
-var
-  BlobStream: TBlobStream;
-  BlobField: TBlobField;
-{$ENDIF}
 begin
   try
-{$IFDEF SYN_COMPILER_3_UP}
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmRead);
-{$ELSE}
-    BlobField := FDataLink.Field as TBlobField;
-    BlobStream := TBlobStream.Create(BlobField, bmRead);
-{$ENDIF}
     Lines.BeginUpdate;
     Lines.LoadFromStream(BlobStream);
     Lines.EndUpdate;
@@ -410,9 +394,7 @@ procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
   if fEditing <> Value then begin
     fEditing := Value;
-{$IFDEF SYN_COMPILER_3_UP}
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
-{$ENDIF}
       FDataLink.Reset;
   end;
 end;
@@ -423,19 +405,15 @@ begin
 end;
 
 procedure TCustomDBSynEdit.UpdateData(Sender: TObject);
-{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
-{$ENDIF}
 begin
-{$IFDEF SYN_COMPILER_3_UP}
   if FDataLink.Field.IsBlob then
   begin
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmWrite);
     Lines.SaveToStream(BlobStream);
     BlobStream.Free;
   end else
-{$ENDIF}
     FDataLink.Field.AsString := Text;
 end;
 

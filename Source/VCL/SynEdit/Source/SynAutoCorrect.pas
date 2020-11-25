@@ -770,9 +770,7 @@ begin
     begin
       Editor.RemoveMouseDownHandler( MouseDownHandler );
       Editor.UnregisterCommandHandler( KeyboardHandler );
-{$IFDEF SYN_COMPILER_5_UP}
       Editor.RemoveFreeNotification(Self);
-{$ENDIF}
     end;
 
     FEditor := Value;

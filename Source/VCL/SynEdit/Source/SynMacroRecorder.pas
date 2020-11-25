@@ -69,11 +69,7 @@ uses
 {$ENDIF}
   Classes;
 
-{$IFDEF SYN_COMPILER_3_UP}
 resourcestring
-{$ELSE}
-const
-{$ENDIF}
   sCannotRecord = 'Cannot record macro; already recording or playing';
   sCannotPlay = 'Cannot playback macro; already playing or recording';
   sCannotPause = 'Can only pause when recording';
@@ -902,28 +898,12 @@ end;
 
 { TSynStringEvent }
 
-{$IFNDEF SYN_COMPILER_3_UP}
-function QuotedStr(const S: string; QuoteChar: Char): string;
-var
-  i: Integer;
-begin
-  Result := S;
-  for i := Length(Result) downto 1 do
-    if Result[i] = QuoteChar then
-      Insert(QuoteChar, Result, i);
-  Result := QuoteChar + Result + QuoteChar;
-end;
-{$ENDIF}
 
 function TSynStringEvent.GetAsString: string;
 begin
   Result := '';
   EditorCommandToIdent(ecString, Result);
-  {$IFDEF SYN_COMPILER_3_UP}
   Result := Result + ' ' + AnsiQuotedStr(Value, #39);
-  {$ELSE}
-  Result := Result + ' ' + QuotedStr(Value, #39);
-  {$ENDIF}
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;

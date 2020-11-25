@@ -96,10 +96,6 @@ uses
   Classes;
 
 const
-{$IFNDEF SYN_COMPILER_3_UP}
-  // not defined in all Delphi versions
-  WM_MOUSEWHEEL = $020A;
-{$ENDIF}
 
   // maximum scroll range
   MAX_SCROLL = 32767;
@@ -1357,9 +1353,7 @@ begin
     fFontDummy.Size := 14;
   end;
 {$ENDIF}
-{$IFDEF SYN_COMPILER_3_UP}
   fFontDummy.CharSet := DEFAULT_CHARSET;
-{$ENDIF}
   fTextDrawer := TheTextDrawer.Create([fsBold], fFontDummy);
   Font.Assign(fFontDummy);
   Font.OnChange := SynFontChanged;
@@ -5071,12 +5065,7 @@ begin
               RowToLine(TopLine + Min(LinesInWindow, DisplayLineCount - TopLine))]);
           end;
 
-{$IFDEF SYN_COMPILER_3_UP}
           rc := ScrollHint.CalcHintRect(200, s, nil);
-{$ELSE}
-          rc := Rect(0, 0, ScrollHint.Canvas.TextWidth(s) + 6,
-            ScrollHint.Canvas.TextHeight(s) + 4);
-{$ENDIF}
           if eoScrollHintFollows in fOptions then begin
             ButtonH := GetSystemMetrics(SM_CYVSCROLL);
 
@@ -5096,12 +5085,7 @@ begin
 
           OffsetRect(rc, pt.x, pt.y);
           ScrollHint.ActivateHint(rc, s);
-{$IFDEF SYN_COMPILER_3}
           SendMessage(ScrollHint.Handle, WM_NCPAINT, 1, 0);
-{$ENDIF}
-{$IFNDEF SYN_COMPILER_3_UP}
-          ScrollHint.Invalidate;
-{$ENDIF}
           ScrollHint.Update;
         end;
       end;
@@ -6408,10 +6392,6 @@ function TCustomSynEdit.TranslateKeyCode(Code: word; Shift: TShiftState;
   var Data: pointer): TSynEditorCommand;
 var
   i: integer;
-{$IFNDEF SYN_COMPILER_3_UP}
-const
-  VK_ACCEPT = $30;
-{$ENDIF}
 begin
   i := KeyStrokes.FindKeycode2(fLastKey, fLastShiftState, Code, Shift);
   if i >= 0 then

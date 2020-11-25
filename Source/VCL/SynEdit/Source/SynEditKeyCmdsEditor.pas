@@ -469,9 +469,7 @@ end;
 
 procedure TSynEditKeystrokesEditorForm.FormCreate(Sender: TObject);
 begin
-  {$IFDEF SYN_COMPILER_3_UP}
   KeyCmdList.RowSelect := True;
-  {$ENDIF}
 end;
 
 procedure TSynEditKeystrokesEditorForm.btnOKClick(Sender: TObject);

@@ -234,10 +234,6 @@ type
     constructor Create;
   end;
 
-  {$IFNDEF SYN_COMPILER_3_UP}
-  TFontCharSet = 0..255;
-  {$ENDIF}
-
 implementation
 
 uses
@@ -285,15 +281,7 @@ function THeaderFooterItem.GetAsString: string;
 begin
   Result :=
     EncodeString(FText) + '/' +
-{$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-    IntToStr(Ord(FFont.Charset)) + '/' +
-{$ELSE}
     IntToStr(FFont.Charset) + '/' +
-{$ENDIF}
-{$ELSE}
-    IntToStr(DEFAULT_CHARSET)+'/' +                             
-{$ENDIF}
     IntToStr(FFont.Color) + '/' +
     IntToStr(FFont.Height) + '/' +
     EncodeString(FFont.Name) + '/' +
@@ -447,9 +435,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FFont.Charset := aCharset;
-    {$ENDIF}
     FFont.Color   := aColor;
     FFont.Height  := aHeight;
     FFont.Name    := aName;
@@ -477,11 +463,7 @@ begin
     Write(PChar(FText)^, aLen);
     Write(FLineNumber, SizeOf(FLineNumber));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FFont.Charset;
-    {$ELSE}
-    aCharset := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FFont.Color;
     aHeight  := FFont.Height;
     aName    := FFont.Name;
@@ -508,15 +490,7 @@ var
 begin
   s := Value;
   FText := DecodeString(GetFirstEl(s, '/'));
-{$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-  GetFirstEl(s, '/');
-{$ELSE}
   FFont.Charset := StrToIntDef(GetFirstEl(s, '/'), 0);
-{$ENDIF}
-{$ELSE}
-  GetFirstEl(s, '/');
-{$ENDIF}
   FFont.Color := StrToIntDef(GetFirstEl(s, '/'), 0);
   FFont.Height := StrToIntDef(GetFirstEl(s, '/'), 0);
   FFont.Name := DecodeString(GetFirstEl(s, '/'));
@@ -927,9 +901,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FDefaultFont.Charset := aCharset;
-    {$ENDIF}
     FDefaultFont.Color   := aColor;
     FDefaultFont.Height  := aHeight;
     FDefaultFont.Name    := aName;
@@ -967,11 +939,7 @@ begin
     Write(FRomanNumbers, SizeOf(FRomanNumbers));
     Write(FMirrorPosition, SizeOf(FMirrorPosition));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FDefaultFont.Charset;
-    {$ELSE}
-    aCharSet := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FDefaultFont.Color;
     aHeight  := FDefaultFont.Height;
     aName    := FDefaultFont.Name;
