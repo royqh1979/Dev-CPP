@@ -2348,7 +2348,7 @@ begin
 
   if Reason = hprError then begin
     pError := GetErrorAtPosition(p);
-  end else if (Reason = hprNone) and GetLineOfMouse(line) then begin //it's on gutter
+  end else if (Reason = hprNone) and fText.GetLineOfMouse(line) then begin //it's on gutter
     //see if its error;
     pError := GetErrorAtLine(line);
     if Assigned(pError) then begin
