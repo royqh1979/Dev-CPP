@@ -280,20 +280,14 @@ type
     mnuBrowserNewClass: TMenuItem;
     mnuBrowserNewMember: TMenuItem;
     mnuBrowserNewVariable: TMenuItem;
-    mnuBrowserViewMode: TMenuItem;
-    mnuBrowserViewAll: TMenuItem;
-    mnuBrowserViewCurrent: TMenuItem;
     actBrowserGotoDeclaration: TAction;
     actBrowserGotoDefinition: TAction;
     actBrowserNewClass: TAction;
     actBrowserNewMember: TAction;
     actBrowserNewVar: TAction;
-    actBrowserViewAll: TAction;
-    actBrowserViewCurrent: TAction;
     actProfile: TAction;
     Profileanalysis1: TMenuItem;
     N24: TMenuItem;
-    N31: TMenuItem;
     actBrowserAddFolder: TAction;
     actBrowserRemoveFolder: TAction;
     actBrowserRenameFolder: TAction;
@@ -332,10 +326,7 @@ type
     DevCppDDEServer: TDdeServerConv;
     actShowTips: TAction;
     ShowTipsItem: TMenuItem;
-    N42: TMenuItem;
     HelpMenuItem: TMenuItem;
-    actBrowserViewProject: TAction;
-    mnuBrowserViewProject: TMenuItem;
     N43: TMenuItem;
     PackageManagerItem: TMenuItem;
     btnAbortCompilation: TSpeedButton;
@@ -347,7 +338,6 @@ type
     mnuUnitProperties: TMenuItem;
     N63: TMenuItem;
     actBrowserShowInherited: TAction;
-    Showinheritedmembers1: TMenuItem;
     LeftPageControl: TPageControl;
     LeftProjectSheet: TTabSheet;
     ProjectView: TTreeView;
@@ -438,8 +428,6 @@ type
     DeleteLine1: TMenuItem;
     CppPreprocessor: TCppPreprocessor;
     CppTokenizer: TCppTokenizer;
-    actBrowserViewIncludes: TAction;
-    mnuBrowserViewInclude: TMenuItem;
     actMoveSelUp: TAction;
     actMoveSelDown: TAction;
     actCodeCompletion: TAction;
@@ -734,12 +722,9 @@ type
     procedure actBrowserNewClassUpdate(Sender: TObject);
     procedure actBrowserNewMemberUpdate(Sender: TObject);
     procedure actBrowserNewVarUpdate(Sender: TObject);
-    procedure actBrowserViewAllUpdate(Sender: TObject);
     procedure actBrowserNewClassExecute(Sender: TObject);
     procedure actBrowserNewMemberExecute(Sender: TObject);
     procedure actBrowserNewVarExecute(Sender: TObject);
-    procedure actBrowserViewAllExecute(Sender: TObject);
-    procedure actBrowserViewCurrentExecute(Sender: TObject);
     procedure actProfileExecute(Sender: TObject);
     procedure actCloseAllButThisExecute(Sender: TObject);
     procedure actStepIntoExecute(Sender: TObject);
@@ -765,7 +750,6 @@ type
     procedure actShowTipsExecute(Sender: TObject);
     procedure CppParserStartParsing(Sender: TObject);
     procedure CppParserEndParsing(Sender: TObject; Total: Integer);
-    procedure actBrowserViewProjectExecute(Sender: TObject);
     procedure actAbortCompilationUpdate(Sender: TObject);
     procedure actAbortCompilationExecute(Sender: TObject);
     procedure ProjectViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -844,7 +828,6 @@ type
     procedure actToggleCommentExecute(Sender: TObject);
     procedure cmbCompilersChange(Sender: TObject);
     procedure actDuplicateLineExecute(Sender: TObject);
-    procedure actBrowserViewIncludesExecute(Sender: TObject);
     procedure actMoveSelUpExecute(Sender: TObject);
     procedure actMoveSelDownExecute(Sender: TObject);
     procedure actCodeCompletionUpdate(Sender: TObject);
@@ -1538,10 +1521,6 @@ begin
   actBrowserNewClass.Caption := Lang[ID_POP_NEWCLASS];
   actBrowserNewMember.Caption := Lang[ID_POP_NEWMEMBER];
   actBrowserNewVar.Caption := Lang[ID_POP_NEWVAR];
-  mnuBrowserViewMode.Caption := Lang[ID_POP_VIEWMODE];
-  actBrowserViewAll.Caption := Lang[ID_POP_VIEWALLFILES];
-  actBrowserViewProject.Caption := Lang[ID_POP_VIEWPROJECT];
-  actBrowserViewCurrent.Caption := Lang[ID_POP_VIEWCURRENT];
   actBrowserAddFolder.Caption := Lang[ID_POP_ADDFOLDER];
   actBrowserRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actBrowserRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
@@ -4318,7 +4297,6 @@ begin
   // Only attempt to redraw once
   ClassBrowser.BeginUpdate;
   try
-    ClassBrowser.ShowFilter := TShowFilter(devClassBrowsing.ShowFilter);
     ClassBrowser.ShowInheritedMembers := devClassBrowsing.ShowInheritedMembers;
     ClassBrowser.SortByType := devClassBrowsing.SortByType;
     ClassBrowser.SortAlphabetically := devClassBrowsing.SortAlphabetically;
@@ -4328,10 +4306,6 @@ begin
   end;
 
   // Configure class browser actions
-  actBrowserViewAll.Checked := ClassBrowser.ShowFilter = sfAll;
-  actBrowserViewProject.Checked := ClassBrowser.ShowFilter = sfProject;
-  actBrowserViewCurrent.Checked := ClassBrowser.ShowFilter = sfCurrent;
-  actBrowserViewIncludes.Checked := ClassBrowser.ShowFilter = sfSystemFiles;
   actBrowserShowInherited.Checked := ClassBrowser.ShowInheritedMembers;
   actBrowserSortByType.Checked := ClassBrowser.SortByType;
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
@@ -4358,7 +4332,7 @@ procedure TMainForm.ScanActiveProject;
 begin
   //UpdateClassBrowsing;
   SetCppParserProject(fProject);
-  CppParser.ParseFileList;
+  //CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -4741,11 +4715,6 @@ begin
     TCustomAction(Sender).Enabled := False;
 end;
 
-procedure TMainForm.actBrowserViewAllUpdate(Sender: TObject);
-begin
-  TCustomAction(Sender).Enabled := True;
-end;
-
 procedure TMainForm.actBrowserGotoDeclarationExecute(Sender: TObject);
 var
   Editor: TEditor;
@@ -4826,62 +4795,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-end;
-
-procedure TMainForm.actBrowserViewAllExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfAll;
-  actBrowserViewAll.Checked := True;
-  actBrowserViewProject.Checked := False;
-  actBrowserViewCurrent.Checked := False;
-  actBrowserViewIncludes.Checked := False;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
-end;
-
-procedure TMainForm.actBrowserViewProjectExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfProject;
-  actBrowserViewAll.Checked := False;
-  actBrowserViewProject.Checked := True;
-  actBrowserViewCurrent.Checked := False;
-  actBrowserViewIncludes.Checked := False;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
-end;
-
-procedure TMainForm.actBrowserViewCurrentExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfCurrent;
-  actBrowserViewAll.Checked := False;
-  actBrowserViewProject.Checked := False;
-  actBrowserViewCurrent.Checked := True;
-  actBrowserViewIncludes.Checked := False;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
-end;
-
-procedure TMainForm.actBrowserViewIncludesExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfSystemFiles;
-  actBrowserViewAll.Checked := False;
-  actBrowserViewProject.Checked := False;
-  actBrowserViewCurrent.Checked := False;
-  actBrowserViewIncludes.Checked := True;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
 procedure TMainForm.actProfileExecute(Sender: TObject);
@@ -7968,5 +7881,6 @@ begin
 end;
 
 }
+
 end.
 

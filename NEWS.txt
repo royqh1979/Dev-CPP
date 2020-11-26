@@ -9,6 +9,8 @@ Version 6.2-beta2
   - fix: Debug Console don't show the commands entered when "Display Debug Commands" option is disabled.
   - enhancement: better display of syntax errors;
   - enhancement: auto check syntax errors after save;
+  - enhancement: now we don't parse project files when open a project 
+  - change: remove show all/show projects/show includes option in class browser ( these options is not very useful or need to parse all project files, which is slow)
 
 Version 6.2-beta1
 

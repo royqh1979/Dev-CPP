@@ -50,7 +50,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = LogSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
@@ -486,7 +486,7 @@ object MainForm: TMainForm
             Width = 336
             Height = 24
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 0
+            ItemHeight = 16
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
@@ -1023,7 +1023,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 351
-    ActivePage = LeftProjectSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
@@ -1090,7 +1090,6 @@ object MainForm: TMainForm
           MultiSelectStyle = []
           RowSelect = True
           ShowLines = False
-          ShowFilter = sfAll
           OnSelect = ClassBrowserSelect
           Parser = CppParser
           ItemImages.Globals = 0
@@ -2629,25 +2628,6 @@ object MainForm: TMainForm
       OnExecute = actBrowserNewVarExecute
       OnUpdate = actBrowserNewVarUpdate
     end
-    object actBrowserViewAll: TAction
-      Category = 'ClassBrowser'
-      Caption = 'All files'
-      Checked = True
-      OnExecute = actBrowserViewAllExecute
-      OnUpdate = actBrowserViewAllUpdate
-    end
-    object actBrowserViewProject: TAction
-      Category = 'ClassBrowser'
-      Caption = 'Project files'
-      OnExecute = actBrowserViewProjectExecute
-      OnUpdate = actBrowserViewAllUpdate
-    end
-    object actBrowserViewCurrent: TAction
-      Category = 'ClassBrowser'
-      Caption = 'Current file'
-      OnExecute = actBrowserViewCurrentExecute
-      OnUpdate = actBrowserViewAllUpdate
-    end
     object actSyntaxCheckFile: TAction
       Category = 'Execute'
       Caption = '&Syntax Check Current File'
@@ -2662,12 +2642,6 @@ object MainForm: TMainForm
       ImageIndex = 43
       OnExecute = actProfileExecute
       OnUpdate = actCompileRunUpdate
-    end
-    object actBrowserViewIncludes: TAction
-      Category = 'ClassBrowser'
-      Caption = 'System Headers'
-      OnExecute = actBrowserViewIncludesExecute
-      OnUpdate = actBrowserViewAllUpdate
     end
     object actBrowserAddFolder: TAction
       Category = 'ClassBrowser'
@@ -3190,34 +3164,6 @@ object MainForm: TMainForm
     end
     object mnuBrowserNewVariable: TMenuItem
       Action = actBrowserNewVar
-    end
-    object N31: TMenuItem
-      Caption = '-'
-    end
-    object mnuBrowserViewMode: TMenuItem
-      Caption = 'View mode'
-      object mnuBrowserViewAll: TMenuItem
-        Action = actBrowserViewAll
-        RadioItem = True
-      end
-      object mnuBrowserViewProject: TMenuItem
-        Action = actBrowserViewProject
-        RadioItem = True
-      end
-      object mnuBrowserViewCurrent: TMenuItem
-        Action = actBrowserViewCurrent
-        RadioItem = True
-      end
-      object mnuBrowserViewInclude: TMenuItem
-        Action = actBrowserViewIncludes
-        RadioItem = True
-      end
-      object N42: TMenuItem
-        Caption = '-'
-      end
-      object Showinheritedmembers1: TMenuItem
-        Action = actBrowserShowInherited
-      end
     end
   end
   object DebugPopup: TPopupMenu

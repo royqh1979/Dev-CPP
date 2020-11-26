@@ -79,14 +79,11 @@ type
     property NamespaceImg: integer read fNamespaceImg write fNamespaceImg;
   end;
 
-  TShowFilter = (sfAll, sfProject, sfCurrent, sfSystemFiles);
-
   TClassBrowser = class(TCustomTreeView)
   private
     fParser: TCppParser;
     fOnSelect: TMemberSelectEvent;
     fImagesRecord: TImagesRecord;
-    fShowFilter: TShowFilter;
     fCurrentFile: AnsiString;
     fProjectDir: AnsiString;
     fControlCanvas: TControlCanvas;
@@ -113,7 +110,6 @@ type
     procedure OnParserBusy(Sender: TObject);
     procedure SetNodeImages(Node: TTreeNode; Statement: PStatement);
     procedure SetCurrentFile(const Value: AnsiString);
-    procedure SetShowFilter(Value: TShowFilter);
     procedure SetShowInheritedMembers(Value: boolean);
     procedure SetSortAlphabetically(Value: boolean);
     procedure SetSortByType(Value: boolean);
@@ -145,7 +141,6 @@ type
     property MultiSelectStyle;
     property RowSelect;
     property ShowLines;
-    property ShowFilter: TShowFilter read fShowFilter write SetShowFilter;
     property OnSelect: TMemberSelectEvent read fOnSelect write fOnSelect;
     property Parser: TCppParser read fParser write SetParser;
     property ItemImages: TImagesRecord read fImagesRecord write fImagesRecord;
@@ -183,7 +178,6 @@ begin
   DragMode := dmAutomatic;
   fImagesRecord := TImagesRecord.Create;
   fCurrentFile := '';
-  fShowFilter := sfCurrent;
   fProjectDir := '';
   ShowHint := True;
   HideSelection := False;
@@ -334,28 +328,6 @@ begin
 
         if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
           AddStatement(Statement)
-        else begin
-          case fShowFilter of
-            sfAll: begin // sfAll means all open files. not the system headers
-              if not _InSystemHeader then // do not show system headers
-                AddStatement(Statement);
-            end;
-            sfSystemFiles: begin
-              if _InSystemHeader and IsIncluded(_FileName) then
-                AddStatement(Statement); // only show system header stuff
-            end;
-            sfProject: begin
-              if _InProject then
-                AddStatement(Statement);
-            end;
-            {
-            sfCurrent: begin
-              if not _InSystemHeader and IsIncluded(_FileName) then
-                AddStatement(Statement);
-            end;
-            }
-          end;
-        end;
       end;
     end;
   end;
@@ -522,16 +494,6 @@ begin
   if Value = fCurrentFile then
     Exit;
   fCurrentFile := Value;
-  if fShowFilter = sfAll then // content does not depend on current file. do NOT redraw
-    Exit;
-  UpdateView;
-end;
-
-procedure TClassBrowser.SetShowFilter(Value: TShowFilter);
-begin
-  if fShowFilter = Value then
-    Exit;
-  fShowFilter := Value;
   UpdateView;
 end;
 

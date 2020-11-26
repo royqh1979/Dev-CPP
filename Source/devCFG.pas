@@ -220,7 +220,6 @@ type
   // class-browsing view style
   TdevClassBrowsing = class(TPersistent)
   private
-    fShowFilter: integer;
     fShowInheritedMembers: boolean;
     fSortByType: boolean;
     fSortAlphabetically: boolean;
@@ -230,7 +229,6 @@ type
     procedure SaveSettings;
     procedure LoadSettings;
   published
-    property ShowFilter: integer read fShowFilter write fShowFilter;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write fShowInheritedMembers;
     property SortByType : boolean read fSortByType write fSortByType;
     property SortAlphabetically: boolean read fSortAlphabetically write fSortAlphabetically;
@@ -2707,7 +2705,6 @@ end;
 
 procedure TdevClassBrowsing.SettoDefaults;
 begin
-  fShowFilter := 2; // sfCurrent
   fShowInheritedMembers := False;
   fSortByType := False;
   fSortAlphabetically := False;
