@@ -1,6 +1,12 @@
+Version 6.2-beta3
+    
+    - fix: Export to RTF, correct background
+    - fix: Export to RTF, chinese character support
+    - enhancement: Edit Menu -> Copy As  RTF
+    
 Version 6.2-beta2
 
-  - fix: Shortcut '/' and Shift+/ for Indent and Unindent doesn't work
+  - fix: Shortcut TAB and Shift+TAB for Indent and Unindent doesn't work
   - enhancement: use different colors for embedded ()/{}/[]
   - enhancement: use hex format to save color settings in the config file
   - enhancement: tabnine integration (experiment)

@@ -1385,6 +1385,12 @@ object MainForm: TMainForm
       object SelectallItem: TMenuItem
         Action = actSelectAll
       end
+      object CopyAs1: TMenuItem
+        Caption = 'Copy As'
+        object CopyAsRTF1: TMenuItem
+          Action = actCopyAsRTF
+        end
+      end
       object N23: TMenuItem
         Caption = '-'
       end
@@ -3074,6 +3080,12 @@ object MainForm: TMainForm
       Caption = 'Extract Macro'
       OnExecute = actExtractMacroExecute
       OnUpdate = actUpdateEmptyEditor
+    end
+    object actCopyAsRTF: TAction
+      Category = 'Edit'
+      Caption = 'Copy As RTF'
+      OnExecute = actCopyAsRTFExecute
+      OnUpdate = actCopyUpdate
     end
   end
   object MessagePopup: TPopupMenu

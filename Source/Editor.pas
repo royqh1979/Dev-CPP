@@ -176,6 +176,7 @@ type
     procedure SetCaretPosAndActivate(Line, Col: integer); // needs to activate in order to place cursor properly
     procedure ExportToHTML;
     procedure ExportToRTF;
+    procedure RTFToClipboard;
     procedure ExportToTEX;
     procedure InsertString(Value: AnsiString; MoveCursor: boolean);
     procedure InsertUserCodeIn(Code: AnsiString);
@@ -813,6 +814,30 @@ begin
   end;
 end;
 
+procedure TEditor.RTFToClipboard;
+var
+  SynExporterRTF: TSynExporterRTF;
+begin
+  SynExporterRTF := TSynExporterRTF.Create(nil);
+  try
+
+    SynExporterRTF.Title := FileName;
+    SynExporterRTF.ExportAsText := False;
+    SynExporterRTF.UseBackground := True;
+    SynExporterRTF.Font := fText.Font;
+    SynExporterRTF.Highlighter := fText.Highlighter;
+
+    if fText.SelText = '' then
+      SynExporterRTF.ExportAll(fText.Lines)
+    else
+      SynExporterRTF.ExportRange(fText.Lines,fText.BlockBegin,fText.BlockEnd);
+
+    SynExporterRTF.CopyToClipboard;
+  finally
+    SynExporterRTF.Free;
+  end;
+end;
+
 procedure TEditor.ExportToRTF;
 var
   SynExporterRTF: TSynExporterRTF;
@@ -842,6 +867,7 @@ begin
     SynExporterRTF.Highlighter := fText.Highlighter;
 
     SynExporterRTF.ExportAll(fText.Lines);
+
     SynExporterRTF.SaveToFile(SaveFileName);
   finally
     SynExporterRTF.Free;

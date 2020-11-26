@@ -84,6 +84,9 @@ const
   ID_ITEM_COMMENTHEADER                 = 4015;
   ID_ITEM_COPYALL                       = 4016;
   ID_ITEM_CLEAR                         = 4017;
+  ID_ITEM_COPYAS                        = 4018;
+  ID_ITEM_COPYAS_RTF                    = 4019;
+
 
   ID_ITEM_COMMENTSELECTION              = 22001;
   ID_ITEM_UNCOMMENTSELECTION            = 22002;

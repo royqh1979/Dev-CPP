@@ -602,6 +602,9 @@ type
     actExtractMacro: TAction;
     ExtractMacro1: TMenuItem;
     ToolDebugItem: TMenuItem;
+    actCopyAsRTF: TAction;
+    CopyAs1: TMenuItem;
+    CopyAsRTF1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -882,6 +885,7 @@ type
     procedure actOpenProjectFoloderExecute(Sender: TObject);
     procedure actOpenProjectConsoleExecute(Sender: TObject);
     procedure actExtractMacroExecute(Sender: TObject);
+    procedure actCopyAsRTFExecute(Sender: TObject);
     {
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
@@ -7881,6 +7885,15 @@ begin
 end;
 
 }
+
+procedure TMainForm.actCopyAsRTFExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then
+    e.RTFToClipboard;
+end;
 
 end.
 
