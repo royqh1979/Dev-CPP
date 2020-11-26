@@ -171,8 +171,6 @@ begin
         finally
           lReg.Free;
         end;
-          MainForm.Close;
-        end;
       end;
   end;
 
