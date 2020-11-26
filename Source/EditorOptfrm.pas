@@ -691,7 +691,7 @@ begin
   NameOptions.Items[2] := Lang[ID_EOPT_AUTOSAVETIME];
 
   //Syntab Check
-  tabSyntax.Caption :=  Lang[ID_EOPT_SYNTAXCHECK];
+  tabCheckSyntax.Caption :=  Lang[ID_EOPT_SYNTAXCHECK];
   chkAutoCheckSyntaxInBack.Caption := LANG[ID_EOPT_SYNTAXCHECK_IN_BACK];
 
   tbCompletionDelayChange(nil);

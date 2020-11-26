@@ -164,6 +164,8 @@ type
     procedure ShowTabnineCompletion;
     function GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
     //procedure TextWindowProc(var Message: TMessage);
+    procedure LinesDeleted(FirstLine,Count:integer);
+    procedure LinesInserted(FirstLine,Count:integer);
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
     destructor Destroy; override;
@@ -233,7 +235,6 @@ procedure TDebugGutter.LinesInserted(FirstLine, Count: integer);
 var
   I, line: integer;
   bp: PBreakPoint;
-
   procedure LinesInsertedList(Items: TListItems);
   var
     I: integer;
@@ -247,6 +248,7 @@ var
     end;
   end;
 begin
+  e.LinesInserted(FirstLine,Count);
   for I := 0 to MainForm.Debugger.BreakPointList.Count - 1 do begin
     bp := PBreakPoint(MainForm.Debugger.BreakPointList.Items[I]);
     if (integer(bp^.editor) = integer(e)) and (bp^.line >= FirstLine) then
@@ -281,6 +283,7 @@ var
   end;
 
 begin
+  e.LinesDeleted(FirstLine,Count);
   for I := MainForm.Debugger.BreakPointList.Count - 1 downto 0 do begin
     bp := PBreakPoint(MainForm.Debugger.BreakPointList.Items[I]);
     if (integer(bp^.editor) = integer(e)) and (bp^.line >= FirstLine) then begin
@@ -544,7 +547,7 @@ begin
       p.endX := pError.endCol;
       areaList.Add(p);
     end;
-    ColBorder := clRed;
+    ColBorder := dmMain.Cpp.InvalidAttri.Foreground;
     Exit;
   end;
 
@@ -2858,6 +2861,54 @@ begin
         Exit;
       end;
     end;
+  end;
+end;
+
+procedure TEditor.LinesDeleted(FirstLine,Count:integer);
+var
+  newList:TDevStringList;
+  i:integer;
+  lineNo:integer;
+begin
+  newList:=TDevStringList.Create;
+  try
+    for i:=0 to fErrorList.Count-1 do begin
+      lineNo := StrToInt(fErrorList[i]);
+      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then
+        Continue;
+      if (lineNo >= FirstLine+Count) then
+        dec(lineNo,Count);
+      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+    end;
+    fErrorList.Sorted:=False;
+    fErrorList.Assign(newList);
+    fErrorList.Sorted:=True;
+    fText.invalidate;
+  finally
+    newList.Free;
+  end;
+end;
+
+procedure TEditor.LinesInserted(FirstLine,Count:integer);
+var
+  newList:TDevStringList;
+  i:integer;
+  lineNo:integer;
+begin
+  newList:=TDevStringList.Create;
+  try
+    for i:=0 to fErrorList.Count-1 do begin
+      lineNo := StrToInt(fErrorList[i]);
+      if (lineNo >= FirstLine) then
+        inc(lineNo,Count);
+      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+    end;
+    fErrorList.Sorted:=False;
+    fErrorList.Assign(newList);
+    fErrorList.Sorted:=True;
+    fText.invalidate;
+  finally
+    newList.Free;
   end;
 end;
 

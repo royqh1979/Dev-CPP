@@ -486,7 +486,7 @@ object MainForm: TMainForm
             Width = 336
             Height = 24
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 16
+            ItemHeight = 0
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end

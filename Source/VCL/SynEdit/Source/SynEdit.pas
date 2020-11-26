@@ -6071,7 +6071,7 @@ begin
                   InternalCaretY := CaretY - 1;
                   InternalCaretX := Length(Lines[CaretY - 1]) + 1;
                   Lines.Delete(CaretY);
-                  DoLinesDeleted(CaretY + 1, 1);
+                  DoLinesDeleted(CaretY+1, 1);
                   if eoTrimTrailingSpaces in Options then
                     Temp := TrimTrailingSpaces(Temp);
 
@@ -6205,7 +6205,10 @@ begin
                 Caret.Line := CaretY + 1;
                 helper := #13#10;
                 Lines.Delete(CaretY);
-                DoLinesDeleted(CaretY + 1, 1);
+                if CaretX=1 then
+                  DoLinesDeleted(CaretY, 1)
+                else
+                  DoLinesDeleted(CaretY + 1, 1);
               end;
             end;
             if (Caret.Char <> CaretX) or (Caret.Line <> CaretY) then begin

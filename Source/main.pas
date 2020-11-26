@@ -1808,8 +1808,8 @@ begin
     dmMain.RemoveFromHistory(FileName);
   end;
 
-  CheckSyntaxInBack;
   e.Activate;
+  CheckSyntaxInBack;
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) then begin
