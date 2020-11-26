@@ -608,6 +608,7 @@ begin
         end;
       finally
         CodeComplForm.lbCompletion.Items.EndUpdate;
+        Screen.Cursor := crDefault;
       end;
 
       // if only one suggestion, and is exactly the symbol to search, hide the frame (the search is over)
