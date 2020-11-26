@@ -603,7 +603,7 @@ type
     ExtractMacro1: TMenuItem;
     ToolDebugItem: TMenuItem;
     actCopyAsRTF: TAction;
-    CopyAs1: TMenuItem;
+    CopyAsItem: TMenuItem;
     CopyAsRTF1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -1361,6 +1361,9 @@ begin
   actCopy.Caption := Lang[ID_ITEM_COPY];
   actPaste.Caption := Lang[ID_ITEM_PASTE];
   actSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
+  CopyAsItem.Caption := LANG[ID_ITEM_COPYAS];
+  actCopyAsRTF.Caption := LANG[ID_ITEM_COPYAS_RTF];
+
 
   EncodingItem.Caption := Lang[ID_ITEM_ENCODING];
   actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
@@ -4165,7 +4168,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  actCopy.Enabled := Assigned(e) and e.Text.SelAvail;
+  TAction(Sender).Enabled := Assigned(e) and e.Text.SelAvail;
 end;
 
 procedure TMainForm.actPasteUpdate(Sender: TObject);

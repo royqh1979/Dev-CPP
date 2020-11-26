@@ -163,6 +163,7 @@ type
     procedure PopUserCodeInTabStops;
     procedure ShowTabnineCompletion;
     function GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
+    function GetErrorAtLine(line:integer):PSyntaxError;
     //procedure TextWindowProc(var Message: TMessage);
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
@@ -2256,6 +2257,7 @@ var
   Reason: THandPointReason;
   IsIncludeLine: boolean;
   pError : pSyntaxError;
+  line:integer;
 
   procedure ShowFileHint;
   var
@@ -2344,6 +2346,16 @@ begin
   // Leverage Ctrl-Clickability to determine if we can show any information
   Reason := HandpointAllowed(p, Shift);
 
+  if Reason = hprError then begin
+    pError := GetErrorAtPosition(p);
+  end else if (Reason = hprNone) and GetLineOfMouse(line) then begin //it's on gutter
+    //see if its error;
+    pError := GetErrorAtLine(line);
+    if Assigned(pError) then begin
+      Reason := hprError;
+    end;
+  end;
+
   // Get subject
   IsIncludeLine := False;
   case Reason of
@@ -2366,7 +2378,6 @@ begin
         s := fText.SelText; // when a selection is available, always only use that
       end;
     hprError: begin
-        pError := GetErrorAtPosition(p);
         s:=pError^.Token;
       end;
     hprNone: begin
@@ -2588,7 +2599,7 @@ begin
           Result := hprPreprocessor; // and preprocessor line if no selection is present
       end;
     end;
-  end;
+  end; 
 end;
 
 function TEditor.Save: boolean;
@@ -2869,6 +2880,22 @@ begin
   end;
   lst.Add(pError);
 end;
+
+function TEditor.GetErrorAtLine(line:integer):PSyntaxError;
+var
+  idx,i:integer;
+  lst:TList;
+  pError:PSyntaxError;
+begin
+  Result := nil;
+  idx:=CBUtils.FastIndexOf(fErrorList,intToStr(line));
+  if idx >=0 then begin
+    lst := TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then
+      Result := PSyntaxError(lst[0]);
+  end;
+end;
+
 
 function TEditor.GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
 var

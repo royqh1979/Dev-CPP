@@ -1385,8 +1385,8 @@ object MainForm: TMainForm
       object SelectallItem: TMenuItem
         Action = actSelectAll
       end
-      object CopyAs1: TMenuItem
-        Caption = 'Copy As'
+      object CopyAsItem: TMenuItem
+        Caption = 'Copy &As'
         object CopyAsRTF1: TMenuItem
           Action = actCopyAsRTF
         end

@@ -3,6 +3,7 @@ Version 6.2-beta3
     - fix: Export to RTF, correct background
     - fix: Export to RTF, chinese character support
     - enhancement: Edit Menu -> Copy As  RTF
+    - enhancement: Show Error Hint when point mouse on the editor gutter (the line number column on the left)
     
 Version 6.2-beta2
 

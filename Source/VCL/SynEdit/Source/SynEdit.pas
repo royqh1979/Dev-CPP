@@ -637,6 +637,7 @@ type
       var TokenType, Start: Integer;
       var Attri: TSynHighlighterAttributes): boolean;
     function GetPositionOfMouse(out aPos: TBufferCoord): Boolean;
+    function GetLineOfMouse(out line: integer): boolean;
     function GetWordAtRowCol(XY: TBufferCoord): string;
     procedure GotoBookMark(BookMark: Integer);
     procedure SetCaretXYCentered(ForceToMiddle: Boolean; const Value: TBufferCoord);
@@ -9344,6 +9345,25 @@ end;
 function TCustomSynEdit.PrevWordPos: TBufferCoord;
 begin
   Result := PrevWordPosEx(CaretXY);
+end;
+
+function TCustomSynEdit.GetLineOfMouse(out line: integer): boolean;
+var
+  Point: TPoint;
+  aPos: TBufferCoord;
+begin
+  GetCursorPos(Point); // mouse position (on screen)
+  Point := Self.ScreenToClient(Point); // convert to SynEdit coordinates
+  { Make sure it fits within the SynEdit bounds }
+  if (Point.X < 0) or (Point.Y < 0) or (Point.X > Self.Width) or (Point.Y > Self.Height) then begin
+    Result := False;
+    EXIT;
+  end;
+
+  { inside the editor, get the word under the mouse pointer }
+  aPos := DisplayToBufferPos(PixelsToRowColumn(Point.X, Point.Y));
+  line := aPos.Line;
+  Result := True;
 end;
 
 function TCustomSynEdit.GetPositionOfMouse(out aPos: TBufferCoord): Boolean;
