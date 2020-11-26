@@ -51,17 +51,10 @@ unit SynHighlighterInno;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -158,11 +151,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;

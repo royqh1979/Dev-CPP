@@ -51,18 +51,11 @@ unit SynHighlighterDOT;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QControls,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Controls,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -267,11 +260,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;

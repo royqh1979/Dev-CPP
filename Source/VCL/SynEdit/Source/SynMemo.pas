@@ -46,26 +46,17 @@ unit SynMemo;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  Types,
-  QSynEdit,
-  QSynEditTextBuffer,
-  QSynEditTypes,
-{$ELSE}
   RichEdit,
   Windows,
   Messages,
   SynEdit,
   SynEditTextBuffer,
   SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 
 type
   TSynMemo = class(TSynEdit)
-{$IFNDEF SYN_CLX}
   private
     // EM_XXX see winuser.h (PSDK August 2001)
     procedure EMGetSel(var Message: TMessage); message EM_GETSEL;
@@ -198,19 +189,13 @@ type
     procedure EMSETEDITSTYLE(var Message: TMessage); message EM_SETEDITSTYLE;
     procedure EMGETEDITSTYLE(var Message: TMessage); message EM_GETEDITSTYLE;
     }
-{$ENDIF NOT SYN_CLX}
   end;
 
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
-{$IFNDEF SYN_CLX}
 
 { TSynMemo }
 
@@ -369,8 +354,5 @@ begin
   //todo: this can't be right, CharIndex can easily overflow
   Message.Result := MakeLong(vPos.Char{CharIndex}, vPos.Line{Line zero based});
 end;
-
-{$ENDIF NOT SYN_CLX}
-
 end.
 

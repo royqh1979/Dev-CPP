@@ -50,15 +50,9 @@ unit SynEditPythonBehaviour;
 interface
 
 uses
-  {$IFDEF SYN_CLX}
-  Qt, QGraphics, QControls, QForms, QDialogs,
-  QSynEdit,
-  QSynEditKeyCmds,
-  {$ELSE}
   Windows, Messages, Graphics, Controls, Forms, Dialogs,
   SynEdit,
   SynEditKeyCmds,
-  {$ENDIF}
   SysUtils,
   Classes;
 
@@ -82,11 +76,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 procedure TSynEditPythonBehaviour.SetEditor(Value: TSynEdit);
 begin

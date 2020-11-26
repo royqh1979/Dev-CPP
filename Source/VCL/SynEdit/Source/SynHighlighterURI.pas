@@ -74,15 +74,9 @@ unit SynHighlighterURI;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -180,11 +174,7 @@ const
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   AlphaNum = ['0'..'9', 'A'..'Z', 'a'..'z'];

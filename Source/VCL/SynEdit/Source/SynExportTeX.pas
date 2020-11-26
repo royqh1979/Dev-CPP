@@ -45,17 +45,10 @@ unit SynExportTeX;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditExport,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   SynEditExport,
   SynEditHighlighter,
-{$ENDIF}
   Classes;
 
 type
@@ -114,17 +107,10 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst,
-  QSynEditTypes,
-  QSynHighlighterMulti,
-{$ELSE}
   SynEditMiscProcs,
   SynEditStrConst,
   SynEditTypes,
   SynHighlighterMulti,
-{$ENDIF}
   SysUtils;
 
 

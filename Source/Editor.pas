@@ -25,12 +25,28 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, CBUtils;
+  CodeToolTip, Tabnine,CBUtils;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
 
 type
+
+  TSyntaxErrorType = (
+    setError,
+    setWarning);
+  PSyntaxError = ^TSyntaxError;
+  TSyntaxError = record
+    line:integer;
+    col:integer;
+    endCol:integer;
+    char: integer;
+    endChar: integer;
+    errorType: TSyntaxErrorType;
+    Token: string;
+    Hint: String;
+  end;
+
   TEditor = class;
   TDebugGutter = class(TSynEditPlugin)
   protected
@@ -54,7 +70,8 @@ type
     hprPreprocessor, // cursor hovers above preprocessor line
     hprIdentifier, // cursor hovers above identifier
     hprSelection, // cursor hovers above selection
-    hprNone // mouseover not allowed
+    hprNone, // mouseover not allowed
+    hprError //Cursor hovers above error line/item;
     );
 
   TEditor = class(TObject)
@@ -95,6 +112,11 @@ type
     fUseUTF8: boolean;
 
     fLastPressedIsIdChar: boolean;
+
+    fTabnine:TTabnine;
+
+    //TDevString<Line,TList<PSyntaxError>>
+    fErrorList: TDevStringList; // syntax check errors
     //fSingleQuoteCompleteState: TSymbolCompleteState;
     //fDoubleQuoteCompleteState: TSymbolCompleteState;
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
@@ -113,10 +135,17 @@ type
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
-    procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
+    procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList;
+      var Colborder: TColor;  var areaType:TEditingAreaType);
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
+    procedure TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
+    procedure TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+    procedure TabnineCompletionInsert(appendFunc:boolean=False);
+    procedure TabnineQuery;
+
     procedure CompletionInsert(appendFunc:boolean=False);
     procedure CompletionTimer(Sender: TObject);
     function FunctionTipAllowed: boolean;
@@ -132,7 +161,11 @@ type
     procedure SetPageControl(Value: TPageControl);
     procedure ClearUserCodeInTabStops;
     procedure PopUserCodeInTabStops;
+    procedure ShowTabnineCompletion;
+    function GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
     //procedure TextWindowProc(var Message: TMessage);
+    procedure LinesDeleted(FirstLine,Count:integer);
+    procedure LinesInserted(FirstLine,Count:integer);
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
     destructor Destroy; override;
@@ -162,6 +195,8 @@ type
     procedure InitCompletion;
     procedure ShowCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
+    procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
+    procedure ClearSyntaxErrors;
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
     property InProject: boolean read fInProject write fInProject;
@@ -200,7 +235,6 @@ procedure TDebugGutter.LinesInserted(FirstLine, Count: integer);
 var
   I, line: integer;
   bp: PBreakPoint;
-
   procedure LinesInsertedList(Items: TListItems);
   var
     I: integer;
@@ -214,6 +248,7 @@ var
     end;
   end;
 begin
+  e.LinesInserted(FirstLine,Count);
   for I := 0 to MainForm.Debugger.BreakPointList.Count - 1 do begin
     bp := PBreakPoint(MainForm.Debugger.BreakPointList.Items[I]);
     if (integer(bp^.editor) = integer(e)) and (bp^.line >= FirstLine) then
@@ -248,6 +283,7 @@ var
   end;
 
 begin
+  e.LinesDeleted(FirstLine,Count);
   for I := MainForm.Debugger.BreakPointList.Count - 1 downto 0 do begin
     bp := PBreakPoint(MainForm.Debugger.BreakPointList.Items[I]);
     if (integer(bp^.editor) = integer(e)) and (bp^.line >= FirstLine) then begin
@@ -367,6 +403,10 @@ begin
   fLineBeforeTabStop:='';
   fLineAfterTabStop := '';
 
+  fErrorList := TDevStringList.Create;
+  fErrorList.Sorted:=True;
+  fErrorList.Duplicates:= dupIgnore;
+
   // Setup a monitor which keeps track of outside-of-editor changes
   MainForm.FileMonitor.Monitor(fFileName);
 
@@ -394,6 +434,9 @@ begin
   FreeAndNil(fText);
   FreeAndNil(fTabSheet);
   FreeAndNil(fPreviousEditors);
+
+  ClearSyntaxErrors;
+  FreeAndNil(fErrorList);
 
   // Move into TObject.Destroy...
   inherited;
@@ -473,13 +516,17 @@ begin
       end;
 end;
 
-procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor);
+procedure TEditor.EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList; var Colborder: TColor; var areaType: TEditingAreaType);
 var
   p:PEditingArea;
   spaceCount :integer;
   spaceBefore :integer;
+  lst:TList;
+  i,idx: integer;
+  pError: PSyntaxError;
 begin
   if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
+    areaType:=eatEditing;
     System.new(p);
     spaceCount := fText.LeftSpacesEx(fLineBeforeTabStop,True);
     spaceBefore := Length(fLineBeforeTabStop) - Length(TrimLeft(fLineBeforeTabStop));
@@ -487,7 +534,23 @@ begin
     p.endX := fTabStopEnd + spaceCount - spaceBefore ;
     areaList.Add(p);
     ColBorder := clRed;
+    Exit;
   end;
+  idx:=CBUtils.FastIndexOf(fErrorList,IntToStr(line));
+  if idx >=0 then begin
+    areaType:=eatError;
+    lst:=TList(fErrorList.Objects[idx]);
+    for i:=0 to lst.Count-1 do begin
+      System.new(p);
+      pError := PSyntaxError(lst[i]);
+      p.beginX := pError.col;
+      p.endX := pError.endCol;
+      areaList.Add(p);
+    end;
+    ColBorder := dmMain.Cpp.InvalidAttri.Foreground;
+    Exit;
+  end;
+
 end;
 
 procedure TEditor.EditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
@@ -528,6 +591,8 @@ begin
     else if HasBreakpoint(Line) <> -1 then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 0)
     else if fErrorLine = Line then
+      dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
+    if CBUtils.FastIndexOf(fErrorList, IntToStr(Line))>=0 then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
 
     Inc(Y, fText.LineHeight);
@@ -1042,6 +1107,90 @@ begin
   fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
 end;
 
+procedure TEditor.TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  if not fTabnine.Visible then
+    Exit;
+  fTabnine.Hide;
+  //Send the key to the SynEdit
+  PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
+procedure TEditor.TabnineQuery;
+var
+  pos:integer;
+  posBefore,posAfter:integer;
+  function EscapeString(s:AnsiString):AnsiString;
+  var
+    i:integer;
+    inQuote:boolean;
+  begin
+    inQuote:=False;
+    Result:='';
+    i:=1;
+    while (i<=Length(s)) do begin
+      if (s[i] = '"') then begin
+        Result:=Result+'\"';
+        inQuote := not inQuote;
+      end else if (s[i]='\') and inQuote and ((i+1)<=Length(s)) then begin
+        if s[i+1]='"' then
+          Result:=Result+'\\"'
+        else
+          Result:=Result+s[i]+s[i+1];
+        inc(i);
+      end else begin
+        Result:=Result+s[i];
+      end;
+      inc(i);
+    end;
+  end;
+begin
+  pos := fText.RowColToCharIndex(fText.CaretXY);
+  fTabnine.Query(fFileName,
+        TrimLeft(EscapeString(Copy(fText.LineText, 1, fText.CaretX-1))),
+        TrimRight(EscapeString(Copy(fText.LineText, fText.CaretX,MaxInt))),
+        False,
+        False);
+end;
+
+procedure TEditor.TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
+var
+  phrase:AnsiString;
+begin
+  if not fTabnine.Visible then
+    Exit;
+  // We received a key from the completion box...
+    if (Key in [' ',',','(',')','[',']','+','-','/','*','&','|','!','~']) then begin // Continue filtering
+      fLastPressedIsIdChar := False;
+      fText.SelText := Key;
+      TabnineQuery;
+    end else if Key = Char(VK_BACK) then begin
+      fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
+      if phrase = '' then begin
+        fLastPressedIsIdChar:=False;
+        fTabnine.Hide;
+      end else begin
+        TabnineQuery;
+      end;
+    end else if Key = Char(VK_ESCAPE) then begin
+      fTabnine.Hide;
+    end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
+      TabnineCompletionInsert;
+      fTabnine.Hide;
+    end else if fLastPressedIsIdChar then begin
+      fLastPressedIsIdChar := True;
+      fText.SelText := Key;
+      TabnineQuery;
+    end else begin  // other keys, stop completion
+      //stop completion now
+      fTabnine.Hide;
+      //Send the key to the SynEdit
+      PostMessage(fText.Handle, WM_CHAR, Ord(Key), 0);
+    end;
+end;
+
 procedure TEditor.CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
@@ -1258,7 +1407,7 @@ var
     s: AnsiString;
   begin
     s:=TrimLeft(Copy(fText.LineText,2,MaxInt)); //remove starting # and whitespaces
-    if not StartsStr('include',s) then //it'ss not #include
+    if not StartsStr('include',s) then //it's not #include
       Exit;
     InsertString('>', false);
   end;
@@ -1468,6 +1617,7 @@ begin
         if lastWord <> '' then begin
           if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
           //last word is a type keyword, this is a var or param define, and dont show suggestion
+            ShowTabnineCompletion;
             Exit;
           end;
           M := TMemoryStream.Create;
@@ -1480,7 +1630,8 @@ begin
               st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,currentStatement);
             end;
             if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
-            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              ShowTabnineCompletion;
               Exit;
             end;
           finally
@@ -1498,8 +1649,14 @@ begin
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
 
-    // Spawn code completion window if we are allowed to
-    HandleCodeCompletion(Key);
+    if key in [' ','+','-','*','/','<','&','|','!','~'] then begin
+      fText.SelText := Key;
+      Key:=#0;
+      ShowTabnineCompletion;
+    end else begin
+      // Spawn code completion window if we are allowed to
+      HandleCodeCompletion(Key);
+    end;
   end;
 end;
 
@@ -1567,6 +1724,9 @@ begin
             Key:=0;
             fTabStopBegin:=-1;
             fText.InvalidateLine(fText.CaretY);
+          end else begin
+            Key:=0;
+            IndentSelection;
           end;
         end;
       end;
@@ -1623,6 +1783,7 @@ end;
 
 procedure TEditor.InitCompletion;
 begin
+  fTabnine := MainForm.Tabnine;
   fCompletionBox := MainForm.CodeCompletion;
   fCompletionBox.Enabled := devCodeCompletion.Enabled;
 
@@ -1652,6 +1813,38 @@ begin
   end;
 end;
 
+procedure TEditor.ShowTabnineCompletion;
+var
+  P: TPoint;
+  s: AnsiString;
+  attr: TSynHighlighterAttributes;
+begin
+  if not fTabnine.Executing then
+    exit;
+  if fTabnine.Visible then // already in search, don't do it again
+    Exit;
+
+  // Only scan when cursor is not placed in a comment
+  if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
+    if (attr = fText.Highlighter.CommentAttribute) then
+      Exit;
+
+  // Position it at the top of the next line
+  P := fText.RowColumnToPixels(fText.DisplayXY);
+  Inc(P.Y, fText.LineHeight + 2);
+  fTabnine.Position := fText.ClientToScreen(P);
+
+
+  //Set Font size;
+  fTabnine.FontSize := fText.Font.Size;
+
+  // Redirect key presses to completion box if applicable
+  fTabnine.OnKeyPress := TabnineCompletionKeyPress;
+  fTabnine.OnKeyDown := TabnineCompletionKeyDown;
+  fTabnine.Show;
+  TabnineQuery;
+end;
+
 procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
@@ -1665,11 +1858,16 @@ begin
     Exit;
 
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
-  if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then
+  if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then begin
+    if attr = dmMain.Cpp.DirecAttri then begin //Preprocessor
+      ShowTabnineCompletion;
+      Exit;
+    end;
     if (attr <> fText.Highlighter.SymbolAttribute) and
       (attr <> fText.Highlighter.WhitespaceAttribute) and
       (attr <> fText.Highlighter.IdentifierAttribute) then
       Exit;
+  end;
 
   // Position it at the top of the next line
   P := fText.RowColumnToPixels(fText.DisplayXY);
@@ -1702,6 +1900,7 @@ begin
   finally
     M.Free;
   end;
+  
   word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
@@ -1899,9 +2098,35 @@ begin
     end;
 end;
 
+procedure TEditor.TabnineCompletionInsert;
+var
+  suggestion: PTabnineSuggestion;
+  P,P1: TBufferCoord;
+
+begin
+  try
+    suggestion := fTabnine.SelectedSuggestion;
+    if not Assigned(suggestion) then
+      Exit;
+
+    // delete the part of the word that's already been typed ...
+    p:=fText.CaretXY ; // CaretXY will change after call WordStart
+    p1:=p;
+    p1.Char := p.Char - length(suggestion^.OldPrefix);
+    fText.BlockBegin := p1;
+    p1.Char :=  p.Char + length(suggestion^.OldSuffix);
+    fText.BlockEnd :=p1;
+    fText.SelText := suggestion^.NewPrefix+suggestion^.NewSuffix;
+    p.Char := p.Char-length(suggestion^.OldPrefix) + length(suggestion^.NewPrefix);
+    fText.CaretXY := p;
+  finally
+    fTabnine.Hide;
+  end;
+end;
+
 procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
-  Statement: PStatement;
+  statement: PStatement;
   FuncAddOn: AnsiString;
   P: TBufferCoord;
   idx: integer;
@@ -2004,6 +2229,7 @@ var
   M: TMemoryStream;
   Reason: THandPointReason;
   IsIncludeLine: boolean;
+  pError : pSyntaxError;
 
   procedure ShowFileHint;
   var
@@ -2014,6 +2240,11 @@ var
       fText.Hint := FileName + ' - Ctrl+Click for more info'
     else
       fText.Hint := '';
+  end;
+
+  procedure ShowErrorHint;
+  begin
+    fText.Hint := pError.Hint;
   end;
 
   procedure ShowDebugHint;
@@ -2108,6 +2339,10 @@ begin
     hprSelection: begin
         s := fText.SelText; // when a selection is available, always only use that
       end;
+    hprError: begin
+        pError := GetErrorAtPosition(p);
+        s:=pError^.Token;
+      end;
     hprNone: begin
         fText.Cursor := crIBeam; // nope
         CancelHint;
@@ -2142,6 +2377,9 @@ begin
             ShowDebugHint
           else if devEditor.ParserHints then
             ShowParserHint;
+      end;
+    hprError : begin
+        ShowErrorHint;
       end;
   end;
 end;
@@ -2304,6 +2542,10 @@ begin
 
   // Only allow in the text area...
   if fText.GetPositionOfMouse(mousepos) then begin
+    if Assigned(GetErrorAtPosition(mousepos)) then begin
+      Result := hprError;
+      Exit;
+    end;
 
     // Only allow hand points in highlighted areas
     if fText.GetHighlighterAttriAtRowCol(mousepos, s, HLAttr) then begin
@@ -2538,6 +2780,138 @@ end;
       fUserCodeInTabStops.Delete(0);
     end;
   end;
+
+procedure TEditor.ClearSyntaxErrors;
+var
+  i,t:integer;
+  lst:TList;
+begin
+  for i:=0 to fErrorList.Count -1 do begin
+    lst:=TList(fErrorList.Objects[i]);
+    for t:=0 to lst.Count-1 do begin
+      dispose(PSyntaxError(lst[t]));
+    end;
+    lst.Free;
+  end;
+  fErrorList.Clear;
+end;
+
+procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
+var
+  lineNo:String;
+  pError:PSyntaxError;
+  p:TBufferCoord;
+  p1:TDisplayCoord;
+  token:String;
+  tokenType,start:integer;
+  Attri: TSynHighlighterAttributes;
+  idx:integer;
+  lst:TList;
+begin
+  if (line<1) or (line>fText.Lines.Count) then
+    Exit; 
+  System.new(pError);
+  p.Char:=col;
+  p.Line:=line;
+  if col>= Length(fText.Lines[line-1]) then begin
+    start := 1;
+    token:=fText.Lines[line-1];
+  end else begin
+    fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
+  end;
+  pError^.line:=line;
+  pError^.char := start;
+  pError^.endChar := start + length(token)-1;
+  p.Line:=line;
+  p.Char := start;
+  p1:=fText.BufferToDisplayPos(p);
+  pError^.col:=p1.Column;
+  p.Line:=line;
+  p.Char := start+length(token);
+  p1:=fText.BufferToDisplayPos(p);
+  pError^.endCol:=p1.Column;
+  pError^.Hint:=hint;
+  pError^.Token := Token;
+  pError^.errorType:=errorType;
+  lineNo := IntToStr(line);
+  idx:=CBUtils.FastIndexOf(fErrorList,lineNo);
+  if idx >= 0 then
+    lst := TList(fErrorList.Objects[idx])
+  else begin
+    lst := TList.Create;
+    fErrorList.AddObject(lineNo,lst);
+  end;
+  lst.Add(pError);
+end;
+
+function TEditor.GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
+var
+  idx,i:integer;
+  lst:TList;
+  pError:PSyntaxError;
+begin
+  Result := nil;
+  idx:=CBUtils.FastIndexOf(fErrorList,intToStr(pos.Line));
+  if idx >=0 then begin
+    lst := TList(fErrorList.Objects[idx]);
+    for i:=0 to lst.Count-1 do begin
+      pError := PSyntaxError(lst[i]);
+      if (pos.Char >= pError.char) and (pos.Char <= pError.endChar) then begin
+        Result := pError;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+procedure TEditor.LinesDeleted(FirstLine,Count:integer);
+var
+  newList:TDevStringList;
+  i:integer;
+  lineNo:integer;
+begin
+  newList:=TDevStringList.Create;
+  try
+    for i:=0 to fErrorList.Count-1 do begin
+      lineNo := StrToInt(fErrorList[i]);
+      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then
+        Continue;
+      if (lineNo >= FirstLine+Count) then
+        dec(lineNo,Count);
+      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+    end;
+    fErrorList.Sorted:=False;
+    fErrorList.Assign(newList);
+    fErrorList.Sorted:=True;
+    fText.invalidate;
+  finally
+    newList.Free;
+  end;
+end;
+
+procedure TEditor.LinesInserted(FirstLine,Count:integer);
+var
+  newList:TDevStringList;
+  i:integer;
+  lineNo:integer;
+begin
+  newList:=TDevStringList.Create;
+  try
+    for i:=0 to fErrorList.Count-1 do begin
+      lineNo := StrToInt(fErrorList[i]);
+      if (lineNo >= FirstLine) then
+        inc(lineNo,Count);
+      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+    end;
+    fErrorList.Sorted:=False;
+    fErrorList.Assign(newList);
+    fErrorList.Sorted:=True;
+    fText.invalidate;
+  finally
+    newList.Free;
+  end;
+end;
+
 
 end.
 

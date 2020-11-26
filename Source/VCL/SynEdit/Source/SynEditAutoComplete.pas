@@ -46,18 +46,10 @@ unit SynEditAutoComplete;
 interface
 
 uses
-  {$IFDEF SYN_CLX}
-  Qt,
-  QMenus,
-  Types,
-  QSynEdit,
-  QSynEditKeyCmds,
-  {$ELSE}
   Windows,
   Menus,
   SynEdit,
   SynEditKeyCmds,
-  {$ENDIF}
   Classes;
 
 type
@@ -121,11 +113,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-{$ELSE}
   SynEditTypes,
-{$ENDIF}
   SysUtils;
 
 { TCustomSynAutoComplete }
@@ -452,9 +440,7 @@ begin
         fEditor := nil;
       fEditors.Delete(i);
       AEditor.UnregisterCommandHandler(SynEditCommandHandler);
-      {$IFDEF SYN_COMPILER_5_UP}
       RemoveFreeNotification( AEditor );
-      {$ENDIF}
     end;
   end;
   Result := False;

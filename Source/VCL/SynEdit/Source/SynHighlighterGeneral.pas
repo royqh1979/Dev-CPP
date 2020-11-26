@@ -52,16 +52,10 @@ unit SynHighlighterGeneral;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -148,10 +142,8 @@ type
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
     procedure SetLine(NewValue: String; LineNumber: Integer); override;
-    {$IFNDEF SYN_CLX}
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
-    {$ENDIF}
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
@@ -181,11 +173,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -703,7 +691,6 @@ begin
   Result := SYNS_LangGeneral;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynGeneralSyn.LoadFromRegistry(RootKey: HKEY; Key: string): boolean;
 var
   r: TBetterRegistry;
@@ -734,7 +721,6 @@ begin
     else Result := false;
   finally r.Free; end;
 end;
-{$ENDIF}
 
 function TSynGeneralSyn.GetStringDelim: TStringDelim;
 begin

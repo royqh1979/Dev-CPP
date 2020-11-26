@@ -43,19 +43,6 @@ unit SynMacroRecorder;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QConsts,
-  QStdCtrls,
-  QControls,
-  Qt,
-  Types,
-  QGraphics,
-  QMenus,
-  QSynEdit,
-  QSynEditKeyCmds,
-  QSynEditPlugins,
-  QSynEditTypes,
-{$ELSE}
   StdCtrls,
   Controls,
   Windows,
@@ -66,14 +53,9 @@ uses
   SynEditKeyCmds,
   SynEditPlugins,
   SynEditTypes,
-{$ENDIF}
   Classes;
 
-{$IFDEF SYN_COMPILER_3_UP}
 resourcestring
-{$ELSE}
-const
-{$ENDIF}
   sCannotRecord = 'Cannot record macro; already recording or playing';
   sCannotPlay = 'Cannot playback macro; already playing or recording';
   sCannotPause = 'Can only pause when recording';
@@ -265,16 +247,9 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QForms,
-  QSynEditMiscProcs,
-{$ELSE}
   Forms,
   SynEditMiscProcs,
-{$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
-{$ENDIF}
-{$ENDIF}
   SysUtils;
 
 { TSynDataEvent }
@@ -344,13 +319,8 @@ begin
   fMacroName := 'unnamed';
   fCommandIDs[mcRecord] := NewPluginCommand;
   fCommandIDs[mcPlayback] := NewPluginCommand;
-  {$IFDEF SYN_CLX}
-  fShortCuts[mcRecord] := QMenus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
-  fShortCuts[mcPlayback] := QMenus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
-  {$ELSE}
   fShortCuts[mcRecord] := Menus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
   fShortCuts[mcPlayback] := Menus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
-  {$ENDIF}
 end;
 
 function TCustomSynMacroRecorder.CreateMacroEvent(aCmd: TSynEditorCommand): TSynMacroEvent;
@@ -902,28 +872,12 @@ end;
 
 { TSynStringEvent }
 
-{$IFNDEF SYN_COMPILER_3_UP}
-function QuotedStr(const S: string; QuoteChar: Char): string;
-var
-  i: Integer;
-begin
-  Result := S;
-  for i := Length(Result) downto 1 do
-    if Result[i] = QuoteChar then
-      Insert(QuoteChar, Result, i);
-  Result := QuoteChar + Result + QuoteChar;
-end;
-{$ENDIF}
 
 function TSynStringEvent.GetAsString: string;
 begin
   Result := '';
   EditorCommandToIdent(ecString, Result);
-  {$IFDEF SYN_COMPILER_3_UP}
   Result := Result + ' ' + AnsiQuotedStr(Value, #39);
-  {$ELSE}
-  Result := Result + ' ' + QuotedStr(Value, #39);
-  {$ENDIF}
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
@@ -956,9 +910,7 @@ begin
   aStream.Read(l, SizeOf(l));
   GetMem(Buff, l);
   try
-  {$IFNDEF SYN_CLX}
     FillMemory(Buff, l, 0);
-  {$ENDIF}
     aStream.Read(Buff^, l);
     fString := Buff;
   finally
@@ -993,9 +945,7 @@ begin
   aStream.Write(l, sizeof(l));
   GetMem(Buff, l);
   try
-  {$IFNDEF SYN_CLX}
     FillMemory(Buff, l, 0);
-  {$ENDIF}
     StrPCopy(Buff, Value);
     aStream.Write(Buff^, l);
   finally

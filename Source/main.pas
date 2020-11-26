@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, FileCtrl;
+  RenameFrm, Refactorer, devConsole, Tabnine;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -118,9 +118,6 @@ type
     tbCompile: TToolBar;
     NewFileBtn: TToolButton;
     SaveBtn: TToolButton;
-    CloseBtn: TToolButton;
-    ToolButton7: TToolButton;
-    PrintBtn: TToolButton;
     CompileBtn: TToolButton;
     RunBtn: TToolButton;
     CompileAndRunBtn: TToolButton;
@@ -283,20 +280,14 @@ type
     mnuBrowserNewClass: TMenuItem;
     mnuBrowserNewMember: TMenuItem;
     mnuBrowserNewVariable: TMenuItem;
-    mnuBrowserViewMode: TMenuItem;
-    mnuBrowserViewAll: TMenuItem;
-    mnuBrowserViewCurrent: TMenuItem;
     actBrowserGotoDeclaration: TAction;
     actBrowserGotoDefinition: TAction;
     actBrowserNewClass: TAction;
     actBrowserNewMember: TAction;
     actBrowserNewVar: TAction;
-    actBrowserViewAll: TAction;
-    actBrowserViewCurrent: TAction;
     actProfile: TAction;
     Profileanalysis1: TMenuItem;
     N24: TMenuItem;
-    N31: TMenuItem;
     actBrowserAddFolder: TAction;
     actBrowserRemoveFolder: TAction;
     actBrowserRenameFolder: TAction;
@@ -335,10 +326,7 @@ type
     DevCppDDEServer: TDdeServerConv;
     actShowTips: TAction;
     ShowTipsItem: TMenuItem;
-    N42: TMenuItem;
     HelpMenuItem: TMenuItem;
-    actBrowserViewProject: TAction;
-    mnuBrowserViewProject: TMenuItem;
     N43: TMenuItem;
     PackageManagerItem: TMenuItem;
     btnAbortCompilation: TSpeedButton;
@@ -350,7 +338,6 @@ type
     mnuUnitProperties: TMenuItem;
     N63: TMenuItem;
     actBrowserShowInherited: TAction;
-    Showinheritedmembers1: TMenuItem;
     LeftPageControl: TPageControl;
     LeftProjectSheet: TTabSheet;
     ProjectView: TTreeView;
@@ -441,8 +428,6 @@ type
     DeleteLine1: TMenuItem;
     CppPreprocessor: TCppPreprocessor;
     CppTokenizer: TCppTokenizer;
-    actBrowserViewIncludes: TAction;
-    mnuBrowserViewInclude: TMenuItem;
     actMoveSelUp: TAction;
     actMoveSelDown: TAction;
     actCodeCompletion: TAction;
@@ -467,7 +452,6 @@ type
     actSwapEditor: TAction;
     N57: TMenuItem;
     Movetootherview1: TMenuItem;
-    CloseAllBtn: TToolButton;
     N14: TMenuItem;
     MoveToOtherViewItem: TMenuItem;
     SwapHeaderSourceItem: TMenuItem;
@@ -617,6 +601,7 @@ type
     OpenConsoleHere1: TMenuItem;
     actExtractMacro: TAction;
     ExtractMacro1: TMenuItem;
+    ToolDebugItem: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -737,12 +722,9 @@ type
     procedure actBrowserNewClassUpdate(Sender: TObject);
     procedure actBrowserNewMemberUpdate(Sender: TObject);
     procedure actBrowserNewVarUpdate(Sender: TObject);
-    procedure actBrowserViewAllUpdate(Sender: TObject);
     procedure actBrowserNewClassExecute(Sender: TObject);
     procedure actBrowserNewMemberExecute(Sender: TObject);
     procedure actBrowserNewVarExecute(Sender: TObject);
-    procedure actBrowserViewAllExecute(Sender: TObject);
-    procedure actBrowserViewCurrentExecute(Sender: TObject);
     procedure actProfileExecute(Sender: TObject);
     procedure actCloseAllButThisExecute(Sender: TObject);
     procedure actStepIntoExecute(Sender: TObject);
@@ -768,7 +750,6 @@ type
     procedure actShowTipsExecute(Sender: TObject);
     procedure CppParserStartParsing(Sender: TObject);
     procedure CppParserEndParsing(Sender: TObject; Total: Integer);
-    procedure actBrowserViewProjectExecute(Sender: TObject);
     procedure actAbortCompilationUpdate(Sender: TObject);
     procedure actAbortCompilationExecute(Sender: TObject);
     procedure ProjectViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -847,7 +828,6 @@ type
     procedure actToggleCommentExecute(Sender: TObject);
     procedure cmbCompilersChange(Sender: TObject);
     procedure actDuplicateLineExecute(Sender: TObject);
-    procedure actBrowserViewIncludesExecute(Sender: TObject);
     procedure actMoveSelUpExecute(Sender: TObject);
     procedure actMoveSelDownExecute(Sender: TObject);
     procedure actCodeCompletionUpdate(Sender: TObject);
@@ -927,6 +907,8 @@ type
     fCriticalSection: TCriticalSection; // protects fFilesToOpen
     fFilesToOpen: TStringList; // files to open on show
     fQuitting: boolean ;
+    fTabnine: TTabnine;
+    fCheckSyntaxInBack : boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -959,6 +941,9 @@ type
     function ParseParameters(const Parameters: WideString): Integer;
     procedure OnClassBrowserUpdated(sender:TObject);
     procedure CloseProject(RefreshEditor:boolean);
+    procedure StartTabnine;
+    procedure StopTabnine;
+    procedure CheckSyntaxInBack;
   public
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -986,6 +971,7 @@ type
     property Debugger: TDebugger read fDebugger write fDebugger;
     property EditorList: TEditorList read fEditorList write fEditorList;
     property CurrentPageHint: AnsiString read fCurrentPageHint write fCurrentPageHint;
+    property Tabnine: TTabnine read fTabnine;
   end;
 
 var
@@ -1093,6 +1079,8 @@ begin
   devData.ToolbarClassesY := tbClasses.Top;
   devData.ToolbarCompilersX := tbCompilers.Left;
   devData.ToolbarCompilersY := tbCompilers.Top;
+  devData.ToolbarDebugX := tbDebug.Left;
+  devData.ToolbarDebugY := tbDebug.Top;
 
   // Save left page control states
   devData.ProjectWidth := LeftPageControl.Width;
@@ -1111,6 +1099,8 @@ begin
   finally
     Action := caFree;
   end;
+  StopTabnine;
+  FreeAndNil(fTabnine);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1242,6 +1232,21 @@ begin
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
   CodeCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+
+  if Assigned(fTabnine) then begin
+    fTabnine.Colors[BackColor] := tc.Background;
+    fTabnine.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[FunctionColor] := dmMain.Cpp.CommentAttribute.Foreground;
+    fTabnine.Colors[ClassColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+    fTabnine.Colors[VarColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
+    fTabnine.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+    fTabnine.Colors[PreprocessorColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+    fTabnine.Colors[SelectedBackColor] := BackgroundColor;
+    fTabnine.Colors[SelectedForeColor] := ForegroundColor;
+    fTabnine.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+  end;
 
   StackTrace.Color := BackgroundColor;
   StackTrace.Font.Color := ForegroundColor;
@@ -1406,6 +1411,8 @@ begin
   ToolSpecialsItem.Caption := Lang[ID_TOOLSPECIAL];
   ToolClassesItem.Caption := Lang[ID_LP_CLASSES];
   ToolCompilersItem.Caption := Lang[ID_TOOLCOMPILERS];
+  ToolDebugItem.Caption := Lang[ID_TOOLDEBUG];
+
 
   // Top level
   actViewToDoList.Caption := Lang[ID_VIEWTODO_MENUITEM];
@@ -1514,10 +1521,6 @@ begin
   actBrowserNewClass.Caption := Lang[ID_POP_NEWCLASS];
   actBrowserNewMember.Caption := Lang[ID_POP_NEWMEMBER];
   actBrowserNewVar.Caption := Lang[ID_POP_NEWVAR];
-  mnuBrowserViewMode.Caption := Lang[ID_POP_VIEWMODE];
-  actBrowserViewAll.Caption := Lang[ID_POP_VIEWALLFILES];
-  actBrowserViewProject.Caption := Lang[ID_POP_VIEWPROJECT];
-  actBrowserViewCurrent.Caption := Lang[ID_POP_VIEWCURRENT];
   actBrowserAddFolder.Caption := Lang[ID_POP_ADDFOLDER];
   actBrowserRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actBrowserRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
@@ -1769,6 +1772,12 @@ begin
     Exit;
   end;
 
+  {
+  if fTabnine.Executing then begin
+    fTabnine.PrefetchFile(FileName);
+  end;
+  }
+
   // Open the file in an editor
   e := fEditorList.NewEditor(FileName,OpenUseUTF8, False, False);
   if Assigned(fProject) then begin
@@ -1777,8 +1786,9 @@ begin
   end else begin
     dmMain.RemoveFromHistory(FileName);
   end;
-  
+
   e.Activate;
+  CheckSyntaxInBack;
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) then begin
@@ -1927,6 +1937,8 @@ begin
 end;
 
 procedure TMainForm.CompOutputProc(const _Line, _Col, _Unit, _Message: AnsiString);
+var
+  e:TEditor;
 begin
   with CompilerOutput.Items.Add do begin
     Caption := _Line;
@@ -1936,7 +1948,16 @@ begin
   end;
 
   // Update tab caption
-  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')'
+  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
+
+  if ( StartsStr('[Error]',_Message)
+      or StartsStr('[Warning]',_Message)
+      ) then begin
+    if EditorList.IsFileOpened(_Unit) then begin
+      e:=EditorList.GetEditorFromFileName(_Unit);
+      e.AddSyntaxError(StrToInt(_Line),StrToInt(_Col),setError,_Message);
+    end;
+  end;
 end;
 
 procedure TMainForm.CompResOutputProc(const _Line, _Col, _Unit, _Message: AnsiString);
@@ -1955,11 +1976,15 @@ end;
 procedure TMainForm.CompEndProc;
 var
   I: integer;
+  e:TEditor;
 begin
   // Close it if there's nothing to show
-  if (CompilerOutput.Items.Count = 0) and (ResourceOutput.Items.Count = 0) and devData.AutoCloseProgress then begin
-    OpenCloseMessageSheet(FALSE)
-
+  if (fCheckSyntaxInBack)
+    or (
+      (CompilerOutput.Items.Count = 0)
+      and (ResourceOutput.Items.Count = 0)
+      and devData.AutoCloseProgress) then begin
+      OpenCloseMessageSheet(FALSE)
     // Or open it if there is anything to show
   end else begin
     if (CompilerOutput.Items.Count > 0) then begin
@@ -1972,8 +1997,13 @@ begin
     OpenCloseMessageSheet(TRUE);
   end;
 
+  e:=EditorList.GetEditor();
+  if Assigned(e) then begin
+    e.Text.Invalidate;
+  end;
+
   // Jump to problem location, sorted by significance
-  if fCompiler.ErrorCount > 0 then begin
+  if (fCompiler.ErrorCount > 0) and (not fCheckSyntaxInBack) then begin
 
     // First try to find errors
     for I := 0 to CompilerOutput.Items.Count - 1 do begin
@@ -2021,6 +2051,7 @@ begin
       CompilerOutputDblClick(ResourceOutput);
     end;
   end;
+  fCheckSyntaxInBack:=False;  
 end;
 
 procedure TMainForm.CompSuccessProc;
@@ -2269,13 +2300,29 @@ begin
   dmMain.ClearHistory;
 end;
 
+procedure TMainForm.CheckSyntaxInBack;
+begin
+  if not devEditor.AutoCheckSyntax then
+    Exit;
+  if fCompiler.Compiling then
+    Exit;
+  fCheckSyntaxInBack:=True;
+  if not PrepareForCompile then begin
+    fCheckSyntaxInBack:=False;
+    Exit;
+  end;
+  fCompiler.CheckSyntax;
+end;
+
 procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) then begin
     e.Save;
+    CheckSyntaxInBack;
+  end;
 end;
 
 procedure TMainForm.actSaveAsExecute(Sender: TObject);
@@ -2283,8 +2330,10 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) then begin
     e.SaveAs;
+    CheckSyntaxInBack;
+  end;
 end;
 
 procedure TMainForm.actSaveAllExecute(Sender: TObject);
@@ -2704,6 +2753,12 @@ begin
         if not oldCodeCompletion and devCodeCompletion.Enabled then
           ScanActiveProject;
       end;
+
+      //start/stop tabnine
+      if devEditor.UseTabnine then
+        startTabnine
+      else
+        stopTabnine;
     end;
   finally
     Free;
@@ -3102,7 +3157,7 @@ begin
   ClearCompileMessages;
 
   // always show compilation log (no intrusive windows anymore)
-  if devData.ShowProgress then begin
+  if devData.ShowProgress and not (fCheckSyntaxInBack) then begin
     OpenCloseMessageSheet(True);
     MessageControl.ActivePage := LogSheet;
   end;
@@ -3139,6 +3194,7 @@ begin
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
+        e.ClearSyntaxErrors;
       end;
     ctProject: begin
         fCompiler.Project := fProject;
@@ -3643,6 +3699,7 @@ begin
   tbSearch.Visible := ToolSearchItem.Checked;
   tbClasses.Visible := ToolClassesItem.Checked;
   tbCompilers.Visible := ToolCompilersItem.Checked;
+  tbDebug.Visible := ToolDebugItem.Checked;
 
   devData.ToolbarMain := ToolMainItem.Checked;
   devData.ToolbarEdit := ToolEditItem.Checked;
@@ -3652,6 +3709,7 @@ begin
   devData.ToolbarSearch := ToolSearchItem.Checked;
   devData.ToolbarClasses := ToolClassesItem.Checked;
   devData.ToolbarCompilers := ToolCompilersItem.Checked;
+  devData.ToolbarDebug := ToolDebugItem.Checked;
 end;
 
 procedure TMainForm.ToolbarDockContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
@@ -4239,7 +4297,6 @@ begin
   // Only attempt to redraw once
   ClassBrowser.BeginUpdate;
   try
-    ClassBrowser.ShowFilter := TShowFilter(devClassBrowsing.ShowFilter);
     ClassBrowser.ShowInheritedMembers := devClassBrowsing.ShowInheritedMembers;
     ClassBrowser.SortByType := devClassBrowsing.SortByType;
     ClassBrowser.SortAlphabetically := devClassBrowsing.SortAlphabetically;
@@ -4249,10 +4306,6 @@ begin
   end;
 
   // Configure class browser actions
-  actBrowserViewAll.Checked := ClassBrowser.ShowFilter = sfAll;
-  actBrowserViewProject.Checked := ClassBrowser.ShowFilter = sfProject;
-  actBrowserViewCurrent.Checked := ClassBrowser.ShowFilter = sfCurrent;
-  actBrowserViewIncludes.Checked := ClassBrowser.ShowFilter = sfSystemFiles;
   actBrowserShowInherited.Checked := ClassBrowser.ShowInheritedMembers;
   actBrowserSortByType.Checked := ClassBrowser.SortByType;
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
@@ -4279,7 +4332,7 @@ procedure TMainForm.ScanActiveProject;
 begin
   //UpdateClassBrowsing;
   SetCppParserProject(fProject);
-  CppParser.ParseFileList;
+  //CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -4662,11 +4715,6 @@ begin
     TCustomAction(Sender).Enabled := False;
 end;
 
-procedure TMainForm.actBrowserViewAllUpdate(Sender: TObject);
-begin
-  TCustomAction(Sender).Enabled := True;
-end;
-
 procedure TMainForm.actBrowserGotoDeclarationExecute(Sender: TObject);
 var
   Editor: TEditor;
@@ -4747,62 +4795,6 @@ begin
   finally
     ClassBrowser.EndUpdate;
   end;
-end;
-
-procedure TMainForm.actBrowserViewAllExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfAll;
-  actBrowserViewAll.Checked := True;
-  actBrowserViewProject.Checked := False;
-  actBrowserViewCurrent.Checked := False;
-  actBrowserViewIncludes.Checked := False;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
-end;
-
-procedure TMainForm.actBrowserViewProjectExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfProject;
-  actBrowserViewAll.Checked := False;
-  actBrowserViewProject.Checked := True;
-  actBrowserViewCurrent.Checked := False;
-  actBrowserViewIncludes.Checked := False;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
-end;
-
-procedure TMainForm.actBrowserViewCurrentExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfCurrent;
-  actBrowserViewAll.Checked := False;
-  actBrowserViewProject.Checked := False;
-  actBrowserViewCurrent.Checked := True;
-  actBrowserViewIncludes.Checked := False;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
-end;
-
-procedure TMainForm.actBrowserViewIncludesExecute(Sender: TObject);
-var
-  e: TEditor;
-begin
-  ClassBrowser.ShowFilter := sfSystemFiles;
-  actBrowserViewAll.Checked := False;
-  actBrowserViewProject.Checked := False;
-  actBrowserViewCurrent.Checked := False;
-  actBrowserViewIncludes.Checked := True;
-  e := fEditorList.GetEditor;
-  UpdateClassBrowserForEditor(e);
-  devClassBrowsing.ShowFilter := Ord(ClassBrowser.ShowFilter);
 end;
 
 procedure TMainForm.actProfileExecute(Sender: TObject);
@@ -5359,6 +5351,7 @@ end;
 procedure TMainForm.actAbortCompilationExecute(Sender: TObject);
 begin
   fCompiler.AbortThread;
+  fCheckSyntaxInBack := False;
 end;
 
 { begin XXXKF }
@@ -6290,6 +6283,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   fQuitting:=False;
   fFirstShow := true;
+  fCheckSyntaxInBack:=False;
 
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
@@ -6397,6 +6391,8 @@ begin
   tbClasses.Top := devData.ToolbarClassesY;
   tbCompilers.Left := devData.ToolbarCompilersX;
   tbCompilers.Top := devData.ToolbarCompilersY;
+  tbDebug.Left := devData.ToolbarDebugX;
+  tbDebug.Top := devData.ToolbarDebugY;
 
   // Set toolbars to previous state.
   // 2) Visibility
@@ -6408,6 +6404,7 @@ begin
   tbSearch.Visible := devData.ToolbarSearch;
   tbClasses.Visible := devData.ToolbarClasses;
   tbCompilers.Visible := devData.ToolbarCompilers;
+  tbDebug.Visible := devData.ToolbarDebug;
 
   // Set toolbars to previous state.
   // 3) UI components
@@ -6419,6 +6416,7 @@ begin
   ToolSearchItem.Checked := devData.ToolbarSearch;
   ToolClassesItem.Checked := devData.ToolbarClasses;
   ToolCompilersItem.Checked := devData.ToolbarCompilers;
+  ToolDebugItem.Checked := devData.ToolbarDebug;
 
   // PageControl settings
   fEditorList.SetPreferences(devData.MsgTabs, devData.MultiLineTab);
@@ -6485,6 +6483,11 @@ begin
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
   end;
+
+  //Tabnine
+  fTabnine:=TTabnine.Create;
+  if devEditor.UseTabnine then
+    startTabnine;
 
   //Load Colors
   LoadColor;
@@ -7568,7 +7571,7 @@ begin
         EvaluateInput.SelLength := 0;
         }
 
-    fDebugger.SendCommand(s, '',true);
+    fDebugger.SendCommand(s, '',true, true);
 
   end;
 
@@ -7795,6 +7798,19 @@ begin
   end;
 end;
 
+procedure TMainForm.StartTabnine;
+begin
+  if not fTabnine.Executing then begin
+    fTabnine.Path := devDirs.Exec + 'tabnine.exe';
+    fTabnine.Start;
+  end;
+end;
+procedure TMainForm.StopTabnine;
+begin
+  if fTabnine.Executing then
+      fTabnine.Stop;
+end;
+
 {
 procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
   TabIndex: Integer; const Rect: TRect; Active: Boolean);
@@ -7865,5 +7881,6 @@ begin
 end;
 
 }
+
 end.
 

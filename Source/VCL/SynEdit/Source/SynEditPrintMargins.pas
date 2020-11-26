@@ -92,15 +92,9 @@ unit SynEditPrintMargins;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditPrintTypes,
-  QSynEditPrinterInfo,
-{$ELSE}
   Graphics,
   SynEditPrintTypes,
   SynEditPrinterInfo,
-{$ENDIF}
   Classes,
   SysUtils;
 

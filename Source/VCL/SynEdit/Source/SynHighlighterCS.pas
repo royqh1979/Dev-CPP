@@ -56,16 +56,10 @@ unit SynHighlighterCS;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynEditMiscClasses,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -264,12 +258,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   Windows,
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1527,7 +1517,6 @@ end;
 procedure TSynCSSyn.EnumUserSettings(settings: TStrings);
 begin
   { returns the user settings that exist in the registry }
-  {$IFNDEF SYN_CLX}
   with TBetterRegistry.Create do
   begin
     try
@@ -1544,7 +1533,6 @@ begin
       Free;
     end;
   end;
-  {$ENDIF}
 end;
 
 function TSynCSSyn.UseUserSettings(settingIndex: integer): boolean;
@@ -1555,7 +1543,6 @@ function TSynCSSyn.UseUserSettings(settingIndex: integer): boolean;
 //   false: problem reading settings or invalid version specified - old settings
 //          were preserved
 
-  {$IFNDEF SYN_CLX}
   function ReadCPPBSettings(settingIndex: integer): boolean;
 
     function ReadCPPBSetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): boolean;
@@ -1630,7 +1617,7 @@ function TSynCSSyn.UseUserSettings(settingIndex: integer): boolean;
         Result := Result                                                         and
                   ReadCPPBSetting(s[settingIndex],fCommentAttri,'Comment')       and
                   ReadCPPBSetting(s[settingIndex],fIdentifierAttri,'Identifier') and
-                  ReadCPPBSetting(s[settingIndex],fInvalidAttri,'Illegal Char')  and 
+                  ReadCPPBSetting(s[settingIndex],fInvalidAttri,'Illegal Char')  and
                   ReadCPPBSetting(s[settingIndex],fKeyAttri,'Reserved word')     and
                   ReadCPPBSetting(s[settingIndex],fNumberAttri,'Integer')        and
                   ReadCPPBSetting(s[settingIndex],fSpaceAttri,'Whitespace')      and
@@ -1662,14 +1649,9 @@ function TSynCSSyn.UseUserSettings(settingIndex: integer): boolean;
       end;
     finally s.Free; end;
   end; { ReadCPPBSettings }
-  {$ENDIF}
 
 begin
-  {$IFNDEF SYN_CLX}
   Result := ReadCPPBSettings(settingIndex);
-  {$ELSE}
-  Result := False;
-  {$ENDIF}
 end; { TSynCSSyn.UseUserSettings }
 
 function TSynCSSyn.GetIdentChars: TSynIdentChars;

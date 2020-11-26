@@ -43,13 +43,8 @@ interface
 
 uses
   regexpr,
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynEditMiscClasses,
-{$ELSE}
   SynEditTypes,
   SynEditMiscClasses,
-{$ENDIF}
   Classes;
 
 type
@@ -75,11 +70,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QConsts;
-{$ELSE}
   Consts;
-{$ENDIF}
 
 { TSynEditRegexSearch }
 

@@ -44,13 +44,8 @@ unit SynEditSearch;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynEditMiscClasses,
-{$ELSE}
   SynEditTypes,
   SynEditMiscClasses,
-{$ENDIF}
   Classes;
 
 type
@@ -104,11 +99,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  Types,
-{$ELSE}
   Windows,
-{$ENDIF}
   SysUtils;
 
 constructor TSynEditSearch.Create(aOwner: TComponent);
@@ -129,12 +120,7 @@ begin
     CompTableSensitive := Sensitive;
     for I := #0 to #255 do CompTable[I] := ord(I);
     if not Sensitive then
-{$IFDEF SYN_CLX}
-      for I := #0 to #255 do
-        CompTable[I] := ord(upcase(char(CompTable[I])));
-{$ELSE}
       CharLowerBuff(PChar(@CompTable[#0]), 256);
-{$ENDIF}
   end;
 end;
 
@@ -143,11 +129,7 @@ var
   c: char;
 begin
   for c := #0 to #255 do
-{$IFDEF SYN_CLX}
-    DelimTable[c] := not (c in ['0'..'9', 'A'..'Z', 'a'..'z', '_']);
-{$ELSE}
     DelimTable[c] := not (IsCharAlphaNumeric(c) or (c = '_'));                  //sb 2001-11-23
-{$ENDIF}
 end;
 
 function TSynEditSearch.GetFinished: Boolean;

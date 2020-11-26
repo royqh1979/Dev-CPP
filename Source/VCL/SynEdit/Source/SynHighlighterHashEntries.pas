@@ -52,11 +52,7 @@ unit SynHighlighterHashEntries;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-{$ELSE}
   SynEditTypes,
-{$ENDIF}
   Classes;
 
 type
@@ -96,12 +92,6 @@ type
   end;
 
 
-{$IFNDEF SYN_COMPILER_4_UP}
-  {$IFNDEF SYN_CPPB_3}
-    {$DEFINE LIST_CLEAR_NOT_VIRTUAL}
-  {$ENDIF}
-{$ENDIF}
-
   { A list of keyword entries, stored as single-linked lists under the hashvalue
     of the keyword. }
   TSynHashEntryList = class(TList)
@@ -113,16 +103,8 @@ type
       order of keyword entries is maintained. }
     procedure Put(HashKey: Integer; Entry: TSynHashEntry);
   public
-{$IFDEF LIST_CLEAR_NOT_VIRTUAL}
-    { Overridden destructor clears the list and frees all contained keyword
-      entries. }
-    destructor Destroy; override;
-    { Clears the list and frees all contained keyword entries. }
-    procedure DeleteEntries;
-{$ELSE}
     { Clears the list and frees all contained keyword entries. }
     procedure Clear; override;
-{$ENDIF}
   public
     { Type-safe access to the first keyword entry for a hashvalue. }
     property Items[Index: integer]: TSynHashEntry read Get write Put; default;
@@ -206,17 +188,7 @@ end;
 
 { TSynHashEntryList }
 
-{$IFDEF LIST_CLEAR_NOT_VIRTUAL}
-destructor TSynHashEntryList.Destroy;
-begin
-  DeleteEntries;
-  inherited Destroy;
-end;
-
-procedure TSynHashEntryList.DeleteEntries;
-{$ELSE}
 procedure TSynHashEntryList.Clear;
-{$ENDIF}
 var
   i: integer;
 begin

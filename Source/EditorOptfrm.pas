@@ -158,6 +158,12 @@ type
     cbGlobalIncludes: TCheckBox;
     chkRecordUsage: TCheckBox;
     btnClearUsageData: TButton;
+    tabTabnine: TTabSheet;
+    chkUseTabnine: TCheckBox;
+    lblUseTabnine: TLabel;
+    chkShowRainbowColor: TCheckBox;
+    tabCheckSyntax: TTabSheet;
+    chkAutoCheckSyntaxInBack: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -302,6 +308,7 @@ begin
     cbSpecialChars.Checked := SpecialChars;
     cbFunctionHint.Checked := ShowFunctionTip;
     cbTrimTrailingSpaces.Checked := TrimTrailingSpaces;
+    chkShowRainbowColor.Checked := ShowRainbowBacket;
     cbMarginVis.Checked := MarginVis;
     edMarginWidth.Value := MarginSize;
     cpMarginColor.Selected := MarginColor;
@@ -410,6 +417,7 @@ begin
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
   btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
+  chkUseTabnine.Checked := devEditor.UseTabnine;
   
   // Symbol Completion
   with devEditor do begin
@@ -433,6 +441,8 @@ begin
     NameOptions.ItemIndex := devEditor.AutoSaveMode;
     cbAutoSave.Checked := devEditor.EnableAutoSave;
     cbAutoSaveClick(nil);
+
+    chkAutoCheckSyntaxInBack.Checked := devEditor.AutoCheckSyntax;
   end;
 
   // Colors, cont. 2
@@ -567,6 +577,7 @@ begin
   cbDropFiles.Caption := Lang[ID_EOPT_DROPFILES];
   cbSpecialChars.Caption := Lang[ID_EOPT_SPECIALCHARS];
   cbTrimTrailingSpaces.Caption := Lang[ID_EOPT_TRIMTRAILINGSPACES];
+  chkShowRainbowColor.Caption := Lang[ID_EOPT_SHOWRAINBOW_COLOR];
   cbEHomeKey.Caption := Lang[ID_EOPT_EHOMEKEY];
   cbPastEOF.Caption := Lang[ID_EOPT_PASTEOF];
   cbPastEOL.Caption := Lang[ID_EOPT_PASTEOL];
@@ -650,6 +661,8 @@ begin
   gbCBEngine.Caption := Lang[ID_EOPT_BROWSERENGINE];
   chkCBParseLocalH.Caption := Lang[ID_EOPT_BROWSERLOCAL];
   chkCBParseGlobalH.Caption := Lang[ID_EOPT_BROWSERGLOBAL];
+  chkUseTabnine.Caption := Lang[ID_EOPT_USETABNINE];
+  lblUseTabnine.Caption := Lang[ID_EOPT_USETABNINE_NOTE];
 
   // Completion tab, symbol
   cbSymbolComplete.Caption := Lang[ID_EOPT_SYMBOLCOMPLETE];
@@ -676,6 +689,10 @@ begin
   NameOptions.Items[0] := Lang[ID_EOPT_AUTOSAVEOVERWRITE];
   NameOptions.Items[1] := Lang[ID_EOPT_AUTOSAVEUNIX];
   NameOptions.Items[2] := Lang[ID_EOPT_AUTOSAVETIME];
+
+  //Syntab Check
+  tabCheckSyntax.Caption :=  Lang[ID_EOPT_SYNTAXCHECK];
+  chkAutoCheckSyntaxInBack.Caption := LANG[ID_EOPT_SYNTAXCHECK_IN_BACK];
 
   tbCompletionDelayChange(nil);
   MinutesDelayChange(nil);
@@ -705,7 +722,7 @@ begin
     SpecialChars := cbSpecialChars.Checked;
     ShowFunctionTip := cbFunctionHint.Checked;
     TrimTrailingSpaces := cbTrimTrailingSpaces.Checked;
-
+    ShowRainbowBacket := chkShowRainbowColor.Checked;
     MarginVis := cbMarginVis.Checked;
     MarginSize := edMarginWidth.Value;
     MarginColor := cpMarginColor.Selected;
@@ -748,11 +765,15 @@ begin
     GlobalIncludeCompletion := cbGlobalIncludes.Checked;
     DeleteSymbolPairs := cbDeleteCompleted.Checked;
 
+    UseTabnine := chkUseTabnine.Checked;
+
     // Autosave
     EnableAutoSave := cbAutoSave.Checked;
     Interval := MinutesDelay.Position;
     AutoSaveFilter := FileOptions.ItemIndex;
     AutoSaveMode := NameOptions.ItemIndex;
+
+    AutoCheckSyntax := chkAutoCheckSyntaxInBack.Checked;    
 
     // Default source
     DefaultCode := cbDefaultCode.Checked;

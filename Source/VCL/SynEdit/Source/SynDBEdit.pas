@@ -44,23 +44,12 @@ unit SynDBEdit;
 interface
 
 uses
-{$IFNDEF SYN_COMPILER_3_UP}
-  DbTables,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  Qt,
-  QControls,
-  QDBCtrls,
-  QSynEdit,
-  QSynEditKeyCmds,
-{$ELSE}
   Windows,
   Messages,
   Controls,
   DbCtrls,
   SynEdit,
   SynEditKeyCmds,
-{$ENDIF}
   SysUtils,
   Classes,
   DB;
@@ -83,14 +72,12 @@ type
     procedure UpdateData(Sender: TObject);
   private
     {*****************}
-  {$IFNDEF SYN_CLX}
     procedure CMEnter(var Msg: TCMEnter);
       message CM_ENTER;
     procedure CMExit(var Msg: TCMExit);
       message CM_EXIT;
     procedure CMGetDataLink(var Msg: TMessage);
       message CM_GETDATALINK;
-  {$ENDIF}
   protected
     function GetReadOnly: boolean; override;
     procedure Loaded; override;
@@ -105,9 +92,6 @@ type
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
-  {$IFDEF SYN_CLX}
-    function EventFilter(Sender: QObjectH; Event: QEventH): Boolean; override;
-  {$ENDIF}
   protected
     property DataField: string read GetDataField write SetDataField;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
@@ -125,22 +109,16 @@ type
     property OnLoadData;
     // inherited properties
     property Align;
-{$IFDEF SYN_COMPILER_4_UP}
     property Anchors;
     property Constraints;
-{$ENDIF}
     property Color;
-  {$IFNDEF SYN_CLX}
     property Ctl3D;
-  {$ENDIF}
     property Enabled;
     property Font;
     property Height;
     property Name;
     property ParentColor;
-  {$IFNDEF SYN_CLX}
     property ParentCtl3D;
-  {$ENDIF}
     property ParentFont;
     property ParentShowHint;
     property PopupMenu;
@@ -155,11 +133,7 @@ type
     property OnDblClick;
     property OnDragDrop;
     property OnDragOver;
-{$IFDEF SYN_COMPILER_4_UP}
-  {$IFNDEF SYN_CLX}
     property OnEndDock;
-  {$ENDIF}
-{$ENDIF}
     property OnEndDrag;
     property OnEnter;
     property OnExit;
@@ -169,11 +143,7 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-{$IFDEF SYN_COMPILER_4_UP}
-  {$IFNDEF SYN_CLX}
     property OnStartDock;
-  {$ENDIF}
-{$ENDIF}
     property OnStartDrag;
     // TCustomSynEdit properties
     property BookMarkOptions;
@@ -235,16 +205,13 @@ begin
 end;
 
 {*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMEnter(var Msg: TCMEnter);
 begin
   SetEditing(True);
   inherited;
 end;
-{$ENDIF}
 
 {*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMExit(var Msg: TCMExit);
 begin
   try
@@ -256,15 +223,12 @@ begin
   SetEditing(False);
   inherited;
 end;
-{$ENDIF}
 
 {*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMGetDataLink(var Msg: TMessage);
 begin
   Msg.Result := Integer(FDataLink);
 end;
-{$ENDIF}
 
 procedure TCustomDBSynEdit.DataChange(Sender: TObject);
 begin
@@ -274,11 +238,9 @@ begin
       FBeginEdit := False;
       Exit;
     end;
-{$IFDEF SYN_COMPILER_3_UP}
     if FDataLink.Field.IsBlob then
       LoadMemo
     else
-{$ENDIF}
       Text := FDataLink.Field.Text;
     if Assigned(FLoadData) then
       FLoadData(Self);
@@ -348,22 +310,11 @@ begin
 end;
 
 procedure TCustomDBSynEdit.LoadMemo;
-{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
-{$ELSE}
-var
-  BlobStream: TBlobStream;
-  BlobField: TBlobField;
-{$ENDIF}
 begin
   try
-{$IFDEF SYN_COMPILER_3_UP}
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmRead);
-{$ELSE}
-    BlobField := FDataLink.Field as TBlobField;
-    BlobStream := TBlobStream.Create(BlobField, bmRead);
-{$ENDIF}
     Lines.BeginUpdate;
     Lines.LoadFromStream(BlobStream);
     Lines.EndUpdate;
@@ -410,9 +361,7 @@ procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
   if fEditing <> Value then begin
     fEditing := Value;
-{$IFDEF SYN_COMPILER_3_UP}
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
-{$ENDIF}
       FDataLink.Reset;
   end;
 end;
@@ -423,35 +372,17 @@ begin
 end;
 
 procedure TCustomDBSynEdit.UpdateData(Sender: TObject);
-{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
-{$ENDIF}
 begin
-{$IFDEF SYN_COMPILER_3_UP}
   if FDataLink.Field.IsBlob then
   begin
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmWrite);
     Lines.SaveToStream(BlobStream);
     BlobStream.Free;
   end else
-{$ENDIF}
     FDataLink.Field.AsString := Text;
 end;
-
-{$IFDEF SYN_CLX}
-function TCustomDBSynEdit.EventFilter(Sender: QObjectH;
-  Event: QEventH): Boolean;
-begin
-  Result := inherited EventFilter( Sender, Event );
-  case QEvent_type(Event) of
-    QEventType_FocusIn:
-      SetEditing( True );
-    QEventType_FocusOut:
-      SetEditing( False );
-  end;
-end;
-{$ENDIF}
 
 end.
 

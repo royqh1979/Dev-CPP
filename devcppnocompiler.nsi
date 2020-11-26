@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "No.Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.2-beta1"
+!define DEVCPP_VERSION "6.2-beta2"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -115,7 +115,6 @@ Section "$(SectionMainName)" SectionMain
 
   ; Write required files
   File "devcpp.exe"
-  File "devcppPortable.exe"
   File "packman.exe"
   File "ConsolePauser.exe"
   File "devcpp.exe.manifest"

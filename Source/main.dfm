@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 474
-  Top = 201
+  Left = 521
+  Top = 234
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -575,7 +575,7 @@ object MainForm: TMainForm
     object tbMain: TToolBar
       Left = 11
       Top = 2
-      Width = 205
+      Width = 114
       Height = 28
       ButtonHeight = 28
       ButtonWidth = 28
@@ -611,32 +611,9 @@ object MainForm: TMainForm
         Top = 0
         Action = actSaveAll
       end
-      object CloseBtn: TToolButton
-        Left = 112
-        Top = 0
-        Action = actClose
-      end
-      object CloseAllBtn: TToolButton
-        Left = 140
-        Top = 0
-        Action = actCloseAll
-      end
-      object ToolButton7: TToolButton
-        Left = 168
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton7'
-        ImageIndex = 5
-        Style = tbsSeparator
-      end
-      object PrintBtn: TToolButton
-        Left = 176
-        Top = 0
-        Action = actPrint
-      end
     end
     object tbCompile: TToolBar
-      Left = 543
+      Left = 209
       Top = 2
       Width = 113
       Height = 28
@@ -674,9 +651,9 @@ object MainForm: TMainForm
       end
     end
     object tbProject: TToolBar
-      Left = 435
-      Top = 2
-      Width = 95
+      Left = 244
+      Top = 34
+      Width = 92
       Height = 28
       ButtonHeight = 28
       ButtonWidth = 28
@@ -715,7 +692,7 @@ object MainForm: TMainForm
       end
     end
     object tbEdit: TToolBar
-      Left = 229
+      Left = 138
       Top = 2
       Width = 58
       Height = 28
@@ -743,8 +720,8 @@ object MainForm: TMainForm
       end
     end
     object tbSearch: TToolBar
-      Left = 300
-      Top = 2
+      Left = 11
+      Top = 34
       Width = 122
       Height = 28
       ButtonHeight = 28
@@ -789,7 +766,7 @@ object MainForm: TMainForm
       end
     end
     object tbSpecials: TToolBar
-      Left = 11
+      Left = 146
       Top = 34
       Width = 85
       Height = 28
@@ -823,7 +800,7 @@ object MainForm: TMainForm
       end
     end
     object tbClasses: TToolBar
-      Left = 328
+      Left = 349
       Top = 34
       Width = 700
       Height = 28
@@ -871,7 +848,7 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 669
+      Left = 554
       Top = 2
       Width = 339
       Height = 28
@@ -903,8 +880,8 @@ object MainForm: TMainForm
       end
     end
     object tbDebug: TToolBar
-      Left = 109
-      Top = 34
+      Left = 335
+      Top = 2
       Width = 206
       Height = 28
       ButtonHeight = 28
@@ -1113,7 +1090,6 @@ object MainForm: TMainForm
           MultiSelectStyle = []
           RowSelect = True
           ShowLines = False
-          ShowFilter = sfAll
           OnSelect = ClassBrowserSelect
           Parser = CppParser
           ItemImages.Globals = 0
@@ -1598,6 +1574,10 @@ object MainForm: TMainForm
           Checked = True
           OnClick = ToolbarDockClick
         end
+        object ToolDebugItem: TMenuItem
+          Caption = 'Debug'
+          Checked = True
+        end
         object N9: TMenuItem
           Caption = '-'
         end
@@ -1613,7 +1593,6 @@ object MainForm: TMainForm
         object ToolClassesItem: TMenuItem
           AutoCheck = True
           Caption = 'Classes'
-          Checked = True
           OnClick = ToolbarDockClick
         end
       end
@@ -2649,25 +2628,6 @@ object MainForm: TMainForm
       OnExecute = actBrowserNewVarExecute
       OnUpdate = actBrowserNewVarUpdate
     end
-    object actBrowserViewAll: TAction
-      Category = 'ClassBrowser'
-      Caption = 'All files'
-      Checked = True
-      OnExecute = actBrowserViewAllExecute
-      OnUpdate = actBrowserViewAllUpdate
-    end
-    object actBrowserViewProject: TAction
-      Category = 'ClassBrowser'
-      Caption = 'Project files'
-      OnExecute = actBrowserViewProjectExecute
-      OnUpdate = actBrowserViewAllUpdate
-    end
-    object actBrowserViewCurrent: TAction
-      Category = 'ClassBrowser'
-      Caption = 'Current file'
-      OnExecute = actBrowserViewCurrentExecute
-      OnUpdate = actBrowserViewAllUpdate
-    end
     object actSyntaxCheckFile: TAction
       Category = 'Execute'
       Caption = '&Syntax Check Current File'
@@ -2682,12 +2642,6 @@ object MainForm: TMainForm
       ImageIndex = 43
       OnExecute = actProfileExecute
       OnUpdate = actCompileRunUpdate
-    end
-    object actBrowserViewIncludes: TAction
-      Category = 'ClassBrowser'
-      Caption = 'System Headers'
-      OnExecute = actBrowserViewIncludesExecute
-      OnUpdate = actBrowserViewAllUpdate
     end
     object actBrowserAddFolder: TAction
       Category = 'ClassBrowser'
@@ -3210,34 +3164,6 @@ object MainForm: TMainForm
     end
     object mnuBrowserNewVariable: TMenuItem
       Action = actBrowserNewVar
-    end
-    object N31: TMenuItem
-      Caption = '-'
-    end
-    object mnuBrowserViewMode: TMenuItem
-      Caption = 'View mode'
-      object mnuBrowserViewAll: TMenuItem
-        Action = actBrowserViewAll
-        RadioItem = True
-      end
-      object mnuBrowserViewProject: TMenuItem
-        Action = actBrowserViewProject
-        RadioItem = True
-      end
-      object mnuBrowserViewCurrent: TMenuItem
-        Action = actBrowserViewCurrent
-        RadioItem = True
-      end
-      object mnuBrowserViewInclude: TMenuItem
-        Action = actBrowserViewIncludes
-        RadioItem = True
-      end
-      object N42: TMenuItem
-        Caption = '-'
-      end
-      object Showinheritedmembers1: TMenuItem
-        Action = actBrowserShowInherited
-      end
     end
   end
   object DebugPopup: TPopupMenu

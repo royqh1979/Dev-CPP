@@ -34,27 +34,17 @@ unit SynEditHighlighter;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  kTextDrawer,
-  Types,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditMiscClasses,
-{$ELSE}
   Graphics,
   Windows,
   Registry,
   IniFiles,
   SynEditTypes,
   SynEditMiscClasses,
-{$ENDIF}
   SysUtils,
   Classes;
 
-{$IFNDEF SYN_CLX}
 type
   TBetterRegistry = SynEditMiscClasses.TBetterRegistry;
-{$ENDIF}
 
 type
   TSynHighlighterAttributes = class(TPersistent)
@@ -81,14 +71,12 @@ type
     procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
     constructor Create(attribName: string);
     procedure InternalSaveDefaultValues;
-{$IFNDEF SYN_CLX}
     function LoadFromBorlandRegistry(rootKey: HKEY; attrKey, attrName: string;
       oldStyle: boolean): boolean; virtual;
     function LoadFromRegistry(Reg: TBetterRegistry): boolean;
     function SaveToRegistry(Reg: TBetterRegistry): boolean;
     function LoadFromFile(Ini : TIniFile): boolean;
     function SaveToFile(Ini : TIniFile): boolean;
-{$ENDIF}
   public
     property IntegerStyle: integer read GetStyleFromInt write SetStyleFromInt;
     property Name: string read fName;
@@ -162,6 +150,9 @@ type
     function GetIsLastLineStringNotFinish(value:Pointer):boolean; virtual;
     function GetEol: Boolean; virtual; abstract;
     function GetRange: Pointer; virtual;
+    function GetBraceLevel: integer; virtual;
+    function GetBracketLevel: integer; virtual;
+    function GetParenthesisLevel: integer; virtual;
     function GetToken: String; virtual; abstract;
     function GetTokenAttribute: TSynHighlighterAttributes; virtual; abstract;
     function GetTokenKind: integer; virtual; abstract;
@@ -171,15 +162,19 @@ type
     procedure NextToEol;
     procedure SetLine(NewValue: String; LineNumber:Integer); virtual; abstract;
     procedure SetRange(Value: Pointer); virtual;
+    procedure SetParenthesisLevel(Value: integer); virtual;
+    procedure SetBracketLevel(Value: integer); virtual;
+    procedure SetBraceLevel(Value: integer); virtual;
     procedure ResetRange; virtual;
+    procedure ResetParenthesisLevel; virtual;
+    procedure ResetBracketLevel; virtual;
+    procedure ResetBraceLevel; virtual;
     function UseUserSettings(settingIndex: integer): boolean; virtual;
     procedure EnumUserSettings(Settings: TStrings); virtual;
-{$IFNDEF SYN_CLX}
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; virtual;
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; virtual;
     function LoadFromFile(AFileName: String): boolean;
     function SaveToFile(AFileName: String): boolean;
-{$ENDIF}
     procedure HookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
     procedure UnhookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
     property IdentChars: TSynIdentChars read GetIdentChars;
@@ -368,7 +363,6 @@ begin
   fStyleDefault := fStyle;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynHighlighterAttributes.LoadFromBorlandRegistry(rootKey: HKEY;
   attrKey, attrName: string; oldStyle: boolean): boolean;
   // How the highlighting information is stored:
@@ -536,7 +530,6 @@ begin
   if oldStyle then Result := LoadOldStyle(rootKey, attrKey, attrName)
               else Result := LoadNewStyle(rootKey, attrKey, attrName);
 end; { TSynHighlighterAttributes.LoadFromBorlandRegistry }
-{$ENDIF}
 
 procedure TSynHighlighterAttributes.SetBackground(Value: TColor);
 begin
@@ -562,7 +555,6 @@ begin
   end;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynHighlighterAttributes.LoadFromRegistry(Reg: TBetterRegistry): boolean;
 var
   key: string;
@@ -626,7 +618,6 @@ begin
   Result := true;
 end;
 
-{$ENDIF}
 
 function TSynHighlighterAttributes.GetStyleFromInt: integer;
 begin
@@ -733,7 +724,6 @@ begin
   Result := false;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynCustomHighlighter.LoadFromRegistry(RootKey: HKEY;
   Key: string): boolean;
 var
@@ -803,8 +793,6 @@ begin
     AIni.Free;
   end;
 end;
-
-{$ENDIF}
 
 procedure TSynCustomHighlighter.AddAttribute(AAttrib: TSynHighlighterAttributes);
 begin
@@ -879,6 +867,19 @@ begin
   Result := nil;
 end;
 
+function TSynCustomHighlighter.GetBraceLevel: integer;
+begin
+  Result := 0;
+end;
+function TSynCustomHighlighter.GetBracketLevel: integer;
+begin
+  Result := 0;
+end;
+function TSynCustomHighlighter.GetParenthesisLevel: integer;
+begin
+  Result := 0;
+end;
+
 {note: Implementation subclass should override this }
 function TSynCustomHighlighter.GetTokenFinished: boolean;
 begin
@@ -926,6 +927,18 @@ procedure TSynCustomHighlighter.ResetRange;
 begin
 end;
 
+procedure TSynCustomHighlighter.ResetParenthesisLevel;
+begin
+end;
+
+procedure TSynCustomHighlighter.ResetBracketLevel;
+begin
+end;
+
+procedure TSynCustomHighlighter.ResetBraceLevel;
+begin
+end;
+
 procedure TSynCustomHighlighter.SetAttributesOnChange(AEvent: TNotifyEvent);
 var
   i: integer;
@@ -943,6 +956,18 @@ end;
 procedure TSynCustomHighlighter.SetRange(Value: Pointer);
 begin
 end;
+
+procedure TSynCustomHighlighter.SetParenthesisLevel(Value: integer);
+begin
+end;
+
+procedure TSynCustomHighlighter.SetBracketLevel(Value: integer);
+begin
+end;
+procedure TSynCustomHighlighter.SetBraceLevel(Value: integer);
+begin
+end;
+
 
 procedure TSynCustomHighlighter.SetDefaultFilter(Value: string);
 begin

@@ -56,15 +56,9 @@ unit SynHighlighterHaskell;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -223,12 +217,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   Windows,
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1124,7 +1114,6 @@ end;
 
 procedure TSynHaskellSyn.EnumUserSettings(settings: TStrings);
 begin
-  {$IFNDEF SYN_CLX}
   { returns the user settings that exist in the registry }
   with TBetterRegistry.Create do
   begin
@@ -1142,7 +1131,6 @@ begin
       Free;
     end;
   end;
-  {$ENDIF}
 end;
 
 function TSynHaskellSyn.GetIdentChars: TSynIdentChars;

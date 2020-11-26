@@ -52,16 +52,10 @@ unit SynHighlighterVBScript;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-{$ELSE}
   Graphics,
   Registry,
   SynEditHighlighter,
   SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -208,11 +202,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;

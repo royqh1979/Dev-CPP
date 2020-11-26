@@ -41,14 +41,9 @@ interface
 {$I SynEdit.inc}
 
 uses
-{$IFDEF SYN_CLX}  //js 06-04-2002
-  QGraphics, QControls, QForms, QDialogs, QExtCtrls, QStdCtrls, QButtons, Types,
-  QSynAutoCorrect,
-{$ELSE}
   Windows,  Messages, Graphics, Controls, Forms, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Registry,
   SynAutoCorrect,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -75,10 +70,8 @@ type
   private
     procedure lbxItemsDrawItemCLX(Sender: TObject; Index: Integer;
       Rect: TRect; State: TOwnerDrawState; var Handled: Boolean);
-{$IFNDEF SYN_CLX}
     procedure lbxItemsDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
-{$ENDIF}
   public
     SynAutoCorrect: TSynAutoCorrect;
   end;
@@ -124,7 +117,6 @@ begin
   end;
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TfrmAutoCorrectEditor.lbxItemsDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var
@@ -133,7 +125,6 @@ begin
   Dummy := True;
   lbxItemsDrawItemCLX( Control, Index, Rect, State, Dummy );
 end;
-{$ENDIF}
 
 procedure TfrmAutoCorrectEditor.btnAddClick(Sender: TObject);
 var
@@ -162,12 +153,7 @@ procedure TfrmAutoCorrectEditor.btnDeleteClick(Sender: TObject);
 begin
   if lbxItems.ItemIndex < 0 then
   begin
-  {$IFDEF SYN_CLX}
-    ShowMessage(SPleaseSelectItem);
-  {$ELSE} //js 06-04-2002 no messagebox in clx
     MessageBox(0, SPleaseSelectItem, SError, MB_ICONERROR or MB_OK);
-  {$ENDIF}
-
     Exit;
   end;
 
@@ -185,11 +171,7 @@ var
 begin
   if lbxItems.ItemIndex < 0 then
   begin
-  {$IFDEF SYN_CLX}
-    ShowMessage(SPleaseSelectItem);
-  {$ELSE} //js 06-04-2002 no messagebox in clx
     MessageBox(0, SPleaseSelectItem, SError, MB_ICONERROR or MB_OK);
-  {$ENDIF}
     Exit;
   end;
 
@@ -219,10 +201,8 @@ end;
 
 procedure TfrmAutoCorrectEditor.btnClearClick(Sender: TObject);
 begin
-{$IFNDEF SYN_CLX} //js 06-04-2002
   if MessageBox(0, SClearListConfirmation, SConfirmation,
     MB_YESNO or MB_ICONQUESTION) <> IDYES then Exit;
-{$ENDIF}
   SynAutoCorrect.Items.Clear;
   lbxItems.Items.Clear;
 
@@ -240,13 +220,8 @@ procedure TfrmAutoCorrectEditor.FormCreate(Sender: TObject);
 begin
   ClientWidth := 521;
   ClientHeight := 377;
-{$IFDEF SYN_CLX}
-  lbxItems.OnDrawItem := lbxItemsDrawItemCLX;
-  BorderStyle := fbsSingle;
-{$ELSE}
   lbxItems.OnDrawItem := lbxItemsDrawItem;
   BorderStyle := bsSingle;
-{$ENDIF}
 end;
 
 procedure TfrmAutoCorrectEditor.FormPaint(Sender: TObject);

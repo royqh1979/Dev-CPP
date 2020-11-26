@@ -1,3 +1,17 @@
+Version 6.2-beta2
+
+  - fix: Shortcut '/' and Shift+/ for Indent and Unindent doesn't work
+  - enhancement: use different colors for embedded ()/{}/[]
+  - enhancement: use hex format to save color settings in the config file
+  - enhancement: tabnine integration (experiment)
+  - enhancement: save debug toolbar position; streamline default toolbar
+  - fix: devcpp deadlock when define a function
+  - fix: Debug Console don't show the commands entered when "Display Debug Commands" option is disabled.
+  - enhancement: better display of syntax errors;
+  - enhancement: auto check syntax errors after save;
+  - enhancement: now we don't parse project files when open a project 
+  - change: remove show all/show projects/show includes option in class browser ( these options is not very useful or need to parse all project files, which is slow)
+
 Version 6.2-beta1
 
  - enhancement: correctly process C++ 11 R""/L""/u""/U"" string literals

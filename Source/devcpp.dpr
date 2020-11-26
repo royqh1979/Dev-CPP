@@ -91,7 +91,9 @@ uses
   Refactorer in 'Refactorer.pas',
   CodePage in 'CodePage.pas',
   Registry,
-  CodeInsList in 'CodeInsList.pas';
+  CodeInsList in 'CodeInsList.pas',
+  TabnineForm in 'TabnineForm.pas' {TabnineForm},
+  Tabnine in 'Tabnine.pas';
 
 {$R *.res}
 

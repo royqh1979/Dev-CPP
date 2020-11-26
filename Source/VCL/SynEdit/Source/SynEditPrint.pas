@@ -91,20 +91,6 @@ unit SynEditPrint;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QPrinters,
-  Types,
-  QSynEdit,
-  QSynEditTypes,
-  QSynEditPrintTypes,
-  QSynEditPrintHeaderFooter,
-  QSynEditPrinterInfo,
-  QSynEditPrintMargins,
-  QSynEditMiscProcs,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   Printers,
@@ -116,7 +102,6 @@ uses
   SynEditPrintMargins,
   SynEditMiscProcs,
   SynEditHighlighter,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -368,9 +353,7 @@ procedure TSynEditPrint.InitPrint;
   headers and footers}
 var
   TmpSize: Integer;
-{$IFNDEF SYN_CLX}
   TmpTextMetrics: TTextMetric;
-{$ENDIF}
 begin
 //  FDefaultBG := FCanvas.Brush.Color;                                          // djlp 2000-09-20
   fFontColor := FFont.Color;                                                    // djlp 2000-09-20
@@ -386,14 +369,9 @@ begin
   // Calculate TextMetrics with the (probably) most wider text styles so text is
   // never clipped (although potentially wasting space)
   FCanvas.Font.Style := [fsBold, fsItalic, fsUnderline, fsStrikeOut];
-{$IFDEF SYN_CLX}
-  CharWidth := FCanvas.TextWidth( 'W' );
-  FLineHeight := FCanvas.TextHeight( 'Wp¹' );
-{$ELSE}
   GetTextMetrics(FCanvas.Handle, TmpTextMetrics);
   CharWidth := TmpTextMetrics.tmAveCharWidth;
   FLineHeight := TmpTextMetrics.tmHeight + TmpTextMetrics.tmExternalLeading;
-{$ENDIF}
   FCanvas.Font.Style := FFont.Style;
   FMargins.InitPage(FCanvas, 1, FPrinterInfo, FLineNumbers, FLineNumbersInMargin,
     FLines.Count - 1 + FLineOffset);
@@ -644,11 +622,7 @@ var
   procedure ClippedTextOut(X, Y: Integer; Text: string);
   begin
     Text := ClipLineToRect(Text, ClipRect);
-    {$IFDEF SYN_CLX}
-    FCanvas.TextOut(X, Y, Text);
-    {$ELSE}
     ExtTextOut(FCanvas.Handle, X, Y, 0, nil, PChar(Text), Length(Text), @FETODist[0]);
-    {$ENDIF}
   end;
 
   procedure SplitToken;
@@ -743,10 +717,8 @@ begin
           end;
         end;
       end;
-      {$IFNDEF SYN_CLX}
       if not Handled then
         ClippedTextOut(FMargins.PLeft + (TokenPos - TokenStart) * FCharWidth, FYPos, Token);
-      {$ENDIF}
       FHighLighter.Next;
     end;
     RestoreCurrentFont;
@@ -930,9 +902,7 @@ function TSynEditPrint.GetPageCount: Integer;
  then a UpdatePages is called with a temporary canvas}
 var
   TmpCanvas: TCanvas;
-  {$IFNDEF SYN_CLX}
   DC: HDC;
-  {$ENDIF}
 begin
   Result := 0;
   if FPagesCounted then
@@ -941,7 +911,6 @@ begin
     TmpCanvas := TCanvas.Create;
     try
       {************}
-      {$IFNDEF SYN_CLX}
       DC := GetDC(0);
       try
         if DC <> 0 then
@@ -955,7 +924,6 @@ begin
       finally
         ReleaseDC(0, DC);
       end;
-      {$ENDIF}
     finally
       TmpCanvas.Free;
     end;

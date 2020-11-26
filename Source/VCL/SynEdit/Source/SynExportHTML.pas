@@ -47,17 +47,10 @@ unit SynExportHTML;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditExport,
-  QSynEditHighlighter,
-{$ELSE}
   Windows,
   Graphics,
   SynEditExport,
   SynEditHighlighter,
-{$ENDIF}
   Classes;
 
 type
@@ -106,15 +99,9 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst,
-  QSynHighlighterMulti,
-{$ELSE}
   SynEditMiscProcs,
-  SynEditStrConst,  
+  SynEditStrConst,
   SynHighlighterMulti,
-{$ENDIF}
   SysUtils;
 
 
@@ -126,9 +113,7 @@ const
 begin
   inherited Create(AOwner);
   {**************}
-  {$IFNDEF SYN_CLX}
   fClipboardFormat := RegisterClipboardFormat(CF_HTML);
-  {$ENDIF}
   fDefaultFilter := SYNS_FilterHTML;
   // setup array of chars to be replaced
   fReplaceReserved['&'] := '&amp;';

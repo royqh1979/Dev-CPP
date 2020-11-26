@@ -50,14 +50,8 @@ unit SynHighlighterLDraw;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-{$ELSE}
   Windows, Controls, Graphics,
   SynEditHighlighter, SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -165,22 +159,11 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
   mHashTable : array[#0..#255] of Integer;
-
-{$IFDEF SYN_CLX}
-function RGB(CONST r, g, b:  BYTE):  TColor;
-begin
-  RESULT := (r OR (g SHL 8) OR (b SHL 16))
-end;
-{$ENDIF}
 
 procedure MakeIdentTable;
 var

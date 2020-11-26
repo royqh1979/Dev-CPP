@@ -220,7 +220,6 @@ type
   // class-browsing view style
   TdevClassBrowsing = class(TPersistent)
   private
-    fShowFilter: integer;
     fShowInheritedMembers: boolean;
     fSortByType: boolean;
     fSortAlphabetically: boolean;
@@ -230,7 +229,6 @@ type
     procedure SaveSettings;
     procedure LoadSettings;
   published
-    property ShowFilter: integer read fShowFilter write fShowFilter;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write fShowInheritedMembers;
     property SortByType : boolean read fSortByType write fSortByType;
     property SortAlphabetically: boolean read fSortAlphabetically write fSortAlphabetically;
@@ -424,6 +422,8 @@ type
     fAutoSaveFilter: integer;
     fAutoSaveMode: integer;
 
+    fAutoCheckSyntax: boolean;
+
     // Symbol completion
     fBraceComplete: boolean;
     fParentheseComplete: boolean;
@@ -437,6 +437,10 @@ type
     fDeleteSymbolPairs: boolean;
 
     fUseUTF8ByDefault : boolean;
+
+    fUseTabnine: boolean;
+
+    fShowRainbowBacket : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -510,7 +514,12 @@ type
     property GlobalIncludeCompletion: boolean read fGlobalIncludeCompletion write fGlobalIncludeCompletion;
     property CompleteSymbols: boolean read fCompleteSymbols write fCompleteSymbols;
     property DeleteSymbolPairs: boolean read fDeleteSymbolPairs write fDeleteSymbolPairs;
+
     property UseUTF8ByDefault: boolean read fUseUTF8ByDefault write fUseUTF8ByDefault;
+    property UseTabnine: boolean read fUseTabnine write fUseTabnine;
+    property ShowRainbowBacket:boolean read fShowRainbowBacket write fShowRainbowBacket;
+
+    property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax; 
   end;
 
   TWindowState = class(TPersistent)
@@ -595,6 +604,10 @@ type
     fToolbarCompilers: boolean;
     fToolbarCompilersX: integer;
     fToolbarCompilersY: integer;
+    fToolbarDebug: boolean;
+    fToolbarDebugX: integer;
+    fToolbarDebugY: integer;
+
 
     // file associations (see FileAssocs.pas)
     fAssociateC: boolean;
@@ -713,6 +726,10 @@ type
     property ToolbarCompilers: boolean read fToolbarCompilers write fToolbarCompilers;
     property ToolbarCompilersX: integer read fToolbarCompilersX write fToolbarCompilersX;
     property ToolbarCompilersY: integer read fToolbarCompilersY write fToolbarCompilersY;
+    property ToolbarDebug: boolean read fToolbarDebug write fToolbarDebug;
+    property ToolbarDebugX: integer read fToolbarDebugX write fToolbarDebugX;
+    property ToolbarDebugY: integer read fToolbarDebugY write fToolbarDebugY;
+
 
     // file associations
     property AssociateC: boolean read fAssociateC write fAssociateC;
@@ -989,30 +1006,35 @@ begin
   fShortenCompPaths := False;
 
   // TODO: retrieve directly from visual editor
+
   fToolbarMain := TRUE;
   fToolbarMainX := 11;
   fToolbarMainY := 2;
   fToolbarEdit := TRUE;
-  fToolbarEditX := 196;
+  fToolbarEditX := 138;
   fToolbarEditY := 2;
   fToolbarCompile := TRUE;
-  fToolbarCompileX := 464;
+  fToolbarCompileX := 209;
   fToolbarCompileY := 2;
-  fToolbarProject := TRUE;
-  fToolbarProjectX := 373;
-  fToolbarProjectY := 2;
-  fToolbarSpecials := TRUE;
-  fToolbarSpecialsX := 11;
-  fToolbarSpecialsY := 30;
-  fToolbarSearch := TRUE;
-  fToolbarSearchX := 233;
-  fToolbarSearchY := 2;
-  fToolbarClasses := TRUE;
-  fToolbarClassesX := 95;
-  fToolbarClassesY := 30;
+  fToolbarDebug := TRUE;
+  fToolbarDebugX := 335;
+  fToolbarDebugY := 2;
   fToolbarCompilers := TRUE;
-  fToolbarCompilersX := 686;
+  fToolbarCompilersX := 554;
   fToolbarCompilersY := 2;
+
+  fToolbarSearch := FALSE;
+  fToolbarSearchX := 11;
+  fToolbarSearchY := 34;
+  fToolbarSpecials := FALSE;
+  fToolbarSpecialsX := 146;
+  fToolbarSpecialsY := 34;
+  fToolbarProject := FALSE;
+  fToolbarProjectX := 244;
+  fToolbarProjectY := 34;
+  fToolbarClasses := False;
+  fToolbarClassesX := 349;
+  fToolbarClassesY := 34;
 
   // Office 2007 / Vista support
   osinfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
@@ -2489,7 +2511,12 @@ begin
 
   fUseUTF8ByDefault := True;
 
+  fUseTabnine:= False;
   fSyntax.Clear;
+
+  fShowRainbowBacket:=True;
+
+  fAutoCheckSyntax:=True;
 
 end;
 
@@ -2610,6 +2637,8 @@ begin
         Options := Options + [eoShowSpecialChars];
       if fTrimTrailingSpaces then
         Options := Options + [eoTrimTrailingSpaces];
+      if fShowRainbowBacket then
+        Options := Options + [eoShowRainbowColor];
     finally
       EndUpdate;
     end;
@@ -2676,7 +2705,6 @@ end;
 
 procedure TdevClassBrowsing.SettoDefaults;
 begin
-  fShowFilter := 2; // sfCurrent
   fShowInheritedMembers := False;
   fSortByType := False;
   fSortAlphabetically := False;

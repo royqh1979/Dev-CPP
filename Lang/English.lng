@@ -93,6 +93,7 @@ Ver=1
 5025=Replace In Files...
 5026=Compilers
 5027=Search Again Backwards
+5028=Debug
 
 
 6001=&New File
@@ -375,6 +376,7 @@ Ver=1
 26034=Max number of items in the suggesion window:
 26035=Show frequently used symbols first
 26036=Clear Symbol Usage Data
+26037=Use diffrent colors for embedding parentheses
 
 27001=Show hidden line characters
 27002=Show mouseover hints
@@ -446,7 +448,10 @@ Ver=1
 27068=Complete single quotes ''''
 27069=Complete double quotes '""'
 27070=Prefix
-
+27071=Enable Tabnine Completion
+27072=Tabnine needs huge amount of memory(>1G), a powerful CPU and a good network to run smoothly. Please download Tabnine.exe from https://github.com/codota/tabnine-sublime/tree/master/binaries , and put it under Dev-CPP folder.
+27073=Syntax Check
+27074=Check Syntax when open/save files
 
 28001=Name:
 28002=&C Project
@@ -455,7 +460,6 @@ Ver=1
 28005=Misc
 28006=Project Options
 28007=Location:
-
 
 29001=Remove from project
 29002=Select the file to remove from the project:
@@ -975,7 +979,9 @@ Ver=1
 61036=Can't process multiline selection.
 61037=The selected expression is imcomplete.
 61038=The selected expression has identifiers which can't be extract.
-61028=Definition of %s is not in the project files.
+61039=Definition of %s is not in the project files.
+61040=TABNINE executable '%s' not exists.<CR>Please download tabnine.exe from https://github.com/codota/tabnine-sublime/tree/master/binaries .
+
 
 62001=Untitled
 62002=ReadOnly

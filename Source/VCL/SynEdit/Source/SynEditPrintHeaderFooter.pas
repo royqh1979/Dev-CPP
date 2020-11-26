@@ -103,17 +103,10 @@ unit SynEditPrintHeaderFooter;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditPrintTypes,
-  QSynEditPrintMargins,
-{$ELSE}
   Windows,
   Graphics,
   SynEditPrintTypes,
   SynEditPrintMargins,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -234,21 +227,11 @@ type
     constructor Create;
   end;
 
-  {$IFNDEF SYN_COMPILER_3_UP}
-  TFontCharSet = 0..255;
-  {$ENDIF}
-
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_4_UP}
   Math,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 {begin}                                                                         //gp 2000-06-24
 // Helper routine for AsString processing.
@@ -285,15 +268,7 @@ function THeaderFooterItem.GetAsString: string;
 begin
   Result :=
     EncodeString(FText) + '/' +
-{$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-    IntToStr(Ord(FFont.Charset)) + '/' +
-{$ELSE}
     IntToStr(FFont.Charset) + '/' +
-{$ENDIF}
-{$ELSE}
-    IntToStr(DEFAULT_CHARSET)+'/' +                             
-{$ENDIF}
     IntToStr(FFont.Color) + '/' +
     IntToStr(FFont.Height) + '/' +
     EncodeString(FFont.Name) + '/' +
@@ -447,9 +422,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FFont.Charset := aCharset;
-    {$ENDIF}
     FFont.Color   := aColor;
     FFont.Height  := aHeight;
     FFont.Name    := aName;
@@ -477,11 +450,7 @@ begin
     Write(PChar(FText)^, aLen);
     Write(FLineNumber, SizeOf(FLineNumber));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FFont.Charset;
-    {$ELSE}
-    aCharset := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FFont.Color;
     aHeight  := FFont.Height;
     aName    := FFont.Name;
@@ -493,11 +462,7 @@ begin
     Write(aHeight, SizeOf(aHeight));
     aLen := Length(aName);
     Write(aLen, SizeOf(aLen));
-    {$IFDEF SYN_COMPILER_2}           // In D2 TFontName is a ShortString
-    Write(PChar(@aName[1])^, aLen);   // D2 cannot convert ShortStrings to PChar
-    {$ELSE}
     Write(PChar(aName)^, aLen);
-    {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
     Write(aStyle, SizeOf(aStyle));
@@ -512,15 +477,7 @@ var
 begin
   s := Value;
   FText := DecodeString(GetFirstEl(s, '/'));
-{$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-  GetFirstEl(s, '/');
-{$ELSE}
   FFont.Charset := StrToIntDef(GetFirstEl(s, '/'), 0);
-{$ENDIF}
-{$ELSE}
-  GetFirstEl(s, '/');
-{$ENDIF}
   FFont.Color := StrToIntDef(GetFirstEl(s, '/'), 0);
   FFont.Height := StrToIntDef(GetFirstEl(s, '/'), 0);
   FFont.Name := DecodeString(GetFirstEl(s, '/'));
@@ -652,9 +609,7 @@ var
   AItem: THeaderFooterItem;
   FOrgHeight: Integer;
   {************}
-{$IFNDEF SYN_CLX}
   TextMetric: TTextMetric;
-{$ENDIF}
 begin
   FFrameHeight := -1;
   if FItems.Count <= 0 then Exit;
@@ -672,14 +627,12 @@ begin
     end;
     ACanvas.Font.Assign(AItem.Font);
     {************}
-  {$IFNDEF SYN_CLX}
     GetTextMetrics(ACanvas.Handle, TextMetric);
     with TLineInfo(FLineInfo[CurLine - 1]), TextMetric do
     begin
       LineHeight := Max(LineHeight, ACanvas.TextHeight('W'));
       MaxBaseDist := Max(MaxBaseDist, tmHeight - tmDescent);
     end;
-  {$ENDIF}
     FFrameHeight := Max(FFrameHeight, FOrgHeight + ACanvas.TextHeight('W'));
   end;
   FFrameHeight := FFrameHeight + 2 * FMargins.PHFInternalMargin;
@@ -776,9 +729,7 @@ var
   i, X, Y, CurLine: Integer;
   AStr: string;
   AItem: THeaderFooterItem;
-{$IFNDEF SYN_CLX}
   OldAlign: UINT;
-{$ENDIF}
   TheAlignment: TAlignment;
 begin
   if (FFrameHeight <= 0) then Exit; //No header/footer
@@ -818,14 +769,10 @@ begin
     end;
       {Aligning at base line - Fonts can have different size in headers and footers}
     {************}
-  {$IFNDEF SYN_CLX}
     OldAlign := SetTextAlign(ACanvas.Handle, TA_BASELINE);
-  {$ENDIF}
     ACanvas.TextOut(X, Y + TLineInfo(FLineInfo[CurLine - 1]).MaxBaseDist, AStr);
     {************}
-  {$IFNDEF SYN_CLX}
     SetTextAlign(ACanvas.Handle, OldAlign);
-  {$ENDIF}
   end;
   RestoreFontPenBrush(ACanvas);
 end;
@@ -931,9 +878,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FDefaultFont.Charset := aCharset;
-    {$ENDIF}
     FDefaultFont.Color   := aColor;
     FDefaultFont.Height  := aHeight;
     FDefaultFont.Name    := aName;
@@ -971,11 +916,7 @@ begin
     Write(FRomanNumbers, SizeOf(FRomanNumbers));
     Write(FMirrorPosition, SizeOf(FMirrorPosition));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FDefaultFont.Charset;
-    {$ELSE}
-    aCharSet := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FDefaultFont.Color;
     aHeight  := FDefaultFont.Height;
     aName    := FDefaultFont.Name;
@@ -987,11 +928,7 @@ begin
     Write(aHeight, SizeOf(aHeight));
     aLen := Length(aName);
     Write(aLen, SizeOf(aLen));
-    {$IFDEF SYN_COMPILER_2}                    // In D2 TFontName is a ShortString
-    Write(PChar(@aName[1])^, Length(aName));   // D2 cannot convert ShortStrings to PChar
-    {$ELSE}
     Write(PChar(aName)^, Length(aName));
-    {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
     Write(aStyle, SizeOf(aStyle));
