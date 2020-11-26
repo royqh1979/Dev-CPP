@@ -173,6 +173,7 @@ type
     eoSpecialLineDefaultFg, //disables the foreground text color override when using the OnSpecialLineColor event
     eoTabIndent, //When active <Tab> and <Shift><Tab> act as block indent, unindent when text is selected
     eoTabsToSpaces, //Converts a tab character to a specified number of space characters
+    eoShowRainbowColor,
     eoTrimTrailingSpaces //Spaces at the end of lines will be trimmed and not saved
     );
 
@@ -2646,9 +2647,10 @@ var
   procedure PaintEditAreas(areaList:TList; colBorder:TColor;areaType:TEditingAreaType);
   var
     rc:TRect;
-    i:integer;
+    i,t:integer;
     p:PEditingArea;
     x1,x2:integer;
+    offset:integer;
   begin
     rc:=rcLine;
     dec(rc.bottom);
@@ -2670,11 +2672,28 @@ var
       rc.Left := ColumnToXValue(x1);
       rc.Right := ColumnToXValue(x2);
       Canvas.Pen.Color := colBorder;
-      canvas.MoveTo(rc.Left,rc.Top);
-      canvas.LineTo(rc.Right,rc.Top);
-      canvas.LineTo(rc.Right,rc.bottom);
-      canvas.LineTo(rc.Left,rc.bottom);
-      canvas.LineTo(rc.Left,rc.Top);
+      case areaType of
+        eatEditing: begin
+          canvas.MoveTo(rc.Left,rc.Top);
+          canvas.LineTo(rc.Right,rc.Top);
+          canvas.LineTo(rc.Right,rc.bottom);
+          canvas.LineTo(rc.Left,rc.bottom);
+          canvas.LineTo(rc.Left,rc.Top);
+        end;
+        eatError: begin
+          offset:=3;
+          canvas.MoveTo(rc.Left,rc.Bottom-offset);
+          t:=rc.left;
+          inc(t,3);
+          while t<=rc.Right do begin
+            if t>rc.Right then
+              t:=rc.Right;
+            offset := 3 - offset;
+            canvas.LineTo(t,rc.Bottom-offset);
+            inc(t,3);
+          end;
+        end;
+      end;
     end;
   end;
 
@@ -2944,6 +2963,26 @@ var
     end;
   end;
 
+  procedure GetBraceColorAttr(level:integer; var attr:TSynHighlighterAttributes);
+  begin
+    if not (eoShowRainbowColor in fOptions) then
+      Exit;
+    case (level mod 4) of
+      0: begin
+        attr := fHighlighter.KeywordAttribute;
+      end;
+      1: begin
+        attr := fHighlighter.SymbolAttribute;
+      end;
+      2: begin
+        attr := fHighlighter.StringAttribute;
+      end;
+      3: begin
+        attr := fHighlighter.IdentifierAttribute;
+      end;
+    end;
+  end;
+
   procedure PaintLines;
   var
     cRow: integer; // row index for the loop
@@ -3116,95 +3155,17 @@ var
             // It's at least partially visible. Get the token attributes now.
             attr := fHighlighter.GetTokenAttribute;
             if sToken = '[' then begin
-              case (fHighlighter.GetBracketLevel mod 4) of
-                0: begin
-                  attr := fHighlighter.KeywordAttribute;
-                end;
-                1: begin
-                  attr := fHighlighter.SymbolAttribute;
-                end;
-                2: begin
-                  attr := fHighlighter.CommentAttribute;
-                end;
-                3: begin
-                  attr := fHighlighter.StringAttribute;
-                end;
-              end;
+              GetBraceColorAttr(fHighlighter.GetBracketLevel,attr);
             end else if sToken = ']' then begin
-              case ((fHighlighter.GetBracketLevel+1) mod 4) of
-                0: begin
-                  attr := fHighlighter.KeywordAttribute;
-                end;
-                1: begin
-                  attr := fHighlighter.SymbolAttribute;
-                end;
-                2: begin
-                  attr := fHighlighter.CommentAttribute;
-                end;
-                3: begin
-                  attr := fHighlighter.StringAttribute;
-                end;
-              end;
+              GetBraceColorAttr(fHighlighter.GetBracketLevel+1,attr);
             end else if sToken = '(' then begin
-              case (fHighlighter.GetParenthesisLevel mod 4) of
-                0: begin
-                  attr := fHighlighter.KeywordAttribute;
-                end;
-                1: begin
-                  attr := fHighlighter.SymbolAttribute;
-                end;
-                2: begin
-                  attr := fHighlighter.CommentAttribute;
-                end;
-                3: begin
-                  attr := fHighlighter.StringAttribute;
-                end;
-              end;
+              GetBraceColorAttr(fHighlighter.GetParenthesisLevel,attr);
             end else if sToken = ')' then begin
-              case ((fHighlighter.GetParenthesisLevel+1) mod 4) of
-                0: begin
-                  attr := fHighlighter.KeywordAttribute;
-                end;
-                1: begin
-                  attr := fHighlighter.SymbolAttribute;
-                end;
-                2: begin
-                  attr := fHighlighter.CommentAttribute;
-                end;
-                3: begin
-                  attr := fHighlighter.StringAttribute;
-                end;
-              end;
+              GetBraceColorAttr(fHighlighter.GetParenthesisLevel+1,attr);
             end else if sToken = '{' then begin
-              case (fHighlighter.GetBraceLevel mod 4) of
-                0: begin
-                  attr := fHighlighter.KeywordAttribute;
-                end;
-                1: begin
-                  attr := fHighlighter.SymbolAttribute;
-                end;
-                2: begin
-                  attr := fHighlighter.CommentAttribute;
-                end;
-                3: begin
-                  attr := fHighlighter.StringAttribute;
-                end;
-              end;
+              GetBraceColorAttr(fHighlighter.GetBraceLevel,attr);
             end else if sToken = '}' then begin
-              case ((fHighlighter.GetBraceLevel+1) mod 4) of
-                0: begin
-                  attr := fHighlighter.KeywordAttribute;
-                end;
-                1: begin
-                  attr := fHighlighter.SymbolAttribute;
-                end;
-                2: begin
-                  attr := fHighlighter.CommentAttribute;
-                end;
-                3: begin
-                  attr := fHighlighter.StringAttribute;
-                end;
-              end; 
+              GetBraceColorAttr(fHighlighter.GetBraceLevel+1,attr);
             end;
             AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
               nTokenLen, attr);

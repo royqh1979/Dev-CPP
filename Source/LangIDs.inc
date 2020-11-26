@@ -415,6 +415,7 @@ const
   ID_EOPT_CODECOMPLETE_MAXCOUNT         = 26034;
   ID_EOPT_CODECOMPLETE_RECORD_USAGE      = 26035;
   ID_EOPT_CODECOMPLETE_CLEAR_USAGE      = 26036;
+  ID_EOPT_SHOWRAINBOW_COLOR             = 26037;  
 
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;
@@ -503,6 +504,9 @@ const
   ID_EOPT_CIPREFIX                     = 27070;
   ID_EOPT_USETABNINE                    = 27071;
   ID_EOPT_USETABNINE_NOTE               = 27072;
+  ID_EOPT_SYNTAXCHECK                   = 27073;
+  ID_EOPT_SYNTAXCHECK_IN_BACK           = 27074;
+
 
   // new project
   ID_NP_PRJNAME                         = 28001;

@@ -161,6 +161,9 @@ type
     tabTabnine: TTabSheet;
     chkUseTabnine: TCheckBox;
     lblUseTabnine: TLabel;
+    chkShowRainbowColor: TCheckBox;
+    tabCheckSyntax: TTabSheet;
+    chkAutoCheckSyntaxInBack: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -305,6 +308,7 @@ begin
     cbSpecialChars.Checked := SpecialChars;
     cbFunctionHint.Checked := ShowFunctionTip;
     cbTrimTrailingSpaces.Checked := TrimTrailingSpaces;
+    chkShowRainbowColor.Checked := ShowRainbowBacket;
     cbMarginVis.Checked := MarginVis;
     edMarginWidth.Value := MarginSize;
     cpMarginColor.Selected := MarginColor;
@@ -437,6 +441,8 @@ begin
     NameOptions.ItemIndex := devEditor.AutoSaveMode;
     cbAutoSave.Checked := devEditor.EnableAutoSave;
     cbAutoSaveClick(nil);
+
+    chkAutoCheckSyntaxInBack.Checked := devEditor.AutoCheckSyntax;
   end;
 
   // Colors, cont. 2
@@ -571,6 +577,7 @@ begin
   cbDropFiles.Caption := Lang[ID_EOPT_DROPFILES];
   cbSpecialChars.Caption := Lang[ID_EOPT_SPECIALCHARS];
   cbTrimTrailingSpaces.Caption := Lang[ID_EOPT_TRIMTRAILINGSPACES];
+  chkShowRainbowColor.Caption := Lang[ID_EOPT_SHOWRAINBOW_COLOR];
   cbEHomeKey.Caption := Lang[ID_EOPT_EHOMEKEY];
   cbPastEOF.Caption := Lang[ID_EOPT_PASTEOF];
   cbPastEOL.Caption := Lang[ID_EOPT_PASTEOL];
@@ -683,6 +690,10 @@ begin
   NameOptions.Items[1] := Lang[ID_EOPT_AUTOSAVEUNIX];
   NameOptions.Items[2] := Lang[ID_EOPT_AUTOSAVETIME];
 
+  //Syntab Check
+  tabSyntax.Caption :=  Lang[ID_EOPT_SYNTAXCHECK];
+  chkAutoCheckSyntaxInBack.Caption := LANG[ID_EOPT_SYNTAXCHECK_IN_BACK];
+
   tbCompletionDelayChange(nil);
   MinutesDelayChange(nil);
   NameOptionsClick(nil);
@@ -711,7 +722,7 @@ begin
     SpecialChars := cbSpecialChars.Checked;
     ShowFunctionTip := cbFunctionHint.Checked;
     TrimTrailingSpaces := cbTrimTrailingSpaces.Checked;
-
+    ShowRainbowBacket := chkShowRainbowColor.Checked;
     MarginVis := cbMarginVis.Checked;
     MarginSize := edMarginWidth.Value;
     MarginColor := cpMarginColor.Selected;
@@ -761,6 +772,8 @@ begin
     Interval := MinutesDelay.Position;
     AutoSaveFilter := FileOptions.ItemIndex;
     AutoSaveMode := NameOptions.ItemIndex;
+
+    AutoCheckSyntax := chkAutoCheckSyntaxInBack.Checked;    
 
     // Default source
     DefaultCode := cbDefaultCode.Checked;

@@ -376,6 +376,7 @@ Ver=1
 26034=Max number of items in the suggesion window:
 26035=Show frequently used symbols first
 26036=Clear Symbol Usage Data
+26037=Use diffrent colors for embedding parentheses
 
 27001=Show hidden line characters
 27002=Show mouseover hints
@@ -449,6 +450,8 @@ Ver=1
 27070=Prefix
 27071=Enable Tabnine Completion
 27072=Tabnine needs huge amount of memory(>1G), a powerful CPU and a good network to run smoothly. Please download Tabnine.exe from https://github.com/codota/tabnine-sublime/tree/master/binaries , and put it under Dev-CPP folder.
+27073=Syntax Check
+27074=Check Syntax when open/save files
 
 28001=Name:
 28002=&C Project

@@ -444,6 +444,7 @@ end;
 
 procedure TClassBrowser.OnParserBusy(Sender: TObject);
 begin
+  Items.Clear;
   BeginUpdate;
 end;
 

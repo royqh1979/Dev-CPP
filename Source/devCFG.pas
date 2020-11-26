@@ -424,6 +424,8 @@ type
     fAutoSaveFilter: integer;
     fAutoSaveMode: integer;
 
+    fAutoCheckSyntax: boolean;
+
     // Symbol completion
     fBraceComplete: boolean;
     fParentheseComplete: boolean;
@@ -439,6 +441,8 @@ type
     fUseUTF8ByDefault : boolean;
 
     fUseTabnine: boolean;
+
+    fShowRainbowBacket : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -515,6 +519,9 @@ type
 
     property UseUTF8ByDefault: boolean read fUseUTF8ByDefault write fUseUTF8ByDefault;
     property UseTabnine: boolean read fUseTabnine write fUseTabnine;
+    property ShowRainbowBacket:boolean read fShowRainbowBacket write fShowRainbowBacket;
+
+    property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax; 
   end;
 
   TWindowState = class(TPersistent)
@@ -2509,6 +2516,10 @@ begin
   fUseTabnine:= False;
   fSyntax.Clear;
 
+  fShowRainbowBacket:=True;
+
+  fAutoCheckSyntax:=True;
+
 end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);
@@ -2628,6 +2639,8 @@ begin
         Options := Options + [eoShowSpecialChars];
       if fTrimTrailingSpaces then
         Options := Options + [eoTrimTrailingSpaces];
+      if fShowRainbowBacket then
+        Options := Options + [eoShowRainbowColor];
     finally
       EndUpdate;
     end;

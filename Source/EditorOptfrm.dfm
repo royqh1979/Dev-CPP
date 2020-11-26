@@ -562,7 +562,7 @@ object EditorOptForm: TEditorOptForm
         Left = 192
         Top = 9
         Width = 439
-        Height = 458
+        Height = 424
         Align = alCustom
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -747,6 +747,14 @@ object EditorOptForm: TEditorOptForm
         Caption = 'Background:'
         TabOrder = 9
         OnClick = cbBackgroundClick
+      end
+      object chkShowRainbowColor: TCheckBox
+        Left = 191
+        Top = 447
+        Width = 400
+        Height = 23
+        Caption = 'Show different color for embedding parenthesis'
+        TabOrder = 10
       end
     end
     object tabCode: TTabSheet
@@ -1141,6 +1149,19 @@ object EditorOptForm: TEditorOptForm
             TabOrder = 0
           end
         end
+      end
+    end
+    object tabCheckSyntax: TTabSheet
+      Caption = 'Syntax Check'
+      ImageIndex = 6
+      object chkAutoCheckSyntaxInBack: TCheckBox
+        Left = 11
+        Top = 11
+        Width = 609
+        Height = 22
+        Caption = 'Auto Check Syntax When Open/Save File'
+        TabOrder = 0
+        OnClick = chkEnableCompletionClick
       end
     end
     object tabAutosave: TTabSheet

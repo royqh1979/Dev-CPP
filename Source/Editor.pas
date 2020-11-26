@@ -40,7 +40,10 @@ type
     line:integer;
     col:integer;
     endCol:integer;
+    char: integer;
+    endChar: integer;
     errorType: TSyntaxErrorType;
+    Token: string;
     Hint: String;
   end;
 
@@ -67,7 +70,8 @@ type
     hprPreprocessor, // cursor hovers above preprocessor line
     hprIdentifier, // cursor hovers above identifier
     hprSelection, // cursor hovers above selection
-    hprNone // mouseover not allowed
+    hprNone, // mouseover not allowed
+    hprError //Cursor hovers above error line/item;
     );
 
   TEditor = class(TObject)
@@ -158,6 +162,7 @@ type
     procedure ClearUserCodeInTabStops;
     procedure PopUserCodeInTabStops;
     procedure ShowTabnineCompletion;
+    function GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
     //procedure TextWindowProc(var Message: TMessage);
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
@@ -530,7 +535,7 @@ begin
   end;
   idx:=CBUtils.FastIndexOf(fErrorList,IntToStr(line));
   if idx >=0 then begin
-    areaType:=eatEditing;
+    areaType:=eatError;
     lst:=TList(fErrorList.Objects[idx]);
     for i:=0 to lst.Count-1 do begin
       System.new(p);
@@ -2221,6 +2226,7 @@ var
   M: TMemoryStream;
   Reason: THandPointReason;
   IsIncludeLine: boolean;
+  pError : pSyntaxError;
 
   procedure ShowFileHint;
   var
@@ -2231,6 +2237,11 @@ var
       fText.Hint := FileName + ' - Ctrl+Click for more info'
     else
       fText.Hint := '';
+  end;
+
+  procedure ShowErrorHint;
+  begin
+    fText.Hint := pError.Hint;
   end;
 
   procedure ShowDebugHint;
@@ -2325,6 +2336,10 @@ begin
     hprSelection: begin
         s := fText.SelText; // when a selection is available, always only use that
       end;
+    hprError: begin
+        pError := GetErrorAtPosition(p);
+        s:=pError^.Token;
+      end;
     hprNone: begin
         fText.Cursor := crIBeam; // nope
         CancelHint;
@@ -2359,6 +2374,9 @@ begin
             ShowDebugHint
           else if devEditor.ParserHints then
             ShowParserHint;
+      end;
+    hprError : begin
+        ShowErrorHint;
       end;
   end;
 end;
@@ -2521,6 +2539,10 @@ begin
 
   // Only allow in the text area...
   if fText.GetPositionOfMouse(mousepos) then begin
+    if Assigned(GetErrorAtPosition(mousepos)) then begin
+      Result := hprError;
+      Exit;
+    end;
 
     // Only allow hand points in highlighted areas
     if fText.GetHighlighterAttriAtRowCol(mousepos, s, HLAttr) then begin
@@ -2783,11 +2805,20 @@ var
   idx:integer;
   lst:TList;
 begin
+  if (line<1) or (line>fText.Lines.Count) then
+    Exit; 
   System.new(pError);
   p.Char:=col;
   p.Line:=line;
-  fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
+  if col>= Length(fText.Lines[line-1]) then begin
+    start := 1;
+    token:=fText.Lines[line-1];
+  end else begin
+    fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
+  end;
   pError^.line:=line;
+  pError^.char := start;
+  pError^.endChar := start + length(token)-1;
   p.Line:=line;
   p.Char := start;
   p1:=fText.BufferToDisplayPos(p);
@@ -2797,6 +2828,7 @@ begin
   p1:=fText.BufferToDisplayPos(p);
   pError^.endCol:=p1.Column;
   pError^.Hint:=hint;
+  pError^.Token := Token;
   pError^.errorType:=errorType;
   lineNo := IntToStr(line);
   idx:=CBUtils.FastIndexOf(fErrorList,lineNo);
@@ -2808,6 +2840,27 @@ begin
   end;
   lst.Add(pError);
 end;
+
+function TEditor.GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
+var
+  idx,i:integer;
+  lst:TList;
+  pError:PSyntaxError;
+begin
+  Result := nil;
+  idx:=CBUtils.FastIndexOf(fErrorList,intToStr(pos.Line));
+  if idx >=0 then begin
+    lst := TList(fErrorList.Objects[idx]);
+    for i:=0 to lst.Count-1 do begin
+      pError := PSyntaxError(lst[i]);
+      if (pos.Char >= pError.char) and (pos.Char <= pError.endChar) then begin
+        Result := pError;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
 
 end.
 

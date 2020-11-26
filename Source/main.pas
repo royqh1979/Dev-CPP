@@ -925,7 +925,7 @@ type
     fFilesToOpen: TStringList; // files to open on show
     fQuitting: boolean ;
     fTabnine: TTabnine;
-    fCheckSyntax : boolean;
+    fCheckSyntaxInBack : boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -960,6 +960,7 @@ type
     procedure CloseProject(RefreshEditor:boolean);
     procedure StartTabnine;
     procedure StopTabnine;
+    procedure CheckSyntaxInBack;
   public
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -1806,7 +1807,8 @@ begin
   end else begin
     dmMain.RemoveFromHistory(FileName);
   end;
-  
+
+  CheckSyntaxInBack;
   e.Activate;
   UpdateFileEncodingStatusPanel;
 
@@ -1998,9 +2000,12 @@ var
   e:TEditor;
 begin
   // Close it if there's nothing to show
-  if (CompilerOutput.Items.Count = 0) and (ResourceOutput.Items.Count = 0) and devData.AutoCloseProgress then begin
-    OpenCloseMessageSheet(FALSE)
-
+  if (fCheckSyntaxInBack)
+    or (
+      (CompilerOutput.Items.Count = 0)
+      and (ResourceOutput.Items.Count = 0)
+      and devData.AutoCloseProgress) then begin
+      OpenCloseMessageSheet(FALSE)
     // Or open it if there is anything to show
   end else begin
     if (CompilerOutput.Items.Count > 0) then begin
@@ -2011,14 +2016,15 @@ begin
         MessageControl.ActivePage := ResSheet;
     end;
     OpenCloseMessageSheet(TRUE);
-    e:=EditorList.GetEditor();
-    if Assigned(e) then begin
-      e.Text.Invalidate;
-    end;
+  end;
+
+  e:=EditorList.GetEditor();
+  if Assigned(e) then begin
+    e.Text.Invalidate;
   end;
 
   // Jump to problem location, sorted by significance
-  if (fCompiler.ErrorCount > 0) and (not fCheckSyntax) then begin
+  if (fCompiler.ErrorCount > 0) and (not fCheckSyntaxInBack) then begin
 
     // First try to find errors
     for I := 0 to CompilerOutput.Items.Count - 1 do begin
@@ -2066,7 +2072,7 @@ begin
       CompilerOutputDblClick(ResourceOutput);
     end;
   end;
-  fCheckSyntax:=False;  
+  fCheckSyntaxInBack:=False;  
 end;
 
 procedure TMainForm.CompSuccessProc;
@@ -2315,13 +2321,29 @@ begin
   dmMain.ClearHistory;
 end;
 
+procedure TMainForm.CheckSyntaxInBack;
+begin
+  if not devEditor.AutoCheckSyntax then
+    Exit;
+  if fCompiler.Compiling then
+    Exit;
+  fCheckSyntaxInBack:=True;
+  if not PrepareForCompile then begin
+    fCheckSyntaxInBack:=False;
+    Exit;
+  end;
+  fCompiler.CheckSyntax;
+end;
+
 procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) then begin
     e.Save;
+    CheckSyntaxInBack;
+  end;
 end;
 
 procedure TMainForm.actSaveAsExecute(Sender: TObject);
@@ -2329,8 +2351,10 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) then begin
     e.SaveAs;
+    CheckSyntaxInBack;
+  end;
 end;
 
 procedure TMainForm.actSaveAllExecute(Sender: TObject);
@@ -3154,7 +3178,7 @@ begin
   ClearCompileMessages;
 
   // always show compilation log (no intrusive windows anymore)
-  if devData.ShowProgress then begin
+  if devData.ShowProgress and not (fCheckSyntaxInBack) then begin
     OpenCloseMessageSheet(True);
     MessageControl.ActivePage := LogSheet;
   end;
@@ -4414,7 +4438,6 @@ begin
   end;
   if not PrepareForCompile then
     Exit;
-  fCheckSyntax:=True;
   fCompiler.CheckSyntax;
 end;
 
@@ -5415,6 +5438,7 @@ end;
 procedure TMainForm.actAbortCompilationExecute(Sender: TObject);
 begin
   fCompiler.AbortThread;
+  fCheckSyntaxInBack := False;
 end;
 
 { begin XXXKF }
@@ -6346,7 +6370,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   fQuitting:=False;
   fFirstShow := true;
-  fCheckSyntax:=False;
+  fCheckSyntaxInBack:=False;
 
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
@@ -7084,7 +7108,6 @@ begin
   end;
   if not PrepareForCompile(ctFile) then
     Exit;
-  fCheckSyntax:=True;
   fCompiler.CheckSyntax;
 end;
 
