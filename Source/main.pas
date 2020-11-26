@@ -2314,7 +2314,7 @@ begin
   if fCompiler.Compiling then
     Exit;
   fCheckSyntaxInBack:=True;
-  if not PrepareForCompile then begin
+  if not PrepareForCompile(ctFile) then begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;

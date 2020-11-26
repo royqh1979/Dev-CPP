@@ -5,6 +5,7 @@ Version 6.2-beta3
     - enhancement: Edit Menu -> Copy As  RTF
     - enhancement: Show Error Hint when point mouse on the editor gutter (the line number column on the left)
     - enhancement: Auto set highdpi registry fix when first run (choose language wizard)
+    - fix: when check syntax for a project file, we shouldn't make the whole project
     
 Version 6.2-beta2
 

@@ -83,7 +83,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, DataFrm, devcfg, utils, main, version, ImageTheme, SynEditTypes;
+  Registry,MultiLangSupport, DataFrm, devcfg, utils, main, version, ImageTheme, SynEditTypes;
 
 {$R *.dfm}
 
