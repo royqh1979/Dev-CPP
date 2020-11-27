@@ -16,6 +16,7 @@ Version 6.2-beta3
     - fix: can't parse correctly when typedef struct xxx{} yyy,zzz; xxx and yyy is the same.
     - fix: CPU window can only open once.
     - fix: Choose unassemble type buttons disappeared in the CPU Window
+    - fix: code suggestion failed when chained like x->y->z;
 
     todo:
         navigate to previous/next error line
