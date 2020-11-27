@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, Tabnine;
+  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -216,8 +216,8 @@ type
     actUnitClose: TAction;
     EditorOptionsItem: TMenuItem;
     tbEdit: TToolBar;
-    UndoBtn: TToolButton;
-    RedoBtn: TToolButton;
+    BackBtn: TToolButton;
+    ForwardBtn: TToolButton;
     tbSearch: TToolBar;
     FindBtn: TToolButton;
     ReplaceBtn: TToolButton;
@@ -605,6 +605,11 @@ type
     actCopyAsRTF: TAction;
     CopyAsItem: TMenuItem;
     CopyAsRTF1: TMenuItem;
+    actBack: TAction;
+    actForward: TAction;
+    N31: TMenuItem;
+    Back1: TMenuItem;
+    Forward1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -886,6 +891,10 @@ type
     procedure actOpenProjectConsoleExecute(Sender: TObject);
     procedure actExtractMacroExecute(Sender: TObject);
     procedure actCopyAsRTFExecute(Sender: TObject);
+    procedure actForwardUpdate(Sender: TObject);
+    procedure actForwardExecute(Sender: TObject);
+    procedure actBackExecute(Sender: TObject);
+    procedure actBackUpdate(Sender: TObject);
     {
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
@@ -913,6 +922,7 @@ type
     fQuitting: boolean ;
     fTabnine: TTabnine;
     fCheckSyntaxInBack : boolean;
+    fCaretList: TDevCaretList;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -976,6 +986,7 @@ type
     property EditorList: TEditorList read fEditorList write fEditorList;
     property CurrentPageHint: AnsiString read fCurrentPageHint write fCurrentPageHint;
     property Tabnine: TTabnine read fTabnine;
+    property CaretList: TDevCaretList read fCaretList;
   end;
 
 var
@@ -1105,6 +1116,7 @@ begin
   end;
   StopTabnine;
   FreeAndNil(fTabnine);
+  FreeAndNil(fCaretList);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1946,6 +1958,7 @@ end;
 procedure TMainForm.CompOutputProc(const _Line, _Col, _Unit, _Message: AnsiString);
 var
   e:TEditor;
+  col,line:integer;
 begin
   with CompilerOutput.Items.Add do begin
     Caption := _Line;
@@ -1960,9 +1973,17 @@ begin
   if ( StartsStr('[Error]',_Message)
       or StartsStr('[Warning]',_Message)
       ) then begin
-    if EditorList.IsFileOpened(_Unit) then begin
+    if EditorList.IsFileOpened(_Unit)
+      and IsNumeric(_Line) then begin
       e:=EditorList.GetEditorFromFileName(_Unit);
-      e.AddSyntaxError(StrToInt(_Line),StrToInt(_Col),setError,_Message);
+      line:=StrToInt(_Line);
+      if (line<1) or (line>e.Text.Lines.Count) then
+        Exit;
+      if isNumeric(_Col) then
+        col:=StrToInt(_Col)
+      else
+        col:=Length(e.Text.Lines[line-1])+1;
+      e.AddSyntaxError(line,col,setError,_Message);
     end;
   end;
 end;
@@ -3201,7 +3222,6 @@ begin
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
-        e.ClearSyntaxErrors;
       end;
     ctProject: begin
         fCompiler.Project := fProject;
@@ -3226,7 +3246,7 @@ begin
         fProject.BuildPrivateResource;
       end;
   end;
-
+  e.ClearSyntaxErrors;
   Result := True;
 end;
 
@@ -6291,6 +6311,7 @@ begin
   fQuitting:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
+  fCaretList:=TDevCaretList.Create;
 
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
@@ -7896,6 +7917,48 @@ begin
   e := fEditorList.GetEditor;
   if Assigned(e) then
     e.RTFToClipboard;
+end;
+
+procedure TMainForm.actForwardUpdate(Sender: TObject);
+begin
+  actForward.Enabled := fCaretList.hasNext;
+end;
+
+procedure TMainForm.actForwardExecute(Sender: TObject);
+var
+  pCaret:PEditorCaret;
+  p:TBufferCoord;
+  e:TEditor;
+begin
+  pCaret := fCaretList.GotoAndGetNext;
+  if assigned(pCaret) then begin
+    e:=TEditor(pCaret.editor);
+    p.Line := pCaret.line;
+    p.Char := pCaret.char;
+    e.Text.CaretXY := p;
+    e.Activate;
+  end;
+end;
+
+procedure TMainForm.actBackExecute(Sender: TObject);
+var
+  pCaret:PEditorCaret;
+  p:TBufferCoord;
+  e:TEditor;
+begin
+  pCaret := fCaretList.GotoAndGetPrevious;
+  if assigned(pCaret) then begin
+    e:=TEditor(pCaret.editor);
+    p.Line := pCaret.line;
+    p.Char := pCaret.char;
+    e.Text.CaretXY := p;
+    e.Activate;
+  end;
+end;
+
+procedure TMainForm.actBackUpdate(Sender: TObject);
+begin
+  actBack.Enabled := fCaretList.hasPrevious;
 end;
 
 end.

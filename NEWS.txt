@@ -7,6 +7,12 @@ Version 6.2-beta3
     - enhancement: Auto set highdpi registry fix when first run (choose language wizard)
     - fix: when check syntax for a project file, we shouldn't make the whole project
     - fix: mouse cursor is not set to normal when Code Suggestion window show up
+    - fix: old error infos are not cleared, when build a project
+    - fix: error when compiler return error without line/column infos
+    - enhancement: navigate back/forward
+        navigate to previous/next error line
+        navigate to previous/next break point
+        new search pane
     
 Version 6.2-beta2
 

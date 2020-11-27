@@ -29,6 +29,7 @@ uses
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
+  MAX_CARET_COUNT = 100;
 
 type
 
@@ -117,8 +118,7 @@ type
 
     //TDevString<Line,TList<PSyntaxError>>
     fErrorList: TDevStringList; // syntax check errors
-    //fSingleQuoteCompleteState: TSymbolCompleteState;
-    //fDoubleQuoteCompleteState: TSymbolCompleteState;
+
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditorKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -199,6 +199,7 @@ type
     procedure DestroyCompletion;
     procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
     procedure ClearSyntaxErrors;
+
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
     property InProject: boolean read fInProject write fInProject;
@@ -218,7 +219,8 @@ implementation
 
 uses
   main, project, MultiLangSupport, devcfg, utils,
-  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm, CodeCompletionForm, SynEditMiscClasses;
+  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm, CodeCompletionForm, SynEditMiscClasses,
+  devCaretList;
 
 { TDebugGutter }
 
@@ -414,31 +416,34 @@ begin
 
   // Set status bar for the first time
   EditorStatusChange(Self, [scInsertMode]);
+
 end;
 
 destructor TEditor.Destroy;
 begin
   // Deactivate the file change monitor
   MainForm.FileMonitor.UnMonitor(fFileName);
+  MainForm.CaretList.RemoveEditor(self);
+
 
   // Delete breakpoints in this editor
   MainForm.Debugger.DeleteBreakPointsOf(self);
 
+  ClearSyntaxErrors;
+  FreeAndNil(fErrorList);
 
   ClearUserCodeInTabStops;
   FreeAndNil(fUserCodeInTabStops);
 
   // Destroy code completion stuff
   DestroyCompletion;
-
+  
   // Free everything
   FreeAndNil(fFunctionTip);
   FreeAndNil(fText);
   FreeAndNil(fTabSheet);
   FreeAndNil(fPreviousEditors);
 
-  ClearSyntaxErrors;
-  FreeAndNil(fErrorList);
 
   // Move into TObject.Destroy...
   inherited;
@@ -748,6 +753,8 @@ begin
         Panels[2].Text := Lang[ID_OVERWRITE];
     end;
   end;
+
+  mainForm.CaretList.AddCaret(self,fText.CaretY,fText.CaretX);
 end;
 
 function TEditor.FunctionTipAllowed: boolean;
@@ -2831,6 +2838,7 @@ begin
     lst.Free;
   end;
   fErrorList.Clear;
+  fText.Invalidate;
 end;
 
 procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
@@ -2940,6 +2948,7 @@ begin
   finally
     newList.Free;
   end;
+  MainForm.CaretList.LinesDeleted(self,firstLine,count);
 end;
 
 procedure TEditor.LinesInserted(FirstLine,Count:integer);
@@ -2963,8 +2972,8 @@ begin
   finally
     newList.Free;
   end;
+  MainForm.CaretList.LinesInserted(self,firstLine,count);  
 end;
-
 
 end.
 

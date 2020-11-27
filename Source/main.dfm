@@ -708,15 +708,15 @@ object MainForm: TMainForm
       ShowHint = True
       TabOrder = 3
       Wrapable = False
-      object UndoBtn: TToolButton
+      object BackBtn: TToolButton
         Left = 0
         Top = 0
-        Action = actUndo
+        Action = actBack
       end
-      object RedoBtn: TToolButton
+      object ForwardBtn: TToolButton
         Left = 28
         Top = 0
-        Action = actRedo
+        Action = actForward
       end
     end
     object tbSearch: TToolBar
@@ -1481,6 +1481,17 @@ object MainForm: TMainForm
     end
     object CodeMenu: TMenuItem
       Caption = 'Co&de'
+      object Back1: TMenuItem
+        Action = actBack
+        ShortCut = 49189
+      end
+      object Forward1: TMenuItem
+        Action = actForward
+        ShortCut = 49191
+      end
+      object N31: TMenuItem
+        Caption = '-'
+      end
       object FormatCurrentFile1: TMenuItem
         Action = actFormatCurrentFile
       end
@@ -2538,7 +2549,7 @@ object MainForm: TMainForm
       OnUpdate = actUpdatePageCount
     end
     object actSyntaxCheck: TAction
-      Category = 'Execute'
+      Category = 'Code'
       Caption = '&Syntax Check'
       ImageIndex = 49
       OnExecute = actSyntaxCheckExecute
@@ -2635,7 +2646,7 @@ object MainForm: TMainForm
       OnUpdate = actBrowserNewVarUpdate
     end
     object actSyntaxCheckFile: TAction
-      Category = 'Execute'
+      Category = 'Code'
       Caption = '&Syntax Check Current File'
       ImageIndex = 49
       ShortCut = 16504
@@ -2789,21 +2800,21 @@ object MainForm: TMainForm
       OnUpdate = actUpdateEmptyEditor
     end
     object actInsert: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'Insert'
       ImageIndex = 18
       OnExecute = actInsertExecute
       OnUpdate = actUpdatePageCount
     end
     object actToggle: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'Toggle Bookmarks'
       ImageIndex = 19
       OnExecute = actToggleExecute
       OnUpdate = actUpdatePageCount
     end
     object actGoto: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'Goto Bookmark'
       ImageIndex = 20
       OnExecute = actGotoExecute
@@ -2893,14 +2904,14 @@ object MainForm: TMainForm
       OnUpdate = actUpdateEmptyEditor
     end
     object actMoveSelUp: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'actMoveSelUp'
       ShortCut = 24614
       OnExecute = actMoveSelUpExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actMoveSelDown: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'actMoveSelDown'
       ShortCut = 24616
       OnExecute = actMoveSelDownExecute
@@ -2958,14 +2969,14 @@ object MainForm: TMainForm
       OnUpdate = actUpdateDebuggerRunning
     end
     object actFormatCurrentFile: TAction
-      Category = 'AStyle'
+      Category = 'Code'
       Caption = 'Format Current File'
       ShortCut = 24641
       OnExecute = actFormatCurrentFileExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actFormatOptions: TAction
-      Category = 'AStyle'
+      Category = 'Code'
       Caption = 'Formatting Options...'
       OnExecute = actFormatOptionsExecute
     end
@@ -3086,6 +3097,20 @@ object MainForm: TMainForm
       Caption = 'Copy As RTF'
       OnExecute = actCopyAsRTFExecute
       OnUpdate = actCopyUpdate
+    end
+    object actBack: TAction
+      Category = 'Code'
+      Caption = 'Back'
+      ImageIndex = 69
+      OnExecute = actBackExecute
+      OnUpdate = actBackUpdate
+    end
+    object actForward: TAction
+      Category = 'Code'
+      Caption = 'Forward'
+      ImageIndex = 70
+      OnExecute = actForwardExecute
+      OnUpdate = actForwardUpdate
     end
   end
   object MessagePopup: TPopupMenu
