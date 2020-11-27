@@ -1129,7 +1129,8 @@ begin
     SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
 
   if Result then begin
-    if fTokenizer[fIndex + 3+dis]^.Text[1] in [';',','] then begin
+    if(fIndex < fTokenizer.Tokens.Count-3-dis)
+      and  (fTokenizer[fIndex + 3+dis]^.Text[1] in [';',',']) then begin
       Result:=False;
     end  else if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
       I := fIndex+dis;
@@ -1791,8 +1792,8 @@ begin
                   SharedInheritance,
                   False); // all synonyms inherit from the same statements
                 NewScopeLevel.Add(LastStatement);
-                Command := '';
               end;
+              Command := '';
             end;
           until (I >= fTokenizer.Tokens.Count - 1) or (fTokenizer[I]^.Text[1] in ['{', ';']);
 

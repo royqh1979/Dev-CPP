@@ -12,6 +12,10 @@ Version 6.2-beta3
     - enhancement: navigate back/forward
     - enhancement: add "Close Report panel" menu item in the view menu; use Alt+V as it's short cut.
     - change: remove "float report view" and "float project manager" menu item in the view menu. They are buggy and seldom used.
+    - fix: devcpp error when typing struct and it's name in a struct define on the last line and } is the last symbol
+    - fix: can't parse correctly when typedef struct xxx{} yyy,zzz; xxx and yyy is the same.
+    - fix: CPU window can only open once.
+    - fix: Choose unassemble type buttons disappeared in the CPU Window
 
     todo:
         navigate to previous/next error line

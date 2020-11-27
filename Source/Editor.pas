@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, Tabnine,CBUtils;
+  CodeToolTip, Tabnine,CBUtils, IntList;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
@@ -38,7 +38,6 @@ type
     setWarning);
   PSyntaxError = ^TSyntaxError;
   TSyntaxError = record
-    line:integer;
     col:integer;
     endCol:integer;
     char: integer;
@@ -116,8 +115,8 @@ type
 
     fTabnine:TTabnine;
 
-    //TDevString<Line,TList<PSyntaxError>>
-    fErrorList: TDevStringList; // syntax check errors
+    //TIntList<Line,TList<PSyntaxError>>
+    fErrorList: TIntList; // syntax check errors
 
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -199,6 +198,10 @@ type
     procedure DestroyCompletion;
     procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
     procedure ClearSyntaxErrors;
+    procedure GotoNextError;
+    procedure GotoPrevError;
+    function HasPrevError:boolean;
+    function HasNextError:boolean;
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -407,7 +410,7 @@ begin
   fLineBeforeTabStop:='';
   fLineAfterTabStop := '';
 
-  fErrorList := TDevStringList.Create;
+  fErrorList := TIntList.Create;
   fErrorList.Sorted:=True;
   fErrorList.Duplicates:= dupIgnore;
 
@@ -543,7 +546,7 @@ begin
     ColBorder := clRed;
     Exit;
   end;
-  idx:=CBUtils.FastIndexOf(fErrorList,IntToStr(line));
+  idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >=0 then begin
     areaType:=eatError;
     lst:=TList(fErrorList.Objects[idx]);
@@ -599,7 +602,7 @@ begin
       dmMain.GutterImages.Draw(ACanvas, X, Y, 0)
     else if fErrorLine = Line then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
-    if CBUtils.FastIndexOf(fErrorList, IntToStr(Line))>=0 then
+    if CBUtils.FastIndexOf(fErrorList, Line)>=0 then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
 
     Inc(Y, fText.LineHeight);
@@ -2845,7 +2848,6 @@ end;
 
 procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
 var
-  lineNo:String;
   pError:PSyntaxError;
   p:TBufferCoord;
   p1:TDisplayCoord;
@@ -2866,7 +2868,6 @@ begin
   end else begin
     fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
   end;
-  pError^.line:=line;
   pError^.char := start;
   pError^.endChar := start + length(token)-1;
   p.Line:=line;
@@ -2880,13 +2881,12 @@ begin
   pError^.Hint:=hint;
   pError^.Token := Token;
   pError^.errorType:=errorType;
-  lineNo := IntToStr(line);
-  idx:=CBUtils.FastIndexOf(fErrorList,lineNo);
+  idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >= 0 then
     lst := TList(fErrorList.Objects[idx])
   else begin
     lst := TList.Create;
-    fErrorList.AddObject(lineNo,lst);
+    fErrorList.AddObject(line,lst);
   end;
   lst.Add(pError);
 end;
@@ -2898,7 +2898,7 @@ var
   pError:PSyntaxError;
 begin
   Result := nil;
-  idx:=CBUtils.FastIndexOf(fErrorList,intToStr(line));
+  idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >=0 then begin
     lst := TList(fErrorList.Objects[idx]);
     if lst.Count>0 then
@@ -2914,7 +2914,7 @@ var
   pError:PSyntaxError;
 begin
   Result := nil;
-  idx:=CBUtils.FastIndexOf(fErrorList,intToStr(pos.Line));
+  idx:=CBUtils.FastIndexOf(fErrorList,pos.Line);
   if idx >=0 then begin
     lst := TList(fErrorList.Objects[idx]);
     for i:=0 to lst.Count-1 do begin
@@ -2929,19 +2929,26 @@ end;
 
 procedure TEditor.LinesDeleted(FirstLine,Count:integer);
 var
-  newList:TDevStringList;
-  i:integer;
+  newList:TIntList;
+  i,j:integer;
   lineNo:integer;
+  lst:TList;
 begin
-  newList:=TDevStringList.Create;
+  newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
-      lineNo := StrToInt(fErrorList[i]);
-      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then
+      lineNo := fErrorList[i];
+      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then begin
+        lst:=TList(fErrorList.Objects[i]);
+        for j:=0 to lst.Count-1 do begin
+          dispose(PSyntaxError(lst[j]));
+        end;
+        lst.Free;
         Continue;
+      end;
       if (lineNo >= FirstLine+Count) then
         dec(lineNo,Count);
-      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+      newList.AddObject(lineNo,fErrorList.Objects[i]);
     end;
     fErrorList.Sorted:=False;
     fErrorList.Assign(newList);
@@ -2955,17 +2962,17 @@ end;
 
 procedure TEditor.LinesInserted(FirstLine,Count:integer);
 var
-  newList:TDevStringList;
+  newList:TIntList;
   i:integer;
   lineNo:integer;
 begin
-  newList:=TDevStringList.Create;
+  newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
-      lineNo := StrToInt(fErrorList[i]);
+      lineNo := fErrorList[i];
       if (lineNo >= FirstLine) then
         inc(lineNo,Count);
-      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+      newList.AddObject(lineNo,fErrorList.Objects[i]);
     end;
     fErrorList.Sorted:=False;
     fErrorList.Assign(newList);
@@ -2976,6 +2983,80 @@ begin
   end;
   MainForm.CaretList.LinesInserted(self,firstLine,count);  
 end;
+
+procedure TEditor.GotoNextError;
+var
+  idx:integer;
+  lst:TList;
+  p:TBufferCoord;
+begin
+  if fErrorList.Find(fText.CaretY,idx) then begin
+    //we are on a error line;
+    inc(idx);
+  end;
+  if idx<fErrorList.Count then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      p.Line:=fErrorList[idx];
+      p.Char:=PSyntaxError(lst[0])^.Char;
+      fText.CaretXY:=p;
+    end;
+  end;
+end;
+
+procedure TEditor.GotoPrevError;
+var
+  idx:integer;
+  lst:TList;
+  p:TBufferCoord;
+begin
+  fErrorList.Find(fText.CaretY,idx);
+  dec(idx);
+  if idx>=0 then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      p.Line:=fErrorList[idx];
+      p.Char:=PSyntaxError(lst[0])^.Char;
+      fText.CaretXY:=p;
+    end;
+  end;
+end;
+
+function TEditor.HasPrevError:boolean;
+var
+  idx:integer;
+  lst:TList;
+begin
+  Result:=False;
+  fErrorList.Find(fText.CaretY,idx);
+  dec(idx);
+  if idx>=0 then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      Result:=True;
+    end;
+  end;
+end;
+
+function TEditor.HasNextError:boolean;
+var
+  idx:integer;
+  lst:TList;
+begin
+  Result:=False;
+  if fErrorList.Find(fText.CaretY,idx) then begin
+    //we are on a error line;
+    inc(idx);
+  end;
+  if idx<fErrorList.Count then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      Result:=True;
+    end;
+  end;
+end;
+
+
 
 end.
 
