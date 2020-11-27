@@ -1507,6 +1507,15 @@ object MainForm: TMainForm
       object SyntaxCheckCurrentFile1: TMenuItem
         Action = actSyntaxCheckFile
       end
+      object N54: TMenuItem
+        Caption = '-'
+      end
+      object GotoPreviousError1: TMenuItem
+        Action = actPrevError
+      end
+      object GotoNextError1: TMenuItem
+        Action = actNextError
+      end
       object N46: TMenuItem
         Caption = '-'
       end
@@ -2465,7 +2474,6 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'Project'
       Caption = 'Re&name file'
-      ShortCut = 113
       OnExecute = actUnitRenameExecute
       OnUpdate = actUpdateProject
     end
@@ -3112,6 +3120,20 @@ object MainForm: TMainForm
       Caption = '&Close Message Sheet'
       ShortCut = 32854
       OnExecute = actCloseMessageSheetExecute
+    end
+    object actPrevError: TAction
+      Category = 'Code'
+      Caption = 'Goto Previous Error'
+      ShortCut = 8305
+      OnExecute = actPrevErrorExecute
+      OnUpdate = actPrevErrorUpdate
+    end
+    object actNextError: TAction
+      Category = 'Code'
+      Caption = 'Goto Next Error'
+      ShortCut = 113
+      OnExecute = actNextErrorExecute
+      OnUpdate = actNextErrorUpdate
     end
   end
   object MessagePopup: TPopupMenu

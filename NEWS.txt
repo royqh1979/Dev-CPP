@@ -17,11 +17,7 @@ Version 6.2-beta3
     - fix: CPU window can only open once.
     - fix: Choose unassemble type buttons disappeared in the CPU Window
     - fix: code suggestion failed when chained like x->y->z;
-
-    todo:
-        navigate to previous/next error line
-        navigate to previous/next break point
-        new search pane
+    - enhancement: navigate to previous/next error line
     
 Version 6.2-beta2
 

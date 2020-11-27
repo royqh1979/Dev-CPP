@@ -113,7 +113,7 @@ Ver=1
 7004=Rebuild &All
 7005=C&lean
 7006=Co&mpile Results
-7007=&Syntax Check
+7007=Syntax &Check
 7008=&Program Reset
 7009=Pro&file Analysis
 7010=Abort Compilation
@@ -149,6 +149,8 @@ Ver=1
 9102=Extract &Macro
 9103=&Back
 9104=&Forward
+9105=&Previous Error
+9106=&Next Error
 
 10001=&Debug
 10002=Toggle &Breakpoint

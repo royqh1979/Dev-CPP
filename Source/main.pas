@@ -610,6 +610,11 @@ type
     actCloseMessageSheet: TAction;
     N42: TMenuItem;
     CloseMessageSheet1: TMenuItem;
+    actPrevError: TAction;
+    actNextError: TAction;
+    N54: TMenuItem;
+    GotoPreviousError1: TMenuItem;
+    GotoNextError1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -894,6 +899,10 @@ type
     procedure actBackExecute(Sender: TObject);
     procedure actBackUpdate(Sender: TObject);
     procedure actCloseMessageSheetExecute(Sender: TObject);
+    procedure actNextErrorUpdate(Sender: TObject);
+    procedure actPrevErrorUpdate(Sender: TObject);
+    procedure actPrevErrorExecute(Sender: TObject);
+    procedure actNextErrorExecute(Sender: TObject);
     {
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
@@ -1400,6 +1409,9 @@ begin
   // Code menu
   actBack.Caption := LANG[ID_CODE_BACK];
   actForward.Caption := LANG[ID_CODE_FORWARD];
+  actPrevError.Caption := LANG[ID_CODE_PREVERROR];
+  actNextError.Caption := LANG[ID_CODE_NEXTERROR];
+
 
   actFormatCurrentFile.Caption := Lang[ID_FORMATTER_FORMATCURFILE];
   actFormatOptions.Caption := Lang[ID_FORMATTER_MENU];
@@ -7888,6 +7900,47 @@ procedure TMainForm.actCloseMessageSheetExecute(Sender: TObject);
 begin
   OpenCloseMessageSheet(false);
 end;
+
+procedure TMainForm.actNextErrorUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    actNextError.Enabled := e.HasNextError;
+  end;
+end;
+
+procedure TMainForm.actPrevErrorUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    actPrevError.Enabled := e.HasPrevError;
+  end;
+end;
+
+
+procedure TMainForm.actPrevErrorExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    e.GotoPrevError;
+  end;
+end;
+
+procedure TMainForm.actNextErrorExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    e.GotoNextError;
+  end;
+end; 
 
 end.
 

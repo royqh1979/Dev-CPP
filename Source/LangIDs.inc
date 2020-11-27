@@ -181,8 +181,10 @@ const
   ID_ITEM_EXTRACTMACRO                =9102;
 
   //Code menu
-  ID_CODE_BACK                        =9103;
-  ID_CODE_FORWARD                     =9104;
+  ID_CODE_BACK                        = 9103;
+  ID_CODE_FORWARD                     = 9104;
+  ID_CODE_PREVERROR                   = 9105;
+  ID_CODE_NEXTERROR                   = 9106;
 
   
   //debug menu
