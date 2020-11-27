@@ -145,8 +145,10 @@ Ver=1
 9006=Donate :)
 9007=Tip Of The Day...
 
-9101=Rename Symbol
-9102=Extract Macro
+9101=&Rename Symbol
+9102=Extract &Macro
+9103=&Back
+9104=&Forward
 
 10001=&Debug
 10002=Toggle &Breakpoint
@@ -179,6 +181,7 @@ Ver=1
 10029=Get Call Stack & Locals Info
 10030=Breakpoint condition...
 10031=Remove Breakpoint
+10032=&Close Report Panel
 
 
 11001=Remove File

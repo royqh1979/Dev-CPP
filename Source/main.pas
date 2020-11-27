@@ -336,14 +336,12 @@ type
     ListItem: TMenuItem;
     mnuFileProps: TMenuItem;
     mnuUnitProperties: TMenuItem;
-    N63: TMenuItem;
     actBrowserShowInherited: TAction;
     LeftPageControl: TPageControl;
     LeftProjectSheet: TTabSheet;
     ProjectView: TTreeView;
     LeftClassSheet: TTabSheet;
     ClassBrowser: TClassBrowser;
-    FloatingPojectManagerItem: TMenuItem;
     actSaveProjectAs: TAction;
     SaveprojectasItem: TMenuItem;
     mnuOpenWith: TMenuItem;
@@ -354,7 +352,6 @@ type
     N17: TMenuItem;
     ToolClassesItem: TMenuItem;
     N67: TMenuItem;
-    FloatingReportwindowItem: TMenuItem;
     actAttachProcess: TAction;
     ModifyWatchPop: TMenuItem;
     actModifyWatch: TAction;
@@ -610,6 +607,9 @@ type
     N31: TMenuItem;
     Back1: TMenuItem;
     Forward1: TMenuItem;
+    actCloseMessageSheet: TAction;
+    N42: TMenuItem;
+    CloseMessageSheet1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -773,7 +773,6 @@ type
     procedure GoToClassBrowserItemClick(Sender: TObject);
     procedure actBrowserShowInheritedExecute(Sender: TObject);
     procedure ReportWindowClose(Sender: TObject; var Action: TCloseAction);
-    procedure FloatingPojectManagerItemClick(Sender: TObject);
     procedure actSaveProjectAsExecute(Sender: TObject);
     procedure mnuOpenWithClick(Sender: TObject);
     procedure cmbClassesChange(Sender: TObject);
@@ -782,7 +781,6 @@ type
     procedure FindOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure WatchViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DebugPopupPopup(Sender: TObject);
-    procedure FloatingReportwindowItemClick(Sender: TObject);
     procedure actAttachProcessUpdate(Sender: TObject);
     procedure actAttachProcessExecute(Sender: TObject);
     procedure actModifyWatchExecute(Sender: TObject);
@@ -895,6 +893,7 @@ type
     procedure actForwardExecute(Sender: TObject);
     procedure actBackExecute(Sender: TObject);
     procedure actBackUpdate(Sender: TObject);
+    procedure actCloseMessageSheetExecute(Sender: TObject);
     {
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
@@ -1100,9 +1099,6 @@ begin
   // Save left page control states
   devData.ProjectWidth := LeftPageControl.Width;
   devData.OutputHeight := fPreviousHeight;
-  devData.ProjectFloat := Assigned(fProjectToolWindow) and fProjectToolWindow.Visible;
-  devData.MessageFloat := Assigned(fReportToolWindow) and fReportToolWindow.Visible;
-
   // Remember window placement
   devData.WindowState.GetPlacement(Self.Handle);
   if Assigned(fProjectToolWindow) then
@@ -1400,6 +1396,14 @@ begin
   actUnCollapse.Caption := Lang[ID_ITEM_UNCOLLAPSEALL];
   actDuplicateLine.Caption := Lang[ID_ITEM_DUPLICATELINE];
   actDeleteLine.Caption := Lang[ID_ITEM_DELETELINE];
+
+  // Code menu
+  actBack.Caption := LANG[ID_CODE_BACK];
+  actForward.Caption := LANG[ID_CODE_FORWARD];
+
+  actFormatCurrentFile.Caption := Lang[ID_FORMATTER_FORMATCURFILE];
+  actFormatOptions.Caption := Lang[ID_FORMATTER_MENU];
+
   actMoveSelUp.Caption := Lang[ID_ITEM_MOVESELUP];
   actMoveSelDown.Caption := Lang[ID_ITEM_MOVESELDOWN];
 
@@ -1419,6 +1423,7 @@ begin
   actStatusbar.Caption := Lang[ID_ITEM_STATUSBAR];
   actSwapHeaderSource.Caption := Lang[ID_ITEM_SWAPHEADERSOURCE];
   actSwapEditor.Caption := Lang[ID_ITEM_SWAPEDITOR];
+  actCloseMessageSheet.Caption := LANG[ID_ITEM_CLOSEMESSAGE_SHEET];
 
   // Toolbar submenu
   ToolBarsItem.Caption := Lang[ID_SUB_TOOLBARS];
@@ -1435,8 +1440,6 @@ begin
 
   // Top level
   actViewToDoList.Caption := Lang[ID_VIEWTODO_MENUITEM];
-  FloatingPojectManagerItem.Caption := Lang[ID_ITEM_FLOATWINDOW];
-  FloatingReportWindowItem.Caption := Lang[ID_ITEM_FLOATREPORT];
 
   // Project menu
   actProjectNew.Caption := Lang[ID_ITEM_NEWFILE];
@@ -1473,9 +1476,6 @@ begin
   actPackageCheck.Caption := Lang[ID_ITEM_UPDATECHECK];
   actPackageManager.Caption := Lang[ID_ITEM_PACKMAN];
 
-  // Formatter menu
-  actFormatCurrentFile.Caption := Lang[ID_FORMATTER_FORMATCURFILE];
-  actFormatOptions.Caption := Lang[ID_FORMATTER_MENU];
 
   // Window menu
   if devData.FullScreen then
@@ -1506,7 +1506,7 @@ begin
   actStepInto.Caption := Lang[ID_ITEM_STEPINTO];
   actStepOut.Caption := Lang[ID_ITEM_STEPOUT];
   actRunToCursor.Caption := Lang[ID_ITEM_RUNTOCURSOR];
-  
+
   actWatchItem.Caption := Lang[ID_ITEM_WATCHITEMS];
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
@@ -5563,7 +5563,6 @@ end;
 
 procedure TMainForm.ProjectWindowClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FloatingPojectManagerItem.Checked := False;
   LeftPageControl.Visible := false;
   (Sender as TForm).RemoveControl(LeftPageControl);
 
@@ -5581,7 +5580,6 @@ end;
 
 procedure TMainForm.ReportWindowClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FloatingReportWindowItem.Checked := False;
   MessageControl.Visible := false;
   (Sender as TForm).RemoveControl(MessageControl);
 
@@ -5593,39 +5591,6 @@ begin
   Statusbar.Top := MessageControl.Top + MessageControl.Height;
   fReportToolWindow.Free;
   fReportToolWindow := nil;
-end;
-
-procedure TMainForm.FloatingPojectManagerItemClick(Sender: TObject);
-begin
-  FloatingPojectManagerItem.Checked := not FloatingPojectManagerItem.Checked;
-  if Assigned(fProjectToolWindow) then
-    fProjectToolWindow.Close
-  else begin
-    fProjectToolWindow := TForm.Create(self);
-    with fProjectToolWindow do begin
-      Caption := Lang[ID_TB_PROJECT];
-      Top := self.Top + LeftPageControl.Top;
-      Left := self.Left + LeftPageControl.Left;
-      Height := LeftPageControl.Height;
-      Width := LeftPageControl.Width;
-      FormStyle := fsStayOnTop;
-      OnClose := ProjectWindowClose;
-      BorderStyle := bsSizeable;
-      BorderIcons := [biSystemMenu];
-      LeftPageControl.Visible := false;
-      self.RemoveControl(LeftPageControl);
-
-      LeftPageControl.Left := 0;
-      LeftPageControl.Top := 0;
-      LeftPageControl.Align := alClient;
-      LeftPageControl.Visible := true;
-      fProjectToolWindow.InsertControl(LeftPageControl);
-
-      fProjectToolWindow.Show;
-      if assigned(fProject) then
-        fProject.SetNodeValue(ProjectView.TopItem); // nodes needs to be recreated
-    end;
-  end;
 end;
 
 procedure TMainForm.actSaveProjectAsExecute(Sender: TObject);
@@ -5911,40 +5876,6 @@ end;
 procedure TMainForm.DebugPopupPopup(Sender: TObject);
 begin
   RemoveWatchPop.Enabled := Assigned(WatchView.Selected);
-end;
-
-procedure TMainForm.FloatingReportwindowItemClick(Sender: TObject);
-begin
-  FloatingReportWindowItem.Checked := not FloatingReportWindowItem.Checked;
-  if assigned(fReportToolWindow) then
-    fReportToolWindow.Close
-  else begin
-    OpenCloseMessageSheet(true);
-    if MessageControl.ActivePage = CloseSheet then
-      MessageControl.ActivePageIndex := 0;
-    fReportToolWindow := TForm.Create(self);
-    with fReportToolWindow do begin
-      Caption := Lang[ID_TB_REPORT];
-      Top := self.Top + MessageControl.Top;
-      Left := self.Left + MessageControl.Left;
-      Height := MessageControl.Height;
-      Width := MessageControl.Width;
-      FormStyle := fsStayOnTop;
-      OnClose := ReportWindowClose;
-      BorderStyle := bsSizeable;
-      BorderIcons := [biSystemMenu];
-      MessageControl.Visible := false;
-      self.RemoveControl(MessageControl);
-
-      MessageControl.Left := 0;
-      MessageControl.Top := 0;
-      MessageControl.Align := alClient;
-      MessageControl.Visible := true;
-      fReportToolWindow.InsertControl(MessageControl);
-
-      fReportToolWindow.Show;
-    end;
-  end;
 end;
 
 procedure TMainForm.actAttachProcessUpdate(Sender: TObject);
@@ -6383,18 +6314,10 @@ begin
   LeftPageControl.ActivePageIndex := devData.LeftActivePage;
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
-  if devData.ProjectFloat then begin
-    FloatingPojectManagerItem.Click;
-    devData.ProjectWindowState.SetPlacement(fProjectToolWindow.Handle);
-  end;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
 
-  if devData.MessageFloat then begin
-    FloatingReportwindowItem.Click;
-    devData.ReportWindowState.SetPlacement(fReportToolWindow.Handle);
-  end;
   actShortenCompPaths.Checked := devData.ShortenCompPaths;
 
   // Set statusbar to previous state
@@ -7959,6 +7882,11 @@ end;
 procedure TMainForm.actBackUpdate(Sender: TObject);
 begin
   actBack.Enabled := fCaretList.hasPrevious;
+end;
+
+procedure TMainForm.actCloseMessageSheetExecute(Sender: TObject);
+begin
+  OpenCloseMessageSheet(false);
 end;
 
 end.

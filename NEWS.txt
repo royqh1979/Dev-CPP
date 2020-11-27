@@ -10,6 +10,10 @@ Version 6.2-beta3
     - fix: old error infos are not cleared, when build a project
     - fix: error when compiler return error without line/column infos
     - enhancement: navigate back/forward
+    - enhancement: add "Close Report panel" menu item in the view menu; use Alt+V as it's short cut.
+    - change: remove "float report view" and "float project manager" menu item in the view menu. They are buggy and seldom used.
+
+    todo:
         navigate to previous/next error line
         navigate to previous/next break point
         new search pane

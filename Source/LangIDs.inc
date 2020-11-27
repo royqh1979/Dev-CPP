@@ -88,23 +88,7 @@ const
   ID_ITEM_COPYAS_RTF                    = 4019;
 
 
-  ID_ITEM_COMMENTSELECTION              = 22001;
-  ID_ITEM_UNCOMMENTSELECTION            = 22002;
-  ID_ITEM_INDENTSELECTION               = 22003;
-  ID_ITEM_UNINDENTSELECTION             = 22004;
-  ID_ITEM_SWAPHEADERSOURCE              = 22005;
-  ID_ITEM_COLLAPSEALL                   = 22006;
-  ID_ITEM_UNCOLLAPSEALL                 = 22007;
-  ID_ITEM_TOGGLECOMMENT                 = 22008;
-  ID_ITEM_DUPLICATELINE                 = 22009;
-  ID_ITEM_DELETELINE                    = 22010;
-  ID_ITEM_MOVESELUP                     = 22011;
-  ID_ITEM_MOVESELDOWN                   = 22012;
-  ID_ITEM_SWAPEDITOR                    = 22013;
-  ID_ITEM_TOGGLECOMMENTINLINE           = 22014;
-  ID_ITEM_UTF8                          = 22015;
-  ID_ITEM_ENCODING                      = 22016;
-  ID_ITEM_CONV_UTF8                     = 22017;
+
 
   // search menu
   ID_ITEM_FIND                          = 5001;
@@ -195,6 +179,11 @@ const
   // Refactor menu
   ID_ITEM_RENAMESYMBOL                =9101;
   ID_ITEM_EXTRACTMACRO                =9102;
+
+  //Code menu
+  ID_CODE_BACK                        =9103;
+  ID_CODE_FORWARD                     =9104;
+
   
   //debug menu
   ID_ITEM_DEBUG                         = 10001;
@@ -232,6 +221,7 @@ const
   ID_ITEM_CALLSTACKFULL          = 10029;
   ID_ITEM_BREAKPOINT_PROP       = 10030;
   ID_ITEM_REMOVE_BREAKPOINT       = 10031;
+  ID_ITEM_CLOSEMESSAGE_SHEET      =10032;
 
 
   // unit popup
@@ -352,6 +342,24 @@ const
   // Project Manager/Class Browser
   ID_LP_PROJECT                         = 21001;
   ID_LP_CLASSES                         = 21002;
+
+  ID_ITEM_COMMENTSELECTION              = 22001;
+  ID_ITEM_UNCOMMENTSELECTION            = 22002;
+  ID_ITEM_INDENTSELECTION               = 22003;
+  ID_ITEM_UNINDENTSELECTION             = 22004;
+  ID_ITEM_SWAPHEADERSOURCE              = 22005;
+  ID_ITEM_COLLAPSEALL                   = 22006;
+  ID_ITEM_UNCOLLAPSEALL                 = 22007;
+  ID_ITEM_TOGGLECOMMENT                 = 22008;
+  ID_ITEM_DUPLICATELINE                 = 22009;
+  ID_ITEM_DELETELINE                    = 22010;
+  ID_ITEM_MOVESELUP                     = 22011;
+  ID_ITEM_MOVESELDOWN                   = 22012;
+  ID_ITEM_SWAPEDITOR                    = 22013;
+  ID_ITEM_TOGGLECOMMENTINLINE           = 22014;
+  ID_ITEM_UTF8                          = 22015;
+  ID_ITEM_ENCODING                      = 22016;
+  ID_ITEM_CONV_UTF8                     = 22017;
 
   // Editor options form
   ID_EOPT                               = 23001;

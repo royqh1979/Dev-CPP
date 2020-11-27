@@ -2221,6 +2221,8 @@ begin
 end;
 
 procedure TEditor.EditorDblClick(Sender: TObject);
+var
+  s:AnsiString;
 begin
   fDblClickTime := GetTickCount;
   fText.GetPositionOfMouse(fDblClickMousePos);

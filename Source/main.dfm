@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 521
-  Top = 234
+  Left = 496
+  Top = 269
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1625,16 +1625,11 @@ object MainForm: TMainForm
       object SwapHeaderSourceItem: TMenuItem
         Action = actSwapHeaderSource
       end
-      object N63: TMenuItem
+      object N42: TMenuItem
         Caption = '-'
       end
-      object FloatingPojectManagerItem: TMenuItem
-        Caption = '&Floating Project Manager'
-        OnClick = FloatingPojectManagerItemClick
-      end
-      object FloatingReportwindowItem: TMenuItem
-        Caption = 'Floating &Report window'
-        OnClick = FloatingReportwindowItemClick
+      object CloseMessageSheet1: TMenuItem
+        Action = actCloseMessageSheet
       end
     end
     object ProjectMenu: TMenuItem
@@ -3100,17 +3095,23 @@ object MainForm: TMainForm
     end
     object actBack: TAction
       Category = 'Code'
-      Caption = 'Back'
+      Caption = '&Back'
       ImageIndex = 69
       OnExecute = actBackExecute
       OnUpdate = actBackUpdate
     end
     object actForward: TAction
       Category = 'Code'
-      Caption = 'Forward'
+      Caption = '&Forward'
       ImageIndex = 70
       OnExecute = actForwardExecute
       OnUpdate = actForwardUpdate
+    end
+    object actCloseMessageSheet: TAction
+      Category = 'View'
+      Caption = '&Close Message Sheet'
+      ShortCut = 32854
+      OnExecute = actCloseMessageSheetExecute
     end
   end
   object MessagePopup: TPopupMenu
