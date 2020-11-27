@@ -2399,7 +2399,7 @@ begin
   end;
 
   // Don't rescan the same stuff over and over again (that's slow)
-  if s = fCurrentWord then
+  if (s = fCurrentWord) and (fText.Hint<>'') then 
     Exit; // do NOT remove hint when subject stays the same
 
   // Remove hint

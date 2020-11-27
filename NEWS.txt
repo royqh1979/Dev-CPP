@@ -18,6 +18,7 @@ Version 6.2-beta3
     - fix: Choose unassemble type buttons disappeared in the CPU Window
     - fix: code suggestion failed when chained like x->y->z;
     - enhancement: navigate to previous/next error line
+    - fix: set timeout for a hint to 30 seconds;
     
 Version 6.2-beta2
 
