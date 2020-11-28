@@ -57,6 +57,7 @@ object MainForm: TMainForm
     TabOrder = 1
     TabPosition = tpBottom
     OnChange = MessageControlChange
+    OnDrawTab = OnDrawTab
     object CompSheet: TTabSheet
       Caption = 'Compiler'
       ImageIndex = 28
@@ -231,10 +232,11 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0
+        OnDrawTab = OnDrawTab
         object DebugConsoleSheet: TTabSheet
           Caption = 'Debug Console'
           ImageIndex = 2
@@ -486,7 +488,16 @@ object MainForm: TMainForm
             Width = 336
             Height = 24
             Anchors = [akLeft, akTop, akRight]
+            Color = clBtnFace
+            Ctl3D = True
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -14
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
             ItemHeight = 16
+            ParentCtl3D = False
+            ParentFont = False
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
@@ -497,6 +508,12 @@ object MainForm: TMainForm
             Height = 161
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -14
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
             ReadOnly = True
             ScrollBars = ssBoth
             TabOrder = 1
@@ -818,11 +835,18 @@ object MainForm: TMainForm
         Width = 350
         Height = 24
         Style = csDropDownList
+        Color = clBtnFace
         Ctl3D = True
         DropDownCount = 16
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 16
         ItemIndex = 0
         ParentCtl3D = False
+        ParentFont = False
         Sorted = True
         TabOrder = 0
         Text = '(globals)'
@@ -837,10 +861,17 @@ object MainForm: TMainForm
         Width = 350
         Height = 24
         Style = csDropDownList
+        Color = clBtnFace
         Ctl3D = True
         DropDownCount = 16
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 16
         ParentCtl3D = False
+        ParentFont = False
         Sorted = True
         TabOrder = 1
         OnChange = cmbMembersChange
@@ -870,10 +901,17 @@ object MainForm: TMainForm
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
+        Color = clBtnFace
         Ctl3D = True
         DropDownCount = 16
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 16
         ParentCtl3D = False
+        ParentFont = False
         TabOrder = 0
         OnChange = cmbCompilersChange
         OnDropDown = cmbGenericDropDown
@@ -1030,6 +1068,7 @@ object MainForm: TMainForm
     TabOrder = 5
     TabPosition = tpLeft
     OnChange = LeftPageControlChange
+    OnDrawTab = OnDrawTab
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
       ImageIndex = -1

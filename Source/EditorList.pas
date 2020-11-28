@@ -111,7 +111,7 @@ begin
       end;
     lstBoth: begin
         // Check if right is focused, otherwise assume left one is focused
-        ActivePage := fRightPageControl.ActivePage;
+        ActivePage := TTabSheet(fRightPageControl.ActivePage);
         if TEditor(ActivePage.Tag).Text.Focused then
           Result := fRightPageControl
         else
@@ -239,9 +239,9 @@ begin
 
   // Select tab in selected pagecontrol
   case PageIndex of
-    -1: TabSheet := SelectedPageControl.ActivePage;
+    -1: TabSheet := TTabSheet(SelectedPageControl.ActivePage);
   else
-    TabSheet := SelectedPageControl.Pages[PageIndex];
+    TabSheet := TTabSheet(SelectedPageControl.Pages[PageIndex]);
   end;
   if not Assigned(TabSheet) then
     Exit;
@@ -278,7 +278,7 @@ begin
 
       // All history items are gone or this was the first tab to open which has no history
       // Select the editor that would appear naturally when closing this one
-      PrevNaturalPage := FindNextPage(Editor.TabSheet, False, True);
+      PrevNaturalPage := TTabSheet(FindNextPage(Editor.TabSheet, False, True));
       if Assigned(PrevNaturalPage) and (PrevNaturalPage <> Editor.TabSheet) then begin
         Result := GetEditor(PrevNaturalPage.TabIndex, EditorPageControl);
         Exit;
@@ -535,7 +535,7 @@ begin
   try
     // Remember old index
     FromPageControl := Editor.PageControl;
-    FromPageControlPrevTab := Editor.PageControl.FindNextPage(Editor.TabSheet, False, True);
+    FromPageControlPrevTab := TTabSheet(Editor.PageControl.FindNextPage(Editor.TabSheet, False, True));
 
     // Determine how to swap
     if Editor.PageControl = fLeftPageControl then

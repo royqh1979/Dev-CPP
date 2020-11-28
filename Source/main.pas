@@ -35,7 +35,24 @@ uses
 
 type
   TRunEndAction = (reaNone, reaProfile);
-  TCompSuccessAction = (csaNone, csaRun, csaDebug, csaProfile);   
+  TCompSuccessAction = (csaNone, csaRun, csaDebug, csaProfile);
+
+  TTabsheet = class( ComCtrls.TTabSheet )
+  private
+    Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
+      message WM_ERASEBKGND;
+  public
+    Constructor Create( aOwner: TComponent ); override;
+  end;
+
+  TPanel = class( ExtCtrls.TPanel )
+  private
+    Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
+      message WM_ERASEBKGND;
+  public
+    Constructor Create( aOwner: TComponent ); override;
+  end;
+
 
   TMainForm = class(TForm)
     MainMenu: TMainMenu;
@@ -903,10 +920,8 @@ type
     procedure actPrevErrorUpdate(Sender: TObject);
     procedure actPrevErrorExecute(Sender: TObject);
     procedure actNextErrorExecute(Sender: TObject);
-    {
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
-      }
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -987,6 +1002,7 @@ type
     procedure SetStatusbarMessage(const msg: AnsiString);
     procedure OnBacktraceReady;
     procedure SetCppParserProject(Project:TProject);
+    procedure CustomDrawPageControl(PC: TPageControl);
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
     property Project: TProject read fProject write fProject;
@@ -1014,6 +1030,48 @@ uses
   WindowListFrm, RemoveUnitFrm, ParamsFrm, ProcessListFrm, SynEditHighlighter;
 
 {$R *.dfm}
+{ TTabsheet }
+constructor TTabsheet.Create(aOwner: TComponent);
+begin
+  inherited;
+end;
+
+procedure TTabsheet.WMEraseBkGnd(var msg: TWMEraseBkGnd);
+var
+  FColor:TColor;
+begin
+  FColor := MainForm.Color;
+  If FColor = clBtnFace Then
+    inherited
+  Else Begin
+    Brush.Color := FColor;
+    Windows.FillRect( msg.dc, Clientrect, Brush.handle );
+    msg.result := 1;
+  End;
+end;
+
+{ TPanel }
+constructor TPanel.Create(aOwner: TComponent);
+begin
+  inherited;
+end;
+
+procedure TPanel.WMEraseBkGnd(var msg: TWMEraseBkGnd);
+var
+  FColor:TColor;
+begin
+  FColor := MainForm.Color;
+  If FColor = clBtnFace Then
+    inherited
+  Else Begin
+    Brush.Color := FColor;
+    Windows.FillRect( msg.dc, Clientrect, Brush.handle );
+    msg.result := 1;
+  End;
+end;
+
+
+{TMainForm}
 
 procedure TMainForm.LoadTheme;
 begin
@@ -1214,10 +1272,28 @@ end;
 procedure TMainForm.LoadColor;
 var
   selectedTC:TThemeColor;
+  gutterTC:TThemeColor;
   ForegroundColor :TColor;
   BackgroundColor: TColor;
   tc:TThemeColor;
 begin
+  strToThemeColor(gutterTC, devEditor.Syntax.Values[cGut]);
+  MainForm.Color := gutterTC.Background;
+  MainForm.Font.Color := gutterTC.Foreground;
+  LeftPageControl.OwnerDraw:=True;
+  MessageControl.OwnerDraw :=True;
+  DebugViews.OwnerDraw:=True;
+  cmbCompilers.Color := gutterTC.Background;
+  cmbCompilers.Font := mainForm.Font;
+  cmbClasses.Color := gutterTC.Background;
+  cmbClasses.Font := mainForm.Font;
+  cmbMembers.Color := gutterTC.Background;
+  cmbMembers.Font := mainForm.Font;
+  evaluateInput.Color := gutterTC.Background;
+  evaluateInput.Font := MainForm.Font;
+  evalOutput.Color := gutterTC.Background;
+  evalOutput.Font := MainForm.Font;
+
   BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
   ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
@@ -1299,6 +1375,7 @@ begin
   LogOutput.Repaint;
   FindOutput.Repaint;
   EvalOutput.Repaint;
+  MainForm.Repaint;
 end;
 
 procedure TMainForm.LoadText;
@@ -2693,6 +2770,17 @@ procedure TMainForm.actFullScreenExecute(Sender: TObject);
 var
   Active: TWinControl;
 begin
+  devData.FullScreen := FullScreenModeItem.Checked;
+  if devData.FullScreen then begin
+    self.OpenCloseMessageSheet(False);
+    devData.ProjectWidth:=self.LeftPageControl.Width;
+    self.LeftPageControl.Width := self.LeftPageControl.Constraints.MinWidth;
+  end else begin
+    //self.OpenCloseMessageSheet(True);
+    self.LeftPageControl.Width := devData.ProjectWidth;
+    self.MessageControl.ActivePage := self.DebugSheet;
+  end;
+{
   // Remember focus
   Active := Screen.ActiveControl;
 
@@ -2734,6 +2822,7 @@ begin
   // Remember focus
   if Active.CanFocus then
     Active.SetFocus;
+}
 end;
 
 procedure TMainForm.actNextExecute(Sender: TObject);
@@ -6442,7 +6531,7 @@ begin
   devData.First := FALSE;
 
   LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftProjectSheet.Width;
-  //MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
+  MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
   //windows xp hack
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
@@ -7775,25 +7864,27 @@ begin
       fTabnine.Stop;
 end;
 
-{
+
 procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
   TabIndex: Integer; const Rect: TRect; Active: Boolean);
 var
   y    : Integer;
   x    : Integer;
   aRect: TRect;
-  bgColor,fgColor : TColor;
-  tc : TThemeColor;
+  bgColor,fgColor,abgColor,afgColor : TColor;
+  gtc : TThemeColor;
   tabs:integer;
   tabRect: TRect;
 begin
-  bgColor := dmMain.Cpp.WhitespaceAttribute.Background;
-  fgColor := dmMain.Cpp.IdentifierAttri.Foreground;
-  strToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+  strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
+  bgColor := gtc.Background;
+  fgColor := gtc.Foreground;
+  abgColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  afgColor := dmMain.Cpp.IdentifierAttri.Foreground;
   if Active then begin
     //Fill the tab rect
-    Control.Canvas.Brush.Color := tc.Background;
-    Control.Canvas.Font.Color := tc.Foreground;
+    Control.Canvas.Brush.Color := abgColor;
+    Control.Canvas.Font.Color := afgColor;
     Control.Canvas.FillRect(Rect);
   end else begin
     //Fill the tab rect
@@ -7832,19 +7923,48 @@ begin
   //draw the tab title
   case TTabControl(Control).TabPosition of
     tpLeft,tpRight: begin
-      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
-      y  := Rect.Bottom - ((Rect.Bottom - Rect.Top - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])) div 2) - 1;
+      if Assigned(TPageControl(Control).Images)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
+        x  := Rect.Left + ((Rect.Right - Rect.Left
+          - TTabControl(Control).Images.Width
+        ) div 2) + 1;
+        y  := Rect.bottom - ((Rect.Bottom - Rect.Top
+           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           - TTabControl(Control).Images.Height
+           ) div 2) - TTabControl(Control).Images.Height;
+        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+      end else begin
+        y  := Rect.Bottom - ((Rect.Bottom - Rect.Top
+           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           ) div 2) - 1;
+      end;
+      x  := Rect.Left + ((Rect.Right - Rect.Left
+        - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])
+        ) div 2) + 1;
       AngleTextOut(Control.Canvas,TTabControl(Control).Tabs[TabIndex],x,y,90);
     end;
     tpTop,tpBottom: begin
+      if Assigned(TPageControl(Control).Images)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
+        x  := Rect.Left + ((Rect.Right - Rect.Left
+          - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])
+          - TTabControl(Control).Images.Width
+          ) div 2) + 1;
+        y  := Rect.Top + ((Rect.Bottom - Rect.Top
+          - TTabControl(Control).Images.Height) div 2) + 1;
+        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+        inc(x,TTabControl(Control).Images.Width);
+      end else begin
+        x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      end;
       y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
-      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
       Control.Canvas.TextOut(x,y,TTabControl(Control).Tabs[TabIndex]);
     end;
   end;
 end;
 
-}
 
 procedure TMainForm.actCopyAsRTFExecute(Sender: TObject);
 var
@@ -7942,6 +8062,7 @@ begin
     e.GotoNextError;
   end;
 end; 
+
 
 end.
 
