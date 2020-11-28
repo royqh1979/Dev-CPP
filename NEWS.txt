@@ -20,7 +20,9 @@ Version 6.2-beta3
     - enhancement: navigate to previous/next error line
     - fix: set timeout for a hint to 30 seconds;
     - enhancement: show hint info for overload functions
+    - enhancement: more controls support editor color theme
     - change: remove "Full Screenmode", add "Maximum editor area" instead.
+    - enhancement: can code suggestion for things like (x)-> or (*x)->
 
 Version 6.2-beta2
 

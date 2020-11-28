@@ -54,7 +54,7 @@ var
   EditorCount, CloseEditorCount: integer;
   e: TEditor;
 
-  procedure OpenEditors(Count: Integer; PageControl: TPageControl);
+  procedure OpenEditors(Count: Integer; PageControl: ComCtrls.TPageControl);
   var
     I, StartCount: integer;
   begin
@@ -70,7 +70,7 @@ var
       ShowUpdate(0);
     end;
   end;
-  procedure CloseEditors(PageControl: TPageControl);
+  procedure CloseEditors(PageControl: ComCtrls.TPageControl);
   var
     I: integer;
     e: TEditor;
@@ -91,14 +91,14 @@ var
     CloseEditors(MainForm.EditorList.LeftPageControl);
     CloseEditors(MainForm.EditorList.RightPageControl);
   end;
-  procedure SwapEditors(PageControl: TPageControl);
+  procedure SwapEditors(PageControl: ComCtrls.TPageControl);
   begin
     while PageControl.PageCount > 0 do begin
       MainForm.EditorList.SwapEditor(MainForm.EditorList.GetEditor(-1, PageControl));
       ShowUpdate(0);
     end;
   end;
-  procedure ActivateEditors(PageControl: TPageControl);
+  procedure ActivateEditors(PageControl: ComCtrls.TPageControl);
   var
     I: integer;
     e: TEditor;
@@ -114,7 +114,7 @@ var
   procedure ZapEditors(GoForward: Boolean);
   var
     I: integer;
-    FocusedPageControl: TPageControl;
+    FocusedPageControl: ComCtrls.TPageControl;
   begin
     FocusedPageControl := MainForm.EditorList.FocusedPageControl;
     for I := 0 to MainForm.EditorList.FocusedPageControl.PageCount - 1 do begin

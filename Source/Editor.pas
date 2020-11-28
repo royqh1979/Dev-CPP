@@ -310,7 +310,7 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
 var
   s: AnsiString;
   I: integer;
@@ -452,7 +452,7 @@ begin
   inherited;
 end;
 
-function TEditor.GetPageControl: TPageControl;
+function TEditor.GetPageControl: ComCtrls.TPageControl;
 begin
   if Assigned(fTabSheet) then
     Result := fTabSheet.PageControl
@@ -460,7 +460,7 @@ begin
     Result := nil;
 end;
 
-procedure TEditor.SetPageControl(Value: TPageControl);
+procedure TEditor.SetPageControl(Value: ComCtrls.TPageControl);
 begin
   if Assigned(fTabSheet) then
     fTabSheet.PageControl := Value;
@@ -2112,6 +2112,14 @@ begin
     ParamBegin := Pos('(', Result);
     if ParamBegin > 0 then begin
       ParamEnd := ParamBegin;
+      if (ParamBegin=1) and FindComplement(Result, '(', ')', ParamEnd, 1) then begin
+        Delete(Result,ParamEnd,1);
+        Delete(Result,ParamBegin,1);
+        continue;
+      end else begin
+        break
+      end;
+      ParamEnd := ParamBegin;
       if FindComplement(Result, '(', ')', ParamEnd, 1) then begin
         Delete(Result, ParamBegin, ParamEnd - ParamBegin + 1);
       end else
@@ -2119,6 +2127,12 @@ begin
     end else
       break;
   end;
+
+  ParamBegin := 1;
+  while (ParamBegin <= Length(Result)) and (Result[ParamBegin] = '*') do begin
+    inc(ParamBegin);
+  end;
+  Delete(Result,1,ParamBegin-1);
 
   // Strip array stuff
   if not (Purpose = wpEvaluation) then

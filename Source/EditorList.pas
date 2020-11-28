@@ -98,7 +98,7 @@ begin
   end;
 end;
 
-function TEditorList.GetFocusedPageControl: TPageControl;
+function TEditorList.GetFocusedPageControl: ComCtrls.TPageControl;
 var
   ActivePage: TTabSheet;
 begin
@@ -163,11 +163,11 @@ begin
   end;
 end;
 
-function TEditorList.NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: TPageControl =
+function TEditorList.NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl =
   nil):
   TEditor;
 var
-  ParentPageControl: TPageControl;
+  ParentPageControl: ComCtrls.TPageControl;
 begin
   BeginUpdate;
   try
@@ -222,9 +222,9 @@ begin
   Result := nil;
 end;
 
-function TEditorList.GetEditor(PageIndex: integer = -1; PageControl: TPageControl = nil): TEditor;
+function TEditorList.GetEditor(PageIndex: integer = -1; PageControl: ComCtrls.TPageControl = nil): TEditor;
 var
-  SelectedPageControl: TPageControl;
+  SelectedPageControl: ComCtrls.TPageControl;
   TabSheet: TTabSheet;
 begin
   Result := nil;
@@ -252,7 +252,7 @@ end;
 function TEditorList.GetPreviousEditor(Editor: TEditor): TEditor;
 var
   I: integer;
-  EditorPageControl: TPageControl;
+  EditorPageControl: ComCtrls.TPageControl;
   PrevNaturalPage: TTabSheet;
   e: TEditor;
 begin
@@ -525,7 +525,7 @@ end;
 
 function TEditorList.SwapEditor(Editor: TEditor): boolean;
 var
-  FromPageControl: TPageControl;
+  FromPageControl: ComCtrls.TPageControl;
   FromPageControlPrevTab: TTabSheet;
 begin
   Result := True;
@@ -632,7 +632,7 @@ end;
 
 procedure TEditorList.SelectNextPage;
 var
-  PageControl: TPageControl;
+  PageControl: ComCtrls.TPageControl;
 begin
   PageControl := GetFocusedPageControl;
   if Assigned(PageControl) then
@@ -641,7 +641,7 @@ end;
 
 procedure TEditorList.SelectPrevPage;
 var
-  PageControl: TPageControl;
+  PageControl: ComCtrls.TPageControl;
 begin
   PageControl := GetFocusedPageControl;
   if Assigned(PageControl) then

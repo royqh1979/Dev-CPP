@@ -41,16 +41,18 @@ type
   private
     Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
       message WM_ERASEBKGND;
-  public
-    Constructor Create( aOwner: TComponent ); override;
+  end;
+
+  TPageControl = class( ComCtrls.TPageControl )
+  private
+    Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
+      message WM_ERASEBKGND;
   end;
 
   TPanel = class( ExtCtrls.TPanel )
   private
     Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
       message WM_ERASEBKGND;
-  public
-    Constructor Create( aOwner: TComponent ); override;
   end;
 
 
@@ -1002,7 +1004,6 @@ type
     procedure SetStatusbarMessage(const msg: AnsiString);
     procedure OnBacktraceReady;
     procedure SetCppParserProject(Project:TProject);
-    procedure CustomDrawPageControl(PC: TPageControl);
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
     property Project: TProject read fProject write fProject;
@@ -1031,10 +1032,6 @@ uses
 
 {$R *.dfm}
 { TTabsheet }
-constructor TTabsheet.Create(aOwner: TComponent);
-begin
-  inherited;
-end;
 
 procedure TTabsheet.WMEraseBkGnd(var msg: TWMEraseBkGnd);
 var
@@ -1050,12 +1047,23 @@ begin
   End;
 end;
 
-{ TPanel }
-constructor TPanel.Create(aOwner: TComponent);
+{ TPageControl }
+
+procedure TPageControl.WMEraseBkGnd(var msg: TWMEraseBkGnd);
+var
+  FColor:TColor;
 begin
-  inherited;
+  FColor := MainForm.Color;
+  If FColor = clBtnFace Then
+    inherited
+  Else Begin
+    Brush.Color := FColor;
+    Windows.FillRect( msg.dc, Clientrect, Brush.handle );
+    msg.result := 1;
+  End;
 end;
 
+{ TPanel }
 procedure TPanel.WMEraseBkGnd(var msg: TWMEraseBkGnd);
 var
   FColor:TColor;
@@ -4066,7 +4074,7 @@ procedure TMainForm.actIncrementalExecute(Sender: TObject);
 var
   pt: TPoint;
   e: TEditor;
-  PageControl: TPageControl;
+  PageControl: ComCtrls.TPageControl;
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
