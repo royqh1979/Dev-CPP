@@ -19,7 +19,8 @@ Version 6.2-beta3
     - fix: code suggestion failed when chained like x->y->z;
     - enhancement: navigate to previous/next error line
     - fix: set timeout for a hint to 30 seconds;
-    
+    - enhancement: show hint info for overload functions
+
 Version 6.2-beta2
 
   - fix: Shortcut TAB and Shift+TAB for Indent and Unindent doesn't work

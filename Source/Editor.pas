@@ -2287,6 +2287,35 @@ var
     fText.Hint := pError.Hint;
   end;
 
+  function GetHintFromStatement(st:PStatement):AnsiString;
+  var
+    children:TList;
+    childStatement:PStatement;
+    i:integer;
+    hint:AnsiString;
+  begin
+    if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
+      hint:='';
+      children := MainForm.CppParser.Statements.GetChildrenStatements(st^._ParentScope);
+      for i:=0 to children.Count-1 do begin
+        childStatement:=PStatement(children[i]);
+        if samestr(st^._Command,childStatement^._Command)
+          and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
+            if hint <> '' then
+              hint:=hint+#13;
+            Hint := hint + MainForm.CppParser.PrettyPrintStatement(childStatement)
+              + ' - ' + ExtractFileName(childStatement^._FileName)
+              + ' ('  + IntToStr(childStatement^._Line) + ')';
+        end;
+        Result:=hint;
+      end;
+    end else begin
+      Result := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+    end;
+    Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
+  end;
+
   procedure ShowDebugHint;
   begin
 
@@ -2314,12 +2343,9 @@ var
       MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
       MainForm.Debugger.SendCommand('print', s, False);
     end else if devEditor.ParserHints then begin
-      fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
-        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
-      fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
+      fText.Hint := GetHintFromStatement(st);
       // vertical bar is used to split up short and long hint versions...
     end;
-
   end;
 
   procedure ShowParserHint;
@@ -2334,10 +2360,8 @@ var
     end;
 
     if Assigned(st) then begin
-      fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
-        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
-      fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
       // vertical bar is used to split up short and long hint versions...
+      fText.Hint := GetHintFromStatement(st);
     end;
   end;
 

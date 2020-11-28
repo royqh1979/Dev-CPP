@@ -35,7 +35,7 @@ uses
 
 type
   TRunEndAction = (reaNone, reaProfile);
-  TCompSuccessAction = (csaNone, csaRun, csaDebug, csaProfile);
+  TCompSuccessAction = (csaNone, csaRun, csaDebug, csaProfile);   
 
   TMainForm = class(TForm)
     MainMenu: TMainMenu;

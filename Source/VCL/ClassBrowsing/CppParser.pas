@@ -76,8 +76,7 @@ type
     fTempStatements : TList; // TList<PStatement>
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
-    fNamespaces :TStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
-
+    fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -269,8 +268,9 @@ begin
   fParseGlobalHeaders := False;
   fLocked := False;
   fTempStatements := TList.Create;
-  fNamespaces := TStringList.Create;
+  fNamespaces := TDevStringList.Create;
   fNamespaces.Sorted := True;
+
 end;
 
 destructor TCppParser.Destroy;
