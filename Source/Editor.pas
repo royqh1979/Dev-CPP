@@ -156,8 +156,8 @@ type
     procedure OnMouseOverEvalReady(const evalvalue: AnsiString);
     function HasBreakPoint(Line: integer): integer;
     procedure DebugAfterPaint(ACanvas: TCanvas; AClip: TRect; FirstLine, LastLine: integer);
-    function GetPageControl: TPageControl;
-    procedure SetPageControl(Value: TPageControl);
+    function GetPageControl: ComCtrls.TPageControl;
+    procedure SetPageControl(Value: ComCtrls.TPageControl);
     procedure ClearUserCodeInTabStops;
     procedure PopUserCodeInTabStops;
     procedure ShowTabnineCompletion;
@@ -167,7 +167,7 @@ type
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
   public
-    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
@@ -212,7 +212,7 @@ type
     property TabSheet: TTabSheet read fTabSheet;
     property FunctionTip: TCodeToolTip read fFunctionTip;
     property CompletionBox: TCodeCompletion read fCompletionBox;
-    property PageControl: TPageControl read GetPageControl write SetPageControl;
+    property PageControl: ComCtrls.TPageControl read GetPageControl write SetPageControl;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property GutterClickedLine: integer read fGutterClickedLine;
   end;

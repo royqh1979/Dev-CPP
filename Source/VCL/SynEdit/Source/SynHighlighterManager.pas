@@ -43,9 +43,7 @@ Known Issues:
 Provides a component to manage many highlighters in a single project.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERMANAGER}
 unit SynHighlighterManager;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -91,21 +89,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_6_UP}
   DesignIntf,
-{$ELSE}
-  DsgnIntf,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  Qt,
-  QForms,
-  QControls,
-  QStdCtrls,
-  QCheckLst,
-  Types,
-  QSynEditHighlighter,
-  QSynEditStrConst,
-{$ELSE}
   Windows,
   Forms,
   Controls,
@@ -113,7 +97,6 @@ uses
   CheckLst,
   SynEditHighlighter,
   SynEditStrConst,
-{$ENDIF}
   SysUtils;
 
 type
@@ -125,21 +108,13 @@ type
     btnCancel: TButton;
     Highlight: TSynHighlighterList;
     constructor Create(highlighters: TSynHighlighterList);
-      {$IFDEF SYN_COMPILER_4_UP}reintroduce;{$ENDIF}
+      reintroduce;
     procedure   LoadForm;
     procedure   SelectAll(Sender: TObject);
     procedure   DeselectAll(Sender: TObject);
   end;
 
-  {$IFDEF SYN_COMPILER_4_UP}
-    {$IFDEF SYN_COMPILER_6_UP}
-      TDesignerClass = IDesigner;
-    {$ELSE}
-      TDesignerClass = IFormDesigner;
-    {$ENDIF}
-  {$ELSE}
-    TDesignerClass = TFormDesigner;
-  {$ENDIF}
+  TDesignerClass = IDesigner;
 
 { TSynHighlighterManager }
 
@@ -284,18 +259,10 @@ begin
   inherited;
   if (csDesigning in ComponentState) and (AOwner is TCustomForm) then begin
     form := TCustomForm(AOwner);
-{$IFDEF SYN_CLX}
-    dsgn := form.DesignerHook as TDesignerClass;
-{$ELSE}
     dsgn := form.Designer as TDesignerClass;
-{$ENDIF}
     highlight := GetPlaceableHighlighters;
     if highlight.Count = 0 then
-{$IFDEF SYN_CLX}
-      Application.MessageBox('No highlighters found!','Highlighter Manager', [smbOK], smsWarning)
-{$ELSE}
       Application.MessageBox('No highlighters found!','Highlighter Manager', MB_OK + MB_ICONEXCLAMATION)
-{$ENDIF}
     else
     begin
       synForm := TSynHighlighterForm.Create(highlight);
@@ -320,11 +287,7 @@ begin
   Width  := 410;
   Height := 243;
   Position := poScreenCenter;
-{$IFDEF SYN_CLX}
-  BorderStyle := fbsDialog;
-{$ELSE}
   BorderStyle := bsDialog;
-{$ENDIF}
 
   Highlight := highlighters;
   

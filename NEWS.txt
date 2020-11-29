@@ -24,6 +24,7 @@ Version 6.2-beta3
     - change: remove "Full Screenmode", add "Maximum editor area" instead.
     - enhancement: can code suggestion for things like (x)-> or (*x)->
     - enhancement: change width of the gutter for better display of breakpoint/error icons
+    - enhancement: Full color support? (except main menu) in MainForm
 
 Version 6.2-beta2
 

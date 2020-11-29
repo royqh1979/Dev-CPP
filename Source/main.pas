@@ -47,6 +47,11 @@ type
   private
     Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
       message WM_ERASEBKGND;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
+  protected
+    procedure CreateParams(var Params: TCreateParams);override;  
+  public
+    constructor Create(AOwner:TComponent); override;
   end;
 
   TPanel = class( ExtCtrls.TPanel )
@@ -1049,6 +1054,17 @@ end;
 
 { TPageControl }
 
+constructor TPageControl.Create(AOwner:TComponent);
+begin
+  inherited;
+  self.Font:=MainForm.Font;
+end;
+
+procedure TPageControl.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+end;
+
 procedure TPageControl.WMEraseBkGnd(var msg: TWMEraseBkGnd);
 var
   FColor:TColor;
@@ -1061,6 +1077,50 @@ begin
     Windows.FillRect( msg.dc, Clientrect, Brush.handle );
     msg.result := 1;
   End;
+end;
+
+procedure TPageControl.WMPaint(var Message: TWMPaint);
+var
+//  C: TControlCanvas;
+  R: TRect;
+  i,nsel:integer;
+  DC: HDC;
+  PS: TPaintStruct;
+  bgColor,fgColor: TColor;
+  gtc : TThemeColor;
+
+begin
+  if not self.OwnerDraw or not Assigned(self.OnDrawTab) then begin
+    inherited;
+    exit;
+  end;
+  self.Font := MainForm.Font;
+  DC := Message.DC;
+  if DC = 0 then
+    DC := BeginPaint(Handle, PS);
+  try
+    self.Canvas.Font := MainForm.Font;
+    strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
+    bgColor := gtc.Background;
+    fgColor := gtc.Foreground;
+    self.Canvas.Brush.Color := fgColor;
+    self.Canvas.FillRect(self.DisplayRect);
+
+    for i:=0 to self.Tabs.Count-1 do begin
+      if i = self.TabIndex then begin
+        R:=self.TabRect(i);
+        dec(R.left,2);
+        dec(R.top,2);
+        self.OnDrawTab(self,i,R,true);
+      end else begin
+        R:=self.TabRect(i);
+        self.OnDrawTab(self,i,R,false);
+      end;
+    end;
+  finally
+    if Message.DC = 0 then EndPaint(Handle, PS);
+  end;
+  self.PaintHandler(message);
 end;
 
 { TPanel }
@@ -7927,6 +7987,12 @@ begin
   end;
   Control.Canvas.Brush.Color := bgColor;
   Control.Canvas.FillRect(aRect);
+  
+  if Active then begin
+    //Fill the tab rect
+    Control.Canvas.Brush.Color := abgColor;
+    Control.Canvas.Font.Color := afgColor;
+  end;
 
   //draw the tab title
   case TTabControl(Control).TabPosition of
