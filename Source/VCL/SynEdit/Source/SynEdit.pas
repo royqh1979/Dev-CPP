@@ -320,6 +320,7 @@ type
     fCaretOffset: TPoint;
     fKeyStrokes: TSynEditKeyStrokes;
     fModified: Boolean;
+    fLastModifyTime: TDateTime;
     fMarkList: TSynEditMarkList;
     fExtraLineSpacing: integer;
     fSelectionMode: TSynSelectionMode;
@@ -637,6 +638,7 @@ type
       var TokenType, Start: Integer;
       var Attri: TSynHighlighterAttributes): boolean;
     function GetPositionOfMouse(out aPos: TBufferCoord): Boolean;
+    function GetLineOfMouse(out line: integer): boolean;
     function GetWordAtRowCol(XY: TBufferCoord): string;
     procedure GotoBookMark(BookMark: Integer);
     procedure SetCaretXYCentered(ForceToMiddle: Boolean; const Value: TBufferCoord);
@@ -757,6 +759,7 @@ type
     property MaxScrollWidth: integer read fMaxScrollWidth write SetMaxScrollWidth
       default 1024;
     property Modified: Boolean read fModified write SetModified;
+    property LastModifyTime: TDateTime read fLastModifyTime;
     property PaintLock: Integer read fPaintLock;
     property ReadOnly: Boolean read GetReadOnly write SetReadOnly default FALSE;
     property SearchEngine: TSynEditSearchCustom read fSearchEngine write SetSearchEngine;
@@ -8594,6 +8597,8 @@ end;
 
 procedure TCustomSynEdit.SetModified(Value: boolean);
 begin
+  if Value then
+    fLastModifyTime := Now;
   if Value <> fModified then begin
     fModified := Value;
     if (eoGroupUndo in Options) and (not Value) and UndoList.CanUndo then
@@ -9344,6 +9349,25 @@ end;
 function TCustomSynEdit.PrevWordPos: TBufferCoord;
 begin
   Result := PrevWordPosEx(CaretXY);
+end;
+
+function TCustomSynEdit.GetLineOfMouse(out line: integer): boolean;
+var
+  Point: TPoint;
+  aPos: TBufferCoord;
+begin
+  GetCursorPos(Point); // mouse position (on screen)
+  Point := Self.ScreenToClient(Point); // convert to SynEdit coordinates
+  { Make sure it fits within the SynEdit bounds }
+  if (Point.X < 0) or (Point.Y < 0) or (Point.X > Self.Width) or (Point.Y > Self.Height) then begin
+    Result := False;
+    EXIT;
+  end;
+
+  { inside the editor, get the word under the mouse pointer }
+  aPos := DisplayToBufferPos(PixelsToRowColumn(Point.X, Point.Y));
+  line := aPos.Line;
+  Result := True;
 end;
 
 function TCustomSynEdit.GetPositionOfMouse(out aPos: TBufferCoord): Boolean;

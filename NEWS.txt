@@ -1,6 +1,35 @@
+Version 6.2-beta3
+    
+    - fix: Export to RTF, correct background
+    - fix: Export to RTF, chinese character support
+    - enhancement: Edit Menu -> Copy As  RTF
+    - enhancement: Show Error Hint when point mouse on the editor gutter (the line number column on the left)
+    - enhancement: Auto set highdpi registry fix when first run (choose language wizard)
+    - fix: when check syntax for a project file, we shouldn't make the whole project
+    - fix: mouse cursor is not set to normal when Code Suggestion window show up
+    - fix: old error infos are not cleared, when build a project
+    - fix: error when compiler return error without line/column infos
+    - enhancement: navigate back/forward
+    - enhancement: add "Close Report panel" menu item in the view menu; use Alt+V as it's short cut.
+    - change: remove "float report view" and "float project manager" menu item in the view menu. They are buggy and seldom used.
+    - fix: devcpp error when typing struct and it's name in a struct define on the last line and } is the last symbol
+    - fix: can't parse correctly when typedef struct xxx{} yyy,zzz; xxx and yyy is the same.
+    - fix: CPU window can only open once.
+    - fix: Choose unassemble type buttons disappeared in the CPU Window
+    - fix: code suggestion failed when chained like x->y->z;
+    - enhancement: navigate to previous/next error line
+    - fix: set timeout for a hint to 30 seconds;
+    - enhancement: show hint info for overload functions
+    - enhancement: more controls support editor color theme
+    - change: remove "Full Screenmode", add "Maximum editor area" instead.
+    - enhancement: can code suggestion for things like (x)-> or (*x)->
+    - enhancement: change width of the gutter for better display of breakpoint/error icons
+    - enhancement: Full color support? (except main menu and statusbar) in MainForm
+    - fix: devcpp dead lock when try to show mouse hint and there are unsaved modifications
+
 Version 6.2-beta2
 
-  - fix: Shortcut '/' and Shift+/ for Indent and Unindent doesn't work
+  - fix: Shortcut TAB and Shift+TAB for Indent and Unindent doesn't work
   - enhancement: use different colors for embedded ()/{}/[]
   - enhancement: use hex format to save color settings in the config file
   - enhancement: tabnine integration (experiment)

@@ -41,95 +41,10 @@ unit SynEditReg;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  // SynEdit components
-  QSynEdit,
-  QSynMemo,
-  {$IFNDEF SYN_DELPHI_PE}
-  QSynDBEdit,
-  {$ENDIF}
-  QSynEditStrConst,
-  QSynEditHighlighter,
-  QSynEditMiscClasses,
-  QSynEditPlugins,
-  QSynEditExport,
-  QSynExportHTML,
-  QSynExportRTF,
-  QSynExportTeX,
-  QSynHighlighterMulti,
-  QSynCompletionProposal,
-  QSynEditPythonBehaviour,
-  QSynEditPrint,
-  QSynEditPrintPreview,
-  QSynMacroRecorder,
-  QSynAutoCorrect,
-  QSynEditSearch,
-  QSynEditRegexSearch,
-  QSynHighlighterManager,
-  QSynEditOptionsDialog,
-  QSynHighlighterADSP21xx,
-  QSynHighlighterAsm,
-  QSynHighlighterAWK,
-  QSynHighlighterBaan,
-  QSynHighlighterBat,
-  QSynHighlighterCAC,
-  QSynHighlighterCache,
-  QSynHighlighterCobol,
-  QSynHighlighterCpp,
-  QSynHighlighterCS,
-  QSynHighlighterCss,
-  QSynHighlighterDfm,
-  QSynHighlighterDml,
-  QSynHighlighterDOT,
-  QSynHighlighterEiffel,
-  QSynHighlighterFortran,
-  QSynHighlighterFoxpro,
-  QSynHighlighterGalaxy,
-  QSynHighlighterGeneral,
-  QSynHighlighterHaskell,
-  QSynHighlighterHC11,
-  QSynHighlighterHP48,
-  QSynHighlighterHtml,
-  QSynHighlighterIni,
-  QSynHighlighterInno,
-  QSynHighlighterJava,
-  QSynHighlighterJScript,
-  QSynHighlighterKix,
-  QSynHighlighterModelica,
-  QSynHighlighterM3,
-  QSynHighlighterPas,
-  QSynHighlighterPerl,
-  QSynHighlighterPHP,
-  QSynHighlighterProgress,
-  QSynHighlighterPython,
-  QSynHighlighterRC,
-  QSynHighlighterRuby,
-  QSynHighlighterSml,
-  QSynHighlighterSQL,
-  QSynHighlighterTclTk,
-  QSynHighlighterTeX,
-  QSynHighlighterUNIXShellScript,
-  QSynHighlighterURI,
-  QSynHighlighterVB,
-  QSynHighlighterVBScript,
-  QSynHighlighterVrml97,
-  QSynHighlighterGWS,
-  QSynHighlighterCPM,
-  QSynHighlighterSDD,
-  QSynHighlighterXML,
-  QSynHighlighterMsg,
-  QSynHighlighterIDL,
-  QSynHighlighterUnreal,
-  QSynHighlighterST,
-  QSynHighlighterLDraw,
-  QSynURIOpener,
-{$ELSE}
   // SynEdit components
   SynEdit,
   SynMemo,
-  {$IFNDEF SYN_DELPHI_PE}
   SynDBEdit,
-  {$ENDIF}
   SynEditStrConst,
   SynEditHighlighter,
   SynEditMiscClasses,
@@ -144,12 +59,9 @@ uses
   SynEditPrint,
   SynEditPrintPreview,
   SynMacroRecorder,
-  SynAutoCorrect,
   SynEditSearch,
   SynEditRegexSearch,
-  {$IFDEF SYN_COMPILER_4_UP}
   SynHighlighterManager,
-  {$ENDIF}
   SynEditOptionsDialog,
   SynHighlighterADSP21xx,
   SynHighlighterAsm,
@@ -207,7 +119,6 @@ uses
   SynHighlighterST,
   SynHighlighterLDraw,
   SynURIOpener,
-{$ENDIF}
   Classes;
 
 procedure Register;
@@ -219,36 +130,26 @@ begin
 // SynEdit main components
   RegisterComponents(SYNS_ComponentsPage, [TSynEdit, TSynMemo]);
 
-{$IFNDEF SYN_DELPHI_PE}
   RegisterComponents(SYNS_ComponentsPage, [TDBSynEdit]);
-{$ENDIF}
 
-{$IFDEF SYN_COMPILER_6_UP}
   GroupDescendentsWith(TSynCustomHighlighter, TSynEdit);
   GroupDescendentsWith(TSynEditSearchCustom, TSynEdit);
   GroupDescendentsWith(TSynCustomExporter, TSynEdit);
   GroupDescendentsWith(TSynMultiSyn, TSynEdit);
-  GroupDescendentsWith(TSynBaseCompletionProposal, TSynEdit);
-  GroupDescendentsWith(TSynAutoComplete, TSynEdit);
   GroupDescendentsWith(TAbstractSynPlugin, TSynEdit);
-  GroupDescendentsWith(TCustomSynAutoCorrect, TSynEdit);
   GroupDescendentsWith(TSynEditPrint, TSynEdit);
   GroupDescendentsWith(TSynEditPrintPreview, TSynEdit);
   GroupDescendentsWith(TSynEditPythonBehaviour, TSynEdit);
   GroupDescendentsWith(TSynHighlighterManager, TSynEdit);
   GroupDescendentsWith(TSynEditOptionsDialog, TSynEdit);
   GroupDescendentsWith(TSynURIOpener, TSynEdit);
-{$ENDIF}
 
 // SynEdit extra components
   RegisterComponents(SYNS_ComponentsPage, [TSynExporterHTML, TSynExporterRTF,
     TSynExporterTeX, TSynEditPythonBehaviour, TSynMultiSyn,
-    TSynCompletionProposal, TSynAutoComplete, TSynMacroRecorder,
-    TSynEditPrint, TSynEditPrintPreview, TSynAutoCorrect,
+    TSynMacroRecorder,  TSynEditPrint, TSynEditPrintPreview,
     TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener]);
-{$IFDEF SYN_COMPILER_4_UP}
   RegisterComponents(SYNS_ComponentsPage, [TSynHighlighterManager]);
-{$ENDIF}
 
 // SynEdit highlighters
   RegisterComponents(SYNS_HighlightersPage, [

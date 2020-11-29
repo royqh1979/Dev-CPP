@@ -22,12 +22,7 @@ unit CBUtils;
 interface
 
 uses
-{$IFDEF WIN32}
-  SysUtils, StrUtils, Classes, IniFiles;
-{$ENDIF}
-{$IFDEF LINUX}
-SysUtils, StrUtils;
-{$ENDIF}
+  SysUtils, StrUtils, Classes, IniFiles, intList;
 
 const
   HeaderExts: array[0..6] of AnsiString = ('.h', '.hpp', '.rh', '.hh', '.hxx', '.inl', '');
@@ -206,6 +201,7 @@ function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: T
 // Fast implementation of IndexOf which does not use AnsiX comparison
 function FastIndexOf(List: TStrings; const S: AnsiString): integer; overload;
 function FastIndexOf(List: TStringlist; const S: AnsiString): integer; overload;
+function FastIndexOf(List: TIntlist; const val: int64): integer; overload;
 
 // Needed by Parser and Preprocessor (and class browser)
 function IsSystemHeaderFile(const FileName: AnsiString; IncludePaths: TStringList): boolean;
@@ -270,6 +266,12 @@ begin
     Result := -1;
   end;
 end;
+
+function FastIndexOf(List: TIntlist; const val: int64): integer;
+begin
+  Result := List.IndexOf(val);
+end;
+
 
 function FastIndexOf(List: TStringlist; const S: AnsiString): integer;
 begin

@@ -30,21 +30,21 @@ type
   TEditorList = class
   private
     fLayout: TLayoutShowType;
-    fLeftPageControl: TPageControl;
-    fRightPageControl: TPageControl;
+    fLeftPageControl: ComCtrls.TPageControl;
+    fRightPageControl: ComCtrls.TPageControl;
     fSplitter: TSplitter;
     fPanel: TPanel; // ui component that is the base layer for all page controls
     fUpdateCount: integer;
     function GetForEachEditor(index: integer): TEditor;
     function GetPageCount: integer;
-    function GetFocusedPageControl: TPageControl;
-    function GetNewEditorPageControl: TPageControl;
+    function GetFocusedPageControl: ComCtrls.TPageControl;
+    function GetNewEditorPageControl: ComCtrls.TPageControl;
     procedure ShowLayout(Layout: TLayoutShowType);
   public
-    function NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: TPageControl = nil):
+    function NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl = nil):
       TEditor;
     function FileIsOpen(const FileName: AnsiString; ProjectOnly: boolean = FALSE): TEditor;
-    function GetEditor(PageIndex: integer = -1; PageControl: TPageControl = nil): TEditor;
+    function GetEditor(PageIndex: integer = -1; PageControl: ComCtrls.TPageControl = nil): TEditor;
     function GetEditorFromFileName(const FileName: AnsiString): TEditor;
     function GetEditorFromTag(tag: integer): TEditor;
     function IsFileOpened(const FileName: AnsiString):boolean;
@@ -62,13 +62,13 @@ type
     procedure UpdateLayout; // reconfigures layout
     procedure GetVisibleEditors(var Left: TEditor; var Right: TEditor);
     procedure SetPreferences(TabPosition: TTabPosition; MultiLine: boolean);
-    property LeftPageControl: TPageControl read fLeftPageControl write fLeftPageControl;
-    property RightPageControl: TPageControl read fRightPageControl write fRightPageControl;
+    property LeftPageControl: ComCtrls.TPageControl read fLeftPageControl write fLeftPageControl;
+    property RightPageControl: ComCtrls.TPageControl read fRightPageControl write fRightPageControl;
     property Splitter: TSplitter read fSplitter write fSplitter;
     property Panel: TPanel read fPanel write fPanel;
     property PageCount: integer read GetPageCount;
     property Editors[Index: integer]: TEditor read GetForEachEditor; default;
-    property FocusedPageControl: TPageControl read GetFocusedPageControl;
+    property FocusedPageControl: ComCtrls.TPageControl read GetFocusedPageControl;
     property Layout: TLayoutShowType read fLayout;
   end;
 
@@ -98,7 +98,7 @@ begin
   end;
 end;
 
-function TEditorList.GetFocusedPageControl: TPageControl;
+function TEditorList.GetFocusedPageControl: ComCtrls.TPageControl;
 var
   ActivePage: TTabSheet;
 begin
@@ -111,7 +111,7 @@ begin
       end;
     lstBoth: begin
         // Check if right is focused, otherwise assume left one is focused
-        ActivePage := fRightPageControl.ActivePage;
+        ActivePage := TTabSheet(fRightPageControl.ActivePage);
         if TEditor(ActivePage.Tag).Text.Focused then
           Result := fRightPageControl
         else
@@ -163,11 +163,11 @@ begin
   end;
 end;
 
-function TEditorList.NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: TPageControl =
+function TEditorList.NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl =
   nil):
   TEditor;
 var
-  ParentPageControl: TPageControl;
+  ParentPageControl: ComCtrls.TPageControl;
 begin
   BeginUpdate;
   try
@@ -222,9 +222,9 @@ begin
   Result := nil;
 end;
 
-function TEditorList.GetEditor(PageIndex: integer = -1; PageControl: TPageControl = nil): TEditor;
+function TEditorList.GetEditor(PageIndex: integer = -1; PageControl: ComCtrls.TPageControl = nil): TEditor;
 var
-  SelectedPageControl: TPageControl;
+  SelectedPageControl: ComCtrls.TPageControl;
   TabSheet: TTabSheet;
 begin
   Result := nil;
@@ -239,9 +239,9 @@ begin
 
   // Select tab in selected pagecontrol
   case PageIndex of
-    -1: TabSheet := SelectedPageControl.ActivePage;
+    -1: TabSheet := TTabSheet(SelectedPageControl.ActivePage);
   else
-    TabSheet := SelectedPageControl.Pages[PageIndex];
+    TabSheet := TTabSheet(SelectedPageControl.Pages[PageIndex]);
   end;
   if not Assigned(TabSheet) then
     Exit;
@@ -252,7 +252,7 @@ end;
 function TEditorList.GetPreviousEditor(Editor: TEditor): TEditor;
 var
   I: integer;
-  EditorPageControl: TPageControl;
+  EditorPageControl: ComCtrls.TPageControl;
   PrevNaturalPage: TTabSheet;
   e: TEditor;
 begin
@@ -278,7 +278,7 @@ begin
 
       // All history items are gone or this was the first tab to open which has no history
       // Select the editor that would appear naturally when closing this one
-      PrevNaturalPage := FindNextPage(Editor.TabSheet, False, True);
+      PrevNaturalPage := TTabSheet(FindNextPage(Editor.TabSheet, False, True));
       if Assigned(PrevNaturalPage) and (PrevNaturalPage <> Editor.TabSheet) then begin
         Result := GetEditor(PrevNaturalPage.TabIndex, EditorPageControl);
         Exit;
@@ -525,7 +525,7 @@ end;
 
 function TEditorList.SwapEditor(Editor: TEditor): boolean;
 var
-  FromPageControl: TPageControl;
+  FromPageControl: ComCtrls.TPageControl;
   FromPageControlPrevTab: TTabSheet;
 begin
   Result := True;
@@ -535,7 +535,7 @@ begin
   try
     // Remember old index
     FromPageControl := Editor.PageControl;
-    FromPageControlPrevTab := Editor.PageControl.FindNextPage(Editor.TabSheet, False, True);
+    FromPageControlPrevTab := TTabSheet(Editor.PageControl.FindNextPage(Editor.TabSheet, False, True));
 
     // Determine how to swap
     if Editor.PageControl = fLeftPageControl then
@@ -632,7 +632,7 @@ end;
 
 procedure TEditorList.SelectNextPage;
 var
-  PageControl: TPageControl;
+  PageControl: ComCtrls.TPageControl;
 begin
   PageControl := GetFocusedPageControl;
   if Assigned(PageControl) then
@@ -641,7 +641,7 @@ end;
 
 procedure TEditorList.SelectPrevPage;
 var
-  PageControl: TPageControl;
+  PageControl: ComCtrls.TPageControl;
 begin
   PageControl := GetFocusedPageControl;
   if Assigned(PageControl) then

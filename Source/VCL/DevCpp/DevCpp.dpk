@@ -41,7 +41,8 @@ contains
   devMonitorTypes in 'devFileMonitor\devMonitorTypes.pas',
   devShortcuts in 'devShortcuts\devShortcuts.pas',
   devShortcutsEditorForm in 'devShortcuts\devShortcutsEditorForm.pas' {frmShortcutsEditor},
-  devConsole in 'devConsole.pas';
+  devConsole in 'devConsole.pas',
+  devCaretList in 'devCaretList.pas';
 
 end.
 

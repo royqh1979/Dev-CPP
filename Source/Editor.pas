@@ -25,10 +25,11 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, Tabnine,CBUtils;
+  CodeToolTip, Tabnine,CBUtils, IntList;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
+  MAX_CARET_COUNT = 100;
 
 type
 
@@ -37,7 +38,6 @@ type
     setWarning);
   PSyntaxError = ^TSyntaxError;
   TSyntaxError = record
-    line:integer;
     col:integer;
     endCol:integer;
     char: integer;
@@ -91,6 +91,7 @@ type
     fPreviousEditors: TList;
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
+    fLastParseTime:TDateTime;
     {
       Format:  it's the offset relative to the previous tab stop position
         if y=0, then x means the offset in the same line relative to the previous tab stop postion
@@ -115,10 +116,9 @@ type
 
     fTabnine:TTabnine;
 
-    //TDevString<Line,TList<PSyntaxError>>
-    fErrorList: TDevStringList; // syntax check errors
-    //fSingleQuoteCompleteState: TSymbolCompleteState;
-    //fDoubleQuoteCompleteState: TSymbolCompleteState;
+    //TIntList<Line,TList<PSyntaxError>>
+    fErrorList: TIntList; // syntax check errors
+
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditorKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -157,17 +157,18 @@ type
     procedure OnMouseOverEvalReady(const evalvalue: AnsiString);
     function HasBreakPoint(Line: integer): integer;
     procedure DebugAfterPaint(ACanvas: TCanvas; AClip: TRect; FirstLine, LastLine: integer);
-    function GetPageControl: TPageControl;
-    procedure SetPageControl(Value: TPageControl);
+    function GetPageControl: ComCtrls.TPageControl;
+    procedure SetPageControl(Value: ComCtrls.TPageControl);
     procedure ClearUserCodeInTabStops;
     procedure PopUserCodeInTabStops;
     procedure ShowTabnineCompletion;
     function GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
+    function GetErrorAtLine(line:integer):PSyntaxError;
     //procedure TextWindowProc(var Message: TMessage);
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
   public
-    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
@@ -176,6 +177,7 @@ type
     procedure SetCaretPosAndActivate(Line, Col: integer); // needs to activate in order to place cursor properly
     procedure ExportToHTML;
     procedure ExportToRTF;
+    procedure RTFToClipboard;
     procedure ExportToTEX;
     procedure InsertString(Value: AnsiString; MoveCursor: boolean);
     procedure InsertUserCodeIn(Code: AnsiString);
@@ -197,6 +199,11 @@ type
     procedure DestroyCompletion;
     procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
     procedure ClearSyntaxErrors;
+    procedure GotoNextError;
+    procedure GotoPrevError;
+    function HasPrevError:boolean;
+    function HasNextError:boolean;
+
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
     property InProject: boolean read fInProject write fInProject;
@@ -206,7 +213,7 @@ type
     property TabSheet: TTabSheet read fTabSheet;
     property FunctionTip: TCodeToolTip read fFunctionTip;
     property CompletionBox: TCodeCompletion read fCompletionBox;
-    property PageControl: TPageControl read GetPageControl write SetPageControl;
+    property PageControl: ComCtrls.TPageControl read GetPageControl write SetPageControl;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property GutterClickedLine: integer read fGutterClickedLine;
   end;
@@ -216,7 +223,8 @@ implementation
 
 uses
   main, project, MultiLangSupport, devcfg, utils,
-  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm, CodeCompletionForm, SynEditMiscClasses;
+  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm, CodeCompletionForm, SynEditMiscClasses,
+  devCaretList;
 
 { TDebugGutter }
 
@@ -303,12 +311,13 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
 var
   s: AnsiString;
   I: integer;
   e: TEditor;
 begin
+  fLastParseTime := 0;
   fLastPressedIsIdChar := False;
   // Set generic options
   fErrorLine := -1;
@@ -403,7 +412,7 @@ begin
   fLineBeforeTabStop:='';
   fLineAfterTabStop := '';
 
-  fErrorList := TDevStringList.Create;
+  fErrorList := TIntList.Create;
   fErrorList.Sorted:=True;
   fErrorList.Duplicates:= dupIgnore;
 
@@ -412,37 +421,40 @@ begin
 
   // Set status bar for the first time
   EditorStatusChange(Self, [scInsertMode]);
+
 end;
 
 destructor TEditor.Destroy;
 begin
   // Deactivate the file change monitor
   MainForm.FileMonitor.UnMonitor(fFileName);
+  MainForm.CaretList.RemoveEditor(self);
+
 
   // Delete breakpoints in this editor
   MainForm.Debugger.DeleteBreakPointsOf(self);
 
+  ClearSyntaxErrors;
+  FreeAndNil(fErrorList);
 
   ClearUserCodeInTabStops;
   FreeAndNil(fUserCodeInTabStops);
 
   // Destroy code completion stuff
   DestroyCompletion;
-
+  
   // Free everything
   FreeAndNil(fFunctionTip);
   FreeAndNil(fText);
   FreeAndNil(fTabSheet);
   FreeAndNil(fPreviousEditors);
 
-  ClearSyntaxErrors;
-  FreeAndNil(fErrorList);
 
   // Move into TObject.Destroy...
   inherited;
 end;
 
-function TEditor.GetPageControl: TPageControl;
+function TEditor.GetPageControl: ComCtrls.TPageControl;
 begin
   if Assigned(fTabSheet) then
     Result := fTabSheet.PageControl
@@ -450,7 +462,7 @@ begin
     Result := nil;
 end;
 
-procedure TEditor.SetPageControl(Value: TPageControl);
+procedure TEditor.SetPageControl(Value: ComCtrls.TPageControl);
 begin
   if Assigned(fTabSheet) then
     fTabSheet.PageControl := Value;
@@ -536,7 +548,7 @@ begin
     ColBorder := clRed;
     Exit;
   end;
-  idx:=CBUtils.FastIndexOf(fErrorList,IntToStr(line));
+  idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >=0 then begin
     areaType:=eatError;
     lst:=TList(fErrorList.Objects[idx]);
@@ -580,7 +592,8 @@ var
   X, Y, I, Line: integer;
 begin
   // Get point where to draw marks
-  X := (fText.Gutter.RealGutterWidth(fText.CharWidth) - fText.Gutter.RightOffset) div 2 - 3;
+  //X := (fText.Gutter.RealGutterWidth(fText.CharWidth) - fText.Gutter.RightOffset) div 2 - 3;
+  X :=5;
   Y := (fText.LineHeight - dmMain.GutterImages.Height) div 2 + fText.LineHeight * (FirstLine - fText.TopLine);
 
   // The provided lines are actually rows...
@@ -592,7 +605,7 @@ begin
       dmMain.GutterImages.Draw(ACanvas, X, Y, 0)
     else if fErrorLine = Line then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
-    if CBUtils.FastIndexOf(fErrorList, IntToStr(Line))>=0 then
+    if CBUtils.FastIndexOf(fErrorList, Line)>=0 then
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
 
     Inc(Y, fText.LineHeight);
@@ -746,6 +759,8 @@ begin
         Panels[2].Text := Lang[ID_OVERWRITE];
     end;
   end;
+
+  mainForm.CaretList.AddCaret(self,fText.CaretY,fText.CaretX);
 end;
 
 function TEditor.FunctionTipAllowed: boolean;
@@ -813,6 +828,30 @@ begin
   end;
 end;
 
+procedure TEditor.RTFToClipboard;
+var
+  SynExporterRTF: TSynExporterRTF;
+begin
+  SynExporterRTF := TSynExporterRTF.Create(nil);
+  try
+
+    SynExporterRTF.Title := FileName;
+    SynExporterRTF.ExportAsText := False;
+    SynExporterRTF.UseBackground := True;
+    SynExporterRTF.Font := fText.Font;
+    SynExporterRTF.Highlighter := fText.Highlighter;
+
+    if fText.SelText = '' then
+      SynExporterRTF.ExportAll(fText.Lines)
+    else
+      SynExporterRTF.ExportRange(fText.Lines,fText.BlockBegin,fText.BlockEnd);
+
+    SynExporterRTF.CopyToClipboard;
+  finally
+    SynExporterRTF.Free;
+  end;
+end;
+
 procedure TEditor.ExportToRTF;
 var
   SynExporterRTF: TSynExporterRTF;
@@ -842,6 +881,7 @@ begin
     SynExporterRTF.Highlighter := fText.Highlighter;
 
     SynExporterRTF.ExportAll(fText.Lines);
+
     SynExporterRTF.SaveToFile(SaveFileName);
   finally
     SynExporterRTF.Free;
@@ -1891,8 +1931,9 @@ begin
 
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
-    if fText.Modified then begin
+    if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
       MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+      fLastParseTime := Now;
     end;
 
     // Scan the current function body
@@ -2075,6 +2116,14 @@ begin
     ParamBegin := Pos('(', Result);
     if ParamBegin > 0 then begin
       ParamEnd := ParamBegin;
+      if (ParamBegin=1) and FindComplement(Result, '(', ')', ParamEnd, 1) then begin
+        Delete(Result,ParamEnd,1);
+        Delete(Result,ParamBegin,1);
+        continue;
+      end else begin
+        break
+      end;
+      ParamEnd := ParamBegin;
       if FindComplement(Result, '(', ')', ParamEnd, 1) then begin
         Delete(Result, ParamBegin, ParamEnd - ParamBegin + 1);
       end else
@@ -2082,6 +2131,12 @@ begin
     end else
       break;
   end;
+
+  ParamBegin := 1;
+  while (ParamBegin <= Length(Result)) and (Result[ParamBegin] = '*') do begin
+    inc(ParamBegin);
+  end;
+  Delete(Result,1,ParamBegin-1);
 
   // Strip array stuff
   if not (Purpose = wpEvaluation) then
@@ -2187,6 +2242,8 @@ begin
 end;
 
 procedure TEditor.EditorDblClick(Sender: TObject);
+var
+  s:AnsiString;
 begin
   fDblClickTime := GetTickCount;
   fText.GetPositionOfMouse(fDblClickMousePos);
@@ -2230,6 +2287,7 @@ var
   Reason: THandPointReason;
   IsIncludeLine: boolean;
   pError : pSyntaxError;
+  line:integer;
 
   procedure ShowFileHint;
   var
@@ -2247,16 +2305,38 @@ var
     fText.Hint := pError.Hint;
   end;
 
+  function GetHintFromStatement(st:PStatement):AnsiString;
+  var
+    children:TList;
+    childStatement:PStatement;
+    i:integer;
+    hint:AnsiString;
+  begin
+    if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
+      hint:='';
+      children := MainForm.CppParser.Statements.GetChildrenStatements(st^._ParentScope);
+      for i:=0 to children.Count-1 do begin
+        childStatement:=PStatement(children[i]);
+        if samestr(st^._Command,childStatement^._Command)
+          and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
+            if hint <> '' then
+              hint:=hint+#13;
+            Hint := hint + MainForm.CppParser.PrettyPrintStatement(childStatement)
+              + ' - ' + ExtractFileName(childStatement^._FileName)
+              + ' ('  + IntToStr(childStatement^._Line) + ')';
+        end;
+        Result:=hint;
+      end;
+    end else begin
+      Result := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+    end;
+    Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
+  end;
+
   procedure ShowDebugHint;
   begin
-
-  M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-      st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
-    finally
-      M.Free;
-    end;
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
 
     if not Assigned(st) then
       Exit;
@@ -2274,30 +2354,19 @@ var
       MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
       MainForm.Debugger.SendCommand('print', s, False);
     end else if devEditor.ParserHints then begin
-      fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
-        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
-      fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
+      fText.Hint := GetHintFromStatement(st);
       // vertical bar is used to split up short and long hint versions...
     end;
-
   end;
 
   procedure ShowParserHint;
   begin
     // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-      st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
-    finally
-      M.Free;
-    end;
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
 
     if Assigned(st) then begin
-      fText.Hint := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
-        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
-      fText.Hint := StringReplace(fText.Hint, '|', #5, [rfReplaceAll]);
       // vertical bar is used to split up short and long hint versions...
+      fText.Hint := GetHintFromStatement(st);
     end;
   end;
 
@@ -2317,6 +2386,16 @@ var
 begin
   // Leverage Ctrl-Clickability to determine if we can show any information
   Reason := HandpointAllowed(p, Shift);
+
+  if Reason = hprError then begin
+    pError := GetErrorAtPosition(p);
+  end else if (Reason = hprNone) and fText.GetLineOfMouse(line) then begin //it's on gutter
+    //see if its error;
+    pError := GetErrorAtLine(line);
+    if Assigned(pError) then begin
+      Reason := hprError;
+    end;
+  end;
 
   // Get subject
   IsIncludeLine := False;
@@ -2340,7 +2419,6 @@ begin
         s := fText.SelText; // when a selection is available, always only use that
       end;
     hprError: begin
-        pError := GetErrorAtPosition(p);
         s:=pError^.Token;
       end;
     hprNone: begin
@@ -2350,7 +2428,8 @@ begin
   end;
 
   // Don't rescan the same stuff over and over again (that's slow)
-  if s = fCurrentWord then
+//  if (s = fCurrentWord) and (fText.Hint<>'') then
+  if (s = fCurrentWord) then
     Exit; // do NOT remove hint when subject stays the same
 
   // Remove hint
@@ -2372,11 +2451,25 @@ begin
           ShowParserHint;
       end;
     hprIdentifier, hprSelection: begin
-        if not fCompletionBox.Visible  then
-          if MainForm.Debugger.Executing then
-            ShowDebugHint
-          else if devEditor.ParserHints then
-            ShowParserHint;
+        if not fCompletionBox.Visible  then begin
+          M := TMemoryStream.Create;
+          try
+            fText.Lines.SaveToStream(M);
+
+            if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
+              // Reparse whole file (not function bodies) if it has been modified
+              // use stream, don't read from disk (not saved yet)
+              MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+              fLastParseTime := Now;
+            end;
+            if MainForm.Debugger.Executing then
+              ShowDebugHint
+            else if devEditor.ParserHints then
+              ShowParserHint;
+          finally
+            M.Free;
+          end;
+        end;
       end;
     hprError : begin
         ShowErrorHint;
@@ -2562,7 +2655,7 @@ begin
           Result := hprPreprocessor; // and preprocessor line if no selection is present
       end;
     end;
-  end;
+  end; 
 end;
 
 function TEditor.Save: boolean;
@@ -2600,6 +2693,7 @@ begin
       end;
 
       MainForm.CppParser.ParseFile(fFileName, InProject);
+      fLastParseTime:=Now;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
 
@@ -2687,6 +2781,7 @@ begin
   MainForm.ClassBrowser.BeginUpdate;
   try
     MainForm.CppParser.ParseFile(SaveFileName, InProject);
+    fLastParseTime:=Now;
     MainForm.ClassBrowser.CurrentFile := SaveFileName;
   finally
     MainForm.ClassBrowser.EndUpdate;
@@ -2794,11 +2889,11 @@ begin
     lst.Free;
   end;
   fErrorList.Clear;
+  fText.Invalidate;
 end;
 
 procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
 var
-  lineNo:String;
   pError:PSyntaxError;
   p:TBufferCoord;
   p1:TDisplayCoord;
@@ -2819,7 +2914,6 @@ begin
   end else begin
     fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
   end;
-  pError^.line:=line;
   pError^.char := start;
   pError^.endChar := start + length(token)-1;
   p.Line:=line;
@@ -2833,16 +2927,31 @@ begin
   pError^.Hint:=hint;
   pError^.Token := Token;
   pError^.errorType:=errorType;
-  lineNo := IntToStr(line);
-  idx:=CBUtils.FastIndexOf(fErrorList,lineNo);
+  idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >= 0 then
     lst := TList(fErrorList.Objects[idx])
   else begin
     lst := TList.Create;
-    fErrorList.AddObject(lineNo,lst);
+    fErrorList.AddObject(line,lst);
   end;
   lst.Add(pError);
 end;
+
+function TEditor.GetErrorAtLine(line:integer):PSyntaxError;
+var
+  idx,i:integer;
+  lst:TList;
+  pError:PSyntaxError;
+begin
+  Result := nil;
+  idx:=CBUtils.FastIndexOf(fErrorList,line);
+  if idx >=0 then begin
+    lst := TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then
+      Result := PSyntaxError(lst[0]);
+  end;
+end;
+
 
 function TEditor.GetErrorAtPosition(pos:TBufferCoord):PSyntaxError;
 var
@@ -2851,7 +2960,7 @@ var
   pError:PSyntaxError;
 begin
   Result := nil;
-  idx:=CBUtils.FastIndexOf(fErrorList,intToStr(pos.Line));
+  idx:=CBUtils.FastIndexOf(fErrorList,pos.Line);
   if idx >=0 then begin
     lst := TList(fErrorList.Objects[idx]);
     for i:=0 to lst.Count-1 do begin
@@ -2866,19 +2975,26 @@ end;
 
 procedure TEditor.LinesDeleted(FirstLine,Count:integer);
 var
-  newList:TDevStringList;
-  i:integer;
+  newList:TIntList;
+  i,j:integer;
   lineNo:integer;
+  lst:TList;
 begin
-  newList:=TDevStringList.Create;
+  newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
-      lineNo := StrToInt(fErrorList[i]);
-      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then
+      lineNo := fErrorList[i];
+      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then begin
+        lst:=TList(fErrorList.Objects[i]);
+        for j:=0 to lst.Count-1 do begin
+          dispose(PSyntaxError(lst[j]));
+        end;
+        lst.Free;
         Continue;
+      end;
       if (lineNo >= FirstLine+Count) then
         dec(lineNo,Count);
-      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+      newList.AddObject(lineNo,fErrorList.Objects[i]);
     end;
     fErrorList.Sorted:=False;
     fErrorList.Assign(newList);
@@ -2887,21 +3003,22 @@ begin
   finally
     newList.Free;
   end;
+  MainForm.CaretList.LinesDeleted(self,firstLine,count);
 end;
 
 procedure TEditor.LinesInserted(FirstLine,Count:integer);
 var
-  newList:TDevStringList;
+  newList:TIntList;
   i:integer;
   lineNo:integer;
 begin
-  newList:=TDevStringList.Create;
+  newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
-      lineNo := StrToInt(fErrorList[i]);
+      lineNo := fErrorList[i];
       if (lineNo >= FirstLine) then
         inc(lineNo,Count);
-      newList.AddObject(IntToStr(lineNo),fErrorList.Objects[i]);
+      newList.AddObject(lineNo,fErrorList.Objects[i]);
     end;
     fErrorList.Sorted:=False;
     fErrorList.Assign(newList);
@@ -2910,7 +3027,81 @@ begin
   finally
     newList.Free;
   end;
+  MainForm.CaretList.LinesInserted(self,firstLine,count);  
 end;
+
+procedure TEditor.GotoNextError;
+var
+  idx:integer;
+  lst:TList;
+  p:TBufferCoord;
+begin
+  if fErrorList.Find(fText.CaretY,idx) then begin
+    //we are on a error line;
+    inc(idx);
+  end;
+  if idx<fErrorList.Count then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      p.Line:=fErrorList[idx];
+      p.Char:=PSyntaxError(lst[0])^.Char;
+      fText.CaretXY:=p;
+    end;
+  end;
+end;
+
+procedure TEditor.GotoPrevError;
+var
+  idx:integer;
+  lst:TList;
+  p:TBufferCoord;
+begin
+  fErrorList.Find(fText.CaretY,idx);
+  dec(idx);
+  if idx>=0 then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      p.Line:=fErrorList[idx];
+      p.Char:=PSyntaxError(lst[0])^.Char;
+      fText.CaretXY:=p;
+    end;
+  end;
+end;
+
+function TEditor.HasPrevError:boolean;
+var
+  idx:integer;
+  lst:TList;
+begin
+  Result:=False;
+  fErrorList.Find(fText.CaretY,idx);
+  dec(idx);
+  if idx>=0 then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      Result:=True;
+    end;
+  end;
+end;
+
+function TEditor.HasNextError:boolean;
+var
+  idx:integer;
+  lst:TList;
+begin
+  Result:=False;
+  if fErrorList.Find(fText.CaretY,idx) then begin
+    //we are on a error line;
+    inc(idx);
+  end;
+  if idx<fErrorList.Count then begin
+    lst:=TList(fErrorList.Objects[idx]);
+    if lst.Count>0 then begin
+      Result:=True;
+    end;
+  end;
+end;
+
 
 
 end.

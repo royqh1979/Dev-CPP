@@ -83,7 +83,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, DataFrm, devcfg, utils, main, version, ImageTheme, SynEditTypes;
+  Registry,MultiLangSupport, DataFrm, devcfg, utils, main, version, ImageTheme, SynEditTypes;
 
 {$R *.dfm}
 
@@ -148,14 +148,32 @@ begin
   FinishPanel.Visible := true;
   devData.ThemeChange := true;
   devData.Theme := cmbIcons.Items[cmbIcons.ItemIndex];
+
 end;
 
 procedure TLangForm.OkBtnClick(Sender: TObject);
+var
+  lReg: TRegistry;
 begin
   case OkBtn.Tag of
     0: HandleLangPanel;
     1: HandleEditPanel;
+    2: begin
+        // open registry, set root and key
+        lReg := TRegistry.Create;
+        try
+          lReg.RootKey := HKEY_CURRENT_USER;
+          lReg.OpenKey('\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', True);
+          // write last Left, Top, Width and Height
+          lReg.WriteString(Application.ExeName, '~ HIGHDPIAWARE');
+          // close all
+          lReg.CloseKey;
+        finally
+          lReg.Free;
+        end;
+      end;
   end;
+
 end;
 
 procedure TLangForm.FormShow(Sender: TObject);
@@ -174,7 +192,7 @@ begin
   cmbIcons.ItemIndex := 0; // new look
 
   // Editor colors
-  cmbColors.ItemIndex := 1; // Classic Plus
+  cmbColors.ItemIndex := 10; // PlasticCodeWrap
   dmMain.InitHighlighterFirstTime(cmbColors.ItemIndex);
   devEditor.AssignEditor(synExample, 'main.cpp');
 

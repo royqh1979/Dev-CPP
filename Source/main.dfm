@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 521
-  Top = 234
+  Left = 382
+  Top = 144
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -29,19 +29,17 @@ object MainForm: TMainForm
     Left = 209
     Top = 64
     Width = 4
-    Height = 351
-    Beveled = True
+    Height = 353
     MinSize = 45
     ResizeStyle = rsUpdate
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 415
+    Top = 417
     Width = 1187
-    Height = 6
+    Height = 4
     Cursor = crVSplit
     Align = alBottom
-    Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = SplitterBottomMoved
   end
@@ -52,11 +50,18 @@ object MainForm: TMainForm
     Height = 225
     ActivePage = DebugSheet
     Align = alBottom
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
     Images = dmMain.MenuImages_NewLook
     MultiLine = True
+    ParentFont = False
     TabOrder = 1
     TabPosition = tpBottom
     OnChange = MessageControlChange
+    OnDrawTab = OnDrawTab
     object CompSheet: TTabSheet
       Caption = 'Compiler'
       ImageIndex = 28
@@ -224,17 +229,16 @@ object MainForm: TMainForm
         Top = 0
         Width = 8
         Height = 196
-        Beveled = True
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
-        Style = tsFlatButtons
         TabOrder = 0
+        OnDrawTab = OnDrawTab
         object DebugConsoleSheet: TTabSheet
           Caption = 'Debug Console'
           ImageIndex = 2
@@ -242,7 +246,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 713
-            Height = 162
+            Height = 165
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -250,8 +254,11 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 713
-              Height = 162
+              Height = 165
               Align = alClient
+              BevelInner = bvNone
+              BevelOuter = bvNone
+              BorderStyle = bsNone
               PopupMenu = DebugOutputPopup
               ScrollBars = ssVertical
               TabOrder = 0
@@ -266,9 +273,12 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 713
-            Height = 162
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
+            BevelInner = bvNone
+            BevelOuter = bvNone
+            BorderStyle = bsNone
             Columns = <
               item
                 AutoSize = True
@@ -301,9 +311,12 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 713
-            Height = 162
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
+            BevelInner = bvNone
+            BevelOuter = bvNone
+            BorderStyle = bsNone
             Columns = <
               item
                 Caption = 'File'
@@ -485,18 +498,37 @@ object MainForm: TMainForm
             Top = 1
             Width = 336
             Height = 24
+            BevelInner = bvNone
+            BevelOuter = bvNone
             Anchors = [akLeft, akTop, akRight]
+            Color = clBtnFace
+            Ctl3D = True
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -14
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
             ItemHeight = 16
+            ParentCtl3D = False
+            ParentFont = False
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
           object EvalOutput: TMemo
             Left = 0
-            Top = 32
+            Top = 40
             Width = 418
-            Height = 161
+            Height = 153
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
+            BevelOuter = bvNone
+            BorderStyle = bsNone
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -14
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
             ReadOnly = True
             ScrollBars = ssBoth
             TabOrder = 1
@@ -708,15 +740,15 @@ object MainForm: TMainForm
       ShowHint = True
       TabOrder = 3
       Wrapable = False
-      object UndoBtn: TToolButton
+      object BackBtn: TToolButton
         Left = 0
         Top = 0
-        Action = actUndo
+        Action = actBack
       end
-      object RedoBtn: TToolButton
+      object ForwardBtn: TToolButton
         Left = 28
         Top = 0
-        Action = actRedo
+        Action = actForward
       end
     end
     object tbSearch: TToolBar
@@ -818,11 +850,18 @@ object MainForm: TMainForm
         Width = 350
         Height = 24
         Style = csDropDownList
+        Color = clBtnFace
         Ctl3D = True
         DropDownCount = 16
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 16
         ItemIndex = 0
         ParentCtl3D = False
+        ParentFont = False
         Sorted = True
         TabOrder = 0
         Text = '(globals)'
@@ -837,10 +876,17 @@ object MainForm: TMainForm
         Width = 350
         Height = 24
         Style = csDropDownList
+        Color = clBtnFace
         Ctl3D = True
         DropDownCount = 16
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 16
         ParentCtl3D = False
+        ParentFont = False
         Sorted = True
         TabOrder = 1
         OnChange = cmbMembersChange
@@ -868,12 +914,21 @@ object MainForm: TMainForm
         Top = 0
         Width = 337
         Height = 24
+        BevelInner = bvNone
+        BevelOuter = bvNone
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
+        Color = clBtnFace
         Ctl3D = True
         DropDownCount = 16
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
         ItemHeight = 16
         ParentCtl3D = False
+        ParentFont = False
         TabOrder = 0
         OnChange = cmbCompilersChange
         OnDropDown = cmbGenericDropDown
@@ -969,7 +1024,7 @@ object MainForm: TMainForm
     Left = 213
     Top = 64
     Width = 974
-    Height = 351
+    Height = 353
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
@@ -978,7 +1033,7 @@ object MainForm: TMainForm
       Left = 974
       Top = 0
       Width = 0
-      Height = 351
+      Height = 353
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -987,16 +1042,18 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 974
-      Height = 351
+      Height = 353
       Align = alClient
       HotTrack = True
       MultiLine = True
+      OwnerDraw = True
       PopupMenu = EditorPopup
       TabOrder = 0
       Visible = False
       OnChange = EditorPageControlChange
       OnDragDrop = EditorPageControlDragDrop
       OnDragOver = EditorPageControlDragOver
+      OnDrawTab = OnDrawTab
       OnMouseDown = EditorPageControlMouseDown
       OnMouseMove = EditorPageControlMouseMove
     end
@@ -1004,16 +1061,18 @@ object MainForm: TMainForm
       Left = 974
       Top = 0
       Width = 0
-      Height = 351
+      Height = 353
       Align = alRight
       HotTrack = True
       MultiLine = True
+      OwnerDraw = True
       PopupMenu = EditorPopup
       TabOrder = 1
       Visible = False
       OnChange = EditorPageControlChange
       OnDragDrop = EditorPageControlDragDrop
       OnDragOver = EditorPageControlDragOver
+      OnDrawTab = OnDrawTab
       OnMouseDown = EditorPageControlMouseDown
       OnMouseMove = EditorPageControlMouseMove
     end
@@ -1022,25 +1081,32 @@ object MainForm: TMainForm
     Left = 0
     Top = 64
     Width = 209
-    Height = 351
-    ActivePage = LeftClassSheet
+    Height = 353
+    ActivePage = LeftProjectSheet
     Align = alLeft
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
     Images = dmMain.ProjectImage_NewLook
     MultiLine = True
+    ParentFont = False
     TabOrder = 5
     TabPosition = tpLeft
     OnChange = LeftPageControlChange
+    OnDrawTab = OnDrawTab
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
       ImageIndex = -1
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 180
-        Height = 343
+        Width = 179
+        Height = 345
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
-        BevelKind = bkFlat
+        BevelOuter = bvNone
         BorderStyle = bsNone
         ChangeDelay = 1
         DragMode = dmAutomatic
@@ -1071,22 +1137,24 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 31
-        Width = 180
-        Height = 312
+        Width = 179
+        Height = 314
         Align = alClient
+        BevelOuter = bvNone
         Caption = 'Panel3'
         TabOrder = 0
         object ClassBrowser: TClassBrowser
-          Left = 1
-          Top = 1
-          Width = 178
-          Height = 310
+          Left = 0
+          Top = 0
+          Width = 179
+          Height = 314
           Align = alClient
           Images = dmMain.ClassImages
           ReadOnly = True
           Indent = 19
           TabOrder = 0
           PopupMenu = BrowserPopup
+          BorderStyle = bsNone
           MultiSelectStyle = []
           RowSelect = True
           ShowLines = False
@@ -1121,7 +1189,7 @@ object MainForm: TMainForm
       object ToolBar8: TToolBar
         Left = 0
         Top = 0
-        Width = 180
+        Width = 179
         Height = 31
         ButtonHeight = 30
         ButtonWidth = 30
@@ -1165,18 +1233,20 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 31
-        Width = 180
-        Height = 312
+        Width = 179
+        Height = 314
         Align = alClient
+        BevelOuter = bvNone
         Caption = 'Panel4'
         TabOrder = 0
         object WatchView: TTreeView
-          Left = 1
-          Top = 1
-          Width = 178
-          Height = 310
+          Left = 0
+          Top = 0
+          Width = 179
+          Height = 314
           Align = alClient
-          BevelKind = bkFlat
+          BevelInner = bvNone
+          BevelOuter = bvNone
           BorderStyle = bsNone
           ChangeDelay = 1
           Images = dmMain.MenuImages_NewLook
@@ -1194,7 +1264,7 @@ object MainForm: TMainForm
       object ToolBar9: TToolBar
         Left = 0
         Top = 0
-        Width = 180
+        Width = 179
         Height = 31
         ButtonHeight = 30
         ButtonWidth = 30
@@ -1385,6 +1455,12 @@ object MainForm: TMainForm
       object SelectallItem: TMenuItem
         Action = actSelectAll
       end
+      object CopyAsItem: TMenuItem
+        Caption = 'Copy &As'
+        object CopyAsRTF1: TMenuItem
+          Action = actCopyAsRTF
+        end
+      end
       object N23: TMenuItem
         Caption = '-'
       end
@@ -1475,6 +1551,17 @@ object MainForm: TMainForm
     end
     object CodeMenu: TMenuItem
       Caption = 'Co&de'
+      object Back1: TMenuItem
+        Action = actBack
+        ShortCut = 49189
+      end
+      object Forward1: TMenuItem
+        Action = actForward
+        ShortCut = 49191
+      end
+      object N31: TMenuItem
+        Caption = '-'
+      end
       object FormatCurrentFile1: TMenuItem
         Action = actFormatCurrentFile
       end
@@ -1489,6 +1576,15 @@ object MainForm: TMainForm
       end
       object SyntaxCheckCurrentFile1: TMenuItem
         Action = actSyntaxCheckFile
+      end
+      object N54: TMenuItem
+        Caption = '-'
+      end
+      object GotoPreviousError1: TMenuItem
+        Action = actPrevError
+      end
+      object GotoNextError1: TMenuItem
+        Action = actNextError
       end
       object N46: TMenuItem
         Caption = '-'
@@ -1608,16 +1704,11 @@ object MainForm: TMainForm
       object SwapHeaderSourceItem: TMenuItem
         Action = actSwapHeaderSource
       end
-      object N63: TMenuItem
+      object N42: TMenuItem
         Caption = '-'
       end
-      object FloatingPojectManagerItem: TMenuItem
-        Caption = '&Floating Project Manager'
-        OnClick = FloatingPojectManagerItemClick
-      end
-      object FloatingReportwindowItem: TMenuItem
-        Caption = 'Floating &Report window'
-        OnClick = FloatingReportwindowItemClick
+      object CloseMessageSheet1: TMenuItem
+        Action = actCloseMessageSheet
       end
     end
     object ProjectMenu: TMenuItem
@@ -2453,7 +2544,6 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'Project'
       Caption = 'Re&name file'
-      ShortCut = 113
       OnExecute = actUnitRenameExecute
       OnUpdate = actUpdateProject
     end
@@ -2532,7 +2622,7 @@ object MainForm: TMainForm
       OnUpdate = actUpdatePageCount
     end
     object actSyntaxCheck: TAction
-      Category = 'Execute'
+      Category = 'Code'
       Caption = '&Syntax Check'
       ImageIndex = 49
       OnExecute = actSyntaxCheckExecute
@@ -2629,7 +2719,7 @@ object MainForm: TMainForm
       OnUpdate = actBrowserNewVarUpdate
     end
     object actSyntaxCheckFile: TAction
-      Category = 'Execute'
+      Category = 'Code'
       Caption = '&Syntax Check Current File'
       ImageIndex = 49
       ShortCut = 16504
@@ -2783,21 +2873,21 @@ object MainForm: TMainForm
       OnUpdate = actUpdateEmptyEditor
     end
     object actInsert: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'Insert'
       ImageIndex = 18
       OnExecute = actInsertExecute
       OnUpdate = actUpdatePageCount
     end
     object actToggle: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'Toggle Bookmarks'
       ImageIndex = 19
       OnExecute = actToggleExecute
       OnUpdate = actUpdatePageCount
     end
     object actGoto: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'Goto Bookmark'
       ImageIndex = 20
       OnExecute = actGotoExecute
@@ -2887,14 +2977,14 @@ object MainForm: TMainForm
       OnUpdate = actUpdateEmptyEditor
     end
     object actMoveSelUp: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'actMoveSelUp'
       ShortCut = 24614
       OnExecute = actMoveSelUpExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actMoveSelDown: TAction
-      Category = 'Edit'
+      Category = 'Code'
       Caption = 'actMoveSelDown'
       ShortCut = 24616
       OnExecute = actMoveSelDownExecute
@@ -2952,14 +3042,14 @@ object MainForm: TMainForm
       OnUpdate = actUpdateDebuggerRunning
     end
     object actFormatCurrentFile: TAction
-      Category = 'AStyle'
+      Category = 'Code'
       Caption = 'Format Current File'
       ShortCut = 24641
       OnExecute = actFormatCurrentFileExecute
       OnUpdate = actUpdateEmptyEditor
     end
     object actFormatOptions: TAction
-      Category = 'AStyle'
+      Category = 'Code'
       Caption = 'Formatting Options...'
       OnExecute = actFormatOptionsExecute
     end
@@ -3074,6 +3164,46 @@ object MainForm: TMainForm
       Caption = 'Extract Macro'
       OnExecute = actExtractMacroExecute
       OnUpdate = actUpdateEmptyEditor
+    end
+    object actCopyAsRTF: TAction
+      Category = 'Edit'
+      Caption = 'Copy As RTF'
+      OnExecute = actCopyAsRTFExecute
+      OnUpdate = actCopyUpdate
+    end
+    object actBack: TAction
+      Category = 'Code'
+      Caption = '&Back'
+      ImageIndex = 69
+      OnExecute = actBackExecute
+      OnUpdate = actBackUpdate
+    end
+    object actForward: TAction
+      Category = 'Code'
+      Caption = '&Forward'
+      ImageIndex = 70
+      OnExecute = actForwardExecute
+      OnUpdate = actForwardUpdate
+    end
+    object actCloseMessageSheet: TAction
+      Category = 'View'
+      Caption = '&Close Message Sheet'
+      ShortCut = 32854
+      OnExecute = actCloseMessageSheetExecute
+    end
+    object actPrevError: TAction
+      Category = 'Code'
+      Caption = 'Goto Previous Error'
+      ShortCut = 8305
+      OnExecute = actPrevErrorExecute
+      OnUpdate = actPrevErrorUpdate
+    end
+    object actNextError: TAction
+      Category = 'Code'
+      Caption = 'Goto Next Error'
+      ShortCut = 113
+      OnExecute = actNextErrorExecute
+      OnUpdate = actNextErrorUpdate
     end
   end
   object MessagePopup: TPopupMenu

@@ -90,17 +90,18 @@ begin
   fAssembler := nil;
 
   // Clear contents of the debug reader
-  MainForm.Debugger.Reader.Registers := nil;
-  MainForm.Debugger.Reader.Disassembly := nil;
+  if MainForm.Debugger.Executing and Assigned(MainForm.Debugger.Reader) then begin
+    MainForm.Debugger.Reader.Registers := nil;
+    MainForm.Debugger.Reader.Disassembly := nil;
+  end;
 
   // Save column widths of registerbox
   devData.CPURegisterCol1 := RegisterListbox.Column[0].Width;
   devData.CPURegisterCol2 := RegisterListbox.Column[1].Width;
   devData.CPURegisterCol3 := RegisterListbox.Column[2].Width;
 
-  //We only hide on close, don't free it
-  Action := caHide;
-  //CPUForm := nil;
+  Action := caFree;
+  CPUForm := nil;
 end;
 
 
@@ -176,8 +177,8 @@ begin
 
     // Set disassembly flavor and load the current function
     MainForm.Debugger.Reader.Disassembly := fAssembler;
-    if devData.UseATTSyntax then // gbSyntaxClick has NOT been called yet...
-      gbSyntaxClick(nil);
+    //if devData.UseATTSyntax then // gbSyntaxClick has NOT been called yet...
+    gbSyntaxClick(nil);
 
     // Obtain stack trace too
     MainForm.Debugger.SendCommand('backtrace', '');
@@ -204,10 +205,12 @@ begin
   // Set disassembly flavor
   if RadioAtt.Checked then begin
     MainForm.Debugger.SendCommand('set disassembly-flavor', 'att');
+    MainForm.Debugger.SendCommand('disas','');
     RadioIntel.Checked := false;
     devData.UseATTSyntax := true;
   end else if RadioIntel.Checked then begin
     MainForm.Debugger.SendCommand('set disassembly-flavor', 'intel');
+    MainForm.Debugger.SendCommand('disas','');
     RadioAtt.Checked := false;
     devData.UseATTSyntax := false;
   end;

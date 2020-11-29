@@ -64,7 +64,8 @@ Ver=1
 4015=&Comment Header
 4016=Copy All
 4017=Clear
-
+4018=Copy &As
+4019=Copy As &RTF
 
 5001=Find...
 5002=Fin&d In Files...
@@ -112,7 +113,7 @@ Ver=1
 7004=Rebuild &All
 7005=C&lean
 7006=Co&mpile Results
-7007=&Syntax Check
+7007=Syntax &Check
 7008=&Program Reset
 7009=Pro&file Analysis
 7010=Abort Compilation
@@ -125,7 +126,7 @@ Ver=1
 7017=&Syntax Check Current File
 
 
-8001=&Full Screen Mode
+8001=&Maximum Editor
 8002=&Back to Normal
 8003=&Next
 8004=&Previous
@@ -144,8 +145,12 @@ Ver=1
 9006=Donate :)
 9007=Tip Of The Day...
 
-9101=Rename Symbol
-9102=Extract Macro
+9101=&Rename Symbol
+9102=Extract &Macro
+9103=&Back
+9104=&Forward
+9105=&Previous Error
+9106=&Next Error
 
 10001=&Debug
 10002=Toggle &Breakpoint
@@ -178,6 +183,7 @@ Ver=1
 10029=Get Call Stack & Locals Info
 10030=Breakpoint condition...
 10031=Remove Breakpoint
+10032=&Close Report Panel
 
 
 11001=Remove File

@@ -76,8 +76,7 @@ type
     fTempStatements : TList; // TList<PStatement>
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
-    fNamespaces :TStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
-
+    fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -205,6 +204,8 @@ type
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
+    function GetRemainder(const Phrase: AnsiString): AnsiString;
+
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
@@ -212,6 +213,7 @@ type
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement; isLocal:boolean=False):PStatement;
   published
+    property Parsing: boolean read fParsing;
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
     property OnBusy: TNotifyEvent read fOnBusy write fOnBusy;
@@ -267,8 +269,9 @@ begin
   fParseGlobalHeaders := False;
   fLocked := False;
   fTempStatements := TList.Create;
-  fNamespaces := TStringList.Create;
+  fNamespaces := TDevStringList.Create;
   fNamespaces.Sorted := True;
+
 end;
 
 destructor TCppParser.Destroy;
@@ -1129,7 +1132,8 @@ begin
     SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
 
   if Result then begin
-    if fTokenizer[fIndex + 3+dis]^.Text[1] in [';',','] then begin
+    if(fIndex < fTokenizer.Tokens.Count-3-dis)
+      and  (fTokenizer[fIndex + 3+dis]^.Text[1] in [';',',']) then begin
       Result:=False;
     end  else if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
       I := fIndex+dis;
@@ -1791,8 +1795,8 @@ begin
                   SharedInheritance,
                   False); // all synonyms inherit from the same statements
                 NewScopeLevel.Add(LastStatement);
-                Command := '';
               end;
+              Command := '';
             end;
           until (I >= fTokenizer.Tokens.Count - 1) or (fTokenizer[I]^.Text[1] in ['{', ';']);
 
@@ -3087,6 +3091,34 @@ begin
   Result := Copy(Phrase, 1, FirstOp - 1);
 end;
 
+function TCppParser.GetRemainder(const Phrase: AnsiString): AnsiString;
+var
+  FirstOp, I: integer;
+begin
+  // Obtain stuff after first operator
+  FirstOp := 0;
+  for I := 1 to Length(Phrase) - 1 do begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>') then begin
+      FirstOp := I + 2;
+      break;
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') then begin
+      FirstOp := I + 2;
+      break;
+    end else if (Phrase[i] = '.') then begin
+      FirstOp := I + 1;
+      break;
+    end;
+  end;
+
+  if FirstOp = 0 then begin
+    Result := '';
+    Exit;
+  end;
+
+  Result := Copy(Phrase, FirstOp, MaxInt)
+end;
+
+
 function TCppParser.GetMember(const Phrase: AnsiString): AnsiString;
 var
   FirstOp, SecondOp, I: integer;
@@ -3516,14 +3548,14 @@ var
   OperatorToken: AnsiString;
   currentNamespace, CurrentClassType ,Statement, MemberStatement, TypeStatement: PStatement;
   i,idx: integer;
-  namespaceName, memberName,NextScopeWord : AnsiString;
+  namespaceName, memberName,NextScopeWord,remainder : AnsiString;
   namespaceList:TList;
 begin
   Result := nil;
   if fParsing then
     Exit;
 
-  getFullNamespace(Phrase, namespaceName, memberName);
+  getFullNamespace(Phrase, namespaceName, remainder);
   if namespaceName <> '' then begin  // (namespace )qualified Name
     idx:=FastIndexOf(fNamespaces,namespaceName) ;
     namespaceList := TList(fNamespaces.Objects[idx]);
@@ -3533,9 +3565,10 @@ begin
       Exit;
     end;
 
-    NextScopeWord := GetClass(memberName);
-    OperatorToken := GetOperator(memberName);
-    MemberName := GetMember(memberName);
+    NextScopeWord := GetClass(remainder);
+    OperatorToken := GetOperator(remainder);
+    MemberName := GetMember(remainder);
+    remainder := GetRemainder(remainder);
     statement:=nil;
     for i:=0 to namespaceList.Count-1 do begin
       currentNamespace:=PStatement(namespaceList[i]);
@@ -3555,29 +3588,42 @@ begin
       CurrentClassType:=CurrentClassType^._ParentScope;
     end;
     }
-    NextScopeWord := GetClass(memberName);
-    OperatorToken := GetOperator(memberName);
-    MemberName := GetMember(memberName);
-
+    NextScopeWord := GetClass(remainder);
+    OperatorToken := GetOperator(remainder);
+    MemberName := GetMember(remainder);
+    remainder := GetRemainder(remainder);
     statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType);
     if not Assigned(statement) then
       Exit;
   end;
   CurrentClassType := CurrentClass;
 
-  if statement._Kind in [skTypeDef] then begin
+  if statement._Kind in [skTypedef] then begin
     TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
     if Assigned(TypeStatement) then
       Statement := TypeStatement;
   end;
 
   while MemberName <> '' do begin
-    NextScopeWord := GetClass(memberName);
-    OperatorToken := GetOperator(memberName);
-    MemberName := GetMember(memberName);
-    MemberStatement := FindMemberOfStatement(NextScopeWord,Statement);
-    if not Assigned(MemberStatement) then
-      Statement:=MemberStatement;
+    NextScopeWord := GetClass(remainder);
+    OperatorToken := GetOperator(remainder);
+    MemberName := GetMember(remainder);
+    remainder := GetRemainder(remainder);    
+    if statement._Kind in [skVariable,skFunction] then begin
+      TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
+      if Assigned(TypeStatement) then
+        Statement := TypeStatement;
+    end;
+    MemberStatement := FindMemberOfStatement(NextScopeWord,statement);
+    if not Assigned(MemberStatement) then begin;
+      Exit;
+    end;
+    Statement:=MemberStatement;
+    if statement._Kind in [skTypedef] then begin
+      TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
+      if Assigned(TypeStatement) then
+        Statement := TypeStatement;
+    end;
   end;
   Result := Statement;
 

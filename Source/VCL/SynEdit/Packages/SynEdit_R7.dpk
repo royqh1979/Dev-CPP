@@ -34,12 +34,8 @@ requires
 
 contains
   SynTextDrawer in '..\Source\SynTextDrawer.pas',
-  SynAutoCorrect in '..\Source\SynAutoCorrect.pas',
-  SynAutoCorrectEditor in '..\Source\SynAutoCorrectEditor.pas' {frmAutoCorrectEditor},
-  SynCompletionProposal in '..\Source\SynCompletionProposal.pas',
   SynDBEdit in '..\Source\SynDBEdit.pas',
   SynEdit in '..\Source\SynEdit.pas',
-  SynEditAutoComplete in '..\Source\SynEditAutoComplete.pas',
   SynEditExport in '..\Source\SynEditExport.pas',
   SynEditHighlighter in '..\Source\SynEditHighlighter.pas',
   SynEditKbdHandler in '..\Source\SynEditKbdHandler.pas',

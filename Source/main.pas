@@ -31,11 +31,43 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, Tabnine;
+  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList;
 
 type
   TRunEndAction = (reaNone, reaProfile);
   TCompSuccessAction = (csaNone, csaRun, csaDebug, csaProfile);
+
+  TTabsheet = class( ComCtrls.TTabSheet )
+  private
+    Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
+      message WM_ERASEBKGND;
+  end;
+
+  TPageControl = class( ComCtrls.TPageControl )
+  private
+    Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
+      message WM_ERASEBKGND;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
+  protected
+    procedure CreateParams(var Params: TCreateParams);override;  
+  public
+    constructor Create(AOwner:TComponent); override;
+  end;
+
+  TPanel = class( ExtCtrls.TPanel )
+  private
+    Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
+      message WM_ERASEBKGND;
+  end;
+
+  TListView = class(ComCtrls.TListView)
+  private
+    FHeaderHandle: HWND;
+    procedure WMNotify(var AMessage: TWMNotify); message WM_NOTIFY;
+  protected
+    procedure CreateWnd; override;
+  end;
+
 
   TMainForm = class(TForm)
     MainMenu: TMainMenu;
@@ -216,8 +248,8 @@ type
     actUnitClose: TAction;
     EditorOptionsItem: TMenuItem;
     tbEdit: TToolBar;
-    UndoBtn: TToolButton;
-    RedoBtn: TToolButton;
+    BackBtn: TToolButton;
+    ForwardBtn: TToolButton;
     tbSearch: TToolBar;
     FindBtn: TToolButton;
     ReplaceBtn: TToolButton;
@@ -336,14 +368,12 @@ type
     ListItem: TMenuItem;
     mnuFileProps: TMenuItem;
     mnuUnitProperties: TMenuItem;
-    N63: TMenuItem;
     actBrowserShowInherited: TAction;
     LeftPageControl: TPageControl;
     LeftProjectSheet: TTabSheet;
     ProjectView: TTreeView;
     LeftClassSheet: TTabSheet;
     ClassBrowser: TClassBrowser;
-    FloatingPojectManagerItem: TMenuItem;
     actSaveProjectAs: TAction;
     SaveprojectasItem: TMenuItem;
     mnuOpenWith: TMenuItem;
@@ -354,7 +384,6 @@ type
     N17: TMenuItem;
     ToolClassesItem: TMenuItem;
     N67: TMenuItem;
-    FloatingReportwindowItem: TMenuItem;
     actAttachProcess: TAction;
     ModifyWatchPop: TMenuItem;
     actModifyWatch: TAction;
@@ -602,6 +631,22 @@ type
     actExtractMacro: TAction;
     ExtractMacro1: TMenuItem;
     ToolDebugItem: TMenuItem;
+    actCopyAsRTF: TAction;
+    CopyAsItem: TMenuItem;
+    CopyAsRTF1: TMenuItem;
+    actBack: TAction;
+    actForward: TAction;
+    N31: TMenuItem;
+    Back1: TMenuItem;
+    Forward1: TMenuItem;
+    actCloseMessageSheet: TAction;
+    N42: TMenuItem;
+    CloseMessageSheet1: TMenuItem;
+    actPrevError: TAction;
+    actNextError: TAction;
+    N54: TMenuItem;
+    GotoPreviousError1: TMenuItem;
+    GotoNextError1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -765,7 +810,6 @@ type
     procedure GoToClassBrowserItemClick(Sender: TObject);
     procedure actBrowserShowInheritedExecute(Sender: TObject);
     procedure ReportWindowClose(Sender: TObject; var Action: TCloseAction);
-    procedure FloatingPojectManagerItemClick(Sender: TObject);
     procedure actSaveProjectAsExecute(Sender: TObject);
     procedure mnuOpenWithClick(Sender: TObject);
     procedure cmbClassesChange(Sender: TObject);
@@ -774,7 +818,6 @@ type
     procedure FindOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure WatchViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DebugPopupPopup(Sender: TObject);
-    procedure FloatingReportwindowItemClick(Sender: TObject);
     procedure actAttachProcessUpdate(Sender: TObject);
     procedure actAttachProcessExecute(Sender: TObject);
     procedure actModifyWatchExecute(Sender: TObject);
@@ -882,10 +925,18 @@ type
     procedure actOpenProjectFoloderExecute(Sender: TObject);
     procedure actOpenProjectConsoleExecute(Sender: TObject);
     procedure actExtractMacroExecute(Sender: TObject);
-    {
+    procedure actCopyAsRTFExecute(Sender: TObject);
+    procedure actForwardUpdate(Sender: TObject);
+    procedure actForwardExecute(Sender: TObject);
+    procedure actBackExecute(Sender: TObject);
+    procedure actBackUpdate(Sender: TObject);
+    procedure actCloseMessageSheetExecute(Sender: TObject);
+    procedure actNextErrorUpdate(Sender: TObject);
+    procedure actPrevErrorUpdate(Sender: TObject);
+    procedure actPrevErrorExecute(Sender: TObject);
+    procedure actNextErrorExecute(Sender: TObject);
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
-      }
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -909,6 +960,7 @@ type
     fQuitting: boolean ;
     fTabnine: TTabnine;
     fCheckSyntaxInBack : boolean;
+    fCaretList: TDevCaretList;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -972,6 +1024,7 @@ type
     property EditorList: TEditorList read fEditorList write fEditorList;
     property CurrentPageHint: AnsiString read fCurrentPageHint write fCurrentPageHint;
     property Tabnine: TTabnine read fTabnine;
+    property CaretList: TDevCaretList read fCaretList;
   end;
 
 var
@@ -991,6 +1044,195 @@ uses
   WindowListFrm, RemoveUnitFrm, ParamsFrm, ProcessListFrm, SynEditHighlighter;
 
 {$R *.dfm}
+{ TTabsheet }
+
+procedure TTabsheet.WMEraseBkGnd(var msg: TWMEraseBkGnd);
+var
+  FColor:TColor;
+begin
+  FColor := MainForm.Color;
+  If FColor = clBtnFace Then
+    inherited
+  Else Begin
+    Brush.Color := FColor;
+    Windows.FillRect( msg.dc, Clientrect, Brush.handle );
+    msg.result := 1;
+  End;
+end;
+
+{ TPageControl }
+
+constructor TPageControl.Create(AOwner:TComponent);
+begin
+  inherited;
+  self.Font:=MainForm.Font;
+end;
+
+procedure TPageControl.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+end;
+
+procedure TPageControl.WMEraseBkGnd(var msg: TWMEraseBkGnd);
+var
+  FColor:TColor;
+  r:TRect;
+begin
+  FColor := MainForm.Color;
+  If FColor = clBtnFace Then
+    inherited
+  Else Begin
+    Brush.Color := FColor;
+    R.Top:=0;
+    R.Left:=0;
+    R.Bottom:=Height;
+    R.Right:=Width;
+    Windows.FillRect( msg.dc,self.ClientRect, Brush.handle );
+    msg.result := 1;
+  End;
+end;
+
+procedure TPageControl.WMPaint(var Message: TWMPaint);
+var
+//  C: TControlCanvas;
+  R: TRect;
+  i,nsel:integer;
+  DC: HDC;
+  PS: TPaintStruct;
+  bgColor,fgColor: TColor;
+  gtc : TThemeColor;
+
+begin
+  if not self.OwnerDraw or not Assigned(self.OnDrawTab) then begin
+    inherited;
+    exit;
+  end;
+  self.Font := MainForm.Font;
+  DC := Message.DC;
+  if DC = 0 then
+    DC := BeginPaint(Handle, PS);
+  try
+    self.Canvas.Font := MainForm.Font;
+    strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
+    bgColor := gtc.Background;
+    fgColor := gtc.Foreground;
+    self.Canvas.Brush.Color := bgColor;
+//    self.Canvas.FillRect(self.DisplayRect);
+    R.Top:=0;
+    R.Left:=0;
+    R.Bottom:=Height;
+    R.Right:=Width;
+    self.Canvas.FillRect(R);
+
+
+    for i:=0 to self.Tabs.Count-1 do begin
+      if i = self.TabIndex then begin
+        R:=self.TabRect(i);
+        dec(R.left,2);
+        dec(R.top,2);
+        self.OnDrawTab(self,i,R,true);
+      end else begin
+        R:=self.TabRect(i);
+        self.OnDrawTab(self,i,R,false);
+      end;
+    end;
+  finally
+    if Message.DC = 0 then EndPaint(Handle, PS);
+  end;
+  self.PaintHandler(message);
+end;
+
+{ TPanel }
+procedure TPanel.WMEraseBkGnd(var msg: TWMEraseBkGnd);
+var
+  FColor:TColor;
+begin
+  FColor := MainForm.Color;
+  If FColor = clBtnFace Then
+    inherited
+  Else Begin
+    Brush.Color := FColor;
+    Windows.FillRect( msg.dc, Clientrect, Brush.handle );
+    msg.result := 1;
+  End;
+end;
+
+{TListView}
+
+procedure TListView.CreateWnd;
+begin
+  inherited;
+  FHeaderHandle := ListView_GetHeader(Handle);
+end;
+
+procedure TListView.WMNotify(var AMessage: TWMNotify);
+var
+  FontColor: TColor;
+  NMCustomDraw: TNMCustomDraw;
+  PS:PAINTSTRUCT;
+  oldColor:TColor;
+  s:string;
+  tc:TThemeColor;
+begin
+  if (AMessage.NMHdr.hwndFrom = FHeaderHandle) and
+    (AMessage.NMHdr.code = NM_CUSTOMDRAW) then
+  begin
+    NMCustomDraw := PNMCustomDraw(TMessage(AMessage).LParam)^;
+    case NMCustomDraw.dwDrawStage of
+      CDDS_PREPAINT: begin
+        AMessage.Result := CDRF_NOTIFYITEMDRAW;
+      end;
+      CDDS_ITEMPREPAINT:
+      begin
+        BeginPaint(FHeaderHandle,PS);
+        try
+        strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
+        oldColor := self.Brush.Color;
+        self.Brush.Color := tc.Background;
+        FillRect(NMCustomDraw.hdc,NMCustomDraw.rc,self.Brush.Handle);
+
+        FontColor := tc.Foreground;
+        SetTextColor(NMCustomDraw.hdc, ColorToRGB(FontColor));
+        SetBkColor(NMCustomDraw.hdc, ColorToRGB(self.Brush.Color));
+        s:=  self.Columns[NMCustomDraw.dwItemSpec].Caption;
+        TextOut(NMCustomDraw.hdc ,
+          NMCustomDraw.rc.Left
+            +(NMCustomDraw.rc.Right - NMCustomDraw.rc.Left - Canvas.TextWidth(s) ) div 2
+          ,
+          NMCustomDraw.rc.top
+            +(NMCustomDraw.rc.Bottom - NMCustomDraw.rc.Top - Canvas.TextHeight(s) ) div 2,
+          pChar(s),Length(s));
+          {
+        SetDCBrushColor(NMCustomDraw.hdc, ColorToRGB(dmMain.Cpp.IdentifierAttri.Foreground));
+        SetBkColor(NMCustomDraw.hdc, ColorToRGB(dmMain.Cpp.IdentifierAttri.Foreground));
+        }
+        SelectObject(NMCustomDraw.hdc, GetStockObject(DC_PEN));
+        SetDCPenColor(NMCustomDraw.hdc, ColorToRGB(dmMain.Cpp.IdentifierAttri.Foreground));
+        MoveToEx(NMCustomDraw.hdc, NMCustomDraw.rc.left, NMCustomDraw.rc.top, nil);
+        LineTo(NMCustomDraw.hdc, NMCustomDraw.rc.right, NMCustomDraw.rc.top);
+        if NMCustomDraw.dwItemSpec <> 0 then begin
+        MoveToEx(NMCustomDraw.hdc, NMCustomDraw.rc.left, NMCustomDraw.rc.top, nil);
+        LineTo(NMCustomDraw.hdc, NMCustomDraw.rc.left, NMCustomDraw.rc.bottom);
+        end;
+        if (NMCustomDraw.dwItemSpec <> self.Columns.Count-1) then begin
+          MoveToEx(NMCustomDraw.hdc, NMCustomDraw.rc.right, NMCustomDraw.rc.top, nil);
+          LineTo(NMCustomDraw.hdc, NMCustomDraw.rc.right, NMCustomDraw.rc.bottom);
+        end;
+        AMessage.Result := CDRF_SKIPDEFAULT;
+        finally
+          endPaint(FHeaderHandle,PS);
+        end;
+        self.Brush.Color := oldColor;
+      end;
+    else
+      AMessage.Result := CDRF_DODEFAULT;
+    end;
+  end
+  else
+    inherited;
+end;
+
+{TMainForm}
 
 procedure TMainForm.LoadTheme;
 begin
@@ -1085,9 +1327,6 @@ begin
   // Save left page control states
   devData.ProjectWidth := LeftPageControl.Width;
   devData.OutputHeight := fPreviousHeight;
-  devData.ProjectFloat := Assigned(fProjectToolWindow) and fProjectToolWindow.Visible;
-  devData.MessageFloat := Assigned(fReportToolWindow) and fReportToolWindow.Visible;
-
   // Remember window placement
   devData.WindowState.GetPlacement(Self.Handle);
   if Assigned(fProjectToolWindow) then
@@ -1101,6 +1340,7 @@ begin
   end;
   StopTabnine;
   FreeAndNil(fTabnine);
+  FreeAndNil(fCaretList);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1193,19 +1433,40 @@ end;
 procedure TMainForm.LoadColor;
 var
   selectedTC:TThemeColor;
+  gutterTC:TThemeColor;
   ForegroundColor :TColor;
   BackgroundColor: TColor;
   tc:TThemeColor;
 begin
+  strToThemeColor(gutterTC, devEditor.Syntax.Values[cGut]);
+  MainForm.Color := gutterTC.Background;
+  MainForm.Font.Color := gutterTC.Foreground;
+  LeftPageControl.OwnerDraw:=True;
+  MessageControl.OwnerDraw :=True;
+  DebugViews.OwnerDraw:=True;
+  cmbCompilers.Color := gutterTC.Background;
+  cmbCompilers.Font := mainForm.Font;
+  cmbClasses.Color := gutterTC.Background;
+  cmbClasses.Font := mainForm.Font;
+  cmbMembers.Color := gutterTC.Background;
+  cmbMembers.Font := mainForm.Font;
+  evaluateInput.Color := gutterTC.Background;
+  evaluateInput.Font := MainForm.Font;
+  evalOutput.Color := gutterTC.Background;
+  evalOutput.Font := MainForm.Font;
+
   BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
   ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
   debugOutput.Color := BackgroundColor;
+  debugOutput.Font := MainForm.Font;
   debugOutput.Font.Color := ForegroundColor;
 
   WatchView.Color := BackgroundColor;
+  WatchView.Font := MainForm.Font;
   WatchView.Font.Color := ForegroundColor;
   ProjectView.Color := BackgroundColor;
+  ProjectView.Font := MainForm.Font;
   ProjectView.Font.Color := ForegroundColor;
   ClassBrowser.Colors[ForeColor]:=ForegroundColor;
   ClassBrowser.Colors[BackColor]:=BackgroundColor;
@@ -1249,18 +1510,25 @@ begin
   end;
 
   StackTrace.Color := BackgroundColor;
+  StackTrace.Font := MainForm.Font;
   StackTrace.Font.Color := ForegroundColor;
   BreakpointsView.Color := BackgroundColor;
+  BreakpointsView.Font := MainForm.Font;
   BreakpointsView.Font.Color := ForegroundColor;
   CompilerOutput.Color := BackgroundColor;
+  CompilerOutput.Font := MainForm.Font;
   CompilerOutput.Font.Color := ForegroundColor;
   ResourceOutput.Color := BackgroundColor;
+  ResourceOutput.Font := MainForm.Font;
   ResourceOutput.Font.Color := ForegroundColor;
   LogOutput.Color := BackgroundColor;
+  LogOutput.Font := MainForm.Font;
   LogOutput.Font.Color := ForegroundColor;
   FindOutput.Color := BackgroundColor;
+  FindOutput.Font := MainForm.Font;
   FindOutput.Font.Color := ForegroundColor;
   EvalOutput.Color := BackgroundColor;
+  EvalOutput.Font := MainForm.Font;
   EvalOutput.Font.Color := ForegroundColor;
 end;
 
@@ -1278,6 +1546,10 @@ begin
   LogOutput.Repaint;
   FindOutput.Repaint;
   EvalOutput.Repaint;
+  MainForm.Repaint;
+  PageControlPanel.Repaint;
+  EditorPageControlLeft.Invalidate;
+  EditorPageControlRight.Invalidate;
 end;
 
 procedure TMainForm.LoadText;
@@ -1357,6 +1629,9 @@ begin
   actCopy.Caption := Lang[ID_ITEM_COPY];
   actPaste.Caption := Lang[ID_ITEM_PASTE];
   actSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
+  CopyAsItem.Caption := LANG[ID_ITEM_COPYAS];
+  actCopyAsRTF.Caption := LANG[ID_ITEM_COPYAS_RTF];
+
 
   EncodingItem.Caption := Lang[ID_ITEM_ENCODING];
   actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
@@ -1381,6 +1656,17 @@ begin
   actUnCollapse.Caption := Lang[ID_ITEM_UNCOLLAPSEALL];
   actDuplicateLine.Caption := Lang[ID_ITEM_DUPLICATELINE];
   actDeleteLine.Caption := Lang[ID_ITEM_DELETELINE];
+
+  // Code menu
+  actBack.Caption := LANG[ID_CODE_BACK];
+  actForward.Caption := LANG[ID_CODE_FORWARD];
+  actPrevError.Caption := LANG[ID_CODE_PREVERROR];
+  actNextError.Caption := LANG[ID_CODE_NEXTERROR];
+
+
+  actFormatCurrentFile.Caption := Lang[ID_FORMATTER_FORMATCURFILE];
+  actFormatOptions.Caption := Lang[ID_FORMATTER_MENU];
+
   actMoveSelUp.Caption := Lang[ID_ITEM_MOVESELUP];
   actMoveSelDown.Caption := Lang[ID_ITEM_MOVESELDOWN];
 
@@ -1400,6 +1686,7 @@ begin
   actStatusbar.Caption := Lang[ID_ITEM_STATUSBAR];
   actSwapHeaderSource.Caption := Lang[ID_ITEM_SWAPHEADERSOURCE];
   actSwapEditor.Caption := Lang[ID_ITEM_SWAPEDITOR];
+  actCloseMessageSheet.Caption := LANG[ID_ITEM_CLOSEMESSAGE_SHEET];
 
   // Toolbar submenu
   ToolBarsItem.Caption := Lang[ID_SUB_TOOLBARS];
@@ -1416,8 +1703,6 @@ begin
 
   // Top level
   actViewToDoList.Caption := Lang[ID_VIEWTODO_MENUITEM];
-  FloatingPojectManagerItem.Caption := Lang[ID_ITEM_FLOATWINDOW];
-  FloatingReportWindowItem.Caption := Lang[ID_ITEM_FLOATREPORT];
 
   // Project menu
   actProjectNew.Caption := Lang[ID_ITEM_NEWFILE];
@@ -1454,9 +1739,6 @@ begin
   actPackageCheck.Caption := Lang[ID_ITEM_UPDATECHECK];
   actPackageManager.Caption := Lang[ID_ITEM_PACKMAN];
 
-  // Formatter menu
-  actFormatCurrentFile.Caption := Lang[ID_FORMATTER_FORMATCURFILE];
-  actFormatOptions.Caption := Lang[ID_FORMATTER_MENU];
 
   // Window menu
   if devData.FullScreen then
@@ -1487,7 +1769,7 @@ begin
   actStepInto.Caption := Lang[ID_ITEM_STEPINTO];
   actStepOut.Caption := Lang[ID_ITEM_STEPOUT];
   actRunToCursor.Caption := Lang[ID_ITEM_RUNTOCURSOR];
-  
+
   actWatchItem.Caption := Lang[ID_ITEM_WATCHITEMS];
   actStopExecute.Caption := Lang[ID_ITEM_STOPEXECUTION];
   actViewCPU.Caption := Lang[ID_ITEM_CPUWINDOW];
@@ -1939,6 +2221,7 @@ end;
 procedure TMainForm.CompOutputProc(const _Line, _Col, _Unit, _Message: AnsiString);
 var
   e:TEditor;
+  col,line:integer;
 begin
   with CompilerOutput.Items.Add do begin
     Caption := _Line;
@@ -1953,9 +2236,17 @@ begin
   if ( StartsStr('[Error]',_Message)
       or StartsStr('[Warning]',_Message)
       ) then begin
-    if EditorList.IsFileOpened(_Unit) then begin
+    if EditorList.IsFileOpened(_Unit)
+      and IsNumeric(_Line) then begin
       e:=EditorList.GetEditorFromFileName(_Unit);
-      e.AddSyntaxError(StrToInt(_Line),StrToInt(_Col),setError,_Message);
+      line:=StrToInt(_Line);
+      if (line<1) or (line>e.Text.Lines.Count) then
+        Exit;
+      if isNumeric(_Col) then
+        col:=StrToInt(_Col)
+      else
+        col:=Length(e.Text.Lines[line-1])+1;
+      e.AddSyntaxError(line,col,setError,_Message);
     end;
   end;
 end;
@@ -2307,7 +2598,7 @@ begin
   if fCompiler.Compiling then
     Exit;
   fCheckSyntaxInBack:=True;
-  if not PrepareForCompile then begin
+  if not PrepareForCompile(ctFile) then begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;
@@ -2653,6 +2944,17 @@ procedure TMainForm.actFullScreenExecute(Sender: TObject);
 var
   Active: TWinControl;
 begin
+  devData.FullScreen := FullScreenModeItem.Checked;
+  if devData.FullScreen then begin
+    self.OpenCloseMessageSheet(False);
+    devData.ProjectWidth:=self.LeftPageControl.Width;
+    self.LeftPageControl.Width := self.LeftPageControl.Constraints.MinWidth;
+  end else begin
+    //self.OpenCloseMessageSheet(True);
+    self.LeftPageControl.Width := devData.ProjectWidth;
+    self.MessageControl.ActivePage := self.DebugSheet;
+  end;
+{
   // Remember focus
   Active := Screen.ActiveControl;
 
@@ -2694,6 +2996,7 @@ begin
   // Remember focus
   if Active.CanFocus then
     Active.SetFocus;
+}
 end;
 
 procedure TMainForm.actNextExecute(Sender: TObject);
@@ -3194,7 +3497,6 @@ begin
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
-        e.ClearSyntaxErrors;
       end;
     ctProject: begin
         fCompiler.Project := fProject;
@@ -3219,7 +3521,7 @@ begin
         fProject.BuildPrivateResource;
       end;
   end;
-
+  e.ClearSyntaxErrors;
   Result := True;
 end;
 
@@ -3938,7 +4240,7 @@ procedure TMainForm.actIncrementalExecute(Sender: TObject);
 var
   pt: TPoint;
   e: TEditor;
-  PageControl: TPageControl;
+  PageControl: ComCtrls.TPageControl;
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
@@ -4161,7 +4463,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  actCopy.Enabled := Assigned(e) and e.Text.SelAvail;
+  TAction(Sender).Enabled := Assigned(e) and e.Text.SelAvail;
 end;
 
 procedure TMainForm.actPasteUpdate(Sender: TObject);
@@ -5536,7 +5838,6 @@ end;
 
 procedure TMainForm.ProjectWindowClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FloatingPojectManagerItem.Checked := False;
   LeftPageControl.Visible := false;
   (Sender as TForm).RemoveControl(LeftPageControl);
 
@@ -5554,7 +5855,6 @@ end;
 
 procedure TMainForm.ReportWindowClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FloatingReportWindowItem.Checked := False;
   MessageControl.Visible := false;
   (Sender as TForm).RemoveControl(MessageControl);
 
@@ -5566,39 +5866,6 @@ begin
   Statusbar.Top := MessageControl.Top + MessageControl.Height;
   fReportToolWindow.Free;
   fReportToolWindow := nil;
-end;
-
-procedure TMainForm.FloatingPojectManagerItemClick(Sender: TObject);
-begin
-  FloatingPojectManagerItem.Checked := not FloatingPojectManagerItem.Checked;
-  if Assigned(fProjectToolWindow) then
-    fProjectToolWindow.Close
-  else begin
-    fProjectToolWindow := TForm.Create(self);
-    with fProjectToolWindow do begin
-      Caption := Lang[ID_TB_PROJECT];
-      Top := self.Top + LeftPageControl.Top;
-      Left := self.Left + LeftPageControl.Left;
-      Height := LeftPageControl.Height;
-      Width := LeftPageControl.Width;
-      FormStyle := fsStayOnTop;
-      OnClose := ProjectWindowClose;
-      BorderStyle := bsSizeable;
-      BorderIcons := [biSystemMenu];
-      LeftPageControl.Visible := false;
-      self.RemoveControl(LeftPageControl);
-
-      LeftPageControl.Left := 0;
-      LeftPageControl.Top := 0;
-      LeftPageControl.Align := alClient;
-      LeftPageControl.Visible := true;
-      fProjectToolWindow.InsertControl(LeftPageControl);
-
-      fProjectToolWindow.Show;
-      if assigned(fProject) then
-        fProject.SetNodeValue(ProjectView.TopItem); // nodes needs to be recreated
-    end;
-  end;
 end;
 
 procedure TMainForm.actSaveProjectAsExecute(Sender: TObject);
@@ -5884,40 +6151,6 @@ end;
 procedure TMainForm.DebugPopupPopup(Sender: TObject);
 begin
   RemoveWatchPop.Enabled := Assigned(WatchView.Selected);
-end;
-
-procedure TMainForm.FloatingReportwindowItemClick(Sender: TObject);
-begin
-  FloatingReportWindowItem.Checked := not FloatingReportWindowItem.Checked;
-  if assigned(fReportToolWindow) then
-    fReportToolWindow.Close
-  else begin
-    OpenCloseMessageSheet(true);
-    if MessageControl.ActivePage = CloseSheet then
-      MessageControl.ActivePageIndex := 0;
-    fReportToolWindow := TForm.Create(self);
-    with fReportToolWindow do begin
-      Caption := Lang[ID_TB_REPORT];
-      Top := self.Top + MessageControl.Top;
-      Left := self.Left + MessageControl.Left;
-      Height := MessageControl.Height;
-      Width := MessageControl.Width;
-      FormStyle := fsStayOnTop;
-      OnClose := ReportWindowClose;
-      BorderStyle := bsSizeable;
-      BorderIcons := [biSystemMenu];
-      MessageControl.Visible := false;
-      self.RemoveControl(MessageControl);
-
-      MessageControl.Left := 0;
-      MessageControl.Top := 0;
-      MessageControl.Align := alClient;
-      MessageControl.Visible := true;
-      fReportToolWindow.InsertControl(MessageControl);
-
-      fReportToolWindow.Show;
-    end;
-  end;
 end;
 
 procedure TMainForm.actAttachProcessUpdate(Sender: TObject);
@@ -6281,9 +6514,11 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  Application.HintHidePause:=30000; //30sec before hint disapear
   fQuitting:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
+  fCaretList:=TDevCaretList.Create;
 
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
@@ -6355,18 +6590,10 @@ begin
   LeftPageControl.ActivePageIndex := devData.LeftActivePage;
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
-  if devData.ProjectFloat then begin
-    FloatingPojectManagerItem.Click;
-    devData.ProjectWindowState.SetPlacement(fProjectToolWindow.Handle);
-  end;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
 
-  if devData.MessageFloat then begin
-    FloatingReportwindowItem.Click;
-    devData.ReportWindowState.SetPlacement(fReportToolWindow.Handle);
-  end;
   actShortenCompPaths.Checked := devData.ShortenCompPaths;
 
   // Set statusbar to previous state
@@ -6478,7 +6705,7 @@ begin
   devData.First := FALSE;
 
   LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftProjectSheet.Width;
-  //MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
+  MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
   //windows xp hack
   if Win32MajorVersion < 6 then begin
     LeftPageControl.TabPosition := tpTop;
@@ -7811,25 +8038,27 @@ begin
       fTabnine.Stop;
 end;
 
-{
+
 procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
   TabIndex: Integer; const Rect: TRect; Active: Boolean);
 var
   y    : Integer;
   x    : Integer;
   aRect: TRect;
-  bgColor,fgColor : TColor;
-  tc : TThemeColor;
+  bgColor,fgColor,abgColor,afgColor : TColor;
+  gtc : TThemeColor;
   tabs:integer;
   tabRect: TRect;
 begin
-  bgColor := dmMain.Cpp.WhitespaceAttribute.Background;
-  fgColor := dmMain.Cpp.IdentifierAttri.Foreground;
-  strToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+  strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
+  bgColor := gtc.Background;
+  fgColor := gtc.Foreground;
+  abgColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  afgColor := dmMain.Cpp.IdentifierAttri.Foreground;
   if Active then begin
     //Fill the tab rect
-    Control.Canvas.Brush.Color := tc.Background;
-    Control.Canvas.Font.Color := tc.Foreground;
+    Control.Canvas.Brush.Color := abgColor;
+    Control.Canvas.Font.Color := afgColor;
     Control.Canvas.FillRect(Rect);
   end else begin
     //Fill the tab rect
@@ -7864,23 +8093,156 @@ begin
   end;
   Control.Canvas.Brush.Color := bgColor;
   Control.Canvas.FillRect(aRect);
+  
+  if Active then begin
+    //Fill the tab rect
+    Control.Canvas.Brush.Color := abgColor;
+    Control.Canvas.Font.Color := afgColor;
+  end;
 
   //draw the tab title
   case TTabControl(Control).TabPosition of
     tpLeft,tpRight: begin
-      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
-      y  := Rect.Bottom - ((Rect.Bottom - Rect.Top - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])) div 2) - 1;
+      if Assigned(TPageControl(Control).Images)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
+        x  := Rect.Left + ((Rect.Right - Rect.Left
+          - TTabControl(Control).Images.Width
+        ) div 2) + 1;
+        y  := Rect.bottom - ((Rect.Bottom - Rect.Top
+           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           - TTabControl(Control).Images.Height
+           ) div 2) - TTabControl(Control).Images.Height;
+        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+      end else begin
+        y  := Rect.Bottom - ((Rect.Bottom - Rect.Top
+           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           ) div 2) - 1;
+      end;
+      x  := Rect.Left + ((Rect.Right - Rect.Left
+        - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])
+        ) div 2) + 1;
       AngleTextOut(Control.Canvas,TTabControl(Control).Tabs[TabIndex],x,y,90);
     end;
     tpTop,tpBottom: begin
+      if Assigned(TPageControl(Control).Images)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
+        and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
+        x  := Rect.Left + ((Rect.Right - Rect.Left
+          - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])
+          - TTabControl(Control).Images.Width
+          ) div 2) + 1;
+        y  := Rect.Top + ((Rect.Bottom - Rect.Top
+          - TTabControl(Control).Images.Height) div 2) + 1;
+        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+        inc(x,TTabControl(Control).Images.Width);
+      end else begin
+        x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+      end;
       y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
-      x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
       Control.Canvas.TextOut(x,y,TTabControl(Control).Tabs[TabIndex]);
     end;
   end;
 end;
 
-}
+
+procedure TMainForm.actCopyAsRTFExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) then
+    e.RTFToClipboard;
+end;
+
+procedure TMainForm.actForwardUpdate(Sender: TObject);
+begin
+  actForward.Enabled := fCaretList.hasNext;
+end;
+
+procedure TMainForm.actForwardExecute(Sender: TObject);
+var
+  pCaret:PEditorCaret;
+  p:TBufferCoord;
+  e:TEditor;
+begin
+  pCaret := fCaretList.GotoAndGetNext;
+  if assigned(pCaret) then begin
+    e:=TEditor(pCaret.editor);
+    p.Line := pCaret.line;
+    p.Char := pCaret.char;
+    e.Text.CaretXY := p;
+    e.Activate;
+  end;
+end;
+
+procedure TMainForm.actBackExecute(Sender: TObject);
+var
+  pCaret:PEditorCaret;
+  p:TBufferCoord;
+  e:TEditor;
+begin
+  pCaret := fCaretList.GotoAndGetPrevious;
+  if assigned(pCaret) then begin
+    e:=TEditor(pCaret.editor);
+    p.Line := pCaret.line;
+    p.Char := pCaret.char;
+    e.Text.CaretXY := p;
+    e.Activate;
+  end;
+end;
+
+procedure TMainForm.actBackUpdate(Sender: TObject);
+begin
+  actBack.Enabled := fCaretList.hasPrevious;
+end;
+
+procedure TMainForm.actCloseMessageSheetExecute(Sender: TObject);
+begin
+  OpenCloseMessageSheet(false);
+end;
+
+procedure TMainForm.actNextErrorUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    actNextError.Enabled := e.HasNextError;
+  end;
+end;
+
+procedure TMainForm.actPrevErrorUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    actPrevError.Enabled := e.HasPrevError;
+  end;
+end;
+
+
+procedure TMainForm.actPrevErrorExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    e.GotoPrevError;
+  end;
+end;
+
+procedure TMainForm.actNextErrorExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  if assigned(e) then begin
+    e.GotoNextError;
+  end;
+end; 
+
 
 end.
 

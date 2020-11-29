@@ -654,9 +654,6 @@ type
 
     fPortable: boolean; //is a portable program (not installed by the setup)
 
-    // Floating windows
-    fProjectFloat: boolean;
-    fMessageFloat: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -775,9 +772,6 @@ type
     property SearchWhere: integer read fSearchWhere write fSearchWhere;
     property DirBackward: boolean read fDirBackward write fDirBackward;
     property RegExp: boolean read fRegExp write fRegExp;
-    // Floating windows
-    property ProjectFloat: boolean read fProjectFloat write fProjectFloat;
-    property MessageFloat: boolean read fMessageFloat write fMessageFloat;
   end;
 
 function devData: TdevData;
@@ -1087,9 +1081,6 @@ begin
   fDirBackward := false;
   fRegExp := false;
 
-  // Floating windows
-  fMessageFloat := false;
-  fProjectFloat := false;
 end;
 
 { TWindowState }
@@ -2581,8 +2572,8 @@ begin
 
       // Set gutter properties
       with Gutter do begin
-        LeftOffset := 4;
-        RightOffset := 21;
+        LeftOffset := 28;
+        RightOffset := 24;
         BorderStyle := gbsNone;
         Font.Assign(fGutterFont);
         DigitCount := fGutterSize;
