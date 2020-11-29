@@ -160,7 +160,8 @@ var
 begin
   // background color
   if BackgroundChanged then begin
-    AddData(Format('\chshdng0\chcbpat%d\cb%d', [GetColorIndex(fLastBG),GetColorIndex(fLastBG)]));
+    AddData(Format('\chshdng0\chcbpat%d\cb%d\highlight%d ',
+      [GetColorIndex(fLastBG),GetColorIndex(fLastBG),GetColorIndex(fLastBG)]));
     fAttributesChanged := TRUE;
   end;
   // text color
@@ -240,7 +241,8 @@ begin
     Result := Result + { TODO } #13#10;
   Result := Result + Format('\deflang1033\pard\plain\f0\fs%d ',
     [2 * Font.Size]);
-  Result := Result + Format('\chshdng0\chcbpat%d\cb%d ', [GetColorIndex(fBackgroundColor),GetColorIndex(fBackgroundColor)]);
+  Result := Result + Format('\chshdng0\chcbpat%d\cb%d\highlight%d ',
+      [GetColorIndex(fLastBG),GetColorIndex(fBackgroundColor),GetColorIndex(fBackgroundColor)]);
 
 end;
 
