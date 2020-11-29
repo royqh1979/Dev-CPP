@@ -590,7 +590,8 @@ var
   X, Y, I, Line: integer;
 begin
   // Get point where to draw marks
-  X := (fText.Gutter.RealGutterWidth(fText.CharWidth) - fText.Gutter.RightOffset) div 2 - 3;
+  //X := (fText.Gutter.RealGutterWidth(fText.CharWidth) - fText.Gutter.RightOffset) div 2 - 3;
+  X :=5;
   Y := (fText.LineHeight - dmMain.GutterImages.Height) div 2 + fText.LineHeight * (FirstLine - fText.TopLine);
 
   // The provided lines are actually rows...

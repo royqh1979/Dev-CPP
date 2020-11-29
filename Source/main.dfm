@@ -232,7 +232,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = DebugConsoleSheet
+        ActivePage = CallStackSheet
         Align = alClient
         Style = tsFlatButtons
         TabOrder = 0

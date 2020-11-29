@@ -2572,8 +2572,8 @@ begin
 
       // Set gutter properties
       with Gutter do begin
-        LeftOffset := 4;
-        RightOffset := 21;
+        LeftOffset := 28;
+        RightOffset := 24;
         BorderStyle := gbsNone;
         Font.Assign(fGutterFont);
         DigitCount := fGutterSize;
