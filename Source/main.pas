@@ -1076,13 +1076,18 @@ end;
 procedure TPageControl.WMEraseBkGnd(var msg: TWMEraseBkGnd);
 var
   FColor:TColor;
+  r:TRect;
 begin
   FColor := MainForm.Color;
   If FColor = clBtnFace Then
     inherited
   Else Begin
     Brush.Color := FColor;
-    Windows.FillRect( msg.dc, Clientrect, Brush.handle );
+    R.Top:=0;
+    R.Left:=0;
+    R.Bottom:=Height;
+    R.Right:=Width;
+    Windows.FillRect( msg.dc,self.ClientRect, Brush.handle );
     msg.result := 1;
   End;
 end;
@@ -1111,8 +1116,14 @@ begin
     strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
     bgColor := gtc.Background;
     fgColor := gtc.Foreground;
-    self.Canvas.Brush.Color := fgColor;
-    self.Canvas.FillRect(self.DisplayRect);
+    self.Canvas.Brush.Color := bgColor;
+//    self.Canvas.FillRect(self.DisplayRect);
+    R.Top:=0;
+    R.Left:=0;
+    R.Bottom:=Height;
+    R.Right:=Width;
+    self.Canvas.FillRect(R);
+
 
     for i:=0 to self.Tabs.Count-1 do begin
       if i = self.TabIndex then begin
@@ -1536,6 +1547,9 @@ begin
   FindOutput.Repaint;
   EvalOutput.Repaint;
   MainForm.Repaint;
+  PageControlPanel.Repaint;
+  EditorPageControlLeft.Invalidate;
+  EditorPageControlRight.Invalidate;
 end;
 
 procedure TMainForm.LoadText;
