@@ -1,4 +1,8 @@
-Version 6.2-beta3
+Version 6.2-beta4
+    
+    - enhancement: Show confirm dialog before "delete user configurations & exit" in the environment dialog.
+
+Version 6.2-beta3 Nov 2020
     
     - fix: Export to RTF, correct background
     - fix: Export to RTF, chinese character support

@@ -946,6 +946,7 @@ Ver=1
 60031=Folder %s is not existing. <CR> Should we create it for you?
 60032=Execute to evaluate
 60033=Not found in current context
+60034=Are you sure you want to delete all the custom configurations, including shortcuts, user templates, color schemes, etc?
 
 61001=Cannot open file %s
 61002=Cannot save file %s

@@ -1023,6 +1023,7 @@ const
   ID_MSG_CREATEFOLDER                   = 60031;
   ID_MSG_EXECUTE_TO_EVALUATE            = 60032;
   ID_MSG_NOT_FOUND_IN_CONTEXT           = 60033;
+  ID_MSG_CLEARCONFIG                    = 60034;
 
 
   ID_ERR_OPENFILE                       = 61001;

@@ -477,6 +477,8 @@ end;
 
 procedure TEnviroForm.btnResetDevClick(Sender: TObject);
 begin
+  if MessageDlg(Lang[ID_MSG_CLEARCONFIG], mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+    Exit;
   // Remove settings on exit
   RemoveOptionsDir(devDirs.Config);
 
