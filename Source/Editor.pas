@@ -91,6 +91,7 @@ type
     fPreviousEditors: TList;
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
+    fLastParseTime:TDateTime;
     {
       Format:  it's the offset relative to the previous tab stop position
         if y=0, then x means the offset in the same line relative to the previous tab stop postion
@@ -316,6 +317,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fLastParseTime := 0;
   fLastPressedIsIdChar := False;
   // Set generic options
   fErrorLine := -1;
@@ -1929,8 +1931,9 @@ begin
 
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
-    if fText.Modified then begin
+    if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
       MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+      fLastParseTime := Now;
     end;
 
     // Scan the current function body
@@ -2333,14 +2336,7 @@ var
 
   procedure ShowDebugHint;
   begin
-
-  M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-      st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
-    finally
-      M.Free;
-    end;
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
 
     if not Assigned(st) then
       Exit;
@@ -2366,13 +2362,7 @@ var
   procedure ShowParserHint;
   begin
     // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-      st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
-    finally
-      M.Free;
-    end;
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
 
     if Assigned(st) then begin
       // vertical bar is used to split up short and long hint versions...
@@ -2438,7 +2428,8 @@ begin
   end;
 
   // Don't rescan the same stuff over and over again (that's slow)
-  if (s = fCurrentWord) and (fText.Hint<>'') then 
+//  if (s = fCurrentWord) and (fText.Hint<>'') then
+  if (s = fCurrentWord) then
     Exit; // do NOT remove hint when subject stays the same
 
   // Remove hint
@@ -2460,11 +2451,25 @@ begin
           ShowParserHint;
       end;
     hprIdentifier, hprSelection: begin
-        if not fCompletionBox.Visible  then
-          if MainForm.Debugger.Executing then
-            ShowDebugHint
-          else if devEditor.ParserHints then
-            ShowParserHint;
+        if not fCompletionBox.Visible  then begin
+          M := TMemoryStream.Create;
+          try
+            fText.Lines.SaveToStream(M);
+
+            if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
+              // Reparse whole file (not function bodies) if it has been modified
+              // use stream, don't read from disk (not saved yet)
+              MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+              fLastParseTime := Now;
+            end;
+            if MainForm.Debugger.Executing then
+              ShowDebugHint
+            else if devEditor.ParserHints then
+              ShowParserHint;
+          finally
+            M.Free;
+          end;
+        end;
       end;
     hprError : begin
         ShowErrorHint;
@@ -2688,6 +2693,7 @@ begin
       end;
 
       MainForm.CppParser.ParseFile(fFileName, InProject);
+      fLastParseTime:=Now;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
 
@@ -2775,6 +2781,7 @@ begin
   MainForm.ClassBrowser.BeginUpdate;
   try
     MainForm.CppParser.ParseFile(SaveFileName, InProject);
+    fLastParseTime:=Now;
     MainForm.ClassBrowser.CurrentFile := SaveFileName;
   finally
     MainForm.ClassBrowser.EndUpdate;

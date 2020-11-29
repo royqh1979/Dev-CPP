@@ -320,6 +320,7 @@ type
     fCaretOffset: TPoint;
     fKeyStrokes: TSynEditKeyStrokes;
     fModified: Boolean;
+    fLastModifyTime: TDateTime;
     fMarkList: TSynEditMarkList;
     fExtraLineSpacing: integer;
     fSelectionMode: TSynSelectionMode;
@@ -758,6 +759,7 @@ type
     property MaxScrollWidth: integer read fMaxScrollWidth write SetMaxScrollWidth
       default 1024;
     property Modified: Boolean read fModified write SetModified;
+    property LastModifyTime: TDateTime read fLastModifyTime;
     property PaintLock: Integer read fPaintLock;
     property ReadOnly: Boolean read GetReadOnly write SetReadOnly default FALSE;
     property SearchEngine: TSynEditSearchCustom read fSearchEngine write SetSearchEngine;
@@ -8595,6 +8597,8 @@ end;
 
 procedure TCustomSynEdit.SetModified(Value: boolean);
 begin
+  if Value then
+    fLastModifyTime := Now;
   if Value <> fModified then begin
     fModified := Value;
     if (eoGroupUndo in Options) and (not Value) and UndoList.CanUndo then
