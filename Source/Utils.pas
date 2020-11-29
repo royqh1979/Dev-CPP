@@ -272,7 +272,7 @@ begin
     result := 0;
 end;
 
-function GetPrettyLine(hwnd: TListView; i: integer): AnsiString;
+function GetPrettyLine(hwnd: ComCtrls.TListView; i: integer): AnsiString;
 begin
   if (i = -1) then begin // selection
     if hwnd.ItemIndex <> -1 then

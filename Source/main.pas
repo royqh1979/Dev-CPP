@@ -60,6 +60,14 @@ type
       message WM_ERASEBKGND;
   end;
 
+  TListView = class(ComCtrls.TListView)
+  private
+    FHeaderHandle: HWND;
+    procedure WMNotify(var AMessage: TWMNotify); message WM_NOTIFY;
+  protected
+    procedure CreateWnd; override;
+  end;
+
 
   TMainForm = class(TForm)
     MainMenu: TMainMenu;
@@ -1138,6 +1146,80 @@ begin
   End;
 end;
 
+{TListView}
+
+procedure TListView.CreateWnd;
+begin
+  inherited;
+  FHeaderHandle := ListView_GetHeader(Handle);
+end;
+
+procedure TListView.WMNotify(var AMessage: TWMNotify);
+var
+  FontColor: TColor;
+  NMCustomDraw: TNMCustomDraw;
+  PS:PAINTSTRUCT;
+  oldColor:TColor;
+  s:string;
+  tc:TThemeColor;
+begin
+  if (AMessage.NMHdr.hwndFrom = FHeaderHandle) and
+    (AMessage.NMHdr.code = NM_CUSTOMDRAW) then
+  begin
+    NMCustomDraw := PNMCustomDraw(TMessage(AMessage).LParam)^;
+    case NMCustomDraw.dwDrawStage of
+      CDDS_PREPAINT: begin
+        AMessage.Result := CDRF_NOTIFYITEMDRAW;
+      end;
+      CDDS_ITEMPREPAINT:
+      begin
+        BeginPaint(FHeaderHandle,PS);
+        try
+        strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
+        oldColor := self.Brush.Color;
+        self.Brush.Color := tc.Background;
+        FillRect(NMCustomDraw.hdc,NMCustomDraw.rc,self.Brush.Handle);
+
+        FontColor := tc.Foreground;
+        SetTextColor(NMCustomDraw.hdc, ColorToRGB(FontColor));
+        SetBkColor(NMCustomDraw.hdc, ColorToRGB(self.Brush.Color));
+        s:=  self.Columns[NMCustomDraw.dwItemSpec].Caption;
+        TextOut(NMCustomDraw.hdc ,
+          NMCustomDraw.rc.Left
+            +(NMCustomDraw.rc.Right - NMCustomDraw.rc.Left - Canvas.TextWidth(s) ) div 2
+          ,
+          NMCustomDraw.rc.top
+            +(NMCustomDraw.rc.Bottom - NMCustomDraw.rc.Top - Canvas.TextHeight(s) ) div 2,
+          pChar(s),Length(s));
+          {
+        SetDCBrushColor(NMCustomDraw.hdc, ColorToRGB(dmMain.Cpp.IdentifierAttri.Foreground));
+        SetBkColor(NMCustomDraw.hdc, ColorToRGB(dmMain.Cpp.IdentifierAttri.Foreground));
+        }
+        SelectObject(NMCustomDraw.hdc, GetStockObject(DC_PEN));
+        SetDCPenColor(NMCustomDraw.hdc, ColorToRGB(dmMain.Cpp.IdentifierAttri.Foreground));
+        MoveToEx(NMCustomDraw.hdc, NMCustomDraw.rc.left, NMCustomDraw.rc.top, nil);
+        LineTo(NMCustomDraw.hdc, NMCustomDraw.rc.right, NMCustomDraw.rc.top);
+        if NMCustomDraw.dwItemSpec <> 0 then begin
+        MoveToEx(NMCustomDraw.hdc, NMCustomDraw.rc.left, NMCustomDraw.rc.top, nil);
+        LineTo(NMCustomDraw.hdc, NMCustomDraw.rc.left, NMCustomDraw.rc.bottom);
+        end;
+        if (NMCustomDraw.dwItemSpec <> self.Columns.Count-1) then begin
+          MoveToEx(NMCustomDraw.hdc, NMCustomDraw.rc.right, NMCustomDraw.rc.top, nil);
+          LineTo(NMCustomDraw.hdc, NMCustomDraw.rc.right, NMCustomDraw.rc.bottom);
+        end;
+        AMessage.Result := CDRF_SKIPDEFAULT;
+        finally
+          endPaint(FHeaderHandle,PS);
+        end;
+        self.Brush.Color := oldColor;
+      end;
+    else
+      AMessage.Result := CDRF_DODEFAULT;
+    end;
+  end
+  else
+    inherited;
+end;
 
 {TMainForm}
 
@@ -1366,11 +1448,14 @@ begin
   ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
   debugOutput.Color := BackgroundColor;
+  debugOutput.Font := MainForm.Font;
   debugOutput.Font.Color := ForegroundColor;
 
   WatchView.Color := BackgroundColor;
+  WatchView.Font := MainForm.Font;
   WatchView.Font.Color := ForegroundColor;
   ProjectView.Color := BackgroundColor;
+  ProjectView.Font := MainForm.Font;
   ProjectView.Font.Color := ForegroundColor;
   ClassBrowser.Colors[ForeColor]:=ForegroundColor;
   ClassBrowser.Colors[BackColor]:=BackgroundColor;
@@ -1414,18 +1499,25 @@ begin
   end;
 
   StackTrace.Color := BackgroundColor;
+  StackTrace.Font := MainForm.Font;
   StackTrace.Font.Color := ForegroundColor;
   BreakpointsView.Color := BackgroundColor;
+  BreakpointsView.Font := MainForm.Font;
   BreakpointsView.Font.Color := ForegroundColor;
   CompilerOutput.Color := BackgroundColor;
+  CompilerOutput.Font := MainForm.Font;
   CompilerOutput.Font.Color := ForegroundColor;
   ResourceOutput.Color := BackgroundColor;
+  ResourceOutput.Font := MainForm.Font;
   ResourceOutput.Font.Color := ForegroundColor;
   LogOutput.Color := BackgroundColor;
+  LogOutput.Font := MainForm.Font;
   LogOutput.Font.Color := ForegroundColor;
   FindOutput.Color := BackgroundColor;
+  FindOutput.Font := MainForm.Font;
   FindOutput.Font.Color := ForegroundColor;
   EvalOutput.Color := BackgroundColor;
+  EvalOutput.Font := MainForm.Font;
   EvalOutput.Font.Color := ForegroundColor;
 end;
 

@@ -235,7 +235,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         TabOrder = 0
         OnDrawTab = OnDrawTab
@@ -914,6 +914,8 @@ object MainForm: TMainForm
         Top = 0
         Width = 337
         Height = 24
+        BevelInner = bvNone
+        BevelOuter = bvNone
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
@@ -1080,7 +1082,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftClassSheet
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
