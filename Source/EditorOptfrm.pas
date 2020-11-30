@@ -164,6 +164,9 @@ type
     chkShowRainbowColor: TCheckBox;
     tabCheckSyntax: TTabSheet;
     chkAutoCheckSyntaxInBack: TCheckBox;
+    grpDefaultFileType: TGroupBox;
+    rbCFile: TRadioButton;
+    rbCppFile: TRadioButton;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -341,6 +344,11 @@ begin
     StrToThemeColor(fFoldColor, Syntax.Values[cFld]);
     StrToThemeColor(fALColor, Syntax.Values[cAL]);
     UpdateDemoEditColor;
+
+    if UseCpp then
+      rbCppFile.Checked:=True
+    else
+      rbCFile.Checked:=True;
   end;
 
   // Colors, cont.
@@ -620,6 +628,9 @@ begin
   cboOverwriteCaret.Items.Add(Lang[ID_EOPT_CARET3]);
   cboOverwriteCaret.Items.Add(Lang[ID_EOPT_CARET4]);
 
+  grpDefaultFileType.Caption := Lang[ID_EOPT_FILE_TYPE];
+  rbCppFile.Caption := Lang[ID_EOPT_CPP_FILE];
+  rbCFile.Caption := Lang[ID_EOPT_C_FILE];
   // Fonts Tab
   grpEditorFont.Caption := Lang[ID_EOPT_EDFONT];
   lblEditorFont.Caption := Lang[ID_EOPT_FONT];
@@ -844,6 +855,7 @@ begin
     else
       Syntax.Values[cAL] := s;
 
+    UseCpp := rbCppFile.Checked;
   end;
 
 

@@ -48,7 +48,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = LogSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

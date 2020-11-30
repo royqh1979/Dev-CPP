@@ -2727,8 +2727,13 @@ begin
           DefaultExt := 'c';
         end;
       end else begin
-        FilterIndex := 3; // .cpp
-        DefaultExt := 'cpp';
+        if devEditor.UseCpp then begin
+          FilterIndex := 3; // .cpp
+          DefaultExt := 'cpp';
+        end else begin
+          FilterIndex := 2; // .c
+          DefaultExt := 'c';
+        end;
       end;
     end;
 

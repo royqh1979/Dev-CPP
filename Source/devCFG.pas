@@ -373,6 +373,7 @@ type
   TdevEditor = class(TPersistent)
   private
     fUseSyn: boolean; // use syntax highlighting
+    fUseCpp: boolean; // use .cpp as the default extension
     fSynExt: AnsiString; // semi-colon seperated list of highlight ext's
     fFont: TFont; // Editor Font
     fGutterFont: TFont; // Gutter font
@@ -519,7 +520,9 @@ type
     property UseTabnine: boolean read fUseTabnine write fUseTabnine;
     property ShowRainbowBacket:boolean read fShowRainbowBacket write fShowRainbowBacket;
 
-    property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax; 
+    property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax;
+
+    property UseCpp: boolean read fUseCpp write fUseCpp; 
   end;
 
   TWindowState = class(TPersistent)
@@ -2508,6 +2511,8 @@ begin
   fShowRainbowBacket:=True;
 
   fAutoCheckSyntax:=True;
+
+  fUseCpp := False;
 
 end;
 

@@ -292,7 +292,7 @@ object EditorOptForm: TEditorOptForm
       end
       object grpTabs: TGroupBox
         Left = 12
-        Top = 435
+        Top = 432
         Width = 331
         Height = 112
         Caption = '  Tabs  '
@@ -328,6 +328,30 @@ object EditorOptForm: TEditorOptForm
           Width = 214
           Height = 23
           Caption = 'Smart Tabs'
+          TabOrder = 1
+        end
+      end
+      object grpDefaultFileType: TGroupBox
+        Left = 352
+        Top = 432
+        Width = 273
+        Height = 112
+        Caption = 'Default File Type'
+        TabOrder = 4
+        object rbCFile: TRadioButton
+          Left = 16
+          Top = 32
+          Width = 193
+          Height = 25
+          Caption = 'C File'
+          TabOrder = 0
+        end
+        object rbCppFile: TRadioButton
+          Left = 16
+          Top = 64
+          Width = 193
+          Height = 25
+          Caption = 'C++ File'
           TabOrder = 1
         end
       end

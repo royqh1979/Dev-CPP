@@ -456,6 +456,9 @@ Ver=1
 27072=Tabnine需要大量的内存(大于1G)，强大的CPU和快速的网络才能顺畅的运行。请到 https://github.com/codota/tabnine-sublime/tree/master/binaries 下载最新版的Tabnine.exe，将它放到Dev-CPP目录下，然后再启用Tabnine。
 27073=语法检查
 27074=在打开/保存文件时进行语法检查
+27075=缺省文件类型
+27076=C程序文件
+27077=C++程序文件 
 
 
 28001=名称:

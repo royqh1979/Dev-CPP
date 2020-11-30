@@ -520,6 +520,9 @@ const
   ID_EOPT_SYNTAXCHECK                   = 27073;
   ID_EOPT_SYNTAXCHECK_IN_BACK           = 27074;
 
+  ID_EOPT_FILE_TYPE                     = 27075;
+  ID_EOPT_C_FILE                        = 27076;
+  ID_EOPT_CPP_FILE                      = 27077; 
 
   // new project
   ID_NP_PRJNAME                         = 28001;
