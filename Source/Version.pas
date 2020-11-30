@@ -124,6 +124,8 @@ const
   cSel = 'Selected text';
   cFld = 'Folding lines';
   cAL = 'Active Line';
+  cWN = 'Warnings';
+  cPNL = 'Panel';
 
 
   // GPROF commands and displays

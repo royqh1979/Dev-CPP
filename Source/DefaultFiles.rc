@@ -28,6 +28,8 @@ English lng ..\lang\English.lng
 21 Selected Text
 22 Fold bar lines (fg only)
 23 Active Line
+24 Warning
+25 Panel
 */
 STRINGTABLE
 {
@@ -55,6 +57,9 @@ STRINGTABLE
  21, "clWhite, clNavy"
  22, "clBlack, clBtnFace"
  23, "clNone, $00FFFFCC"
+ 24, "$0000AAFF,clNone"
+ 25, "clBlack, clBtnFace"
+
 
 /* Classic Plus */
  1001, "clBlue, clNone, 0, 0, 0"
@@ -80,6 +85,8 @@ STRINGTABLE
  1021, "clWhite, clNavy"
  1022, "clBlack, clBtnFace"
  1023, "clNone, $00FFFFCC"
+ 1024, "$0000AAFF,clNone"
+ 1025, "clBlack, clBtnFace"
 
 /* Twilight */
  2001, "clLime, clNone, 0, 0, 0"
@@ -105,6 +112,8 @@ STRINGTABLE
  2021, "clWhite, clNavy"
  2022, "clWhite, clBtnFace"
  2023, "clNone, $111122"
+ 2024, "$0000AAFF,clNone"
+ 2025, "clWhite, clBlack"
 
 /* Ocean */
  3001, "clBlue, clNone, 0, 0, 0"
@@ -130,6 +139,8 @@ STRINGTABLE
  3021, "clWhite, clNavy"
  3022, "clBlue, clBtnFace"
  3023, "clNone, $00FFFFCC"
+ 3024, "$0000AAFF,clNone"
+ 3025, "clBlue, clAqua"
 
 /* Visual Studio */
  4001, "clBlack, clNone, 0, 0, 0"
@@ -155,6 +166,8 @@ STRINGTABLE
  4021, "clWhite, clNavy"
  4022, "clNone, clBtnFace"
  4023, "clNone, $00FFFFCC"
+ 4024, "$0000AAFF,clNone"
+ 4025, "clBlue, clAqua"
 
 /* Borland */
  5001, "clLime, clNone, 0, 0, 0"
@@ -180,6 +193,8 @@ STRINGTABLE
  5021, "clBlack, clSilver"
  5022, "clYellow, clBtnFace"
  5023, "clNone, $500000"
+ 5024, "$0000AAFF,clNone"
+ 5025, "clYellow, clNavy"
 
 /* Matrix */
  6001, "clLime, clNone, 0, 0, 0"
@@ -205,6 +220,8 @@ STRINGTABLE
  6021, "clWhite, clNavy"
  6022, "clRed, clBtnFace"
  6023, "clNone, $202020"
+ 6024, "$0000AAFF,clNone"
+ 6025, "clLime, clBlack"
 
  /* Obisidian */
  7001, "$0063c793, clNone, 0, 0, 0"
@@ -230,6 +247,8 @@ STRINGTABLE
  7021, "16777215, $00514e40"
  7022, "$000000c0, $00514e40"
  7023, "clNone, $00323232"
+ 7024, "$0000AAFF,clNone"
+ 7025, "$0088806a, $003c382f"
 
  /* GSS Hacker */
  8001, "$00ff9c00, $00171717, 0, 0, 0"
@@ -255,6 +274,8 @@ STRINGTABLE
  8021, "$00FFFFFF, $001c5f4e"
  8022, "$00a5a5a5, $00171717"
  8023, "clNone, $00323232"
+ 8024, "$0000AAFF,clNone"
+ 8025, "$0002ed06, $00000000"
 
  /* Obvilion */
  9001, "$00FFAB79, $001E1E1E, 0, 0, 0"
@@ -280,6 +301,8 @@ STRINGTABLE
  9021, "13684944, 0"
  9022, "39423, 5328448"
  9023, "clNone, $00323232"
+ 9024, "$0000AAFF,clNone"
+ 9025, "13684944, $00323232"
 
  /* PlasticCodeWrap */
  10001, "clFuchsia, $021D160B, 0, 0, 0"
@@ -305,5 +328,7 @@ STRINGTABLE
  10021, "16776960, clBlack"
  10022, "192, 5328448"
  10023, "clNone, $00323232"
+ 10024, "$0000AAFF,clNone"
+ 10025, "16777215,  $00202020"
 
 }

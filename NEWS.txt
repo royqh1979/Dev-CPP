@@ -3,6 +3,10 @@ Version 6.2-beta4
     - enhancement: Show confirm dialog before "delete user configurations & exit" in the environment dialog.
     - enhancement: add an option in the editor options dialog, let user choose the default file type(extension) 
     - fix: color error after a brace matching
+    - enhancement: use diffenrent color for syntax warning 
+    - enhancement: warning color and panel color settings
+    - change: dont use -Werror from the Debug compiler set by default
+    - fix: a project file opend before the project is opened will correctly be set to be belong the project
 
 Version 6.2-beta3 Nov 2020
     

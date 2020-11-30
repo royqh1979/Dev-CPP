@@ -2289,9 +2289,11 @@ begin
         if FindOption('-Wall', option, index) then
           SetOption(option, '1');
         if FindOption('-Wextra', option, index) then
-          SetOption(option, '1');          
+          SetOption(option, '1');
+          {
         if FindOption('-Werror', option, index) then
           SetOption(option, '1');
+          }
       end;
 
       // Profiling profile
@@ -2423,6 +2425,11 @@ begin
   AddSpecial(cSel, offset + 21); // selected text
   AddSpecial(cFld, offset + 22); // fold bar lines
   AddSpecial(cAL, offset + 23); // active Line
+  AddSpecial(cWN, offset + 24); // warning Line
+  //panel
+  if fSyntax.IndexOf(cPNL) = -1 then begin    // use gutter setting as the default panel setting
+    fSyntax.Append(format('%s=%s', [cPNL, fSyntax.Values[cGut]]))
+  end;
 end;
 
 procedure TdevEditor.SaveSettings;

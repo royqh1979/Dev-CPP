@@ -540,6 +540,7 @@ var
   lst:TList;
   i,idx: integer;
   pError: PSyntaxError;
+  tc:TThemeColor;
 begin
   if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
     areaType:=eatEditing;
@@ -548,10 +549,12 @@ begin
     spaceBefore := Length(fLineBeforeTabStop) - Length(TrimLeft(fLineBeforeTabStop));
     p.beginX := fTabStopBegin + spaceCount - spaceBefore ;
     p.endX := fTabStopEnd + spaceCount - spaceBefore ;
+    p.color := dmMain.Cpp.StringAttri.Foreground;
     areaList.Add(p);
-    ColBorder := clRed;
+    ColBorder := dmMain.Cpp.StringAttri.Foreground;
     Exit;
   end;
+  StrToThemeColor(tc,devEditor.Syntax.Values[cWN]);
   idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >=0 then begin
     areaType:=eatError;
@@ -561,6 +564,10 @@ begin
       pError := PSyntaxError(lst[i]);
       p.beginX := pError.col;
       p.endX := pError.endCol;
+      if pError.errorType = setError then
+        p.color := dmMain.Cpp.InvalidAttri.Foreground
+      else
+        p.color := tc.Foreground;
       areaList.Add(p);
     end;
     ColBorder := dmMain.Cpp.InvalidAttri.Foreground;
@@ -593,7 +600,10 @@ end;
 
 procedure TEditor.DebugAfterPaint(ACanvas: TCanvas; AClip: TRect; FirstLine, LastLine: integer);
 var
-  X, Y, I, Line: integer;
+  X, Y, I,j, Line , idx: integer;
+  lst:TList;
+  drawn:boolean;
+  isError : boolean;
 begin
   // Get point where to draw marks
   //X := (fText.Gutter.RealGutterWidth(fText.CharWidth) - fText.Gutter.RightOffset) div 2 - 3;
@@ -603,14 +613,32 @@ begin
   // The provided lines are actually rows...
   for I := FirstLine to LastLine do begin
     Line := fText.RowToLine(I);
-    if fActiveLine = Line then // prefer active line over breakpoints
-      dmMain.GutterImages.Draw(ACanvas, X, Y, 1)
-    else if HasBreakpoint(Line) <> -1 then
-      dmMain.GutterImages.Draw(ACanvas, X, Y, 0)
-    else if fErrorLine = Line then
+    drawn:=False;
+    if fActiveLine = Line then begin // prefer active line over breakpoints
+      dmMain.GutterImages.Draw(ACanvas, X, Y, 1);
+      drawn:=True;
+    end else if HasBreakpoint(Line) <> -1 then begin
+      dmMain.GutterImages.Draw(ACanvas, X, Y, 0);
+      drawn:=True;
+    end else if fErrorLine = Line then begin
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
-    if CBUtils.FastIndexOf(fErrorList, Line)>=0 then
-      dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
+      drawn:=True;
+    end;
+    idx := CBUtils.FastIndexOf(fErrorList, Line);
+    if idx>=0 then begin
+      isError := False;
+      lst:=TList(fErrorList.Objects[idx]);
+      for j:=0 to lst.Count-1 do begin
+        if PSyntaxError(lst[j])^.errorType = setError then begin
+          isError := True;
+          break;
+        end;
+      end;
+      if isError then
+        dmMain.GutterImages.Draw(ACanvas, X, Y, 2)
+      else if not drawn then
+        dmMain.GutterImages.Draw(ACanvas, X, Y, 3);
+    end;
 
     Inc(Y, fText.LineHeight);
   end;

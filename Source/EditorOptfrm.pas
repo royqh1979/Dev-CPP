@@ -217,6 +217,8 @@ type
     fSelColor: TThemeColor;
     fFoldColor: TThemeColor;
     fALColor : TThemeColor;
+    fWNColor : TThemeColor;
+    fPNLColor : TThemeColor;
     fPredefinedColorThemeCount: integer;
     procedure LoadFonts;
     procedure LoadText;
@@ -343,6 +345,8 @@ begin
     StrToThemeColor(fABPColor, Syntax.Values[cABP]);
     StrToThemeColor(fFoldColor, Syntax.Values[cFld]);
     StrToThemeColor(fALColor, Syntax.Values[cAL]);
+    StrToThemeColor(fWNColor, Syntax.Values[cWN]);
+    StrToThemeColor(fPNLColor, Syntax.Values[cPNL]);
     UpdateDemoEditColor;
 
     if UseCpp then
@@ -392,6 +396,13 @@ begin
 
     // active line
     ElementList.Items.Append(cAL);
+
+    // warnings
+    ElementList.Items.Append(cWN);
+
+    // Panel
+    ElementList.Items.Append(cPNL);
+
 
     ffgColor := cpp.WhitespaceAttribute.Foreground;
     fbgColor := cpp.WhitespaceAttribute.Background;
@@ -855,6 +866,21 @@ begin
     else
       Syntax.Values[cAL] := s;
 
+    s := ThemeColortoStr(fWNColor);
+    a := Syntax.IndexofName(cWN);
+    if a = -1 then
+      Syntax.Append(format('%s=%s', [cWN, s]))
+    else
+      Syntax.Values[cWN] := s;
+
+    s := ThemeColortoStr(fPNLColor);
+    a := Syntax.IndexofName(cPNL);
+    if a = -1 then
+      Syntax.Append(format('%s=%s', [cPNL, s]))
+    else
+      Syntax.Values[cPNL] := s;
+
+
     UseCpp := rbCppFile.Checked;
   end;
 
@@ -975,6 +1001,11 @@ begin
     end else if SameText(ElementList.Items[ElementList.ItemIndex], cAL) then begin
       tc := fALColor;
       cbForeground.Enabled := False;      
+    end else if SameText(ElementList.Items[ElementList.ItemIndex], cWN) then begin
+      tc := fWNColor;
+      cbBackground.Enabled := False;
+    end else if SameText(ElementList.Items[ElementList.ItemIndex], cPNL) then begin
+      tc := fPNLColor;
     end;
 
     SetColor(tc.Foreground,tc.Background);
@@ -1063,6 +1094,10 @@ begin
       SetGutter;
     end else if SameText(s, cAL) then begin
       fALColor := tc;
+    end else if SameText(s, cWN) then begin
+      fWNColor := tc;
+    end else if SameText(s, cPNL) then begin
+      fPNLColor := tc;
     end;
     UpdateDemoEditColor;
 
@@ -1220,6 +1255,7 @@ begin
     StrToThemeColor(fSelColor, LoadStr(offset + 21)); // selected text
     StrToThemeColor(fFoldColor, LoadStr(offset + 22)); // folding bar lines
     StrToThemeColor(fALColor, LoadStr(offset + 23)); // folding bar lines
+    StrToThemeColor(fWNColor, LoadStr(offset + 24)); // folding bar lines
     UpdateDemoEditColor;
   end;
 
@@ -1434,7 +1470,11 @@ begin
       else if CompareText(ElementList.Items[idx], cFld) = 0 then
         tc := fFoldColor
       else if CompareText(ElementList.Items[idx], cAL) = 0 then
-        tc := fALColor;
+        tc := fALColor
+      else if CompareText(ElementList.Items[idx], cWN) = 0 then
+        tc := fWNColor
+      else if CompareText(ElementList.Items[idx], cPNL) = 0 then
+        tc := fPNLColor;
       fINI.WriteString('Editor.Custom', ElementList.Items[idx], ThemeColortoStr(tc));
     end;
   finally
@@ -1483,6 +1523,10 @@ begin
         SetGutter;
       end else if CompareText(ElementList.Items[idx], cAL) = 0 then begin
         fALColor := tc;
+      end else if CompareText(ElementList.Items[idx], cWN) = 0 then begin
+        fWNColor := tc;
+      end else if CompareText(ElementList.Items[idx], cPNL) = 0 then begin
+        fPNLColor := tc;
       end;
     end;
     UpdateDemoEditColor;

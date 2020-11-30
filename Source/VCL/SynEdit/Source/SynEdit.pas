@@ -114,6 +114,7 @@ type
   TEditingArea = Record
     beginX: integer;
     endX: integer;
+    color: TColor;
   end;
 
   TEditingAreaType = (
@@ -2674,7 +2675,7 @@ var
         x2:=p.endX;
       rc.Left := ColumnToXValue(x1);
       rc.Right := ColumnToXValue(x2);
-      Canvas.Pen.Color := colBorder;
+      Canvas.Pen.Color := p.color;
       case areaType of
         eatEditing: begin
           canvas.MoveTo(rc.Left,rc.Top);
