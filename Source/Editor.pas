@@ -1676,6 +1676,8 @@ var
   lastWord:AnsiString;
   M:TMemoryStream;
   st,currentStatement:PStatement;
+  s:AnsiString;
+  
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1722,6 +1724,7 @@ begin
     HandleSymbolCompletion(Key);
 
     if key in [' ','+','-','*','/','<','&','|','!','~'] then begin
+      //Show Tabnine
       fText.SelText := Key;
       Key:=#0;
       ShowTabnineCompletion;
@@ -1751,6 +1754,25 @@ var
       end;
     end;
   end;
+
+  
+  procedure PreParse;
+  var
+    M: TMemoryStream;
+  begin
+    M := TMemoryStream.Create;
+    try
+      fText.Lines.SaveToStream(M);
+
+      // Reparse whole file (not function bodies) if it has been modified
+      // use stream, don't read from disk (not saved yet)
+      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+      fLastParseTime := Now;
+    finally
+      M.Free;
+    end;
+  end;
+    
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1772,8 +1794,13 @@ begin
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
-        end;        
-    end;
+        end;
+        //pre parsing when #Include finised
+        if (fText.LineText<>'')
+          and StartsStr('#include',fText.LineText) then begin
+          PreParse;
+        end;
+      end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
         if fTabStopBegin>=0 then begin

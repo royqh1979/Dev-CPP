@@ -323,7 +323,7 @@ Set the default options for FastMM here.
  FullDebugMode if the application is being debugged inside the Delphi IDE.
  Otherwise the default Delphi memory manager will be used (which is equivalent
  to the non-FullDebugMode FastMM since Delphi 2006.)}
-{$define FullDebugModeInIDE}
+{.$define FullDebugModeInIDE}
 
 {Combines the FullDebugMode, LoadDebugDLLDynamically and
  DoNotInstallIfDLLMissing options. Consequently FastMM will only be installed

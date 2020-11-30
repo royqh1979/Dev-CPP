@@ -6517,7 +6517,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  Application.HintHidePause:=30000; //30sec before hint disapear
+  Application.HintHidePause:=300000; //5mins before the hint auto disapear
   fQuitting:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;

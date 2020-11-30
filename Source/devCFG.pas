@@ -2519,7 +2519,7 @@ begin
 
   fAutoCheckSyntax:=True;
 
-  fUseCpp := False;
+  fUseCpp := True;
 
 end;
 
