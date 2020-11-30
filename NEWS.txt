@@ -2,6 +2,7 @@ Version 6.2-beta4
     
     - enhancement: Show confirm dialog before "delete user configurations & exit" in the environment dialog.
     - enhancement: add an option in the editor options dialog, let user choose the default file type(extension) 
+    - fix: color error after a brace matching
 
 Version 6.2-beta3 Nov 2020
     

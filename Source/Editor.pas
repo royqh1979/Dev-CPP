@@ -92,6 +92,8 @@ type
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
     fLastParseTime:TDateTime;
+    fLastMatchingBeginLine: integer;
+    fLastMatchingEndLine: integer;
     {
       Format:  it's the offset relative to the previous tab stop position
         if y=0, then x means the offset in the same line relative to the previous tab stop postion
@@ -317,6 +319,8 @@ var
   I: integer;
   e: TEditor;
 begin
+  fLastMatchingBeginLine:=-1;
+  fLastMatchingEndLine:=-1;
   fLastParseTime := 0;
   fLastPressedIsIdChar := False;
   // Set generic options
@@ -2561,6 +2565,20 @@ var
       Canvas.Brush.Color := fText.Highlighter.WhitespaceAttribute.Background;
   end;
 
+  procedure ClearLastMatch;
+  var
+    l1,l2:integer;
+  begin
+    if fLastMatchingBeginLine >=0 then begin
+      l1:=fLastMatchingBeginLine;
+      l2:=fLastMatchingEndLine;
+      fLastMatchingBeginLine:=-1;
+      fLastMatchingEndLine:=-1;
+      fText.InvalidateLine(l1);
+      fText.InvalidateLine(l2);
+    end;
+  end;
+
 begin
   // Don't bother wasting time when we don't have to
   if not Assigned(fText.Highlighter) then // no highlighted file is viewed
@@ -2581,24 +2599,32 @@ begin
   else if (fText.CaretX > 0) and (fText.CaretX <= LineLength) and (fText.LineText[fText.CaretX] in AllChars) then
     HighlightCharPos := BufferCoord(fText.CaretX, fText.CaretY);
 
-  // Character not found. Exit.
-  if HighlightCharPos.Line = -1 then
-    Exit;
+    // Character not found. Exit.
+    if HighlightCharPos.Line = -1 then begin
+      ClearLastMatch;
+      Exit;
+    end;
 
-  // Is the OpenChar before/after us highlighted as a symbol (not a comment or something)?
-  if not (fText.GetHighlighterAttriAtRowCol(HighlightCharPos, S, Attri) and (Attri = fText.Highlighter.SymbolAttribute))
-    then
-    Exit;
+    // Is the OpenChar before/after us highlighted as a symbol (not a comment or something)?
+    if not (fText.GetHighlighterAttriAtRowCol(HighlightCharPos, S, Attri) and (Attri = fText.Highlighter.SymbolAttribute))
+      then begin
+      ClearLastMatch;
+      Exit;
+    end;
 
-  // Find the corresponding bracket
-  ComplementCharPos := fText.GetMatchingBracketEx(HighlightCharPos);
-  if (ComplementCharPos.Char = 0) and (ComplementCharPos.Line = 0) then
-    Exit;
+    // Find the corresponding bracket
+    ComplementCharPos := fText.GetMatchingBracketEx(HighlightCharPos);
+    if (ComplementCharPos.Char = 0) and (ComplementCharPos.Line = 0) then begin
+      ClearLastMatch;
+      Exit;
+    end;
 
   // At this point we have found both characters. Check if both are visible
   if Assigned(fText.FoldHidesLine(HighlightCharPos.Line)) or
-    Assigned(fText.FoldHidesLine(ComplementCharPos.Line)) then
+    Assigned(fText.FoldHidesLine(ComplementCharPos.Line)) then begin
+    ClearLastMatch;
     Exit;
+  end;
 
   // Both are visible. Draw them
   // First, draw bracket where caret is placed next to the caret
@@ -2624,6 +2650,10 @@ begin
 
   // Reset brush
   Canvas.Brush.Style := bsSolid;
+
+  fLastMatchingBeginLine:=HighlightCharPos.Line;
+  fLastMatchingEndLine:=ComplementCharPos.Line;
+
 end;
 
 function TEditor.HandpointAllowed(var MousePos: TBufferCoord; ShiftState: TShiftState): THandPointReason;
