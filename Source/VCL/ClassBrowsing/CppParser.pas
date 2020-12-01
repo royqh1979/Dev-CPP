@@ -2995,15 +2995,17 @@ begin
 
 
     while (True) do begin
-      // Find start of the function block and start from the opening brace
-      FuncStartIndex := GetFuncStartLine(0, ClosestLine);
+      if SameText(ClosestStatement^._DefinitionFileName, Filename) then begin
+        // Find start of the function block and start from the opening brace
+        FuncStartIndex := GetFuncStartLine(0, ClosestLine);
 
-      // Now find the end of the function block and check that the Row is still in scope
-      FuncEndIndex := GetFuncEndLine(FuncStartIndex + 1);
-      if (FuncEndIndex>=fTokenizer.Tokens.Count) or (FuncEndIndex=0) then
-        Exit;
-      if (Row <= fTokenizer[FuncEndIndex-1]^.Line) then
-        break;
+        // Now find the end of the function block and check that the Row is still in scope
+        FuncEndIndex := GetFuncEndLine(FuncStartIndex + 1);
+        if (FuncEndIndex>=fTokenizer.Tokens.Count) or (FuncEndIndex=0) then
+          Exit;
+        if (Row <= fTokenizer[FuncEndIndex-1]^.Line) then
+          break;
+      end;
       if assigned(ClosestStatement) then begin   // dont need this check, but put it here for safe
         ClosestStatement := ClosestStatement^._ParentScope;
         if not Assigned(ClosestStatement) then
