@@ -2629,8 +2629,10 @@ var
       l2:=fLastMatchingEndLine;
       fLastMatchingBeginLine:=-1;
       fLastMatchingEndLine:=-1;
-      fText.InvalidateLine(l1);
-      fText.InvalidateLine(l2);
+      if (l1 <> HighlightCharPos.Line) and (l1<> ComplementCharPos.Line) then
+        fText.InvalidateLine(l1);
+      if (l2 <> HighlightCharPos.Line) and (l2<> ComplementCharPos.Line) then
+        fText.InvalidateLine(l2);
     end;
   end;
 
@@ -2640,45 +2642,47 @@ begin
     Exit;
   if not devEditor.Match then // user has disabled match painting
     Exit;
-  if fText.SelAvail then // not clear cut what to paint
-    Exit;
-  //Exit; // greatly reduces flicker
+
   HighlightCharPos.Line := -1;
+  ComplementCharPos.Line := -1;
+  try
+    if fText.SelAvail then // not clear cut what to paint
+      Exit;
+    //Exit; // greatly reduces flicker
 
-  // Is there a bracket char before us?
-  LineLength := Length(fText.LineText);
-  if (fText.CaretX - 1 > 0) and (fText.CaretX - 1 <= LineLength) and (fText.LineText[fText.CaretX - 1] in AllChars) then
-    HighlightCharPos := BufferCoord(fText.CaretX - 1, fText.CaretY)
+    // Is there a bracket char before us?
+    LineLength := Length(fText.LineText);
+    if (fText.CaretX - 1 > 0) and (fText.CaretX - 1 <= LineLength) and (fText.LineText[fText.CaretX - 1] in AllChars) then
+      HighlightCharPos := BufferCoord(fText.CaretX - 1, fText.CaretY)
 
-    // Or after us?
-  else if (fText.CaretX > 0) and (fText.CaretX <= LineLength) and (fText.LineText[fText.CaretX] in AllChars) then
-    HighlightCharPos := BufferCoord(fText.CaretX, fText.CaretY);
+      // Or after us?
+    else if (fText.CaretX > 0) and (fText.CaretX <= LineLength) and (fText.LineText[fText.CaretX] in AllChars) then
+      HighlightCharPos := BufferCoord(fText.CaretX, fText.CaretY);
 
     // Character not found. Exit.
     if HighlightCharPos.Line = -1 then begin
-      ClearLastMatch;
       Exit;
     end;
 
     // Is the OpenChar before/after us highlighted as a symbol (not a comment or something)?
     if not (fText.GetHighlighterAttriAtRowCol(HighlightCharPos, S, Attri) and (Attri = fText.Highlighter.SymbolAttribute))
       then begin
-      ClearLastMatch;
       Exit;
     end;
 
     // Find the corresponding bracket
     ComplementCharPos := fText.GetMatchingBracketEx(HighlightCharPos);
     if (ComplementCharPos.Char = 0) and (ComplementCharPos.Line = 0) then begin
-      ClearLastMatch;
       Exit;
     end;
 
-  // At this point we have found both characters. Check if both are visible
-  if Assigned(fText.FoldHidesLine(HighlightCharPos.Line)) or
-    Assigned(fText.FoldHidesLine(ComplementCharPos.Line)) then begin
+    // At this point we have found both characters. Check if both are visible
+    if Assigned(fText.FoldHidesLine(HighlightCharPos.Line)) or
+      Assigned(fText.FoldHidesLine(ComplementCharPos.Line)) then begin
+      Exit;
+    end;
+  finally
     ClearLastMatch;
-    Exit;
   end;
 
   // Both are visible. Draw them
