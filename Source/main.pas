@@ -2612,6 +2612,9 @@ procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
 begin
+  if Assigned(fProject) then
+    fProject.SaveAll;
+    
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.Save;
@@ -6419,9 +6422,11 @@ procedure TMainForm.CompilerOutputAdvancedCustomDrawItem(Sender: TCustomListView
   TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
   lowersubitem: AnsiString;
+  tc:TThemeColor;
 begin
   if StartsStr('[Warning] ', Item.SubItems[2]) then begin
-    Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
+    StrToThemeColor(tc,devEditor.Syntax.Values[cWN]);
+    Sender.Canvas.Font.Color := tc.Foreground;
   end else if StartsStr('[Error] ', Item.SubItems[2]) then begin
     Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
   end else if StartsStr('[Hint] ', Item.SubItems[2]) then begin
