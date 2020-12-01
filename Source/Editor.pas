@@ -2501,20 +2501,20 @@ begin
   else
     fText.Cursor := crIBeam;
 
-  // Determine what to do with subject
-  case Reason of
-    hprPreprocessor: begin
-        if IsIncludeLine then
-          ShowFileHint
-        else if devEditor.ParserHints and not fCompletionBox.Visible then
-          ShowParserHint;
-      end;
-    hprIdentifier, hprSelection: begin
-        if not fCompletionBox.Visible  then begin
-          M := TMemoryStream.Create;
-          try
-            fText.Lines.SaveToStream(M);
+  M := TMemoryStream.Create;
+  try
+    fText.Lines.SaveToStream(M);
 
+    // Determine what to do with subject
+    case Reason of
+      hprPreprocessor: begin
+          if IsIncludeLine then
+            ShowFileHint
+          else if devEditor.ParserHints and not fCompletionBox.Visible then
+            ShowParserHint;
+        end;
+      hprIdentifier, hprSelection: begin
+          if not fCompletionBox.Visible  then begin
             if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
               // Reparse whole file (not function bodies) if it has been modified
               // use stream, don't read from disk (not saved yet)
@@ -2525,14 +2525,14 @@ begin
               ShowDebugHint
             else if devEditor.ParserHints then
               ShowParserHint;
-          finally
-            M.Free;
           end;
         end;
-      end;
-    hprError : begin
-        ShowErrorHint;
-      end;
+      hprError : begin
+          ShowErrorHint;
+        end;
+    end;
+  finally
+    M.Free;
   end;
 end;
 
