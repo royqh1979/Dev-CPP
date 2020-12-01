@@ -520,6 +520,9 @@ const
   ID_EOPT_SYNTAXCHECK                   = 27073;
   ID_EOPT_SYNTAXCHECK_IN_BACK           = 27074;
 
+  ID_EOPT_FILE_TYPE                     = 27075;
+  ID_EOPT_C_FILE                        = 27076;
+  ID_EOPT_CPP_FILE                      = 27077; 
 
   // new project
   ID_NP_PRJNAME                         = 28001;
@@ -1023,6 +1026,7 @@ const
   ID_MSG_CREATEFOLDER                   = 60031;
   ID_MSG_EXECUTE_TO_EVALUATE            = 60032;
   ID_MSG_NOT_FOUND_IN_CONTEXT           = 60033;
+  ID_MSG_CLEARCONFIG                    = 60034;
 
 
   ID_ERR_OPENFILE                       = 61001;

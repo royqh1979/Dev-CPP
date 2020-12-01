@@ -458,6 +458,9 @@ Ver=1
 27072=Tabnine needs huge amount of memory(>1G), a powerful CPU and a good network to run smoothly. Please download Tabnine.exe from https://github.com/codota/tabnine-sublime/tree/master/binaries , and put it under Dev-CPP folder.
 27073=Syntax Check
 27074=Check Syntax when open/save files
+27075=Default File Type
+27076=C File
+27077=C++ File
 
 28001=Name:
 28002=&C Project
@@ -946,6 +949,7 @@ Ver=1
 60031=Folder %s is not existing. <CR> Should we create it for you?
 60032=Execute to evaluate
 60033=Not found in current context
+60034=Are you sure you want to delete all the custom configurations, including shortcuts, user templates, color schemes, etc?
 
 61001=Cannot open file %s
 61002=Cannot save file %s
@@ -1330,10 +1334,10 @@ Ver=1
 79019=Powered by %s
 79020=Max. line length:
 79021=// Could not find the AStyle output file:<CR>// %s
-79022=在运算符前后添加空格
-79023=在if for等指令后添加空格
-79024=指针*放在：
-79025=引用&放在：
+79022=Add spaces around operators
+79023=Add spaces after statements like if/for
+79024=Put * at:
+79025=Put & at:
 
 80000=Rename Symbol
 80001=New Name

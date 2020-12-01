@@ -1113,7 +1113,7 @@ begin
     DC := BeginPaint(Handle, PS);
   try
     self.Canvas.Font := MainForm.Font;
-    strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
+    strToThemeColor(gtc, devEditor.Syntax.Values[cPNL]);
     bgColor := gtc.Background;
     fgColor := gtc.Foreground;
     self.Canvas.Brush.Color := bgColor;
@@ -1186,7 +1186,7 @@ begin
       begin
         BeginPaint(FHeaderHandle,PS);
         try
-        strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
+        strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
         oldColor := self.Brush.Color;
         self.Brush.Color := tc.Background;
         FillRect(NMCustomDraw.hdc,NMCustomDraw.rc,self.Brush.Handle);
@@ -1433,26 +1433,26 @@ end;
 procedure TMainForm.LoadColor;
 var
   selectedTC:TThemeColor;
-  gutterTC:TThemeColor;
+  panelTC:TThemeColor;
   ForegroundColor :TColor;
   BackgroundColor: TColor;
   tc:TThemeColor;
 begin
-  strToThemeColor(gutterTC, devEditor.Syntax.Values[cGut]);
-  MainForm.Color := gutterTC.Background;
-  MainForm.Font.Color := gutterTC.Foreground;
+  strToThemeColor(panelTC, devEditor.Syntax.Values[cPNL]);
+  MainForm.Color := panelTC.Background;
+  MainForm.Font.Color := panelTC.Foreground;
   LeftPageControl.OwnerDraw:=True;
   MessageControl.OwnerDraw :=True;
   DebugViews.OwnerDraw:=True;
-  cmbCompilers.Color := gutterTC.Background;
+  cmbCompilers.Color := panelTC.Background;
   cmbCompilers.Font := mainForm.Font;
-  cmbClasses.Color := gutterTC.Background;
+  cmbClasses.Color := panelTC.Background;
   cmbClasses.Font := mainForm.Font;
-  cmbMembers.Color := gutterTC.Background;
+  cmbMembers.Color := panelTC.Background;
   cmbMembers.Font := mainForm.Font;
-  evaluateInput.Color := gutterTC.Background;
+  evaluateInput.Color := panelTC.Background;
   evaluateInput.Font := MainForm.Font;
-  evalOutput.Color := gutterTC.Background;
+  evalOutput.Color := panelTC.Background;
   evalOutput.Font := MainForm.Font;
 
   BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
@@ -2246,7 +2246,10 @@ begin
         col:=StrToInt(_Col)
       else
         col:=Length(e.Text.Lines[line-1])+1;
-      e.AddSyntaxError(line,col,setError,_Message);
+      if StartsStr('[Error]',_Message) then
+        e.AddSyntaxError(line,col,setError,_Message)
+      else
+        e.AddSyntaxError(line,col,setWarning,_Message)
     end;
   end;
 end;
@@ -6514,7 +6517,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  Application.HintHidePause:=30000; //30sec before hint disapear
+  Application.HintHidePause:=300000; //5mins before the hint auto disapear
   fQuitting:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
@@ -8050,7 +8053,7 @@ var
   tabs:integer;
   tabRect: TRect;
 begin
-  strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
+  strToThemeColor(gtc, devEditor.Syntax.Values[cPNL]);
   bgColor := gtc.Background;
   fgColor := gtc.Foreground;
   abgColor := dmMain.Cpp.WhitespaceAttribute.Background;

@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Red Panda Dev-C++';
-  DEVCPP_VERSION = '6.2-beta3';
+  DEVCPP_VERSION = '6.2-beta4';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
@@ -124,6 +124,8 @@ const
   cSel = 'Selected text';
   cFld = 'Folding lines';
   cAL = 'Active Line';
+  cWN = 'Warnings';
+  cPNL = 'Panel';
 
 
   // GPROF commands and displays

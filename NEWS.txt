@@ -1,4 +1,18 @@
-Version 6.2-beta3
+Version 6.2-beta4
+    
+    - enhancement: Show confirm dialog before "delete user configurations & exit" in the environment dialog.
+    - enhancement: add an option in the editor options dialog, let user choose the default file type(extension) 
+    - fix: color error after a brace matching
+    - enhancement: use diffenrent color for syntax warning 
+    - enhancement: warning color and panel color settings
+    - change: dont use -Werror for the Debug compiler set by default
+    - fix: a project file opend before the project is opened will correctly be set to be belong the project
+    - change: do the first source parse after an #include line is finished and press ENTER
+    - enhancement: optimization for Class Browser Refresh
+    - fix: crash when try to show mouse hint for a preprocessor
+    - fix: wrong color of parenthesis in comment/string
+
+Version 6.2-beta3 Nov 2020
     
     - fix: Export to RTF, correct background
     - fix: Export to RTF, chinese character support

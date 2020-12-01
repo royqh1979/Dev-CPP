@@ -114,6 +114,7 @@ type
   TEditingArea = Record
     beginX: integer;
     endX: integer;
+    color: TColor;
   end;
 
   TEditingAreaType = (
@@ -2674,7 +2675,7 @@ var
         x2:=p.endX;
       rc.Left := ColumnToXValue(x1);
       rc.Right := ColumnToXValue(x2);
-      Canvas.Pen.Color := colBorder;
+      Canvas.Pen.Color := p.color;
       case areaType of
         eatEditing: begin
           canvas.MoveTo(rc.Left,rc.Top);
@@ -2970,6 +2971,8 @@ var
   begin
     if not (eoShowRainbowColor in fOptions) then
       Exit;
+    if (attr <> fHighlighter.SymbolAttribute) then
+      Exit;
     case (level mod 4) of
       0: begin
         attr := fHighlighter.KeywordAttribute;
@@ -3249,8 +3252,12 @@ begin
     rcToken.Right := fGutterWidth + 2;
     // Paint whole left edge of the text with same color.
     // (value of WhiteAttribute can vary in e.g. MultiSyn)
-    if Highlighter <> nil then
-      Highlighter.ResetRange;
+    if Highlighter <> nil then begin
+      fHighlighter.ResetRange;
+      fHighlighter.ResetParenthesisLevel;
+      fHighlighter.ResetBracketLevel;
+      fHighlighter.ResetBraceLevel;
+    end;
     Canvas.Brush.Color := colEditorBG;
     Canvas.FillRect(rcToken);
     // Adjust the invalid area to not include this area.
@@ -3273,8 +3280,12 @@ begin
   rcToken := AClip;
   rcToken.Top := (aLastRow - TopLine + 1) * fTextHeight;
   if (rcToken.Top < rcToken.Bottom) then begin
-    if Highlighter <> nil then
-      Highlighter.ResetRange;
+    if Highlighter <> nil then begin
+      fHighlighter.ResetRange;
+      fHighlighter.ResetParenthesisLevel;
+      fHighlighter.ResetBracketLevel;
+      fHighlighter.ResetBraceLevel;
+    end;
     Canvas.Brush.Color := colEditorBG;
     Canvas.FillRect(rcToken);
     // Draw the right edge if necessary.
@@ -8886,10 +8897,17 @@ begin
   PosY := XY.Line - 1;
   if Assigned(Highlighter) and (PosY >= 0) and (PosY < Lines.Count) then begin
     Line := Lines[PosY];
-    if PosY = 0 then
-      Highlighter.ResetRange
-    else
-      Highlighter.SetRange(Lines.Ranges[PosY - 1]);
+    if PosY = 0 then begin
+      fHighlighter.ResetRange;
+      fHighlighter.ResetParenthesisLevel;
+      fHighlighter.ResetBracketLevel;
+      fHighlighter.ResetBraceLevel;
+    end else begin
+      fHighlighter.SetRange(Lines.Ranges[PosY - 1]);
+      fHighlighter.SetParenthesisLevel(Lines.ParenthesisLevels[PosY - 1]);
+      fHighlighter.SetBracketLevel(Lines.BracketLevels[PosY - 1]);
+      fHighlighter.SetBraceLevel(Lines.BraceLevels[PosY - 1]);
+    end;
     Highlighter.SetLine(Line, PosY);
     PosX := XY.Char;
     if (PosX > 0) and (PosX <= Length(Line)) then
@@ -8921,10 +8939,17 @@ begin
   PosY := XY.Line - 1;
   if Assigned(Highlighter) and (PosY >= 0) and (PosY < Lines.Count) then begin
     Line := Lines[PosY];
-    if PosY = 0 then
-      Highlighter.ResetRange
-    else
-      Highlighter.SetRange(Lines.Ranges[PosY - 1]);
+    if PosY = 0 then begin
+      fHighlighter.ResetRange;
+      fHighlighter.ResetParenthesisLevel;
+      fHighlighter.ResetBracketLevel;
+      fHighlighter.ResetBraceLevel;
+    end else begin
+      fHighlighter.SetRange(Lines.Ranges[PosY - 1]);
+      fHighlighter.SetParenthesisLevel(Lines.ParenthesisLevels[PosY - 1]);
+      fHighlighter.SetBracketLevel(Lines.BracketLevels[PosY - 1]);
+      fHighlighter.SetBraceLevel(Lines.BraceLevels[PosY - 1]);
+    end;
     Highlighter.SetLine(Line, PosY);
     PosX := XY.Char;
     if (PosX > 0) and (PosX <= Length(Line)) then

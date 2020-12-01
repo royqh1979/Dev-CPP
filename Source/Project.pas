@@ -1304,6 +1304,7 @@ begin
       FullPath:= ExpandFileName(FileName);
       if MainForm.EditorList.IsFileOpened(FullPath) then begin//already opened in the editors
         Result := MainForm.EditorList.GetEditorFromFileName(FullPath);
+        Result.InProject := True;
         Exit;
       end;
       try

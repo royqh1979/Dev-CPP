@@ -373,6 +373,7 @@ type
   TdevEditor = class(TPersistent)
   private
     fUseSyn: boolean; // use syntax highlighting
+    fUseCpp: boolean; // use .cpp as the default extension
     fSynExt: AnsiString; // semi-colon seperated list of highlight ext's
     fFont: TFont; // Editor Font
     fGutterFont: TFont; // Gutter font
@@ -519,7 +520,9 @@ type
     property UseTabnine: boolean read fUseTabnine write fUseTabnine;
     property ShowRainbowBacket:boolean read fShowRainbowBacket write fShowRainbowBacket;
 
-    property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax; 
+    property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax;
+
+    property UseCpp: boolean read fUseCpp write fUseCpp; 
   end;
 
   TWindowState = class(TPersistent)
@@ -2286,9 +2289,11 @@ begin
         if FindOption('-Wall', option, index) then
           SetOption(option, '1');
         if FindOption('-Wextra', option, index) then
-          SetOption(option, '1');          
+          SetOption(option, '1');
+          {
         if FindOption('-Werror', option, index) then
           SetOption(option, '1');
+          }
       end;
 
       // Profiling profile
@@ -2420,6 +2425,11 @@ begin
   AddSpecial(cSel, offset + 21); // selected text
   AddSpecial(cFld, offset + 22); // fold bar lines
   AddSpecial(cAL, offset + 23); // active Line
+  AddSpecial(cWN, offset + 24); // warning Line
+  //panel
+  if fSyntax.IndexOf(cPNL) = -1 then begin    // use gutter setting as the default panel setting
+    fSyntax.Append(format('%s=%s', [cPNL, fSyntax.Values[cGut]]))
+  end;
 end;
 
 procedure TdevEditor.SaveSettings;
@@ -2508,6 +2518,8 @@ begin
   fShowRainbowBacket:=True;
 
   fAutoCheckSyntax:=True;
+
+  fUseCpp := True;
 
 end;
 

@@ -92,6 +92,8 @@ type
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
     fLastParseTime:TDateTime;
+    fLastMatchingBeginLine: integer;
+    fLastMatchingEndLine: integer;
     {
       Format:  it's the offset relative to the previous tab stop position
         if y=0, then x means the offset in the same line relative to the previous tab stop postion
@@ -317,6 +319,8 @@ var
   I: integer;
   e: TEditor;
 begin
+  fLastMatchingBeginLine:=-1;
+  fLastMatchingEndLine:=-1;
   fLastParseTime := 0;
   fLastPressedIsIdChar := False;
   // Set generic options
@@ -536,6 +540,7 @@ var
   lst:TList;
   i,idx: integer;
   pError: PSyntaxError;
+  tc:TThemeColor;
 begin
   if (fTabStopBegin >=0) and (fTabStopY=Line) then begin
     areaType:=eatEditing;
@@ -544,10 +549,12 @@ begin
     spaceBefore := Length(fLineBeforeTabStop) - Length(TrimLeft(fLineBeforeTabStop));
     p.beginX := fTabStopBegin + spaceCount - spaceBefore ;
     p.endX := fTabStopEnd + spaceCount - spaceBefore ;
+    p.color := dmMain.Cpp.StringAttri.Foreground;
     areaList.Add(p);
-    ColBorder := clRed;
+    ColBorder := dmMain.Cpp.StringAttri.Foreground;
     Exit;
   end;
+  StrToThemeColor(tc,devEditor.Syntax.Values[cWN]);
   idx:=CBUtils.FastIndexOf(fErrorList,line);
   if idx >=0 then begin
     areaType:=eatError;
@@ -557,6 +564,10 @@ begin
       pError := PSyntaxError(lst[i]);
       p.beginX := pError.col;
       p.endX := pError.endCol;
+      if pError.errorType = setError then
+        p.color := dmMain.Cpp.InvalidAttri.Foreground
+      else
+        p.color := tc.Foreground;
       areaList.Add(p);
     end;
     ColBorder := dmMain.Cpp.InvalidAttri.Foreground;
@@ -589,7 +600,10 @@ end;
 
 procedure TEditor.DebugAfterPaint(ACanvas: TCanvas; AClip: TRect; FirstLine, LastLine: integer);
 var
-  X, Y, I, Line: integer;
+  X, Y, I,j, Line , idx: integer;
+  lst:TList;
+  drawn:boolean;
+  isError : boolean;
 begin
   // Get point where to draw marks
   //X := (fText.Gutter.RealGutterWidth(fText.CharWidth) - fText.Gutter.RightOffset) div 2 - 3;
@@ -599,14 +613,32 @@ begin
   // The provided lines are actually rows...
   for I := FirstLine to LastLine do begin
     Line := fText.RowToLine(I);
-    if fActiveLine = Line then // prefer active line over breakpoints
-      dmMain.GutterImages.Draw(ACanvas, X, Y, 1)
-    else if HasBreakpoint(Line) <> -1 then
-      dmMain.GutterImages.Draw(ACanvas, X, Y, 0)
-    else if fErrorLine = Line then
+    drawn:=False;
+    if fActiveLine = Line then begin // prefer active line over breakpoints
+      dmMain.GutterImages.Draw(ACanvas, X, Y, 1);
+      drawn:=True;
+    end else if HasBreakpoint(Line) <> -1 then begin
+      dmMain.GutterImages.Draw(ACanvas, X, Y, 0);
+      drawn:=True;
+    end else if fErrorLine = Line then begin
       dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
-    if CBUtils.FastIndexOf(fErrorList, Line)>=0 then
-      dmMain.GutterImages.Draw(ACanvas, X, Y, 2);
+      drawn:=True;
+    end;
+    idx := CBUtils.FastIndexOf(fErrorList, Line);
+    if idx>=0 then begin
+      isError := False;
+      lst:=TList(fErrorList.Objects[idx]);
+      for j:=0 to lst.Count-1 do begin
+        if PSyntaxError(lst[j])^.errorType = setError then begin
+          isError := True;
+          break;
+        end;
+      end;
+      if isError then
+        dmMain.GutterImages.Draw(ACanvas, X, Y, 2)
+      else if not drawn then
+        dmMain.GutterImages.Draw(ACanvas, X, Y, 3);
+    end;
 
     Inc(Y, fText.LineHeight);
   end;
@@ -1644,6 +1676,8 @@ var
   lastWord:AnsiString;
   M:TMemoryStream;
   st,currentStatement:PStatement;
+  s:AnsiString;
+  
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1690,6 +1724,7 @@ begin
     HandleSymbolCompletion(Key);
 
     if key in [' ','+','-','*','/','<','&','|','!','~'] then begin
+      //Show Tabnine
       fText.SelText := Key;
       Key:=#0;
       ShowTabnineCompletion;
@@ -1719,6 +1754,25 @@ var
       end;
     end;
   end;
+
+  
+  procedure PreParse;
+  var
+    M: TMemoryStream;
+  begin
+    M := TMemoryStream.Create;
+    try
+      fText.Lines.SaveToStream(M);
+
+      // Reparse whole file (not function bodies) if it has been modified
+      // use stream, don't read from disk (not saved yet)
+      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+      fLastParseTime := Now;
+    finally
+      M.Free;
+    end;
+  end;
+    
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1740,8 +1794,13 @@ begin
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
-        end;        
-    end;
+        end;
+        //pre parsing when #Include finised
+        if (fText.LineText<>'')
+          and StartsStr('#include',fText.LineText) then begin
+          PreParse;
+        end;
+      end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
         if fTabStopBegin>=0 then begin
@@ -2442,20 +2501,20 @@ begin
   else
     fText.Cursor := crIBeam;
 
-  // Determine what to do with subject
-  case Reason of
-    hprPreprocessor: begin
-        if IsIncludeLine then
-          ShowFileHint
-        else if devEditor.ParserHints and not fCompletionBox.Visible then
-          ShowParserHint;
-      end;
-    hprIdentifier, hprSelection: begin
-        if not fCompletionBox.Visible  then begin
-          M := TMemoryStream.Create;
-          try
-            fText.Lines.SaveToStream(M);
+  M := TMemoryStream.Create;
+  try
+    fText.Lines.SaveToStream(M);
 
+    // Determine what to do with subject
+    case Reason of
+      hprPreprocessor: begin
+          if IsIncludeLine then
+            ShowFileHint
+          else if devEditor.ParserHints and not fCompletionBox.Visible then
+            ShowParserHint;
+        end;
+      hprIdentifier, hprSelection: begin
+          if not fCompletionBox.Visible  then begin
             if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
               // Reparse whole file (not function bodies) if it has been modified
               // use stream, don't read from disk (not saved yet)
@@ -2466,14 +2525,14 @@ begin
               ShowDebugHint
             else if devEditor.ParserHints then
               ShowParserHint;
-          finally
-            M.Free;
           end;
         end;
-      end;
-    hprError : begin
-        ShowErrorHint;
-      end;
+      hprError : begin
+          ShowErrorHint;
+        end;
+    end;
+  finally
+    M.Free;
   end;
 end;
 
@@ -2561,44 +2620,70 @@ var
       Canvas.Brush.Color := fText.Highlighter.WhitespaceAttribute.Background;
   end;
 
+  procedure ClearLastMatch;
+  var
+    l1,l2:integer;
+  begin
+    if fLastMatchingBeginLine >=0 then begin
+      l1:=fLastMatchingBeginLine;
+      l2:=fLastMatchingEndLine;
+      fLastMatchingBeginLine:=-1;
+      fLastMatchingEndLine:=-1;
+      if (l1 <> HighlightCharPos.Line) and (l1<> ComplementCharPos.Line) then
+        fText.InvalidateLine(l1);
+      if (l2 <> HighlightCharPos.Line) and (l2<> ComplementCharPos.Line) then
+        fText.InvalidateLine(l2);
+    end;
+  end;
+
 begin
   // Don't bother wasting time when we don't have to
   if not Assigned(fText.Highlighter) then // no highlighted file is viewed
     Exit;
   if not devEditor.Match then // user has disabled match painting
     Exit;
-  if fText.SelAvail then // not clear cut what to paint
-    Exit;
-  //Exit; // greatly reduces flicker
+
   HighlightCharPos.Line := -1;
+  ComplementCharPos.Line := -1;
+  try
+    if fText.SelAvail then // not clear cut what to paint
+      Exit;
+    //Exit; // greatly reduces flicker
 
-  // Is there a bracket char before us?
-  LineLength := Length(fText.LineText);
-  if (fText.CaretX - 1 > 0) and (fText.CaretX - 1 <= LineLength) and (fText.LineText[fText.CaretX - 1] in AllChars) then
-    HighlightCharPos := BufferCoord(fText.CaretX - 1, fText.CaretY)
+    // Is there a bracket char before us?
+    LineLength := Length(fText.LineText);
+    if (fText.CaretX - 1 > 0) and (fText.CaretX - 1 <= LineLength) and (fText.LineText[fText.CaretX - 1] in AllChars) then
+      HighlightCharPos := BufferCoord(fText.CaretX - 1, fText.CaretY)
 
-    // Or after us?
-  else if (fText.CaretX > 0) and (fText.CaretX <= LineLength) and (fText.LineText[fText.CaretX] in AllChars) then
-    HighlightCharPos := BufferCoord(fText.CaretX, fText.CaretY);
+      // Or after us?
+    else if (fText.CaretX > 0) and (fText.CaretX <= LineLength) and (fText.LineText[fText.CaretX] in AllChars) then
+      HighlightCharPos := BufferCoord(fText.CaretX, fText.CaretY);
 
-  // Character not found. Exit.
-  if HighlightCharPos.Line = -1 then
-    Exit;
+    // Character not found. Exit.
+    if HighlightCharPos.Line = -1 then begin
+      Exit;
+    end;
 
-  // Is the OpenChar before/after us highlighted as a symbol (not a comment or something)?
-  if not (fText.GetHighlighterAttriAtRowCol(HighlightCharPos, S, Attri) and (Attri = fText.Highlighter.SymbolAttribute))
-    then
-    Exit;
+    // Is the OpenChar before/after us highlighted as a symbol (not a comment or something)?
+    if not (fText.GetHighlighterAttriAtRowCol(HighlightCharPos, S, Attri) and (Attri = fText.Highlighter.SymbolAttribute))
+      then begin
+      Exit;
+    end;
 
-  // Find the corresponding bracket
-  ComplementCharPos := fText.GetMatchingBracketEx(HighlightCharPos);
-  if (ComplementCharPos.Char = 0) and (ComplementCharPos.Line = 0) then
-    Exit;
+    // Find the corresponding bracket
+    ComplementCharPos := fText.GetMatchingBracketEx(HighlightCharPos);
+    if (ComplementCharPos.Char = 0) and (ComplementCharPos.Line = 0) then begin
+      Exit;
+    end;
 
-  // At this point we have found both characters. Check if both are visible
-  if Assigned(fText.FoldHidesLine(HighlightCharPos.Line)) or
-    Assigned(fText.FoldHidesLine(ComplementCharPos.Line)) then
-    Exit;
+    // At this point we have found both characters. Check if both are visible
+    if Assigned(fText.FoldHidesLine(HighlightCharPos.Line)) or
+      Assigned(fText.FoldHidesLine(ComplementCharPos.Line)) then begin
+      Exit;
+    end;
+  finally
+    ClearLastMatch;
+  end;
 
   // Both are visible. Draw them
   // First, draw bracket where caret is placed next to the caret
@@ -2624,6 +2709,10 @@ begin
 
   // Reset brush
   Canvas.Brush.Style := bsSolid;
+
+  fLastMatchingBeginLine:=HighlightCharPos.Line;
+  fLastMatchingEndLine:=ComplementCharPos.Line;
+
 end;
 
 function TEditor.HandpointAllowed(var MousePos: TBufferCoord; ShiftState: TShiftState): THandPointReason;
@@ -2727,8 +2816,13 @@ begin
           DefaultExt := 'c';
         end;
       end else begin
-        FilterIndex := 3; // .cpp
-        DefaultExt := 'cpp';
+        if devEditor.UseCpp then begin
+          FilterIndex := 3; // .cpp
+          DefaultExt := 'cpp';
+        end else begin
+          FilterIndex := 2; // .c
+          DefaultExt := 'c';
+        end;
       end;
     end;
 

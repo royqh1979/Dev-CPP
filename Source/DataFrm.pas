@@ -170,6 +170,8 @@ begin
   AddSpecial(cSel, offset + 21); // selected text
   AddSpecial(cFld, offset + 22); // fold bar lines
   AddSpecial(cAL, offset + 23); // active Line
+  AddSpecial(cWN, offset + 24); // warning Line  
+  AddSpecial(cPNL, offset + 25); // warning Line  
 end;
 
 procedure TdmMain.UpdateHighlighter;
