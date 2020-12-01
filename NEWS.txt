@@ -1,4 +1,9 @@
-Version 6.2-beta4
+Version 6.2-beta5 Dec 2020
+
+    - enhancement: Can parse statements like 'struct Node { int data; } s;'
+    - enhancement: Correctly show hints for function define whose '{' is not at the same line with function name;
+
+Version 6.2-beta4 Dec 2020
     
     - enhancement: Show confirm dialog before "delete user configurations & exit" in the environment dialog.
     - enhancement: add an option in the editor options dialog, let user choose the default file type(extension) 
@@ -10,7 +15,6 @@ Version 6.2-beta4
     - change: do the first source parse after an #include line is finished and press ENTER
     - enhancement: optimization for Class Browser Refresh
     - fix: crash when try to show mouse hint for a preprocessor
-    - fix: wrong color of parenthesis in comment/string
 
 Version 6.2-beta3 Nov 2020
     

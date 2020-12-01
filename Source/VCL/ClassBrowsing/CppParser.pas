@@ -1615,7 +1615,7 @@ end;
 
 procedure TCppParser.HandleStructs(IsTypedef: boolean = False);
 var
-  Command, Prefix, OldType, NewType: AnsiString;
+  Command, Prefix, OldType, NewType, Args: AnsiString;
   I: integer;
   IsStruct: boolean;
   IsFriend: boolean;
@@ -1696,7 +1696,7 @@ begin
         if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in [',', ';', '{', ':']) then
           begin
           Command := fTokenizer[fIndex]^.Text;
-          if Command <> '' then begin
+          if (Command <> '') then begin //todo: how to handle unamed struct variables define, like struct { int x;} s; ?
             FirstSynonym := AddStatement(
               GetLastCurrentScope,
               fCurrentFile,
@@ -1739,9 +1739,9 @@ begin
       if (I + 1 < fTokenizer.Tokens.Count) and not (fTokenizer[I + 1]^.Text[1] in [';', '}']) then
         fSkipList.Add(Pointer(I+1)); // add first name to skip statement so that we can skip it until the next ;
 
-      // Add class/struct synonyms after close brace
       if (I + 1 < fTokenizer.Tokens.Count) and not (fTokenizer[I + 1]^.Text[1] in [';', '}']) then begin
         Command := '';
+		    Args:='';
         NewScopeLevel := TList.Create;
         try
           // Add synonym before opening brace
@@ -1758,9 +1758,10 @@ begin
                 // if both are underscores, we split
                 Break;
               end else begin
-                if fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] = ']' then // cut-off array brackets
-                  Command := Command + Copy(fTokenizer[I]^.Text, 1, Pos('[', fTokenizer[I]^.Text) - 1) + ' '
-                else if fTokenizer[I]^.Text[1] in ['*', '&'] then // do not add spaces after pointer operator
+                if (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] = ']') then begin // cut-off array brackets
+                  Command := Command + Copy(fTokenizer[I]^.Text, 1, Pos('[', fTokenizer[I]^.Text) - 1) + ' ';
+                  Args := Copy(fTokenizer[I]^.Text, Pos('[', fTokenizer[I]^.Text),MaxInt);
+                end else if fTokenizer[I]^.Text[1] in ['*', '&'] then // do not add spaces after pointer operator
                   Command := Command + fTokenizer[I]^.Text
                 else
                   Command := Command + fTokenizer[I]^.Text + ' ';
@@ -1774,27 +1775,46 @@ begin
                 ) then begin
                 if Assigned(FirstSynonym) then begin
                   SharedInheritance := TList.Create;
-                  SharedInheritance.Assign(FirstSynonym^._InheritanceList);
-                end else
+          	      SharedInheritance.Assign(FirstSynonym^._InheritanceList);
+          		  end else
                   SharedInheritance := nil;
-                LastStatement := AddStatement(
-                  GetLastCurrentScope,
-                  fCurrentFile,
-                  '', // do not override hint
-                  Prefix,
-                  Command,
-                  '',
-                  '',
-                  //fTokenizer[I]^.Line,
-                  startLine,
-                  skClass,
-                  GetScope,
-                  fClassScope,
-                  False,
-                  True,
-                  SharedInheritance,
-                  False); // all synonyms inherit from the same statements
-                NewScopeLevel.Add(LastStatement);
+                if isTypeDef then begin
+                  LastStatement := AddStatement(
+                    GetLastCurrentScope,
+                    fCurrentFile,
+                    '', // do not override hint
+                    Prefix,
+                    Command,
+                    '',
+                    '',
+                    //fTokenizer[I]^.Line,
+                    startLine,
+                    skClass,
+                    GetScope,
+                    fClassScope,
+                    False,
+                    True,
+                    SharedInheritance,
+                    False); // all synonyms inherit from the same statements
+                  NewScopeLevel.Add(LastStatement);
+                end else if assigned(FirstSynonym) then begin
+                  LastStatement := AddStatement(
+                    GetLastCurrentScope,
+                    fCurrentFile,
+                    '', // do not override hint
+                    FirstSynonym^._Command,
+                    Command,
+                    Args,
+                    '',
+                    fTokenizer[I]^.Line,
+                    skVariable,
+                    GetScope,
+                    fClassScope,
+                    False,
+                    True,
+                    nil,
+                    False); // TODO: not supported to pass list
+                end;
               end;
               Command := '';
             end;
@@ -2888,7 +2908,7 @@ begin
   for i:=0 to fileIncludes^.Statements.Count -1 do begin
     Statement :=  PStatement(fileIncludes^.Statements[i]);
     case Statement^._Kind of
-      skClass: begin
+      skClass, skNamespace: begin
           if SameText(Statement^._FileName, FileName) then
             if (Statement^._Line <= Row) and (Statement^._Line > ClosestLine) then begin
               ClosestStatement := Statement;
@@ -2951,8 +2971,48 @@ begin
   // We have found the function or class body we are in
   if Assigned(ClosestStatement) then begin
 
+    if not fLocked then begin
+      // Preprocess the stream that contains the latest version of the current file (not on disk)
+      fPreprocessor.SetIncludesList(fIncludesList);
+      fPreprocessor.SetIncludePaths(fIncludePaths);
+      fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
+      fPreprocessor.SetScannedFileList(fScannedFiles);
+      fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
+      fPreprocessor.PreProcessStream(FileName, Stream);
+      // Tokenize the stream so we can find the start and end of the function body
+      fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+      {
+      with TStringList.Create do try
+        Text:=fPreprocessor.Result;
+        //SaveToFile('f:\preprocessor-local.txt');
+      finally
+        Free;
+      end;
+      }
+      //fTokenizer.DumpTokens('f:\tokens-local.txt');
+    end;
+
+
+
+    while (True) do begin
+      // Find start of the function block and start from the opening brace
+      FuncStartIndex := GetFuncStartLine(0, ClosestLine);
+
+      // Now find the end of the function block and check that the Row is still in scope
+      FuncEndIndex := GetFuncEndLine(FuncStartIndex + 1);
+      if FuncEndIndex>=fTokenizer.Tokens.Count then
+        Exit;
+      if (Row < fTokenizer[FuncEndIndex]^.Line) then
+        break;
+      if assigned(ClosestStatement) then begin
+        ClosestStatement := ClosestStatement^._ParentScope;
+        closestLine := ClosestStatement^._DefinitionLine;
+      end else
+        Exit;
+    end;
+
     // For classes, the line with the class keyword on it belongs to the parent
-    if ClosestStatement^._Kind = skClass then begin
+    if ClosestStatement^._Kind in [skClass,skNamespace] then begin
       if not InsideBody then begin // Hovering above a class name
         ParentStatement := ClosestStatement^._ParentScope;
       end else begin // inside class body
@@ -2971,26 +3031,7 @@ begin
     if (ClosestStatement^._Kind in [skFunction, skConstructor, skDestructor]) and (ClosestStatement^._HasDefinition) and
       (ClosestStatement^._DefinitionLine = ClosestLine) then begin
 
-      if not fLocked then begin
-        // Preprocess the stream that contains the latest version of the current file (not on disk)
-        fPreprocessor.SetIncludesList(fIncludesList);
-        fPreprocessor.SetIncludePaths(fIncludePaths);
-        fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
-        fPreprocessor.SetScannedFileList(fScannedFiles);
-        fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
-        fPreprocessor.PreProcessStream(FileName, Stream);
-        // Tokenize the stream so we can find the start and end of the function body
-        fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
-        {
-        with TStringList.Create do try
-          Text:=fPreprocessor.Result;
-          //SaveToFile('f:\preprocessor-local.txt');
-        finally
-          Free;
-        end;
-        }
-        //fTokenizer.DumpTokens('f:\tokens-local.txt');
-      end;
+
 
       // Find start of the function block and start from the opening brace
       FuncStartIndex := GetFuncStartLine(0, ClosestLine);
@@ -2999,7 +3040,8 @@ begin
       FuncEndIndex := GetFuncEndLine(FuncStartIndex + 1);
 
       // if we 're past the end or before the start of function or class body, we are not in the scope...
-      if (Row > fTokenizer[FuncEndIndex - 1]^.Line) or (Row < fTokenizer[FuncStartIndex]^.Line) then begin
+//      if (Row > fTokenizer[FuncEndIndex - 1]^.Line) or (Row < fTokenizer[FuncStartIndex]^.Line) then begin
+      if (Row > fTokenizer[FuncEndIndex - 1]^.Line) then begin
         Result := nil;
         Exit;
       end;

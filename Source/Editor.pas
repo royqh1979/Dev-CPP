@@ -2504,7 +2504,12 @@ begin
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
-
+    if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
+      // Reparse whole file (not function bodies) if it has been modified
+      // use stream, don't read from disk (not saved yet)
+      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+      fLastParseTime := Now;
+    end;
     // Determine what to do with subject
     case Reason of
       hprPreprocessor: begin
@@ -2515,12 +2520,6 @@ begin
         end;
       hprIdentifier, hprSelection: begin
           if not fCompletionBox.Visible  then begin
-            if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
-              // Reparse whole file (not function bodies) if it has been modified
-              // use stream, don't read from disk (not saved yet)
-              MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-              fLastParseTime := Now;
-            end;
             if MainForm.Debugger.Executing then
               ShowDebugHint
             else if devEditor.ParserHints then
