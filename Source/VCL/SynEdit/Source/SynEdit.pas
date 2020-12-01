@@ -2971,6 +2971,8 @@ var
   begin
     if not (eoShowRainbowColor in fOptions) then
       Exit;
+    if (attr <> fHighlighter.SymbolAttribute) then
+      Exit;
     case (level mod 4) of
       0: begin
         attr := fHighlighter.KeywordAttribute;

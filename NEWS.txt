@@ -10,6 +10,7 @@ Version 6.2-beta4
     - change: do the first source parse after an #include line is finished and press ENTER
     - enhancement: optimization for Class Browser Refresh
     - fix: crash when try to show mouse hint for a preprocessor
+    - fix: wrong color of parenthesis in comment/string
 
 Version 6.2-beta3 Nov 2020
     

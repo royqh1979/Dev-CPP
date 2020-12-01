@@ -334,6 +334,9 @@ begin
         if Statement = ParentStatement then // prevent infinite recursion
           Continue;
 
+        if Statement^._ParentScope <> ParentStatement then
+          Continue;
+
         {
         if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
           AddStatement(Statement)
