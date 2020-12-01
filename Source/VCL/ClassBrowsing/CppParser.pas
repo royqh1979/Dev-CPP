@@ -148,7 +148,6 @@ type
     function HandleStatement: boolean;
     procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
     procedure DeleteTemporaries;
-    function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
 //    function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
@@ -157,6 +156,7 @@ type
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
   public
+    function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     function IsProjectHeaderFile(const FileName: AnsiString): boolean;
     procedure ResetDefines;

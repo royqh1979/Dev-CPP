@@ -8,6 +8,7 @@ Version 6.2-beta4
     - change: dont use -Werror for the Debug compiler set by default
     - fix: a project file opend before the project is opened will correctly be set to be belong the project
     - change: do the first source parse after an #include line is finished and press ENTER
+    - enhancement: optimization for Class Browser Refresh
 
 Version 6.2-beta3 Nov 2020
     

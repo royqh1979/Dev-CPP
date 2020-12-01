@@ -300,6 +300,7 @@ var
   NewNode: TTreeNode;
   Children: TList;
   i:integer;
+  P:PFileIncludes;
 
   procedure AddStatement(Statement: PStatement);
   begin
@@ -309,7 +310,14 @@ var
       AddMembers(NewNode, Statement);
   end;
 begin
-  Children := fParser.Statements.GetChildrenStatements(ParentStatement);
+  if Assigned(ParentStatement) then begin
+    Children := fParser.Statements.GetChildrenStatements(ParentStatement);
+  end else begin
+    p:=fParser.FindFileIncludes(fCurrentFile);
+    if not Assigned(p) then
+      Exit;
+    Children := p^.Statements;
+  end;
 
 //  fParser.Statements.DumpWithScope('f:\browser.txt');
   if Assigned(Children) then begin
@@ -326,8 +334,11 @@ begin
         if Statement = ParentStatement then // prevent infinite recursion
           Continue;
 
+        {
         if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
           AddStatement(Statement)
+        }
+        AddStatement(Statement)
       end;
     end;
   end;
