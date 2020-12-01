@@ -292,7 +292,7 @@ begin
       if not Assigned(statement) then
         Exit;
       ScopeTypeStatement := fCurrentStatement;
-      while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass]) do begin
+      while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass,skNamespace]) do begin
         ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
       end;
       if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin

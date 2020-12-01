@@ -3000,13 +3000,16 @@ begin
 
       // Now find the end of the function block and check that the Row is still in scope
       FuncEndIndex := GetFuncEndLine(FuncStartIndex + 1);
-      if FuncEndIndex>=fTokenizer.Tokens.Count then
+      if (FuncEndIndex>=fTokenizer.Tokens.Count) or (FuncEndIndex=0) then
         Exit;
-      if (Row < fTokenizer[FuncEndIndex]^.Line) then
+      if (Row <= fTokenizer[FuncEndIndex-1]^.Line) then
         break;
-      if assigned(ClosestStatement) then begin
+      if assigned(ClosestStatement) then begin   // dont need this check, but put it here for safe
         ClosestStatement := ClosestStatement^._ParentScope;
-        closestLine := ClosestStatement^._DefinitionLine;
+        if not Assigned(ClosestStatement) then
+          Exit;
+        ClosestLine := ClosestStatement^._DefinitionLine;
+        InsideBody := True;
       end else
         Exit;
     end;
@@ -3534,7 +3537,8 @@ begin
   while Assigned(scopeStatement) do begin
     //search members of current scope
     Result:=FindMemberOfStatement(Phrase,scopeStatement);
-    if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass])  then
+//    if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass])  then
+    if Assigned(Result) then
       Exit;
     // search members of all usings (in current scope )
     for t:=0 to scopeStatement^._Usings.Count-1 do begin
