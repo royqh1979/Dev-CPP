@@ -2612,12 +2612,13 @@ procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
 begin
-  if Assigned(fProject) then
-    fProject.SaveAll;
-    
+   
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.Save;
+    if e.InProject and Assigned(fProject) then begin
+      fProject.SaveAll;
+    end;
     CheckSyntaxInBack;
   end;
 end;
@@ -2629,6 +2630,9 @@ begin
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.SaveAs;
+    if e.InProject and Assigned(fProject) then begin
+      fProject.SaveAll;
+    end;    
     CheckSyntaxInBack;
   end;
 end;
@@ -3303,6 +3307,7 @@ begin
       UpdateAppTitle;
       UpdateCompilerList;
       UpdateProjectEditorsEncoding;
+      fProject.SaveOptions;
     end;
   end;
 end;

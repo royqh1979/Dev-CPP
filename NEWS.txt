@@ -2,7 +2,7 @@ Version 6.2-beta5 Dec 2020
 
     - enhancement: Can parse statements like 'struct Node { int data; } s;'
     - enhancement: Correctly show hints for function define whose '{' is not at the same line with function name;
-    - change/enhancement: Ctrl+S (Save) will save project settings too.
+    - change/enhancement: Save/Save As a project file will save project settings too.
     - enhancement: Use different color for warning message in the compiler output dialog
 
 Version 6.2-beta4 Dec 2020
