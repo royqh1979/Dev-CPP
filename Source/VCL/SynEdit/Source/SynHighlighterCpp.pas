@@ -128,6 +128,8 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fCharAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
+    fVariableAttri: TSynHighlighterAttributes;
+    fFunctionAttri: TSynHighlighterAttributes;
     procedure AnsiCProc;
     procedure AnsiCppProc;
     procedure AndSymbolProc;
@@ -235,6 +237,10 @@ type
       write fCharAttri;
     property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
       write fSymbolAttri;
+    property VariableAttri: TSynHighlighterAttributes read fVariableAttri
+      write fVariableAttri;
+    property FunctionAttri: TSynHighlighterAttributes read fFunctionAttri
+      write fFunctionAttri;
   end;
 
 
@@ -342,26 +348,30 @@ begin
   inherited Create(AOwner);
   fAsmAttri := TSynHighlighterAttributes.Create(SYNS_AttrAssembler);
   AddAttribute(fAsmAttri);
+  fCharAttri := TSynHighlighterAttributes.Create(SYNS_AttrCharacter);
+  AddAttribute(fCharAttri);
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
   fCommentAttri.Style:= [fsItalic];
   AddAttribute(fCommentAttri);
+  fFloatAttri := TSynHighlighterAttributes.Create(SYNS_AttrFloat);
+  AddAttribute(fFloatAttri);
+  fFunctionAttri := TSynHighlighterAttributes.Create(SYNS_AttrFunction);
+  AddAttribute(fFunctionAttri);
+  fHexAttri := TSynHighlighterAttributes.Create(SYNS_AttrHexadecimal);
+  AddAttribute(fHexAttri);
   fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
   AddAttribute(fIdentifierAttri);
   fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
   AddAttribute(fInvalidAttri);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  AddAttribute(fNumberAttri);
+  fOctalAttri := TSynHighlighterAttributes.Create(SYNS_AttrOctal);
+  AddAttribute(fOctalAttri);
+  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor);
+  AddAttribute(fDirecAttri);
   fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
   fKeyAttri.Style:= [fsBold];
   AddAttribute(fKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
-  AddAttribute(fNumberAttri);
-  fCharAttri := TSynHighlighterAttributes.Create(SYNS_AttrCharacter);
-  AddAttribute(fCharAttri);
-  fFloatAttri := TSynHighlighterAttributes.Create(SYNS_AttrFloat);
-  AddAttribute(fFloatAttri);
-  fHexAttri := TSynHighlighterAttributes.Create(SYNS_AttrHexadecimal);
-  AddAttribute(fHexAttri);
-  fOctalAttri := TSynHighlighterAttributes.Create(SYNS_AttrOctal);
-  AddAttribute(fOctalAttri);
   fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
   fSpaceAttri.Foreground := clWindow;
   AddAttribute(fSpaceAttri);
@@ -369,8 +379,9 @@ begin
   AddAttribute(fStringAttri);
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
   AddAttribute(fSymbolAttri);
-  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor);
-  AddAttribute(fDirecAttri);
+  fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable);
+  AddAttribute(fVariableAttri);
+
   SetAttributesOnChange(DefHighlightChange);
   MakeMethodTables;
   fRange := rsUnknown;

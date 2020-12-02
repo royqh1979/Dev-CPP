@@ -2426,6 +2426,7 @@ begin
   AddSpecial(cFld, offset + 22); // fold bar lines
   AddSpecial(cAL, offset + 23); // active Line
   AddSpecial(cWN, offset + 24); // warning Line
+  //AddSpecial(cPNL, offset + 25); // Panel
   //panel
   if fSyntax.IndexOf(cPNL) = -1 then begin    // use gutter setting as the default panel setting
     fSyntax.Append(format('%s=%s', [cPNL, fSyntax.Values[cGut]]))

@@ -53,14 +53,14 @@ type
     edDirEntry: TEdit;
     btnDirDelInval: TButton;
     btnRemoveIcon: TBitBtn;
-    Panel1: ComCtrls.TPanel;
+    Panel1: TPanel;
     IconPreview: TImage;
-    tabOutputDir: ComCtrls.TTabSheet;
+    tabOutputDir: TTabSheet;
     lblExeOutput: TLabel;
     lblObjOutput: TLabel;
     edExeOutput: TEdit;
     edObjOutput: TEdit;
-    tabMakefile: ComCtrls.TTabSheet;
+    tabMakefile: TTabSheet;
     IncMakeLabel: TLabel;
     lbMakeIncludes: TListBox;
     btnMakUp: TSpeedButton;
@@ -74,12 +74,12 @@ type
     InfoMakeBtn: TSpeedButton;
     edOverridenOutput: TEdit;
     chkOverrideOutput: TCheckBox;
-    tabFiles: ComCtrls.TTabSheet;
+    tabFiles: TTabSheet;
     lvFiles: TTreeView;
     grpUnitOptions: TGroupBox;
     chkCompile: TCheckBox;
     chkCompileCpp: TCheckBox;
-    tabVersion: ComCtrls.TTabSheet;
+    tabVersion: TTabSheet;
     chkVersionInfo: TCheckBox;
     grpVersion: TGroupBox;
     lblVerMajor: TLabel;
@@ -93,7 +93,7 @@ type
     spnBuild: TSpinEdit;
     vleVersion: TValueListEditor;
     cmbLangID: TComboBox;
-    tabCompiler: ComCtrls.TTabSheet;
+    tabCompiler: TTabSheet;
     chkSupportXP: TCheckBox;
     chkOverrideBuildCmd: TCheckBox;
     txtOverrideBuildCmd: TMemo;
@@ -108,7 +108,7 @@ type
     spnPriority: TSpinEdit;
     chkAutoIncBuild: TCheckBox;
     chkSyncProduct: TCheckBox;
-    tabCompOpts: ComCtrls.TTabSheet;
+    tabCompOpts: TTabSheet;
     CompOptionsFrame1: TCompOptionsFrame;
     cmbCompiler: TComboBox;
     lblCompilerSet: TLabel;
@@ -137,10 +137,10 @@ type
     CheckBox1: TCheckBox;
     cbUseUTF8: TCheckBox;
     cbUnitUseUTF8: TCheckBox;
-    PageControl1: ComCtrls.TPageControl;
-    CompilerSheet: ComCtrls.TTabSheet;
-    CppCompilerSheet: ComCtrls.TTabSheet;
-    LinkerSheet: ComCtrls.TTabSheet;
+    PageControl1: TPageControl;
+    CompilerSheet: TTabSheet;
+    CppCompilerSheet: TTabSheet;
+    LinkerSheet: TTabSheet;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);
@@ -198,7 +198,7 @@ type
 implementation
 
 uses
-  FileCtrl, devcfg, IconFrm, utils, MultiLangSupport, version, Math;
+  FileCtrl, devcfg, IconFrm, utils, MultiLangSupport, version, Math, main;
 
 {$R *.dfm}
 

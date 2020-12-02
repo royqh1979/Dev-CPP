@@ -3958,7 +3958,7 @@ var
           sLeftSide := sLeftSide + StringOfChar(#32,
             CaretX - 1 - Length(sLeftSide));
       end;
-      sRightSide := Copy(LineText, CaretX, Length(LineText) - (CaretX - 1));
+      sRightSide := Copy(LineText, CaretX, MaxInt);
       SpaceCount := LeftSpacesEx(sLeftSide, true);
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
@@ -3991,7 +3991,8 @@ var
           if p^ = #0 then
             Str := Str + sRightSide
         end;
-        ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
+        str := GetLeftSpacing(SpaceCount, true)+Str;
+        ProperSetLine(CaretY - 1, str);
         Inc(Result);
       end;
       bChangeScroll := not (eoScrollPastEol in fOptions);

@@ -714,7 +714,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end

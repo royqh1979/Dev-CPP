@@ -785,7 +785,8 @@ begin
     end else
       fIgnoreCaretChange := false;
 
-    fText.Repaint;
+    if fText.SelAvail then
+      fText.Invalidate;
   end;
 
   if scInsertMode in Changes then begin
@@ -1705,6 +1706,10 @@ begin
           M := TMemoryStream.Create;
           try
             fText.Lines.SaveToStream(M);
+            if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
+              MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+              fLastParseTime := Now;
+            end;
             st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, Text.CaretXY.Line, M);
             if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
               //expand macro
@@ -1771,7 +1776,6 @@ var
     M := TMemoryStream.Create;
     try
       fText.Lines.SaveToStream(M);
-
       // Reparse whole file (not function bodies) if it has been modified
       // use stream, don't read from disk (not saved yet)
       MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
@@ -2593,6 +2597,8 @@ procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
   var style:TFontStyles; var FG,BG:TColor);
 var
   tc:TThemeColor;
+  M : TMemoryStream;
+  st: PStatement;
 begin
   //selection
   if fText.SelAvail then begin
@@ -2604,6 +2610,33 @@ begin
       exit;
     end;
   end;
+  if (attr = fText.Highlighter.IdentifierAttribute) then begin
+    M := TMemoryStream.Create;
+    try
+      fText.Lines.SaveToStream(M);
+      if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
+        MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+        fLastParseTime := Now;
+      end;
+      st := MainForm.CppParser.FindStatementOf(fFileName, token, line, M);
+      if assigned(st) then begin
+        case st._Kind of
+          skPreprocessor: begin
+            fg:=dmMain.Cpp.DirecAttri.Foreground;
+          end;
+          skVariable: begin
+            fg:=dmMain.Cpp.VariableAttri.Foreground;
+          end;
+          skFunction,skConstructor,skDestructor: begin
+            fg:=dmMain.Cpp.FunctionAttri.Foreground;
+          end;
+        end;
+      end;
+    finally
+      M.Free;
+    end;
+  end;
+
 end;
 
 procedure TEditor.EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);

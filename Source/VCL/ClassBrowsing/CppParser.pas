@@ -3001,7 +3001,7 @@ begin
 
         // Now find the end of the function block and check that the Row is still in scope
         FuncEndIndex := GetFuncEndLine(FuncStartIndex + 1);
-        if (FuncEndIndex>=fTokenizer.Tokens.Count) or (FuncEndIndex=0) then
+        if (FuncEndIndex=0) then
           Exit;
         if (Row <= fTokenizer[FuncEndIndex-1]^.Line) then
           break;

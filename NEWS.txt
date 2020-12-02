@@ -6,6 +6,8 @@ Version 6.2-beta5 Dec 2020
     - enhancement: Use different color for warning message in the compiler output dialog
     - add: VS Code color scheme (thanks to ÉXÉmjyy)
     - enhancement: highlight identifiers which are the same as the selected words
+    - fix: can't correctly read panel color settings
+    - fix: undo error when copy multiline text
 
 Version 6.2-beta4 Dec 2020
     

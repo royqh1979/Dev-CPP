@@ -1257,6 +1257,7 @@ begin
     StrToThemeColor(fFoldColor, LoadStr(offset + 22)); // folding bar lines
     StrToThemeColor(fALColor, LoadStr(offset + 23)); // folding bar lines
     StrToThemeColor(fWNColor, LoadStr(offset + 24)); // folding bar lines
+    StrToThemeColor(fPNLColor, LoadStr(offset + 25)); // folding bar lines
     UpdateDemoEditColor;
   end;
 

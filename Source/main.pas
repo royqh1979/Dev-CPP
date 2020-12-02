@@ -1472,9 +1472,13 @@ begin
   ClassBrowser.Colors[BackColor]:=BackgroundColor;
   ClassBrowser.Colors[SelectedBackColor]:=selectedTC.Background;
   ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
-  ClassBrowser.Colors[FunctionColor]:=dmMain.Cpp.NumberAttri.Foreground;
-  ClassBrowser.Colors[ClassColor]:= dmMain.Cpp.StringAttri.Foreground;
-  ClassBrowser.Colors[InheritedColor]:=dmMain.Cpp.CommentAttri.Foreground;
+  ClassBrowser.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
+  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  ClassBrowser.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
+  ClassBrowser.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
+  ClassBrowser.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+  ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
+  ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
@@ -1483,12 +1487,12 @@ begin
   end;
   CodeCompletion.Colors[BackColor] := tc.Background;
   CodeCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
-  CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.CommentAttribute.Foreground;
+  CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
   CodeCompletion.Colors[ClassColor] := dmMain.Cpp.KeywordAttribute.Foreground;
-  CodeCompletion.Colors[VarColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
-  CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
