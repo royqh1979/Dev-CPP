@@ -275,6 +275,7 @@ begin
   cboQuickColor.Items.Add('GSS Hacker');
   cboQuickColor.Items.Add('Obvilion');
   cboQuickColor.Items.Add('PlasticCodeWrap');
+  cboQuickColor.Items.Add('VS Code');
   fPredefinedColorThemeCount := cboQuickColor.Items.Count;
 
   with devEditor do begin

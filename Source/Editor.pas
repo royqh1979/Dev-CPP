@@ -135,6 +135,11 @@ type
     procedure EditorExit(Sender: TObject);
     procedure EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
+
+    procedure EditorPaintHighlightToken(Sender: TObject; Line: integer;
+      column: integer; token: String; attr: TSynHighlighterAttributes;
+      var style:TFontStyles; var FG,BG:TColor);
+
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
     procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList;
@@ -389,6 +394,7 @@ begin
   fText.OnKeyDown := EditorKeyDown;
   fText.OnKeyUp := EditorKeyUp;
   fText.OnPaintTransient := EditorPaintTransient;
+  fText.OnPaintHighlightToken := EditorPaintHighlightToken;
   fText.WantReturns := True;
   fText.WantTabs := True;
 //  fText.AddKeyDownHandler(EditorKeyDown);
@@ -778,6 +784,8 @@ begin
       end;
     end else
       fIgnoreCaretChange := false;
+
+    fText.Repaint;
   end;
 
   if scInsertMode in Changes then begin
@@ -2576,6 +2584,24 @@ begin
         end;
       end else
         MainForm.actGotoImplDeclEditorExecute(self);
+    end;
+  end;
+end;
+
+procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
+  column: integer; token: String; attr: TSynHighlighterAttributes;
+  var style:TFontStyles; var FG,BG:TColor);
+var
+  tc:TThemeColor;
+begin
+  //selection
+  if fText.SelAvail then begin
+    if (attr = fText.Highlighter.IdentifierAttribute)
+      and SameStr(token, fText.SelText) then begin
+      StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+      FG := tc.Foreground;
+      BG := tc.Background;
+      exit;
     end;
   end;
 end;

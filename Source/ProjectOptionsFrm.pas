@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtDlgs, StdCtrls, ExtCtrls, Buttons, ComCtrls, main, project,
+  ExtDlgs, StdCtrls, ExtCtrls, Buttons, ComCtrls,project,
   ProjectTypes, Spin, ValEdit, CompOptionsFrame, ShellApi, Grids;
 
 type
@@ -53,14 +53,14 @@ type
     edDirEntry: TEdit;
     btnDirDelInval: TButton;
     btnRemoveIcon: TBitBtn;
-    Panel1: TPanel;
+    Panel1: ComCtrls.TPanel;
     IconPreview: TImage;
-    tabOutputDir: TTabSheet;
+    tabOutputDir: ComCtrls.TTabSheet;
     lblExeOutput: TLabel;
     lblObjOutput: TLabel;
     edExeOutput: TEdit;
     edObjOutput: TEdit;
-    tabMakefile: TTabSheet;
+    tabMakefile: ComCtrls.TTabSheet;
     IncMakeLabel: TLabel;
     lbMakeIncludes: TListBox;
     btnMakUp: TSpeedButton;
@@ -74,12 +74,12 @@ type
     InfoMakeBtn: TSpeedButton;
     edOverridenOutput: TEdit;
     chkOverrideOutput: TCheckBox;
-    tabFiles: TTabSheet;
+    tabFiles: ComCtrls.TTabSheet;
     lvFiles: TTreeView;
     grpUnitOptions: TGroupBox;
     chkCompile: TCheckBox;
     chkCompileCpp: TCheckBox;
-    tabVersion: TTabSheet;
+    tabVersion: ComCtrls.TTabSheet;
     chkVersionInfo: TCheckBox;
     grpVersion: TGroupBox;
     lblVerMajor: TLabel;
@@ -93,7 +93,7 @@ type
     spnBuild: TSpinEdit;
     vleVersion: TValueListEditor;
     cmbLangID: TComboBox;
-    tabCompiler: TTabSheet;
+    tabCompiler: ComCtrls.TTabSheet;
     chkSupportXP: TCheckBox;
     chkOverrideBuildCmd: TCheckBox;
     txtOverrideBuildCmd: TMemo;
@@ -108,7 +108,7 @@ type
     spnPriority: TSpinEdit;
     chkAutoIncBuild: TCheckBox;
     chkSyncProduct: TCheckBox;
-    tabCompOpts: TTabSheet;
+    tabCompOpts: ComCtrls.TTabSheet;
     CompOptionsFrame1: TCompOptionsFrame;
     cmbCompiler: TComboBox;
     lblCompilerSet: TLabel;
@@ -137,10 +137,10 @@ type
     CheckBox1: TCheckBox;
     cbUseUTF8: TCheckBox;
     cbUnitUseUTF8: TCheckBox;
-    PageControl1: TPageControl;
-    CompilerSheet: TTabSheet;
-    CppCompilerSheet: TTabSheet;
-    LinkerSheet: TTabSheet;
+    PageControl1: ComCtrls.TPageControl;
+    CompilerSheet: ComCtrls.TTabSheet;
+    CppCompilerSheet: ComCtrls.TTabSheet;
+    LinkerSheet: ComCtrls.TTabSheet;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);

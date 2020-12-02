@@ -6430,11 +6430,14 @@ var
   tc:TThemeColor;
 begin
   if StartsStr('[Warning] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Style := [fsBold];
     StrToThemeColor(tc,devEditor.Syntax.Values[cWN]);
     Sender.Canvas.Font.Color := tc.Foreground;
   end else if StartsStr('[Error] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Style := [fsBold];
     Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
   end else if StartsStr('[Hint] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Style := [fsBold];  
     Sender.Canvas.Font.Color := dmMain.Cpp.KeyAttri.Foreground;
   end else begin
   end;
@@ -8063,7 +8066,7 @@ var
   tabs:integer;
   tabRect: TRect;
 begin
-  strToThemeColor(gtc, devEditor.Syntax.Values[cPNL]);
+  strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
   bgColor := gtc.Background;
   fgColor := gtc.Foreground;
   abgColor := dmMain.Cpp.WhitespaceAttribute.Background;

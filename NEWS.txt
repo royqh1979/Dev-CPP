@@ -4,6 +4,8 @@ Version 6.2-beta5 Dec 2020
     - enhancement: Correctly show hints for function define whose '{' is not at the same line with function name;
     - change/enhancement: Save/Save As a project file will save project settings too.
     - enhancement: Use different color for warning message in the compiler output dialog
+    - add: VS Code color scheme (thanks to ÉXÉmjyy)
+    - enhancement: highlight identifiers which are the same as the selected words
 
 Version 6.2-beta4 Dec 2020
     

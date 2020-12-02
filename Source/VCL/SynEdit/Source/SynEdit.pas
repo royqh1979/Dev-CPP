@@ -110,6 +110,10 @@ type
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: integer;
     var Special: boolean; var FG, BG: TColor) of object;
 
+  TPaintHighlightTokenEvent = procedure(Sender: TObject; Line: integer;
+    column: integer; token: String; attr: TSynHighlighterAttributes;
+     var style:TFontStyles; var FG,BG:TColor) of object;
+
   PEditingArea = ^TEditingArea;
   TEditingArea = Record
     beginX: integer;
@@ -352,6 +356,7 @@ type
     fOnGutterClick: TGutterClickEvent;
     fOnMouseCursor: TMouseCursorEvent;
     fOnPaint: TPaintEvent;
+    fOnPaintHighlightToken : TPaintHighlightTokenEvent;
     fOnPlaceMark: TPlaceMarkEvent;
     fOnProcessCommand: TProcessCommandEvent;
     fOnProcessUserCommand: TProcessCommandEvent;
@@ -838,6 +843,8 @@ type
     property OnMouseCursor: TMouseCursorEvent read fOnMouseCursor
       write fOnMouseCursor;
     property OnPaint: TPaintEvent read fOnPaint write fOnPaint;
+    property OnPaintHighlightToken : TPaintHighlightTokenEvent
+      read fOnPaintHighlightToken write fOnPaintHighlightToken;
     property OnPlaceBookmark: TPlaceMarkEvent
       read FOnPlaceMark write FOnPlaceMark;
     property OnProcessUserCommand: TProcessCommandEvent
@@ -2805,7 +2812,7 @@ var
   // record. This will paint any chars already stored if there is
   // a (visible) change in the attributes.
   procedure AddHighlightToken(const Token: AnsiString;
-    CharsBefore, TokenLen: integer; p_Attri: TSynHighlighterAttributes);
+    CharsBefore, TokenLen: integer; vline:integer; p_Attri: TSynHighlighterAttributes);
   var
     bSpacesTest, bIsSpaces: boolean;
 
@@ -2846,6 +2853,12 @@ var
     end;
     if Foreground = clNone then
       Foreground := Font.Color;
+
+    if Assigned(OnPaintHighlightToken) then
+      OnPaintHighlightToken(self,vLine,fHighlighter.GetTokenPos,
+        token,p_Attri,Style,Foreground,Background);
+
+    
     // Do we have to paint the old chars first, or can we just append?
     bCanAppend := FALSE;
     bSpacesTest := FALSE;
@@ -3174,7 +3187,7 @@ var
               GetBraceColorAttr(fHighlighter.GetBraceLevel+1,attr);
             end;
             AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
-              nTokenLen, attr);
+              nTokenLen, vLine,attr);
           end;
           // Let the highlighter scan the next token.
           fHighlighter.Next;
@@ -3190,14 +3203,14 @@ var
             if nTokenLen > 0 then begin
               sToken := Copy(sLine, nTokenPos + 1, nTokenLen);
               AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
-                nTokenLen, nil);
+                nTokenLen, vLine, nil);
             end;
           end;
           // Draw LineBreak glyph.
           if (eoShowSpecialChars in fOptions) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
-              Length(SynLineBreakGlyph), nil);
+              Length(SynLineBreakGlyph),vLine, nil);
           end;
         end;
         // Draw anything that's left in the TokenAccu record. Fill to the end
@@ -3930,14 +3943,16 @@ var
     var
       sLeftSide: string;
       sRightSide: string;
-      Str: string;
+      Str,s: string;
       Start: PChar;
       P: PChar;
       bChangeScroll: Boolean;
       spaceCount : integer;
+      spaceStart:boolean;
     begin
       Result := 0;
       sLeftSide := Copy(LineText, 1, CaretX - 1);
+      spaceStart := (TrimLeft(sLeftSide) = '');
       if CaretX - 1 > Length(sLeftSide) then begin
         if not (eoTabsToSpaces in Options) and StringIsBlank(sLeftSide) then
           sLeftSide := GetLeftSpacing(DisplayX - 1, True)
@@ -3946,18 +3961,37 @@ var
             CaretX - 1 - Length(sLeftSide));
       end;
       sRightSide := Copy(LineText, CaretX, Length(LineText) - (CaretX - 1));
-      SpaceCount := LeftSpacesEx(sLeftSide, true);
+      if (spaceStart) then begin
+        SpaceCount := 0;
+        if (CaretY > 1) then begin
+          s:=self.Lines[CaretY-2];
+          SpaceCount := LeftSpacesEx(s, true);
+          s:=Trim(s);
+          if (Length(s)>0) and (s[Length(s)] = '{') then
+            inc(SpaceCount,self.fTabWidth)
+          else if (Length(s)>1) and (s[Length(s)] = '}') then
+            dec(SpaceCount,self.fTabWidth);
+        end;
+      end else
+        SpaceCount := LeftSpacesEx(sLeftSide,true);
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
       if P^ <> #0 then begin
-        Str := sLeftSide + Copy(Value, 1, P - Start);
+        if spaceStart then
+          Str := GetLeftSpacing(SpaceCount, true) + TrimLeft(Copy(Value, 1, P - Start))
+        else
+          Str := sLeftSide + Copy(Value, 1, P - Start);
         ProperSetLine(CaretY - 1, Str);
         Lines.InsertLines(CaretY, CountLines(P));
       end else begin
-        Str := sLeftSide + Value + sRightSide;
+        if spaceStart then
+          Str := GetLeftSpacing(SpaceCount, true) + TrimLeft(Value) + sRightSide
+        else
+          Str := sLeftSide + Value + sRightSide;
         ProperSetLine(CaretY - 1, Str);
       end;
+
       // step2: insert remaining lines of Value
       while P^ <> #0 do begin
         if P^ = #13 then
@@ -3978,7 +4012,18 @@ var
           if p^ = #0 then
             Str := Str + sRightSide
         end;
-        ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
+        if spaceStart then begin
+          s:=Trim(str);
+          if s = '}' then
+            dec(SpaceCount,self.fTabWidth);
+          ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)
+            +TrimLeft(Str));
+          if (Length(s)>0) and (s[Length(s)] = '{') then
+            inc(SpaceCount,self.fTabWidth)
+          else if (Length(s)>1) and (s[Length(s)] = '}') then
+            dec(SpaceCount,self.fTabWidth);
+        end else
+          ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
         Inc(Result);
       end;
       bChangeScroll := not (eoScrollPastEol in fOptions);
@@ -5275,7 +5320,7 @@ const
 var
   keyMsg : TWMKey;
   code: word;
-  temp: char;
+//  temp: char;
 begin
   if (Msg.Msg = CN_KEYDOWN)
     and ((GetKeyState(VK_SHIFT) and $8000 )=0)
