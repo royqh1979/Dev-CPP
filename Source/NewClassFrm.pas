@@ -179,11 +179,11 @@ begin
   // HEADER FILE IMPLEMENTATION
   if chkAddToProject.Checked then begin
     idx := MainForm.Project.NewUnit(False, nil, txtHFile.Text);
-    e := MainForm.Project.OpenUnit(idx);
     if idx = -1 then begin
       MessageDlg('Cannot add header file to project...', mtError, [mbOk], 0);
       Exit;
     end;
+    e := MainForm.Project.OpenUnit(idx);
   end else begin
     hFile := FileCreate(txtHFile.Text);
     if hFile > 0 then begin
@@ -265,11 +265,11 @@ begin
   // CPP FILE IMPLEMENTATION
   if chkAddToProject.Checked then begin
     idx := MainForm.Project.NewUnit(False, nil, txtCppFile.Text);
-    e := MainForm.Project.OpenUnit(idx);
     if idx = -1 then begin
       MessageDlg('Cannot add implementation file to project...', mtError, [mbOk], 0);
       Exit;
     end;
+    e := MainForm.Project.OpenUnit(idx);
   end else begin
     hFile := FileCreate(txtCppFile.Text);
     if hFile > 0 then begin

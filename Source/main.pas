@@ -5070,11 +5070,13 @@ end;
 
 procedure TMainForm.actBrowserNewClassExecute(Sender: TObject);
 begin
-  with TNewClassForm.Create(Self) do try
+  with TNewClassForm.Create(Self) do
     ShowModal;
+    {
   finally
     Close;
   end;
+    }
 end;
 
 procedure TMainForm.actBrowserNewMemberExecute(Sender: TObject);

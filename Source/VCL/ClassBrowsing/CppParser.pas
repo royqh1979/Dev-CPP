@@ -197,7 +197,7 @@ type
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer; Stream: TMemoryStream): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer; Stream: TMemoryStream): PStatement; overload;
-    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement; overload;
+    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; kinds:TStatementKindSet=[]): PStatement; overload;
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
@@ -809,6 +809,8 @@ begin
     Declaration^._DefinitionFileName := FileName;
     Declaration^._HasDefinition := True;
     Result := Declaration;
+    if SameText(Declaration^._FileName,FileName) then
+      Exit;
     fileIncludes1:=FindFileIncludes(FileName);
     if (not Declaration^._Temporary) and  Assigned(fileIncludes1) then begin
       fileIncludes1^.Statements.Add(Result);
@@ -817,7 +819,7 @@ begin
     // No duplicates found. Proceed as usual
   end else begin
     Result := AddToList;
-    if (not fIsSystemHeader) and not (IsDefinition) then begin
+    if not fIsSystemHeader and not (IsDefinition) then begin
       // add non system declarations to separate list to speed up searches for them
       Result^._NoNameArgs := RemoveArgNames(Result^._Args);
       fPendingDeclarations.Add(Result);
@@ -2345,14 +2347,14 @@ begin
     Exit;
   end;
 
-  {
+
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-  }
+  
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
@@ -2379,10 +2381,10 @@ begin
   try
     repeat
     until not HandleStatement;
-   // fTokenizer.DumpTokens('f:\tokens.txt');
-   //Statements.DumpTo('f:\stats.txt');
-   //Statements.DumpWithScope('f:\\statements.txt');
-   // fPreprocessor.DumpDefinesTo('f:\defines.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
+   Statements.DumpTo('f:\stats.txt');
+   Statements.DumpWithScope('f:\\statements.txt');
+   //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
@@ -2992,8 +2994,6 @@ begin
       //fTokenizer.DumpTokens('f:\tokens-local.txt');
     end;
 
-
-
     while (True) do begin
       if SameText(ClosestStatement^._DefinitionFileName, Filename) then begin
         // Find start of the function block and start from the opening brace
@@ -3590,7 +3590,7 @@ end;
 
 
 }
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; kinds:TStatementKindSet): PStatement;
 var
   //Node: PStatementNode;
   OperatorToken: AnsiString;
@@ -3805,8 +3805,8 @@ end;
 
 procedure TCppParser.ScanMethodArgs(const ArgStr: AnsiString; const Filename: AnsiString; Line: Integer);
 var
-  I, ParamStart, SpacePos, BracePos: integer;
-  S: AnsiString;
+  I, ParamStart, SpacePos, BracePos,bracketPos: integer;
+  S,Args: AnsiString;
 begin
 
   // Split up argument string by ,
@@ -3827,13 +3827,19 @@ begin
         SpacePos := LastPos(' ', S); // Cut up at last space
 
       if SpacePos > 0 then begin
+        Args:='';
+        bracketPos := Pos('[',S);
+        if bracketPos >= 0 then begin
+          Args := Copy(S, bracketPos-1,MaxInt);
+          Delete(S,bracketPos,MaxInt);
+        end;
         AddStatement(
           nil,
           Filename,
           '', // do not override hint
           Copy(S, 1, SpacePos - 1), // 'int*'
           Copy(S, SpacePos + 1, MaxInt), // a
-          '',
+          Args,
           '',
           Line,
           skVariable,

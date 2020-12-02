@@ -777,7 +777,7 @@ begin
 
     // Remove error line colors
     if not fIgnoreCaretChange then begin
-      if (fErrorLine <> -1) then begin
+      if (fErrorLine <> -1) and not fText.SelAvail then begin
         fText.InvalidateLine(fErrorLine);
         fText.InvalidateGutterLine(fErrorLine);
         fErrorLine := -1;
@@ -2610,6 +2610,8 @@ begin
       exit;
     end;
   end;
+  if fCompletionBox.Visible then //don't do this when show
+    Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     M := TMemoryStream.Create;
     try

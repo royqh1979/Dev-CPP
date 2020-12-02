@@ -509,9 +509,7 @@ begin
          fCompletionStatementList.Add(tmpList[I]);
       lastCmd:=PStatement(tmpList[I])^._Command;
     end;
-  finally
-    tmpList.Free;
-  end;
+
     }
 
 end;
