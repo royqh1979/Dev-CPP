@@ -3943,17 +3943,14 @@ var
     var
       sLeftSide: string;
       sRightSide: string;
-      Str,s: string;
+      Str: string;
       Start: PChar;
       P: PChar;
       bChangeScroll: Boolean;
-      spaceCount,baseSpaceCount : integer;
-      spaceStart:boolean;
-      i:integer;
+      spaceCount : integer;
     begin
       Result := 0;
       sLeftSide := Copy(LineText, 1, CaretX - 1);
-      spaceStart := (TrimLeft(sLeftSide) = '');
       if CaretX - 1 > Length(sLeftSide) then begin
         if not (eoTabsToSpaces in Options) and StringIsBlank(sLeftSide) then
           sLeftSide := GetLeftSpacing(DisplayX - 1, True)
@@ -3962,56 +3959,24 @@ var
             CaretX - 1 - Length(sLeftSide));
       end;
       sRightSide := Copy(LineText, CaretX, Length(LineText) - (CaretX - 1));
-      if (spaceStart) then begin
-        if (CaretY > 1) then begin
-          s:=self.Lines[CaretY-2];
-          SpaceCount := LeftSpacesEx(s, true);
-          s:=Trim(s);
-          if (Length(s)>0) and (s[Length(s)] = '{') then
-            inc(SpaceCount,self.fTabWidth)
-          else if (Length(s)>1) and (s[Length(s)] = '}') then
-            dec(SpaceCount,self.fTabWidth);
-        end;
-      end else
-        SpaceCount := LeftSpacesEx(sLeftSide,true);
-
-      baseSpaceCount := SpaceCount;
+      SpaceCount := LeftSpacesEx(sLeftSide, true);
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
       if P^ <> #0 then begin
-        if spaceStart then
-          Str := GetLeftSpacing(SpaceCount, true) + TrimLeft(Copy(Value, 1, P - Start))
-        else
-          Str := sLeftSide + Copy(Value, 1, P - Start);
+        Str := sLeftSide + Copy(Value, 1, P - Start);
         ProperSetLine(CaretY - 1, Str);
         Lines.InsertLines(CaretY, CountLines(P));
       end else begin
-        if spaceStart then
-          Str := GetLeftSpacing(SpaceCount, true) + TrimLeft(Value) + sRightSide
-        else
-          Str := sLeftSide + Value + sRightSide;
+        Str := sLeftSide + Value + sRightSide;
         ProperSetLine(CaretY - 1, Str);
       end;
-
-      i:=0;
-      if Assigned(fHighlighter) then begin
-        fHighlighter.ResetRange;
-        fHighlighter.ResetParenthesisLevel;
-        fHighlighter.ResetBracketLevel;
-        fHighlighter.ResetBraceLevel;
-        fHighlighter.SetLine(Str,i);
-        fHighlighter.NextToEol;
-        SpaceCount:=baseSpaceCount+fHighlighter.GetBraceLevel*self.fTabWidth;
-      end;
-
       // step2: insert remaining lines of Value
       while P^ <> #0 do begin
         if P^ = #13 then
           Inc(P);
         if P^ = #10 then
           Inc(P);
-        inc(i);
         Inc(fCaretY);
         Include(fStatusChanges, scCaretY);
         Start := P;
@@ -4026,26 +3991,7 @@ var
           if p^ = #0 then
             Str := Str + sRightSide
         end;
-        if spaceStart then begin
-          s:=Trim(str);
-          if not Assigned(fHighlighter) and (s = '}') then
-            dec(SpaceCount,self.fTabWidth);
-
-          ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)
-            +TrimLeft(Str));
-
-          if Assigned(fHighlighter) then begin
-            fHighlighter.SetLine(Str,i);
-            fHighlighter.NextToEol;
-            SpaceCount:=baseSpaceCount+fHighlighter.GetBraceLevel*self.fTabWidth;
-          end else begin
-            if (Length(s)>0) and (s[Length(s)] = '{') then
-              inc(SpaceCount,self.fTabWidth)
-            else if (Length(s)>1) and (s[Length(s)] = '}') then
-              dec(SpaceCount,self.fTabWidth);
-          end;
-        end else
-          ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
+        ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
         Inc(Result);
       end;
       bChangeScroll := not (eoScrollPastEol in fOptions);
