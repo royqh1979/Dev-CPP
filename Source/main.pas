@@ -8061,14 +8061,14 @@ var
   y    : Integer;
   x    : Integer;
   aRect: TRect;
-  bgColor,fgColor,abgColor,afgColor : TColor;
-  gtc : TThemeColor;
+  bgColor,fgColor,abgColor,afgColor: TColor;
+  ptc: TThemeColor;
   tabs:integer;
   tabRect: TRect;
 begin
-  strToThemeColor(gtc, devEditor.Syntax.Values[cGut]);
-  bgColor := gtc.Background;
-  fgColor := gtc.Foreground;
+  strToThemeColor(ptc, devEditor.Syntax.Values[cPNL]);
+  bgColor := ptc.Background;
+  fgColor := ptc.Foreground;
   abgColor := dmMain.Cpp.WhitespaceAttribute.Background;
   afgColor := dmMain.Cpp.IdentifierAttri.Foreground;
   if Active then begin

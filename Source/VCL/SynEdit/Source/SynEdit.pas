@@ -3947,8 +3947,9 @@ var
       Start: PChar;
       P: PChar;
       bChangeScroll: Boolean;
-      spaceCount : integer;
+      spaceCount,baseSpaceCount : integer;
       spaceStart:boolean;
+      i:integer;
     begin
       Result := 0;
       sLeftSide := Copy(LineText, 1, CaretX - 1);
@@ -3962,7 +3963,6 @@ var
       end;
       sRightSide := Copy(LineText, CaretX, Length(LineText) - (CaretX - 1));
       if (spaceStart) then begin
-        SpaceCount := 0;
         if (CaretY > 1) then begin
           s:=self.Lines[CaretY-2];
           SpaceCount := LeftSpacesEx(s, true);
@@ -3974,6 +3974,8 @@ var
         end;
       end else
         SpaceCount := LeftSpacesEx(sLeftSide,true);
+
+      baseSpaceCount := SpaceCount;
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
@@ -3992,12 +3994,24 @@ var
         ProperSetLine(CaretY - 1, Str);
       end;
 
+      i:=0;
+      if Assigned(fHighlighter) then begin
+        fHighlighter.ResetRange;
+        fHighlighter.ResetParenthesisLevel;
+        fHighlighter.ResetBracketLevel;
+        fHighlighter.ResetBraceLevel;
+        fHighlighter.SetLine(Str,i);
+        fHighlighter.NextToEol;
+        SpaceCount:=baseSpaceCount+fHighlighter.GetBraceLevel*self.fTabWidth;
+      end;
+
       // step2: insert remaining lines of Value
       while P^ <> #0 do begin
         if P^ = #13 then
           Inc(P);
         if P^ = #10 then
           Inc(P);
+        inc(i);
         Inc(fCaretY);
         Include(fStatusChanges, scCaretY);
         Start := P;
@@ -4014,14 +4028,22 @@ var
         end;
         if spaceStart then begin
           s:=Trim(str);
-          if s = '}' then
+          if not Assigned(fHighlighter) and (s = '}') then
             dec(SpaceCount,self.fTabWidth);
+
           ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)
             +TrimLeft(Str));
-          if (Length(s)>0) and (s[Length(s)] = '{') then
-            inc(SpaceCount,self.fTabWidth)
-          else if (Length(s)>1) and (s[Length(s)] = '}') then
-            dec(SpaceCount,self.fTabWidth);
+
+          if Assigned(fHighlighter) then begin
+            fHighlighter.SetLine(Str,i);
+            fHighlighter.NextToEol;
+            SpaceCount:=baseSpaceCount+fHighlighter.GetBraceLevel*self.fTabWidth;
+          end else begin
+            if (Length(s)>0) and (s[Length(s)] = '{') then
+              inc(SpaceCount,self.fTabWidth)
+            else if (Length(s)>1) and (s[Length(s)] = '}') then
+              dec(SpaceCount,self.fTabWidth);
+          end;
         end else
           ProperSetLine(CaretY - 1, GetLeftSpacing(SpaceCount, true)+Str);
         Inc(Result);
