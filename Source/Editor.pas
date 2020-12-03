@@ -2544,8 +2544,6 @@ var
 begin
   if token='' then
     Exit;
-  if token[1] in ['{','}','(',')','[',']'] then
-    Exit;
   //selection
   if fText.SelAvail then begin
     if (attr = fText.Highlighter.IdentifierAttribute)
@@ -2557,7 +2555,6 @@ begin
     end;
   end;
 
-  //Syntax color is too slow, we don't do it now before we find a better solution
   if fCompletionBox.Visible then //don't do this when show
     Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin

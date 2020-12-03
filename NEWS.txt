@@ -15,6 +15,7 @@ Version 6.2-beta5 Dec 2020
     - optimize: all symbols are scanned. Don't later scan
     - fix£ºparse error of keywords try/catch/do
     - fix: parse error for std::types
+    - fix: brace color error of new typed contents to the last of the source file 
 
 Version 6.2-beta4 Dec 2020
     

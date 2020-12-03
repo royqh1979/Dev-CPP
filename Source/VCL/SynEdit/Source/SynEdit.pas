@@ -4653,8 +4653,10 @@ begin
     fHighlighter.SetLine(Lines[Result], Result);
     fHighlighter.NextToEol;
     iRange := fHighlighter.GetRange;
+    {
     if Lines.Ranges[Result] = iRange then
       Exit; // avoid the final Decrement
+    }
     Lines.Ranges[Result] := iRange;
     Lines.ParenthesisLevels[Result] := fHighlighter.GetParenthesisLevel;
     Lines.BracketLevels[Result] := fHighlighter.GetBracketLevel;
