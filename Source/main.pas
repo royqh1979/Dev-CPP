@@ -3265,7 +3265,7 @@ begin
 
       // Rebuild project tree and parse
       fProject.RebuildNodes;
-      CppParser.ParseFileList;
+      //CppParser.ParseFileList;
     end;
   finally
     Free;
@@ -5099,6 +5099,8 @@ end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
+  if not devCodeCompletion.Enabled then
+    Exit;
   if ClassBrowser.CurrentFile = e.FileName then
     Exit;
   ClassBrowser.BeginUpdate;

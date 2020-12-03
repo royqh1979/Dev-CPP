@@ -709,10 +709,12 @@ begin
   // Set title bar to current file
   MainForm.UpdateAppTitle;
 
-  // Set classbrowser to current file (and parse file and refresh)
-  MainForm.UpdateClassBrowserForEditor(self);
-  fLastParseTime := Now;
-  fText.Invalidate;
+  if devCodeCompletion.Enabled then begin
+    // Set classbrowser to current file (and parse file and refresh)
+    MainForm.UpdateClassBrowserForEditor(self);
+    fLastParseTime := Now;
+    fText.Invalidate;
+  end;
 
   // Set compiler selector to current file
   MainForm.UpdateCompilerList;
@@ -737,11 +739,13 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  if (fText.Lines.Count <> fLineCount)
-    and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice 
-    then begin
-    Reparse;
-    fText.Invalidate;
+  if (fText.Lines.Count <> fLineCount) then begin
+    if devCodeCompletion.Enabled
+      and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
+      then begin
+      Reparse;
+      fText.Invalidate;
+    end;
   end;
   fLineCount := fText.Lines.Count;
   // scModified is only fired when the modified state changes
@@ -1670,7 +1674,6 @@ end;
 procedure TEditor.HandleCodeCompletion(var Key: Char);
 begin
   if fCompletionBox.Enabled then begin
-
     // Use a timer to show the completion window when we just typed a few parent-member linking chars
     case Key of
       '.': fCompletionTimer.Enabled := True;
@@ -1737,7 +1740,9 @@ begin
       ShowTabnineCompletion;
     end else begin
       // Spawn code completion window if we are allowed to
-      HandleCodeCompletion(Key);
+      if devCodeCompletion.Enabled then begin
+        HandleCodeCompletion(Key);
+      end;
     end;
   end;
 end;
@@ -1934,6 +1939,8 @@ var
   s,word: AnsiString;
   attr: TSynHighlighterAttributes;
 begin
+  if not devCodeCompletion.Enabled then
+    Exit;
   fCompletionTimer.Enabled := False;
 
   if fCompletionBox.Visible then // already in search, don't do it again
@@ -2775,9 +2782,11 @@ begin
         Result := False;
       end;
 
-      MainForm.CppParser.ParseFile(fFileName, InProject);
-      fLastParseTime := Now;
-      fText.invalidate;
+      if devCodeCompletion.Enabled then begin
+        MainForm.CppParser.ParseFile(fFileName, InProject);
+        fLastParseTime := Now;
+        fText.invalidate;
+      end;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
 
@@ -2869,10 +2878,12 @@ begin
   // Update window captions
   MainForm.UpdateAppTitle;
 
-  // Update class browser, redraw once
-  MainForm.UpdateClassBrowserForEditor(self);
-  fLastParseTime := Now;
-  fText.Invalidate;
+  if devCodeCompletion.Enabled then begin
+    // Update class browser, redraw once
+    MainForm.UpdateClassBrowserForEditor(self);
+    fLastParseTime := Now;
+    fText.Invalidate;
+  end;
 end;
 
   procedure TEditor.LoadFile(FileName:String;DetectEncoding:bool=False);
