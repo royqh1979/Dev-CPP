@@ -128,7 +128,6 @@ type
     _DefinitionLine: integer; // definition
     _FileName: AnsiString; // declaration
     _DefinitionFileName: AnsiString; // definition
-    _Temporary: boolean; // statements to be deleted after parsing
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search

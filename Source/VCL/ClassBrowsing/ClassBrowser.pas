@@ -325,8 +325,6 @@ begin
       Statement := Children[i];
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
-        if _Temporary then
-          Continue;
 
         if _Inherited and not fShowInheritedMembers then // don't show inherited members
           Continue;

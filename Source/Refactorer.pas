@@ -98,7 +98,7 @@ var
           phrase := GetWordAtPosition(Editor, p,wpInformation);
           statement := CppParser.FindStatementOf(
             FileName,
-            phrase, p.Line, M);
+            phrase, p.Line);
           if assigned(statement) and ((statement^._FileName = pOldStatement^._FileName)
             and (statement^._Line = pOldStatement^._Line)) then // same statement
             CurrentNewLine := Concat(CurrentNewLine,NewName)
@@ -219,7 +219,7 @@ begin
     // Find it's definition
     pOldStatement := CppParser.FindStatementOf(
       Editor.FileName,
-      phrase, oldCaretXY.Line, M);
+      phrase, oldCaretXY.Line);
     // definition of the old name is not found
     if not Assigned(pOldStatement) then begin
       MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_FOUND],[phrase]), mtInformation, [mbOK], 0);
@@ -231,7 +231,7 @@ begin
     newphrase :=Copy(phrase,1,Length(phrase)-Length(oldName)) + newName;
     pNewStatement := CppParser.FindStatementOf(
       Editor.FileName,
-      newphrase, oldCaretXY.Line, M);
+      newphrase, oldCaretXY.Line);
     if Assigned(pNewStatement) and (getFullName(pNewStatement^._ParentScope) = oldScopeName) then begin // definition with same name existing
       MessageDlg(Format(Lang[ID_ERR_STATEMENT_EXISTING],[newphrase,pNewStatement^._DefinitionFileName,
         pNewStatement^._DefinitionLine]), mtInformation, [mbOK], 0);

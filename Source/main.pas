@@ -6314,7 +6314,6 @@ var
   statement: PStatement;
   filename, phrase: AnsiString;
   line: integer;
-  M: TMemoryStream;
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
@@ -6328,15 +6327,9 @@ begin
 
     // When searching using menu shortcuts, the caret is set to the proper place
     // When searching using ctrl+click, the cursor is set properly too, so do NOT use WordAtMouse
-    M := TMemoryStream.Create;
-    try
-      e.Text.Lines.SaveToStream(M);
-      statement := CppParser.FindStatementOf(
+    statement := CppParser.FindStatementOf(
         e.FileName,
-        phrase, e.Text.CaretY, M);
-    finally
-      M.Free;
-    end;
+        phrase, e.Text.CaretY);
 
     // Otherwise scan the returned class browser statement
     if Assigned(statement) then begin

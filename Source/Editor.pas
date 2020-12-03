@@ -740,6 +740,10 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
+
+  if fText.Lines.Count <> fLineCount then
+    Reparse;
+  fLineCount := fText.Lines.Count;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
     if fText.Modified then begin
@@ -1688,7 +1692,6 @@ var
   lastWord:AnsiString;
   M:TMemoryStream;
   st,currentStatement:PStatement;
-  s:AnsiString;
   
 begin
   // Don't offer completion functions for plain text files
@@ -1715,11 +1718,10 @@ begin
               fLastParseTime := Now;
             end;
             }
-            st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, Text.CaretXY.Line, M);
+            st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
             if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
               //expand macro
-              currentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
-              st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,currentStatement);
+              st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
             end;
             if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
               //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
@@ -1942,7 +1944,6 @@ end;
 procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
-  M: TMemoryStream;
   s,word: AnsiString;
   attr: TSynHighlighterAttributes;
 begin
@@ -1979,25 +1980,10 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
   fCompletionBox.Show;
-  M := TMemoryStream.Create;
-  try
-    fText.Lines.SaveToStream(M);
 
-    // Reparse whole file (not function bodies) if it has been modified
-    // use stream, don't read from disk (not saved yet)
-    {
-    if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
-      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-      fLastParseTime := Now;
-    end;
-    }
+  // Scan the current function body
+  fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
-    // Scan the current function body
-    fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
-  finally
-    M.Free;
-  end;
-  
   word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
@@ -2298,8 +2284,6 @@ begin
 end;
 
 procedure TEditor.EditorDblClick(Sender: TObject);
-var
-  s:AnsiString;
 begin
   fDblClickTime := GetTickCount;
   fText.GetPositionOfMouse(fDblClickMousePos);
@@ -2392,7 +2376,7 @@ var
 
   procedure ShowDebugHint;
   begin
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
 
     if not Assigned(st) then
       Exit;
@@ -2418,7 +2402,7 @@ var
   procedure ShowParserHint;
   begin
     // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
 
     if Assigned(st) then begin
       // vertical bar is used to split up short and long hint versions...
@@ -2584,7 +2568,6 @@ procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
   var style:TFontStyles; var FG,BG:TColor);
 var
   tc:TThemeColor;
-  M : TMemoryStream;
   st: PStatement;
 begin
   //selection
@@ -2598,36 +2581,24 @@ begin
     end;
   end;
   //Syntax color is too slow, we don't do it now before we find a better solution
-  {
   if fCompletionBox.Visible then //don't do this when show
     Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
-    M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-      if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
-        MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-        fLastParseTime := Now;
-      end;
-      st := MainForm.CppParser.FindStatementOf(fFileName, token, line, M);
-      if assigned(st) then begin
-        case st._Kind of
-          skPreprocessor: begin
-            fg:=dmMain.Cpp.DirecAttri.Foreground;
-          end;
-          skVariable: begin
-            fg:=dmMain.Cpp.VariableAttri.Foreground;
-          end;
-          skFunction,skConstructor,skDestructor: begin
-            fg:=dmMain.Cpp.FunctionAttri.Foreground;
-          end;
+    st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    if assigned(st) then begin
+      case st._Kind of
+        skPreprocessor: begin
+          fg:=dmMain.Cpp.DirecAttri.Foreground;
+        end;
+        skVariable: begin
+          fg:=dmMain.Cpp.VariableAttri.Foreground;
+        end;
+        skFunction,skConstructor,skDestructor: begin
+          fg:=dmMain.Cpp.FunctionAttri.Foreground;
         end;
       end;
-    finally
-      M.Free;
     end;
   end;
-  }
 end;
 
 procedure TEditor.EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
@@ -3082,9 +3053,8 @@ end;
 
 function TEditor.GetErrorAtLine(line:integer):PSyntaxError;
 var
-  idx,i:integer;
+  idx:integer;
   lst:TList;
-  pError:PSyntaxError;
 begin
   Result := nil;
   idx:=CBUtils.FastIndexOf(fErrorList,line);
