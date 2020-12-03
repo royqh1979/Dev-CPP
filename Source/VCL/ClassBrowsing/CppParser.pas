@@ -71,7 +71,8 @@ type
     fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
     fInvalidatedStatements: TList; //TList<PStatement>
-    fPendingDeclarations: TList; // TList<PStatement>
+    fPendingDeclarations: TDevStringList; // TList<key,PStatement>
+    fIncompleteClasses: TDevStringList; // TList<ClassFullName, int(count)>
     //fMacroDefines : TList;
     fTempStatements : TList; // TList<PStatement>
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
@@ -151,10 +152,12 @@ type
 //    function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
-    function GetIncompleteClass(const Command: AnsiString): PStatement;
+    function GetIncompleteClass(const Command:AnsiString; parentScope:PStatement): PStatement;
     procedure ReProcessInheritance;
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
+    function GetFullStatementName(command:String; parent:PStatement):string;
+    function GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
   public
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
@@ -261,7 +264,12 @@ begin
   fProjectFiles := TStringList.Create;
   fProjectFiles.Sorted := True;
   fInvalidatedStatements := TList.Create;
-  fPendingDeclarations := TList.Create;
+  fPendingDeclarations := TDevStringList.Create;
+  fPendingDeclarations.Sorted := True;
+  fPendingDeclarations.Duplicates := dupIgnore;
+  fIncompleteClasses:=TDevStringList.Create;
+  fIncompleteClasses.Sorted := True;
+  fIncompleteClasses.Duplicates := dupIgnore;
   //fMacroDefines := TList.Create;
   fCurrentScope := TList.Create;
   fSkipList:= TList.Create;
@@ -280,6 +288,10 @@ var
   namespaceList: TList;
 begin
   //FreeAndNil(fMacroDefines);
+  for i:=0 to fIncompleteClasses.Count -1 do begin
+    dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
+  end;
+  FreeAndNil(fIncompleteClasses);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
   for i:=0 to fCurrentScope.Count-1 do
@@ -415,7 +427,9 @@ function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kin
   PStatement;
 var
   Statement: PStatement;
-  I:integer;
+  I,idx:integer;
+  key:string;
+  incompleteClass : PIncompleteClass;
   {
   I,j: integer;
   lst1,lst2:TStringList;
@@ -425,22 +439,24 @@ var
   }
 
 begin
-  // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
-  for I := fPendingDeclarations.Count - 1 downto 0 do begin
-    Statement := fPendingDeclarations[i];
-
-    // Only do an expensive string compare with the right kinds and parents
-    if (Statement^._ParentScope = Parent)
-      and (Statement^._Kind = Kind)
-      and (Statement^._Command = Command)
-      and (Statement^._NoNameArgs = Args) then begin
-            fPendingDeclarations.Delete(i); // remove it when we have found it
-            Result := Statement;
-            Exit;
-    end;
-  end;
-
   Result := nil;
+  key:=getPendingKey(command,parent,kind,args);
+  i:=FastIndexOf(fPendingDeclarations,key);
+  if i<> -1 then begin
+    Result := PStatement(fPendingDeclarations.Objects[i]);
+    if assigned(Result^._ParentScope) then begin
+      idx:=FastIndexOf(fIncompleteClasses,Result^._ParentScope^._FullName);
+      if idx <> -1 then begin
+        incompleteClass := PIncompleteClass(fIncompleteClasses.Objects[idx]);
+        dec(incompleteClass.count);
+        if incompleteClass.count = 0 then begin
+          dispose(incompleteClass);
+          fIncompleteClasses.Delete(idx);
+        end;
+      end;
+    end;
+    fPendingDeclarations.Delete(i);
+  end;
 end;
   {
   procedure ParseArgs(const Args:AnsiString; lst:TStringList);
@@ -520,14 +536,18 @@ end;
 
 // When finding a parent class for a function definition, only search classes of incomplete decl/def pairs
 
-function TCppParser.GetIncompleteClass(const Command: AnsiString): PStatement;
+function TCppParser.GetIncompleteClass(const Command: AnsiString; parentScope:PStatement): PStatement;
 var
-  Statement, ParentStatement: PStatement;
-  I: integer;
+  key,s:string;
+  I,p: integer;
+  incompleteClass:PIncompleteClass;
+  Statement,ParentStatement:PStatement;
 begin
   // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
-  for I := fPendingDeclarations.Count - 1 downto 0 do begin
-    Statement := fPendingDeclarations[i];
+  {
+  Result:=nil;
+    for I := fPendingDeclarations.Count - 1 downto 0 do begin
+    Statement := PStatement(fPendingDeclarations.Objects[i]);
     ParentStatement := Statement^._ParentScope;
     if Assigned(ParentStatement) then begin
       if ParentStatement^._Command = Command then begin
@@ -535,9 +555,20 @@ begin
         Exit;
       end;
     end;
+    end;
+  }
+  Result:=nil;
+  s:=command;
+  p:=Pos('<',s);
+  if p>0 then
+    Delete(s,p,MaxInt);
+  key:=GetFullStatementName(s,parentScope);
+  i:=FastIndexOf(fIncompleteClasses, key);
+  if i<>-1 then begin
+    incompleteClass:=PIncompleteClass(fIncompleteClasses.Objects[i]);
+    Result:=incompleteClass^.statement;
   end;
 
-  Result := nil;
 end;
 
 function TCppParser.AddChildStatement(
@@ -597,6 +628,27 @@ begin
   end;
 end;
 
+function TCppParser.GetFullStatementName(command:String; parent:PStatement):string;
+var
+  scopeStatement:PStatement;
+begin
+  scopeStatement:=Parent;
+  while Assigned(scopeStatement) and not (scopeStatement^._Kind in [skClass, skNamespace, skFunction]) do
+     scopeStatement := scopeStatement^._parentScope;
+  if Assigned(scopeStatement)  then
+    Result := scopeStatement^._FullName + '::'+command
+  else
+    Result := command;
+end;
+function TCppParser.GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
+begin
+  if assigned(Parent) then
+    Result := Parent^._FullName
+  else
+    Result := '';
+  Result := Result + IntToStr(ord(kind))+Command+Args;
+end;
+
 function TCppParser.AddStatement(
   Parent: PStatement;
   const FileName: AnsiString;
@@ -619,6 +671,9 @@ var
   NewType, NewCommand: AnsiString;
   node: PStatementNode;
   fileIncludes1:PFileIncludes;
+  idx:integer;
+  incompleteClass: PIncompleteClass;
+  key:AnsiString;
   //t,lenCmd:integer;
 
   function AddToList: PStatement;
@@ -653,13 +708,7 @@ var
       _Static := isStatic;
       _Inherited:= False;
       if not _Temporary then begin
-        scopeStatement:=Parent;
-        while Assigned(scopeStatement) and not (scopeStatement^._Kind in [skClass, skNamespace]) do
-          scopeStatement := scopeStatement^._parentScope;
-        if Assigned(scopeStatement)  then
-          _FullName := scopeStatement^._FullName + '::'+NewCommand
-        else
-          _FullName := NewCommand;
+        _FullName :=  GetFullStatementName(NewCommand, Parent);
       end else
         _FullName := NewCommand;
       _Usings:=TStringList.Create;
@@ -819,10 +868,28 @@ begin
     // No duplicates found. Proceed as usual
   end else begin
     Result := AddToList;
-    if not fIsSystemHeader and not (IsDefinition) then begin
+    if not (IsDefinition) then begin
       // add non system declarations to separate list to speed up searches for them
       Result^._NoNameArgs := RemoveArgNames(Result^._Args);
-      fPendingDeclarations.Add(Result);
+      key:=GetPendingKey(Result^._Command,
+          Result^._ParentScope,
+          Result^._Kind,
+          Result^._NoNameArgs);
+      fPendingDeclarations.AddObject(
+        key,
+        TObject(Result));
+      if assigned(Result^._ParentScope) then begin
+        idx:=FastIndexOf(fIncompleteClasses, Result^._ParentScope^._FullName);
+        if idx <> -1 then begin
+          incompleteClass := PIncompleteClass(fIncompleteClasses.Objects[idx]);
+        end else begin
+          new(incompleteClass);
+          incompleteClass^.statement := Result^._ParentScope;
+          incompleteClass^.count:=0;
+          fIncompleteClasses.AddObject( Result^._ParentScope^._FullName,TObject(incompleteClass ));
+        end;
+        inc(incompleteClass^.count);
+      end;
     end;
   end;
 
@@ -1110,12 +1177,12 @@ end;
 
 function TCppParser.CheckForNamespace: boolean;
 begin
-  Result := SameStr(fTokenizer[fIndex]^.Text, 'namespace');
+  Result := (fIndex < fTokenizer.Tokens.Count - 1) and SameStr(fTokenizer[fIndex]^.Text, 'namespace');
 end;
 
 function TCppParser.CheckForUsing: boolean;
 begin
-  Result := SameStr(fTokenizer[fIndex]^.Text, 'using');
+  Result := (fIndex < fTokenizer.Tokens.Count - 1) and SameStr(fTokenizer[fIndex]^.Text, 'using');
 end;
 
 function TCppParser.CheckForStructs: boolean;
@@ -1919,7 +1986,7 @@ begin
 
       // Check what class this function belongs to
       ParentClassName := Copy(sName, 1, DelimPos - 1);
-      FunctionClass := GetIncompleteClass(ParentClassName);
+      FunctionClass := GetIncompleteClass(ParentClassName, GetLastCurrentScope);
     end else
       ScopelessName := sName;
 
@@ -2381,9 +2448,9 @@ begin
   try
     repeat
     until not HandleStatement;
-   fTokenizer.DumpTokens('f:\tokens.txt');
-   Statements.DumpTo('f:\stats.txt');
-   Statements.DumpWithScope('f:\\statements.txt');
+   //fTokenizer.DumpTokens('f:\tokens.txt');
+   //Statements.DumpTo('f:\stats.txt');
+   //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -2420,6 +2487,10 @@ begin
   //remove all macrodefines;
   //fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
+  for i:=0 to fIncompleteClasses.Count -1 do begin
+    dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
+  end;
+  fIncompleteClasses.Clear;
   fInvalidatedStatements.Clear;
   for i:=0 to fCurrentScope.Count-1 do
     TList(fCurrentScope[i]).Free;
@@ -2491,6 +2562,10 @@ begin
         Inc(I);
       end;
       fPendingDeclarations.Clear; // should be empty anyways
+      for i:=0 to fIncompleteClasses.Count -1 do begin
+        dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
+      end;
+      fIncompleteClasses.Clear;
       fFilesToScan.Clear;
     finally
       if Assigned(fOnEndParsing) then
@@ -2667,6 +2742,10 @@ begin
         InternalParse(FileName, True, Stream); // or from stream
       fFilesToScan.Clear;
       fPendingDeclarations.Clear; // should be empty anyways
+      for i:=0 to fIncompleteClasses.Count -1 do begin
+        dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
+      end;
+      fIncompleteClasses.Clear;
       ReProcessInheritance; // account for inherited statements that have dissappeared
     finally
       if Assigned(fOnEndParsing) then

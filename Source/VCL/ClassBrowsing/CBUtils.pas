@@ -155,6 +155,12 @@ type
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
   TProgressEndEvent = procedure(Sender: TObject; Total: integer) of object;
 
+  PIncompleteClass = ^TIncompleteClass;
+  TIncompleteClass = record
+    statement:PStatement;
+    count: integer;
+  end;
+
   { TStringList is case insensitive }
   TDevStringList = class(TStringList)
   protected

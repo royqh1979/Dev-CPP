@@ -291,6 +291,7 @@ type
     fMBCSStepAside: Boolean;
 {$ENDIF}
     fInserting: Boolean;
+    fPainting: boolean;
     fLines: TSynEditStringList;
     fOrigLines: TSynEditStringList;
     fOrigUndoList: TSynEditUndoList;
@@ -1184,6 +1185,7 @@ end;
 constructor TCustomSynEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fPainting:=False;
   fLines := TSynEditStringList.Create;
   fOrigLines := fLines;
   fPlugins := TList.Create;
@@ -2133,6 +2135,9 @@ var
   rcClip, rcDraw: TRect;
   nL1, nL2, nC1, nC2: integer;
 begin
+  if fPainting then
+    Exit;
+  fPainting:=True;
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
   // columns
@@ -2167,6 +2172,7 @@ begin
 
   finally
     UpdateCaret;
+    fPainting:=False;
   end;
 end;
 

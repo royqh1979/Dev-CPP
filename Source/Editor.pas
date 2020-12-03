@@ -2610,6 +2610,8 @@ begin
       exit;
     end;
   end;
+  //Syntax color is too slow, we don't do it now before we find a better solution
+  {
   if fCompletionBox.Visible then //don't do this when show
     Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
@@ -2638,7 +2640,7 @@ begin
       M.Free;
     end;
   end;
-
+  }
 end;
 
 procedure TEditor.EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
