@@ -498,10 +498,6 @@ begin
   fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
   
   //don't need to reparse here, in EditorEnter event handler we will do it
-  {
-  if fFileName <> '' then
-    MainForm.CppParser.ParseFile(fFileName,fInProject);
-  }
   MainForm.UpdateFileEncodingStatusPanel;
 end;
 
@@ -713,9 +709,10 @@ begin
   // Set title bar to current file
   MainForm.UpdateAppTitle;
 
-  // Set classbrowser to current file (and refresh)
+  // Set classbrowser to current file (and parse file and refresh)
   MainForm.UpdateClassBrowserForEditor(self);
-//  MainForm.ClassBrowser.CurrentFile := fFileName;
+  fLastParseTime := Now;
+  fText.Invalidate;
 
   // Set compiler selector to current file
   MainForm.UpdateCompilerList;
@@ -740,7 +737,9 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  if fText.Lines.Count <> fLineCount then begin
+  if (fText.Lines.Count <> fLineCount)
+    and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice 
+    then begin
     Reparse;
     fText.Invalidate;
   end;
@@ -1691,7 +1690,6 @@ end;
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
 var
   lastWord:AnsiString;
-  M:TMemoryStream;
   st,currentStatement:PStatement;
   
 begin
@@ -1710,27 +1708,15 @@ begin
             ShowTabnineCompletion;
             Exit;
           end;
-          M := TMemoryStream.Create;
-          try
-            fText.Lines.SaveToStream(M);
-            {
-            if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
-              MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-              fLastParseTime := Now;
-            end;
-            }
-            st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
-            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
-              //expand macro
-              st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
-            end;
-            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
-              //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
-              ShowTabnineCompletion;
-              Exit;
-            end;
-          finally
-            M.Free;
+          st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
+          if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
+            //expand macro
+            st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
+          end;
+          if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+            ShowTabnineCompletion;
+            Exit;
           end;
         end;
         fText.SelText := Key;
@@ -2324,7 +2310,6 @@ var
   s: AnsiString;
   p: TBufferCoord;
   st: PStatement;
-  M: TMemoryStream;
   Reason: THandPointReason;
   IsIncludeLine: boolean;
   pError : pSyntaxError;
@@ -2483,39 +2468,25 @@ begin
   else
     fText.Cursor := crIBeam;
 
-  M := TMemoryStream.Create;
-  try
-    fText.Lines.SaveToStream(M);
-    {
-    if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
-      // Reparse whole file (not function bodies) if it has been modified
-      // use stream, don't read from disk (not saved yet)
-      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-      fLastParseTime := Now;
+  // Determine what to do with subject
+  case Reason of
+    hprPreprocessor: begin
+      if IsIncludeLine then
+        ShowFileHint
+      else if devEditor.ParserHints and not fCompletionBox.Visible then
+        ShowParserHint;
     end;
-    }
-    // Determine what to do with subject
-    case Reason of
-      hprPreprocessor: begin
-          if IsIncludeLine then
-            ShowFileHint
-          else if devEditor.ParserHints and not fCompletionBox.Visible then
-            ShowParserHint;
-        end;
-      hprIdentifier, hprSelection: begin
-          if not fCompletionBox.Visible  then begin
-            if MainForm.Debugger.Executing then
-              ShowDebugHint
-            else if devEditor.ParserHints then
-              ShowParserHint;
-          end;
-        end;
-      hprError : begin
-          ShowErrorHint;
-        end;
+    hprIdentifier, hprSelection: begin
+      if not fCompletionBox.Visible  then begin
+        if MainForm.Debugger.Executing then
+          ShowDebugHint
+        else if devEditor.ParserHints then
+          ShowParserHint;
+      end;
     end;
-  finally
-    M.Free;
+    hprError : begin
+      ShowErrorHint;
+    end;
   end;
 end;
 
@@ -2770,7 +2741,7 @@ begin
           Result := hprPreprocessor; // and preprocessor line if no selection is present
       end;
     end;
-  end; 
+  end;
 end;
 
 function TEditor.Save: boolean;
@@ -2808,7 +2779,8 @@ begin
       end;
 
       MainForm.CppParser.ParseFile(fFileName, InProject);
-      fLastParseTime:=Now;
+      fLastParseTime := Now;
+      fText.invalidate;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
 
@@ -2894,21 +2866,16 @@ begin
   end else
     fTabSheet.Caption := ExtractFileName(SaveFileName);
 
+  // Set new file name
+  FileName := SaveFileName;
+    
   // Update window captions
   MainForm.UpdateAppTitle;
 
   // Update class browser, redraw once
-  MainForm.ClassBrowser.BeginUpdate;
-  try
-    MainForm.CppParser.ParseFile(SaveFileName, InProject);
-    fLastParseTime:=Now;
-    MainForm.ClassBrowser.CurrentFile := SaveFileName;
-  finally
-    MainForm.ClassBrowser.EndUpdate;
-  end;
-
-  // Set new file name
-  FileName := SaveFileName;
+  MainForm.UpdateClassBrowserForEditor(self);
+  fLastParseTime := Now;
+  fText.Invalidate;
 end;
 
   procedure TEditor.LoadFile(FileName:String;DetectEncoding:bool=False);

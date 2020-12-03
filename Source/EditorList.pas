@@ -177,12 +177,6 @@ begin
       ParentPageControl := PageControl;
     Result := TEditor.Create(FileName, AutoDetectUTF8,InProject, NewFile, ParentPageControl);
 
-    {
-    //if it's not a new file, parse it
-    if (FileName <> '') then
-      MainForm.CppParser.ParseFile(FileName, InProject);
-    }
-
     // Force layout update when creating, destroying or moving editors
     UpdateLayout;
   finally
