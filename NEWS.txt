@@ -10,6 +10,9 @@ Version 6.2-beta5 Dec 2020
     - fix: undo error when copy multiline text
     - fix: crash when use Class wizard to add a new class to the project
     - fix: variables of string can't show type hints
+    - optimize: use typedef instead of define multiple structs 
+    - fix: can handle var define using unamed struct 
+    - optimize: all symbols are scanned. Don't later scan
 
 Version 6.2-beta4 Dec 2020
     
