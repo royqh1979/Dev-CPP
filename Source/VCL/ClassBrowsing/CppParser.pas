@@ -41,6 +41,7 @@ type
     { stack list , each element is a list of one/many scopes(like intypedef struct  s1,s2;}
     { It's used for store scope nesting infos }
     fCurrentScope: TList;  //TList<PStatement>
+    fCurrentClassScope: TList; // TList<TStatementClassScope>
     { the start index in tokens to skip to ; when parsing typedef struct we need to skip
       the names after the closing bracket because we have processed it }
     fSkipList: TList; // TList<Integer>
@@ -267,6 +268,7 @@ begin
   fIncompleteClasses.Duplicates := dupIgnore;
   //fMacroDefines := TList.Create;
   fCurrentScope := TList.Create;
+  fCurrentClassScope := TList.Create;
   fSkipList:= TList.Create;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
@@ -289,6 +291,7 @@ begin
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
   FreeAndNil(fCurrentScope);
+  FreeAndNil(fCurrentClassScope);
   FreeAndNil(fProjectFiles);
 
   for i:=0 to fIncludesList.Count - 1 do begin
@@ -872,19 +875,18 @@ end;
 function TCppParser.IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
 var
   Statement: PStatement;
-  //s:AnsiString;
+  s:AnsiString;
+  i:integer;
 begin
   Result := nil;
 
   Statement := GetCurrentScope;
-  {
   // remove template staff
   i:=Pos('<',command);
   if i>0 then
     s:=Copy(Command,1,i-1)
   else
     s:=Command;
-  }
   if Assigned(Statement) and SameStr(Command, Statement^._Command) then begin
     Result := Statement;
   end;
@@ -893,8 +895,22 @@ end;
 procedure TCppParser.AddSoloScopeLevel(Statement: PStatement; line:integer);
 var
   fileIncludes : PFileIncludes;
+  parentScope : PStatement;
 begin
   // Add class list
+
+  if Assigned(statement) and (statement^._Kind = skBlock) then begin
+    parentScope := statement^._ParentScope;
+    while Assigned(parentScope) and (parentScope^._Kind = skBlock) do
+      parentScope := parentScope^._ParentScope;
+    if not Assigned(parentScope) then
+      statement:=nil;
+  end;
+
+  if fCurrentClassScope.Count > 0 then begin
+    fCurrentClassScope[fCurrentClassScope.Count-1] := TObject(fClassScope);
+  end;
+
   fCurrentScope.Add(Statement);
 
   fileIncludes := FindFileIncludes(fCurrentFile);
@@ -903,17 +919,16 @@ begin
     fileIncludes.Scopes.AddObject(line,TObject(statement));
   end;
 
-
-
   // Set new scope
   if not Assigned(Statement) then
     fClassScope := scsNone // {}, namespace or class that doesn't exist
   else if Statement^._Kind = skNamespace then
     fClassScope := scsNone
-  else if Statement^._Kind = skClass then
+  else if (Statement^._Type = 'class') then
     fClassScope := scsPrivate // classes are private by default
   else
     fClassScope := scsPublic; // structs are public by default
+  fCurrentClassScope.Add(TObject(fClassScope));
 end;
 
 procedure TCppParser.RemoveScopeLevel(line:integer);
@@ -925,8 +940,7 @@ begin
   if fCurrentScope.Count = 0 then
     Exit; // TODO: should be an exception
   fCurrentScope.Delete(fCurrentScope.Count - 1);
-
-
+  fCurrentClassScope.Delete( fCurrentClassScope.Count -1);
 
   // Set new scope
   CurrentScope := GetCurrentScope;
@@ -937,12 +951,9 @@ begin
 
   if not Assigned(CurrentScope) then
     fClassScope := scsNone
-  else if CurrentScope^._Kind = skNamespace then
-    fClassScope := scsNone
-  else if (CurrentScope^._Type = 'class') then
-    fClassScope := scsPrivate // classes are private by default
-  else
-    fClassScope := scsPublic;
+  else begin
+    fClassScope :=  TStatementClassScope(fCurrentClassScope[fCurrentClassScope.Count-1]);
+  end;
 end;
 
 procedure TCppParser.SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
@@ -2213,9 +2224,27 @@ function TCppParser.HandleStatement: boolean;
 var
   S1, S2, S3: AnsiString;
   isStatic,isFriend: boolean;
+  block : PStatement;
 begin
   if fTokenizer[fIndex]^.Text[1] = '{' then begin
-    AddSoloScopeLevel(nil,fTokenizer[fIndex]^.Line);
+    block := AddStatement(
+        GetCurrentScope,
+        fCurrentFile,
+        '', // override hint
+        '',
+        '',
+        '',
+        '',
+        //fTokenizer[fIndex]^.Line,
+        fTokenizer[fIndex]^.Line,
+        skBlock,
+        GetScope,
+        fClassScope,
+        False,
+        True,
+        nil,
+        False);
+    AddSoloScopeLevel(block,fTokenizer[fIndex]^.Line);
     Inc(fIndex);
   end else if fTokenizer[fIndex]^.Text[1] = '}' then begin
     RemoveScopeLevel(fTokenizer[fIndex]^.Line);
@@ -2331,6 +2360,7 @@ begin
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentScope.Clear;
+    fCurrentClassScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
     if (not ManualUpdate) and Assigned(fOnEndParsing) then
@@ -2366,6 +2396,7 @@ begin
   fIncompleteClasses.Clear;
   fInvalidatedStatements.Clear;
   fCurrentScope.Clear;
+  fCurrentClassScope.Clear;
   fProjectFiles.Clear;
   fFilesToScan.Clear;
   if Assigned(fTokenizer) then
@@ -2796,6 +2827,7 @@ function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Row: integer)
 var
   fileIncludes: PFileIncludes;
   idx:integer;
+  statement:PStatement;
 begin
   Result := nil;
   if fParsing then
@@ -2804,7 +2836,21 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
+  with TStringList.Create do try
+    for idx:=0 to fileIncludes.Scopes.Count-1 do begin
+      statement:=PStatement(fileIncludes.Scopes.Objects[idx]);
+      if assigned(statement) then
+        Add(IntToStr(fileIncludes.Scopes[idx])+' : '+statement^._Command)
+      else
+        Add(IntToStr(fileIncludes.Scopes[idx])+' : ');
+    end;
+    SaveToFile('f:\scopes.txt');
+  finally
+    Free;
+  end;
   fileIncludes.Scopes.Find(row,idx);
+  if idx>=fileIncludes.Scopes.Count then
+    Exit;
   while (idx>=0) and (row < fileIncludes.Scopes[idx]) do
     dec(idx);
   if idx<0 then

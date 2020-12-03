@@ -176,6 +176,8 @@ type
     Scopes: TIntList; // List<Int,PStatement> int is start line of the statement scope
   end;
 
+const
+  ScopeTypeKinds : TStatementKindSet = [skClass,skNamespace,skFunction,skConstructor,skDestructor];
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
@@ -698,6 +700,11 @@ begin
   CppKeywords.Add('xor',Ord(skItself));
   CppKeywords.Add('xor_eq',Ord(skItself));
 
+  
+  CppKeywords.Add('catch',Ord(skItself));
+  CppKeywords.Add('do',Ord(skItself));
+  CppKeywords.Add('try',Ord(skItself));
+
   // Skip to ;
   CppKeywords.Add('delete',Ord(skToSemicolon));
   CppKeywords.Add('delete[]',Ord(skToSemicolon));
@@ -722,12 +729,10 @@ begin
   CppKeywords.Add('typeid',Ord(skToRightParenthesis));
   CppKeywords.Add('while',Ord(skToRightParenthesis));
 
-  // Skip to {
+  // Skip to }
   CppKeywords.Add('asm',Ord(skToRightBrace));
-  CppKeywords.Add('catch',Ord(skToLeftBrace));
-  CppKeywords.Add('do',Ord(skToLeftBrace));
   //CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
-  CppKeywords.Add('try',Ord(skToLeftBrace));
+  // Skip to {
 
   // wont handle
 

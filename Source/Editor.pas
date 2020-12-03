@@ -740,9 +740,10 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-
-  if fText.Lines.Count <> fLineCount then
+  if fText.Lines.Count <> fLineCount then begin
     Reparse;
+    fText.Invalidate;
+  end;
   fLineCount := fText.Lines.Count;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
@@ -2570,6 +2571,10 @@ var
   tc:TThemeColor;
   st: PStatement;
 begin
+  if token='' then
+    Exit;
+  if token[1] in ['{','}','(',')','[',']'] then
+    Exit;
   //selection
   if fText.SelAvail then begin
     if (attr = fText.Highlighter.IdentifierAttribute)
@@ -2580,6 +2585,7 @@ begin
       exit;
     end;
   end;
+
   //Syntax color is too slow, we don't do it now before we find a better solution
   if fCompletionBox.Visible then //don't do this when show
     Exit;

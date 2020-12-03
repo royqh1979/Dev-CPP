@@ -13,6 +13,7 @@ Version 6.2-beta5 Dec 2020
     - optimize: use typedef instead of define multiple structs 
     - fix: can handle var define using unamed struct 
     - optimize: all symbols are scanned. Don't later scan
+    - fix£ºparse error of keywords try/catch/do
 
 Version 6.2-beta4 Dec 2020
     
