@@ -444,7 +444,6 @@ function TCppTokenizer.GetWord(bSkipParenthesis: boolean = False; bSkipArray: bo
 var
   Offset: PAnsiChar;
   S: AnsiString;
-  tmp: integer;
 //  bIsSmartPointer: boolean;
   bFoundTemplate: boolean;
   function CurrentWordEquals(const Text : AnsiString) : Boolean;

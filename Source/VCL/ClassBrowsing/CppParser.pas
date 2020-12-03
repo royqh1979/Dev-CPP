@@ -40,7 +40,7 @@ type
     fCurrentFile: AnsiString;
     { stack list , each element is a list of one/many scopes(like intypedef struct  s1,s2;}
     { It's used for store scope nesting infos }
-    fCurrentScope: TList;  //TList<TList<PStatement>>
+    fCurrentScope: TList;  //TList<PStatement>
     { the start index in tokens to skip to ; when parsing typedef struct we need to skip
       the names after the closing bracket because we have processed it }
     fSkipList: TList; // TList<Integer>
@@ -81,7 +81,7 @@ type
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
-      Parents: TList;
+      Parent: PStatement;
       const FileName: AnsiString;
       const HintText: AnsiString;
       const aType: AnsiString; // "Type" is already in use
@@ -112,12 +112,10 @@ type
       InheritanceList: TList;
       isStatic: boolean): PStatement;
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
-    function GetLastCurrentScope: PStatement; // gets last item from last level
-    function GetCurrentScopeLevel: TList;
+    function GetCurrentScope: PStatement; // gets last item from last level
     function IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
     procedure AddSoloScopeLevel(Statement: PStatement); // adds new solo level
-    procedure AddMultiScopeLevel(StatementList: TList); // adds new multi level
-    procedure RemoveScopeLevel; // removes level
+    procedure RemoveScopeLevel(line:integer); // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
@@ -294,8 +292,6 @@ begin
   FreeAndNil(fIncompleteClasses);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fInvalidatedStatements);
-  for i:=0 to fCurrentScope.Count-1 do
-    TList(fCurrentScope[i]).Free;  
   FreeAndNil(fCurrentScope);
   FreeAndNil(fProjectFiles);
   FreeAndNil(fTempStatements);
@@ -305,6 +301,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
   FreeAndNil(fIncludesList);
@@ -426,7 +423,6 @@ end;
 function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
   PStatement;
 var
-  Statement: PStatement;
   I,idx:integer;
   key:string;
   incompleteClass : PIncompleteClass;
@@ -541,7 +537,6 @@ var
   key,s:string;
   I,p: integer;
   incompleteClass:PIncompleteClass;
-  Statement,ParentStatement:PStatement;
 begin
   // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
   {
@@ -572,7 +567,7 @@ begin
 end;
 
 function TCppParser.AddChildStatement(
-  Parents: TList;
+  Parent: PStatement;
   const FileName: AnsiString;
   const HintText: AnsiString;
   const aType: AnsiString; // "Type" is already in use
@@ -586,14 +581,10 @@ function TCppParser.AddChildStatement(
   FindDeclaration: boolean;
   IsDefinition: boolean;
   isStatic: boolean): PStatement;
-var
-  I: integer;
 begin
   Result := nil;
-  if Assigned(Parents) then begin
-    for I := 0 to Parents.Count - 1 do
       Result := AddStatement(
-        Parents[i],
+        Parent,
         FileName,
         HintText,
         aType,
@@ -608,24 +599,6 @@ begin
         IsDefinition,
         nil,
         isStatic);
-  end else begin
-    Result := AddStatement(
-      nil,
-      FileName,
-      HintText,
-      aType,
-      Command,
-      Args,
-      Value,
-      Line,
-      Kind,
-      Scope,
-      ClassScope,
-      FindDeclaration,
-      IsDefinition,
-      nil,
-      isStatic);
-  end;
 end;
 
 function TCppParser.GetFullStatementName(command:String; parent:PStatement):string;
@@ -680,7 +653,6 @@ var
   var
     i: integer;
     NamespaceList: TList;
-    scopeStatement: PStatement;
     fileIncludes:PFileIncludes;
   begin
     Result := New(PStatement);
@@ -900,64 +872,24 @@ begin
   }
 end;
 
-function TCppParser.GetLastCurrentScope: PStatement;
-var
-  CurrentScope: TList;
-  t:integer;
+function TCppParser.GetCurrentScope: PStatement;
 begin
   if fCurrentScope.Count = 0 then begin
     Result := nil;
     Exit;
   end;
 
-  Result := nil;
-  t:=fCurrentScope.Count - 1;
-  while t>=0 do begin
-    // Get current classes at same level
-    CurrentScope := fCurrentScope[t];
-
-    // Pick last none null one
-    if CurrentScope.Count > 0 then begin
-      Result := CurrentScope[CurrentScope.Count -1];
-      break;
-    end;
-    dec(t);
-  end;
-end;
-
-function TCppParser.GetCurrentScopeLevel: TList;
-var
-  t:integer;
-  scope: TList;
-begin
-  if fCurrentScope.Count = 0 then begin
-    Result := nil;
-    Exit;
-  end;
-  Result := nil;
-  t:=fCurrentScope.Count - 1;
-  while t>=0 do begin
-    // Get current classes at same level
-    Scope := fCurrentScope[t];
-
-    // Pick last none null one
-    if Scope.Count > 0 then begin
-      Result := Scope;
-      break;
-    end;
-    dec(t);
-  end;
+  Result := PStatement(fCurrentScope[fCurrentScope.Count - 1]);
 end;
 
 function TCppParser.IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
 var
-  CurrentScopeLevel: TList;
-  I: integer;
   Statement: PStatement;
   //s:AnsiString;
 begin
   Result := nil;
-  CurrentScopeLevel := GetCurrentScopeLevel;
+
+  Statement := GetCurrentScope;
   {
   // remove template staff
   i:=Pos('<',command);
@@ -966,91 +898,64 @@ begin
   else
     s:=Command;
   }
-  if Assigned(CurrentScopeLevel) then begin
-    for I := 0 to CurrentScopeLevel.Count - 1 do begin
-      Statement := CurrentScopeLevel[i];
-      if Assigned(Statement) and SameStr(Command, Statement^._Command) then begin
-        Result := Statement;
-        Break;
-      end;
-    end;
+  if Assigned(Statement) and SameStr(Command, Statement^._Command) then begin
+    Result := Statement;
   end;
 end;
 
 procedure TCppParser.AddSoloScopeLevel(Statement: PStatement);
 var
-  NewLevel: TList;
+  fileIncludes : PFileIncludes;
 begin
   // Add class list
-  NewLevel := TList.Create;
-  if Assigned(Statement) then
-    NewLevel.Add(Statement);
-  fCurrentScope.Add(NewLevel);
+  fCurrentScope.Add(Statement);
+
+  fileIncludes := FindFileIncludes(fCurrentFile);
+
+  if assigned(fileIncludes) then begin
+    fileIncludes.Scopes.AddObject(Statement^._DefinitionLine,TObject(statement));
+  end;
+
+
 
   // Set new scope
   if not Assigned(Statement) then
     fClassScope := scsNone // {}, namespace or class that doesn't exist
   else if Statement^._Kind = skNamespace then
     fClassScope := scsNone
-  else if Statement^._Type = 'class' then
+  else if Statement^._Kind = skClass then
     fClassScope := scsPrivate // classes are private by default
   else
     fClassScope := scsPublic; // structs are public by default
 end;
 
-procedure TCppParser.AddMultiScopeLevel(StatementList: TList);
+procedure TCppParser.RemoveScopeLevel(line:integer);
 var
-  Statement: PStatement;
-  ListCopy: TList;
-begin
-  // Add list to list
-  ListCopy := TList.Create;
-  ListCopy.Assign(StatementList);
-  fCurrentScope.Add(ListCopy);
-
-  // Check scope of first one
-  if StatementList.Count > 0 then
-    Statement := StatementList[0]
-  else
-    Statement := nil;
-
-  // Set new scope
-  if Statement = nil then
-    fClassScope := scsNone // {}, namespace or class that doesn't exist
-  else if Statement^._Kind = skNamespace then
-    fClassScope := scsNone
-  else if Statement^._Type = 'class' then
-    fClassScope := scsPrivate // classes are private by default
-  else
-    fClassScope := scsPublic; // structs are public by default
-end;
-
-procedure TCppParser.RemoveScopeLevel;
-var
-  CurrentLevel: TList;
   CurrentScope: PStatement;
+  fileIncludes: PFileIncludes;
 begin
   // Remove class list
   if fCurrentScope.Count = 0 then
     Exit; // TODO: should be an exception
-  TList(fCurrentScope[fCurrentScope.Count - 1]).Free;
   fCurrentScope.Delete(fCurrentScope.Count - 1);
 
+
+
   // Set new scope
-  CurrentLevel := GetCurrentScopeLevel;
-  if not Assigned(CurrentLevel) then begin
-    fClassScope := scsNone // no classes or structs remaining
-  end else begin
-    CurrentScope := GetLastCurrentScope;
-    if not Assigned(CurrentScope) then
-      fClassScope := scsNone
-    else if CurrentScope^._Kind = skNamespace then
-      fClassScope := scsNone
-    else if (CurrentScope^._Type = 'class') then
-      fClassScope := scsPrivate // classes are private by default
-    else
-      fClassScope := scsPublic;
+  CurrentScope := GetCurrentScope;
+  fileIncludes:=FindFileIncludes(fCurrentFile);
+  if assigned(fileIncludes) then begin
+    fileIncludes.Scopes.AddObject(line,TObject(CurrentScope));
   end;
+
+  if not Assigned(CurrentScope) then
+    fClassScope := scsNone
+  else if CurrentScope^._Kind = skNamespace then
+    fClassScope := scsNone
+  else if (CurrentScope^._Type = 'class') then
+    fClassScope := scsPrivate // classes are private by default
+  else
+    fClassScope := scsPublic;
 end;
 
 procedure TCppParser.SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
@@ -1111,7 +1016,7 @@ begin
   end;
 
   // Don't blindly trust levels. Namespaces and externs can have levels too
-  CurrentScope := GetLastCurrentScope;
+  CurrentScope := GetCurrentScope;
 
   // Invalid class or namespace/extern
   if not Assigned(CurrentScope) or (CurrentScope^._Kind = skNamespace) then
@@ -1227,7 +1132,6 @@ end;
 function TCppParser.CheckForMethod(var sType, sName, sArgs: AnsiString;
   var isStatic:boolean;var IsFriend:boolean): boolean;
 var
-  CurrentScopeLevel: TList;
   fIndexBackup, DelimPos,pos1: integer;
   bTypeOK, bNameOK, bArgsOK: boolean;
   s:AnsiString;
@@ -1287,13 +1191,10 @@ begin
 
       // Are we inside a class body?
       if not bTypeOK then begin
-        CurrentScopeLevel := GetCurrentScopeLevel;
-        if Assigned(CurrentScopeLevel) then begin
-          sType := fTokenizer[fIndex]^.Text;
-          if sType[1] = '~' then
-            Delete(sType, 1, 1);
-          bTypeOK := Assigned(IsInCurrentScopeLevel(sType)); // constructor/destructor
-        end;
+        sType := fTokenizer[fIndex]^.Text;
+        if sType[1] = '~' then
+          Delete(sType, 1, 1);
+        bTypeOK := Assigned(IsInCurrentScopeLevel(sType)); // constructor/destructor
       end;
       break;
 
@@ -1448,7 +1349,7 @@ begin
           if p <> 0 then
             NewType := Copy(NewType,p+1,Length(NewType)-p);
           AddStatement(
-            GetLastCurrentScope,
+            GetCurrentScope,
             fCurrentFile,
             'typedef ' + OldType + ' ' + fTokenizer[fIndex]^.Text + ' ' + fTokenizer[fIndex + 1]^.Text, // do not override hint
             OldType,
@@ -1478,7 +1379,7 @@ begin
         NewType := NewType + fTokenizer[fIndex]^.Text + ' ';
         NewType := TrimRight(NewType);
         AddStatement(
-          GetLastCurrentScope,
+          GetCurrentScope,
           fCurrentFile,
           'typedef ' + OldType + ' ' + NewType, // override hint
           OldType,
@@ -1594,7 +1495,7 @@ begin
     Exit;
   end;
   Inc(fIndex);  // skip namespace
-  scopeStatement:=GetLastCurrentScope;
+  scopeStatement:=GetCurrentScope;
 
   usingName := fTokenizer[fIndex]^.Text;
   inc(fIndex);
@@ -1639,7 +1540,7 @@ begin
     aliasName:=fTokenizer[fIndex+1].Text;
     //namespace alias
     AddStatement(
-      GetLastCurrentScope,
+      GetCurrentScope,
       fCurrentFile,
       '', // do not override hint
       aliasName, // name of the alias namespace
@@ -1658,7 +1559,7 @@ begin
     inc(fIndex,2); //skip ;
   end else begin
     NamespaceStatement := AddStatement(
-      GetLastCurrentScope,
+      GetCurrentScope,
       fCurrentFile,
       '', // do not override hint
       '', // type
@@ -1688,8 +1589,7 @@ var
   I: integer;
   IsStruct: boolean;
   IsFriend: boolean;
-  ParentStatement,FirstSynonym, LastStatement: PStatement;
-  SharedInheritance, NewScopeLevel: TList;
+  ParentStatement,FirstSynonym: PStatement;
   startLine: integer;
 begin
   IsFriend := False;
@@ -1721,7 +1621,7 @@ begin
         if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in [',', ';']) then begin
           NewType := fTokenizer[fIndex]^.Text;
           AddStatement(
-            GetLastCurrentScope,
+            GetCurrentScope,
             fCurrentFile,
             'typedef ' + Prefix + ' ' + OldType + ' ' + NewType, // override hint
             OldType,
@@ -1744,7 +1644,7 @@ begin
       // Forward declaration, struct Foo. Don't mention in class browser
     end else begin
       if IsFriend then begin
-        ParentStatement := GetLastCurrentScope;
+        ParentStatement := GetCurrentScope;
         if Assigned(ParentStatement) then begin
           if not Assigned(ParentStatement^._Friends) then
             ParentStatement^._Friends:=TStringHash.Create;
@@ -1767,7 +1667,7 @@ begin
           Command := fTokenizer[fIndex]^.Text;
           if (Command <> '') then begin //todo: how to handle unamed struct variables define, like struct { int x;} s; ?
             FirstSynonym := AddStatement(
-              GetLastCurrentScope,
+              GetCurrentScope,
               fCurrentFile,
               '', // do not override hint
               Prefix, // type
@@ -1811,29 +1711,25 @@ begin
       if (I + 1 < fTokenizer.Tokens.Count) and not (fTokenizer[I + 1]^.Text[1] in [';', '}']) then begin
         Command := '';
 		    Args:='';
-        NewScopeLevel := TList.Create;
-        try
           // Add synonym before opening brace
-          if Assigned(FirstSynonym) then
-            NewScopeLevel.Add(FirstSynonym);
-          repeat
-            Inc(I);
+        repeat
+          Inc(I);
 
-            if not (fTokenizer[I]^.Text[1] in ['{', ',', ';']) then begin
-              if (fTokenizer[I]^.Text[1] = '_') and (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] = '_') then begin
-                // skip possible gcc attributes
-                // start and end with 2 underscores (i.e. __attribute__)
-                // so, to avoid slow checks of strings, we just check the first and last letter of the token
-                // if both are underscores, we split
-                Break;
-              end else begin
-                if (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] = ']') then begin // cut-off array brackets
-                  Command := Command + Copy(fTokenizer[I]^.Text, 1, Pos('[', fTokenizer[I]^.Text) - 1) + ' ';
-                  Args := Copy(fTokenizer[I]^.Text, Pos('[', fTokenizer[I]^.Text),MaxInt);
-                end else if fTokenizer[I]^.Text[1] in ['*', '&'] then // do not add spaces after pointer operator
-                  Command := Command + fTokenizer[I]^.Text
-                else
-                  Command := Command + fTokenizer[I]^.Text + ' ';
+          if not (fTokenizer[I]^.Text[1] in ['{', ',', ';']) then begin
+            if (fTokenizer[I]^.Text[1] = '_') and (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] = '_') then begin
+              // skip possible gcc attributes
+              // start and end with 2 underscores (i.e. __attribute__)
+              // so, to avoid slow checks of strings, we just check the first and last letter of the token
+              // if both are underscores, we split
+              Break;
+            end else begin
+              if (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] = ']') then begin // cut-off array brackets
+                Command := Command + Copy(fTokenizer[I]^.Text, 1, Pos('[', fTokenizer[I]^.Text) - 1) + ' ';
+                Args := Copy(fTokenizer[I]^.Text, Pos('[', fTokenizer[I]^.Text),MaxInt);
+              end else if fTokenizer[I]^.Text[1] in ['*', '&'] then // do not add spaces after pointer operator
+                Command := Command + fTokenizer[I]^.Text
+              else
+                Command := Command + fTokenizer[I]^.Text + ' ';
               end;
             end else begin
               Command := TrimRight(Command);
@@ -1842,33 +1738,47 @@ begin
                   (not assigned(FirstSynonym)) or
                   (not SameStr(Command,FirstSynonym^._Command))
                 ) then begin
-                if Assigned(FirstSynonym) then begin
-                  SharedInheritance := TList.Create;
-          	      SharedInheritance.Assign(FirstSynonym^._InheritanceList);
-          		  end else
-                  SharedInheritance := nil;
+                //not define the struct yet, we define a unamed struct
+                if not assigned(FirstSynonym) then begin
+                    FirstSynonym := AddStatement(
+                      GetCurrentScope,
+                      fCurrentFile,
+                      '', // do not override hint
+                      Prefix,
+                      '__'+Command,
+                      '',
+                      '',
+                      startLine,
+                      skClass,
+                      GetScope,
+                      fClassScope,
+                      False,
+                      True,
+                      TList.Create,
+                      False);
+                end;
                 if isTypeDef then begin
-                  LastStatement := AddStatement(
-                    GetLastCurrentScope,
+                  //typedef
+                  AddStatement(
+                    GetCurrentScope,
                     fCurrentFile,
-                    '', // do not override hint
-                    Prefix,
+                    'typedef ' + FirstSynonym^._Command + ' ' + Command, // override hint
+                    FirstSynonym^._Command,
                     Command,
                     '',
                     '',
-                    //fTokenizer[I]^.Line,
-                    startLine,
-                    skClass,
+                    fTokenizer[fIndex]^.Line,
+                    skTypedef,
                     GetScope,
                     fClassScope,
                     False,
                     True,
-                    SharedInheritance,
-                    False); // all synonyms inherit from the same statements
-                  NewScopeLevel.Add(LastStatement);
-                end else if assigned(FirstSynonym) then begin
-                  LastStatement := AddStatement(
-                    GetLastCurrentScope,
+                    nil,
+                    False); // typedef
+                end else begin
+                  //variable define
+                  AddStatement(
+                    GetCurrentScope,
                     fCurrentFile,
                     '', // do not override hint
                     FirstSynonym^._Command,
@@ -1887,27 +1797,13 @@ begin
               end;
               Command := '';
             end;
-          until (I >= fTokenizer.Tokens.Count - 1) or (fTokenizer[I]^.Text[1] in ['{', ';']);
-
-          // Set current class level
-          AddMultiScopeLevel(NewScopeLevel);
-        finally
-          NewScopeLevel.Free;
-        end;
+        until (I >= fTokenizer.Tokens.Count - 1) or (fTokenizer[I]^.Text[1] in ['{', ';']);
 
         // Nothing worth mentioning after closing brace
         // Proceed to set first synonym as current class
-	  end else
-        AddSoloScopeLevel(FirstSynonym);
-	{
-      end else if Assigned(FirstSynonym) then
-        AddSoloScopeLevel(FirstSynonym);
-	}
-
-      // Classes do not have synonyms after the brace
-      // Proceed to set first synonym as current class
-    end else
-      AddSoloScopeLevel(FirstSynonym);
+      end;
+    end;
+    AddSoloScopeLevel(FirstSynonym);
 
     // Step over {
     if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '{') then
@@ -1921,7 +1817,7 @@ var
   I, DelimPos: integer;
   FunctionKind: TStatementKind;
   ParentClassName, ScopelessName: AnsiString;
-  FunctionClass: PStatement;
+  FunctionClass, FunctionStatement: PStatement;
   startLine : integer;
 
 begin
@@ -1937,7 +1833,7 @@ begin
   if (fIndex >= fTokenizer.Tokens.Count) then // not finished define, just skip it;
     Exit;
 
-  FunctionClass := GetLastCurrentScope;
+  FunctionClass := GetCurrentScope;
   // Check if this is a prototype
   if (fTokenizer[fIndex]^.Text[1] in [';', '}']) then begin // prototype
     IsDeclaration := True;
@@ -1986,7 +1882,7 @@ begin
 
       // Check what class this function belongs to
       ParentClassName := Copy(sName, 1, DelimPos - 1);
-      FunctionClass := GetIncompleteClass(ParentClassName, GetLastCurrentScope);
+      FunctionClass := GetIncompleteClass(ParentClassName, GetCurrentScope);
     end else
       ScopelessName := sName;
 
@@ -2000,7 +1896,7 @@ begin
 
     // For function definitions, the parent class is given. Only use that as a parent
     if not IsDeclaration then
-      AddStatement(
+      FunctionStatement:=AddStatement(
         FunctionClass,
         fCurrentFile,
         '', // do not override hint
@@ -2020,8 +1916,8 @@ begin
 
       // For function declarations, any given statement can belong to multiple typedef names
     else
-      AddChildStatement(
-        GetCurrentScopeLevel,
+      FunctionStatement:=AddChildStatement(
+        GetCurrentScope,
         fCurrentFile,
         '', // do not override hint
         sType,
@@ -2038,10 +1934,10 @@ begin
         IsStatic);
   end;
 
-  // Don't parse the function's block now... It will be parsed when user presses ctrl+space inside it ;)
-  if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '{') then
-    fIndex := SkipBraces(fIndex) + 1 // add 1 so that '}' is not visible to parser
-  else if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ';') then
+  if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '{') then begin
+    AddSoloScopeLevel(FunctionStatement);
+    inc(fIndex); //skip '{'
+  end else if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ';') then
     Inc(fIndex);
   if I = fIndex then // if not moved ahead, something is wrong but don't get stuck ;)
     if fIndex < fTokenizer.Tokens.Count then
@@ -2211,7 +2107,7 @@ begin
 
         // Add a statement for every struct we are in
         AddChildStatement(
-          GetCurrentScopeLevel,
+          GetCurrentScope,
           fCurrentFile,
           '', // do not override hint
           LastType,
@@ -2274,7 +2170,7 @@ begin
   // Add statement for enum name too
   if EnumName <> '' then
     AddStatement(
-      GetLastCurrentScope,
+      GetCurrentScope,
       fCurrentFile,
       '', // do not override hint
       'enum',
@@ -2307,7 +2203,7 @@ begin
         Args := '';
       end;
       AddStatement(
-        GetLastCurrentScope,
+        GetCurrentScope,
         fCurrentFile,
         LastType + ' ' + fTokenizer[fIndex]^.Text, // override hint
         LastType,
@@ -2341,7 +2237,7 @@ begin
     AddSoloScopeLevel(nil);
     Inc(fIndex);
   end else if fTokenizer[fIndex]^.Text[1] = '}' then begin
-    RemoveScopeLevel;
+    RemoveScopeLevel(fTokenizer[fIndex]^.Line);
     Inc(fIndex);
   end else if CheckForPreprocessor then begin
     HandlePreprocessor;
@@ -2380,8 +2276,6 @@ end;
 
 procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream =
   nil);
-var
-  i: integer;
 begin
   // Perform some validation before we start
   if not fEnabled then
@@ -2449,14 +2343,12 @@ begin
     repeat
     until not HandleStatement;
    //fTokenizer.DumpTokens('f:\tokens.txt');
-   //Statements.DumpTo('f:\stats.txt');
-   //Statements.DumpWithScope('f:\\statements.txt');
+   Statements.DumpTo('f:\stats.txt');
+   Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
-    for i:=0 to fCurrentScope.Count-1 do
-      TList(fCurrentScope[i]).Free;
     fCurrentScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
@@ -2492,8 +2384,6 @@ begin
   end;
   fIncompleteClasses.Clear;
   fInvalidatedStatements.Clear;
-  for i:=0 to fCurrentScope.Count-1 do
-    TList(fCurrentScope[i]).Free;
   fCurrentScope.Clear;
   fProjectFiles.Clear;
   fTempStatements.Clear;
@@ -2514,6 +2404,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
   fIncludesList.Clear;
@@ -2805,6 +2696,7 @@ begin
     end;
     PFileIncludes(P)^.DeclaredStatements.Free;
     PFileIncludes(P)^.Statements.Free;
+    PFileIncludes(P)^.Scopes.Free;
     Dispose(PFileIncludes(P));
   end;
 
@@ -3145,7 +3037,7 @@ begin
           AddSoloScopeLevel(nil);
           Inc(fIndex);
         end else if fTokenizer[fIndex]^.Text[1] = '}' then begin
-          RemoveScopeLevel;
+          RemoveScopeLevel(fTokenizer[fIndex]^.Line);
           Inc(fIndex);
           if fCurrentScope.Count = 0 then
             Break; // we've gone out of scope

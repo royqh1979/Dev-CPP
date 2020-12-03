@@ -125,9 +125,7 @@ type
     _ClassScope: TStatementClassScope; // protected/private/public
     _HasDefinition: boolean; // definiton line/filename is valid
     _Line: integer; // declaration
-    _EndLine: integer; 
     _DefinitionLine: integer; // definition
-    _DefinitionEndLine: integer;
     _FileName: AnsiString; // declaration
     _DefinitionFileName: AnsiString; // definition
     _Temporary: boolean; // statements to be deleted after parsing
@@ -175,7 +173,8 @@ type
     IncludeFiles: TStringList; // "file","file" etc
     Usings: TDevStringList; // namespaces it usings
     Statements: TList; // List<PStatement> , but we don't save temporary statements
-    DeclaredStatements: TList; // List<PStatement> statement declared in this file 
+    DeclaredStatements: TList; // List<PStatement> statement declared in this file
+    Scopes: TIntList; // List<Int,PStatement> int is start line of the statement scope
   end;
 
 var
