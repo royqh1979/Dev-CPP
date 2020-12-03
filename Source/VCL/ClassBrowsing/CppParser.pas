@@ -3338,7 +3338,7 @@ var
   OperatorToken: AnsiString;
   currentNamespace, CurrentClassType ,Statement, MemberStatement, TypeStatement: PStatement;
   i,idx: integer;
-  namespaceName, memberName,NextScopeWord,remainder : AnsiString;
+  namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin
   Result := nil;
@@ -3350,7 +3350,7 @@ begin
     idx:=FastIndexOf(fNamespaces,namespaceName) ;
     namespaceList := TList(fNamespaces.Objects[idx]);
 
-    if memberName = '' then begin
+    if remainder = '' then begin
       Result := namespaceList[0];
       Exit;
     end;
