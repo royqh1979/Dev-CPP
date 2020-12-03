@@ -82,6 +82,7 @@ type
     fText: TSynEdit;
     fTabSheet: TTabSheet;
     fGutterClickedLine: integer;
+    fLineCount : integer;
     fErrorLine: integer;
     fActiveLine: integer;
     fDebugGutter: TDebugGutter;
@@ -325,6 +326,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
   fLastParseTime := 0;
@@ -1793,10 +1795,6 @@ begin
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
         end;
-        //pre parsing when line end;
-        if (fText.LineText<>'') then begin
-          ReParse;
-        end;
       end;
     VK_ESCAPE: begin // Update function tip
         fLastPressedIsIdChar:=False;
@@ -3125,7 +3123,6 @@ var
   lineNo:integer;
   lst:TList;
 begin
-  ReParse;
   newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
@@ -3175,7 +3172,6 @@ var
   i:integer;
   lineNo:integer;
 begin
-  ReParse;
   newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
