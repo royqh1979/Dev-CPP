@@ -125,7 +125,9 @@ type
     _ClassScope: TStatementClassScope; // protected/private/public
     _HasDefinition: boolean; // definiton line/filename is valid
     _Line: integer; // declaration
+    _EndLine: integer; 
     _DefinitionLine: integer; // definition
+    _DefinitionEndLine: integer;
     _FileName: AnsiString; // declaration
     _DefinitionFileName: AnsiString; // definition
     _Temporary: boolean; // statements to be deleted after parsing

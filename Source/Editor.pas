@@ -174,6 +174,7 @@ type
     //procedure TextWindowProc(var Message: TMessage);
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
+    procedure Reparse;
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
     destructor Destroy; override;
@@ -1706,10 +1707,12 @@ begin
           M := TMemoryStream.Create;
           try
             fText.Lines.SaveToStream(M);
+            {
             if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
               MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
               fLastParseTime := Now;
             end;
+            }
             st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, Text.CaretXY.Line, M);
             if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
               //expand macro
@@ -1768,23 +1771,6 @@ var
     end;
   end;
 
-  
-  procedure PreParse;
-  var
-    M: TMemoryStream;
-  begin
-    M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-      // Reparse whole file (not function bodies) if it has been modified
-      // use stream, don't read from disk (not saved yet)
-      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-      fLastParseTime := Now;
-    finally
-      M.Free;
-    end;
-  end;
-    
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1807,10 +1793,9 @@ begin
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
         end;
-        //pre parsing when #Include finised
-        if (fText.LineText<>'')
-          and StartsStr('#include',fText.LineText) then begin
-          PreParse;
+        //pre parsing when line end;
+        if (fText.LineText<>'') then begin
+          ReParse;
         end;
       end;
     VK_ESCAPE: begin // Update function tip
@@ -2002,10 +1987,12 @@ begin
 
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
+    {
     if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
       MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
       fLastParseTime := Now;
     end;
+    }
 
     // Scan the current function body
     fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
@@ -2516,12 +2503,14 @@ begin
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
+    {
     if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
       // Reparse whole file (not function bodies) if it has been modified
       // use stream, don't read from disk (not saved yet)
       MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
       fLastParseTime := Now;
     end;
+    }
     // Determine what to do with subject
     case Reason of
       hprPreprocessor: begin
@@ -3136,6 +3125,7 @@ var
   lineNo:integer;
   lst:TList;
 begin
+  ReParse;
   newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
@@ -3162,12 +3152,30 @@ begin
   MainForm.CaretList.LinesDeleted(self,firstLine,count);
 end;
 
+procedure TEditor.Reparse;
+var
+  M: TMemoryStream;
+begin
+  M := TMemoryStream.Create;
+  try
+    fText.Lines.SaveToStream(M);
+    // Reparse whole file (not function bodies) if it has been modified
+    // use stream, don't read from disk (not saved yet)
+    MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+    fLastParseTime := Now;
+  finally
+    M.Free;
+  end;
+end;
+
+
 procedure TEditor.LinesInserted(FirstLine,Count:integer);
 var
   newList:TIntList;
   i:integer;
   lineNo:integer;
 begin
+  ReParse;
   newList:=TIntList.Create;
   try
     for i:=0 to fErrorList.Count-1 do begin
