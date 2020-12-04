@@ -1503,7 +1503,7 @@ begin
   ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
 
   //Set CompletionBox Color
-  strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
+  strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
   if tc.Background = dmMain.Cpp.WhitespaceAttribute.Background then begin
     strToThemeColor(tc, devEditor.Syntax.Values[cAl]);
   end;
@@ -3522,8 +3522,12 @@ begin
       SetPath(devCompilerSets.CompilationSet.BinDir[0])
     else begin
       LogEntryProc(Format(Lang[ID_LOG_NOBINDIRABORT], [devCompilerSets.CompilationSet.Name]));
+      MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
       Exit; // returns false
     end;
+  end else begin
+   // MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
+    Exit;  
   end;
 
   // Determine what to compile

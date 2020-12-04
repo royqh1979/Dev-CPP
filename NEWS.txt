@@ -24,6 +24,7 @@ Version 6.2-beta5 Dec 2020
     - fix: change the way to handel the request to close all editors. Don't active any editor at all. This will speed up the process, and hope this will remove the bug that devcpp crashes when closing all editors.
     - fix: Redo the logic to parse local symbols. Now we only reparse the file when open/save a file, or text lines count is changed. This will remove the bugs that hangs devcpp when try to show mouse hint.
     - enhancement: correctly parse variables defined in for() and catch()
+    - fix: devcpp error when no compiler set
 
 Version 6.2-beta4 Dec 2020
     
