@@ -1930,6 +1930,11 @@ begin
     AddSoloScopeLevel(FunctionStatement,startLine);
     inc(fIndex); //skip '{'
   end else if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ';') then
+    AddSoloScopeLevel(FunctionStatement,startLine);
+    if (fTokenizer[fIndex]^.Line <> startLine) then
+      RemoveScopeLevel(fTokenizer[fIndex]^.Line+1)
+    else
+      RemoveScopeLevel(startLine+1);
     Inc(fIndex);
   if I = fIndex then // if not moved ahead, something is wrong but don't get stuck ;)
     if fIndex < fTokenizer.Tokens.Count then
