@@ -50,7 +50,7 @@ type
     function IsFileOpened(const FileName: AnsiString):boolean;
     function GetPreviousEditor(Editor: TEditor): TEditor;
     procedure ForceCloseEditor(Editor: TEditor); // close, no questions asked
-    function CloseEditor(Editor: TEditor): Boolean;
+    function CloseEditor(Editor: TEditor; transferFocus:boolean = True): Boolean;
     function CloseAll: boolean;
     function CloseAllButThis: boolean;
     function SwapEditor(Editor: TEditor): boolean;
@@ -309,7 +309,7 @@ begin
   end;
 end;
 
-function TEditorList.CloseEditor(Editor: TEditor): Boolean;
+function TEditorList.CloseEditor(Editor: TEditor; transferFocus:boolean): Boolean;
 var
   projindex: integer;
   PrevEditor: TEditor;
@@ -329,8 +329,10 @@ begin
     end;
   end;
 
+  PrevEditor := nil;
   // Select editor to open when this one closes
-  PrevEditor := GetPreviousEditor(Editor);
+  if transferFocus and (Editor.PageControl.activePage = Editor.TabSheet)then
+    PrevEditor := GetPreviousEditor(Editor);
 
   BeginUpdate;
   try
@@ -357,6 +359,8 @@ begin
 end;
 
 function TEditorList.CloseAll: boolean;
+var
+  e:TEditor;
 begin
   Result := False;
 
@@ -364,13 +368,14 @@ begin
   BeginUpdate;
   try
     // Keep closing the first one to prevent redrawing
+    e:=GetEditor(-1,fLeftPageControl);
     while fLeftPageControl.PageCount > 0 do
-      if not CloseEditor(GetEditor(0, fLeftPageControl)) then
+      if not CloseEditor(GetEditor(0, fLeftPageControl),False) then
         Exit;
 
     // Same for the right page control
     while fRightPageControl.PageCount > 0 do
-      if not CloseEditor(GetEditor(0, fRightPageControl)) then
+      if not CloseEditor(GetEditor(0, fRightPageControl),False) then
         Exit;
   finally
     EndUpdate;
@@ -394,7 +399,7 @@ begin
     for I := fLeftPageControl.PageCount - 1 downto 0 do begin
       Editor := GetEditor(I, fLeftPageControl);
       if Assigned(Editor) and (Editor <> ActiveEditor) then
-        if not CloseEditor(Editor) then
+        if not CloseEditor(Editor,False) then
           Exit;
     end;
 
@@ -403,7 +408,7 @@ begin
     for I := fRightPageControl.PageCount - 1 downto 0 do begin
       Editor := GetEditor(I, fRightPageControl);
       if Assigned(Editor) and (Editor <> ActiveEditor) then
-        if not CloseEditor(Editor) then
+        if not CloseEditor(Editor,False) then
           Exit;
     end;
   finally

@@ -1016,13 +1016,13 @@ begin
   fToolbarEditX := 138;
   fToolbarEditY := 2;
   fToolbarCompile := TRUE;
-  fToolbarCompileX := 209;
+  fToolbarCompileX := 245;
   fToolbarCompileY := 2;
   fToolbarDebug := TRUE;
-  fToolbarDebugX := 335;
+  fToolbarDebugX := 371;
   fToolbarDebugY := 2;
   fToolbarCompilers := TRUE;
-  fToolbarCompilersX := 554;
+  fToolbarCompilersX := 590;
   fToolbarCompilersY := 2;
   fToolbarSearch := FALSE;
   fToolbarSearchX := 11;

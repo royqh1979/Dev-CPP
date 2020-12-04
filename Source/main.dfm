@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 650
-  Top = 192
+  Left = 1135
+  Top = 200
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -651,7 +651,7 @@ object MainForm: TMainForm
       end
     end
     object tbCompile: TToolBar
-      Left = 209
+      Left = 245
       Top = 2
       Width = 113
       Height = 28
@@ -732,7 +732,7 @@ object MainForm: TMainForm
     object tbEdit: TToolBar
       Left = 138
       Top = 2
-      Width = 58
+      Width = 94
       Height = 28
       ButtonHeight = 28
       ButtonWidth = 28
@@ -755,6 +755,19 @@ object MainForm: TMainForm
         Left = 28
         Top = 0
         Action = actForward
+      end
+      object ToolButton26: TToolButton
+        Left = 56
+        Top = 0
+        Width = 8
+        Caption = 'ToolButton26'
+        ImageIndex = 71
+        Style = tbsSeparator
+      end
+      object ReformatBtn: TToolButton
+        Left = 64
+        Top = 0
+        Action = actFormatCurrentFile
       end
     end
     object tbSearch: TToolBar
@@ -900,7 +913,7 @@ object MainForm: TMainForm
       end
     end
     object tbCompilers: TToolBar
-      Left = 554
+      Left = 590
       Top = 2
       Width = 339
       Height = 28
@@ -941,7 +954,7 @@ object MainForm: TMainForm
       end
     end
     object tbDebug: TToolBar
-      Left = 335
+      Left = 371
       Top = 2
       Width = 206
       Height = 28
@@ -3021,6 +3034,7 @@ object MainForm: TMainForm
     object actFormatCurrentFile: TAction
       Category = 'Code'
       Caption = 'Format Current File'
+      ImageIndex = 71
       ShortCut = 24641
       OnExecute = actFormatCurrentFileExecute
       OnUpdate = actUpdateEmptyEditor

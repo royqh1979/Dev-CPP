@@ -665,6 +665,8 @@ type
     FormatCurrentFile2: TMenuItem;
     N38: TMenuItem;
     RenameSymbol1: TMenuItem;
+    ToolButton26: TToolButton;
+    ReformatBtn: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);

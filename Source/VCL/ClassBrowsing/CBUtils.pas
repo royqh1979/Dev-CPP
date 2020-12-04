@@ -678,7 +678,7 @@ begin
   CppKeywords.Add('export',Ord(skItself));
   CppKeywords.Add('extern',Ord(skItself));
   CppKeywords.Add('false',Ord(skItself));
-  CppKeywords.Add('for',Ord(skItself));
+  //CppKeywords.Add('for',Ord(skItself));
   CppKeywords.Add('mutable',Ord(skItself));
   CppKeywords.Add('noexcept',Ord(skItself));
   CppKeywords.Add('not',Ord(skItself));
@@ -701,7 +701,7 @@ begin
   CppKeywords.Add('xor_eq',Ord(skItself));
 
   
-  CppKeywords.Add('catch',Ord(skItself));
+  //CppKeywords.Add('catch',Ord(skItself));
   CppKeywords.Add('do',Ord(skItself));
   CppKeywords.Add('try',Ord(skItself));
 
@@ -801,6 +801,10 @@ begin
   // namespace
   CppKeywords.Add('namespace',Ord(skNone));
   CppKeywords.Add('using',Ord(skNone));
+
+  CppKeywords.Add('for',Ord(skNone));
+  CppKeywords.Add('catch',Ord(skNone));
+
 
 
   // nullptr is value

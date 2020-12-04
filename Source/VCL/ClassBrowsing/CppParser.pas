@@ -22,13 +22,9 @@ unit CppParser;
 interface
 
 uses
-{$IFDEF WIN32}
   Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
-  cbutils;
-{$ENDIF}
-{$IFDEF LINUX}
-QDialogs, Classes, SysUtils, StrUtils, QComCtrls, U_IntList, CppTokenizer;
-{$ENDIF}
+  cbutils, IntList;
+
 
 type
   TCppParser = class(TComponent)
@@ -58,6 +54,8 @@ type
     fProjectIncludePaths: TStringList;
     { List of current project's include path }
     fProjectFiles: TStringList;
+    fBlockBeginSkips: TIntList; //list of for/catch block end token index;
+    fBlockEndSkips: TIntList; //list of for/catch block end token index;
     fFilesToScan: TStringList; // list of base files to scan
     fFilesScannedCount: Integer; // count of files that have been scanned
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
@@ -117,6 +115,7 @@ type
     procedure RemoveScopeLevel(line:integer); // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
+    function SkipParenthesis(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
     function CheckForNamespace: boolean;
@@ -131,18 +130,24 @@ type
     function CheckForScope: boolean;
     function CheckForVar: boolean;
     function CheckForEnum: boolean;
+    function CheckForForBlock: boolean;
+    function CheckForCatchBlock: boolean;
     function GetScope: TStatementScope;
+    function GetCurrentBlockEndSkip:integer;
+    function GetCurrentBlockBeginSkip:integer;
     procedure HandlePreprocessor;
     procedure HandleOtherTypedefs;
     procedure HandleStructs(IsTypedef: boolean = False);
     procedure HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean;IsFriend:boolean);
-    procedure ScanMethodArgs(const FunctionStatement:PStatement);
+    procedure ScanMethodArgs(const FunctionStatement:PStatement; ArgStr:string);
     procedure HandleScope;
     procedure HandleKeyword;
     procedure HandleVar;
     procedure HandleEnum;
     procedure HandleNamespace;
     procedure HandleUsing;
+    procedure HandleForBlock;
+    procedure HandleCatchBlock;
     function HandleStatement: boolean;
     procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
 //    function FindMacroDefine(const Command: AnsiString): PStatement;
@@ -275,6 +280,8 @@ begin
   fLocked := False;
   fNamespaces := TDevStringList.Create;
   fNamespaces.Sorted := True;
+  fBlockBeginSkips := TIntList.Create;
+  fBlockEndSkips := TIntList.Create;
 
 end;
 
@@ -311,6 +318,8 @@ begin
   FreeAndNil(fNamespaces);
 
   FreeAndNil(fSkipList);
+  FreeAndNil(fBlockBeginSkips);
+  FreeAndNil(fBlockEndSkips);
 
   FreeAndNil(fStatementList);
   FreeAndNil(fFilesToScan);
@@ -378,6 +387,28 @@ begin
   Result := StartAt;
 end;
 
+
+function TCppParser.SkipParenthesis(StartAt: integer): integer;
+var
+  I, Level: integer;
+begin
+  I := StartAt;
+  Level := 0; // assume we start on top of (
+  while (I < fTokenizer.Tokens.Count) do begin
+    case fTokenizer[I]^.Text[1] of
+      '(': Inc(Level);
+      ')': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+    end;
+    Inc(I);
+  end;
+  Result := StartAt;
+end;
 {
 function TCppParser.FindMacroDefine(const Command:AnsiString):PStatement;
 var
@@ -1046,13 +1077,24 @@ end;
 
 function TCppParser.CheckForTypedef: boolean;
 begin
-  Result := SameStr(fTokenizer[fIndex]^.Text, 'typedef');
+  Result := (fIndex < fTokenizer.Tokens.Count) and SameStr(fTokenizer[fIndex]^.Text, 'typedef');
 end;
 
 function TCppParser.CheckForEnum: boolean;
 begin
-  Result := SameStr(fTokenizer[fIndex]^.Text, 'enum');
+  Result := (fIndex < fTokenizer.Tokens.Count) and SameStr(fTokenizer[fIndex]^.Text, 'enum');
 end;
+
+function TCppParser.CheckForForBlock: boolean;
+begin
+  Result := (fIndex < fTokenizer.Tokens.Count) and SameStr(fTokenizer[fIndex]^.Text, 'for');
+end;
+
+function TCppParser.CheckForCatchBlock: boolean;
+begin
+  Result := (fIndex < fTokenizer.Tokens.Count) and SameStr(fTokenizer[fIndex]^.Text, 'catch');
+end;
+
 
 function TCppParser.CheckForTypedefEnum: boolean;
 begin
@@ -1074,12 +1116,12 @@ end;
 
 function TCppParser.CheckForNamespace: boolean;
 begin
-  Result := (fIndex < fTokenizer.Tokens.Count - 1) and SameStr(fTokenizer[fIndex]^.Text, 'namespace');
+  Result := (fIndex < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'namespace');
 end;
 
 function TCppParser.CheckForUsing: boolean;
 begin
-  Result := (fIndex < fTokenizer.Tokens.Count - 1) and SameStr(fTokenizer[fIndex]^.Text, 'using');
+  Result := (fIndex < fTokenizer.Tokens.Count -1) and SameStr(fTokenizer[fIndex]^.Text, 'using');
 end;
 
 function TCppParser.CheckForStructs: boolean;
@@ -1803,6 +1845,127 @@ begin
   end;
 end;
 
+function TCppParser.GetCurrentBlockEndSkip:integer;
+begin
+  Result := fTokenizer.Tokens.Count+1;
+  if fBlockEndSkips.Count<=0 then
+    Exit;
+  Result := fBlockEndSkips[fBlockEndSkips.Count-1];
+end;
+
+function TCppParser.GetCurrentBlockBeginSkip:integer;
+begin
+  Result := fTokenizer.Tokens.Count+1;
+  if fBlockBeginSkips.Count<=0 then
+    Exit;
+  Result := fBlockBeginSkips[fBlockBeginSkips.Count-1];
+end;
+
+
+procedure TCppParser.HandleForBlock;
+var
+  i,i2:integer;
+  block:PStatement;
+  startLine:integer;
+begin
+  startLine:= fTokenizer[fIndex].Line;
+  Inc(fIndex); // skip for/catch;
+  if not (fIndex < fTokenizer.Tokens.Count) then
+    Exit;
+  i:=fIndex;
+  while (i<fTokenizer.Tokens.Count) and (fTokenizer[i].Text[1]<>';') do
+    inc(i);
+  if i>=fTokenizer.Tokens.Count then
+    Exit;
+  i2:=i+1; //skip to ';'
+  if i2>=fTokenizer.Tokens.Count then
+    Exit;
+  if fTokenizer[i2].Text[1] = '{' then begin
+    fBlockBeginSkips.Add(i2);
+    i:=SkipBraces(i2);
+    if i=i2 then
+      fBlockEndSkips.Add(fTokenizer.Tokens.Count)
+    else
+      fBlockEndSkips.Add(i);
+  end else begin
+    i:=i2;
+    while (i<fTokenizer.Tokens.Count) and (fTokenizer[i].Text[1]<>';') do
+      inc(i);
+    fBlockEndSkips.Add(i);
+  end;
+  // add a block
+  block := AddStatement(
+        GetCurrentScope,
+        fCurrentFile,
+        '', // override hint
+        '',
+        '',
+        '',
+        '',
+        startLine,
+        skBlock,
+        GetScope,
+        fClassScope,
+        False,
+        True,
+        nil,
+        False);
+
+  AddSoloScopeLevel(block,startLine);
+end;
+
+procedure TCppParser.HandleCatchBlock;
+var
+  i,i2:integer;
+  block:PStatement;
+  s:string;
+  startPos,bracePos:integer;
+  startLine:integer;
+begin
+  startLine:= fTokenizer[fIndex]^.Line;
+  Inc(fIndex); // skip for/catch;
+  if not ((fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '(')) then
+    Exit;
+  //skip params
+  i2:=fIndex+1;
+  if i2>=fTokenizer.Tokens.Count then
+    Exit;
+  if fTokenizer[i2].Text[1] = '{' then begin
+    fBlockBeginSkips.Add(i2);
+    i:=SkipBraces(i2);
+    if i=i2 then
+      fBlockEndSkips.Add(fTokenizer.Tokens.Count)
+    else
+      fBlockEndSkips.Add(i);
+  end else begin
+    i:=i2;
+    while (i<fTokenizer.Tokens.Count) and (fTokenizer[i].Text[1]<>';') do
+      inc(i);
+    fBlockEndSkips.Add(i);
+  end;
+  // add a block
+  block := AddStatement(
+        GetCurrentScope,
+        fCurrentFile,
+        '', // override hint
+        '',
+        '',
+        '',
+        '',
+        startLine,
+        skBlock,
+        GetScope,
+        fClassScope,
+        False,
+        True,
+        nil,
+        False);
+  AddSoloScopeLevel(block,startLine);
+  if not containsStr('...',fTokenizer[fIndex]^.Text) then
+    scanMethodArgs(block,fTokenizer[fIndex]^.Text);
+end;
+
+
 procedure TCppParser.HandleMethod(const sType, sName, sArgs: AnsiString; isStatic: boolean; IsFriend:boolean);
 var
   IsValid, IsDeclaration: boolean;
@@ -1905,7 +2068,7 @@ begin
         not IsDeclaration,
         nil,
         IsStatic);
-      ScanMethodArgs( FunctionStatement);
+      ScanMethodArgs( FunctionStatement, FunctionStatement^._Args);
       // For function declarations, any given statement can belong to multiple typedef names
     end else
       FunctionStatement:=AddChildStatement(
@@ -1929,13 +2092,14 @@ begin
   if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '{') then begin
     AddSoloScopeLevel(FunctionStatement,startLine);
     inc(fIndex); //skip '{'
-  end else if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ';') then
+  end else if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = ';') then begin
     AddSoloScopeLevel(FunctionStatement,startLine);
     if (fTokenizer[fIndex]^.Line <> startLine) then
       RemoveScopeLevel(fTokenizer[fIndex]^.Line+1)
     else
       RemoveScopeLevel(startLine+1);
     Inc(fIndex);
+  end;
   if I = fIndex then // if not moved ahead, something is wrong but don't get stuck ;)
     if fIndex < fTokenizer.Tokens.Count then
       if not (fTokenizer[fIndex]^.Text[1] in ['{', '}']) then
@@ -2008,6 +2172,7 @@ begin
     end;
   end;
 end;
+
 
 procedure TCppParser.HandleVar;
 var
@@ -2230,8 +2395,23 @@ var
   S1, S2, S3: AnsiString;
   isStatic,isFriend: boolean;
   block : PStatement;
+  idx,idx2:integer;
 begin
-  if fTokenizer[fIndex]^.Text[1] = '{' then begin
+  idx:=GetCurrentBlockEndSkip;
+  idx2:=GetCurrentBlockBeginSkip;
+  if fIndex >= idx2 then begin
+    fBlockBeginSkips.Delete(fBlockBeginSkips.Count-1);
+    if fIndex = idx2 then
+      inc(fIndex)
+    else if (fIndex<fTokenizer.Tokens.Count) then  //error happens, but we must remove an (error) added scope
+      RemoveScopeLevel(fTokenizer[fIndex]^.Line);
+  end else if fIndex >= idx then begin
+    fBlockEndSkips.Delete(fBlockEndSkips.Count-1);
+    if (idx+1) < fTokenizer.Tokens.Count then
+      RemoveScopeLevel(fTokenizer[idx+1]^.Line);
+    if fIndex = idx then
+      inc(fIndex);
+  end else if (fTokenizer[fIndex]^.Text[1] = '{') then begin
     block := AddStatement(
         GetCurrentScope,
         fCurrentFile,
@@ -2258,6 +2438,10 @@ begin
     HandlePreprocessor;
   end else if CheckForKeyword then begin // includes template now
     HandleKeyword;
+  end else if CheckForForBlock then begin // (for/catch)
+    HandleForBlock;
+  end else if CheckForCatchBlock then begin // (for/catch)
+    HandleCatchBlock;
   end else if CheckForScope then begin
     HandleScope;
   end else if CheckForEnum then begin
@@ -2354,10 +2538,12 @@ begin
   fIndex := 0;
   fClassScope := scsNone;
   fSkipList.Clear;
+  fBlockBeginSkips.Clear;
+  fBlockEndSkips.Clear;
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
    Statements.DumpTo('f:\stats.txt');
    Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
@@ -2388,6 +2574,8 @@ begin
     
   fParsing:=False;
   fSkipList.Clear;
+  fBlockBeginSkips.Clear;
+  fBlockEndSkips.Clear;
   fLocked:=False;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
@@ -3032,7 +3220,8 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
     Result := '';
     WalkStatement := Statement;
     while Assigned(WalkStatement^._ParentScope) do begin
-      Result := WalkStatement^._ParentScope^._Command + '::' + Result;
+      if not (WalkStatement^._ParentScope^._Kind in [skBlock,skFunction]) then
+        Result := WalkStatement^._ParentScope^._Command + '::' + Result;
       WalkStatement := WalkStatement^._ParentScope;
     end;
   end;
@@ -3052,9 +3241,11 @@ begin
       skFunction,
         skVariable,
         skClass: begin
-          Result := GetScopePrefix; // public
+          if Statement^._Scope <> ssLocal then
+            Result := GetScopePrefix; // public
           Result := Result + Statement^._Type + ' '; // void
-          Result := Result + GetParentPrefix; // A::B::C::
+          if Statement^._Scope <> ssLocal then
+            Result := Result + GetParentPrefix; // A::B::C::
           Result := Result + Statement^._Command; // Bar
           Result := Result + GetArgsSuffix; // (int a)
         end;
@@ -3515,17 +3706,16 @@ begin
   //Statements.DumpWithScope('f:\\local-statements.txt');
 end;
 
-procedure TCppParser.ScanMethodArgs(const FunctionStatement:PStatement);
+procedure TCppParser.ScanMethodArgs(const FunctionStatement:PStatement; ArgStr:string);
 var
   I, ParamStart, SpacePos, BracePos,bracketPos: integer;
-  S,Args,ArgStr: AnsiString;
+  S,Args: AnsiString;
 begin
 
   // Split up argument string by ,
   I := 2; // assume it starts with ( and ends with )
   ParamStart := I;
 
-  ArgStr := FunctionStatement^._Args;
   while I <= Length(ArgStr) do begin
     if (ArgStr[i] = ',') or ((I = Length(ArgStr)) and (ArgStr[i] = ')')) then begin
 
@@ -3542,7 +3732,7 @@ begin
       if SpacePos > 0 then begin
         Args:='';
         bracketPos := Pos('[',S);
-        if bracketPos >= 0 then begin
+        if bracketPos > 0 then begin
           Args := Copy(S, bracketPos-1,MaxInt);
           Delete(S,bracketPos,MaxInt);
         end;
