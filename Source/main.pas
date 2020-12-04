@@ -162,17 +162,7 @@ type
     SaveAllBtn: TToolButton;
     SplitterLeft: TSplitter;
     EditorPopup: TPopupMenu;
-    UndoPopItem: TMenuItem;
-    RedoPopItem: TMenuItem;
-    MenuItem1: TMenuItem;
-    CutPopItem: TMenuItem;
-    CopyPopItem: TMenuItem;
-    PastePopItem: TMenuItem;
     MenuItem2: TMenuItem;
-    InsertPopItem: TMenuItem;
-    TogglebookmarksPopItem: TMenuItem;
-    GotobookmarksPopItem: TMenuItem;
-    SelectAllPopItem: TMenuItem;
     UnitPopup: TPopupMenu;
     RemoveFilefromprojectPopItem: TMenuItem;
     RenamefilePopItem: TMenuItem;
@@ -286,7 +276,6 @@ type
     GotoBtn: TToolButton;
     CppParser: TCppParser;
     CodeCompletion: TCodeCompletion;
-    N22: TMenuItem;
     Swapheadersource1: TMenuItem;
     N23: TMenuItem;
     actSwapHeaderSource: TAction;
@@ -338,8 +327,6 @@ type
     Properties1: TMenuItem;
     actViewToDoList: TAction;
     actAddToDo: TAction;
-    AddToDoitem1: TMenuItem;
-    N38: TMenuItem;
     oDolist1: TMenuItem;
     N39: TMenuItem;
     actProjectNewFolder: TAction;
@@ -349,9 +336,6 @@ type
     N40: TMenuItem;
     actImportMSVC: TAction;
     ImportItem: TMenuItem;
-    N41: TMenuItem;
-    ToggleBreakpointPopupItem: TMenuItem;
-    AddWatchPopupItem: TMenuItem;
     actViewCPU: TAction;
     actExecParams: TAction;
     mnuExecParameters: TMenuItem;
@@ -363,7 +347,6 @@ type
     PackageManagerItem: TMenuItem;
     btnAbortCompilation: TSpeedButton;
     actAbortCompilation: TAction;
-    N45: TMenuItem;
     N48: TMenuItem;
     ListItem: TMenuItem;
     mnuFileProps: TMenuItem;
@@ -393,9 +376,6 @@ type
     NewClassItem: TMenuItem;
     DeleteProfilingInformation: TMenuItem;
     actDeleteProfile: TAction;
-    GotoDefineEditor: TMenuItem;
-    GotoDeclEditor: TMenuItem;
-    N15: TMenuItem;
     actGotoDeclEditor: TAction;
     actGotoImplEditor: TAction;
     ToolButton1: TToolButton;
@@ -558,7 +538,6 @@ type
     DebugConsoleSheet: TTabSheet;
     CallStackSheet: TTabSheet;
     BreakpointsSheet: TTabSheet;
-    BreakpointProperies1: TMenuItem;
     StackTrace: TListView;
     BreakpointsView: TListView;
     actConvertToUTF8: TAction;
@@ -647,6 +626,45 @@ type
     N54: TMenuItem;
     GotoPreviousError1: TMenuItem;
     GotoNextError1: TMenuItem;
+    EditorPagePopup: TPopupMenu;
+    MenuItem13: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
+    MenuItem30: TMenuItem;
+    MenuItem31: TMenuItem;
+    MenuItem32: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItem34: TMenuItem;
+    MenuItem35: TMenuItem;
+    MenuItem36: TMenuItem;
+    MenuItem37: TMenuItem;
+    MenuItem38: TMenuItem;
+    MenuItem39: TMenuItem;
+    MenuItem40: TMenuItem;
+    InsertPopItem: TMenuItem;
+    TogglebookmarksPopItem: TMenuItem;
+    GotobookmarksPopItem: TMenuItem;
+    MenuItem46: TMenuItem;
+    MenuItem47: TMenuItem;
+    MenuItem48: TMenuItem;
+    MenuItem49: TMenuItem;
+    MenuItem50: TMenuItem;
+    MenuItem51: TMenuItem;
+    MenuItem52: TMenuItem;
+    N15: TMenuItem;
+    CompileRun1: TMenuItem;
+    Debug1: TMenuItem;
+    tbUndo: TToolBar;
+    ToolButton7: TToolButton;
+    ToolButton25: TToolButton;
+    ToolUndoItem: TMenuItem;
+    N22: TMenuItem;
+    FormatCurrentFile2: TMenuItem;
+    N38: TMenuItem;
+    RenameSymbol1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1258,6 +1276,7 @@ begin
       tbSearch.Images := CurrentTheme.MenuImages;
       tbSpecials.Images := CurrentTheme.MenuImages;
       tbCompilers.Images := CurrentTheme.MenuImages;
+      tbUndo.Images := CurrentTheme.MenuImages;
 
       // Set left control images
       ProjectView.Images := CurrentTheme.ProjectImages;
@@ -1323,7 +1342,8 @@ begin
   devData.ToolbarCompilersY := tbCompilers.Top;
   devData.ToolbarDebugX := tbDebug.Left;
   devData.ToolbarDebugY := tbDebug.Top;
-
+  devData.ToolbarUndoX := tbUndo.Left;
+  devData.ToolbarUndoY := tbUndo.Top;
   // Save left page control states
   devData.ProjectWidth := LeftPageControl.Width;
   devData.OutputHeight := fPreviousHeight;
@@ -1488,12 +1508,13 @@ begin
   CodeCompletion.Colors[BackColor] := tc.Background;
   CodeCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
-  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
   CodeCompletion.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
   CodeCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
@@ -1703,6 +1724,7 @@ begin
   ToolClassesItem.Caption := Lang[ID_LP_CLASSES];
   ToolCompilersItem.Caption := Lang[ID_TOOLCOMPILERS];
   ToolDebugItem.Caption := Lang[ID_TOOLDEBUG];
+  ToolUndoItem.Caption := Lang[ID_TOOLUNDO];
 
 
   // Top level
@@ -4033,6 +4055,7 @@ begin
   tbClasses.Visible := ToolClassesItem.Checked;
   tbCompilers.Visible := ToolCompilersItem.Checked;
   tbDebug.Visible := ToolDebugItem.Checked;
+  tbUndo.Visible := ToolUndoItem.Checked;
 
   devData.ToolbarMain := ToolMainItem.Checked;
   devData.ToolbarEdit := ToolEditItem.Checked;
@@ -4043,6 +4066,7 @@ begin
   devData.ToolbarClasses := ToolClassesItem.Checked;
   devData.ToolbarCompilers := ToolCompilersItem.Checked;
   devData.ToolbarDebug := ToolDebugItem.Checked;
+  devData.ToolbarUndo := ToolUndoItem.Checked;
 end;
 
 procedure TMainForm.ToolbarDockContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
@@ -6653,7 +6677,8 @@ begin
   tbCompilers.Top := devData.ToolbarCompilersY;
   tbDebug.Left := devData.ToolbarDebugX;
   tbDebug.Top := devData.ToolbarDebugY;
-
+  tbUndo.Left := devData.ToolbarUndoX;
+  tbUndo.Top := devData.ToolbarUndoY;
   // Set toolbars to previous state.
   // 2) Visibility
   tbMain.Visible := devData.ToolbarMain;
@@ -6665,6 +6690,7 @@ begin
   tbClasses.Visible := devData.ToolbarClasses;
   tbCompilers.Visible := devData.ToolbarCompilers;
   tbDebug.Visible := devData.ToolbarDebug;
+  tbUndo.Visible := devData.ToolbarUndo;
 
   // Set toolbars to previous state.
   // 3) UI components
@@ -6677,6 +6703,7 @@ begin
   ToolClassesItem.Checked := devData.ToolbarClasses;
   ToolCompilersItem.Checked := devData.ToolbarCompilers;
   ToolDebugItem.Checked := devData.ToolbarDebug;
+  ToolUndoItem.Checked := devData.ToolbarUndo;
 
   // PageControl settings
   fEditorList.SetPreferences(devData.MsgTabs, devData.MultiLineTab);
@@ -7511,6 +7538,17 @@ begin
       Exit;
     end;
 
+  if not IsIdentifier(word) then begin
+    MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[word]), mtInformation, [mbOK], 0);
+    Exit;
+  end;
+
+  //Test if newName is a C++ keyword
+  if IsKeyword(word) then begin
+    MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[word]), mtInformation, [mbOK], 0);
+    Exit;
+  end;
+
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
       txtVarName.SelectAll;
@@ -8281,8 +8319,7 @@ begin
   if assigned(e) then begin
     e.GotoNextError;
   end;
-end; 
-
+end;
 
 end.
 

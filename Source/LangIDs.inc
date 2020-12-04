@@ -123,6 +123,7 @@ const
   ID_TOOLCOMPILERS                      = 5026;
   ID_ITEM_FINDPREV                      = 5027;
   ID_TOOLDEBUG                          = 5028;
+  ID_TOOLUNDO                           = 5029;
 
   // project menu
   ID_ITEM_NEWFILE                       = 6001;

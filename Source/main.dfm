@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 382
-  Top = 144
+  Left = 650
+  Top = 192
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -838,7 +838,7 @@ object MainForm: TMainForm
       end
     end
     object tbClasses: TToolBar
-      Left = 349
+      Left = 420
       Top = 34
       Width = 700
       Height = 28
@@ -995,6 +995,34 @@ object MainForm: TMainForm
         Left = 176
         Top = 0
         Action = actAddWatch
+      end
+    end
+    object tbUndo: TToolBar
+      Left = 349
+      Top = 34
+      Width = 58
+      Height = 28
+      ButtonHeight = 28
+      ButtonWidth = 28
+      Caption = 'Edit'
+      EdgeBorders = []
+      EdgeInner = esNone
+      EdgeOuter = esNone
+      Flat = True
+      Images = dmMain.MenuImages_NewLook
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 9
+      Wrapable = False
+      object ToolButton7: TToolButton
+        Left = 0
+        Top = 0
+        Action = actUndo
+      end
+      object ToolButton25: TToolButton
+        Left = 28
+        Top = 0
+        Action = actRedo
       end
     end
   end
@@ -1655,6 +1683,12 @@ object MainForm: TMainForm
           Checked = True
           OnClick = ToolbarDockClick
         end
+        object ToolUndoItem: TMenuItem
+          AutoCheck = True
+          Caption = 'Undo'
+          Checked = True
+          OnClick = ToolbarDockClick
+        end
         object N2: TMenuItem
           Caption = '-'
         end
@@ -1914,18 +1948,6 @@ object MainForm: TMainForm
   object EditorPopup: TPopupMenu
     Left = 403
     Top = 216
-    object BreakpointProperies1: TMenuItem
-      Action = actBreakPointProperties
-    end
-    object GotoDeclEditor: TMenuItem
-      Action = actGotoDeclEditor
-    end
-    object GotoDefineEditor: TMenuItem
-      Action = actGotoImplEditor
-    end
-    object N15: TMenuItem
-      Caption = '-'
-    end
     object Close1: TMenuItem
       Action = actClose
     end
@@ -1947,30 +1969,6 @@ object MainForm: TMainForm
     object N16: TMenuItem
       Caption = '-'
     end
-    object UndoPopItem: TMenuItem
-      Action = actUndo
-    end
-    object RedoPopItem: TMenuItem
-      Action = actRedo
-    end
-    object MenuItem1: TMenuItem
-      Caption = '-'
-    end
-    object CutPopItem: TMenuItem
-      Action = actCut
-    end
-    object CopyPopItem: TMenuItem
-      Action = actCopy
-    end
-    object PastePopItem: TMenuItem
-      Action = actPaste
-    end
-    object SelectAllPopItem: TMenuItem
-      Action = actSelectAll
-    end
-    object N22: TMenuItem
-      Caption = '-'
-    end
     object Swapheadersource1: TMenuItem
       Action = actSwapHeaderSource
     end
@@ -1981,33 +1979,6 @@ object MainForm: TMainForm
       Action = actSwapEditor
     end
     object MenuItem2: TMenuItem
-      Caption = '-'
-    end
-    object InsertPopItem: TMenuItem
-      Action = actInsert
-    end
-    object TogglebookmarksPopItem: TMenuItem
-      Action = actToggle
-    end
-    object GotobookmarksPopItem: TMenuItem
-      Action = actGoto
-    end
-    object N41: TMenuItem
-      Caption = '-'
-    end
-    object ToggleBreakpointPopupItem: TMenuItem
-      Action = actBreakPoint
-    end
-    object AddWatchPopupItem: TMenuItem
-      Action = actAddWatch
-    end
-    object N38: TMenuItem
-      Caption = '-'
-    end
-    object AddToDoitem1: TMenuItem
-      Action = actAddToDo
-    end
-    object N45: TMenuItem
       Caption = '-'
     end
     object mnuFileProps: TMenuItem
@@ -3464,6 +3435,113 @@ object MainForm: TMainForm
     end
     object RemoveBreakpoint1: TMenuItem
       Action = actRemoveBreakpointInPane
+    end
+  end
+  object EditorPagePopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook
+    Left = 507
+    Top = 224
+    object CompileRun1: TMenuItem
+      Action = actCompRun
+    end
+    object Debug1: TMenuItem
+      Action = actDebug
+    end
+    object N15: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem13: TMenuItem
+      Action = actBreakPointProperties
+    end
+    object MenuItem16: TMenuItem
+      Action = actGotoDeclEditor
+    end
+    object MenuItem17: TMenuItem
+      Action = actGotoImplEditor
+    end
+    object MenuItem19: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem28: TMenuItem
+      Action = actOpenFolder
+    end
+    object MenuItem29: TMenuItem
+      Action = actOpenConsole
+    end
+    object N22: TMenuItem
+      Caption = '-'
+    end
+    object FormatCurrentFile2: TMenuItem
+      Action = actFormatCurrentFile
+    end
+    object MenuItem30: TMenuItem
+      Caption = '-'
+    end
+    object RenameSymbol1: TMenuItem
+      Action = actRenameSymbol
+    end
+    object N38: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem31: TMenuItem
+      Action = actUndo
+    end
+    object MenuItem32: TMenuItem
+      Action = actRedo
+    end
+    object MenuItem33: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem34: TMenuItem
+      Action = actCut
+    end
+    object MenuItem35: TMenuItem
+      Action = actCopy
+    end
+    object MenuItem36: TMenuItem
+      Action = actPaste
+    end
+    object MenuItem37: TMenuItem
+      Action = actSelectAll
+    end
+    object MenuItem38: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem39: TMenuItem
+      Action = actSwapHeaderSource
+    end
+    object MenuItem40: TMenuItem
+      Caption = '-'
+    end
+    object InsertPopItem: TMenuItem
+      Action = actInsert
+    end
+    object TogglebookmarksPopItem: TMenuItem
+      Action = actToggle
+    end
+    object GotobookmarksPopItem: TMenuItem
+      Action = actGoto
+    end
+    object MenuItem46: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem47: TMenuItem
+      Action = actBreakPoint
+    end
+    object MenuItem48: TMenuItem
+      Action = actAddWatch
+    end
+    object MenuItem49: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem50: TMenuItem
+      Action = actAddToDo
+    end
+    object MenuItem51: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem52: TMenuItem
+      Action = actFileProperties
     end
   end
 end

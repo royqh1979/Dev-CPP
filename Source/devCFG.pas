@@ -611,7 +611,9 @@ type
     fToolbarDebug: boolean;
     fToolbarDebugX: integer;
     fToolbarDebugY: integer;
-
+    fToolbarUndo: boolean;
+    fToolbarUndoX: integer;
+    fToolbarUndoY: integer;
 
     // file associations (see FileAssocs.pas)
     fAssociateC: boolean;
@@ -730,7 +732,9 @@ type
     property ToolbarDebug: boolean read fToolbarDebug write fToolbarDebug;
     property ToolbarDebugX: integer read fToolbarDebugX write fToolbarDebugX;
     property ToolbarDebugY: integer read fToolbarDebugY write fToolbarDebugY;
-
+    property ToolbarUndo: boolean read fToolbarUndo write fToolbarUndo;
+    property ToolbarUndoX: integer read fToolbarUndoX write fToolbarUndoX;
+    property ToolbarUndoY: integer read fToolbarUndoY write fToolbarUndoY;
 
     // file associations
     property AssociateC: boolean read fAssociateC write fAssociateC;
@@ -1020,7 +1024,6 @@ begin
   fToolbarCompilers := TRUE;
   fToolbarCompilersX := 554;
   fToolbarCompilersY := 2;
-
   fToolbarSearch := FALSE;
   fToolbarSearchX := 11;
   fToolbarSearchY := 34;
@@ -1030,10 +1033,12 @@ begin
   fToolbarProject := FALSE;
   fToolbarProjectX := 244;
   fToolbarProjectY := 34;
+  fToolbarUndo := False;
+  fToolbarUndoX := 349;
+  fToolbarUndoY := 34;
   fToolbarClasses := False;
-  fToolbarClassesX := 349;
+  fToolbarClassesX := 420;
   fToolbarClassesY := 34;
-
   // Office 2007 / Vista support
   osinfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
   GetVersionEx(osinfo);

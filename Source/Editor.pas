@@ -405,6 +405,8 @@ begin
   // Set the variable options
   devEditor.AssignEditor(fText, fFileName);
 
+  fText.PopupMenu := MainForm.EditorPagePopup;
+
   // Create a gutter
   fDebugGutter := TDebugGutter.Create(self);
 
@@ -2986,7 +2988,7 @@ begin
     lst.Free;
   end;
   fErrorList.Clear;
-  fText.Invalidate;
+  //fText.Invalidate;
 end;
 
 procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
@@ -3070,34 +3072,43 @@ begin
 end;
 
 procedure TEditor.LinesDeleted(FirstLine,Count:integer);
-var
-  newList:TIntList;
-  i,j:integer;
-  lineNo:integer;
-  lst:TList;
-begin
-  newList:=TIntList.Create;
-  try
-    for i:=0 to fErrorList.Count-1 do begin
-      lineNo := fErrorList[i];
-      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then begin
-        lst:=TList(fErrorList.Objects[i]);
-        for j:=0 to lst.Count-1 do begin
-          dispose(PSyntaxError(lst[j]));
+
+
+  procedure UpdateErrorList;
+  var
+    newList:TIntList;
+    i,j:integer;
+    lineNo:integer;
+    lst:TList;
+  begin
+    newList:=TIntList.Create;
+    try
+      for i:=0 to fErrorList.Count-1 do begin
+        lineNo := fErrorList[i];
+        if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then begin
+          lst:=TList(fErrorList.Objects[i]);
+          for j:=0 to lst.Count-1 do begin
+            dispose(PSyntaxError(lst[j]));
+          end;
+          lst.Free;
+          Continue;
         end;
-        lst.Free;
-        Continue;
+        if (lineNo >= FirstLine+Count) then
+          dec(lineNo,Count);
+        newList.AddObject(lineNo,fErrorList.Objects[i]);
       end;
-      if (lineNo >= FirstLine+Count) then
-        dec(lineNo,Count);
-      newList.AddObject(lineNo,fErrorList.Objects[i]);
+      fErrorList.Sorted:=False;
+      fErrorList.Assign(newList);
+      fErrorList.Sorted:=True;
+      if not devCodeCompletion.Enabled then
+        fText.invalidate;
+    finally
+      newList.Free;
     end;
-    fErrorList.Sorted:=False;
-    fErrorList.Assign(newList);
-    fErrorList.Sorted:=True;
-    fText.invalidate;
-  finally
-    newList.Free;
+  end;
+begin
+  if not devEditor.CheckSyntaxWhenReturn then begin
+    UpdateErrorList;
   end;
   MainForm.CaretList.LinesDeleted(self,firstLine,count);
 end;
@@ -3123,27 +3134,34 @@ end;
 
 
 procedure TEditor.LinesInserted(FirstLine,Count:integer);
-var
-  newList:TIntList;
-  i:integer;
-  lineNo:integer;
-begin
+  procedure UpdateErrorList;
+  var
+    newList:TIntList;
+    i:integer;
+    lineNo:integer;
+  begin
   newList:=TIntList.Create;
-  try
-    for i:=0 to fErrorList.Count-1 do begin
-      lineNo := fErrorList[i];
-      if (lineNo >= FirstLine) then
-        inc(lineNo,Count);
-      newList.AddObject(lineNo,fErrorList.Objects[i]);
+    try
+      for i:=0 to fErrorList.Count-1 do begin
+        lineNo := fErrorList[i];
+        if (lineNo >= FirstLine) then
+          inc(lineNo,Count);
+        newList.AddObject(lineNo,fErrorList.Objects[i]);
+      end;
+      fErrorList.Sorted:=False;
+      fErrorList.Assign(newList);
+      fErrorList.Sorted:=True;
+      if not devCodeCompletion.Enabled then
+        fText.invalidate;
+    finally
+      newList.Free;
     end;
-    fErrorList.Sorted:=False;
-    fErrorList.Assign(newList);
-    fErrorList.Sorted:=True;
-    fText.invalidate;
-  finally
-    newList.Free;
   end;
-  MainForm.CaretList.LinesInserted(self,firstLine,count);  
+begin
+  if not devEditor.CheckSyntaxWhenReturn then begin
+    UpdateErrorList;
+  end;
+  MainForm.CaretList.LinesInserted(self,firstLine,count);
 end;
 
 procedure TEditor.GotoNextError;

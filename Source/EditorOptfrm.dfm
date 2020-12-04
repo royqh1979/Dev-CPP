@@ -1194,6 +1194,7 @@ object EditorOptForm: TEditorOptForm
         Height = 22
         Caption = 'Check Syntax When Return Entered'
         TabOrder = 1
+        Visible = False
       end
     end
     object tabAutosave: TTabSheet

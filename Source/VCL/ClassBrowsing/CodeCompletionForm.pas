@@ -110,18 +110,6 @@ begin
     end else begin
       Canvas.Brush.Color := Colors[BackColor];
       Canvas.FillRect(Rect);
-      {
-      case statement^._Kind of
-        skFunction, skConstructor, skDestructor: Canvas.Font.Color := clGreen;
-        skClass: Canvas.Font.Color := clMaroon;
-        skVariable: Canvas.Font.Color := clBlue;
-        skTypedef: Canvas.Font.Color := clOlive;
-        skPreprocessor: Canvas.Font.Color := clPurple;
-        skEnum: Canvas.Font.Color := clNavy;
-      else
-        Canvas.Font.Color := clGray;
-      end;
-      }
       case statement^._Kind of
         skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
         skClass: Canvas.Font.Color := Colors[ClassColor];
@@ -137,8 +125,10 @@ begin
     Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
     Offset := Offset +
       Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing
+    {
     if not (odSelected in State) then
       Canvas.Font.Color := Colors[ForeColor];
+    }
 
     // Draw data type string, like 'int', hide for defines/others that don't have this property
 // MinGW gcc's type info is too long , so we don't print it
