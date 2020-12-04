@@ -3733,7 +3733,7 @@ begin
         Args:='';
         bracketPos := Pos('[',S);
         if bracketPos > 0 then begin
-          Args := Copy(S, bracketPos-1,MaxInt);
+          Args := Copy(S, bracketPos,MaxInt);
           Delete(S,bracketPos,MaxInt);
         end;
         AddStatement(
