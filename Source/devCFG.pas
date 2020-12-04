@@ -424,6 +424,7 @@ type
     fAutoSaveMode: integer;
 
     fAutoCheckSyntax: boolean;
+    fCheckSyntaxWhenReturn: boolean;
 
     // Symbol completion
     fBraceComplete: boolean;
@@ -521,7 +522,7 @@ type
     property ShowRainbowBacket:boolean read fShowRainbowBacket write fShowRainbowBacket;
 
     property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax;
-
+    property CheckSyntaxWhenReturn: boolean read fCheckSyntaxWhenReturn write fCheckSyntaxWhenReturn;
     property UseCpp: boolean read fUseCpp write fUseCpp; 
   end;
 
@@ -2519,6 +2520,7 @@ begin
   fShowRainbowBacket:=True;
 
   fAutoCheckSyntax:=True;
+  fCheckSyntaxWhenReturn:=False;
 
   fUseCpp := True;
 

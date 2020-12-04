@@ -194,7 +194,7 @@ const
 type
   // use scAll to update a statusbar when another TCustomSynEdit got the focus
   TSynStatusChange = (scAll, scCaretX, scCaretY, scLeftChar, scTopLine,
-    scInsertMode, scModified, scSelection, scReadOnly);
+    scInsertMode, scModified, scSelection, scReadOnly,scOpenFile);
   TSynStatusChanges = set of TSynStatusChange;
 
   TContextHelpEvent = procedure(Sender: TObject; word: string)

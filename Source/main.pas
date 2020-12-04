@@ -995,8 +995,8 @@ type
     procedure CloseProject(RefreshEditor:boolean);
     procedure StartTabnine;
     procedure StopTabnine;
-    procedure CheckSyntaxInBack;
   public
+    procedure CheckSyntaxInBack(e:TEditor);
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
     procedure ScanActiveProject;
@@ -2000,6 +2000,7 @@ end;
 procedure TMainForm.OpenProject(const s: AnsiString);
 var
   s2: AnsiString;
+  e:TEditor;
 begin
   if Assigned(fProject) then begin
     if fProject.Name = '' then
@@ -2018,6 +2019,10 @@ begin
   ClassBrowser.BeginUpdate;
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
+    e:=EditorList.GetEditor();
+    if assigned(e) and e.InProject then
+      self.CheckSyntaxInBack(e);
+
     if fProject.FileName <> '' then begin
       dmMain.RemoveFromHistory(s);
 
@@ -2074,7 +2079,7 @@ begin
   end;
 
   e.Activate;
-  CheckSyntaxInBack;
+  CheckSyntaxInBack(e);
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) then begin
@@ -2598,8 +2603,10 @@ begin
   dmMain.ClearHistory;
 end;
 
-procedure TMainForm.CheckSyntaxInBack;
+procedure TMainForm.CheckSyntaxInBack(e:TEditor);
 begin
+  if not Assigned(e) then
+    Exit;
   if not devEditor.AutoCheckSyntax then
     Exit;
   if fCompiler.Compiling then
@@ -2608,6 +2615,11 @@ begin
   if not PrepareForCompile(ctFile) then begin
     fCheckSyntaxInBack:=False;
     Exit;
+  end;
+  if e.InProject then begin
+    if not assigned(MainForm.fProject) then
+      Exit;
+    fCompiler.Project := MainForm.fProject;
   end;
   fCompiler.CheckSyntax;
 end;
@@ -2623,7 +2635,7 @@ begin
     if e.InProject and Assigned(fProject) then begin
       fProject.SaveAll;
     end;
-    CheckSyntaxInBack;
+    CheckSyntaxInBack(e);
   end;
 end;
 
@@ -2637,7 +2649,7 @@ begin
     if e.InProject and Assigned(fProject) then begin
       fProject.SaveAll;
     end;    
-    CheckSyntaxInBack;
+    CheckSyntaxInBack(e);
   end;
 end;
 
@@ -3508,6 +3520,8 @@ begin
       end;
     ctFile: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
+        if not Assigned(e) then
+          Exit;
         if not e.Save then
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
@@ -3536,7 +3550,9 @@ begin
         fProject.BuildPrivateResource;
       end;
   end;
-  e.ClearSyntaxErrors;
+  e := fEditorList.GetEditor; // always succeeds if ctFile is returned
+  if Assigned(e) then
+    e.ClearSyntaxErrors;
   Result := True;
 end;
 
@@ -7257,14 +7273,21 @@ begin
 end;
 
 procedure TMainForm.actSyntaxCheckFileExecute(Sender: TObject);
+var
+  e:TEditor;
 begin
   actStopExecuteExecute(Self);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
     Exit;
   end;
+  e:=EditorList.GetEditor();
+  if not assigned(e) then
+    Exit;
   if not PrepareForCompile(ctFile) then
     Exit;
+  if e.InProject then
+    fCompiler.Project := MainForm.fProject;
   fCompiler.CheckSyntax;
 end;
 

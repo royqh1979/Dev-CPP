@@ -17,6 +17,9 @@ Version 6.2-beta5 Dec 2020
     - fix: parse error for std::types
     - fix: brace color error of new typed contents to the last of the source file 
     - fix: we only parse file if code completion is enabled
+    - enhancement: check syntax when ENTER/RETURN typed ( turned off by default; in editor option dialog's syntax check tab)
+    - fix: use project include path when check syntax;
+    - fix: crash when try to compile a project but no file is opend
 
 Version 6.2-beta4 Dec 2020
     

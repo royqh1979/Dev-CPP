@@ -522,7 +522,8 @@ const
 
   ID_EOPT_FILE_TYPE                     = 27075;
   ID_EOPT_C_FILE                        = 27076;
-  ID_EOPT_CPP_FILE                      = 27077; 
+  ID_EOPT_CPP_FILE                      = 27077;
+  ID_EOPT_SYNTAXCHECK_WHEN_RETURN       = 27078;
 
   // new project
   ID_NP_PRJNAME                         = 28001;

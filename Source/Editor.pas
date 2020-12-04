@@ -433,7 +433,7 @@ begin
   MainForm.FileMonitor.Monitor(fFileName);
 
   // Set status bar for the first time
-  EditorStatusChange(Self, [scInsertMode]);
+  EditorStatusChange(Self, [scOpenFile]);
 
 end;
 
@@ -739,18 +739,19 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
+  if (not (scOpenFile in Changes)) and (fText.Lines.Count <> fLineCount) then begin
+    fLineCount := fText.Lines.Count;
+    if devCodeCompletion.Enabled
+      and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
+      then begin
+      Reparse;
+    end;
+    if devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+      mainForm.CheckSyntaxInBack(self);
+    end;
+  end;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
-
-    if (fText.Lines.Count <> fLineCount) then begin
-      fLineCount := fText.Lines.Count;
-      if devCodeCompletion.Enabled
-        and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
-        then begin
-        Reparse;
-      end;
-    end;
-
     if fText.Modified then begin
       UpdateCaption('[*] ' + ExtractFileName(fFileName));
     end else begin
