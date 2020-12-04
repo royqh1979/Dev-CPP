@@ -192,7 +192,7 @@ begin
   cmbIcons.ItemIndex := 0; // new look
 
   // Editor colors
-  cmbColors.ItemIndex := 10; // PlasticCodeWrap
+  cmbColors.ItemIndex := 11; // Vs Code
   dmMain.InitHighlighterFirstTime(cmbColors.ItemIndex);
   devEditor.AssignEditor(synExample, 'main.cpp');
 
