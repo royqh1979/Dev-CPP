@@ -95,6 +95,7 @@ Ver=1
 5026=Compilers
 5027=Search Again Backwards
 5028=Debug
+5029=Undo/Redo
 
 
 6001=&New File
@@ -461,6 +462,7 @@ Ver=1
 27075=Default File Type
 27076=C File
 27077=C++ File
+27078=Check Syntax when RETURN/ENTER typed
 
 28001=Name:
 28002=&C Project

@@ -1289,7 +1289,7 @@ begin
   fIncludesParams := FormatList(fCompilerSet.CDir, cAppendStr);
   fCppIncludesParams := FormatList(fCompilerSet.CppDir, cAppendStr);
 
-  if (fTarget = ctProject) and assigned(fProject) then
+ if ((fTarget = ctProject) or fCheckSyntax) and assigned(fProject) then
     for i := 0 to pred(fProject.Options.Includes.Count) do
       if DirectoryExists(fProject.Options.Includes[i]) then begin
         fIncludesParams := format(cAppendStr, [fIncludesParams, fProject.Options.Includes[i]]);

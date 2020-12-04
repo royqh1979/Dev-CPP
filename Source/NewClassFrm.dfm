@@ -3,119 +3,119 @@ object NewClassForm: TNewClassForm
   Top = 72
   BorderStyle = bsDialog
   Caption = 'New class'
-  ClientHeight = 338
-  ClientWidth = 444
+  ClientHeight = 416
+  ClientWidth = 546
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object lblClassName: TLabel
-    Left = 8
-    Top = 12
-    Width = 31
-    Height = 13
+    Left = 10
+    Top = 15
+    Width = 40
+    Height = 16
     Caption = 'Name:'
   end
   object lblCppFile: TLabel
-    Left = 8
-    Top = 228
-    Width = 76
-    Height = 13
+    Left = 10
+    Top = 281
+    Width = 97
+    Height = 16
     Caption = 'Source filename'
   end
   object lblHFile: TLabel
-    Left = 8
-    Top = 256
-    Width = 80
-    Height = 13
+    Left = 10
+    Top = 315
+    Width = 103
+    Height = 16
     Caption = 'Header filename:'
   end
   object btnBrowseCpp: TSpeedButton
-    Left = 412
-    Top = 224
-    Width = 23
-    Height = 22
+    Left = 507
+    Top = 276
+    Width = 28
+    Height = 27
     Caption = '...'
     OnClick = btnBrowseCppClick
   end
   object btnBrowseH: TSpeedButton
-    Left = 412
-    Top = 252
-    Width = 23
-    Height = 22
+    Left = 507
+    Top = 310
+    Width = 28
+    Height = 27
     Caption = '...'
     OnClick = btnBrowseCppClick
   end
   object lblArguments: TLabel
-    Left = 8
-    Top = 36
-    Width = 53
-    Height = 13
+    Left = 10
+    Top = 44
+    Width = 67
+    Height = 16
     Caption = 'Arguments:'
   end
   object txtName: TEdit
-    Left = 88
-    Top = 8
-    Width = 348
+    Left = 108
+    Top = 10
+    Width = 429
     Height = 21
     TabOrder = 0
     OnChange = txtNameChange
     OnKeyPress = txtNameKeyPress
   end
   object grpInheritance: TGroupBox
-    Left = 8
-    Top = 116
-    Width = 425
-    Height = 93
+    Left = 10
+    Top = 143
+    Width = 523
+    Height = 114
     Caption = 'Inheritance'
     TabOrder = 5
     object lblAccess: TLabel
-      Left = 8
-      Top = 20
-      Width = 70
-      Height = 13
+      Left = 10
+      Top = 25
+      Width = 89
+      Height = 16
       Caption = 'Access scope:'
     end
     object lblInherit: TLabel
-      Left = 8
-      Top = 44
-      Width = 82
-      Height = 13
+      Left = 10
+      Top = 54
+      Width = 102
+      Height = 16
       Caption = 'Inherit from class:'
     end
     object lblHeaderFile: TLabel
-      Left = 8
-      Top = 68
-      Width = 80
-      Height = 13
+      Left = 10
+      Top = 84
+      Width = 103
+      Height = 16
       Caption = 'Header filename:'
     end
     object cmbClass: TComboBox
-      Left = 124
-      Top = 40
-      Width = 293
-      Height = 21
+      Left = 153
+      Top = 49
+      Width = 360
+      Height = 24
       Enabled = False
-      ItemHeight = 13
+      ItemHeight = 16
       TabOrder = 1
       OnChange = cmbClassChange
     end
     object cmbScope: TComboBox
-      Left = 124
-      Top = 16
-      Width = 293
-      Height = 21
+      Left = 153
+      Top = 20
+      Width = 360
+      Height = 24
       Style = csDropDownList
       Enabled = False
-      ItemHeight = 13
+      ItemHeight = 16
       TabOrder = 0
       Items.Strings = (
         'private'
@@ -123,45 +123,45 @@ object NewClassForm: TNewClassForm
         'public')
     end
     object txtIncFile: TEdit
-      Left = 124
-      Top = 64
-      Width = 293
+      Left = 153
+      Top = 79
+      Width = 360
       Height = 21
       Enabled = False
       TabOrder = 2
     end
   end
   object txtCppFile: TEdit
-    Left = 132
-    Top = 224
-    Width = 277
+    Left = 162
+    Top = 276
+    Width = 341
     Height = 21
     TabOrder = 6
     OnChange = txtCppFileChange
   end
   object txtHFile: TEdit
-    Left = 132
-    Top = 252
-    Width = 277
+    Left = 162
+    Top = 310
+    Width = 341
     Height = 21
     TabOrder = 7
     OnChange = txtCppFileChange
   end
   object chkAddToProject: TCheckBox
-    Left = 8
-    Top = 284
-    Width = 425
-    Height = 17
+    Left = 10
+    Top = 350
+    Width = 523
+    Height = 20
     Caption = 'Add to current project'
     Checked = True
     State = cbChecked
     TabOrder = 8
   end
   object btnCreate: TButton
-    Left = 142
-    Top = 308
-    Width = 75
-    Height = 25
+    Left = 175
+    Top = 379
+    Width = 92
+    Height = 31
     Caption = 'Create'
     Default = True
     ModalResult = 1
@@ -169,44 +169,44 @@ object NewClassForm: TNewClassForm
     OnClick = btnCreateClick
   end
   object btnCancel: TButton
-    Left = 227
-    Top = 308
-    Width = 75
-    Height = 25
+    Left = 279
+    Top = 379
+    Width = 93
+    Height = 31
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 10
   end
   object chkInherit: TCheckBox
-    Left = 8
-    Top = 92
-    Width = 425
-    Height = 17
+    Left = 10
+    Top = 113
+    Width = 523
+    Height = 21
     Caption = 'Inherit from another class'
     TabOrder = 4
     OnClick = chkInheritClick
   end
   object txtArgs: TEdit
-    Left = 88
-    Top = 32
-    Width = 348
+    Left = 108
+    Top = 39
+    Width = 429
     Height = 21
     TabOrder = 1
   end
   object chkConstruct: TCheckBox
-    Left = 88
-    Top = 62
-    Width = 169
-    Height = 17
+    Left = 108
+    Top = 76
+    Width = 208
+    Height = 21
     Caption = 'Create Constructor'
     TabOrder = 2
   end
   object chkDestruct: TCheckBox
-    Left = 264
-    Top = 62
-    Width = 169
-    Height = 17
+    Left = 325
+    Top = 76
+    Width = 208
+    Height = 21
     Caption = 'Create Destructor'
     TabOrder = 3
   end

@@ -123,6 +123,7 @@ const
   ID_TOOLCOMPILERS                      = 5026;
   ID_ITEM_FINDPREV                      = 5027;
   ID_TOOLDEBUG                          = 5028;
+  ID_TOOLUNDO                           = 5029;
 
   // project menu
   ID_ITEM_NEWFILE                       = 6001;
@@ -522,7 +523,8 @@ const
 
   ID_EOPT_FILE_TYPE                     = 27075;
   ID_EOPT_C_FILE                        = 27076;
-  ID_EOPT_CPP_FILE                      = 27077; 
+  ID_EOPT_CPP_FILE                      = 27077;
+  ID_EOPT_SYNTAXCHECK_WHEN_RETURN       = 27078;
 
   // new project
   ID_NP_PRJNAME                         = 28001;

@@ -339,12 +339,14 @@ begin
   cmd:= cmd + '}'
         +'}}'+#10;
 
+  {
   with TStringLIst.Create do try
     Text:=cmd;
     SaveToFile('f:\\cmd.txt');
   finally
     Free;
   end;
+  }
 
   //MainForm.LogOutput.Lines.Add(cmd);
   fBefore:=Before;

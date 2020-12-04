@@ -128,7 +128,6 @@ type
     _DefinitionLine: integer; // definition
     _FileName: AnsiString; // declaration
     _DefinitionFileName: AnsiString; // definition
-    _Temporary: boolean; // statements to be deleted after parsing
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search
@@ -155,6 +154,12 @@ type
   TProgressEvent = procedure(Sender: TObject; const FileName: AnsiString; Total, Current: integer) of object;
   TProgressEndEvent = procedure(Sender: TObject; Total: integer) of object;
 
+  PIncompleteClass = ^TIncompleteClass;
+  TIncompleteClass = record
+    statement:PStatement;
+    count: integer;
+  end;
+
   { TStringList is case insensitive }
   TDevStringList = class(TStringList)
   protected
@@ -167,9 +172,12 @@ type
     IncludeFiles: TStringList; // "file","file" etc
     Usings: TDevStringList; // namespaces it usings
     Statements: TList; // List<PStatement> , but we don't save temporary statements
-    DeclaredStatements: TList; // List<PStatement> statement declared in this file 
+    DeclaredStatements: TList; // List<PStatement> statement declared in this file
+    Scopes: TIntList; // List<Int,PStatement> int is start line of the statement scope
   end;
 
+const
+  ScopeTypeKinds : TStatementKindSet = [skClass,skNamespace,skFunction,skConstructor,skDestructor];
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
@@ -670,7 +678,7 @@ begin
   CppKeywords.Add('export',Ord(skItself));
   CppKeywords.Add('extern',Ord(skItself));
   CppKeywords.Add('false',Ord(skItself));
-  CppKeywords.Add('for',Ord(skItself));
+  //CppKeywords.Add('for',Ord(skItself));
   CppKeywords.Add('mutable',Ord(skItself));
   CppKeywords.Add('noexcept',Ord(skItself));
   CppKeywords.Add('not',Ord(skItself));
@@ -691,6 +699,11 @@ begin
   CppKeywords.Add('volatile',Ord(skItself));
   CppKeywords.Add('xor',Ord(skItself));
   CppKeywords.Add('xor_eq',Ord(skItself));
+
+  
+  //CppKeywords.Add('catch',Ord(skItself));
+  CppKeywords.Add('do',Ord(skItself));
+  CppKeywords.Add('try',Ord(skItself));
 
   // Skip to ;
   CppKeywords.Add('delete',Ord(skToSemicolon));
@@ -716,12 +729,10 @@ begin
   CppKeywords.Add('typeid',Ord(skToRightParenthesis));
   CppKeywords.Add('while',Ord(skToRightParenthesis));
 
-  // Skip to {
+  // Skip to }
   CppKeywords.Add('asm',Ord(skToRightBrace));
-  CppKeywords.Add('catch',Ord(skToLeftBrace));
-  CppKeywords.Add('do',Ord(skToLeftBrace));
   //CppKeywords.Add('namespace',Ord(skToLeftBrace)); // won't process it
-  CppKeywords.Add('try',Ord(skToLeftBrace));
+  // Skip to {
 
   // wont handle
 
@@ -790,6 +801,10 @@ begin
   // namespace
   CppKeywords.Add('namespace',Ord(skNone));
   CppKeywords.Add('using',Ord(skNone));
+
+  CppKeywords.Add('for',Ord(skNone));
+  CppKeywords.Add('catch',Ord(skNone));
+
 
 
   // nullptr is value

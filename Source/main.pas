@@ -162,17 +162,7 @@ type
     SaveAllBtn: TToolButton;
     SplitterLeft: TSplitter;
     EditorPopup: TPopupMenu;
-    UndoPopItem: TMenuItem;
-    RedoPopItem: TMenuItem;
-    MenuItem1: TMenuItem;
-    CutPopItem: TMenuItem;
-    CopyPopItem: TMenuItem;
-    PastePopItem: TMenuItem;
     MenuItem2: TMenuItem;
-    InsertPopItem: TMenuItem;
-    TogglebookmarksPopItem: TMenuItem;
-    GotobookmarksPopItem: TMenuItem;
-    SelectAllPopItem: TMenuItem;
     UnitPopup: TPopupMenu;
     RemoveFilefromprojectPopItem: TMenuItem;
     RenamefilePopItem: TMenuItem;
@@ -286,7 +276,6 @@ type
     GotoBtn: TToolButton;
     CppParser: TCppParser;
     CodeCompletion: TCodeCompletion;
-    N22: TMenuItem;
     Swapheadersource1: TMenuItem;
     N23: TMenuItem;
     actSwapHeaderSource: TAction;
@@ -338,8 +327,6 @@ type
     Properties1: TMenuItem;
     actViewToDoList: TAction;
     actAddToDo: TAction;
-    AddToDoitem1: TMenuItem;
-    N38: TMenuItem;
     oDolist1: TMenuItem;
     N39: TMenuItem;
     actProjectNewFolder: TAction;
@@ -349,9 +336,6 @@ type
     N40: TMenuItem;
     actImportMSVC: TAction;
     ImportItem: TMenuItem;
-    N41: TMenuItem;
-    ToggleBreakpointPopupItem: TMenuItem;
-    AddWatchPopupItem: TMenuItem;
     actViewCPU: TAction;
     actExecParams: TAction;
     mnuExecParameters: TMenuItem;
@@ -363,7 +347,6 @@ type
     PackageManagerItem: TMenuItem;
     btnAbortCompilation: TSpeedButton;
     actAbortCompilation: TAction;
-    N45: TMenuItem;
     N48: TMenuItem;
     ListItem: TMenuItem;
     mnuFileProps: TMenuItem;
@@ -393,9 +376,6 @@ type
     NewClassItem: TMenuItem;
     DeleteProfilingInformation: TMenuItem;
     actDeleteProfile: TAction;
-    GotoDefineEditor: TMenuItem;
-    GotoDeclEditor: TMenuItem;
-    N15: TMenuItem;
     actGotoDeclEditor: TAction;
     actGotoImplEditor: TAction;
     ToolButton1: TToolButton;
@@ -558,7 +538,6 @@ type
     DebugConsoleSheet: TTabSheet;
     CallStackSheet: TTabSheet;
     BreakpointsSheet: TTabSheet;
-    BreakpointProperies1: TMenuItem;
     StackTrace: TListView;
     BreakpointsView: TListView;
     actConvertToUTF8: TAction;
@@ -647,6 +626,47 @@ type
     N54: TMenuItem;
     GotoPreviousError1: TMenuItem;
     GotoNextError1: TMenuItem;
+    EditorPagePopup: TPopupMenu;
+    MenuItem13: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
+    MenuItem30: TMenuItem;
+    MenuItem31: TMenuItem;
+    MenuItem32: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItem34: TMenuItem;
+    MenuItem35: TMenuItem;
+    MenuItem36: TMenuItem;
+    MenuItem37: TMenuItem;
+    MenuItem38: TMenuItem;
+    MenuItem39: TMenuItem;
+    MenuItem40: TMenuItem;
+    InsertPopItem: TMenuItem;
+    TogglebookmarksPopItem: TMenuItem;
+    GotobookmarksPopItem: TMenuItem;
+    MenuItem46: TMenuItem;
+    MenuItem47: TMenuItem;
+    MenuItem48: TMenuItem;
+    MenuItem49: TMenuItem;
+    MenuItem50: TMenuItem;
+    MenuItem51: TMenuItem;
+    MenuItem52: TMenuItem;
+    N15: TMenuItem;
+    CompileRun1: TMenuItem;
+    Debug1: TMenuItem;
+    tbUndo: TToolBar;
+    ToolButton7: TToolButton;
+    ToolButton25: TToolButton;
+    ToolUndoItem: TMenuItem;
+    N22: TMenuItem;
+    FormatCurrentFile2: TMenuItem;
+    N38: TMenuItem;
+    RenameSymbol1: TMenuItem;
+    ToolButton26: TToolButton;
+    ReformatBtn: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -995,8 +1015,8 @@ type
     procedure CloseProject(RefreshEditor:boolean);
     procedure StartTabnine;
     procedure StopTabnine;
-    procedure CheckSyntaxInBack;
   public
+    procedure CheckSyntaxInBack(e:TEditor);
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
     procedure ScanActiveProject;
@@ -1258,6 +1278,7 @@ begin
       tbSearch.Images := CurrentTheme.MenuImages;
       tbSpecials.Images := CurrentTheme.MenuImages;
       tbCompilers.Images := CurrentTheme.MenuImages;
+      tbUndo.Images := CurrentTheme.MenuImages;
 
       // Set left control images
       ProjectView.Images := CurrentTheme.ProjectImages;
@@ -1323,7 +1344,8 @@ begin
   devData.ToolbarCompilersY := tbCompilers.Top;
   devData.ToolbarDebugX := tbDebug.Left;
   devData.ToolbarDebugY := tbDebug.Top;
-
+  devData.ToolbarUndoX := tbUndo.Left;
+  devData.ToolbarUndoY := tbUndo.Top;
   // Save left page control states
   devData.ProjectWidth := LeftPageControl.Width;
   devData.OutputHeight := fPreviousHeight;
@@ -1472,9 +1494,13 @@ begin
   ClassBrowser.Colors[BackColor]:=BackgroundColor;
   ClassBrowser.Colors[SelectedBackColor]:=selectedTC.Background;
   ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
-  ClassBrowser.Colors[FunctionColor]:=dmMain.Cpp.NumberAttri.Foreground;
-  ClassBrowser.Colors[ClassColor]:= dmMain.Cpp.StringAttri.Foreground;
-  ClassBrowser.Colors[InheritedColor]:=dmMain.Cpp.CommentAttri.Foreground;
+  ClassBrowser.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
+  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  ClassBrowser.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
+  ClassBrowser.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
+  ClassBrowser.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+  ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
+  ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cGut]);
@@ -1483,13 +1509,14 @@ begin
   end;
   CodeCompletion.Colors[BackColor] := tc.Background;
   CodeCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
-  CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.CommentAttribute.Foreground;
-  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.KeywordAttribute.Foreground;
-  CodeCompletion.Colors[VarColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
+  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  CodeCompletion.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
-  CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
   CodeCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
@@ -1699,6 +1726,7 @@ begin
   ToolClassesItem.Caption := Lang[ID_LP_CLASSES];
   ToolCompilersItem.Caption := Lang[ID_TOOLCOMPILERS];
   ToolDebugItem.Caption := Lang[ID_TOOLDEBUG];
+  ToolUndoItem.Caption := Lang[ID_TOOLUNDO];
 
 
   // Top level
@@ -1996,6 +2024,7 @@ end;
 procedure TMainForm.OpenProject(const s: AnsiString);
 var
   s2: AnsiString;
+  e:TEditor;
 begin
   if Assigned(fProject) then begin
     if fProject.Name = '' then
@@ -2014,6 +2043,10 @@ begin
   ClassBrowser.BeginUpdate;
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
+    e:=EditorList.GetEditor();
+    if assigned(e) and e.InProject then
+      self.CheckSyntaxInBack(e);
+
     if fProject.FileName <> '' then begin
       dmMain.RemoveFromHistory(s);
 
@@ -2070,7 +2103,7 @@ begin
   end;
 
   e.Activate;
-  CheckSyntaxInBack;
+  CheckSyntaxInBack(e);
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) then begin
@@ -2594,8 +2627,10 @@ begin
   dmMain.ClearHistory;
 end;
 
-procedure TMainForm.CheckSyntaxInBack;
+procedure TMainForm.CheckSyntaxInBack(e:TEditor);
 begin
+  if not Assigned(e) then
+    Exit;
   if not devEditor.AutoCheckSyntax then
     Exit;
   if fCompiler.Compiling then
@@ -2605,6 +2640,11 @@ begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;
+  if e.InProject then begin
+    if not assigned(MainForm.fProject) then
+      Exit;
+    fCompiler.Project := MainForm.fProject;
+  end;
   fCompiler.CheckSyntax;
 end;
 
@@ -2612,10 +2652,14 @@ procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
 begin
+   
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.Save;
-    CheckSyntaxInBack;
+    if e.InProject and Assigned(fProject) then begin
+      fProject.SaveAll;
+    end;
+    CheckSyntaxInBack(e);
   end;
 end;
 
@@ -2626,7 +2670,10 @@ begin
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.SaveAs;
-    CheckSyntaxInBack;
+    if e.InProject and Assigned(fProject) then begin
+      fProject.SaveAll;
+    end;    
+    CheckSyntaxInBack(e);
   end;
 end;
 
@@ -3254,7 +3301,7 @@ begin
 
       // Rebuild project tree and parse
       fProject.RebuildNodes;
-      CppParser.ParseFileList;
+      //CppParser.ParseFileList;
     end;
   finally
     Free;
@@ -3300,6 +3347,7 @@ begin
       UpdateAppTitle;
       UpdateCompilerList;
       UpdateProjectEditorsEncoding;
+      fProject.SaveOptions;
     end;
   end;
 end;
@@ -3496,6 +3544,8 @@ begin
       end;
     ctFile: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
+        if not Assigned(e) then
+          Exit;
         if not e.Save then
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
@@ -3524,7 +3574,9 @@ begin
         fProject.BuildPrivateResource;
       end;
   end;
-  e.ClearSyntaxErrors;
+  e := fEditorList.GetEditor; // always succeeds if ctFile is returned
+  if Assigned(e) then
+    e.ClearSyntaxErrors;
   Result := True;
 end;
 
@@ -4005,6 +4057,7 @@ begin
   tbClasses.Visible := ToolClassesItem.Checked;
   tbCompilers.Visible := ToolCompilersItem.Checked;
   tbDebug.Visible := ToolDebugItem.Checked;
+  tbUndo.Visible := ToolUndoItem.Checked;
 
   devData.ToolbarMain := ToolMainItem.Checked;
   devData.ToolbarEdit := ToolEditItem.Checked;
@@ -4015,6 +4068,7 @@ begin
   devData.ToolbarClasses := ToolClassesItem.Checked;
   devData.ToolbarCompilers := ToolCompilersItem.Checked;
   devData.ToolbarDebug := ToolDebugItem.Checked;
+  devData.ToolbarUndo := ToolUndoItem.Checked;
 end;
 
 procedure TMainForm.ToolbarDockContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
@@ -5058,11 +5112,13 @@ end;
 
 procedure TMainForm.actBrowserNewClassExecute(Sender: TObject);
 begin
-  with TNewClassForm.Create(Self) do try
+  with TNewClassForm.Create(Self) do
     ShowModal;
+    {
   finally
     Close;
   end;
+    }
 end;
 
 procedure TMainForm.actBrowserNewMemberExecute(Sender: TObject);
@@ -5085,6 +5141,8 @@ end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
+  if not devCodeCompletion.Enabled then
+    Exit;
   if ClassBrowser.CurrentFile = e.FileName then
     Exit;
   ClassBrowser.BeginUpdate;
@@ -6300,7 +6358,6 @@ var
   statement: PStatement;
   filename, phrase: AnsiString;
   line: integer;
-  M: TMemoryStream;
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
@@ -6314,15 +6371,9 @@ begin
 
     // When searching using menu shortcuts, the caret is set to the proper place
     // When searching using ctrl+click, the cursor is set properly too, so do NOT use WordAtMouse
-    M := TMemoryStream.Create;
-    try
-      e.Text.Lines.SaveToStream(M);
-      statement := CppParser.FindStatementOf(
+    statement := CppParser.FindStatementOf(
         e.FileName,
-        phrase, e.Text.CaretY, M);
-    finally
-      M.Free;
-    end;
+        phrase, e.Text.CaretY);
 
     // Otherwise scan the returned class browser statement
     if Assigned(statement) then begin
@@ -6419,12 +6470,17 @@ procedure TMainForm.CompilerOutputAdvancedCustomDrawItem(Sender: TCustomListView
   TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
   lowersubitem: AnsiString;
+  tc:TThemeColor;
 begin
   if StartsStr('[Warning] ', Item.SubItems[2]) then begin
-    Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
+    Sender.Canvas.Font.Style := [fsBold];
+    StrToThemeColor(tc,devEditor.Syntax.Values[cWN]);
+    Sender.Canvas.Font.Color := tc.Foreground;
   end else if StartsStr('[Error] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Style := [fsBold];
     Sender.Canvas.Font.Color := dmMain.Cpp.InvalidAttri.Foreground;
   end else if StartsStr('[Hint] ', Item.SubItems[2]) then begin
+    Sender.Canvas.Font.Style := [fsBold];  
     Sender.Canvas.Font.Color := dmMain.Cpp.KeyAttri.Foreground;
   end else begin
   end;
@@ -6623,7 +6679,8 @@ begin
   tbCompilers.Top := devData.ToolbarCompilersY;
   tbDebug.Left := devData.ToolbarDebugX;
   tbDebug.Top := devData.ToolbarDebugY;
-
+  tbUndo.Left := devData.ToolbarUndoX;
+  tbUndo.Top := devData.ToolbarUndoY;
   // Set toolbars to previous state.
   // 2) Visibility
   tbMain.Visible := devData.ToolbarMain;
@@ -6635,6 +6692,7 @@ begin
   tbClasses.Visible := devData.ToolbarClasses;
   tbCompilers.Visible := devData.ToolbarCompilers;
   tbDebug.Visible := devData.ToolbarDebug;
+  tbUndo.Visible := devData.ToolbarUndo;
 
   // Set toolbars to previous state.
   // 3) UI components
@@ -6647,6 +6705,7 @@ begin
   ToolClassesItem.Checked := devData.ToolbarClasses;
   ToolCompilersItem.Checked := devData.ToolbarCompilers;
   ToolDebugItem.Checked := devData.ToolbarDebug;
+  ToolUndoItem.Checked := devData.ToolbarUndo;
 
   // PageControl settings
   fEditorList.SetPreferences(devData.MsgTabs, devData.MultiLineTab);
@@ -7243,14 +7302,21 @@ begin
 end;
 
 procedure TMainForm.actSyntaxCheckFileExecute(Sender: TObject);
+var
+  e:TEditor;
 begin
   actStopExecuteExecute(Self);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
     Exit;
   end;
+  e:=EditorList.GetEditor();
+  if not assigned(e) then
+    Exit;
   if not PrepareForCompile(ctFile) then
     Exit;
+  if e.InProject then
+    fCompiler.Project := MainForm.fProject;
   fCompiler.CheckSyntax;
 end;
 
@@ -7473,6 +7539,17 @@ begin
     if Word = '' then begin
       Exit;
     end;
+
+  if not IsIdentifier(word) then begin
+    MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[word]), mtInformation, [mbOK], 0);
+    Exit;
+  end;
+
+  //Test if newName is a C++ keyword
+  if IsKeyword(word) then begin
+    MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[word]), mtInformation, [mbOK], 0);
+    Exit;
+  end;
 
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
@@ -8048,14 +8125,14 @@ var
   y    : Integer;
   x    : Integer;
   aRect: TRect;
-  bgColor,fgColor,abgColor,afgColor : TColor;
-  gtc : TThemeColor;
+  bgColor,fgColor,abgColor,afgColor: TColor;
+  ptc: TThemeColor;
   tabs:integer;
   tabRect: TRect;
 begin
-  strToThemeColor(gtc, devEditor.Syntax.Values[cPNL]);
-  bgColor := gtc.Background;
-  fgColor := gtc.Foreground;
+  strToThemeColor(ptc, devEditor.Syntax.Values[cPNL]);
+  bgColor := ptc.Background;
+  fgColor := ptc.Foreground;
   abgColor := dmMain.Cpp.WhitespaceAttribute.Background;
   afgColor := dmMain.Cpp.IdentifierAttri.Foreground;
   if Active then begin
@@ -8244,8 +8321,7 @@ begin
   if assigned(e) then begin
     e.GotoNextError;
   end;
-end; 
-
+end;
 
 end.
 

@@ -90,7 +90,6 @@ uses
   SynEditPrint,
   SynEditPrintMargins,
   SynEditPrintMarginsDialog,
-  SynCompletionProposal,
   SynMacroRecorder,
   SysUtils;
 

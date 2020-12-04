@@ -167,6 +167,7 @@ type
     grpDefaultFileType: TGroupBox;
     rbCFile: TRadioButton;
     rbCppFile: TRadioButton;
+    chkCheckSyntaxReturn: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -207,6 +208,7 @@ type
     procedure cbShowCompletionWhileInputingClick(Sender: TObject);
     procedure chkRecordUsageClick(Sender: TObject);
     procedure btnClearUsageDataClick(Sender: TObject);
+    procedure chkAutoCheckSyntaxInBackClick(Sender: TObject);
   private
     ffgColor: TColor;
     fbgColor: TColor;
@@ -275,6 +277,7 @@ begin
   cboQuickColor.Items.Add('GSS Hacker');
   cboQuickColor.Items.Add('Obvilion');
   cboQuickColor.Items.Add('PlasticCodeWrap');
+  cboQuickColor.Items.Add('VS Code');
   fPredefinedColorThemeCount := cboQuickColor.Items.Count;
 
   with devEditor do begin
@@ -462,6 +465,8 @@ begin
     cbAutoSaveClick(nil);
 
     chkAutoCheckSyntaxInBack.Checked := devEditor.AutoCheckSyntax;
+    chkCheckSyntaxReturn.Enabled := chkAutoCheckSyntaxInBack.Checked;
+    chkCheckSyntaxReturn.Checked := devEditor.CheckSyntaxWhenReturn;
   end;
 
   // Colors, cont. 2
@@ -715,6 +720,7 @@ begin
   //Syntab Check
   tabCheckSyntax.Caption :=  Lang[ID_EOPT_SYNTAXCHECK];
   chkAutoCheckSyntaxInBack.Caption := LANG[ID_EOPT_SYNTAXCHECK_IN_BACK];
+  chkCheckSyntaxReturn.Caption := LANG[ID_EOPT_SYNTAXCHECK_WHEN_RETURN];
 
   tbCompletionDelayChange(nil);
   MinutesDelayChange(nil);
@@ -795,7 +801,9 @@ begin
     AutoSaveFilter := FileOptions.ItemIndex;
     AutoSaveMode := NameOptions.ItemIndex;
 
-    AutoCheckSyntax := chkAutoCheckSyntaxInBack.Checked;    
+    AutoCheckSyntax := chkAutoCheckSyntaxInBack.Checked;
+    CheckSyntaxWhenReturn := chkCheckSyntaxReturn.Checked;
+
 
     // Default source
     DefaultCode := cbDefaultCode.Checked;
@@ -1256,6 +1264,7 @@ begin
     StrToThemeColor(fFoldColor, LoadStr(offset + 22)); // folding bar lines
     StrToThemeColor(fALColor, LoadStr(offset + 23)); // folding bar lines
     StrToThemeColor(fWNColor, LoadStr(offset + 24)); // folding bar lines
+    StrToThemeColor(fPNLColor, LoadStr(offset + 25)); // folding bar lines
     UpdateDemoEditColor;
   end;
 
@@ -1655,6 +1664,11 @@ end;
 procedure TEditorOptForm.btnClearUsageDataClick(Sender: TObject);
 begin
   dmMain.SymbolUsage.Clear;
+end;
+
+procedure TEditorOptForm.chkAutoCheckSyntaxInBackClick(Sender: TObject);
+begin
+  chkCheckSyntaxReturn.Enabled:=chkAutoCheckSyntaxInBack.Checked;
 end;
 
 end.

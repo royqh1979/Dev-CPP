@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtDlgs, StdCtrls, ExtCtrls, Buttons, ComCtrls, main, project,
+  ExtDlgs, StdCtrls, ExtCtrls, Buttons, ComCtrls,project,
   ProjectTypes, Spin, ValEdit, CompOptionsFrame, ShellApi, Grids;
 
 type
@@ -198,7 +198,7 @@ type
 implementation
 
 uses
-  FileCtrl, devcfg, IconFrm, utils, MultiLangSupport, version, Math;
+  FileCtrl, devcfg, IconFrm, utils, MultiLangSupport, version, Math, main;
 
 {$R *.dfm}
 

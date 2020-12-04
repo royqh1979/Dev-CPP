@@ -325,7 +325,8 @@ begin
       Statement := Children[i];
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
-        if _Temporary then
+        
+        if _Kind = skBlock then
           Continue;
 
         if _Inherited and not fShowInheritedMembers then // don't show inherited members
@@ -560,12 +561,7 @@ begin
     Exit;
   end;
 
-  // Assume the node image is correct
-  bInherited := fShowInheritedMembers and (Node.ImageIndex in [
-    fImagesRecord.fInhMethodProtectedImg,
-      fImagesRecord.fInhMethodPublicImg,
-      fImagesRecord.fInhVariableProtectedImg,
-      fImagesRecord.fInhVariablePublicImg]);
+  bInherited := fShowInheritedMembers and st^._Inherited;
 
   if Stage = cdPrePaint then begin
       Sender.Canvas.Font.Style := [fsBold];
@@ -576,8 +572,37 @@ begin
       Sender.Canvas.Brush.Color:=fColors[BackColor];
       if bInherited then
         Sender.Canvas.Font.Color := fColors[InheritedColor]
-      else
-        Sender.Canvas.Font.Color := fColors[ForeColor];
+      else begin
+        st := Node.Data;
+        if not Assigned(st) then
+          Exit;
+        case st^._Kind of
+          skVariable:begin
+              Sender.Canvas.Font.Color := fColors[VarColor];
+            end;
+          skClass:begin
+              Sender.Canvas.Font.Color := fColors[ClassColor];
+            end;
+          skNamespace:begin
+              Sender.Canvas.Font.Color := fColors[NamespaceColor];
+            end;
+          skFunction,skConstructor,skDestructor:begin
+              Sender.Canvas.Font.Color := fColors[FunctionColor];
+            end;
+          skTypedef:begin
+              Sender.Canvas.Font.Color := fColors[TypedefColor];
+            end;
+          skPreprocessor:begin
+              Sender.Canvas.Font.Color := fColors[PreprocessorColor];
+            end;
+          skEnum:begin
+              Sender.Canvas.Font.Color := fColors[EnumColor];
+            end;
+          else begin
+            Sender.Canvas.Font.Color := fColors[ForeColor];
+          end;
+        end;
+      end;
     end;
   end else if Stage = cdPostPaint then begin
     try

@@ -1185,7 +1185,16 @@ object EditorOptForm: TEditorOptForm
         Height = 22
         Caption = 'Auto Check Syntax When Open/Save File'
         TabOrder = 0
-        OnClick = chkEnableCompletionClick
+        OnClick = chkAutoCheckSyntaxInBackClick
+      end
+      object chkCheckSyntaxReturn: TCheckBox
+        Left = 11
+        Top = 43
+        Width = 609
+        Height = 22
+        Caption = 'Check Syntax When Return Entered'
+        TabOrder = 1
+        Visible = False
       end
     end
     object tabAutosave: TTabSheet

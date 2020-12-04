@@ -183,7 +183,7 @@ begin
   if not Assigned(ScopeStatement) then begin //Global scope
     for i:=0 to Children.Count-1 do begin
       ChildStatement:=PStatement(Children[i]);
-      if not( ChildStatement^._Kind in [skConstructor, skDestructor])
+      if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
         and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
         fAddedStatements.Add(ChildStatement^._Command);
         fFullCompletionStatementList.Add(ChildStatement);
@@ -192,7 +192,8 @@ begin
   end else begin
     for i:=0 to Children.Count-1 do begin
       ChildStatement:=PStatement(Children[i]);
-      if (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
+      if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
+        and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
         fAddedStatements.Add(ChildStatement^._Command);
         fFullCompletionStatementList.Add(ChildStatement);
       end;
@@ -292,7 +293,7 @@ begin
       if not Assigned(statement) then
         Exit;
       ScopeTypeStatement := fCurrentStatement;
-      while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in [skClass]) do begin
+      while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in ScopeTypeKinds) do begin
         ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
       end;
       if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin
@@ -509,9 +510,7 @@ begin
          fCompletionStatementList.Add(tmpList[I]);
       lastCmd:=PStatement(tmpList[I])^._Command;
     end;
-  finally
-    tmpList.Free;
-  end;
+
     }
 
 end;

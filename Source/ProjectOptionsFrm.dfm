@@ -71,7 +71,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Top = 0
     Width = 712
     Height = 481
-    ActivePage = tabFilesDir
+    ActivePage = tabGeneral
     TabOrder = 3
     object tabGeneral: TTabSheet
       Caption = 'General'

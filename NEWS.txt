@@ -1,4 +1,31 @@
-Version 6.2-beta4
+Version 6.2-beta5 Dec 2020
+
+    - enhancement: Can parse statements like 'struct Node { int data; } s;'
+    - change/enhancement: Save/Save As a project file will save project settings too.
+    - enhancement: Use different color for warning message in the compiler output dialog
+    - add: VS Code color scheme (thanks to ÉXÉmjyy)
+    - enhancement: highlight identifiers which are the same as the selected words
+    - fix: can't correctly read panel color settings
+    - fix: undo error when copy multiline text
+    - fix: crash when use Class wizard to add a new class to the project
+    - fix: variables of string can't show type hints
+    - optimize: use typedef instead of define multiple structs 
+    - fix: can handle var define using unamed struct 
+    - optimize: all symbols are scanned. Don't later scan
+    - fix£ºparse error of keywords try/catch/do
+    - fix: parse error for std::types
+    - fix: brace color error of new typed contents to the last of the source file 
+    - fix: we only parse file if code completion is enabled
+    - fix: use project include path when check syntax;
+    - fix: crash when try to compile a project but no file is opend
+    - enhancement: adjust editor context menu; only show close/close all when right click the editor title bar; show compile&Run / debug  when right click other area of the editor 
+    - enhancement: add undo/redo toolbar (don't show by default; can be enabled in view -> toolbar)
+    - enhancement: check for keyword/identifier before rename symbol
+    - fix: change the way to handel the request to close all editors. Don't active any editor at all. This will speed up the process, and hope this will remove the bug that devcpp crashes when closing all editors.
+    - fix: Redo the logic to parse local symbols. Now we only reparse the file when open/save a file, or text lines count is changed. This will remove the bugs that hangs devcpp when try to show mouse hint.
+    - enhancement: correctly parse variables defined in for() and catch()
+
+Version 6.2-beta4 Dec 2020
     
     - enhancement: Show confirm dialog before "delete user configurations & exit" in the environment dialog.
     - enhancement: add an option in the editor options dialog, let user choose the default file type(extension) 
@@ -10,7 +37,6 @@ Version 6.2-beta4
     - change: do the first source parse after an #include line is finished and press ENTER
     - enhancement: optimization for Class Browser Refresh
     - fix: crash when try to show mouse hint for a preprocessor
-    - fix: wrong color of parenthesis in comment/string
 
 Version 6.2-beta3 Nov 2020
     

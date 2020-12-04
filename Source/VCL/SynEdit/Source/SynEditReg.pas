@@ -54,7 +54,6 @@ uses
   SynExportRTF,
   SynExportTeX,
   SynHighlighterMulti,
-  SynCompletionProposal,
   SynEditPythonBehaviour,
   SynEditPrint,
   SynEditPrintPreview,

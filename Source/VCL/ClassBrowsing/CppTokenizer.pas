@@ -444,7 +444,6 @@ function TCppTokenizer.GetWord(bSkipParenthesis: boolean = False; bSkipArray: bo
 var
   Offset: PAnsiChar;
   S: AnsiString;
-  tmp: integer;
 //  bIsSmartPointer: boolean;
   bFoundTemplate: boolean;
   function CurrentWordEquals(const Text : AnsiString) : Boolean;
@@ -507,6 +506,10 @@ begin
       // Append array stuff
     end else if bSkipArray and (pCurrent^ = '[') then begin
       repeat
+        SkipPair('[', ']');
+        SetString(Result, Offset, pCurrent - Offset);
+        SimplifyArgs(Result);
+        {
         Offset := pCurrent;
         tmp := 1;
         repeat
@@ -519,6 +522,7 @@ begin
         until tmp = 0;
         Inc(pCurrent);
         CatString(Result, Offset, pCurrent - Offset);
+        }
         SkipToNextToken;
       until pCurrent^ <> '['; // maybe multi-dimension array
     end else if bSkipBlock and (pCurrent^ = '{') then begin

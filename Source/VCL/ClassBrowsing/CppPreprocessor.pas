@@ -22,12 +22,7 @@ unit CppPreprocessor;
 interface
 
 uses
-{$IFDEF WIN32}
-  Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils, iniFiles;
-{$ENDIF}
-{$IFDEF LINUX}
-Classes, SysUtils, StrUtils, QComCtrls;
-{$ENDIF}
+  Windows, Classes, SysUtils, StrUtils, ComCtrls, Math, cbutils, iniFiles,IntList;
 
 const
   LineChars: set of Char = [#13, #10];
@@ -294,6 +289,8 @@ begin
     fCurrentIncludes^.Usings.Add('std'); //using std by default
     fCurrentIncludes^.Statements:=TList.Create;
     fCurrentIncludes^.DeclaredStatements:=TList.Create;
+    fCurrentIncludes^.Scopes := TIntList.Create;
+    fCurrentIncludes^.Scopes.Sorted := True;    
     fIncludesList.AddObject(FileName,TObject(fCurrentIncludes));
   end;
 

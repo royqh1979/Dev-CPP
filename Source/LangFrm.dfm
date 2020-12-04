@@ -226,9 +226,7 @@ object LangForm: TLangForm
         Height = 28
         Style = csDropDownList
         ItemHeight = 20
-        ItemIndex = 10
         TabOrder = 1
-        Text = 'PlasticCodeWrap'
         OnChange = ColorChange
         Items.Strings = (
           'Classic'
@@ -241,7 +239,8 @@ object LangForm: TLangForm
           'Obsidian'
           'GSS Hacker'
           'Obvilion'
-          'PlasticCodeWrap')
+          'PlasticCodeWrap'
+          'VS Code')
       end
       object cmbFont: TComboBox
         Left = 75

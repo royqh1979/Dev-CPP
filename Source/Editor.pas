@@ -82,6 +82,7 @@ type
     fText: TSynEdit;
     fTabSheet: TTabSheet;
     fGutterClickedLine: integer;
+    fLineCount : integer;
     fErrorLine: integer;
     fActiveLine: integer;
     fDebugGutter: TDebugGutter;
@@ -135,6 +136,11 @@ type
     procedure EditorExit(Sender: TObject);
     procedure EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
+
+    procedure EditorPaintHighlightToken(Sender: TObject; Line: integer;
+      column: integer; token: String; attr: TSynHighlighterAttributes;
+      var style:TFontStyles; var FG,BG:TColor);
+
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
     procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList;
@@ -169,6 +175,7 @@ type
     //procedure TextWindowProc(var Message: TMessage);
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
+    procedure Reparse;
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
     destructor Destroy; override;
@@ -319,6 +326,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
   fLastParseTime := 0;
@@ -389,12 +397,15 @@ begin
   fText.OnKeyDown := EditorKeyDown;
   fText.OnKeyUp := EditorKeyUp;
   fText.OnPaintTransient := EditorPaintTransient;
+  fText.OnPaintHighlightToken := EditorPaintHighlightToken;
   fText.WantReturns := True;
   fText.WantTabs := True;
 //  fText.AddKeyDownHandler(EditorKeyDown);
 
   // Set the variable options
   devEditor.AssignEditor(fText, fFileName);
+
+  fText.PopupMenu := MainForm.EditorPagePopup;
 
   // Create a gutter
   fDebugGutter := TDebugGutter.Create(self);
@@ -424,7 +435,7 @@ begin
   MainForm.FileMonitor.Monitor(fFileName);
 
   // Set status bar for the first time
-  EditorStatusChange(Self, [scInsertMode]);
+  EditorStatusChange(Self, [scOpenFile]);
 
 end;
 
@@ -489,10 +500,6 @@ begin
   fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
   
   //don't need to reparse here, in EditorEnter event handler we will do it
-  {
-  if fFileName <> '' then
-    MainForm.CppParser.ParseFile(fFileName,fInProject);
-  }
   MainForm.UpdateFileEncodingStatusPanel;
 end;
 
@@ -704,9 +711,12 @@ begin
   // Set title bar to current file
   MainForm.UpdateAppTitle;
 
-  // Set classbrowser to current file (and refresh)
-  MainForm.UpdateClassBrowserForEditor(self);
-//  MainForm.ClassBrowser.CurrentFile := fFileName;
+  if devCodeCompletion.Enabled then begin
+    // Set classbrowser to current file (and parse file and refresh)
+    MainForm.UpdateClassBrowserForEditor(self);
+    fLastParseTime := Now;
+    fText.Invalidate;
+  end;
 
   // Set compiler selector to current file
   MainForm.UpdateCompilerList;
@@ -731,6 +741,17 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
+  if (not (scOpenFile in Changes)) and (fText.Lines.Count <> fLineCount) then begin
+    fLineCount := fText.Lines.Count;
+    if devCodeCompletion.Enabled
+      and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
+      then begin
+      Reparse;
+    end;
+    if devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+      mainForm.CheckSyntaxInBack(self);
+    end;
+  end;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
     if fText.Modified then begin
@@ -771,13 +792,16 @@ begin
 
     // Remove error line colors
     if not fIgnoreCaretChange then begin
-      if (fErrorLine <> -1) then begin
+      if (fErrorLine <> -1) and not fText.SelAvail then begin
         fText.InvalidateLine(fErrorLine);
         fText.InvalidateGutterLine(fErrorLine);
         fErrorLine := -1;
       end;
     end else
       fIgnoreCaretChange := false;
+
+    if fText.SelAvail then
+      fText.Invalidate;
   end;
 
   if scInsertMode in Changes then begin
@@ -1654,7 +1678,6 @@ end;
 procedure TEditor.HandleCodeCompletion(var Key: Char);
 begin
   if fCompletionBox.Enabled then begin
-
     // Use a timer to show the completion window when we just typed a few parent-member linking chars
     case Key of
       '.': fCompletionTimer.Enabled := True;
@@ -1674,9 +1697,7 @@ end;
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
 var
   lastWord:AnsiString;
-  M:TMemoryStream;
   st,currentStatement:PStatement;
-  s:AnsiString;
   
 begin
   // Don't offer completion functions for plain text files
@@ -1694,22 +1715,15 @@ begin
             ShowTabnineCompletion;
             Exit;
           end;
-          M := TMemoryStream.Create;
-          try
-            fText.Lines.SaveToStream(M);
-            st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, Text.CaretXY.Line, M);
-            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
-              //expand macro
-              currentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
-              st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,currentStatement);
-            end;
-            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
-              //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
-              ShowTabnineCompletion;
-              Exit;
-            end;
-          finally
-            M.Free;
+          st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
+          if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
+            //expand macro
+            st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
+          end;
+          if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+            ShowTabnineCompletion;
+            Exit;
           end;
         end;
         fText.SelText := Key;
@@ -1730,7 +1744,9 @@ begin
       ShowTabnineCompletion;
     end else begin
       // Spawn code completion window if we are allowed to
-      HandleCodeCompletion(Key);
+      if devCodeCompletion.Enabled then begin
+        HandleCodeCompletion(Key);
+      end;
     end;
   end;
 end;
@@ -1755,24 +1771,6 @@ var
     end;
   end;
 
-  
-  procedure PreParse;
-  var
-    M: TMemoryStream;
-  begin
-    M := TMemoryStream.Create;
-    try
-      fText.Lines.SaveToStream(M);
-
-      // Reparse whole file (not function bodies) if it has been modified
-      // use stream, don't read from disk (not saved yet)
-      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-      fLastParseTime := Now;
-    finally
-      M.Free;
-    end;
-  end;
-    
 begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
@@ -1794,11 +1792,6 @@ begin
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
-        end;
-        //pre parsing when #Include finised
-        if (fText.LineText<>'')
-          and StartsStr('#include',fText.LineText) then begin
-          PreParse;
         end;
       end;
     VK_ESCAPE: begin // Update function tip
@@ -1947,10 +1940,11 @@ end;
 procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
-  M: TMemoryStream;
   s,word: AnsiString;
   attr: TSynHighlighterAttributes;
 begin
+  if not devCodeCompletion.Enabled then
+    Exit;
   fCompletionTimer.Enabled := False;
 
   if fCompletionBox.Visible then // already in search, don't do it again
@@ -1984,23 +1978,10 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
   fCompletionBox.Show;
-  M := TMemoryStream.Create;
-  try
-    fText.Lines.SaveToStream(M);
 
-    // Reparse whole file (not function bodies) if it has been modified
-    // use stream, don't read from disk (not saved yet)
-    if fText.Modified and (fText.LastModifyTime > self.fLastParseTime) then begin
-      MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-      fLastParseTime := Now;
-    end;
+  // Scan the current function body
+  fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
-    // Scan the current function body
-    fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY, M);
-  finally
-    M.Free;
-  end;
-  
   word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
@@ -2301,8 +2282,6 @@ begin
 end;
 
 procedure TEditor.EditorDblClick(Sender: TObject);
-var
-  s:AnsiString;
 begin
   fDblClickTime := GetTickCount;
   fText.GetPositionOfMouse(fDblClickMousePos);
@@ -2342,7 +2321,6 @@ var
   s: AnsiString;
   p: TBufferCoord;
   st: PStatement;
-  M: TMemoryStream;
   Reason: THandPointReason;
   IsIncludeLine: boolean;
   pError : pSyntaxError;
@@ -2395,7 +2373,7 @@ var
 
   procedure ShowDebugHint;
   begin
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
 
     if not Assigned(st) then
       Exit;
@@ -2421,7 +2399,7 @@ var
   procedure ShowParserHint;
   begin
     // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line, M);
+    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
 
     if Assigned(st) then begin
       // vertical bar is used to split up short and long hint versions...
@@ -2501,38 +2479,25 @@ begin
   else
     fText.Cursor := crIBeam;
 
-  M := TMemoryStream.Create;
-  try
-    fText.Lines.SaveToStream(M);
-
-    // Determine what to do with subject
-    case Reason of
-      hprPreprocessor: begin
-          if IsIncludeLine then
-            ShowFileHint
-          else if devEditor.ParserHints and not fCompletionBox.Visible then
-            ShowParserHint;
-        end;
-      hprIdentifier, hprSelection: begin
-          if not fCompletionBox.Visible  then begin
-            if fText.Modified and (fText.LastModifyTime > self.fLastParseTime)  then begin
-              // Reparse whole file (not function bodies) if it has been modified
-              // use stream, don't read from disk (not saved yet)
-              MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
-              fLastParseTime := Now;
-            end;
-            if MainForm.Debugger.Executing then
-              ShowDebugHint
-            else if devEditor.ParserHints then
-              ShowParserHint;
-          end;
-        end;
-      hprError : begin
-          ShowErrorHint;
-        end;
+  // Determine what to do with subject
+  case Reason of
+    hprPreprocessor: begin
+      if IsIncludeLine then
+        ShowFileHint
+      else if devEditor.ParserHints and not fCompletionBox.Visible then
+        ShowParserHint;
     end;
-  finally
-    M.Free;
+    hprIdentifier, hprSelection: begin
+      if not fCompletionBox.Visible  then begin
+        if MainForm.Debugger.Executing then
+          ShowDebugHint
+        else if devEditor.ParserHints then
+          ShowParserHint;
+      end;
+    end;
+    hprError : begin
+      ShowErrorHint;
+    end;
   end;
 end;
 
@@ -2577,6 +2542,46 @@ begin
         end;
       end else
         MainForm.actGotoImplDeclEditorExecute(self);
+    end;
+  end;
+end;
+
+procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
+  column: integer; token: String; attr: TSynHighlighterAttributes;
+  var style:TFontStyles; var FG,BG:TColor);
+var
+  tc:TThemeColor;
+  st: PStatement;
+begin
+  if token='' then
+    Exit;
+  //selection
+  if fText.SelAvail then begin
+    if (attr = fText.Highlighter.IdentifierAttribute)
+      and SameStr(token, fText.SelText) then begin
+      StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
+      FG := tc.Foreground;
+      BG := tc.Background;
+      exit;
+    end;
+  end;
+
+  if fCompletionBox.Visible then //don't do this when show
+    Exit;
+  if (attr = fText.Highlighter.IdentifierAttribute) then begin
+    st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    if assigned(st) then begin
+      case st._Kind of
+        skPreprocessor: begin
+          fg:=dmMain.Cpp.DirecAttri.Foreground;
+        end;
+        skVariable: begin
+          fg:=dmMain.Cpp.VariableAttri.Foreground;
+        end;
+        skFunction,skConstructor,skDestructor: begin
+          fg:=dmMain.Cpp.FunctionAttri.Foreground;
+        end;
+      end;
     end;
   end;
 end;
@@ -2744,7 +2749,7 @@ begin
           Result := hprPreprocessor; // and preprocessor line if no selection is present
       end;
     end;
-  end; 
+  end;
 end;
 
 function TEditor.Save: boolean;
@@ -2781,8 +2786,11 @@ begin
         Result := False;
       end;
 
-      MainForm.CppParser.ParseFile(fFileName, InProject);
-      fLastParseTime:=Now;
+      if devCodeCompletion.Enabled then begin
+        MainForm.CppParser.ParseFile(fFileName, InProject);
+        fLastParseTime := Now;
+        fText.invalidate;
+      end;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
 
@@ -2868,21 +2876,18 @@ begin
   end else
     fTabSheet.Caption := ExtractFileName(SaveFileName);
 
+  // Set new file name
+  FileName := SaveFileName;
+    
   // Update window captions
   MainForm.UpdateAppTitle;
 
-  // Update class browser, redraw once
-  MainForm.ClassBrowser.BeginUpdate;
-  try
-    MainForm.CppParser.ParseFile(SaveFileName, InProject);
-    fLastParseTime:=Now;
-    MainForm.ClassBrowser.CurrentFile := SaveFileName;
-  finally
-    MainForm.ClassBrowser.EndUpdate;
+  if devCodeCompletion.Enabled then begin
+    // Update class browser, redraw once
+    MainForm.UpdateClassBrowserForEditor(self);
+    fLastParseTime := Now;
+    fText.Invalidate;
   end;
-
-  // Set new file name
-  FileName := SaveFileName;
 end;
 
   procedure TEditor.LoadFile(FileName:String;DetectEncoding:bool=False);
@@ -2983,7 +2988,7 @@ begin
     lst.Free;
   end;
   fErrorList.Clear;
-  fText.Invalidate;
+  //fText.Invalidate;
 end;
 
 procedure TEditor.AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
@@ -3033,9 +3038,8 @@ end;
 
 function TEditor.GetErrorAtLine(line:integer):PSyntaxError;
 var
-  idx,i:integer;
+  idx:integer;
   lst:TList;
-  pError:PSyntaxError;
 begin
   Result := nil;
   idx:=CBUtils.FastIndexOf(fErrorList,line);
@@ -3068,60 +3072,96 @@ begin
 end;
 
 procedure TEditor.LinesDeleted(FirstLine,Count:integer);
-var
-  newList:TIntList;
-  i,j:integer;
-  lineNo:integer;
-  lst:TList;
-begin
-  newList:=TIntList.Create;
-  try
-    for i:=0 to fErrorList.Count-1 do begin
-      lineNo := fErrorList[i];
-      if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then begin
-        lst:=TList(fErrorList.Objects[i]);
-        for j:=0 to lst.Count-1 do begin
-          dispose(PSyntaxError(lst[j]));
+
+
+  procedure UpdateErrorList;
+  var
+    newList:TIntList;
+    i,j:integer;
+    lineNo:integer;
+    lst:TList;
+  begin
+    newList:=TIntList.Create;
+    try
+      for i:=0 to fErrorList.Count-1 do begin
+        lineNo := fErrorList[i];
+        if (lineNo>=FirstLine) and (lineNo<FirstLine+Count) then begin
+          lst:=TList(fErrorList.Objects[i]);
+          for j:=0 to lst.Count-1 do begin
+            dispose(PSyntaxError(lst[j]));
+          end;
+          lst.Free;
+          Continue;
         end;
-        lst.Free;
-        Continue;
+        if (lineNo >= FirstLine+Count) then
+          dec(lineNo,Count);
+        newList.AddObject(lineNo,fErrorList.Objects[i]);
       end;
-      if (lineNo >= FirstLine+Count) then
-        dec(lineNo,Count);
-      newList.AddObject(lineNo,fErrorList.Objects[i]);
+      fErrorList.Sorted:=False;
+      fErrorList.Assign(newList);
+      fErrorList.Sorted:=True;
+      if not devCodeCompletion.Enabled then
+        fText.invalidate;
+    finally
+      newList.Free;
     end;
-    fErrorList.Sorted:=False;
-    fErrorList.Assign(newList);
-    fErrorList.Sorted:=True;
-    fText.invalidate;
-  finally
-    newList.Free;
+  end;
+begin
+  if not devEditor.CheckSyntaxWhenReturn then begin
+    UpdateErrorList;
   end;
   MainForm.CaretList.LinesDeleted(self,firstLine,count);
 end;
 
-procedure TEditor.LinesInserted(FirstLine,Count:integer);
+procedure TEditor.Reparse;
 var
-  newList:TIntList;
-  i:integer;
-  lineNo:integer;
+  M: TMemoryStream;
 begin
-  newList:=TIntList.Create;
+  fText.LockPainter;
+  M := TMemoryStream.Create;
   try
-    for i:=0 to fErrorList.Count-1 do begin
-      lineNo := fErrorList[i];
-      if (lineNo >= FirstLine) then
-        inc(lineNo,Count);
-      newList.AddObject(lineNo,fErrorList.Objects[i]);
-    end;
-    fErrorList.Sorted:=False;
-    fErrorList.Assign(newList);
-    fErrorList.Sorted:=True;
-    fText.invalidate;
+    fText.Lines.SaveToStream(M);
+    // Reparse whole file (not function bodies) if it has been modified
+    // use stream, don't read from disk (not saved yet)
+    MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+    fLastParseTime := Now;
   finally
-    newList.Free;
+    M.Free;
+    fText.UnlockPainter;
+    fText.Invalidate;
   end;
-  MainForm.CaretList.LinesInserted(self,firstLine,count);  
+end;
+
+
+procedure TEditor.LinesInserted(FirstLine,Count:integer);
+  procedure UpdateErrorList;
+  var
+    newList:TIntList;
+    i:integer;
+    lineNo:integer;
+  begin
+  newList:=TIntList.Create;
+    try
+      for i:=0 to fErrorList.Count-1 do begin
+        lineNo := fErrorList[i];
+        if (lineNo >= FirstLine) then
+          inc(lineNo,Count);
+        newList.AddObject(lineNo,fErrorList.Objects[i]);
+      end;
+      fErrorList.Sorted:=False;
+      fErrorList.Assign(newList);
+      fErrorList.Sorted:=True;
+      if not devCodeCompletion.Enabled then
+        fText.invalidate;
+    finally
+      newList.Free;
+    end;
+  end;
+begin
+  if not devEditor.CheckSyntaxWhenReturn then begin
+    UpdateErrorList;
+  end;
+  MainForm.CaretList.LinesInserted(self,firstLine,count);
 end;
 
 procedure TEditor.GotoNextError;

@@ -424,6 +424,7 @@ type
     fAutoSaveMode: integer;
 
     fAutoCheckSyntax: boolean;
+    fCheckSyntaxWhenReturn: boolean;
 
     // Symbol completion
     fBraceComplete: boolean;
@@ -521,7 +522,7 @@ type
     property ShowRainbowBacket:boolean read fShowRainbowBacket write fShowRainbowBacket;
 
     property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax;
-
+    property CheckSyntaxWhenReturn: boolean read fCheckSyntaxWhenReturn write fCheckSyntaxWhenReturn;
     property UseCpp: boolean read fUseCpp write fUseCpp; 
   end;
 
@@ -610,7 +611,9 @@ type
     fToolbarDebug: boolean;
     fToolbarDebugX: integer;
     fToolbarDebugY: integer;
-
+    fToolbarUndo: boolean;
+    fToolbarUndoX: integer;
+    fToolbarUndoY: integer;
 
     // file associations (see FileAssocs.pas)
     fAssociateC: boolean;
@@ -729,7 +732,9 @@ type
     property ToolbarDebug: boolean read fToolbarDebug write fToolbarDebug;
     property ToolbarDebugX: integer read fToolbarDebugX write fToolbarDebugX;
     property ToolbarDebugY: integer read fToolbarDebugY write fToolbarDebugY;
-
+    property ToolbarUndo: boolean read fToolbarUndo write fToolbarUndo;
+    property ToolbarUndoX: integer read fToolbarUndoX write fToolbarUndoX;
+    property ToolbarUndoY: integer read fToolbarUndoY write fToolbarUndoY;
 
     // file associations
     property AssociateC: boolean read fAssociateC write fAssociateC;
@@ -1011,15 +1016,14 @@ begin
   fToolbarEditX := 138;
   fToolbarEditY := 2;
   fToolbarCompile := TRUE;
-  fToolbarCompileX := 209;
+  fToolbarCompileX := 245;
   fToolbarCompileY := 2;
   fToolbarDebug := TRUE;
-  fToolbarDebugX := 335;
+  fToolbarDebugX := 371;
   fToolbarDebugY := 2;
   fToolbarCompilers := TRUE;
-  fToolbarCompilersX := 554;
+  fToolbarCompilersX := 590;
   fToolbarCompilersY := 2;
-
   fToolbarSearch := FALSE;
   fToolbarSearchX := 11;
   fToolbarSearchY := 34;
@@ -1029,10 +1033,12 @@ begin
   fToolbarProject := FALSE;
   fToolbarProjectX := 244;
   fToolbarProjectY := 34;
+  fToolbarUndo := False;
+  fToolbarUndoX := 349;
+  fToolbarUndoY := 34;
   fToolbarClasses := False;
-  fToolbarClassesX := 349;
+  fToolbarClassesX := 420;
   fToolbarClassesY := 34;
-
   // Office 2007 / Vista support
   osinfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
   GetVersionEx(osinfo);
@@ -2426,6 +2432,7 @@ begin
   AddSpecial(cFld, offset + 22); // fold bar lines
   AddSpecial(cAL, offset + 23); // active Line
   AddSpecial(cWN, offset + 24); // warning Line
+  //AddSpecial(cPNL, offset + 25); // Panel
   //panel
   if fSyntax.IndexOf(cPNL) = -1 then begin    // use gutter setting as the default panel setting
     fSyntax.Append(format('%s=%s', [cPNL, fSyntax.Values[cGut]]))
@@ -2518,6 +2525,7 @@ begin
   fShowRainbowBacket:=True;
 
   fAutoCheckSyntax:=True;
+  fCheckSyntaxWhenReturn:=False;
 
   fUseCpp := True;
 
