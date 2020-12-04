@@ -382,6 +382,7 @@ type
     fChainedEditor: TCustomSynEdit;
     fChainUndoAdded: TNotifyEvent;
     fChainRedoAdded: TNotifyEvent;
+    fPainterLock:integer;
 
     procedure ReScanForFoldRanges;
     procedure ReScan;
@@ -735,6 +736,8 @@ type
     procedure FoldOnListCleared;
     procedure FoldOnListDeleted(Line: Integer; Count: Integer);
     procedure FoldOnListInserted(Line: Integer; Count: Integer);
+    procedure LockPainter;
+    procedure UnlockPainter;
     property CodeFolding: TSynCodeFolding read fCodeFolding;
     property BlockBegin: TBufferCoord read GetBlockBegin write SetBlockBegin;
     property BlockEnd: TBufferCoord read GetBlockEnd write SetBlockEnd;
@@ -1185,6 +1188,7 @@ end;
 constructor TCustomSynEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fPaintLock := 0;
   fPainting:=False;
   fLines := TSynEditStringList.Create;
   fOrigLines := fLines;
@@ -2135,6 +2139,8 @@ var
   rcClip, rcDraw: TRect;
   nL1, nL2, nC1, nC2: integer;
 begin
+  if fPainterLock>0 then
+    Exit;
   if fPainting then
     Exit;
   fPainting:=True;
@@ -6955,6 +6961,17 @@ begin
   Result.Char := CX;
   Result.Line := CY;
 end;
+
+procedure TCustomSynEdit.LockPainter;
+begin
+  inc(fPainterLock);
+end;
+
+procedure TCustomSynEdit.UnLockPainter;
+begin
+  dec(fPainterLock);
+end;
+
 
 function TCustomSynEdit.WordStartEx(const XY: TBufferCoord): TBufferCoord;
 var

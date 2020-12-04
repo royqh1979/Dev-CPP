@@ -739,17 +739,18 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  if (fText.Lines.Count <> fLineCount) then begin
-    if devCodeCompletion.Enabled
-      and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
-      then begin
-      Reparse;
-      fText.Invalidate;
-    end;
-  end;
-  fLineCount := fText.Lines.Count;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
+
+    if (fText.Lines.Count <> fLineCount) then begin
+      fLineCount := fText.Lines.Count;
+      if devCodeCompletion.Enabled
+        and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
+        then begin
+        Reparse;
+      end;
+    end;
+
     if fText.Modified then begin
       UpdateCaption('[*] ' + ExtractFileName(fFileName));
     end else begin
@@ -3104,6 +3105,7 @@ procedure TEditor.Reparse;
 var
   M: TMemoryStream;
 begin
+  fText.LockPainter;
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
@@ -3113,6 +3115,8 @@ begin
     fLastParseTime := Now;
   finally
     M.Free;
+    fText.UnlockPainter;
+    fText.Invalidate;
   end;
 end;
 
