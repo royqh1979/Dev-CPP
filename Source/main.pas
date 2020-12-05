@@ -6672,38 +6672,57 @@ begin
 
   // Set toolbars to previous state.
   // 1) position
+  tbMain.Visible := False;
   tbMain.Left := devData.ToolbarMainX;
   tbMain.Top := devData.ToolbarMainY;
+  tbMain.Visible := devData.ToolbarMain;
+
+  tbEdit.Visible := False;
   tbEdit.Left := devData.ToolbarEditX;
   tbEdit.Top := devData.ToolbarEditY;
+  tbEdit.Visible := devData.ToolbarEdit;
+
+  tbCompile.Visible := False;
   tbCompile.Left := devData.ToolbarCompileX;
   tbCompile.Top := devData.ToolbarCompileY;
+  tbCompile.Visible := devData.ToolbarCompile;
+
+  tbProject.Visible := False;
   tbProject.Left := devData.ToolbarProjectX;
   tbProject.Top := devData.ToolbarProjectY;
+  tbProject.Visible := devData.ToolbarProject;
+
+  tbSpecials.Visible := False;
   tbSpecials.Left := devData.ToolbarSpecialsX;
   tbSpecials.Top := devData.ToolbarSpecialsY;
+  tbSpecials.Visible := devData.ToolbarSpecials;
+
+  tbSearch.Visible := False;
   tbSearch.Left := devData.ToolbarSearchX;
   tbSearch.Top := devData.ToolbarSearchY;
+  tbSearch.Visible := devData.ToolbarSearch;
+
+  tbClasses.Visible := False;
   tbClasses.Left := devData.ToolbarClassesX;
   tbClasses.Top := devData.ToolbarClassesY;
+  tbClasses.Visible := devData.ToolbarClasses;
+
+  tbCompilers.Visible := False;
   tbCompilers.Left := devData.ToolbarCompilersX;
   tbCompilers.Top := devData.ToolbarCompilersY;
+  tbCompilers.Visible := devData.ToolbarCompilers;
+
+  tbDebug.Visible := False;
   tbDebug.Left := devData.ToolbarDebugX;
   tbDebug.Top := devData.ToolbarDebugY;
+  tbDebug.Visible := devData.ToolbarDebug;
+
+  tbUndo.Visible := False;
   tbUndo.Left := devData.ToolbarUndoX;
   tbUndo.Top := devData.ToolbarUndoY;
+  tbUndo.Visible := devData.ToolbarUndo;
   // Set toolbars to previous state.
   // 2) Visibility
-  tbMain.Visible := devData.ToolbarMain;
-  tbEdit.Visible := devData.ToolbarEdit;
-  tbCompile.Visible := devData.ToolbarCompile;
-  tbProject.Visible := devData.ToolbarProject;
-  tbSpecials.Visible := devData.ToolbarSpecials;
-  tbSearch.Visible := devData.ToolbarSearch;
-  tbClasses.Visible := devData.ToolbarClasses;
-  tbCompilers.Visible := devData.ToolbarCompilers;
-  tbDebug.Visible := devData.ToolbarDebug;
-  tbUndo.Visible := devData.ToolbarUndo;
 
   // Set toolbars to previous state.
   // 3) UI components

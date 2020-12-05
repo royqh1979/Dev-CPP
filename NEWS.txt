@@ -1,3 +1,7 @@
+Version 6.3-beta1?
+
+    - fix: toolbar position error after restart
+
 Version 6.2-beta5 Dec 2020
 
     - enhancement: Can parse statements like 'struct Node { int data; } s;'
