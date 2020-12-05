@@ -2507,13 +2507,14 @@ begin
     Exit;
   end;
 
-
+                 {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
+  }
   
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
@@ -2543,9 +2544,9 @@ begin
   try
     repeat
     until not HandleStatement;
-   fTokenizer.DumpTokens('f:\tokens.txt');
-   Statements.DumpTo('f:\stats.txt');
-   Statements.DumpWithScope('f:\\statements.txt');
+   //fTokenizer.DumpTokens('f:\tokens.txt');
+   //Statements.DumpTo('f:\stats.txt');
+   //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -3029,6 +3030,7 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
+    {
   with TStringList.Create do try
     for idx:=0 to fileIncludes.Scopes.Count-1 do begin
       statement:=PStatement(fileIncludes.Scopes.Objects[idx]);
@@ -3041,6 +3043,7 @@ begin
   finally
     Free;
   end;
+  }
   fileIncludes.Scopes.Find(row,idx);
   if idx>=fileIncludes.Scopes.Count then
     Exit;

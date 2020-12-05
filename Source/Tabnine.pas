@@ -115,7 +115,7 @@ end;
 
 implementation
 
-uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms, main;
+uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms, main, devCFG;
 
 constructor TTabnine.Create;
 begin
@@ -339,14 +339,14 @@ begin
   cmd:= cmd + '}'
         +'}}'+#10;
 
-  {
-  with TStringLIst.Create do try
-    Text:=cmd;
-    SaveToFile('f:\\cmd.txt');
-  finally
-    Free;
-  end;
-  }
+        {
+    with TStringLIst.Create do try
+      Text:=cmd;
+      SaveToFile('f:\\cmd.txt');
+    finally
+      Free;
+    end;
+    }
 
   //MainForm.LogOutput.Lines.Add(cmd);
   fBefore:=Before;
