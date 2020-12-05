@@ -666,7 +666,7 @@ begin
     MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
     Exit;
   end;
-  
+
   case Target of
     ctFile: begin
         InitProgressForm;

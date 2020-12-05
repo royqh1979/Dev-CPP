@@ -659,7 +659,6 @@ type
     fRegExp: boolean; //use regular expression
 
     fPortable: boolean; //is a portable program (not installed by the setup)
-
   public
     constructor Create;
     destructor Destroy; override;
@@ -1089,7 +1088,6 @@ begin
   fSearchWhere := 1;
   fDirBackward := false;
   fRegExp := false;
-
 end;
 
 { TWindowState }
