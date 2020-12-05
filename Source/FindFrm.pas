@@ -28,6 +28,8 @@ uses
 
 type
   TFindAction = (faFind, faFindFiles, faReplace, faReplaceFiles);
+
+  
   TFindForm = class(TForm)
     btnExecute: TButton;
     btnCancel: TButton;

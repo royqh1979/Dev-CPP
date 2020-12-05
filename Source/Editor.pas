@@ -803,10 +803,10 @@ begin
       fIgnoreCaretChange := false;
 
     if fText.SelAvail then begin
-      fText.Invalidate;
+      fText.Invalidate; //invalidate to highlight other occurencies of the selection world
       fSelChanged:=True;
     end else if fSelChanged then begin
-      fSelChanged:=False;
+      fSelChanged:=False; //invalidate to unhighlight others
       fText.Invalidate;
     end;
 
