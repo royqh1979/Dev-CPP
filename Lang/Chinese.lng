@@ -461,6 +461,7 @@ Ver=1
 27076=C程序文件
 27077=C++程序文件 
 27078=当换行时检查语法
+27079=打开Tabnine下载网址
 
 
 28001=名称:
@@ -998,7 +999,7 @@ Ver=1
 61037=选择的表达式不完整。
 61038=选择的表达式中包含无法处理的标识符。
 61039=%s定义在项目外，无法修改
-61040=找不到Tabnine可执行程序'%s'。<CR>请到 https://github.com/codota/tabnine-sublime/tree/master/binaries 下载最新的tabnine.exe程序。
+61040=找不到Tabnine可执行程序'%s'，将自动关闭"启用Tabnine智能提示"选项。<CR>请到 %s 下载最新的tabnine.exe程序，并放到devcpp文件夹下之后，再启用该选项。
 
 
 62001=未命名

@@ -525,7 +525,7 @@ const
   ID_EOPT_C_FILE                        = 27076;
   ID_EOPT_CPP_FILE                      = 27077;
   ID_EOPT_SYNTAXCHECK_WHEN_RETURN       = 27078;
-
+  ID_EOPT_DOWNLOAD_TABNINE              = 27079;
   // new project
   ID_NP_PRJNAME                         = 28001;
   ID_NP_DEFAULTC                        = 28002;

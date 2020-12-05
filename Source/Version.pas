@@ -64,6 +64,8 @@ const
   PACKAGES_DIR = 'Packages' + pd;
   PROJECTS_DIR = 'Projects' + pd;
 
+  TABNINE_SITE = 'https://github.com/codota/tabnine-sublime/tree/master/binaries';
+
   // file extensions
   LIB_EXT = '.a';
   OBJ_EXT = '.o';

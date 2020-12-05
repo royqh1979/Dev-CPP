@@ -1,6 +1,6 @@
 object AboutForm: TAboutForm
-  Left = 462
-  Top = 73
+  Left = 881
+  Top = 76
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Dev-C++ :-)'

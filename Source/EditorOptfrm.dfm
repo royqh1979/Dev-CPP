@@ -1172,6 +1172,15 @@ object EditorOptForm: TEditorOptForm
             Caption = 'Enable Tabnine Completion'
             TabOrder = 0
           end
+          object btnDownloadTabnine: TButton
+            Left = 352
+            Top = 16
+            Width = 265
+            Height = 33
+            Caption = 'Open Tabnine Download Site'
+            TabOrder = 1
+            OnClick = btnDownloadTabnineClick
+          end
         end
       end
     end

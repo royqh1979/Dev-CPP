@@ -463,6 +463,7 @@ Ver=1
 27076=C File
 27077=C++ File
 27078=Check Syntax when RETURN/ENTER typed
+27079=Open the Tabnine download site
 
 28001=Name:
 28002=&C Project
@@ -992,7 +993,7 @@ Ver=1
 61037=The selected expression is imcomplete.
 61038=The selected expression has identifiers which can't be extract.
 61039=Definition of %s is not in the project files.
-61040=TABNINE executable '%s' not exists.<CR>Please download tabnine.exe from https://github.com/codota/tabnine-sublime/tree/master/binaries .
+61040=TABNINE executable '%s' not exists, Tabnine Completion will be disabled.<CR>Please download tabnine.exe from %s , put it to devcpp folder, then turn on tabnine completion.
 
 
 62001=Untitled
