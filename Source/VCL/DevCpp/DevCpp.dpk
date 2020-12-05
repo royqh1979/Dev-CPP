@@ -42,7 +42,8 @@ contains
   devShortcuts in 'devShortcuts\devShortcuts.pas',
   devShortcutsEditorForm in 'devShortcuts\devShortcutsEditorForm.pas' {frmShortcutsEditor},
   devConsole in 'devConsole.pas',
-  devCaretList in 'devCaretList.pas';
+  devCaretList in 'devCaretList.pas',
+  devFindOutput in 'devFindOutput.pas';
 
 end.
 

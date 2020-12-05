@@ -47,15 +47,12 @@ type
   TFindOutput = class(TCustomTreeView)
   private
     fControlCanvas: TControlCanvas;
-    fUpdateCount: integer;
-    fOnUpdated: TNotifyEvent;
     fFindNode: TTreeNode;
     fFileNode: TTreeNode;
     fMaxFindCount: integer;
     fFinds: TList; // List of find root treenode;
-
-    procedure clearItems;
     procedure removeFind(node:TTreeNode);
+    procedure clearFinds;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -64,15 +61,13 @@ type
     procedure AddFindHit(filename:string;line:integer;char:integer; tokenlen: integer;  lineText: string);
     procedure CancelFind;
     procedure Clear;
-    property OnUpdated: TNotifyEvent read fOnUpdated write fOnUpdated;
   published
     property Align;
     property Font;
-    property Images;
+    property Color;
     property ReadOnly;
     property Indent;
     property TabOrder;
-    property PopupMenu;
     property BorderStyle;
     property MultiSelect;
     property MultiSelectStyle;
@@ -103,14 +98,16 @@ end;
 constructor TFindOutput.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  parent:=TWinControl(AOwner);
   DragMode := dmAutomatic;
   ShowHint := True;
   HideSelection := False;
   RightClickSelect := True;
+  {
   fControlCanvas := TControlCanvas.Create;
   fControlCanvas.Control := Self;
+  }
   //fControlCanvas.Font.Assign(Self.Font);
-  fUpdateCount := 0;
   RowSelect := true;
   ShowLines := False;
   fFindNode := nil;
@@ -121,10 +118,51 @@ end;
 
 destructor TFindOutput.Destroy;
 begin
-  clear;
+  clearFinds;
+  {
   FreeAndNil(fControlCanvas);
+  }
   FreeAndNil(fFinds);
   inherited Destroy;
+end;
+
+procedure TFindOutput.removeFind(node:TTreeNode);
+var
+  child,oldChild:TTreeNode;
+
+  procedure RemoveFileNode(node:TTreeNode);
+  var
+    child,oldChild:TTreeNode;
+  begin
+    if node.HasChildren then begin
+      child := node.getFirstChild;
+      while (assigned(child)) do begin
+        if assigned(child.Data) then
+          dispose(PFindItem(child.Data));
+        oldChild := child;
+        child := child.getNextSibling;
+        items.Delete(oldChild);
+      end;
+    end;
+    //file node has no data
+    items.Delete(node);
+  end;
+begin
+  if node.Level <> 0 then begin
+    Exit;
+  end;
+  if node.HasChildren then begin
+    child := node.getFirstChild;
+    while (assigned(child)) do begin
+      removeFileNode(child);
+      oldChild := child;
+      child := child.getNextSibling;
+      items.Delete(oldChild);
+    end;
+  end;
+  if assigned(node.Data) then
+    Dispose(PFindInfo(node.Data));
+  items.Delete(node);
 end;
 
 
@@ -153,8 +191,7 @@ begin
   try
     if fFinds.Count >= fMaxFindCount then begin
       removeFind(TTreeNode(fFinds[fFinds.Count-1]));
-    end else
-      inc(fFindCount);
+    end;
     new(p);
     p^.token := token;
     p^.hits:=hits;
@@ -170,10 +207,10 @@ end;
 
 procedure TFindOutput.AddFindHit(filename:string;line:integer;char:integer; tokenlen: integer;  lineText: string);
 var
-  p:PFileItem;
+  p:PFindItem;
 begin
   if not assigned(fFileNode) or (not sameText(filename,fFileNode.text)) then
-    fFileNode := Items.AddChildObject(fFindNode,filename,nil);
+    fFileNode := Items.AddChild(fFindNode,filename);
   new(p);
   p^.filename:=filename;
   p^.line := line;
@@ -183,67 +220,22 @@ begin
   Items.AddChildObject(fFileNode,lineText,p);
 end;
 
-
-procedure TFindOutput.AddMembers(Node: TTreeNode; ParentStatement: PStatement);
+procedure TFindOutput.ClearFinds;
 var
-  Statement: PStatement;
-  NewNode: TTreeNode;
-  Children: TList;
   i:integer;
-  P:PFileIncludes;
-
-  procedure AddStatement(Statement: PStatement);
-  begin
-    NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
-    SetNodeImages(NewNode, Statement);
-    if Statement^._Kind in [skClass,skNamespace] then
-      AddMembers(NewNode, Statement);
-  end;
 begin
-  if Assigned(ParentStatement) then begin
-    Children := fParser.Statements.GetChildrenStatements(ParentStatement);
-  end else begin
-    p:=fParser.FindFileIncludes(fCurrentFile);
-    if not Assigned(p) then
-      Exit;
-    Children := p^.Statements;
+  for i:=0 to fFinds.Count -1 do begin
+    RemoveFind(TTreeNode(fFinds[i]));
   end;
-
-//  fParser.Statements.DumpWithScope('f:\browser.txt');
-  if Assigned(Children) then begin
-    for i:=0 to Children.Count-1 do begin
-      Statement := Children[i];
-      with Statement^ do begin
-        // Do not print statements marked invisible for the class browser
-        
-        if _Kind = skBlock then
-          Continue;
-
-        if _Inherited and not fShowInheritedMembers then // don't show inherited members
-          Continue;
-
-        if Statement = ParentStatement then // prevent infinite recursion
-          Continue;
-
-        if Statement^._ParentScope <> ParentStatement then
-          Continue;
-
-        {
-        if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
-          AddStatement(Statement)
-        }
-        AddStatement(Statement)
-      end;
-    end;
-  end;
+  fFinds.Clear;
 end;
 
 procedure TFindOutput.Clear;
 begin
   Items.BeginUpdate;
   try
+    ClearFinds;
     Items.Clear;
-    fFindCount := 0;
   finally
     Items.EndUpdate;
   end;

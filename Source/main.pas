@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList;
+  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -177,7 +177,6 @@ type
     InfoGroupBox: TPanel;
     Statusbar: TStatusbar;
     FindSheet: TTabSheet;
-    FindOutput: TListView;
     FindinallfilesItem: TMenuItem;
     N20: TMenuItem;
     mnuNew: TMenuItem;
@@ -667,6 +666,7 @@ type
     RenameSymbol1: TMenuItem;
     ToolButton26: TToolButton;
     ReformatBtn: TToolButton;
+    FindOutput: TFindOutput;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -872,11 +872,15 @@ type
     procedure actReplaceAllExecute(Sender: TObject);
     procedure WatchViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
       TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+    {
     procedure FindOutputAdvancedCustomDrawSubItem(Sender: TCustomListView; Item: TListItem; SubItem: Integer; State:
       TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+    }
     procedure actMsgCutExecute(Sender: TObject);
+    {
     procedure FindOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage; var
       DefaultDraw: Boolean);
+    }
     procedure CompilerOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage; var
       DefaultDraw: Boolean);
     procedure actMsgSelAllExecute(Sender: TObject);
@@ -1030,7 +1034,7 @@ type
     procedure OpenProject(const s: AnsiString);
     procedure GotoBreakpoint(const FileName: AnsiString; Line: integer);
     procedure RemoveActiveBreakpoints;
-    procedure AddFindOutputItem(const line, col, filename, msg:AnsiString;wordlen:integer);
+    procedure AddFindOutputItem(const line, col:integer; filename, msg:AnsiString;wordlen:integer);
     procedure EditorSaveTimer(sender: TObject);
     procedure OnInputEvalReady(const evalvalue: AnsiString);
     procedure SetStatusbarLineCol;
@@ -1878,11 +1882,13 @@ begin
   }
 
   // Find Results Tab
+  {
   FindOutput.Columns[0].Caption := '';
   FindOutput.Columns[1].Caption := Lang[ID_COL_LINE];
   FindOutput.Columns[2].Caption := Lang[ID_COL_COL];
   FindOutput.Columns[3].Caption := Lang[ID_COL_FILE];
   FindOutput.Columns[4].Caption := Lang[ID_COL_MSG];
+  }
 
   StackTrace.Columns[0].Caption := Lang[ID_COL_FUNC];
   StackTrace.Columns[1].Caption := Lang[ID_COL_FILE];
@@ -2142,17 +2148,9 @@ begin
   end;
 end;
 
-procedure TMainForm.AddFindOutputItem(const line, col, filename, msg: AnsiString; wordlen:integer);
-var
-  ListItem: TListItem;
+procedure TMainForm.AddFindOutputItem(const line, col:integer; filename, msg: AnsiString; wordlen:integer);
 begin
-  ListItem := FindOutput.Items.Add;
-  ListItem.Caption := '';
-  ListItem.Data := Pointer(wordlen);
-  ListItem.SubItems.Add(line);
-  ListItem.SubItems.Add(col);
-  ListItem.SubItems.Add(filename);
-  ListItem.SubItems.Add(msg);
+  FindOutput.AddFindHit(filename,line,col,wordlen,msg);
 end;
 
 function TMainForm.ParseToolParams(s: AnsiString): AnsiString;
@@ -4134,8 +4132,11 @@ begin
         else if DebugOutput.Focused then
           DebugOutput.CopyToClipboard;
       end;
-    4:
+    4: begin
+      {
       Clipboard.AsText := GetPrettyLine(FindOutput);
+      }
+    end;
   end;
 end;
 
@@ -4165,9 +4166,11 @@ begin
           Clipboard.AsText := DebugOutput.Text
       end;
     4: begin
+    {
         ClipBoard.AsText := '';
         for i := 0 to pred(FindOutput.Items.Count) do
           Clipboard.AsText := Clipboard.AsText + GetPrettyLine(FindOutput, i) + #13#10;
+    }
       end;
   end;
 end;
@@ -4232,8 +4235,10 @@ begin
         end;
       4: begin
           FileName := 'Find Results';
+      {
           for i := 0 to FindOutput.Items.Count - 1 do
             fulloutput := fulloutput + GetPrettyLine(FindOutput, i) + #13#10;
+      }
         end;
     end;
 
@@ -4347,6 +4352,7 @@ var
   e: TEditor;
   selected: TListItem;
 begin
+{
   selected := FindOutPut.Selected;
   if Assigned(selected) and not SameStr(selected.Caption, '') then begin
     Col := StrToIntDef(selected.SubItems[1], 1);
@@ -4365,6 +4371,7 @@ begin
       e.Text.CaretXY := e.Text.BlockBegin;
     end;
   end;
+}
 end;
 
 procedure TMainForm.actShowBarsExecute(Sender: TObject);
@@ -4562,7 +4569,7 @@ end;
 
 procedure TMainForm.ClearMessageControl;
 begin
-  FindOutput.Items.Clear; // don't clear this when compiling...
+//  FindOutput.Clear; // don't clear this when compiling...
   ClearCompileMessages;
 end;
 
@@ -6951,6 +6958,8 @@ begin
   end;
 end;
 
+
+{
 procedure TMainForm.FindOutputAdvancedCustomDrawSubItem(Sender: TCustomListView; Item: TListItem; SubItem: Integer;
   State: TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
@@ -6972,26 +6981,6 @@ var
     Inc(rect.Left, sizerect.Right - sizerect.Left + 1); // 1 extra pixel for extra width caused by bold
   end;
 begin
-  // Draw the current line marker in bold
-  {if SubItem = 0 then begin
-    Sender.Canvas.Font.Style := [fsBold];
-    Sender.Canvas.Refresh;
-    DefaultDraw := True;
-
-  // Draw the find result in bold
-  end else}
-
-    {
-  if (cdsSelected in State) then begin
-    StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
-    Sender.Canvas.Brush.Color := tc.Background;
-    Sender.Canvas.Font.Color := tc.Foreground;
-  end else begin
-    Sender.Canvas.Brush.Color := dmMain.Cpp.WhitespaceAttribute.Background;
-    Sender.Canvas.Font.Color := dmMain.Cpp.IdentifierAttri.Foreground;
-  end;
-     }
-
   if SubItem = 4 then begin
 
     // Get rect of subitem to draw
@@ -7047,12 +7036,15 @@ begin
   end;
 
 end;
+}
 
+{
 procedure TMainForm.FindOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage;
   var DefaultDraw: Boolean);
 begin
   SendMessage(FindOutput.Handle, WM_CHANGEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
 end;
+}
 
 procedure TMainForm.CompilerOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage:
   TCustomDrawStage; var DefaultDraw: Boolean);
@@ -7120,10 +7112,12 @@ procedure TMainForm.FindOutputDeletion(Sender: TObject; Item: TListItem);
 begin
   if Application.Terminated then
     Exit; // form is being destroyed, don't use Lang which has been freed already...
+  {
   if FindOutput.Items.Count > 1 then
     FindSheet.Caption := Lang[ID_SHEET_FIND] + ' (' + IntToStr(FindOutput.Items.Count - 1) + ')'
   else
     FindSheet.Caption := Lang[ID_SHEET_FIND];
+  }  
 end;
 
 procedure TMainForm.CompilerOutputDeletion(Sender: TObject; Item: TListItem);

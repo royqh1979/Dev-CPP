@@ -275,7 +275,7 @@ begin
   MainForm.OnBreakPointsChanged;
   LinesInsertedList(MainForm.CompilerOutput.Items);
   LinesInsertedList(MainForm.ResourceOutput.Items);
-  LinesInsertedList(MainForm.FindOutput.Items);
+  //LinesInsertedList(MainForm.FindOutput.Items);
 end;
 
 procedure TDebugGutter.LinesDeleted(FirstLine, Count: integer);
@@ -316,7 +316,7 @@ begin
   MainForm.OnBreakPointsChanged;
   LinesDeletedList(MainForm.CompilerOutput.Items);
   LinesDeletedList(MainForm.ResourceOutput.Items);
-  LinesDeletedList(MainForm.FindOutput.Items);
+  //LinesDeletedList(MainForm.FindOutput.Items);
 end;
 
 { TEditor }

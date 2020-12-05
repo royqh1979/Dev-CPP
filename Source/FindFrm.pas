@@ -246,8 +246,6 @@ begin
   if actiontype in [faFindFiles, faReplaceFiles] then
     Include(fSearchOptions, ssoReplaceAll);
 
-  MainForm.FindOutput.Items.BeginUpdate;
-  try
     // Find the first one, then quit
     if actiontype = faFind then begin
       e := MainForm.EditorList.GetEditor;
@@ -267,11 +265,9 @@ begin
       end;
 
       // Or find everything
-    end else begin
-
-      // Enumerate results in message view when finding in files
-      if actiontype = faFindFiles then
-        MainForm.FindOutput.Clear;
+    end else if actiontype = faFindFiles then begin
+      MainForm.FindOutput.BeginFind(cboFindText.Text);
+      try
 
       // loop through pagecontrol
       if rbOpenFiles.Checked then begin
@@ -281,11 +277,11 @@ begin
           e := MainForm.EditorList[i];
           if Assigned(e) then begin
             fCurFile := e.FileName;
-
+{
             // Bring an editor up front if we use prompting
             if (actiontype = faReplaceFiles) and (ssoPrompt in fSearchOptions) then
               e.Activate;
-
+ }
             Inc(findcount, Execute(e.Text, actiontype));
           end;
         end;
@@ -298,16 +294,16 @@ begin
 
           // file is already open, use memory
           if Assigned(e) then begin
-
+  {
             // Bring an editor up front if we use prompting
             if (actiontype = faReplaceFiles) and (ssoPrompt in fSearchOptions) then
               e.Activate;
-
+   }
             Inc(findcount, Execute(e.Text, actiontype));
 
             // not open? load from disk
           end else if FileExists(fCurFile) then begin
-
+    {
             if (actiontype = faReplaceFiles) then begin
 
               // we have to open an editor...
@@ -330,11 +326,12 @@ begin
                 fTempSynEdit.Lines.SaveToFile(fCurFile);
               end;
             end else begin
+     }
 
               // Only finding...
               fTempSynEdit.Lines.LoadFromFile(fCurFile);
               Inc(findcount, Execute(fTempSynEdit, actiontype));
-            end;
+//            end;
           end;
         end;
 
@@ -349,15 +346,16 @@ begin
           Inc(findcount, Execute(e.Text, actiontype));
         end;
       end;
+    finally
+      MainForm.FindOutput.EndFind(cboFindText.Text,findCount,
+        0,0);
     end;
-  finally
-    MainForm.FindOutput.Items.EndUpdate;
   end;
 
   if actiontype = faFindFiles then begin
     MainForm.MessageControl.ActivePageIndex := 4; // Find Tab
     if findcount > 0 then
-      MainForm.FindSheet.Caption := Lang[ID_SHEET_FIND] + ' (' + IntToStr(findcount) + ')';
+      MainForm.FindSheet.Caption := Lang[ID_SHEET_FIND];
     MainForm.OpenCloseMessageSheet(TRUE);
   end else if findcount = 0 then begin
     MessageBox(
@@ -380,7 +378,7 @@ begin
   q := TCustomSynEdit(Sender).BufferToDisplayPos(p);
 
   // Convert to display coords
-  MainForm.AddFindOutputItem(IntToStr(Line), IntToStr(Column), fCurFile, TCustomSynEdit(Sender).Lines[Line - 1],
+  MainForm.AddFindOutputItem(Line, Column, fCurFile, TCustomSynEdit(Sender).Lines[Line - 1],
     wordlen);
   action := raSkip;
 end;

@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 252
-  Top = 195
+  Left = 300
+  Top = 212
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -48,7 +48,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = DebugSheet
+    ActivePage = FindSheet
     Align = alBottom
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -514,7 +514,7 @@ object MainForm: TMainForm
             Font.Height = -14
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 16
+            ItemHeight = 0
             ParentCtl3D = False
             ParentFont = False
             TabOrder = 0
@@ -545,49 +545,17 @@ object MainForm: TMainForm
     object FindSheet: TTabSheet
       Caption = 'Find results'
       ImageIndex = 21
-      object FindOutput: TListView
+      object FindOutput: TFindOutput
         Left = 0
         Top = 0
         Width = 1179
         Height = 196
         Align = alClient
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        Columns = <
-          item
-            Width = 18
-          end
-          item
-            Caption = 'Line'
-            Width = 49
-          end
-          item
-            Caption = 'Col'
-            Width = 49
-          end
-          item
-            Caption = 'Unit'
-            Width = 394
-          end
-          item
-            AutoSize = True
-            Caption = 'Message'
-          end>
-        ColumnClick = False
-        GridLines = True
-        ReadOnly = True
-        RowSelect = True
-        ParentShowHint = False
-        PopupMenu = MessagePopup
-        ShowHint = True
+        Indent = 22
         TabOrder = 0
-        ViewStyle = vsReport
-        OnAdvancedCustomDraw = FindOutputAdvancedCustomDraw
-        OnAdvancedCustomDrawSubItem = FindOutputAdvancedCustomDrawSubItem
-        OnDblClick = FindOutputDblClick
-        OnDeletion = FindOutputDeletion
-        OnKeyDown = FindOutputKeyDown
-        OnSelectItem = FindOutputSelectItem
+        RowSelect = True
+        ShowLines = False
+        MaxFindCount = 30
       end
     end
     object CloseSheet: TTabSheet
@@ -1129,7 +1097,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftProjectSheet
+    ActivePage = WatchSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
