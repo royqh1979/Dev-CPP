@@ -121,6 +121,7 @@ type
 
     //TIntList<Line,TList<PSyntaxError>>
     fErrorList: TIntList; // syntax check errors
+    fSelChanged: boolean; 
 
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -326,6 +327,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fSelChanged:=False;
   fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
@@ -800,8 +802,14 @@ begin
     end else
       fIgnoreCaretChange := false;
 
-    if fText.SelAvail then
+    if fText.SelAvail then begin
       fText.Invalidate;
+      fSelChanged:=True;
+    end else if fSelChanged then begin
+      fSelChanged:=False;
+      fText.Invalidate;
+    end;
+
   end;
 
   if scInsertMode in Changes then begin
