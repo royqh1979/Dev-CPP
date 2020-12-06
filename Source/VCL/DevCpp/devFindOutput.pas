@@ -44,6 +44,12 @@ type
     filehitted:integer;
   end;
 
+  PFileInfo = ^TFileInfo;
+  TFileInfo = record
+    filename: string;
+    hits: integer;
+  end;
+
   TFindOutput = class(TCustomTreeView)
   private
     fControlCanvas: TControlCanvas;
@@ -51,16 +57,18 @@ type
     fFileNode: TTreeNode;
     fMaxFindCount: integer;
     fFinds: TList; // List of find root treenode;
-    procedure removeFind(node:TTreeNode);
-    procedure clearFinds;
+    procedure RemoveFind(node:TTreeNode;deleteNode:boolean = True);
+    procedure ClearFinds(deleteNode:boolean = True);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure BeginFind(const token:string);
-    procedure EndFind(const token:string;const hits,filesearched,filehitted: integer);
+    procedure EndFind(const token:string;const hits,filehitted,filesearched: integer);
     procedure AddFindHit(filename:string;line:integer;char:integer; tokenlen: integer;  lineText: string);
     procedure CancelFind;
     procedure Clear;
+    procedure LinesDeleted(FileName: string; FirstLine, Count: integer);
+    procedure LinesInserted(FileName: string; FirstLine, Count: integer);
   published
     property Align;
     property Font;
@@ -71,10 +79,16 @@ type
     property BorderStyle;
     property MultiSelect;
     property MultiSelectStyle;
+    property PopupMenu;
     property RowSelect;
     property ShowLines;
     property MaxFindCount: integer read fMaxFindCount write fMaxFindCount;
-    property Finds: TList read fFinds;
+    property OnAdvancedCustomDraw;
+    property OnAdvancedCustomDrawItem;
+    property OnCustomDraw;
+    property OnCustomDrawItem;
+    property OnDblClick;
+       
   end;
 
 const
@@ -118,7 +132,7 @@ end;
 
 destructor TFindOutput.Destroy;
 begin
-  clearFinds;
+  ClearFinds(False);
   {
   FreeAndNil(fControlCanvas);
   }
@@ -126,11 +140,11 @@ begin
   inherited Destroy;
 end;
 
-procedure TFindOutput.removeFind(node:TTreeNode);
+procedure TFindOutput.removeFind(node:TTreeNode;deleteNode:boolean);
 var
   child,oldChild:TTreeNode;
 
-  procedure RemoveFileNode(node:TTreeNode);
+  procedure RemoveFileNode(node:TTreeNode;deleteNode:boolean);
   var
     child,oldChild:TTreeNode;
   begin
@@ -141,34 +155,41 @@ var
           dispose(PFindItem(child.Data));
         oldChild := child;
         child := child.getNextSibling;
-        items.Delete(oldChild);
+        if DeleteNode then
+          items.Delete(oldChild);
       end;
     end;
-    //file node has no data
-    items.Delete(node);
+    if assigned(node.Data) then
+      Dispose(PFileInfo(node.Data));
+    if deleteNode then
+      items.Delete(node);
   end;
 begin
-  if node.Level <> 0 then begin
-    Exit;
-  end;
   if node.HasChildren then begin
     child := node.getFirstChild;
     while (assigned(child)) do begin
-      removeFileNode(child);
+      removeFileNode(child,deleteNode);
       oldChild := child;
       child := child.getNextSibling;
-      items.Delete(oldChild);
     end;
   end;
   if assigned(node.Data) then
     Dispose(PFindInfo(node.Data));
-  items.Delete(node);
+  if deleteNode then begin
+    items.Delete(node);
+  end;
 end;
 
 
 procedure TFindOutput.BeginFind(const token:string);
+var
+  node:TTreeNode;
 begin
   Items.BeginUpdate;
+  if fFinds.Count>0 then begin
+    node:=TTreeNode(fFinds[0]);
+    node.Collapse(True);
+  end;
   fFindNode := Items.AddChildFirst(nil,token); // we'll update the text when find end
   fFileNode:= nil;
 end;
@@ -184,9 +205,11 @@ begin
   end;
 end;
 
-procedure TFindOutput.EndFind(const token:string;const hits,filesearched,filehitted: integer);
+procedure TFindOutput.EndFind(const token:string;const hits,filehitted,filesearched: integer);
 var
   p: PFindInfo;
+  child: TTreeNode;
+  pFile : PFileInfo;
 begin
   try
     if fFinds.Count >= fMaxFindCount then begin
@@ -196,10 +219,23 @@ begin
     p^.token := token;
     p^.hits:=hits;
     p^.filesearched:=filesearched;
-    p^.filehitted:=hits;
+    p^.filehitted:=filehitted;
     fFindNode.Data := p;
-    fFindNode.Text := token;
+    fFindNode.Text := Format('Search "%s" (%d hits in %d files of %d searched)',[token,hits,filehitted,filesearched]);
     fFinds.Insert(0,fFindNode);
+    if fFindNode.HasChildren then begin
+      child := fFindNode.getFirstChild;
+      while (assigned(child)) do begin
+        if assigned(child.Data) then begin
+          pFile := PFileInfo(child.Data);
+          child.Text := Format('%s (%d hits)', [pFile.filename,pFile.hits]);
+        end;
+        child := child.getNextSibling;
+      end;
+    end;
+    fFindNode.Expand(True);
+    fFindNode.Selected:=True;
+    fFindNode.MakeVisible;
   finally
     Items.EndUpdate;
   end;
@@ -208,24 +244,33 @@ end;
 procedure TFindOutput.AddFindHit(filename:string;line:integer;char:integer; tokenlen: integer;  lineText: string);
 var
   p:PFindItem;
+  pFile:PFileInfo;
 begin
-  if not assigned(fFileNode) or (not sameText(filename,fFileNode.text)) then
+  if not assigned(fFileNode)
+    or (not sameText(filename,PFileInfo(fFileNode.Data)^.FileName)) then begin
     fFileNode := Items.AddChild(fFindNode,filename);
+    new(pFile);
+    pFile.filename:=filename;
+    pFile.hits:=0;
+    fFileNode.Data:=pFile;
+  end;
+  pFile := PFileInfo(fFileNode.Data);
+  inc(pFile.hits);
   new(p);
   p^.filename:=filename;
   p^.line := line;
   p^.char := char;
   p^.tokenLen := tokenlen;
   p^.lineText := lineText;
-  Items.AddChildObject(fFileNode,lineText,p);
+  Items.AddChildObject(fFileNode,Format('Line %d: ',[line])+lineText,p);
 end;
 
-procedure TFindOutput.ClearFinds;
+procedure TFindOutput.ClearFinds(deleteNode:boolean);
 var
   i:integer;
 begin
   for i:=0 to fFinds.Count -1 do begin
-    RemoveFind(TTreeNode(fFinds[i]));
+    RemoveFind(TTreeNode(fFinds[i]),deleteNode);
   end;
   fFinds.Clear;
 end;
@@ -240,6 +285,62 @@ begin
     Items.EndUpdate;
   end;
 end;
+
+procedure TFindOutput.LinesInserted(FileName: string; FirstLine, Count: integer);
+var
+  node : TTreeNode;
+  p : PFindItem;
+begin
+  Items.BeginUpdate;
+  try
+    node := Items.GetFirstNode;
+    while assigned(node) do begin
+      if (node.Level=2) and assigned(node.Data) then begin
+        p:=PFindItem(node.Data);
+        if SameText(fileName, p.filename) then begin
+          if (p.line >= FirstLine) then
+            inc(p.line , Count);
+        end;
+      end;
+      node := node.GetNext;
+    end;
+  finally
+    Items.EndUpdate;
+  end;
+end;
+
+procedure TFindOutput.LinesDeleted(FileName: string; FirstLine, Count: integer);
+var
+  node,nodeToDelete : TTreeNode;
+  p : PFindItem;
+begin
+  Items.BeginUpdate;
+  try
+    node :=  Items.GetFirstNode;
+    while assigned(node) do begin
+      nodeToDelete := nil;
+      if (node.Level=2) and assigned(node.Data) then begin
+        p:=PFindItem(node.Data);
+        if SameText(fileName, p.filename) then begin
+          if (p.line >= FirstLine) then begin
+            if (p.line >= FirstLine + Count) then begin
+              dec(p.line,Count);
+            end else begin
+              dispose(PFindItem(p));
+              nodeToDelete := node;
+            end;
+          end;
+        end;
+      end;
+      node := node.GetNext;
+      if assigned(nodeToDelete) then
+        items.Delete(nodeToDelete);
+    end;
+  finally
+    Items.EndUpdate;
+  end;
+end;
+
 
 end.
 

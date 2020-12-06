@@ -667,6 +667,8 @@ type
     ToolButton26: TToolButton;
     ReformatBtn: TToolButton;
     FindOutput: TFindOutput;
+    FindPopup: TPopupMenu;
+    mnuClearAllFindItems: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -961,6 +963,10 @@ type
     procedure actNextErrorExecute(Sender: TObject);
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
+    procedure FindOutputAdvancedCustomDrawItem(Sender: TCustomTreeView;
+      Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
+      var PaintImages, DefaultDraw: Boolean);
+    procedure mnuClearAllFindItemsClick(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1839,8 +1845,11 @@ begin
   actBrowserRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actBrowserRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
   actBrowserShowInherited.Caption := Lang[ID_POP_SHOWINHERITED];
-  actBrowserSortAlphabetically.Caption := Lang[ID_POP_SHOWINHERITED];
-  actBrowserSortByType.Caption := Lang[ID_POP_SHOWINHERITED];
+  actBrowserSortAlphabetically.Caption := Lang[ID_POP_SORT_ALPHABETICALLY];
+  actBrowserSortByType.Caption := Lang[ID_POP_SORT_BY_TYPE];
+
+  //FindOutput Popup
+  mnuClearAllFindItems.Caption := Lang[ID_POP_CLEAR_ALL_FINDS];
 
   // Message Control tabs
   CompSheet.Caption := Lang[ID_SHEET_COMP];
@@ -4350,16 +4359,15 @@ procedure TMainForm.FindOutputDblClick(Sender: TObject);
 var
   col, line: integer;
   e: TEditor;
-  selected: TListItem;
+  selected: TTreeNode;
 begin
-{
   selected := FindOutPut.Selected;
-  if Assigned(selected) and not SameStr(selected.Caption, '') then begin
-    Col := StrToIntDef(selected.SubItems[1], 1);
-    Line := StrToIntDef(selected.SubItems[0], 1);
+  if Assigned(selected) and (selected.Level = 2) and assigned(selected.Data) then begin
+    Col := PFindITem(selected.Data)^.char;
+    Line := PFindITem(selected.Data)^.line;
 
     // And open up
-    e := fEditorList.GetEditorFromFileName(selected.SubItems[2]);
+    e := fEditorList.GetEditorFromFileName(PFindITem(selected.Data)^.filename);
     if Assigned(e) then begin
 
       // Position the caret
@@ -4371,7 +4379,6 @@ begin
       e.Text.CaretXY := e.Text.BlockBegin;
     end;
   end;
-}
 end;
 
 procedure TMainForm.actShowBarsExecute(Sender: TObject);
@@ -8339,6 +8346,160 @@ begin
   if assigned(e) then begin
     e.GotoNextError;
   end;
+end;
+
+
+procedure TMainForm.FindOutputAdvancedCustomDrawItem(
+  Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+  Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+
+var
+  LineToDraw: AnsiString;
+  i: integer;
+  Rect,iRect: TRect;
+  OldBrushColor, OldPenColor, OldFontColor, oBgColor,oFgColor: TColor;
+  tc:TThemeColor;
+  bg,fg, tbg, tfg, abg,afg: TColor;
+  pFind : PFindInfo;
+  pFile : PFileInfo;
+  pItem : PFindItem;
+
+
+
+  procedure Draw(const s: AnsiString);
+  var
+    txt: string;
+    fillRect : TRect;
+  begin
+    txt:=StringReplace(s,#9, StringOfChar(' ',devEditor.TabSize),[rfReplaceAll]);
+
+    fillRect := rect;
+    fillRect.Right := fillRect.Left + Sender.Canvas.TextWidth(txt);
+    Sender.Canvas.FillRect(fillRect);
+    DrawText(Sender.Canvas.Handle, PAnsiChar(txt), Length(txt), rect, DT_NOPREFIX or DT_NOCLIP);
+
+    // Get text extent
+    Inc(rect.Left, Sender.Canvas.TextWidth(txt) + 1); // 1 extra pixel for extra width caused by bold
+  end;
+
+begin
+  if Stage <> cdPrePaint then
+    Exit;
+
+  // Get rect of subitem to draw
+  Rect := Node.DisplayRect(False);
+
+  OldBrushColor := Sender.Canvas.Brush.Color;
+  OldPenColor := Sender.Canvas.Pen.Color;
+
+  OldFontColor := Sender.Canvas.Font.Color;
+  StrToThemeColor(tc,devEditor.Syntax.Values[cAL]);
+  tbg := tc.Background;
+  tfg := dmMain.Cpp.VariableAttri.Foreground;
+  abg := tc.Background;
+  afg := dmMain.Cpp.IdentifierAttri.Foreground;
+  fg := dmMain.Cpp.IdentifierAttri.Foreground;
+  bg := dmMain.Cpp.WhitespaceAttribute.Background;
+
+  // Draw background
+  if (cdsSelected in State) then begin
+    Sender.Canvas.Brush.Color := abg;
+    Sender.Canvas.Font.Color := afg;
+  end else begin
+    Sender.Canvas.Brush.Color := bg;
+    Sender.Canvas.Font.Color := fg;
+  end;
+  Sender.Canvas.FillRect(rect);
+
+  Rect := Node.DisplayRect(True);
+  if Node.HasChildren then begin
+    Sender.Canvas.Pen.Color := fg;
+    iRect.Right := rect.Left;
+    iRect.Bottom := rect.Bottom-1;
+    if (rect.bottom-rect.top) < 16 then begin
+      iRect.Left := iRect.Right - (rect.bottom-rect.top);
+      iRect.Top := iRect.Bottom - (rect.bottom-rect.top);
+    end else begin
+      iRect.Left := iRect.Right - 16;
+      iRect.Bottom := rect.Bottom-(rect.bottom-rect.top-16) div 2;
+      iRect.Top := iRect.Bottom - 16;
+    end;
+    oBGColor := Sender.Canvas.Brush.Color;
+    Sender.Canvas.Brush.Color  := tbg;
+    Sender.Canvas.FillRect(iRect);
+    Sender.Canvas.Brush.Color  := oBGColor;
+    sender.Canvas.MoveTo(iRect.Left,iRect.Top);
+    sender.Canvas.LineTo(iRect.Right,iRect.Top);
+    sender.Canvas.LineTo(iRect.Right,iRect.Bottom);
+    sender.Canvas.LineTo(iRect.Left,iRect.Bottom);
+    sender.Canvas.LineTo(iRect.Left,iRect.Top);
+    sender.Canvas.MoveTo(iRect.Left+3,iRect.Top + (iRect.Bottom - iRect.Top) div 2);
+    sender.Canvas.LineTo(iRect.Right-2,iRect.Top + (iRect.Bottom - iRect.Top) div 2);
+    if not Node.Expanded then begin
+      sender.Canvas.MoveTo(iRect.Left + (iRect.Right - iRect.Left) div 2,iRect.Top+3);
+      sender.Canvas.LineTo(iRect.Left + (iRect.Right - iRect.Left) div 2,iRect.Bottom-2);
+    end;
+  end;
+  OffsetRect(Rect, 4, 2);
+  case node.Level of
+    0: begin // find info node
+      if assigned(node.Data) then begin
+        pFind := PFindInfo(node.Data);
+        Draw(
+          Format('Search "%s" (%d hits in %d files of %d searched)',[
+            pFind.token,
+            pFind.hits,
+            pFind.filehitted,
+            pFind.filesearched])
+        );
+      end;
+    end;
+    1: begin // file info node
+      if assigned(node.Data) then begin
+        pFile := PFileInfo(node.Data);
+        Draw(
+          Format('%s (%d hits)', [pFile.filename,pFile.hits])
+        );
+      end;
+    end;
+    2: begin // file info node
+      if assigned(node.Data) then begin
+        pItem := PFindItem(node.Data);
+        LineToDraw := pItem.lineText;
+        Draw(Format('Line %d: ',[pItem.line]));
+        Draw(Copy(LineToDraw, 1, pItem.char - 1));
+        // Enable bold
+        Sender.Canvas.Font.Style := [fsBold];
+        oBgColor := Sender.Canvas.Brush.Color;
+        Sender.Canvas.Brush.Color := tbg;
+        oFgColor := Sender.Canvas.Font.Color;
+        Sender.Canvas.Font.Color := tfg;
+        Sender.Canvas.Refresh;
+
+        // Draw bold highlight
+        Draw(Copy(LineToDraw, pItem.char, pItem.tokenlen));
+
+        // Disable bold
+        Sender.Canvas.Font.Style := [];
+        Sender.Canvas.Brush.Color := oBgColor;
+        Sender.Canvas.Font.Color := oFgColor;
+        Sender.Canvas.Refresh;
+        Draw(Copy(LineToDraw, pItem.char + pItem.tokenlen, MaxInt));
+
+      end;
+    end;
+  end;
+  // Restore colors
+  Sender.Canvas.Brush.Color := OldBrushColor;
+  Sender.Canvas.Font.Color := OldFontColor;
+  Sender.Canvas.Pen.Color := OldPenColor;
+  
+  DefaultDraw := false;
+end;
+
+procedure TMainForm.mnuClearAllFindItemsClick(Sender: TObject);
+begin
+  FindOutput.Clear;
 end;
 
 end.

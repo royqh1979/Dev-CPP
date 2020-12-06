@@ -275,6 +275,8 @@ begin
   MainForm.OnBreakPointsChanged;
   LinesInsertedList(MainForm.CompilerOutput.Items);
   LinesInsertedList(MainForm.ResourceOutput.Items);
+  MainForm.FindOutput.LinesInserted(e.fFileName,FirstLine,Count);
+
   //LinesInsertedList(MainForm.FindOutput.Items);
 end;
 
@@ -316,6 +318,7 @@ begin
   MainForm.OnBreakPointsChanged;
   LinesDeletedList(MainForm.CompilerOutput.Items);
   LinesDeletedList(MainForm.ResourceOutput.Items);
+  MainForm.FindOutput.LinesDeleted(e.fFileName,FirstLine,Count);
   //LinesDeletedList(MainForm.FindOutput.Items);
 end;
 

@@ -110,6 +110,7 @@ type
       isStatic: boolean): PStatement;
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetCurrentScope: PStatement; // gets last item from last level
+    function GetCurrentNonBlockScope: PStatement; 
     function IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
     procedure AddSoloScopeLevel(Statement: PStatement;line:integer); // adds new solo level
     procedure RemoveScopeLevel(line:integer); // removes level
@@ -201,9 +202,9 @@ type
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement; overload;
-    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; kinds:TStatementKindSet=[]): PStatement; overload;
+    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement; overload;
     {Find statement starting from startScope}
-    function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
+    function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
@@ -893,6 +894,21 @@ begin
   }
 end;
 
+function TCppParser.GetCurrentNonBlockScope: PStatement;
+var
+  i:integer;
+  scope:PStatement;
+begin
+  Result := nil;
+  for i:=fCurrentScope.Count - 1 downto 0 do begin
+    scope := PStatement(fCurrentScope[fCurrentScope.Count - 1]);
+    if assigned(scope) and (scope^._Kind  <> skBlock) then begin
+      Result:=scope;
+      Exit;
+    end;
+  end;
+end;
+
 function TCppParser.GetCurrentScope: PStatement;
 begin
   if fCurrentScope.Count = 0 then begin
@@ -1169,6 +1185,84 @@ var
   fIndexBackup, DelimPos,pos1: integer;
   bTypeOK, bNameOK, bArgsOK: boolean;
   s:AnsiString;
+  scope:PStatement;
+
+  function IsNotFuncArgs(args:String):boolean;
+  var
+    i:integer;
+    endPos:integer;
+    inComment:boolean;
+    word : string;
+    lastCharIsId:boolean;
+    statement:PStatement;
+  begin
+    Result:=True;
+    i:=2; //skip '('
+    endPos:=Length(args)-1;//skip ')'
+    inComment:=False;
+    lastCharIsId:=False;
+    while i<=endPos do begin
+      if (args[i]='/') and (args[i+1]='*') and not inComment then begin
+        if word <> '' then
+          break;
+        inComment:=True;
+        inc(i,2);
+        lastCharIsId:=False;
+      end else if (args[i]='*') and (args[i+1]='/') and inComment then begin
+        inComment:=False;
+        inc(i,2);
+        lastCharIsId:=False;
+      end else if not inComment and (args[i] in ['"','''']) then begin
+        // args contains a string/char, can't be a func define
+        Exit;
+      end else if not inComment and (args[i] in ['_','a'..'z','A'..'Z']) then begin
+        word := word+args[i];
+        lastCharIsId:=True;
+        inc(i);
+      end else if not inComment and (args[i] = ':') and (args[i+1] = ':') then begin
+        lastCharIsId:=False;
+        word := word+'::';
+        inc(i,2);
+      end else if not inComment and (args[i] in ['0'..'9']) then begin
+        if not lastCharIsId then begin
+          Exit;
+        End;
+        word := word+args[i];
+        inc(i);
+      end else if not inComment and (args[i] in [' ',#9,#13,#10])  then begin
+        if word <> '' then
+          break;
+        inc(i);
+      end else if not inComment and (word='') then begin
+        Exit;
+      end else
+        inc(i);
+    end;
+    if (i>endPos) and (word='') then begin
+      Result:=False;
+      Exit;
+    end;
+
+    if isKeyword(word) then begin
+      if sameStr(word,'true') or sameStr(word,'false') or sameStr(word,'nullptr') then
+        Result:=True
+      else
+        Result:=False;
+      Exit;
+    end;
+
+    //too slow, don't do this test
+    {
+    statement := self.FindStatementOf(fCurrentFile,word,getCurrentScope,true);
+    if assigned(statement) and not (statement^._Kind in [skClass,skTypedef]) then begin
+      Result:=True;
+      Exit;
+    end;
+    }
+
+    Result:=False;
+  end;
+
 begin
 
   // Function template:
@@ -1198,6 +1292,16 @@ begin
 
     if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') then
       begin // and start of a function
+
+      //it's not a function define
+      if (fIndex+2 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 2]^.Text[1] = ',') then
+        break;
+
+      if (fIndex+2 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 2]^.Text[1] = ';') then begin
+        if isNotFuncArgs(fTokenizer[fIndex + 1]^.Text) then
+          break;
+      end;
+
       sName := fTokenizer[fIndex]^.Text;
       sArgs := fTokenizer[fIndex + 1]^.Text;
       bTypeOK := sType <> '';
@@ -1245,6 +1349,7 @@ begin
     end;
     Inc(fIndex);
   end;
+
 
   fIndex := fIndexBackup;
 
@@ -2506,16 +2611,14 @@ begin
     fPreprocessor.Reset; // remove buffers from memory
     Exit;
   end;
-
-                 {
+{
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-  }
-  
+}
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
@@ -2544,7 +2647,7 @@ begin
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
    //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
@@ -3453,7 +3556,7 @@ begin
 end;
 
 // find allStatment
-function TCppParser.FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement): PStatement;
+function TCppParser.FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean): PStatement;
 var
 //  Statement: PStatement;
   namespaceStatement,scopeStatement: PStatement;
@@ -3464,7 +3567,7 @@ var
   FileUsings: TDevStringList;
 begin
   Result := nil;
-  if fParsing then
+  if fParsing and not force then
     Exit;
 
   //Find in local members
@@ -3531,7 +3634,7 @@ end;
 
 
 }
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; kinds:TStatementKindSet): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean): PStatement;
 var
   //Node: PStatementNode;
   OperatorToken: AnsiString;
@@ -3541,7 +3644,7 @@ var
   namespaceList:TList;
 begin
   Result := nil;
-  if fParsing then
+  if fParsing and not force then
     Exit;
 
   getFullNamespace(Phrase, namespaceName, remainder);
@@ -3581,7 +3684,7 @@ begin
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
-    statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType);
+    statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType,force);
     if not Assigned(statement) then
       Exit;
   end;

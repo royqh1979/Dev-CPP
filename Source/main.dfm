@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 300
-  Top = 212
+  Left = 490
+  Top = 224
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -48,7 +48,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = FindSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -514,7 +514,7 @@ object MainForm: TMainForm
             Font.Height = -14
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 0
+            ItemHeight = 16
             ParentCtl3D = False
             ParentFont = False
             TabOrder = 0
@@ -545,6 +545,7 @@ object MainForm: TMainForm
     object FindSheet: TTabSheet
       Caption = 'Find results'
       ImageIndex = 21
+      PopupMenu = FindPopup
       object FindOutput: TFindOutput
         Left = 0
         Top = 0
@@ -556,6 +557,8 @@ object MainForm: TMainForm
         RowSelect = True
         ShowLines = False
         MaxFindCount = 30
+        OnAdvancedCustomDrawItem = FindOutputAdvancedCustomDrawItem
+        OnDblClick = FindOutputDblClick
       end
     end
     object CloseSheet: TTabSheet
@@ -3524,6 +3527,14 @@ object MainForm: TMainForm
     end
     object MenuItem52: TMenuItem
       Action = actFileProperties
+    end
+  end
+  object FindPopup: TPopupMenu
+    Left = 789
+    Top = 248
+    object mnuClearAllFindItems: TMenuItem
+      Caption = 'Clear All'
+      OnClick = mnuClearAllFindItemsClick
     end
   end
 end
