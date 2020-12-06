@@ -53,7 +53,8 @@ type
     fPreProcIndex: integer;
     fIncludesList: TStringList;
     fHardDefines: TDevStringList; // set by "cpp -dM -E -xc NUL"
-    fDefines: TDevStringList; // working set, editable
+    fDefines: TStringList; // working set, editable
+    fDefineIndex: TStringHash; // index of defines
     fFileDefines: TStringList; //dictionary to save defines for each headerfile; PDefine should be diposed here
     fIncludes: TList; // stack of files we've stepped into. last one is current file, first one is source file
     fBranchResults: TList;
@@ -129,8 +130,9 @@ begin
   inherited Create(AOwner);
   fIncludes := TList.Create;
   fHardDefines := TDevStringList.Create;
-  fDefines := TDevStringList.Create;
-  fDefines.Sorted := True;
+  fDefines := TStringList.Create;
+  fDefines.CaseSensitive := True;
+  fDefineIndex := TStringHash.Create;
   fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fProcessed := TStringHash.Create;
   fFileDefines := TStringList.Create;
@@ -151,6 +153,7 @@ begin
   end;
   fIncludes.Clear;
   fDefines.Clear;
+  fDefineIndex.Clear;
   for I := 0 to fHardDefines.Count - 1 do
     Dispose(PDefine(fHardDefines.Objects[i]));
   fProcessed.Clear;
@@ -173,11 +176,13 @@ begin
   Clear;
   fIncludes.Free;
   fDefines.Free;
+  fDefineIndex.Free;
   fProcessed.Free;
   fHardDefines.Free;
   fFileDefines.Free;
   fBranchResults.Free;
   fResult.Free;
+
   inherited Destroy;
 end;
 
@@ -207,7 +212,7 @@ end;
 procedure TCppPreprocessor.AddDefinesInFile(const FileName:AnsiString);
 var
   FileIncludes:PFileIncludes;
-  i,idx: integer;
+  i,idx,index: integer;
   DefineList:TList;
   define:PDefine;
   sl : TStringList;
@@ -222,8 +227,10 @@ begin
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin
       define := PDefine(DefineList[I]);
-      if Assigned(define) then
-        fDefines.AddObject(define^.Name,Pointer(define));
+      if Assigned(define) then begin
+        index:=fDefines.AddObject(define^.Name,Pointer(define));
+        fDefineIndex.Add(define^.Name,index);
+      end;
     end;
   end;
   FileIncludes:=GetFileIncludesEntry(FileName);
@@ -527,7 +534,7 @@ end;
 
 function TCppPreprocessor.GetDefine(const Name: AnsiString; var Index: integer): PDefine;
 begin
-  Index := FastIndexOf(fDefines,Name); // use sorted searching. is really fast
+  Index := fDefineIndex.ValueOf(Name); // use hashed searching. is really fast
   if Index <> -1 then
     Result := PDefine(fDefines.Objects[Index])
   else
@@ -546,7 +553,7 @@ end;
 procedure TCppPreprocessor.AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
 var
   Item: PDefine;
-  idx: integer;
+  idx,index: integer;
   DefineList:TList;
 begin
   // Do not check for duplicates. It's too slow
@@ -568,7 +575,8 @@ begin
       DefineList := TList(fFileDefines.Objects[idx]);
     end;
     DefineList.Add(Pointer(Item));
-    fDefines.AddObject(Name, Pointer(Item));
+    index:=fDefines.AddObject(Name, Pointer(Item));
+    fDefineIndex.Add(Name,index);
   end;
 end;
 
@@ -638,20 +646,20 @@ end;
 
 procedure TCppPreprocessor.ResetDefines;
 var
-  I: integer;
+  I,idx: integer;
   define : PDefine;
   //DefineList: TList;
 begin
-  fDefines.Sorted := False;
   fDefines.Clear;
+  fDefineIndex.Clear;
 
   for i:=0 to fHardDefines.Count -1 do
   begin
     define := PDefine(fHardDefines.Objects[i]);
-    fDefines.AddObject(define^.Name,Pointer(define));
+    idx:=fDefines.AddObject(define^.Name,Pointer(define));
+    fDefineIndex.Add(define^.Name,idx);
   end;
 
-  fDefines.Sorted := True;
 end;
 
 procedure TCppPreprocessor.HandlePreprocessor(const Value: AnsiString);
@@ -694,7 +702,8 @@ begin
     while True do begin
       Define := GetDefine(Name, Index);
       if Assigned(Define) then begin
-        fDefines.Delete(Index);
+        fDefineIndex.Remove(Name);
+        //fDefines.Delete(Index);
         files.AddObject(Define^.FileName,Pointer(Define));
       end else
         break;
@@ -1375,8 +1384,10 @@ begin
     i:=fDefines.Count-1;
     while (i>=0) do begin
       define:=PDefine(fDefines.objects[i]);
-      if SameText(define^.FileName,FileName) then
-        fDefines.Delete(i);
+      if SameText(define^.FileName,FileName) then begin
+        fDefineIndex.Remove(define^.Name);
+        //fDefines.Delete(i);
+      end;
       dec(i);
     end;
     DefineList := TList(fFileDefines.Objects[idx]);

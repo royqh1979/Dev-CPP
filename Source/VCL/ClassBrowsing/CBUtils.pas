@@ -166,6 +166,11 @@ type
     function CompareStrings(const S1, S2: string): Integer; override;
   end;
 
+  TDevHashedStringList = class(THashedStringList)
+  protected
+    function CompareStrings(const S1, S2: string): Integer; override;
+  end;
+
   PFileIncludes = ^TFileIncludes;
   TFileIncludes = record
     BaseFile: AnsiString;
@@ -231,6 +236,11 @@ function IsAncestor(a:PStatement;b:PStatement):boolean;
 implementation
 
 function TDevStringList.CompareStrings(const S1, S2: string): Integer;
+begin
+  Result := AnsiCompareStr(S1, S2);
+end;
+
+function TDevHashedStringList.CompareStrings(const S1, S2: string): Integer;
 begin
   Result := AnsiCompareStr(S1, S2);
 end;
