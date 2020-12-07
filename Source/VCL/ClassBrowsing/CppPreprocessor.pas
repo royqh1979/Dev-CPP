@@ -154,14 +154,17 @@ begin
   fIncludes.Clear;
   fDefines.Clear;
   fDefineIndex.Clear;
-  for I := 0 to fHardDefines.Count - 1 do
+  for I := 0 to fHardDefines.Count - 1 do  begin
+    PDefine(fHardDefines.Objects[i])^.ArgList.Free;
     Dispose(PDefine(fHardDefines.Objects[i]));
+  end;
   fProcessed.Clear;
   fHardDefines.Clear;
   for I:=0 to fFileDefines.Count -1 do begin
     FileName := fFileDefines[I];
     DefineList:=TList(fFileDefines.Objects[I]);
     for t:=0 to DefineList.Count-1 do begin
+      PDefine(DefineList[t])^.ArgList.Free;
       dispose(PDefine(DefineList[t]));
     end;
     DefineList.Free;
@@ -562,6 +565,8 @@ begin
   Item^.Args := Args;
   Item^.Value := Value;
   Item^.FileName := fFileName;
+  Item^.ArgList:=TIntList.Create;
+  Item^.FormatValue := '';
   Item^.IsMultiLine := ContainsStr(Item^.Value, #10);
   Item^.HardCoded := HardCoded;
   if HardCoded then
@@ -714,6 +719,7 @@ begin
       if idx>0 then begin
         DefineList:=TList(fFileDefines.Objects[idx]);
         DefineList.Remove(Pointer(Define));
+        Define^.ArgList.Free;
         Dispose(PDefine(Define));
       end;
     end;
@@ -1394,6 +1400,7 @@ begin
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin
       define:=PDefine(DefineList[i]);
+      define^.ArgList.Free;
       Dispose(PDefine(define));
     end;
     DefineList.Free;
