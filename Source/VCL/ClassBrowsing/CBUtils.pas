@@ -131,6 +131,7 @@ type
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search
+    _ChildrenIndex: TStringHash; // children statements index to speedup search
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
     _Inherited: boolean; // inherted member;

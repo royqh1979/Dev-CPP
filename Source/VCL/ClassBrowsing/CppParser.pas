@@ -705,6 +705,7 @@ var
       _InProject := fIsProjectFile;
       _InSystemHeader := fIsSystemHeader;
       _Children := nil;
+      _ChildrenIndex := nil;
       _Friends := nil;
       _Static := isStatic;
       _Inherited:= False;
@@ -1252,13 +1253,13 @@ var
     end;
 
     //too slow, don't do this test
-    {
+
     statement := self.FindStatementOf(fCurrentFile,word,getCurrentScope,true);
     if assigned(statement) and not (statement^._Kind in [skClass,skTypedef]) then begin
       Result:=True;
       Exit;
     end;
-    }
+    
 
     Result:=False;
   end;
@@ -2707,7 +2708,6 @@ begin
 
   // We don't include anything anymore
   for I := fIncludesList.Count - 1 downto 0 do begin
-    //fPreprocessor.InvalidDefinesInFile(PFileIncludes(fIncludesList[I])^.BaseFile);
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
@@ -2994,7 +2994,7 @@ begin
   // remove its include files list
   P := FindFileIncludes(FileName, True);
   if Assigned(P) then begin
-    fPreprocessor.InvalidDefinesInFile(FileName);
+    //fPreprocessor.InvalidDefinesInFile(FileName); //we don't need this, since we reset defines after each parse
     P^.IncludeFiles.Free;
     P^.Usings.Free;
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
@@ -3462,97 +3462,35 @@ begin
   Statement :=FindStatementOf(FileName,s,currentClass);
   Result := GetTypeDef(Statement);
 
-  {
-  // repeat until reach global
-  while Assigned(scopeStatement) do begin
-    //search members of current scope
-    Statement:=FindMemberOfStatement(aType,scopeStatement);
-    Result := GetTypeDef(Statement);
-    if Assigned(Result) then
-      Exit;
-    for t:=0 to scopeStatement^._Usings.Count-1 do begin
-      namespaceName := scopeStatement^._Usings[t];
-      namespaceStatementsList:=FindNamespace(namespaceName);
-      if not Assigned(namespaceStatementsList) then
-        continue;
-      for k:=0 to namespaceStatementsList.Count-1 do begin
-        namespaceStatement:=PStatement(namespaceStatementsList[k]);
-        Statement:=FindMemberOfStatement(aType,namespaceStatement);
-        Result := GetTypeDef(Statement);
-        if Assigned(Result) then
-          Exit;
-      end;
-    end;
-    scopeStatement:=scopeStatement^._ParentScope;
-  end;
-  // Search all global members
-  Statement:=FindMemberOfStatement(aType,nil);
-  Result := GetTypeDef(Statement);
-  }
-
-    {
-  // Seach them
-  // TODO: type definitions can have scope too
-  while True do begin
-    Children := Statements.GetChildrenStatements(CurrentClass);
-    if (Assigned(Children)) then begin
-      for i:=0 to Children.Count-1 do begin
-        Statement:=PStatement(Children[i]);
-        if Statement^._Kind = skClass then begin // these have type 'class'
-          // We have found the statement of the type directly
-          if SameStr(Statement^._Command, s) then begin
-            Result := Statement; // 'class foo'
-            Exit;
-          end;
-        end else if Statement^._Kind = skTypedef then begin
-          // We have found a variable with the same name, search for type
-          if SameStr(Statement^._Command, s) then begin
-            if not SameStr(aType, Statement^._Type) then // prevent infinite loop
-              Result := FindTypeDefinitionOf(Statement^._Type, CurrentClass)
-            else
-              Result := Statement; // stop walking the trail here
-            if Result = nil then // found end of typedef trail, return result
-              Result := Statement;
-            Exit;
-          end;
-        end;
-      end;
-    end;
-    if not assigned(CurrentClass) then
-      break;
-    CurrentClass := CurrentClass^._ParentScope;
-  end;
-  Result := nil;
-  }
 end;
 
 function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
 var
   ChildStatement: PStatement;
   Children : TList;
+  ChildrenIndex:TStringHash;
   i:integer;
 begin
   Result := nil;
+  ChildrenIndex := Statements.GetChildrenStatementIndex(ScopeStatement);
+  if not Assigned(ChildrenIndex) then
+    Exit;
+  i:=ChildrenIndex.ValueOf(Phrase);
+  if i<>-1 then
+    Result := PStatement(i);
+
+  {
   Children := Statements.GetChildrenStatements(ScopeStatement);
   if not Assigned(Children) then
     Exit;
   for i:=0 to Children.Count-1 do begin
     ChildStatement:=PStatement(Children[i]);
-    {
-    if SameStr(ChildStatement^._Command, Phrase) and
-      (not isVariable or
-        ( (ChildStatement^._Kind = skVariable) and
-          ( ((ChildStatement^._Scope = ssLocal) and (isLocal)) or
-             ((ChildStatement^._Scope = ssGlobal) and (not isLocal))
-          )
-        )
-      ) then begin
-    }
     if SameStr(ChildStatement^._Command, Phrase) then begin
       Result:=ChildStatement;
       Exit;
     end;
   end;
+  }
 end;
 
 // find allStatment
@@ -3719,91 +3657,6 @@ begin
   end;
   Result := Statement;
 
-  {
-
-  // Get the FIRST class and member, surrounding the FIRST operator
-  ParentWord := GetClass(Phrase);
-  OperatorToken := GetOperator(Phrase);
-  MemberWord := GetMember(Phrase);
-
-  // First, assume the parentword is a type (type names have more priority than variables)
-  // For example, find "class Foo" or "typedef Foo"
-  TypedefStatement := FindTypeDefinitionOf(ParentWord, CurrentClass);
-  if Assigned(TypedefStatement) then
-    Result := TypedefStatement;
-
-  // If it was not a type, check if it was a variable name
-  if not Assigned(TypedefStatement) then begin
-    VariableStatement := FindVariableOf(ParentWord, CurrentClass);
-
-    // We have found a variable with name "Phrase"
-    if Assigned(VariableStatement) then begin
-      // If we do not need to find children of this variable, stop here
-      if OperatorToken = '' then begin
-        Result := VariableStatement;
-        Exit;
-
-        // We need to find children of this variable.
-        // What we need to find now is the type of the variable
-      end else begin
-        if VariableStatement^._Kind = skClass then
-          TypedefStatement := VariableStatement // a class statement is equal to its type
-        else begin
-          TypedefStatement := FindTypeDefinitionOf(VariableStatement^._Type, CurrentClassType);
-        end;
-
-        // If we cannot find the type, stop here
-        if not Assigned(TypedefStatement) then begin
-          Result := VariableStatement;
-          Exit;
-        end;
-      end;
-    end;
-  end;
-
-  // Walk the chain of operators
-  while (MemberWord <> '') do begin
-    MemberStatement := nil;
-
-    // Add members of this type
-
-    Children := Statements.GetChildrenStatements(TypedefStatement);
-    if assigned(Children) then begin
-      for i:=0 to Children.Count-1 do begin
-        Statement := PStatement(Children[i]);
-        if SameStr(Statement^._Command, MemberWord) then begin
-          MemberStatement := Statement;
-          break; // there can be only one with an equal name
-        end;
-      end;
-    end;
-    // Child not found. Stop searching
-    if not Assigned(MemberStatement) then
-      break;
-    Result := MemberStatement; // otherwise, continue
-
-    // next operator
-    Delete(Phrase, 1, Length(ParentWord) + Length(OperatorToken));
-
-    // Get the NEXT member, surrounding the next operator
-    ParentWord := GetClass(Phrase);
-    OperatorToken := GetOperator(Phrase);
-    MemberWord := GetMember(Phrase);
-
-    // Don't bother finding types
-    if MemberWord = '' then
-      break;
-
-    // At this point, we have a list of statements that conform to the a(operator)b demand.
-    // Now make these statements "a(operator)b" the parents, so we can use them as filters again
-    if MemberStatement^._Kind = skClass then
-      TypedefStatement := MemberStatement // a class statement is equal to its type
-    else
-      TypedefStatement := FindTypeDefinitionOf(MemberStatement^._Type, CurrentClass);
-    if not Assigned(TypedefStatement) then
-      break;
-  end;
-  }
 end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement;
@@ -4054,61 +3907,6 @@ begin
     True,
     InheritanceList,
     inherit^._Static);
-  {
-  Result := new(PStatement);
-  with Result^ do begin
-    _ParentScope := derived;
-    _HintText := inherit^._HintText;
-      _Type := inherit^._Type;
-      _Command := inherit^._Command;
-      _Args := inherit^._Args;
-      _Value := inherit^._Value;
-      _Kind := inherit^._Kind;
-      if Assigned(inherit^._InheritanceList) then begin
-      // we should copy it, or we will got trouble when clear StatementList
-        _InheritanceList := TList.Create;
-        _InheritanceList.Assign(inherit^._InheritanceList);
-      end else
-        _InheritanceList := nil;
-      _Scope := inherit^._Scope;
-      _ClassScope := access;
-      _HasDefinition := inherit^._HasDefinition;
-      _Line := inherit^._Line;
-      _DefinitionLine := inherit^._DefinitionLine;
-      _FileName := inherit^._FileName;
-      _DefinitionFileName := inherit^._DefinitionFileName;
-      _Temporary := derived^._Temporary; // true if it's added by a function body scan
-      _InProject := derived^._InProject;
-      _InSystemHeader := derived^._InSystemHeader;
-      _Children := nil; //Todo: inner class inheritance?
-      _Friends := nil; // Friends are not inherited;
-      _Static := inherit^._Static;
-      _Inherited:=True;
-      _FullName := derived^._FullName + '::'+inherit^._Command;
-      _Usings:=TStringList.Create;
-      _Usings.Sorted:=True;
-      _Usings.Add('std');
-    end;
-    node:=fStatementList.Add(Result);
-    if Result^._Temporary then
-      fTempNodes.Add(node);
-    else begin
-      if (Result^._Kind = skNamespace) then begin
-        i:=FastIndexOf(fNamespaces,Result^._FullName);
-        if (i<>-1) then
-          NamespaceList := TList(fNamespaces.objects[i])
-        else begin
-          NamespaceList := TList.Create;
-          fNamespaces.AddObject(Result^._FullName,NamespaceList);
-        end;
-        NamespaceList.Add(result);
-      end;
-      fileIncludes:=GetFileIncludes(FileName);
-      if Assigned(fileIncludes) then begin
-        fileIncludes^.DefinedStatements.Add(Result);
-      end;
-    end;
-    }
 end;
 
 procedure TCppParser.Freeze(FileName:AnsiString;Stream: TMemoryStream);

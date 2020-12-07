@@ -41,6 +41,7 @@ type
     fLastNode: PStatementNode;
     fOwnsObjects: boolean;
     fGlobalStatements: TList;
+    fGlobalStatementIndex: TStringHash;
     procedure DisposeNode(Node: PStatementNode);
     procedure OnNodeAdding(Node: PStatementNode); // call when about to add this node
     procedure OnNodeDeleting(Node: PStatementNode); // call when about to delete this node
@@ -56,6 +57,7 @@ type
     function DeleteNode(Node: PStatementNode): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
+    function GetChildrenStatementIndex(Statement:PStatement): TStringHash;
     procedure DumpTo(Filename:AnsiString);
     procedure DumpWithScope(Filename:AnsiString);
     procedure Clear;
@@ -76,11 +78,13 @@ begin
   fCount := 0;
   fOwnsObjects := True;
   fGlobalStatements := TList.Create;
+  fGlobalStatementIndex := TStringHash.Create(50000);
 end;
 
 destructor TStatementList.Destroy;
 begin
   Clear;
+  fGlobalStatementIndex.Free;
   fGlobalStatements.Free;
 end;
 
@@ -135,8 +139,12 @@ begin
     if not Assigned(parent^._Children) then
       parent^._Children := TList.Create;
     parent^._Children.Add(Data);
+    if not Assigned(parent^._ChildrenIndex) then
+      parent^._ChildrenIndex := TStringHash.Create(5000);
+    parent^._ChildrenIndex.Add(Data^._Command,integer(Data));
   end else begin
     fGlobalStatements.Add(Data);
+    fGlobalStatementIndex.Add(Data^._Command,integer(Data));
   end;
 end;
 
@@ -150,8 +158,10 @@ begin
   Node^.Data^._Node := nil;
   if Assigned(Node^.Data^._ParentScope) then begin
     Node^.Data^._ParentScope^._Children.remove(Node^.Data);
+    Node^.Data^._ParentScope^._ChildrenIndex.remove(Node^.Data^._Command);
   end else begin
     fGlobalStatements.Remove(Node^.Data);
+    fGlobalStatementIndex.Remove(Node^.Data^._Command);
   end;
   if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then
@@ -163,6 +173,9 @@ begin
         child^._ParentScope:=nil;
       end;
       Children.Free;
+    end;
+    if Assigned(PStatement(Node^.Data)^._ChildrenIndex) then begin
+      PStatement(Node^.Data)^._ChildrenIndex.Free;
     end;
     if Assigned(PStatement(Node^.Data)^._Friends) then
       PStatement(Node^.Data)^._Friends.Free;
@@ -271,6 +284,7 @@ begin
   fLastNode := nil;
   fCount := 0;
   fGlobalStatements.Clear;
+  fGlobalStatementIndex.Clear;
 end;
 
 function TStatementList.GetChildrenStatements(Statement:PStatement): TList;
@@ -279,6 +293,14 @@ begin
     Result:= Statement._Children
   end else
     Result:=fGlobalStatements;
+end;
+
+function TStatementList.GetChildrenStatementIndex(Statement:PStatement): TStringHash;
+begin
+  if (Assigned(Statement)) then begin
+    Result:= Statement._ChildrenIndex;
+  end else
+    Result:=fGlobalStatementIndex;
 end;
 
 procedure TStatementList.DumpTo(Filename:AnsiString);

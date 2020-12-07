@@ -132,7 +132,7 @@ begin
   fHardDefines := TDevStringList.Create;
   fDefines := TStringList.Create;
   fDefines.CaseSensitive := True;
-  fDefineIndex := TStringHash.Create;
+  fDefineIndex := TStringHash.Create(50000);
   fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fProcessed := TStringHash.Create;
   fFileDefines := TStringList.Create;

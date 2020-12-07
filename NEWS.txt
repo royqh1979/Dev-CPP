@@ -3,7 +3,6 @@ Version 6.3-beta1?
     - fix: toolbar position error after restart
     - enhancement: redesign the search in files result panel;
     - enhancement: can differentiate most case of class typed variables initialization from function declaration,like int a(10); 
-        we will think things like int b(a); is a function declaration, because find definition of a is time consuming.
     - enhancement: greatly improved the speed of parser
 
 Version 6.2-beta5 Dec 2020
