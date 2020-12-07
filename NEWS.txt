@@ -4,6 +4,7 @@ Version 6.3-beta1?
     - enhancement: redesign the search in files result panel;
     - enhancement: can differentiate most case of class typed variables initialization from function declaration,like int a(10); 
     - enhancement: greatly improved the speed of parser
+    - enhancement: greatly improved the code suggestion window preparation speed
 
 Version 6.2-beta5 Dec 2020
 

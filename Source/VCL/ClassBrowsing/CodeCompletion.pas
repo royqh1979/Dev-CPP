@@ -59,7 +59,7 @@ type
     fUsings: TDevStringList;
     fIsIncludedCacheFileName: AnsiString;
     fIsIncludedCacheResult: boolean;
-    fAddedStatements : TDevStringList;
+    fAddedStatements : TStringHash;
     fPreparing: boolean;
     fPhrase : AnsiString;
     fSymbolUsage:TDevStringList;
@@ -133,8 +133,7 @@ begin
   fUsings:=TDevStringList.Create;
   fUsings.Sorted := True;
   fUsings.Duplicates:=dupIgnore;
-  fAddedStatements := TDevStringList.Create;
-  fAddedStatements.Sorted:=True;
+  fAddedStatements := TStringHash.Create;
   fCompletionStatementList := TList.Create;
   fFullCompletionStatementList := TList.Create;
 
@@ -184,8 +183,8 @@ begin
     for i:=0 to Children.Count-1 do begin
       ChildStatement:=PStatement(Children[i]);
       if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
-        and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
-        fAddedStatements.Add(ChildStatement^._Command);
+        and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+        fAddedStatements.Add(ChildStatement^._Command,1);
         fFullCompletionStatementList.Add(ChildStatement);
       end;
     end;
@@ -193,8 +192,8 @@ begin
     for i:=0 to Children.Count-1 do begin
       ChildStatement:=PStatement(Children[i]);
       if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
-        and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
-        fAddedStatements.Add(ChildStatement^._Command);
+        and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+        fAddedStatements.Add(ChildStatement^._Command,1);
         fFullCompletionStatementList.Add(ChildStatement);
       end;
     end;
@@ -328,8 +327,8 @@ begin
             ChildStatement:=PStatement(Children[i]);
             if (ChildStatement^._ClassScope=scsPublic)
               and not (ChildStatement^._Kind in [skConstructor,skDestructor])
-              and( FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
-              fAddedStatements.Add(ChildStatement^._Command);
+              and( fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+              fAddedStatements.Add(ChildStatement^._Command,1);
               fFullCompletionStatementList.Add(ChildStatement);
             end;
           end;
@@ -348,8 +347,8 @@ begin
             Exit;
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
-            if (ChildStatement^._Static) and (FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
-              fAddedStatements.Add(ChildStatement^._Command);
+            if (ChildStatement^._Static) and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+              fAddedStatements.Add(ChildStatement^._Command,1);
               fFullCompletionStatementList.Add(ChildStatement);
             end;
           end;
@@ -359,8 +358,9 @@ begin
             Exit;
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
-            if (ChildStatement^._Static) and  (ChildStatement^._ClassScope=scsPublic) and(FastIndexOf(fAddedStatements,ChildStatement^._Command) = -1) then begin
-              fAddedStatements.Add(ChildStatement^._Command);
+            if (ChildStatement^._Static) and  (ChildStatement^._ClassScope=scsPublic)
+             and(fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+              fAddedStatements.Add(ChildStatement^._Command,1);
               fFullCompletionStatementList.Add(ChildStatement);
             end;
           end;
