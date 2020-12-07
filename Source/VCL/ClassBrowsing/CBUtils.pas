@@ -60,7 +60,7 @@ type
     FileName: AnsiString;
     IsMultiLine: boolean; // if true the expanded macro will span multiline
     HardCoded: boolean; // if true, don't free memory (points to hard defines)
-    ArgList:TIntList; // int list used to format values
+    ArgList: TIntList; // args list to format values
     FormatValue: String;  // format template to format values
   end;
 

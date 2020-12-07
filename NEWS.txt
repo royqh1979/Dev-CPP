@@ -5,6 +5,8 @@ Version 6.3-beta1?
     - enhancement: can differentiate most case of class typed variables initialization from function declaration,like int a(10); 
     - enhancement: greatly improved the speed of parser
     - enhancement: greatly improved the code suggestion window preparation speed
+    - fix: tokenizer can't correctly skip double quoted strings.
+    - fix: preprocessor don't replace comments in the macro defines with space
 
 Version 6.2-beta5 Dec 2020
 

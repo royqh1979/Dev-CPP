@@ -2620,7 +2620,6 @@ begin
     Free;
   end;
 
-
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
@@ -2648,7 +2647,7 @@ begin
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
    Statements.DumpTo('f:\stats.txt');
    Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');

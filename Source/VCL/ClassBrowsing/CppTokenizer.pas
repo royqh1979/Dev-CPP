@@ -259,11 +259,13 @@ end;
 
 procedure TCppTokenizer.SkipDoubleQuotes;
 begin
-  repeat
-    Inc(pCurrent);
+  Inc(pCurrent);
+  while not (pCurrent^ in ['"', #0]) do begin
     if pCurrent^ = '\' then
-      Inc(pCurrent, 2); // skip escaped char
-  until pCurrent^ in ['"', #0];
+      Inc(pCurrent, 2) // skip escaped char
+    else
+      Inc(pCurrent);
+  end;
   Inc(pCurrent);
 end;
 

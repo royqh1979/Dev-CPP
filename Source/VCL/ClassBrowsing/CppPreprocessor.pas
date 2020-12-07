@@ -75,7 +75,7 @@ type
     procedure HandleUndefine(const Line: AnsiString);
     procedure HandleBranch(const Line: AnsiString);
     procedure HandleInclude(const Line: AnsiString);
-    function ExpandMacros(const Line: AnsiString): AnsiString;
+    function ExpandMacros(const Line: AnsiString; const depth :integer): AnsiString;
     function RemoveGCCAttributes(const Line: AnsiString): AnsiString;
     function RemoveSuffixes(const Input: AnsiString): AnsiString;
     // current file stuff
@@ -155,7 +155,7 @@ begin
   fDefines.Clear;
   fDefineIndex.Clear;
   for I := 0 to fHardDefines.Count - 1 do  begin
-    PDefine(fHardDefines.Objects[i])^.ArgList.Free;
+    PDefine(fHardDefines.Objects[i]).ArgList.Free;
     Dispose(PDefine(fHardDefines.Objects[i]));
   end;
   fProcessed.Clear;
@@ -454,7 +454,7 @@ begin
     if Pos('*/',fBuffer[fIndex]) >0 then
       InCComment:=False;
     if GetCurrentBranch then // if not skipping, expand current macros
-      fResult.Add(ExpandMacros(fBuffer[fIndex]))
+      fResult.Add(ExpandMacros(fBuffer[fIndex],1))
     else // If skipping due to a failed branch, clear line
       fResult.Add('');
     Inc(fIndex);
@@ -558,6 +558,93 @@ var
   Item: PDefine;
   idx,index: integer;
   DefineList:TList;
+
+  procedure tokenizeValue(const Value: string; tokens:TStringList);
+  var
+    i,endPos:integer;
+    token:string;
+  begin
+    i:=1;
+    endPos := length(value);
+    token:='';
+    while i<=endPos do begin
+      if value[i] in [' ',#9] then begin
+        if token <> '' then begin
+          tokens.Add(token);
+        end;
+        token:='';
+        inc(i);
+      end else if value[i] = '#' then begin
+        if token <> '' then begin
+          tokens.Add(token);
+        end;
+        token:='';
+        if (i+1<=endPos) and (value[i+1]='#') then begin
+          tokens.Add('##');
+          inc(i,2);
+        end else begin
+          tokens.Add('#');
+          inc(i,1);
+        end;
+      end else if value[i] in ['0'..'9','a'..'z','A'..'Z','_'] then begin
+        token:=token+value[i];
+        inc(i);
+      end else begin
+        if token <> '' then begin
+          tokens.Add(token);
+        end;
+        token:='';
+        tokens.Add(value[i]);
+        inc(i);
+      end;
+    end;
+    if token<>'' then begin
+      tokens.Add(token);
+    end;
+  end;
+
+  procedure ParseArgs(item:PDefine);
+  var
+    args,arg,formatStr:string;
+    tokens: TStringList;
+    i:integer;
+    lastIsConcat: boolean;
+  begin
+    args := Copy(item^.Args,2,length(item^.Args)-2); // remove '(' ')'
+    args := Trim(Args);
+    if args = '' then // we only handle macros with exactly one param here
+      Exit;
+    if Pos(',',Args)>0 then // we only handle macros with exactly one param here
+      Exit;
+    arg:=Args;
+    tokens:=TStringList.Create;
+    formatStr := '';
+    try
+      tokenizeValue(item^.Value,tokens);
+      lastIsConcat := False;
+      for i:=0 to tokens.Count-1 do begin
+        if sameStr(tokens[i],'#') then //we don't handle '#' operator
+          Exit;
+        if sameStr(tokens[i],'##') then begin// ignore ##
+          lastIsConcat:=True;
+          Continue;
+        end;
+        if not lastIsConcat then begin
+          formatStr:=formatStr+' ';
+        end;
+        if sameStr(tokens[i],arg) then begin
+          item^.ArgList.Add(1);
+          formatStr:=formatStr+'%s';
+        end else begin
+          formatStr:=formatStr+tokens[i];
+        end;
+        lastIsConcat := False;
+      end;
+      item^.FormatValue := trim(formatStr);
+    finally
+      tokens.Free;
+    end;
+  end;
 begin
   // Do not check for duplicates. It's too slow
   Item := new(PDefine);
@@ -565,10 +652,13 @@ begin
   Item^.Args := Args;
   Item^.Value := Value;
   Item^.FileName := fFileName;
-  Item^.ArgList:=TIntList.Create;
+  Item^.ArgList := TIntList.Create;
   Item^.FormatValue := '';
   Item^.IsMultiLine := ContainsStr(Item^.Value, #10);
   Item^.HardCoded := HardCoded;
+  if Args <> '' then begin
+    parseArgs(Item);
+  end;
   if HardCoded then
     fHardDefines.AddObject(Name, Pointer(Item)) // uses TStringList too to be able to assign to fDefines easily
   else begin
@@ -719,7 +809,7 @@ begin
       if idx>0 then begin
         DefineList:=TList(fFileDefines.Objects[idx]);
         DefineList.Remove(Pointer(Define));
-        Define^.ArgList.Free;
+        define^.ArgList.Free;
         Dispose(PDefine(Define));
       end;
     end;
@@ -1188,6 +1278,10 @@ begin
   while i<= lenLine do begin
     if Line[i] in ['_','a'..'z','A'..'Z','0'..'9'] then begin
       word:=word+Line[i];
+    end else if (Line[i]='/') and (i+1<=lenLine) and (Line[i]='/') then begin //skip line end comment
+      inc(i,2); //skip '//'
+      while (i<=LenLine) and not (Line[i] in LineChars) do
+        inc(i);
     end else begin
       if word<>'' then begin
         RemoveGCCAttribute;
@@ -1205,7 +1299,7 @@ begin
 end;
 
 { We also remove gcc's __attribtue__ here }
-function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+function TCppPreprocessor.ExpandMacros(const Line: AnsiString;const depth:integer): AnsiString; //we only expand non-parameter macros here
 var
   word:AnsiString;
   i:integer;
@@ -1214,8 +1308,11 @@ var
 
   procedure ExpandMacro;
   var
+    argStart,argEnd,t:integer;
     level,Index:integer;
     define:PDefine;
+    arg:string;
+    formatParams:array of TVarRec;
   begin
     if (SameStr(word,'__attribute__')) then begin
       while (i<= lenLine) and (Line[i] in [' ',#9]) do
@@ -1236,14 +1333,49 @@ var
       define:=GetDefine(word,index);
       if Assigned(define) and (define^.args='') and not (define^.IsMultiLine) then begin
         //newLine:=newLine+RemoveGCCAttributes(define^.Value);
-        newLine:=newLine+define^.Value;
-//      end else if Assigned(define) and (define^.IsMultiLine) then begin
+        if define^.Value <> word then
+          newLine:=newLine+ExpandMacros(define^.Value,depth+1)
+        else
+          newLine:=newLine+word;
+      end else if Assigned(define) and not (define^.IsMultiLine) and (define^.FormatValue<>'') then begin
+        while (i<= lenLine) and (Line[i] in [' ',#9]) do
+          inc(i);
+        argStart:=-1;
+        argEnd:=-1;
+        if (i<=LenLine) and (Line[i]='(') then begin
+          argStart:=i+1;
+          level:=0;
+          while (i<= lenLine) do begin
+            case Line[i] of
+              '(': inc(level);
+              ')': dec(level);
+            end;
+            inc(i);
+            if (level=0) then
+              break;
+          end;
+          if level=0 then begin
+            argEnd:=i-2;
+            arg:=Trim(Copy(Line,argStart,argEnd-argStart+1));
+            setLength(formatParams, define^.ArgList.Count);
+            for t:=0 to define^.ArgList.Count-1 do begin
+              formatParams[t].vtype := vtAnsiString;
+              formatParams[t].VAnsiString := pointer(arg);
+            end;
+
+            newLine:=newLine+ExpandMacros(Format(define^.FormatValue,formatParams),depth+1);
+          end;
+        end;
       end else
         newLine:=newLine+word;
     end;
   end;
-  
+
 begin
+  if depth > 20 then begin
+    Result := Line;
+    Exit;
+  end;
   word := '';
   newLine:='';
   lenLine := Length(Line);
