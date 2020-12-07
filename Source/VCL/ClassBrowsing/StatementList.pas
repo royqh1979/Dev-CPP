@@ -37,6 +37,7 @@ type
   TStatementList = class(TObject)
   private
     fCount: Integer;
+    fClearing: boolean;
     fFirstNode: PStatementNode;
     fLastNode: PStatementNode;
     fOwnsObjects: boolean;
@@ -73,6 +74,7 @@ implementation
 
 constructor TStatementList.Create;
 begin
+  fClearing:=False;
   fFirstNode := nil;
   fLastNode := nil;
   fCount := 0;
@@ -175,20 +177,19 @@ var
 begin
   // remove it from parent's children
   Node^.Data^._Node := nil;
-  if Assigned(Node^.Data^._ParentScope) then begin
-    RemoveStatementFromIndex(
-      Node^.Data,
-      Node^.Data^._ParentScope^._Children,
-      Node^.Data^._ParentScope^._ChildrenIndex);
-    {
-    Node^.Data^._ParentScope^._Children.remove(Node^.Data);
-    Node^.Data^._ParentScope^._ChildrenIndex.remove(Node^.Data^._Command);
-    }
-  end else begin
-    RemoveStatementFromIndex(
-      Node^.Data,
-      fGlobalStatements,
-      fGlobalStatementIndex);
+  if not fClearing then begin
+  // we only need to remove child from parent statement when we are not clearing the statementlist
+    if Assigned(Node^.Data^._ParentScope) then begin
+      RemoveStatementFromIndex(
+        Node^.Data,
+        Node^.Data^._ParentScope^._Children,
+        Node^.Data^._ParentScope^._ChildrenIndex);
+    end else begin
+      RemoveStatementFromIndex(
+        Node^.Data,
+        fGlobalStatements,
+        fGlobalStatementIndex);
+    end;
   end;
   if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then
@@ -299,6 +300,7 @@ procedure TStatementList.Clear;
 var
   Node, NextNode: PStatementNode;
 begin
+  fClearing:=True;
   // Search all nodes
   Node := fFirstNode;
   while Assigned(Node) do begin
@@ -312,6 +314,7 @@ begin
   fCount := 0;
   fGlobalStatements.Clear;
   fGlobalStatementIndex.Clear;
+  fClearing:=False;
 end;
 
 function TStatementList.GetChildrenStatements(Statement:PStatement): TList;

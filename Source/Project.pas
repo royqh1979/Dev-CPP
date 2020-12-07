@@ -1905,8 +1905,13 @@ destructor TUnitList.Destroy;
 var
   I: integer;
 begin
-  for I := 0 to fList.Count - 1 do
-    TProjUnit(fList[I]).Free;
+  MainForm.EditorList.BeginUpdate;
+  try
+    for I := 0 to fList.Count - 1 do
+      TProjUnit(fList[I]).Free;
+  finally
+    MainForm.EditorList.EndUpdate;
+  end;
   fList.Free;
   inherited;
 end;

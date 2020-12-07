@@ -2765,29 +2765,35 @@ begin
     end else
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
-    if not fQuitting and RefreshEditor then begin
-      //reset Class browsing
-      LeftPageControl.ActivePage := LeftClassSheet;
-      ClassBrowser.TabVisible := True;
-      UpdateClassBrowsing;
-      ClassBrowser.ProjectDir := '';
-      //UpdateClassBrowserForEditor(EditorList.GetEditor());
-
-      e:=EditorList.GetEditor();
-      if Assigned(e) and not e.InProject then begin
-        UpdateClassBrowserForEditor(e);
-      end;
-    end;
-
-    // Remember it
-    dmMain.AddtoHistory(fProject.FileName);
-
-    // Only update page control once
-    fEditorList.BeginUpdate;
+    ClassBrowser.BeginUpdate;
     try
-      FreeandNil(fProject);
+
+      // Remember it
+      dmMain.AddtoHistory(fProject.FileName);
+
+      // Only update page control once
+      fEditorList.BeginUpdate;
+      try
+        FreeandNil(fProject);
+
+        if not fQuitting and RefreshEditor then begin
+          //reset Class browsing
+          LeftPageControl.ActivePage := LeftClassSheet;
+          ClassBrowser.TabVisible := True;
+          UpdateClassBrowsing;
+          ClassBrowser.ProjectDir := '';
+          //UpdateClassBrowserForEditor(EditorList.GetEditor());
+
+          e:=EditorList.GetEditor();
+          if Assigned(e) and not e.InProject then begin
+            UpdateClassBrowserForEditor(e);
+          end;
+        end;
+      finally
+        fEditorList.EndUpdate;
+      end;
     finally
-      fEditorList.EndUpdate;
+      ClassBrowser.EndUpdate;
     end;
     // Clear project browser
     ProjectView.Items.Clear;
