@@ -153,15 +153,42 @@ var
   Children:TList;
   i :integer;
   child:PStatement;
+
+  procedure RemoveStatementFromIndex(statement:PStatement; children:TList; childrenIndex:TStringHash);
+  var
+    p:PStatement;
+    i:integer;
+  begin
+    children.Remove(statement);
+    p:=PStatement(childrenIndex.ValueOf(statement^._Command));
+    if p = statement then begin
+      childrenIndex.Remove(statement^._Command);
+    end else begin
+      childrenIndex.Clear;
+      //rebuild index
+      for i:=0 to children.Count-1 do begin
+        p:= PStatement(children[i]);
+        childrenIndex.Add(p^._Command, integer(p));
+      end;
+    end;
+  end;
 begin
   // remove it from parent's children
   Node^.Data^._Node := nil;
   if Assigned(Node^.Data^._ParentScope) then begin
+    RemoveStatementFromIndex(
+      Node^.Data,
+      Node^.Data^._ParentScope^._Children,
+      Node^.Data^._ParentScope^._ChildrenIndex);
+    {
     Node^.Data^._ParentScope^._Children.remove(Node^.Data);
     Node^.Data^._ParentScope^._ChildrenIndex.remove(Node^.Data^._Command);
+    }
   end else begin
-    fGlobalStatements.Remove(Node^.Data);
-    fGlobalStatementIndex.Remove(Node^.Data^._Command);
+    RemoveStatementFromIndex(
+      Node^.Data,
+      fGlobalStatements,
+      fGlobalStatementIndex);
   end;
   if Assigned(PStatement(Node^.Data)) and OwnsObjects then begin
     if Assigned(PStatement(Node^.Data)^._InheritanceList) then

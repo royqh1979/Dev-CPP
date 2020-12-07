@@ -1231,6 +1231,7 @@ var
       if Assigned(define) and (define^.args='') and not (define^.IsMultiLine) then begin
         //newLine:=newLine+RemoveGCCAttributes(define^.Value);
         newLine:=newLine+define^.Value;
+//      end else if Assigned(define) and (define^.IsMultiLine) then begin
       end else
         newLine:=newLine+word;
     end;

@@ -133,7 +133,7 @@ begin
   fUsings:=TDevStringList.Create;
   fUsings.Sorted := True;
   fUsings.Duplicates:=dupIgnore;
-  fAddedStatements := TStringHash.Create;
+  fAddedStatements := TStringHash.Create(30000);
   fCompletionStatementList := TList.Create;
   fFullCompletionStatementList := TList.Create;
 
