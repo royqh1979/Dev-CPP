@@ -162,26 +162,30 @@ type
     function GetFullStatementName(command:String; parent:PStatement):string;
     function GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
     procedure AddPendingDeclaration(statement:PStatement);
+    procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
+    {procedure ResetDefines;}
+    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
+    procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
   public
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
-    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
-    function IsProjectHeaderFile(const FileName: AnsiString): boolean;
-    procedure ResetDefines;
-    procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure AddHardDefineByLine(const Line: AnsiString);
     procedure InvalidateFile(const FileName: AnsiString);
     procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
     procedure GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
-    function IsCfile(const Filename: AnsiString): boolean;
-    function IsHfile(const Filename: AnsiString): boolean;
+   { function IsCfile(const Filename: AnsiString): boolean;}
+{    function IsHfile(const Filename: AnsiString): boolean;}
+    function IsSystemHeaderFile(const FileName: AnsiString): boolean;
+    function IsProjectHeaderFile(const FileName: AnsiString): boolean;
     procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
     procedure GetClassesList(var List: TStringList);
     function SuggestMemberInsertionLine(ParentStatement: PStatement; Scope: TStatementClassScope; var AddScopeStr:
       boolean):
       integer;
+      {
     function GetSystemHeaderFileName(const FileName: AnsiString): AnsiString; // <file.h>
     function GetProjectHeaderFileName(const FileName: AnsiString): AnsiString; // <file.h>
     function GetLocalHeaderFileName(const RelativeTo, FileName: AnsiString): AnsiString; // "file.h"
+    }
     function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
     function IsIncludeLine(const Line: AnsiString): boolean;
     constructor Create(AOwner: TComponent); override;
@@ -217,8 +221,6 @@ type
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
-    procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
-    function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
   published
     property Parsing: boolean read fParsing;
     property Enabled: boolean read fEnabled write fEnabled;
@@ -2804,6 +2806,7 @@ begin
   end;
 end;
 
+{
 function TCppParser.GetSystemHeaderFileName(const FileName: AnsiString): AnsiString;
 begin
   Result := cbutils.GetSystemHeaderFileName(FileName, fIncludePaths);
@@ -2818,6 +2821,9 @@ function TCppParser.GetLocalHeaderFileName(const RelativeTo, FileName: AnsiStrin
 begin
   Result := cbutils.GetLocalHeaderFileName(RelativeTo, FileName);
 end;
+}
+
+
 
 function TCppParser.GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString;
 begin
@@ -2877,11 +2883,13 @@ begin
   fProjectFiles.Clear;
 end;
 
+{
 procedure TCppParser.ResetDefines;
 begin
   if Assigned(fPreprocessor) then
     fPreprocessor.ResetDefines;
 end;
+}
 
 procedure TCppParser.AddHardDefineByParts(const Name, Args, Value: AnsiString);
 begin
@@ -3772,6 +3780,7 @@ begin
       fIncludesList.Delete(I);
   end;
 end;
+{
 
 function TCppParser.IsCfile(const Filename: AnsiString): boolean;
 begin
@@ -3782,6 +3791,7 @@ function TCppParser.IsHfile(const Filename: AnsiString): boolean;
 begin
   result := cbutils.IsHfile(Filename);
 end;
+}
 
 procedure TCppParser.GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
 begin
@@ -3933,6 +3943,7 @@ procedure TCppParser.UnFreeze();
 begin
   fLocked := False;
 end;
+
 
 procedure TCppParser.SetTokenizer(tokenizer: TCppTokenizer);
 begin
