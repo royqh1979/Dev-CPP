@@ -4778,8 +4778,8 @@ begin
   if not Assigned(FromEditor) then
     Exit;
 
-  iscfile := IsCfile(FromEditor.FileName);
-  ishfile := IsHfile(FromEditor.FileName);
+  iscfile := CBUtils.IsCfile(FromEditor.FileName);
+  ishfile := CBUtils.IsHfile(FromEditor.FileName);
 
   CppParser.GetSourcePair(FromEditor.FileName, CFile, HFile);
   if iscfile then begin
