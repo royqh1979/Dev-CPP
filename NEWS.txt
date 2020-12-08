@@ -13,6 +13,7 @@ Version 6.2-beta6
     - change: don't auto using namespace std.
     - enhancement: unify compiler set option settings for 32/64-bit gcc
     - fix: -O2 is not set for release compiler set
+    - fix: devcpp crash when search in a not opened project file
 
 Version 6.2-beta5 Dec 2020
 
