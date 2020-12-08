@@ -306,7 +306,7 @@ begin
               // Only finding...
             fTempSynEdit.Lines.LoadFromFile(fCurFile);
             inc(fileSearched);
-            t:=Execute(e.Text, actiontype);
+            t:=Execute(fTempSynEdit, actiontype);
             Inc(findcount, t);
             if t>0 then
               inc(filehitted);

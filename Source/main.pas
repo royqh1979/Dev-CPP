@@ -1034,7 +1034,7 @@ type
     procedure CheckSyntaxInBack(e:TEditor);
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
-    procedure ScanActiveProject;
+    procedure ScanActiveProject(parse:boolean=False);
     procedure UpdateCompilerList;
     function GetCompileTarget: TTarget;
     procedure UpdateProjectEditorsEncoding;
@@ -2080,7 +2080,7 @@ begin
       UpdateAppTitle;
       UpdateCompilerList;
       { we do it in project.open }
-      ScanActiveProject;
+      ScanActiveProject(True);
     end else begin
       fProject.Free;
       fProject := nil;
@@ -4743,11 +4743,12 @@ begin
     CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
 end;
 
-procedure TMainForm.ScanActiveProject;
+procedure TMainForm.ScanActiveProject(parse:boolean);
 begin
   //UpdateClassBrowsing;
   SetCppParserProject(fProject);
-  //CppParser.ParseFileList;
+  if parse then
+    CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);

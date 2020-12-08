@@ -590,7 +590,8 @@ begin
     Simplify(S);
     if S <> '' then
       AddToken(S, fCurrLine);
-  until (S = '') or (S = ';');
+  until (S = '') or (S = ';') or (S=':');
+  // : is used in for-each loop
 
   // Skip to end of for loop
   pCurrent := StartOffset;
@@ -706,14 +707,16 @@ var
   //DelimPosFrom, DelimPosTo: integer;
   temp: PChar;
   i,t,OutputLen:integer;
+  inString:boolean;
 begin
   OutputLen:=Length(Output);
   temp:=StrAlloc((OutputLen+1) * SizeOf(Char));
   try
     i:=1;
     t:=0;
+    inString:=False;
     while i<=OutputLen do begin
-      if ((i+1) <= OutputLen) and (Output[i]='/') and (Output[i+1]='*')  then begin
+      if not inString and ((i+1) <= OutputLen) and (Output[i]='/') and (Output[i+1]='*')  then begin
         //skip C-Style comments
         inc(i,2);
         while ((i+1)<=OutputLen) do begin
@@ -723,7 +726,7 @@ begin
           end;
           inc(i);
         end;
-      end else if ((i+1) <= OutputLen) and (Output[i]='/') and (Output[i+1]='/') then begin
+      end else if not inString and ((i+1) <= OutputLen) and (Output[i]='/') and (Output[i+1]='/') then begin
         //skip Cpp-Style Comments
         inc(i,2);
         while (i<=OutputLen) do begin
@@ -740,6 +743,14 @@ begin
         inc(i);
       end else begin
         temp[t]:=Output[i];
+        if Output[i] = '"' then begin
+          inString := not inString;
+        end;
+        if inString and (Output[i]='\') and ((i+1) <= OutputLen) then begin
+          inc(i);
+          inc(t);
+          temp[t]:=Output[i];
+        end;
         inc(i);
         inc(t);
       end;

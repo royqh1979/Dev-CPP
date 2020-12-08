@@ -132,7 +132,7 @@ begin
   fHardDefines := TDevStringList.Create;
   fDefines := TStringList.Create;
   fDefines.CaseSensitive := True;
-  fDefineIndex := TStringHash.Create(50000);
+  fDefineIndex := TStringHash.Create(2000);
   fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fProcessed := TStringHash.Create;
   fFileDefines := TStringList.Create;
@@ -252,6 +252,17 @@ var
   I,t: integer;
   FileIncludes:PFileIncludes;
 begin
+  for i:=0 to fIncludes.Count-1 do begin
+    tempItem := PFile(fIncludes[i]);
+    if SameText(tempItem^.FileName,FileName) then // don't include recursively
+      Exit;
+    if FastIndexOf(tempItem^.FileIncludes^.IncludeFiles,FileName)=-1 then
+      tempItem^.FileIncludes^.IncludeFiles.Add(FileName)
+    else
+      Exit; // already included
+    // := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
+  end;
+
   // Backup old position if we're entering a new file
   if fIncludes.Count > 0 then begin
     PFile(fIncludes[fIncludes.Count - 1])^.Index := fIndex;
@@ -269,12 +280,6 @@ begin
       if not ContainsText(IncludeFiles, FileName) then
         IncludeFiles := IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
   }
-  for i:=0 to fIncludes.Count-1 do begin
-    tempItem := PFile(fIncludes[i]);
-    if FastIndexOf(tempItem^.FileIncludes^.IncludeFiles,FileName)=-1 then
-      tempItem^.FileIncludes^.IncludeFiles.Add(FileName);
-    // := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
-  end;
 
   // Create and add new buffer/position
   FileItem := new(PFile);
@@ -798,7 +803,7 @@ begin
       Define := GetDefine(Name, Index);
       if Assigned(Define) then begin
         fDefineIndex.Remove(Name);
-        //fDefines.Delete(Index);
+        fDefines.objects[index]:=nil;
         files.AddObject(Define^.FileName,Pointer(Define));
       end else
         break;
@@ -1503,8 +1508,10 @@ begin
   with TStringList.Create do try
     for i:=0 to fDefines.Count -1 do begin
       define := PDefine(fDefines.Objects[i]);
-      Add(Format('%s %s %s %d',
-      [define^.Name,define^.Args,define^.Value,integer(define^.HardCoded)]));
+      if assigned(define) then begin
+        Add(Format('%s %s %s %d',
+          [define^.Name,define^.Args,define^.Value,integer(define^.HardCoded)]));
+      end;
     end;
     SaveToFile(FileName);
   finally
@@ -1523,9 +1530,9 @@ begin
     i:=fDefines.Count-1;
     while (i>=0) do begin
       define:=PDefine(fDefines.objects[i]);
-      if SameText(define^.FileName,FileName) then begin
+      if assigned(define) and SameText(define^.FileName,FileName) then begin
         fDefineIndex.Remove(define^.Name);
-        //fDefines.Delete(i);
+        fDefines.objects[i]:=nil;
       end;
       dec(i);
     end;

@@ -29,6 +29,7 @@ uses
 type
   TCppParser = class(TComponent)
   private
+    fUniqId : integer;
     fEnabled: boolean;
     fIndex: integer;
     fIsHeader: boolean;
@@ -160,6 +161,7 @@ type
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function GetFullStatementName(command:String; parent:PStatement):string;
     function GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
+    procedure AddPendingDeclaration(statement:PStatement);
   public
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
@@ -250,6 +252,7 @@ end;
 constructor TCppParser.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fUniqId := 0;
   fParsing:=False;
   fStatementList := TStatementList.Create; // owns the objects
   fIncludesList := TStringList.Create;
@@ -674,9 +677,6 @@ var
   NewType, NewCommand: AnsiString;
   node: PStatementNode;
   fileIncludes1:PFileIncludes;
-  idx:integer;
-  incompleteClass: PIncompleteClass;
-  key:AnsiString;
   //t,lenCmd:integer;
 
   function AddToList: PStatement;
@@ -690,7 +690,12 @@ var
       _ParentScope := Parent;
       _HintText := HintText;
       _Type := NewType;
-      _Command := NewCommand;
+      if NewCommand<>'' then
+        _Command := NewCommand
+      else begin
+        inc(fUniqId);
+        _Command := '__STATEMENT__'+IntToStr(fUniqId);
+      end;
       _Args := Args;
       _Value := Value;
       _Kind := Kind;
@@ -866,33 +871,36 @@ begin
     if not (IsDefinition) then begin
       // add non system declarations to separate list to speed up searches for them
       Result^._NoNameArgs := RemoveArgNames(Result^._Args);
-      key:=GetPendingKey(Result^._Command,
-          Result^._ParentScope,
-          Result^._Kind,
-          Result^._NoNameArgs);
-      fPendingDeclarations.AddObject(
-        key,
-        TObject(Result));
-      if assigned(Result^._ParentScope) then begin
-        idx:=FastIndexOf(fIncompleteClasses, Result^._ParentScope^._FullName);
-        if idx <> -1 then begin
-          incompleteClass := PIncompleteClass(fIncompleteClasses.Objects[idx]);
-        end else begin
-          new(incompleteClass);
-          incompleteClass^.statement := Result^._ParentScope;
-          incompleteClass^.count:=0;
-          fIncompleteClasses.AddObject( Result^._ParentScope^._FullName,TObject(incompleteClass ));
-        end;
-        inc(incompleteClass^.count);
-      end;
+      AddPendingDeclaration(Result);
     end;
   end;
+end;
 
-  {
-  if Kind = skPreprocessor then begin
-     fMacroDefines.Add(Result);
+procedure TCppParser.AddPendingDeclaration(statement:PStatement);
+var
+  key:AnsiString;
+  idx: integer;
+  incompleteClass : PIncompleteClass;
+begin
+  key:=GetPendingKey(statement^._Command,
+    statement^._ParentScope,
+    statement^._Kind,
+    statement^._NoNameArgs);
+  fPendingDeclarations.AddObject(
+    key,
+    TObject(statement));
+  if assigned(statement^._ParentScope) then begin
+    idx:=FastIndexOf(fIncompleteClasses, statement^._ParentScope^._FullName);
+    if idx <> -1 then begin
+      incompleteClass := PIncompleteClass(fIncompleteClasses.Objects[idx]);
+    end else begin
+      new(incompleteClass);
+      incompleteClass^.statement := statement^._ParentScope;
+      incompleteClass^.count:=0;
+      fIncompleteClasses.AddObject( statement^._ParentScope^._FullName,TObject(incompleteClass ));
+    end;
+    inc(incompleteClass^.count);
   end;
-  }
 end;
 
 function TCppParser.GetCurrentNonBlockScope: PStatement;
@@ -987,6 +995,18 @@ begin
   // Remove class list
   if fCurrentScope.Count = 0 then
     Exit; // TODO: should be an exception
+  CurrentScope := PStatement(fCurrentScope[fCurrentScope.Count-1]);
+  if (assigned(CurrentScope) and (CurrentScope^._Kind = skBlock)) then begin
+    if (
+      (not Assigned(CurrentScope^._Children))
+      or (CurrentScope^._Children.Count=0)) then begin
+      fileIncludes:=FindFileIncludes(fCurrentFile);
+      if assigned(fileIncludes) and (fileIncludes.Scopes.Count>0) then begin
+        fileIncludes.Scopes.Delete(fileIncludes.Scopes.Count-1);
+      end;
+      Statements.DeleteStatement(CurrentScope); // remove no children block
+    end;
+  end;
   fCurrentScope.Delete(fCurrentScope.Count - 1);
   fCurrentClassScope.Delete( fCurrentClassScope.Count -1);
 
@@ -1252,8 +1272,6 @@ var
       Exit;
     end;
 
-    //too slow, don't do this test
-
     statement := self.FindStatementOf(fCurrentFile,word,getCurrentScope,true);
     if assigned(statement) and not (statement^._Kind in [skClass,skTypedef]) then begin
       Result:=True;
@@ -1265,6 +1283,12 @@ var
   end;
 
 begin
+  scope := getCurrentScope();
+
+  if assigned(scope) and not (scope^._Kind in [ skNamespace,skClass]) then begin //don't care function declaration in the function's
+    Result:=False;
+    Exit;
+  end;
 
   // Function template:
   // compiler directives (>= 0 words), added to type
@@ -2613,7 +2637,7 @@ begin
     Exit;
   end;
 
-  {
+     {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
@@ -2621,6 +2645,7 @@ begin
     Free;
   end;
   }
+
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
@@ -2653,7 +2678,7 @@ begin
    //Statements.DumpTo('f:\stats.txt');
    //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
-   // fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentScope.Clear;
@@ -2677,7 +2702,8 @@ begin
     fOnBusy(Self);
   if Assigned(fPreprocessor) then
     fPreprocessor.Clear;
-    
+
+  fUniqId:=0;
   fParsing:=False;
   fSkipList.Clear;
   fBlockBeginSkips.Clear;
@@ -2998,6 +3024,13 @@ begin
     //fPreprocessor.InvalidDefinesInFile(FileName); //we don't need this, since we reset defines after each parse
     P^.IncludeFiles.Free;
     P^.Usings.Free;
+    for i:=0 to P^.Statements.Count-1 do begin
+      Statement:=PStatement(P^.Statements[i]);
+      if statement._FileName <> FileName then begin
+        statement._HasDefinition:=False;
+        self.AddPendingDeclaration(statement);
+      end;
+    end;
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
       fStatementList.DeleteStatement(P^.DeclaredStatements[i]);
     end;
@@ -3134,7 +3167,7 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
-    {
+     {
   with TStringList.Create do try
     for idx:=0 to fileIncludes.Scopes.Count-1 do begin
       statement:=PStatement(fileIncludes.Scopes.Objects[idx]);
@@ -3148,6 +3181,7 @@ begin
     Free;
   end;
   }
+
   fileIncludes.Scopes.Find(row,idx);
   if idx>=fileIncludes.Scopes.Count then
     Exit;
@@ -3633,6 +3667,12 @@ begin
     TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
     if Assigned(TypeStatement) then
       Statement := TypeStatement;
+  end;
+
+  if (statement._Kind = skConstructor) and (statement <> CurrentClassType)  then begin // we need the class, not the construtor
+    statement:=statement^._ParentScope;
+    if not assigned(statement) then
+      Exit;
   end;
 
   while MemberName <> '' do begin

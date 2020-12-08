@@ -42,7 +42,8 @@ type
     fLastNode: PStatementNode;
     fOwnsObjects: boolean;
     fGlobalStatements: TList;
-    fGlobalStatementIndex: TStringHash;
+    fGlobalStatementIndex: TDevStringHash;
+    fBatchDeleteCount: integer;
     procedure DisposeNode(Node: PStatementNode);
     procedure OnNodeAdding(Node: PStatementNode); // call when about to add this node
     procedure OnNodeDeleting(Node: PStatementNode); // call when about to delete this node
@@ -54,6 +55,8 @@ type
     function Add(Data: PStatement): PStatementNode;
     function DeleteFirst: Integer;
     function DeleteLast: Integer;
+    procedure BeginBatchDelete;
+    procedure EndBatchDelete;
     function DeleteStatement(Data: PStatement): Integer; overload;
     function DeleteNode(Node: PStatementNode): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
@@ -80,7 +83,8 @@ begin
   fCount := 0;
   fOwnsObjects := True;
   fGlobalStatements := TList.Create;
-  fGlobalStatementIndex := TStringHash.Create(50000);
+  fGlobalStatementIndex := TDevStringHash.Create(10000);
+  fBatchDeleteCount := 0;
 end;
 
 destructor TStatementList.Destroy;
@@ -142,7 +146,7 @@ begin
       parent^._Children := TList.Create;
     parent^._Children.Add(Data);
     if not Assigned(parent^._ChildrenIndex) then
-      parent^._ChildrenIndex := TStringHash.Create(5000);
+      parent^._ChildrenIndex := TDevStringHash.Create(500);
     parent^._ChildrenIndex.Add(Data^._Command,integer(Data));
   end else begin
     fGlobalStatements.Add(Data);
@@ -156,23 +160,14 @@ var
   i :integer;
   child:PStatement;
 
-  procedure RemoveStatementFromIndex(statement:PStatement; children:TList; childrenIndex:TStringHash);
+  procedure RemoveStatementFromIndex(statement:PStatement; children:TList; childrenIndex:TDevStringHash);
   var
     p:PStatement;
     i:integer;
+    item:PPHashItem;
   begin
     children.Remove(statement);
-    p:=PStatement(childrenIndex.ValueOf(statement^._Command));
-    if p = statement then begin
-      childrenIndex.Remove(statement^._Command);
-    end else begin
-      childrenIndex.Clear;
-      //rebuild index
-      for i:=0 to children.Count-1 do begin
-        p:= PStatement(children[i]);
-        childrenIndex.Add(p^._Command, integer(p));
-      end;
-    end;
+    childrenIndex.RemoveItem(statement^._Command,integer(statement));
   end;
 begin
   // remove it from parent's children
@@ -256,6 +251,15 @@ begin
     DisposeNode(Node);
   end;
   Result := fCount;
+end;
+
+procedure TStatementList.BeginBatchDelete;
+begin
+  inc(fBatchDeleteCount);
+end;
+procedure TStatementList.EndBatchDelete;
+begin
+  dec(fBatchDeleteCount);
 end;
 
 function TStatementList.DeleteStatement(Data: PStatement): Integer;
