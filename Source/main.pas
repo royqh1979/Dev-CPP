@@ -2080,7 +2080,8 @@ begin
       UpdateAppTitle;
       UpdateCompilerList;
       { we do it in project.open }
-      ScanActiveProject(True);
+      //ScanActiveProject(True);
+      ScanActiveProject;
     end else begin
       fProject.Free;
       fProject := nil;
