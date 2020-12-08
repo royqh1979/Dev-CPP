@@ -1,4 +1,4 @@
-Version 6.3-beta1?
+Version 6.2-beta6
 
     - fix: toolbar position error after restart
     - enhancement: redesign the search in files result panel;
@@ -7,6 +7,10 @@ Version 6.3-beta1?
     - enhancement: greatly improved the code suggestion window preparation speed
     - fix: tokenizer can't correctly skip double quoted strings.
     - fix: preprocessor don't replace comments in the macro defines with space
+    - change: clean compile result when user change the compiler set.
+    - change: disable all close buttons when closing project/file.
+    - change: only show code suggestion when current word has more than 2 characters
+    - change: don't auto using namespace std.
 
 Version 6.2-beta5 Dec 2020
 
