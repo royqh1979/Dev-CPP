@@ -70,7 +70,6 @@ type
     fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
     fPendingDeclarations: TDevStringList; // TList<key,PStatement>
-    fIncompleteClasses: TDevStringList; // TList<ClassFullName, int(count)>
     //fMacroDefines : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
@@ -271,9 +270,6 @@ begin
   fPendingDeclarations := TDevStringList.Create;
   fPendingDeclarations.Sorted := True;
   fPendingDeclarations.Duplicates := dupIgnore;
-  fIncompleteClasses:=TDevStringList.Create;
-  fIncompleteClasses.Sorted := True;
-  fIncompleteClasses.Duplicates := dupIgnore;
   //fMacroDefines := TList.Create;
   fCurrentScope := TList.Create;
   fCurrentClassScope := TList.Create;
@@ -294,10 +290,6 @@ var
   namespaceList: TList;
 begin
   //FreeAndNil(fMacroDefines);
-  for i:=0 to fIncompleteClasses.Count -1 do begin
-    dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
-  end;
-  FreeAndNil(fIncompleteClasses);
   FreeAndNil(fPendingDeclarations);
   FreeAndNil(fCurrentScope);
   FreeAndNil(fCurrentClassScope);
@@ -471,17 +463,7 @@ begin
   i:=FastIndexOf(fPendingDeclarations,key);
   if i<> -1 then begin
     Result := PStatement(fPendingDeclarations.Objects[i]);
-    if assigned(Result^._ParentScope) then begin
-      idx:=FastIndexOf(fIncompleteClasses,Result^._ParentScope^._FullName);
-      if idx <> -1 then begin
-        incompleteClass := PIncompleteClass(fIncompleteClasses.Objects[idx]);
-        dec(incompleteClass.count);
-        if incompleteClass.count = 0 then begin
-          dispose(incompleteClass);
-          fIncompleteClasses.Delete(idx);
-        end;
-      end;
-    end;
+    
     fPendingDeclarations.Delete(i);
   end;
 end;
@@ -588,13 +570,9 @@ begin
   p:=Pos('<',s);
   if p>0 then
     Delete(s,p,MaxInt);
-  key:=GetFullStatementName(s,parentScope);
-  i:=FastIndexOf(fIncompleteClasses, key);
-  if i<>-1 then begin
-    incompleteClass:=PIncompleteClass(fIncompleteClasses.Objects[i]);
-    Result:=incompleteClass^.statement;
-  end;
-
+  Result := FindStatementOf(fCurrentFile,s,parentScope);
+  if Assigned(Result) and (Result^._Kind <> skClass) then
+    Result:=nil;
 end;
 
 function TCppParser.AddChildStatement(
@@ -887,18 +865,6 @@ begin
   fPendingDeclarations.AddObject(
     key,
     TObject(statement));
-  if assigned(statement^._ParentScope) then begin
-    idx:=FastIndexOf(fIncompleteClasses, statement^._ParentScope^._FullName);
-    if idx <> -1 then begin
-      incompleteClass := PIncompleteClass(fIncompleteClasses.Objects[idx]);
-    end else begin
-      new(incompleteClass);
-      incompleteClass^.statement := statement^._ParentScope;
-      incompleteClass^.count:=0;
-      fIncompleteClasses.AddObject( statement^._ParentScope^._FullName,TObject(incompleteClass ));
-    end;
-    inc(incompleteClass^.count);
-  end;
 end;
 
 function TCppParser.GetCurrentNonBlockScope: PStatement;
@@ -2713,10 +2679,6 @@ begin
   //remove all macrodefines;
   //fMacroDefines.Clear;
   fPendingDeclarations.Clear; // should be empty anyways
-  for i:=0 to fIncompleteClasses.Count -1 do begin
-    dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
-  end;
-  fIncompleteClasses.Clear;
   fCurrentScope.Clear;
   fCurrentClassScope.Clear;
   fProjectFiles.Clear;
@@ -2785,10 +2747,6 @@ begin
         Inc(I);
       end;
       fPendingDeclarations.Clear; // should be empty anyways
-      for i:=0 to fIncompleteClasses.Count -1 do begin
-        dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
-      end;
-      fIncompleteClasses.Clear;
       fFilesToScan.Clear;
     finally
       if Assigned(fOnEndParsing) then
@@ -2985,10 +2943,6 @@ begin
         InternalParse(FileName, True, Stream); // or from stream
       fFilesToScan.Clear;
       fPendingDeclarations.Clear; // should be empty anyways
-      for i:=0 to fIncompleteClasses.Count -1 do begin
-        dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
-      end;
-      fIncompleteClasses.Clear;
     finally
       if Assigned(fOnEndParsing) then
         fOnEndParsing(Self, 1);
