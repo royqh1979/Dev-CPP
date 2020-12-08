@@ -11,6 +11,8 @@ Version 6.2-beta6
     - change: disable all close buttons when closing project/file.
     - change: only show code suggestion when current word has more than 2 characters
     - change: don't auto using namespace std.
+    - enhancement: unify compiler set option settings for 32/64-bit gcc
+    - fix: -O2 is not set for release compiler set
 
 Version 6.2-beta5 Dec 2020
 

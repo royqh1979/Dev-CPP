@@ -296,7 +296,7 @@ begin
     fCurrentIncludes^.Usings := TDevStringList.Create;
     fCurrentIncludes^.Usings.Duplicates := dupIgnore;
     fCurrentIncludes^.Usings.Sorted:=True;
-    fCurrentIncludes^.Usings.Add('std'); //using std by default
+    //fCurrentIncludes^.Usings.Add('std'); //using std by default
     fCurrentIncludes^.Statements:=TList.Create;
     fCurrentIncludes^.DeclaredStatements:=TList.Create;
     fCurrentIncludes^.Scopes := TIntList.Create;

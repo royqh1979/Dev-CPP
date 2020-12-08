@@ -3095,8 +3095,9 @@ begin
   with TCompOptForm.Create(nil) do try
     if ShowModal = mrOk then begin
       CheckForDLLProfiling;
-      if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
-        self.CompileClean;
+      if (fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex)
+        and (assigned(fProject) or (assigned(editorList.GetEditor()))) then
+        CompileClean;
       UpdateCompilerList;
 
     end;
@@ -3380,7 +3381,7 @@ begin
       SetCppParserProject(fProject);
       UpdateAppTitle;
       if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
-        self.CompileClean;
+        CompileClean;
       UpdateCompilerList;
       UpdateProjectEditorsEncoding;
       fProject.SaveOptions;
@@ -7267,11 +7268,11 @@ begin
     end else begin
       ChangeNonProjectCompilerSet;
     end;
-
+    CompileClean;
     // No editors have been opened. Check if a project is open
   end else if Assigned(fProject) then begin
     ChangeProjectCompilerSet;
-
+    CompileClean;
     // No project, no editor, modify global
   end else begin
     ChangeNonProjectCompilerSet;
@@ -7284,7 +7285,6 @@ begin
 
   fOldCompilerToolbarIndex := index;
 
-  CompileClean;
 end;
 
 procedure TMainForm.actDuplicateLineExecute(Sender: TObject);
