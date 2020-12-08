@@ -967,6 +967,10 @@ type
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
       var PaintImages, DefaultDraw: Boolean);
     procedure mnuClearAllFindItemsClick(Sender: TObject);
+    procedure CompileClean;
+    procedure actCloseProjectUpdate(Sender: TObject);
+    procedure actCloseAllUpdate(Sender: TObject);
+    procedure actCloseUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -991,6 +995,7 @@ type
     fTabnine: TTabnine;
     fCheckSyntaxInBack : boolean;
     fCaretList: TDevCaretList;
+    fClosing: boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1308,6 +1313,8 @@ end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  if fClosing then
+    Exit;
   fQuitting:=True;
   CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
@@ -2270,8 +2277,10 @@ begin
     SubItems.Add(_Message);
   end;
 
+
   // Update tab caption
-  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
+  if CompilerOutput.Items.Count = 1 then
+    CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
 
   if ( StartsStr('[Error]',_Message)
       or StartsStr('[Warning]',_Message)
@@ -2312,6 +2321,9 @@ var
   I: integer;
   e:TEditor;
 begin
+  // Update tab caption
+  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
+
   // Close it if there's nothing to show
   if (fCheckSyntaxInBack)
     or (
@@ -2716,19 +2728,23 @@ procedure TMainForm.actCloseExecute(Sender: TObject);
 var
   e: TEditor;
 begin
+  fClosing:=True;
   e := fEditorList.GetEditor;
   if Assigned(e) then
     fEditorList.CloseEditor(e);
+  fClosing:=False;
 end;
 
 procedure TMainForm.actCloseAllExecute(Sender: TObject);
 begin
+  fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
     fEditorList.CloseAll; // PageControlChange triggers other UI updates
   finally
     ClassBrowser.EndUpdate;
   end;
+  fClosing:=False;
 end;
 
 procedure  TMainForm.CloseProject(RefreshEditor:boolean);
@@ -2815,7 +2831,9 @@ end;
 
 procedure TMainForm.actCloseProjectExecute(Sender: TObject);
 begin
+  fClosing:=True;
   CloseProject(True);
+  fClosing:=False;
 end;
 
 procedure TMainForm.actExportHTMLExecute(Sender: TObject);
@@ -3077,7 +3095,10 @@ begin
   with TCompOptForm.Create(nil) do try
     if ShowModal = mrOk then begin
       CheckForDLLProfiling;
+      if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
+        self.CompileClean;
       UpdateCompilerList;
+
     end;
   finally
     Free;
@@ -3358,6 +3379,8 @@ begin
     if fProject.ShowOptions = mrOk then begin
       SetCppParserProject(fProject);
       UpdateAppTitle;
+      if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
+        self.CompileClean;
       UpdateCompilerList;
       UpdateProjectEditorsEncoding;
       fProject.SaveOptions;
@@ -3706,6 +3729,14 @@ begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
     Exit;
   end;
+  if not PrepareForClean then
+    Exit;
+  fCompiler.Clean;
+end;
+
+procedure TMainForm.CompileClean;
+begin
+  actStopExecuteExecute(nil);
   if not PrepareForClean then
     Exit;
   fCompiler.Clean;
@@ -6599,6 +6630,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   Application.HintHidePause:=300000; //5mins before the hint auto disapear
   fQuitting:=False;
+  fClosing:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
   fCaretList:=TDevCaretList.Create;
@@ -7251,6 +7283,8 @@ begin
   //  devCompilerSets[index]);
 
   fOldCompilerToolbarIndex := index;
+
+  CompileClean;
 end;
 
 procedure TMainForm.actDuplicateLineExecute(Sender: TObject);
@@ -8506,6 +8540,23 @@ end;
 procedure TMainForm.mnuClearAllFindItemsClick(Sender: TObject);
 begin
   FindOutput.Clear;
+end;
+
+procedure TMainForm.actCloseProjectUpdate(Sender: TObject);
+begin
+  actCloseProject.Enabled := Assigned(fProject) and not fClosing;
+end;
+
+procedure TMainForm.actCloseAllUpdate(Sender: TObject);
+begin
+  actCloseAll.Enabled:= ( fEditorList.PageCount > 0)
+    and not fClosing;
+end;
+
+procedure TMainForm.actCloseUpdate(Sender: TObject);
+begin
+  actClose.Enabled := (fEditorList.PageCount > 0)
+    and not fClosing;
 end;
 
 end.

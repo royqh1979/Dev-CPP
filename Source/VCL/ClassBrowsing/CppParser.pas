@@ -3747,42 +3747,6 @@ procedure TCppParser.GetSourcePair(const FName: AnsiString; var CFile, HFile: An
 begin
   cbutils.GetSourcePair(FName, CFile, HFile);
 end;
-{
-procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
-
-  procedure RecursiveFind(const FileName: AnsiString);
-  var
-    I: integer;
-    P: PFileIncludes;
-    sl: TStrings;
-  begin
-    if FileName = '' then
-      Exit;
-    List.Add(FileName);
-
-    // Find the files this file includes
-    P := FindFileIncludes(FileName);
-    if Assigned(P) then begin
-
-      // recursively search included files
-      sl := TStringList.Create;
-      try
-        // For each file this file includes, perform the same trick
-        sl.CommaText := P^.IncludeFiles;
-        for I := 0 to sl.Count - 2 do // Last one is always an empty item
-          if FastIndexOf(List, sl[I]) = -1 then
-            RecursiveFind(sl[I]);
-      finally
-        sl.Free;
-      end;
-    end;
-  end;
-begin
-  List.Clear;
-  List.Sorted := false;
-  RecursiveFind(Filename);
-end;
-}
 
 procedure TCppParser.GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
 var

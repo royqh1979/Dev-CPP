@@ -2143,7 +2143,7 @@ object MainForm: TMainForm
       ImageIndex = 9
       ShortCut = 16471
       OnExecute = actCloseExecute
-      OnUpdate = actUpdatePageCount
+      OnUpdate = actCloseUpdate
     end
     object actCloseAll: TAction
       Tag = 11
@@ -2152,7 +2152,7 @@ object MainForm: TMainForm
       ImageIndex = 50
       ShortCut = 24663
       OnExecute = actCloseAllExecute
-      OnUpdate = actUpdatePageCount
+      OnUpdate = actCloseAllUpdate
     end
     object actCloseProject: TAction
       Tag = 6
@@ -2160,7 +2160,7 @@ object MainForm: TMainForm
       Caption = 'Close Project'
       ImageIndex = 11
       OnExecute = actCloseProjectExecute
-      OnUpdate = actUpdateProject
+      OnUpdate = actCloseProjectUpdate
     end
     object actExportHTML: TAction
       Tag = 1
