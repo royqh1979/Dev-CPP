@@ -69,7 +69,6 @@ type
     fOnStartParsing: TNotifyEvent;
     fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
-    fInvalidatedStatements: TList; //TList<PStatement>
     fPendingDeclarations: TDevStringList; // TList<key,PStatement>
     fIncompleteClasses: TDevStringList; // TList<ClassFullName, int(count)>
     //fMacroDefines : TList;
@@ -156,7 +155,6 @@ type
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
     function GetIncompleteClass(const Command:AnsiString; parentScope:PStatement): PStatement;
-    procedure ReProcessInheritance;
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function GetFullStatementName(command:String; parent:PStatement):string;
@@ -270,7 +268,6 @@ begin
   fProjectIncludePaths.Sorted := True;
   fProjectFiles := TStringList.Create;
   fProjectFiles.Sorted := True;
-  fInvalidatedStatements := TList.Create;
   fPendingDeclarations := TDevStringList.Create;
   fPendingDeclarations.Sorted := True;
   fPendingDeclarations.Duplicates := dupIgnore;
@@ -302,7 +299,6 @@ begin
   end;
   FreeAndNil(fIncompleteClasses);
   FreeAndNil(fPendingDeclarations);
-  FreeAndNil(fInvalidatedStatements);
   FreeAndNil(fCurrentScope);
   FreeAndNil(fCurrentClassScope);
   FreeAndNil(fProjectFiles);
@@ -2721,7 +2717,6 @@ begin
     dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
   end;
   fIncompleteClasses.Clear;
-  fInvalidatedStatements.Clear;
   fCurrentScope.Clear;
   fCurrentClassScope.Clear;
   fProjectFiles.Clear;
@@ -2942,23 +2937,34 @@ begin
 
     // Always invalidate file pairs. If we don't, reparsing the header
     // screws up the information inside the source file
+    {
     GetSourcePair(FName, CFile, HFile);
-    fInvalidatedStatements.Clear;
     InvalidateFile(CFile);
     InvalidateFile(HFile);
+    }
+    InvalidateFile(FileName);
 
     if InProject then begin
+      fProjectFiles.Add(FileName);
+      {
       if (CFile <> '') and (FastIndexOf(fProjectFiles,CFile) = -1) then
         fProjectFiles.Add(CFile);
       if (HFile <> '') and (FastIndexOf(fProjectFiles,HFile) = -1) then
         fProjectFiles.Add(HFile);
+      }
     end else begin
+      I := FastIndexOf(fProjectFiles,FileName);
+      if I <> -1 then
+        fProjectFiles.Delete(I);
+
+    {
       I := FastIndexOf(fProjectFiles,CFile);
       if I <> -1 then
         fProjectFiles.Delete(I);
       I := FastIndexOf(fProjectFiles,HFile);
       if I <> -1 then
         fProjectFiles.Delete(I);
+    }
     end;
 
     // Parse from disk or stream
@@ -2968,10 +2974,13 @@ begin
       fFilesToScanCount := 0;
       fFilesScannedCount := 0;
       if not Assigned(Stream) then begin
+        {
         if CFile = '' then
           InternalParse(HFile, True) // headers should be parsed via include
         else
           InternalParse(CFile, True); // headers should be parsed via include
+        }
+        InternalParse(FileName);
       end else
         InternalParse(FileName, True, Stream); // or from stream
       fFilesToScan.Clear;
@@ -2980,7 +2989,6 @@ begin
         dispose(PIncompleteClass(fIncompleteClasses.Objects[i]));
       end;
       fIncompleteClasses.Clear;
-      ReProcessInheritance; // account for inherited statements that have dissappeared
     finally
       if Assigned(fOnEndParsing) then
         fOnEndParsing(Self, 1);
@@ -3051,51 +3059,6 @@ begin
   //Statements.DumpTo('f:\\after.txt');
 end;
 
-procedure TCppParser.ReProcessInheritance;
-var
-  Node: PStatementNode;
-  Statement, InvalidatedStatement: PStatement;
-  I: integer;
-  sl: TStringList;
-begin
-
-  // after reparsing a file, we have to reprocess inheritance,
-  // because by invalidating the file, we might have deleted
-  // some Statements that were inherited by other, valid, statements.
-  // we need to re-adjust the IDs now...
-
-  if fInvalidatedStatements.Count = 0 then
-    Exit;
-  sl := TStringList.Create;
-  try
-    sl.Sorted := True;
-    sl.Duplicates := dupIgnore;
-
-    // Create a list of files that contain invalidated IDs that are inherited from
-    Node := fStatementList.FirstNode;
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-
-      // Does this statement inherit from any invalidated statement?
-      for I := 0 to fInvalidatedStatements.Count - 1 do begin
-        InvalidatedStatement := fInvalidatedStatements[i];
-        if Assigned(Statement._InheritanceList) and (Statement._InheritanceList.IndexOf(InvalidatedStatement) <> -1) then
-          begin
-          sl.Add(Statement^._FileName);
-          break; // don't bother checking other invalidated statements
-        end;
-      end;
-      Node := Node^.NextNode;
-    end;
-
-    // Reparse every file that contains invalidated IDs
-    for I := 0 to sl.Count - 1 do
-      ParseFile(sl[I], FastIndexOf(fProjectFiles,sl[I]) <> -1, False, False);
-    //InternalParse(sl[I], True, nil); // TODO: do not notify user
-  finally
-    sl.Free;
-  end;
-end;
 
 function TCppParser.SuggestMemberInsertionLine(ParentStatement: PStatement; Scope: TStatementClassScope; var
   AddScopeStr: boolean): integer;
