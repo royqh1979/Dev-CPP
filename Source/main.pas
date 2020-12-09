@@ -7842,6 +7842,7 @@ begin
     e.UseUTF8 := True;
     e.Text.Modified := True; // set modified flag to make sure save.
     e.Save;
+    UpdateFileEncodingStatusPanel;
     // set project unit's utf-8 flag 
     if e.InProject and Assigned(fProject) then begin
       for i:=0 to fProject.Units.Count-1 do begin

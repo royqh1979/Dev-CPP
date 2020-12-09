@@ -21,6 +21,7 @@ Version 6.2-beta6
     - fix: files not including any header still show code suggestion of global functions
     - change: don't close message panel after auto syntax check
     - enhancement: reformat code now can remove empty lines/redundant empty lines
+    - fix: update status bar info after convert a gbk file to utf8
 
 Version 6.2-beta5 Dec 2020
 
