@@ -703,7 +703,6 @@ end;
 
 procedure TEditor.EditorExit(Sender: TObject);
 begin
-  Mainform.CppParser.InvalidateFile(self.FileName);
   fFunctionTip.ReleaseHandle;
 end;
 

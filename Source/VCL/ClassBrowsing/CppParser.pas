@@ -292,6 +292,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
@@ -549,6 +550,7 @@ var
   NewType, NewCommand,NoNameArgs: AnsiString;
   node: PStatementNode;
   fileIncludes1:PFileIncludes;
+  idx:integer;
   //t,lenCmd:integer;
 
   function AddToList: PStatement;
@@ -594,7 +596,6 @@ var
       _Node := nil; // will set by the fStatementlist.add()
       _UsageCount :=0;
       _FreqTop:=0;
-      _NoNameArgs:='';
     end;
     node:=fStatementList.Add(Result);
     if (Result^._Kind = skNamespace) then begin
@@ -610,7 +611,8 @@ var
 
     fileIncludes:=FindFileIncludes(FileName);
     if Assigned(fileIncludes) and (Result^._Kind <>skBlock) then begin
-      fileIncludes^.Statements.Add(Result);
+      idx:=fileIncludes^.Statements.Add(Result);
+      fileIncludes^.StatementsIndex.Add(IntToStr(integer(Result)),idx);
       fileIncludes^.DeclaredStatements.Add(Result);
     end;
   end;
@@ -713,7 +715,8 @@ begin
         if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
           fileIncludes1:=FindFileIncludes(FileName);
           if Assigned(fileIncludes1) then begin
-            fileIncludes1^.Statements.Add(oldStatement);
+            idx:=fileIncludes1^.Statements.Add(oldStatement);
+            fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
           end;
         end;
         oldStatement^._DefinitionLine := Line;
@@ -722,7 +725,8 @@ begin
         if not SameText(oldStatement^._FileName, FileName) then begin
           fileIncludes1:=FindFileIncludes(FileName);
           if Assigned(fileIncludes1) then begin
-            fileIncludes1^.Statements.Add(oldStatement);
+            idx:=fileIncludes1^.Statements.Add(oldStatement);
+            fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
           end;
         end;
         oldStatement^._Line:=Line;
@@ -822,6 +826,7 @@ procedure TCppParser.RemoveScopeLevel(line:integer);
 var
   CurrentScope: PStatement;
   fileIncludes: PFileIncludes;
+  idx:integer;
 begin
   // Remove class list
   if fCurrentScope.Count = 0 then
@@ -837,7 +842,8 @@ begin
       end;
       Statements.DeleteStatement(CurrentScope); // remove no children block
     end else begin
-      fileIncludes.Statements.Add(CurrentScope);
+      idx:=fileIncludes.Statements.Add(CurrentScope);
+      fileIncludes^.StatementsIndex.Add(IntToStr(integer(CurrentScope)), idx);
       fileIncludes.DeclaredStatements.Add(CurrentScope);
     end;
   end;
@@ -2494,11 +2500,11 @@ begin
   try
     repeat
     until not HandleStatement;
-   fTokenizer.DumpTokens('f:\tokens.txt');
+   //fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
-   Statements.DumpWithScope('f:\\statements.txt');
+   //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
-   fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentScope.Clear;
@@ -2553,6 +2559,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
@@ -2818,8 +2825,8 @@ begin
 end;
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
 var
-  I,j: integer;
-  P: PFileIncludes;
+  I,j,idx: integer;
+  P,fileIncludes: PFileIncludes;
 //  Node, NextNode: PStatementNode;
   Statement: PStatement;
   namespaceList:TList;
@@ -2857,10 +2864,22 @@ begin
     P^.IncludeFiles.Free;
     P^.Usings.Free;
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
-      fStatementList.DeleteStatement(P^.DeclaredStatements[i]);
+      Statement:= P^.DeclaredStatements[i];
+      fileIncludes := nil;
+      if not SameText(Statement^._FileName,FileName) then begin
+        fileIncludes := FindFileIncludes(Statement^._FileName);
+      end else if not SameText(Statement^._DefinitionFileName,FileName) then begin
+        fileIncludes := FindFileIncludes(Statement^._DefinitionFileName);
+      end;
+      if Assigned(fileIncludes) then begin
+        idx:=fileIncludes.StatementsIndex.ValueOf(IntToStr(integer(statement)));
+        fileIncludes.Statements[idx]:=nil;
+      end;
+      fStatementList.DeleteStatement(Statement);
     end;
     PFileIncludes(P)^.DeclaredStatements.Free;
     PFileIncludes(P)^.Statements.Free;
+    PFileIncludes(P)^.StatementsIndex.Free;
     PFileIncludes(P)^.Scopes.Free;
     Dispose(PFileIncludes(P));
   end;

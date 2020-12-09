@@ -303,6 +303,7 @@ begin
     fCurrentIncludes^.Usings.Sorted:=True;
     //fCurrentIncludes^.Usings.Add('std'); //using std by default
     fCurrentIncludes^.Statements:=TList.Create;
+    fCurrentIncludes^.StatementsIndex:=TDevStringHash.Create;
     fCurrentIncludes^.DeclaredStatements:=TList.Create;
     fCurrentIncludes^.Scopes := TIntList.Create;
     fCurrentIncludes^.Scopes.Sorted := True;    
@@ -1491,6 +1492,8 @@ begin
       end;
       for t:=0 to FileIncludes^.Statements.Count-1 do begin
         S:=FileIncludes^.Statements[t];
+        if not Assigned(S) then
+          Continue;
         Add(#9+'**'+Format('%s , %s',[s^._Command, s^._FullName] ));
       end;
     end;

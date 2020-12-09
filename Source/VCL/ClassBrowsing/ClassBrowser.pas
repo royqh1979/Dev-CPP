@@ -323,6 +323,8 @@ begin
   if Assigned(Children) then begin
     for i:=0 to Children.Count-1 do begin
       Statement := Children[i];
+      if not Assigned(Statement) then
+        Continue; 
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
         

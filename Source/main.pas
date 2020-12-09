@@ -2326,12 +2326,13 @@ begin
   CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
 
   // Close it if there's nothing to show
-  if (fCheckSyntaxInBack)
-    or (
+  if (fCheckSyntaxInBack) then begin
+    // check syntax in back, don't change message panel
+  end else if (
       (CompilerOutput.Items.Count = 0)
       and (ResourceOutput.Items.Count = 0)
       and devData.AutoCloseProgress) then begin
-      OpenCloseMessageSheet(FALSE)
+    OpenCloseMessageSheet(FALSE)
     // Or open it if there is anything to show
   end else begin
     if (CompilerOutput.Items.Count > 0) then begin
@@ -2671,8 +2672,7 @@ end;
 procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
-begin
-   
+begin   
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.Save;
@@ -5201,8 +5201,11 @@ procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
   if not devCodeCompletion.Enabled then
     Exit;
-  if ClassBrowser.CurrentFile = e.FileName then
+  if ClassBrowser.CurrentFile = e.FileName then begin
     Exit;
+  end else if ClassBrowser.CurrentFile<> '' then begin
+    CppParser.InvalidateFile(ClassBrowser.CurrentFile); //invalid old file
+  end;
   ClassBrowser.BeginUpdate;
   try
     if Assigned(e) then begin
