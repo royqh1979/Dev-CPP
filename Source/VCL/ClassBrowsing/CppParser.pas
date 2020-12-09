@@ -161,6 +161,10 @@ type
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
     procedure InternalInvalidateFile(const FileName: AnsiString);
+    function GetClass(const Phrase: AnsiString): AnsiString;
+    function GetMember(const Phrase: AnsiString): AnsiString;
+    function GetOperator(const Phrase: AnsiString): AnsiString;
+    function GetRemainder(const Phrase: AnsiString): AnsiString;
 
   public
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
@@ -168,8 +172,7 @@ type
     procedure InvalidateFile(const FileName: AnsiString);
     procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
     procedure GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
-   { function IsCfile(const Filename: AnsiString): boolean;}
-{    function IsHfile(const Filename: AnsiString): boolean;}
+
     function IsSystemHeaderFile(const FileName: AnsiString): boolean;
     function IsProjectHeaderFile(const FileName: AnsiString): boolean;
     procedure GetSourcePair(const FName: AnsiString; var CFile, HFile: AnsiString);
@@ -206,11 +209,6 @@ type
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
-    function GetClass(const Phrase: AnsiString): AnsiString;
-    function GetMember(const Phrase: AnsiString): AnsiString;
-    function GetOperator(const Phrase: AnsiString): AnsiString;
-    function GetRemainder(const Phrase: AnsiString): AnsiString;
-
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)

@@ -161,10 +161,6 @@ var
   child:PStatement;
 
   procedure RemoveStatementFromIndex(statement:PStatement; children:TList; childrenIndex:TDevStringHash);
-  var
-    p:PStatement;
-    i:integer;
-    item:PPHashItem;
   begin
     children.Remove(statement);
     childrenIndex.RemoveItem(statement^._Command,integer(statement));
