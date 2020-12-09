@@ -69,7 +69,6 @@ type
     fOnStartParsing: TNotifyEvent;
     fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
-    fPendingDeclarations: TDevStringList; // TList<key,PStatement>
     //fMacroDefines : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
@@ -88,7 +87,6 @@ type
       Kind: TStatementKind;
       Scope: TStatementScope;
       ClassScope: TStatementClassScope;
-      FindDeclaration: boolean;
       IsDefinition: boolean;
       isStatic: boolean): PStatement; // TODO: InheritanceList not supported
     function AddStatement(
@@ -103,10 +101,10 @@ type
       Kind: TStatementKind;
       Scope: TStatementScope;
       ClassScope: TStatementClassScope;
-      FindDeclaration: boolean;
       IsDefinition: boolean;
       InheritanceList: TList;
       isStatic: boolean): PStatement;
+    procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetCurrentScope: PStatement; // gets last item from last level
     function GetCurrentNonBlockScope: PStatement; 
@@ -158,11 +156,10 @@ type
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function GetFullStatementName(command:String; parent:PStatement):string;
     function GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
-    procedure AddPendingDeclaration(statement:PStatement);
-    procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     {procedure ResetDefines;}
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
+    function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
   public
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     procedure AddHardDefineByLine(const Line: AnsiString);
@@ -192,8 +189,6 @@ type
       boolean = True; Stream: TMemoryStream = nil);
     function StatementKindStr(Value: TStatementKind): AnsiString;
     function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
-    function FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
-      PStatement;
     procedure Reset;
     procedure ClearIncludePaths;
     procedure ClearProjectIncludePaths;
@@ -267,9 +262,6 @@ begin
   fProjectIncludePaths.Sorted := True;
   fProjectFiles := TStringList.Create;
   fProjectFiles.Sorted := True;
-  fPendingDeclarations := TDevStringList.Create;
-  fPendingDeclarations.Sorted := True;
-  fPendingDeclarations.Duplicates := dupIgnore;
   //fMacroDefines := TList.Create;
   fCurrentScope := TList.Create;
   fCurrentClassScope := TList.Create;
@@ -290,7 +282,6 @@ var
   namespaceList: TList;
 begin
   //FreeAndNil(fMacroDefines);
-  FreeAndNil(fPendingDeclarations);
   FreeAndNil(fCurrentScope);
   FreeAndNil(fCurrentClassScope);
   FreeAndNil(fProjectFiles);
@@ -441,109 +432,27 @@ begin
   }
 end;
 
-// When finding declaration/definition pairs only search the separate incomplete pair list
-
-function TCppParser.FetchPendingDeclaration(const Command, Args: AnsiString; Kind: TStatementKind; Parent: PStatement):
-  PStatement;
+function TCppParser.FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
 var
-  I,idx:integer;
-  key:string;
-  incompleteClass : PIncompleteClass;
-  {
-  I,j: integer;
-  lst1,lst2:TStringList;
-  lst1Getted:boolean;
-  word1,word2:AnsiString;
-  isSame:boolean;
-  }
-
+  index: TDevStringHash;
+  item: PPHashItem;
+  itemStatement:PStatement;
 begin
-  Result := nil;
-  key:=getPendingKey(command,parent,kind,args);
-  i:=FastIndexOf(fPendingDeclarations,key);
-  if i<> -1 then begin
-    Result := PStatement(fPendingDeclarations.Objects[i]);
-    
-    fPendingDeclarations.Delete(i);
+  Result:=nil;
+  index := self.fStatementList.GetChildrenStatementIndex(scope);
+  item:=index.FindItem(Name);
+  while (assigned(item)) and SameStr(item^.Key,Name) do begin
+    itemStatement:=PStatement(item^.Value);
+    if assigned(itemStatement) and (itemStatement._Kind  = kind)
+      and SameStr(itemStatement._NoNameArgs,NoNameArgs) then begin
+      Result:=itemStatement;
+      Exit;
+    end;
+    item:=@item^.Next;
   end;
 end;
-  {
-  procedure ParseArgs(const Args:AnsiString; lst:TStringList);
-  var
-    argsLen,i:integer;
-    word:AnsiString;
-  begin
-    lst.Clear;
-    argsLen := Length(Args);
-    i:=2; // skip '('
-    word:='';
-    while i<argsLen do begin // skip ')'
-      if Args[i]=',' then begin
-        word:=Trim(word);
-        if word<>'' then
-          lst.Add(word);
-        word:='';
-      end else begin
-        word:=word+Args[i];
-      end;
-      inc(i);
-    end;
-    word:=Trim(word);
-    if word<>'' then
-      lst.Add(word);
-    word:='';
-  end;
-  }
 
-  {
-begin
-  lst1:=TStringList.Create;
-  lst2:=TStringList.Create;
-  lst1Getted:=False;
-  try
-  // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
-  for I := fPendingDeclarations.Count - 1 downto 0 do begin
-    Statement := fPendingDeclarations[i];
-
-    // Only do an expensive string compare with the right kinds and parents
-    if Statement^._ParentScope = Parent then begin
-      if Statement^._Kind = Kind then begin
-        if Statement^._Command = Command then begin
-          if not lst1Getted then begin
-            parseArgs(Args,lst1);
-            lst1Getted:=True;
-          end;
-          parseArgs(Statement^._Args,lst2);
-          if lst1.count <> lst2.Count then
-            Continue;
-          isSame:=True;
-          for j:=0 to lst1.Count-1 do begin
-            word1:=lst1[j];
-            word2:=lst2[j];
-            if not StartsStr(word2,word1) then begin
-              isSame:=False;
-              break;
-            end;
-          end;
-          if not isSame then
-            Continue;
-          fPendingDeclarations.Delete(i); // remove it when we have found it
-          Result := Statement;
-          Exit;
-        end;
-      end;
-    end;
-  end;
-
-  Result := nil;
-  finally
-    lst1.Free;
-    lst2.Free;
-  end;
-end;
-}
-
-// When finding a parent class for a function definition, only search classes of incomplete decl/def pairs
+// When finding declaration/definition pairs only search the separate incomplete pair list
 
 function TCppParser.GetIncompleteClass(const Command: AnsiString; parentScope:PStatement): PStatement;
 var
@@ -551,26 +460,12 @@ var
   I,p: integer;
   incompleteClass:PIncompleteClass;
 begin
-  // we do a backward search, because most possible is to be found near the end ;) - if it exists :(
-  {
-  Result:=nil;
-    for I := fPendingDeclarations.Count - 1 downto 0 do begin
-    Statement := PStatement(fPendingDeclarations.Objects[i]);
-    ParentStatement := Statement^._ParentScope;
-    if Assigned(ParentStatement) then begin
-      if ParentStatement^._Command = Command then begin
-        Result := ParentStatement;
-        Exit;
-      end;
-    end;
-    end;
-  }
   Result:=nil;
   s:=command;
   p:=Pos('<',s);
   if p>0 then
     Delete(s,p,MaxInt);
-  Result := FindStatementOf(fCurrentFile,s,parentScope);
+  Result := FindStatementOf(fCurrentFile,s,parentScope,True);
   if Assigned(Result) and (Result^._Kind <> skClass) then
     Result:=nil;
 end;
@@ -587,7 +482,6 @@ function TCppParser.AddChildStatement(
   Kind: TStatementKind;
   Scope: TStatementScope;
   ClassScope: TStatementClassScope;
-  FindDeclaration: boolean;
   IsDefinition: boolean;
   isStatic: boolean): PStatement;
 begin
@@ -604,7 +498,6 @@ begin
         Kind,
         Scope,
         ClassScope,
-        FindDeclaration,
         IsDefinition,
         nil,
         isStatic);
@@ -643,14 +536,13 @@ function TCppParser.AddStatement(
   Kind: TStatementKind;
   Scope: TStatementScope;
   ClassScope: TStatementClassScope;
-  FindDeclaration: boolean;
   IsDefinition: boolean;
   InheritanceList: TList;
   isStatic:boolean): PStatement;
 var
-  Declaration: PStatement;
+  Declaration,oldStatement: PStatement;
   //NewKind: TStatementKind;
-  NewType, NewCommand: AnsiString;
+  NewType, NewCommand,NoNameArgs: AnsiString;
   node: PStatementNode;
   fileIncludes1:PFileIncludes;
   //t,lenCmd:integer;
@@ -673,6 +565,7 @@ var
         _Command := '__STATEMENT__'+IntToStr(fUniqId);
       end;
       _Args := Args;
+      _NoNameArgs := NoNameArgs;
       _Value := Value;
       _Kind := Kind;
       _InheritanceList := InheritanceList;
@@ -804,67 +697,35 @@ begin
     Delete(NewCommand, 1, 1); // remove first
   end;
 
-  {
-  lenCmd:=Length(NewCommand);
-  if (lenCmd>3) and (NewCommand[lenCmd] ='>') then begin
-    t:=Pos('<',NewCommand);
-    if t>0 then
-      Delete(NewCommand,t,MaxInt);
+
+  NoNameArgs:='';
+  if kind in [skConstructor, skFunction,skDestructor] then begin
+    NoNameArgs := RemoveArgNames(Args);
+    //find
+    oldStatement := FindStatementInScope(command,NoNameArgs,kind,parent);
+    if assigned(oldStatement) then begin
+      if IsDefinition then begin
+        if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
+          fileIncludes1:=FindFileIncludes(FileName);
+          if Assigned(fileIncludes1) then begin
+            fileIncludes1^.Statements.Add(Result);
+          end;
+        end;
+        oldStatement^._DefinitionLine := Line;
+        oldStatement^._DefinitionFileName := FileName;
+      end else begin
+        if not SameText(oldStatement^._FileName, FileName) then begin
+          fileIncludes1:=FindFileIncludes(FileName);
+          if Assigned(fileIncludes1) then begin
+            fileIncludes1^.Statements.Add(Result);
+          end;
+        end;
+        oldStatement^._Line:=Line;
+        oldStatement^._FileName:=FileName;
+      end;
+    end
   end;
-  }
-  {
-  NewKind := Kind;
-  // Remove namespace stuff from type (until we support namespaces)
-  if NewKind in [skFunction, skVariable] then begin
-    OperatorPos := Pos('::', NewType);
-    if OperatorPos > 0 then
-      Delete(NewType, 1, OperatorPos + 1);
-  end;
-  }
-
-  // Find a declaration/definition pair
-  if FindDeclaration and IsDefinition then
-    Declaration := FetchPendingDeclaration(NewCommand, RemoveArgNames(Args), Kind, Parent)
-  else
-    Declaration := nil;
-
-  // We already have a statement with the same identifier...
-  if Assigned(Declaration) then begin
-    Declaration^._DefinitionLine := Line;
-    Declaration^._DefinitionFileName := FileName;
-    Declaration^._HasDefinition := True;
-    Result := Declaration;
-    if SameText(Declaration^._FileName,FileName) then
-      Exit;
-    fileIncludes1:=FindFileIncludes(FileName);
-    if Assigned(fileIncludes1) then begin
-      fileIncludes1^.Statements.Add(Result);
-    end;
-
-    // No duplicates found. Proceed as usual
-  end else begin
-    Result := AddToList;
-    if not (IsDefinition) then begin
-      // add non system declarations to separate list to speed up searches for them
-      Result^._NoNameArgs := RemoveArgNames(Result^._Args);
-      AddPendingDeclaration(Result);
-    end;
-  end;
-end;
-
-procedure TCppParser.AddPendingDeclaration(statement:PStatement);
-var
-  key:AnsiString;
-  idx: integer;
-  incompleteClass : PIncompleteClass;
-begin
-  key:=GetPendingKey(statement^._Command,
-    statement^._ParentScope,
-    statement^._Kind,
-    statement^._NoNameArgs);
-  fPendingDeclarations.AddObject(
-    key,
-    TObject(statement));
+  Result := AddToList;
 end;
 
 function TCppParser.GetCurrentNonBlockScope: PStatement;
@@ -1488,7 +1349,6 @@ begin
             skTypedef,
             GetScope,
             fClassScope,
-            False, // check for declarations when we find an definition of a function
             True,
             nil,
             False);
@@ -1519,7 +1379,6 @@ begin
           skTypedef,
           GetScope,
           fClassScope,
-          False,
           True,
           nil,
           False);
@@ -1592,7 +1451,6 @@ begin
       skPreprocessor,
       ssGlobal,
       scsNone,
-      False,
       True,
       nil,
       False);
@@ -1680,7 +1538,6 @@ begin
       skNamespaceAlias,
       GetScope,
       fClassScope,
-      False,
       True,
       nil,
       False);
@@ -1698,7 +1555,6 @@ begin
       skNamespace,
       GetScope,
       fClassScope,
-      False,
       True,
       nil, //inheritance
       False);
@@ -1761,7 +1617,6 @@ begin
             skTypedef,
             GetScope,
             fClassScope,
-            False,
             True,
             nil,
             False);
@@ -1807,7 +1662,6 @@ begin
               skClass,
               GetScope,
               fClassScope,
-              False,
               True,
               TList.Create,
               False);
@@ -1880,7 +1734,6 @@ begin
                       skClass,
                       GetScope,
                       fClassScope,
-                      False,
                       True,
                       TList.Create,
                       False);
@@ -1899,7 +1752,6 @@ begin
                     skTypedef,
                     GetScope,
                     fClassScope,
-                    False,
                     True,
                     nil,
                     False); // typedef
@@ -1917,7 +1769,6 @@ begin
                     skVariable,
                     GetScope,
                     fClassScope,
-                    False,
                     True,
                     nil,
                     False); // TODO: not supported to pass list
@@ -2000,7 +1851,6 @@ begin
         skBlock,
         GetScope,
         fClassScope,
-        False,
         True,
         nil,
         False);
@@ -2050,7 +1900,6 @@ begin
         skBlock,
         GetScope,
         fClassScope,
-        False,
         True,
         nil,
         False);
@@ -2158,7 +2007,6 @@ begin
         FunctionKind,
         GetScope,
         fClassScope,
-        not IsDeclaration, // check for declarations when we find an definition of a function
         not IsDeclaration,
         nil,
         IsStatic);
@@ -2178,7 +2026,6 @@ begin
         FunctionKind,
         GetScope,
         fClassScope,
-        not IsDeclaration, // check for declarations when we find an definition of a function
         not IsDeclaration,
         IsStatic);
   end;
@@ -2374,7 +2221,6 @@ begin
           skVariable,
           GetScope,
           fClassScope,
-          False,
           True,
           IsStatic); // TODO: not supported to pass list
       end;
@@ -2438,7 +2284,6 @@ begin
       skEnum,
       GetScope,
       fClassScope,
-      False,
       True,
       nil,
       False);
@@ -2471,7 +2316,6 @@ begin
         skEnum,
         GetScope,
         fClassScope,
-        False,
         True,
         nil,
         False);
@@ -2519,7 +2363,6 @@ begin
         skBlock,
         GetScope,
         fClassScope,
-        False,
         True,
         nil,
         False);
@@ -2678,7 +2521,6 @@ begin
 
   //remove all macrodefines;
   //fMacroDefines.Clear;
-  fPendingDeclarations.Clear; // should be empty anyways
   fCurrentScope.Clear;
   fCurrentClassScope.Clear;
   fProjectFiles.Clear;
@@ -2746,7 +2588,6 @@ begin
         end;
         Inc(I);
       end;
-      fPendingDeclarations.Clear; // should be empty anyways
       fFilesToScan.Clear;
     finally
       if Assigned(fOnEndParsing) then
@@ -2942,7 +2783,6 @@ begin
       end else
         InternalParse(FileName, True, Stream); // or from stream
       fFilesToScan.Clear;
-      fPendingDeclarations.Clear; // should be empty anyways
     finally
       if Assigned(fOnEndParsing) then
         fOnEndParsing(Self, 1);
@@ -2994,13 +2834,6 @@ begin
     //fPreprocessor.InvalidDefinesInFile(FileName); //we don't need this, since we reset defines after each parse
     P^.IncludeFiles.Free;
     P^.Usings.Free;
-    for i:=0 to P^.Statements.Count-1 do begin
-      Statement:=PStatement(P^.Statements[i]);
-      if statement._FileName <> FileName then begin
-        statement._HasDefinition:=False;
-        self.AddPendingDeclaration(statement);
-      end;
-    end;
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
       fStatementList.DeleteStatement(P^.DeclaredStatements[i]);
     end;
@@ -3673,7 +3506,6 @@ begin
           skVariable,
           ssLocal,
           scsNone,
-          False,
           True,
           nil,
           False);
@@ -3835,7 +3667,6 @@ begin
     inherit^._Kind,
     inherit^._Scope,
     access,
-    False,
     True,
     InheritanceList,
     inherit^._Static);

@@ -61,7 +61,7 @@ type
     function DeleteNode(Node: PStatementNode): Integer; overload;
     function DeleteFromTo(FromNode, ToNode: PStatementNode): Integer;
     function GetChildrenStatements(Statement:PStatement): TList;
-    function GetChildrenStatementIndex(Statement:PStatement): TStringHash;
+    function GetChildrenStatementIndex(Statement:PStatement): TDevStringHash;
     procedure DumpTo(Filename:AnsiString);
     procedure DumpWithScope(Filename:AnsiString);
     procedure Clear;
@@ -329,7 +329,7 @@ begin
     Result:=fGlobalStatements;
 end;
 
-function TStatementList.GetChildrenStatementIndex(Statement:PStatement): TStringHash;
+function TStatementList.GetChildrenStatementIndex(Statement:PStatement): TDevStringHash;
 begin
   if (Assigned(Statement)) then begin
     Result:= Statement._ChildrenIndex;
