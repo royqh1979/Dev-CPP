@@ -42,7 +42,7 @@ const
 type
   PToken = ^TToken;
   TToken = record
-    Text: string[255];
+    Text: string;
     Line: integer;
   end;
 

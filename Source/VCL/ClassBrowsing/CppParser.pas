@@ -3468,7 +3468,7 @@ begin
       Statement := TypeStatement;
   end;
 
-  if (statement._Kind = skConstructor) and (statement <> CurrentClassType)  then begin // we need the class, not the construtor
+  if (statement._Kind = skConstructor) then begin // we need the class, not the construtor
     statement:=statement^._ParentScope;
     if not assigned(statement) then
       Exit;

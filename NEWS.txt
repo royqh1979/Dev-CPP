@@ -18,7 +18,7 @@ Version 6.2-beta6
     - fix: can't correctly show class info ( the constructor info is showed);
     - fix: add check to prevent include loop (but gcc will hang too)
     - fix: can't correctly parse string paramters like test("//"); (has // in the string parameter)
-
+    - fix: files not including any header still show code suggestion of global functions
 
 Version 6.2-beta5 Dec 2020
 
