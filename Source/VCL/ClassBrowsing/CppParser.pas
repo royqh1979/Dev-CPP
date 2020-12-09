@@ -160,6 +160,8 @@ type
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
+    procedure InternalInvalidateFile(const FileName: AnsiString);
+
   public
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     procedure AddHardDefineByLine(const Line: AnsiString);
@@ -440,11 +442,13 @@ var
 begin
   Result:=nil;
   index := self.fStatementList.GetChildrenStatementIndex(scope);
+  if not assigned(index) then
+    Exit;
   item:=index.FindItem(Name);
-  while (assigned(item)) and SameStr(item^.Key,Name) do begin
+  while (assigned(item)) and assigned(item^) and SameStr(item^.Key,Name) do begin
     itemStatement:=PStatement(item^.Value);
-    if assigned(itemStatement) and (itemStatement._Kind  = kind)
-      and SameStr(itemStatement._NoNameArgs,NoNameArgs) then begin
+    if assigned(itemStatement) and (itemStatement^._Kind  = kind)
+      and SameStr(itemStatement^._NoNameArgs,NoNameArgs) then begin
       Result:=itemStatement;
       Exit;
     end;
@@ -605,7 +609,7 @@ var
     end;
 
     fileIncludes:=FindFileIncludes(FileName);
-    if Assigned(fileIncludes) then begin
+    if Assigned(fileIncludes) and (Result^._Kind <>skBlock) then begin
       fileIncludes^.Statements.Add(Result);
       fileIncludes^.DeclaredStatements.Add(Result);
     end;
@@ -704,11 +708,12 @@ begin
     //find
     oldStatement := FindStatementInScope(command,NoNameArgs,kind,parent);
     if assigned(oldStatement) then begin
+      Result:= oldStatement;
       if IsDefinition then begin
         if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
           fileIncludes1:=FindFileIncludes(FileName);
           if Assigned(fileIncludes1) then begin
-            fileIncludes1^.Statements.Add(Result);
+            fileIncludes1^.Statements.Add(oldStatement);
           end;
         end;
         oldStatement^._DefinitionLine := Line;
@@ -717,12 +722,13 @@ begin
         if not SameText(oldStatement^._FileName, FileName) then begin
           fileIncludes1:=FindFileIncludes(FileName);
           if Assigned(fileIncludes1) then begin
-            fileIncludes1^.Statements.Add(Result);
+            fileIncludes1^.Statements.Add(oldStatement);
           end;
         end;
         oldStatement^._Line:=Line;
         oldStatement^._FileName:=FileName;
       end;
+      Exit;
     end
   end;
   Result := AddToList;
@@ -821,15 +827,18 @@ begin
   if fCurrentScope.Count = 0 then
     Exit; // TODO: should be an exception
   CurrentScope := PStatement(fCurrentScope[fCurrentScope.Count-1]);
+  fileIncludes:=FindFileIncludes(fCurrentFile);
   if (assigned(CurrentScope) and (CurrentScope^._Kind = skBlock)) then begin
     if (
       (not Assigned(CurrentScope^._Children))
       or (CurrentScope^._Children.Count=0)) then begin
-      fileIncludes:=FindFileIncludes(fCurrentFile);
       if assigned(fileIncludes) and (fileIncludes.Scopes.Count>0) then begin
         fileIncludes.Scopes.Delete(fileIncludes.Scopes.Count-1);
       end;
       Statements.DeleteStatement(CurrentScope); // remove no children block
+    end else begin
+      fileIncludes.Statements.Add(CurrentScope);
+      fileIncludes.DeclaredStatements.Add(CurrentScope);
     end;
   end;
   fCurrentScope.Delete(fCurrentScope.Count - 1);
@@ -837,8 +846,9 @@ begin
 
   // Set new scope
   CurrentScope := GetCurrentScope;
-  fileIncludes:=FindFileIncludes(fCurrentFile);
-  if assigned(fileIncludes) then begin
+//  fileIncludes:=FindFileIncludes(fCurrentFile);
+  if assigned(fileIncludes) and (fileIncludes.Scopes.Count>0)
+    and (fileIncludes.Scopes.Objects[fileIncludes.Scopes.Count-1]<>TObject(CurrentScope)) then begin
     fileIncludes.Scopes.AddObject(line,TObject(CurrentScope));
   end;
 
@@ -2425,6 +2435,9 @@ begin
   if (not ManualUpdate) and Assigned(fOnStartParsing) then
     fOnStartParsing(Self);
 
+
+  if not ManualUpdate and Assigned(fOnBusy) then
+      fOnBusy(Self);
   // Preprocess the file...
   try
     // Let the preprocessor augment the include records
@@ -2481,11 +2494,11 @@ begin
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
-   //Statements.DumpWithScope('f:\\statements.txt');
+   Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
-   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+   fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     fCurrentScope.Clear;
@@ -2495,6 +2508,7 @@ begin
     if (not ManualUpdate) and Assigned(fOnEndParsing) then
       fOnEndParsing(Self, 1);
   end;
+
   if not ManualUpdate then
     if Assigned(fOnUpdate) then
       fOnUpdate(Self);
@@ -2741,7 +2755,7 @@ begin
     InvalidateFile(CFile);
     InvalidateFile(HFile);
     }
-    InvalidateFile(FileName);
+    InternalInvalidateFile(FileName);
 
     if InProject then begin
       fProjectFiles.Add(FileName);
@@ -2795,6 +2809,14 @@ begin
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
+begin
+  if fParsing then
+    Exit;
+  fParsing:=True;
+  InternalInvalidateFile(FileName);
+  fParsing:=False;
+end;
+procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
 var
   I,j: integer;
   P: PFileIncludes;
@@ -2925,7 +2947,7 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
-     {
+    
   with TStringList.Create do try
     for idx:=0 to fileIncludes.Scopes.Count-1 do begin
       statement:=PStatement(fileIncludes.Scopes.Objects[idx]);
@@ -2938,7 +2960,7 @@ begin
   finally
     Free;
   end;
-  }
+
 
   fileIncludes.Scopes.Find(row,idx);
   if idx>=fileIncludes.Scopes.Count then
@@ -3147,6 +3169,9 @@ begin
             Result := Result + GetParentPrefix; // A::B::C::
           Result := Result + Statement^._Command; // Bar
           Result := Result + GetArgsSuffix; // (int a)
+        end;
+      skNamespace: begin
+          Result := Result + Statement^._Command; // Bar
         end;
       skConstructor: begin
           Result := GetScopePrefix; // public
@@ -3415,7 +3440,23 @@ begin
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
-    statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType,force);
+    if assigned(CurrentClass) and (CurrentClass^._Kind = skNamespace)  then begin
+      idx:=FastIndexOf(fNamespaces,CurrentClass^._Command);
+      if idx>=0 then begin
+        namespaceList := TList(fNamespaces.Objects[idx]);
+        statement:=nil;
+        for i:=0 to namespaceList.Count-1 do begin
+          currentNamespace:=PStatement(namespaceList[i]);
+          statement:=findMemberOfStatement(NextScopeWord,currentNamespace);
+          if assigned(statement) then
+            break;
+        end;
+      end else begin
+        statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType,force);
+      end;
+    end else begin
+      statement := FindStatementStartingFrom(FileName,nextScopeWord,currentClassType,force);
+    end;
     if not Assigned(statement) then
       Exit;
   end;
