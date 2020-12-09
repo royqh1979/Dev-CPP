@@ -2070,8 +2070,12 @@ void ASConsole::printHelp() const
 	cout << "    Remove unnecessary space padding around parenthesis. This\n";
 	cout << "    can be used in combination with the 'pad' options above.\n";
 	cout << endl;
-	cout << "    --delete-empty-lines  OR  -xd\n";
-	cout << "    Delete empty lines within a function or method.\n";
+	cout << "    --delete-empty-lines  OR  -xe\n";
+	cout << "    Delete empty lines.\n";
+	cout << "    It will NOT delete lines added by the break-blocks options.\n";
+	cout << endl;
+	cout << "    --delete-multiple-empty-lines  OR  -xm\n";
+	cout << "    Delete consecutive empty lines.\n";
 	cout << "    It will NOT delete lines added by the break-blocks options.\n";
 	cout << endl;
 	cout << "    --fill-empty-lines  OR  -E\n";
@@ -3369,6 +3373,10 @@ void ASOptions::parseOption(const string& arg, const string& errorInfo)
 	{
 		formatter.setDeleteEmptyLinesMode(true);
 	}
+	else if (isOption(arg, "xm", "delete-multiple-empty-lines"))
+	{
+		formatter.setDeleteMultipleEmptyLinesMode(true);
+	}	
 	else if (isOption(arg, "E", "fill-empty-lines"))
 	{
 		formatter.setEmptyLineFill(true);

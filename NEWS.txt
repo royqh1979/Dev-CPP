@@ -20,6 +20,7 @@ Version 6.2-beta6
     - fix: can't correctly parse string paramters like test("//"); (has // in the string parameter)
     - fix: files not including any header still show code suggestion of global functions
     - change: don't close message panel after auto syntax check
+    - enhancement: reformat code now can remove empty lines/redundant empty lines
 
 Version 6.2-beta5 Dec 2020
 

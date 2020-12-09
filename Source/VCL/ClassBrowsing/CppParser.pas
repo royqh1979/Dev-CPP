@@ -2964,7 +2964,7 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
-    
+  {
   with TStringList.Create do try
     for idx:=0 to fileIncludes.Scopes.Count-1 do begin
       statement:=PStatement(fileIncludes.Scopes.Objects[idx]);
@@ -2977,6 +2977,7 @@ begin
   finally
     Free;
   end;
+  }
 
 
   fileIncludes.Scopes.Find(row,idx);

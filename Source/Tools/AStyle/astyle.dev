@@ -21,7 +21,7 @@ LogOutputEnabled=0
 OverrideOutput=0
 OverrideOutputName=astyle.exe
 HostApplication=
-UseCustomMakefile=1
+UseCustomMakefile=0
 CustomMakefile=Makefile.win
 CommandLine=
 Folders=
@@ -104,7 +104,7 @@ Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
-UseUTF8=0
+UseUTF8=1
 
 [Unit6]
 FileName=ASResource.cpp
@@ -126,7 +126,7 @@ Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
-UseUTF8=0
+UseUTF8=1
 
 [Unit8]
 FileName=astyle_main.cpp
@@ -137,7 +137,7 @@ Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
-UseUTF8=0
+UseUTF8=1
 
 [Unit9]
 FileName=astyle_main.h

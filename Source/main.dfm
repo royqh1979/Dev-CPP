@@ -2592,6 +2592,7 @@ object MainForm: TMainForm
     object actConfigdevShortcuts: TAction
       Category = 'Tools'
       Caption = 'Configure &Shortcuts'
+      ImageIndex = 30
       OnExecute = actConfigdevShortcutsExecute
     end
     object actComment: TAction

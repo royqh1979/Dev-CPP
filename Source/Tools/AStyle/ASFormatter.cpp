@@ -67,6 +67,7 @@ ASFormatter::ASFormatter()
 	shouldBreakClosingHeaderBlocks = false;
 	shouldBreakClosingHeaderBraces = false;
 	shouldDeleteEmptyLines = false;
+	shouldDeleteMultipleEmptyLines = false;
 	shouldBreakReturnType = false;
 	shouldBreakReturnTypeDecl = false;
 	shouldAttachReturnType = false;
@@ -214,6 +215,7 @@ void ASFormatter::init(ASSourceIterator* si)
 	lineIsCommentOnly = false;
 	lineIsLineCommentOnly = false;
 	lineIsEmpty = false;
+	prevLineIsEmpty = false;
 	isImmediatelyPostCommentOnly = false;
 	isImmediatelyPostEmptyLine = false;
 	isInClassInitializer = false;
@@ -2407,6 +2409,12 @@ void ASFormatter::setDeleteEmptyLinesMode(bool state)
 	shouldDeleteEmptyLines = state;
 }
 
+void ASFormatter::setDeleteMultipleEmptyLinesMode(bool state)
+{
+	shouldDeleteMultipleEmptyLines = state;
+}
+
+
 void ASFormatter::setBreakReturnType(bool state)
 {
 	shouldBreakReturnType = state;
@@ -2681,20 +2689,33 @@ bool ASFormatter::getNextLine(bool emptyLineWasDeleted /*false*/)
 	if (currentChar == '\t' && shouldConvertTabs)
 		convertTabToSpaces();
 
-	// check for an empty line inside a command brace.
+
+
+	// check for an empty line. 
 	// if yes then read the next line (calls getNextLine recursively).
 	// must be after initNewLine.
 	if (shouldDeleteEmptyLines
 	        && lineIsEmpty
-	        && isBraceType((*braceTypeStack)[braceTypeStack->size() - 1], COMMAND_TYPE))
+		)
 	{
 		if (!shouldBreakBlocks || previousNonWSChar == '{' || !commentAndHeaderFollows())
 		{
 			isInPreprocessor = isImmediatelyPostPreprocessor;		// restore
-			lineIsEmpty = false;
+			//lineIsEmpty = false;
 			return getNextLine(true);
 		}
-	}
+	} else 	if (shouldDeleteMultipleEmptyLines
+	        && lineIsEmpty
+	        && prevLineIsEmpty
+			)
+	{
+		if (!shouldBreakBlocks || previousNonWSChar == '{' || !commentAndHeaderFollows())
+		{
+			isInPreprocessor = isImmediatelyPostPreprocessor;		// restore
+			//lineIsEmpty = false;
+			return getNextLine(true);
+		}
+	} 
 	return true;
 }
 
@@ -2755,6 +2776,7 @@ void ASFormatter::initNewLine()
 	lineEndsInCommentOnly = false;
 	doesLineStartComment = false;
 	currentLineBeginsWithBrace = false;
+	prevLineIsEmpty = lineIsEmpty;
 	lineIsEmpty = false;
 	currentLineFirstBraceNum = string::npos;
 	tabIncrementIn = 0;

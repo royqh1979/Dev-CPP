@@ -280,6 +280,9 @@ type
     fPadHeader: boolean; // --pad-header; add spaces after 'if','for',etc.
     fPointerAlign: integer; // --align-pointer=none/type/middle/name
     fReferenceAlign: integer; // --align-reference=none/type/middle/name
+
+    fDeleteEmptyLines: boolean;
+    fDeleteMultipleEmptyLines: boolean;
     
     fFullCommand: AnsiString; // includes customizations
     fAStyleDir: AnsiString;
@@ -312,7 +315,9 @@ type
     property PadOper: boolean read fPadOper write fPadOper;
     property PadHeader: boolean read fPadHeader write fPadHeader;
     property PointerAlign: integer read fPointerAlign write fPointerAlign;
-    property ReferenceAlign: integer read fReferenceAlign write fReferenceAlign; 
+    property ReferenceAlign: integer read fReferenceAlign write fReferenceAlign;
+    property DeleteEmptyLines: boolean read fDeleteEmptyLines write fDeleteEmptyLines;
+    property DeleteMutipleEmptyLines: boolean read fDeleteMultipleEmptyLines write fDeleteMultipleEmptyLines;
   end;
 
   // List of programs to use for unknown file extensions
@@ -2843,6 +2848,8 @@ begin
   fPointerAlign := 0;
   fReferenceAlign := 0;
   fFullCommand := GetFullCommand; // includes customizations
+  fDeleteEmptyLines := False;
+  fDeleteMultipleEmptyLines := False;
   fAStyleDir := 'AStyle\';
   fAStyleFile := 'AStyle.exe';
 end;
@@ -2884,6 +2891,11 @@ begin
     Result := Result + ' --pad-oper';
   if fPadHeader then
     Result := Result + ' --pad-header';
+  if self.fDeleteEmptyLines then
+    Result := Result + ' -xe';
+  if self.fDeleteMultipleEmptyLines then
+    Result := Result + ' -xm';
+
 
   case fPointerAlign of
     1: Result := Result + ' --align-pointer=type';

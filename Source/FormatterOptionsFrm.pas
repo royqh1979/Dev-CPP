@@ -59,6 +59,8 @@ type
     cbAlignPointer: TComboBox;
     lblAlignReference: TLabel;
     cbAlignReference: TComboBox;
+    chkDeleteEmptyLines: TCheckBox;
+    chkDeleteRedundantEmptyLines: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -132,6 +134,8 @@ begin
   lblAlignReference.Caption := LANG[ID_FORMATTER_ALIGNREFERENCE];
   chkPadOper.Caption := LANG[ID_FORMATTER_PADOPER];
   chkPadHeader.Caption := LANG[ID_FORMATTER_PADHEADER];
+  chkDeleteEmptyLines.Caption := LANG[ID_FORMATTER_DELETE_EMPTY_LINES];
+  self.chkDeleteRedundantEmptyLines.Caption := LANG[ID_FORMATTER_DELETE_REDUNDANTEMPTY_LINES];
 
   if fValid then
     lblPoweredBy.Caption := Format(Lang[ID_FORMATTER_POWEREDBY], [devFormatter.GetVersion])
@@ -219,6 +223,9 @@ begin
     chkPadOper.Checked := PadOper;
     chkPadHeader.Checked := PadHeader;
 
+    chkDeleteEmptyLines.Checked := DeleteEmptyLines;
+    chkDeleteRedundantEmptyLines.Checked := DeleteMutipleEmptyLines;
+
     // Set full command
     memFullCommand.Text := FullCommand;
 
@@ -251,8 +258,11 @@ begin
     PointerAlign := cbAlignPointer.ItemIndex;
     ReferenceAlign := cbAlignReference.ItemIndex;
     PadOper := chkPadOper.Checked;
-    PadHeader := chkPadHeader.Checked;  
+    PadHeader := chkPadHeader.Checked;
 
+    DeleteEmptyLines := chkDeleteEmptyLines.Checked;
+    DeleteMutipleEmptyLines := chkDeleteRedundantEmptyLines.Checked;
+      
     // Set full command
     FullCommand := memFullCommand.Text;
   end;
@@ -331,10 +341,14 @@ begin
     Result := Result + ' --indent-labels';
   if chkPreprocessor.Checked then
     Result := Result + ' --indent-preprocessor';
-  if self.chkPadOper.Checked then
+  if chkPadOper.Checked then
     Result := Result + ' --pad-oper';
-  if self.chkPadHeader.Checked then
+  if chkPadHeader.Checked then
     Result := Result + ' --pad-header';
+  if chkDeleteEmptyLines.Checked then
+    Result := Result + ' -xe';
+  if chkDeleteRedundantEmptyLines.Checked then
+    Result := Result + ' -xm';
 
   case cbAlignPointer.ItemIndex of
     1: Result := Result + ' --align-pointer=type';

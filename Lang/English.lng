@@ -1342,6 +1342,8 @@ Ver=1
 79023=Add spaces after statements like if/for
 79024=Put * at:
 79025=Put & at:
+79026=Delete Empty Lines
+79027=Delete Redundant Empty Lines
 
 80000=Rename Symbol
 80001=New Name

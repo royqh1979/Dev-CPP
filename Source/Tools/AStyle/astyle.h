@@ -696,6 +696,7 @@ public:	// functions
 	void setCloseTemplatesMode(bool state);
 	void setCommaPaddingMode(bool state);
 	void setDeleteEmptyLinesMode(bool state);
+	void setDeleteMultipleEmptyLinesMode(bool state);
 	void setBreakReturnType(bool state);
 	void setBreakReturnTypeDecl(bool state);
 	void setAttachReturnType(bool state);
@@ -944,6 +945,7 @@ private:  // variables
 	bool lineIsCommentOnly;
 	bool lineIsLineCommentOnly;
 	bool lineIsEmpty;
+	bool prevLineIsEmpty;
 	bool isImmediatelyPostCommentOnly;
 	bool isImmediatelyPostEmptyLine;
 	bool isInClassInitializer;
@@ -1019,6 +1021,7 @@ private:  // variables
 	bool shouldPadParamType;
 	bool shouldUnPadParamType;
 	bool shouldDeleteEmptyLines;
+	bool shouldDeleteMultipleEmptyLines;
 	bool shouldBreakReturnType;
 	bool shouldBreakReturnTypeDecl;
 	bool shouldAttachReturnType;
