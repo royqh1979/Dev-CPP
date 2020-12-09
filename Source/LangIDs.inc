@@ -259,6 +259,7 @@ const
   ID_POP_SORT_BY_TYPE                   = 12022;
   ID_POP_PRJOPENFOLDER                  = 12023;
   ID_POP_PRJOPENCONSOLE                 = 12024;
+  ID_POP_CLEAR_ALL_FINDS                = 12025;
 
   // message control
   ID_SHEET_COMP                         = 13001;
@@ -525,7 +526,7 @@ const
   ID_EOPT_C_FILE                        = 27076;
   ID_EOPT_CPP_FILE                      = 27077;
   ID_EOPT_SYNTAXCHECK_WHEN_RETURN       = 27078;
-
+  ID_EOPT_DOWNLOAD_TABNINE              = 27079;
   // new project
   ID_NP_PRJNAME                         = 28001;
   ID_NP_DEFAULTC                        = 28002;
@@ -1412,6 +1413,8 @@ const
   ID_FORMATTER_PADHEADER                = 79023;
   ID_FORMATTER_ALIGNPOINTER             = 79024;
   ID_FORMATTER_ALIGNREFERENCE           = 79025;
+  ID_FORMATTER_DELETE_EMPTY_LINES       = 79026;
+  ID_FORMATTER_DELETE_REDUNDANTEMPTY_LINES       = 79027;
 
 
   ID_RNSYM = 80000;

@@ -1165,6 +1165,10 @@ function IsNumeric(const s: AnsiString): boolean;
 var
   i: integer;
 begin
+  if length(s)<=0 then begin
+    result:=False;
+    Exit;
+  end;
   result := true;
   for i := 1 to length(s) do
     if not (s[i] in ['0'..'9']) then begin

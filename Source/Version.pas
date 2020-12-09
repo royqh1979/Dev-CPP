@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Red Panda Dev-C++';
-  DEVCPP_VERSION = '6.2-beta5';
+  DEVCPP_VERSION = '6.2-beta6';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
@@ -63,6 +63,8 @@ const
   THEME_DIR = 'Themes' + pd;
   PACKAGES_DIR = 'Packages' + pd;
   PROJECTS_DIR = 'Projects' + pd;
+
+  TABNINE_SITE = 'https://github.com/codota/tabnine-sublime/tree/master/binaries';
 
   // file extensions
   LIB_EXT = '.a';

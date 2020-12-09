@@ -1269,7 +1269,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Left = 43
         Top = 72
         Width = 586
-        Height = 23
+        Height = 28
         ReadOnly = True
         TabOrder = 5
         Text = 'edCustomMakefile'
@@ -1278,7 +1278,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Left = 5
         Top = 343
         Width = 647
-        Height = 23
+        Height = 28
         TabOrder = 6
         OnChange = edMakeIncludeChange
       end

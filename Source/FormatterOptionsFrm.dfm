@@ -340,7 +340,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
     end
     object chkPadOper: TCheckBox
       Left = 357
-      Top = 170
+      Top = 162
       Width = 348
       Height = 23
       Caption = 'Add spaces around operators (+,-,...)'
@@ -349,7 +349,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
     end
     object chkPadHeader: TCheckBox
       Left = 357
-      Top = 210
+      Top = 202
       Width = 348
       Height = 23
       Caption = 'Add spaces after command (if, for,...)'
@@ -385,6 +385,24 @@ object FormatterOptionsForm: TFormatterOptionsForm
         'Type'
         'Middle'
         'Name')
+    end
+    object chkDeleteEmptyLines: TCheckBox
+      Left = 357
+      Top = 242
+      Width = 164
+      Height = 23
+      Caption = 'Delete Empty Lines'
+      TabOrder = 11
+      OnClick = OptionChange
+    end
+    object chkDeleteRedundantEmptyLines: TCheckBox
+      Left = 536
+      Top = 242
+      Width = 241
+      Height = 23
+      Caption = 'Delete Redundant Empty Lines'
+      TabOrder = 12
+      OnClick = OptionChange
     end
   end
 end

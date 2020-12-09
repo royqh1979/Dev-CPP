@@ -31,7 +31,7 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList;
+  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -177,7 +177,6 @@ type
     InfoGroupBox: TPanel;
     Statusbar: TStatusbar;
     FindSheet: TTabSheet;
-    FindOutput: TListView;
     FindinallfilesItem: TMenuItem;
     N20: TMenuItem;
     mnuNew: TMenuItem;
@@ -667,6 +666,9 @@ type
     RenameSymbol1: TMenuItem;
     ToolButton26: TToolButton;
     ReformatBtn: TToolButton;
+    FindOutput: TFindOutput;
+    FindPopup: TPopupMenu;
+    mnuClearAllFindItems: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -872,11 +874,15 @@ type
     procedure actReplaceAllExecute(Sender: TObject);
     procedure WatchViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
       TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+    {
     procedure FindOutputAdvancedCustomDrawSubItem(Sender: TCustomListView; Item: TListItem; SubItem: Integer; State:
       TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+    }
     procedure actMsgCutExecute(Sender: TObject);
+    {
     procedure FindOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage; var
       DefaultDraw: Boolean);
+    }
     procedure CompilerOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage; var
       DefaultDraw: Boolean);
     procedure actMsgSelAllExecute(Sender: TObject);
@@ -957,6 +963,14 @@ type
     procedure actNextErrorExecute(Sender: TObject);
     procedure OnDrawTab(Control: TCustomTabControl; TabIndex: Integer;
       const Rect: TRect; Active: Boolean);
+    procedure FindOutputAdvancedCustomDrawItem(Sender: TCustomTreeView;
+      Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
+      var PaintImages, DefaultDraw: Boolean);
+    procedure mnuClearAllFindItemsClick(Sender: TObject);
+    procedure CompileClean;
+    procedure actCloseProjectUpdate(Sender: TObject);
+    procedure actCloseAllUpdate(Sender: TObject);
+    procedure actCloseUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -981,6 +995,7 @@ type
     fTabnine: TTabnine;
     fCheckSyntaxInBack : boolean;
     fCaretList: TDevCaretList;
+    fClosing: boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1019,7 +1034,7 @@ type
     procedure CheckSyntaxInBack(e:TEditor);
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
-    procedure ScanActiveProject;
+    procedure ScanActiveProject(parse:boolean=False);
     procedure UpdateCompilerList;
     function GetCompileTarget: TTarget;
     procedure UpdateProjectEditorsEncoding;
@@ -1030,7 +1045,7 @@ type
     procedure OpenProject(const s: AnsiString);
     procedure GotoBreakpoint(const FileName: AnsiString; Line: integer);
     procedure RemoveActiveBreakpoints;
-    procedure AddFindOutputItem(const line, col, filename, msg:AnsiString;wordlen:integer);
+    procedure AddFindOutputItem(const line, col:integer; filename, msg:AnsiString;wordlen:integer);
     procedure EditorSaveTimer(sender: TObject);
     procedure OnInputEvalReady(const evalvalue: AnsiString);
     procedure SetStatusbarLineCol;
@@ -1298,6 +1313,8 @@ end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  if fClosing then
+    Exit;
   fQuitting:=True;
   CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
@@ -1835,8 +1852,11 @@ begin
   actBrowserRemoveFolder.Caption := Lang[ID_POP_REMOVEFOLDER];
   actBrowserRenameFolder.Caption := Lang[ID_POP_RENAMEFOLDER];
   actBrowserShowInherited.Caption := Lang[ID_POP_SHOWINHERITED];
-  actBrowserSortAlphabetically.Caption := Lang[ID_POP_SHOWINHERITED];
-  actBrowserSortByType.Caption := Lang[ID_POP_SHOWINHERITED];
+  actBrowserSortAlphabetically.Caption := Lang[ID_POP_SORT_ALPHABETICALLY];
+  actBrowserSortByType.Caption := Lang[ID_POP_SORT_BY_TYPE];
+
+  //FindOutput Popup
+  mnuClearAllFindItems.Caption := Lang[ID_POP_CLEAR_ALL_FINDS];
 
   // Message Control tabs
   CompSheet.Caption := Lang[ID_SHEET_COMP];
@@ -1878,11 +1898,13 @@ begin
   }
 
   // Find Results Tab
+  {
   FindOutput.Columns[0].Caption := '';
   FindOutput.Columns[1].Caption := Lang[ID_COL_LINE];
   FindOutput.Columns[2].Caption := Lang[ID_COL_COL];
   FindOutput.Columns[3].Caption := Lang[ID_COL_FILE];
   FindOutput.Columns[4].Caption := Lang[ID_COL_MSG];
+  }
 
   StackTrace.Columns[0].Caption := Lang[ID_COL_FUNC];
   StackTrace.Columns[1].Caption := Lang[ID_COL_FILE];
@@ -2058,6 +2080,7 @@ begin
       UpdateAppTitle;
       UpdateCompilerList;
       { we do it in project.open }
+      //ScanActiveProject(True);
       ScanActiveProject;
     end else begin
       fProject.Free;
@@ -2142,17 +2165,9 @@ begin
   end;
 end;
 
-procedure TMainForm.AddFindOutputItem(const line, col, filename, msg: AnsiString; wordlen:integer);
-var
-  ListItem: TListItem;
+procedure TMainForm.AddFindOutputItem(const line, col:integer; filename, msg: AnsiString; wordlen:integer);
 begin
-  ListItem := FindOutput.Items.Add;
-  ListItem.Caption := '';
-  ListItem.Data := Pointer(wordlen);
-  ListItem.SubItems.Add(line);
-  ListItem.SubItems.Add(col);
-  ListItem.SubItems.Add(filename);
-  ListItem.SubItems.Add(msg);
+  FindOutput.AddFindHit(filename,line,col,wordlen,msg);
 end;
 
 function TMainForm.ParseToolParams(s: AnsiString): AnsiString;
@@ -2263,8 +2278,10 @@ begin
     SubItems.Add(_Message);
   end;
 
+
   // Update tab caption
-  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
+  if CompilerOutput.Items.Count = 1 then
+    CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
 
   if ( StartsStr('[Error]',_Message)
       or StartsStr('[Warning]',_Message)
@@ -2305,13 +2322,17 @@ var
   I: integer;
   e:TEditor;
 begin
+  // Update tab caption
+  CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count) + ')';
+
   // Close it if there's nothing to show
-  if (fCheckSyntaxInBack)
-    or (
+  if (fCheckSyntaxInBack) then begin
+    // check syntax in back, don't change message panel
+  end else if (
       (CompilerOutput.Items.Count = 0)
       and (ResourceOutput.Items.Count = 0)
       and devData.AutoCloseProgress) then begin
-      OpenCloseMessageSheet(FALSE)
+    OpenCloseMessageSheet(FALSE)
     // Or open it if there is anything to show
   end else begin
     if (CompilerOutput.Items.Count > 0) then begin
@@ -2651,8 +2672,7 @@ end;
 procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   e: TEditor;
-begin
-   
+begin   
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
     e.Save;
@@ -2709,19 +2729,23 @@ procedure TMainForm.actCloseExecute(Sender: TObject);
 var
   e: TEditor;
 begin
+  fClosing:=True;
   e := fEditorList.GetEditor;
   if Assigned(e) then
     fEditorList.CloseEditor(e);
+  fClosing:=False;
 end;
 
 procedure TMainForm.actCloseAllExecute(Sender: TObject);
 begin
+  fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
     fEditorList.CloseAll; // PageControlChange triggers other UI updates
   finally
     ClassBrowser.EndUpdate;
   end;
+  fClosing:=False;
 end;
 
 procedure  TMainForm.CloseProject(RefreshEditor:boolean);
@@ -2758,29 +2782,35 @@ begin
     end else
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
-    if not fQuitting and RefreshEditor then begin
-      //reset Class browsing
-      LeftPageControl.ActivePage := LeftClassSheet;
-      ClassBrowser.TabVisible := True;
-      UpdateClassBrowsing;
-      ClassBrowser.ProjectDir := '';
-      //UpdateClassBrowserForEditor(EditorList.GetEditor());
-
-      e:=EditorList.GetEditor();
-      if Assigned(e) and not e.InProject then begin
-        UpdateClassBrowserForEditor(e);
-      end;
-    end;
-
-    // Remember it
-    dmMain.AddtoHistory(fProject.FileName);
-
-    // Only update page control once
-    fEditorList.BeginUpdate;
+    ClassBrowser.BeginUpdate;
     try
-      FreeandNil(fProject);
+
+      // Remember it
+      dmMain.AddtoHistory(fProject.FileName);
+
+      // Only update page control once
+      fEditorList.BeginUpdate;
+      try
+        FreeandNil(fProject);
+
+        if not fQuitting and RefreshEditor then begin
+          //reset Class browsing
+          LeftPageControl.ActivePage := LeftClassSheet;
+          ClassBrowser.TabVisible := True;
+          UpdateClassBrowsing;
+          ClassBrowser.ProjectDir := '';
+          //UpdateClassBrowserForEditor(EditorList.GetEditor());
+
+          e:=EditorList.GetEditor();
+          if Assigned(e) and not e.InProject then begin
+            UpdateClassBrowserForEditor(e);
+          end;
+        end;
+      finally
+        fEditorList.EndUpdate;
+      end;
     finally
-      fEditorList.EndUpdate;
+      ClassBrowser.EndUpdate;
     end;
     // Clear project browser
     ProjectView.Items.Clear;
@@ -2802,7 +2832,9 @@ end;
 
 procedure TMainForm.actCloseProjectExecute(Sender: TObject);
 begin
+  fClosing:=True;
   CloseProject(True);
+  fClosing:=False;
 end;
 
 procedure TMainForm.actExportHTMLExecute(Sender: TObject);
@@ -3064,7 +3096,11 @@ begin
   with TCompOptForm.Create(nil) do try
     if ShowModal = mrOk then begin
       CheckForDLLProfiling;
+      if (fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex)
+        and (assigned(fProject) or (assigned(editorList.GetEditor()))) then
+        CompileClean;
       UpdateCompilerList;
+
     end;
   finally
     Free;
@@ -3345,6 +3381,8 @@ begin
     if fProject.ShowOptions = mrOk then begin
       SetCppParserProject(fProject);
       UpdateAppTitle;
+      if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
+        CompileClean;
       UpdateCompilerList;
       UpdateProjectEditorsEncoding;
       fProject.SaveOptions;
@@ -3693,6 +3731,14 @@ begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
     Exit;
   end;
+  if not PrepareForClean then
+    Exit;
+  fCompiler.Clean;
+end;
+
+procedure TMainForm.CompileClean;
+begin
+  actStopExecuteExecute(nil);
   if not PrepareForClean then
     Exit;
   fCompiler.Clean;
@@ -4134,8 +4180,11 @@ begin
         else if DebugOutput.Focused then
           DebugOutput.CopyToClipboard;
       end;
-    4:
+    4: begin
+      {
       Clipboard.AsText := GetPrettyLine(FindOutput);
+      }
+    end;
   end;
 end;
 
@@ -4165,9 +4214,11 @@ begin
           Clipboard.AsText := DebugOutput.Text
       end;
     4: begin
+    {
         ClipBoard.AsText := '';
         for i := 0 to pred(FindOutput.Items.Count) do
           Clipboard.AsText := Clipboard.AsText + GetPrettyLine(FindOutput, i) + #13#10;
+    }
       end;
   end;
 end;
@@ -4232,8 +4283,10 @@ begin
         end;
       4: begin
           FileName := 'Find Results';
+      {
           for i := 0 to FindOutput.Items.Count - 1 do
             fulloutput := fulloutput + GetPrettyLine(FindOutput, i) + #13#10;
+      }
         end;
     end;
 
@@ -4345,15 +4398,15 @@ procedure TMainForm.FindOutputDblClick(Sender: TObject);
 var
   col, line: integer;
   e: TEditor;
-  selected: TListItem;
+  selected: TTreeNode;
 begin
   selected := FindOutPut.Selected;
-  if Assigned(selected) and not SameStr(selected.Caption, '') then begin
-    Col := StrToIntDef(selected.SubItems[1], 1);
-    Line := StrToIntDef(selected.SubItems[0], 1);
+  if Assigned(selected) and (selected.Level = 2) and assigned(selected.Data) then begin
+    Col := PFindITem(selected.Data)^.char;
+    Line := PFindITem(selected.Data)^.line;
 
     // And open up
-    e := fEditorList.GetEditorFromFileName(selected.SubItems[2]);
+    e := fEditorList.GetEditorFromFileName(PFindITem(selected.Data)^.filename);
     if Assigned(e) then begin
 
       // Position the caret
@@ -4562,7 +4615,7 @@ end;
 
 procedure TMainForm.ClearMessageControl;
 begin
-  FindOutput.Items.Clear; // don't clear this when compiling...
+//  FindOutput.Clear; // don't clear this when compiling...
   ClearCompileMessages;
 end;
 
@@ -4691,11 +4744,12 @@ begin
     CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
 end;
 
-procedure TMainForm.ScanActiveProject;
+procedure TMainForm.ScanActiveProject(parse:boolean);
 begin
   //UpdateClassBrowsing;
   SetCppParserProject(fProject);
-  //CppParser.ParseFileList;
+  if parse then
+    CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -4725,8 +4779,8 @@ begin
   if not Assigned(FromEditor) then
     Exit;
 
-  iscfile := CppParser.IsCfile(FromEditor.FileName);
-  ishfile := CppParser.IsHfile(FromEditor.FileName);
+  iscfile := CBUtils.IsCfile(FromEditor.FileName);
+  ishfile := CBUtils.IsHfile(FromEditor.FileName);
 
   CppParser.GetSourcePair(FromEditor.FileName, CFile, HFile);
   if iscfile then begin
@@ -5147,8 +5201,11 @@ procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 begin
   if not devCodeCompletion.Enabled then
     Exit;
-  if ClassBrowser.CurrentFile = e.FileName then
+  if ClassBrowser.CurrentFile = e.FileName then begin
     Exit;
+  end else if ClassBrowser.CurrentFile<> '' then begin
+    CppParser.InvalidateFile(ClassBrowser.CurrentFile); //invalid old file
+  end;
   ClassBrowser.BeginUpdate;
   try
     if Assigned(e) then begin
@@ -6579,6 +6636,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   Application.HintHidePause:=300000; //5mins before the hint auto disapear
   fQuitting:=False;
+  fClosing:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
   fCaretList:=TDevCaretList.Create;
@@ -6664,38 +6722,58 @@ begin
   actStatusbarExecute(nil);
 
   // Set toolbars to previous state.
-  // 1) position
+  // 1) hide all
+  tbMain.Visible := False;
+  tbEdit.Visible := False;
+  tbCompile.Visible := False;
+  tbProject.Visible := False;
+  tbSpecials.Visible := False;
+  tbSearch.Visible := False;
+  tbClasses.Visible := False;
+  tbCompilers.Visible := False;
+  tbDebug.Visible := False;
+  tbUndo.Visible := False;
+
+  // Set toolbars to previous state.
+  // 2) position and Visibility
   tbMain.Left := devData.ToolbarMainX;
   tbMain.Top := devData.ToolbarMainY;
+  tbMain.Visible := devData.ToolbarMain;
+
   tbEdit.Left := devData.ToolbarEditX;
   tbEdit.Top := devData.ToolbarEditY;
+  tbEdit.Visible := devData.ToolbarEdit;
+
   tbCompile.Left := devData.ToolbarCompileX;
   tbCompile.Top := devData.ToolbarCompileY;
+  tbCompile.Visible := devData.ToolbarCompile;
+
   tbProject.Left := devData.ToolbarProjectX;
   tbProject.Top := devData.ToolbarProjectY;
+  tbProject.Visible := devData.ToolbarProject;
+
   tbSpecials.Left := devData.ToolbarSpecialsX;
   tbSpecials.Top := devData.ToolbarSpecialsY;
+  tbSpecials.Visible := devData.ToolbarSpecials;
+
   tbSearch.Left := devData.ToolbarSearchX;
   tbSearch.Top := devData.ToolbarSearchY;
+  tbSearch.Visible := devData.ToolbarSearch;
+
   tbClasses.Left := devData.ToolbarClassesX;
   tbClasses.Top := devData.ToolbarClassesY;
+  tbClasses.Visible := devData.ToolbarClasses;
+
   tbCompilers.Left := devData.ToolbarCompilersX;
   tbCompilers.Top := devData.ToolbarCompilersY;
+  tbCompilers.Visible := devData.ToolbarCompilers;
+
   tbDebug.Left := devData.ToolbarDebugX;
   tbDebug.Top := devData.ToolbarDebugY;
+  tbDebug.Visible := devData.ToolbarDebug;
+
   tbUndo.Left := devData.ToolbarUndoX;
   tbUndo.Top := devData.ToolbarUndoY;
-  // Set toolbars to previous state.
-  // 2) Visibility
-  tbMain.Visible := devData.ToolbarMain;
-  tbEdit.Visible := devData.ToolbarEdit;
-  tbCompile.Visible := devData.ToolbarCompile;
-  tbProject.Visible := devData.ToolbarProject;
-  tbSpecials.Visible := devData.ToolbarSpecials;
-  tbSearch.Visible := devData.ToolbarSearch;
-  tbClasses.Visible := devData.ToolbarClasses;
-  tbCompilers.Visible := devData.ToolbarCompilers;
-  tbDebug.Visible := devData.ToolbarDebug;
   tbUndo.Visible := devData.ToolbarUndo;
 
   // Set toolbars to previous state.
@@ -6951,6 +7029,8 @@ begin
   end;
 end;
 
+
+{
 procedure TMainForm.FindOutputAdvancedCustomDrawSubItem(Sender: TCustomListView; Item: TListItem; SubItem: Integer;
   State: TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
 var
@@ -6972,26 +7052,6 @@ var
     Inc(rect.Left, sizerect.Right - sizerect.Left + 1); // 1 extra pixel for extra width caused by bold
   end;
 begin
-  // Draw the current line marker in bold
-  {if SubItem = 0 then begin
-    Sender.Canvas.Font.Style := [fsBold];
-    Sender.Canvas.Refresh;
-    DefaultDraw := True;
-
-  // Draw the find result in bold
-  end else}
-
-    {
-  if (cdsSelected in State) then begin
-    StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
-    Sender.Canvas.Brush.Color := tc.Background;
-    Sender.Canvas.Font.Color := tc.Foreground;
-  end else begin
-    Sender.Canvas.Brush.Color := dmMain.Cpp.WhitespaceAttribute.Background;
-    Sender.Canvas.Font.Color := dmMain.Cpp.IdentifierAttri.Foreground;
-  end;
-     }
-
   if SubItem = 4 then begin
 
     // Get rect of subitem to draw
@@ -7047,12 +7107,15 @@ begin
   end;
 
 end;
+}
 
+{
 procedure TMainForm.FindOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage: TCustomDrawStage;
   var DefaultDraw: Boolean);
 begin
   SendMessage(FindOutput.Handle, WM_CHANGEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
 end;
+}
 
 procedure TMainForm.CompilerOutputAdvancedCustomDraw(Sender: TCustomListView; const ARect: TRect; Stage:
   TCustomDrawStage; var DefaultDraw: Boolean);
@@ -7120,10 +7183,12 @@ procedure TMainForm.FindOutputDeletion(Sender: TObject; Item: TListItem);
 begin
   if Application.Terminated then
     Exit; // form is being destroyed, don't use Lang which has been freed already...
+  {
   if FindOutput.Items.Count > 1 then
     FindSheet.Caption := Lang[ID_SHEET_FIND] + ' (' + IntToStr(FindOutput.Items.Count - 1) + ')'
   else
     FindSheet.Caption := Lang[ID_SHEET_FIND];
+  }  
 end;
 
 procedure TMainForm.CompilerOutputDeletion(Sender: TObject; Item: TListItem);
@@ -7208,11 +7273,11 @@ begin
     end else begin
       ChangeNonProjectCompilerSet;
     end;
-
+    CompileClean;
     // No editors have been opened. Check if a project is open
   end else if Assigned(fProject) then begin
     ChangeProjectCompilerSet;
-
+    CompileClean;
     // No project, no editor, modify global
   end else begin
     ChangeNonProjectCompilerSet;
@@ -7224,6 +7289,7 @@ begin
   //  devCompilerSets[index]);
 
   fOldCompilerToolbarIndex := index;
+
 end;
 
 procedure TMainForm.actDuplicateLineExecute(Sender: TObject);
@@ -7776,6 +7842,7 @@ begin
     e.UseUTF8 := True;
     e.Text.Modified := True; // set modified flag to make sure save.
     e.Save;
+    UpdateFileEncodingStatusPanel;
     // set project unit's utf-8 flag 
     if e.InProject and Assigned(fProject) then begin
       for i:=0 to fProject.Units.Count-1 do begin
@@ -8325,6 +8392,177 @@ begin
   if assigned(e) then begin
     e.GotoNextError;
   end;
+end;
+
+
+procedure TMainForm.FindOutputAdvancedCustomDrawItem(
+  Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+  Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+
+var
+  LineToDraw: AnsiString;
+  i: integer;
+  Rect,iRect: TRect;
+  OldBrushColor, OldPenColor, OldFontColor, oBgColor,oFgColor: TColor;
+  tc:TThemeColor;
+  bg,fg, tbg, tfg, abg,afg: TColor;
+  pFind : PFindInfo;
+  pFile : PFileInfo;
+  pItem : PFindItem;
+
+
+
+  procedure Draw(const s: AnsiString);
+  var
+    txt: string;
+    fillRect : TRect;
+  begin
+    txt:=StringReplace(s,#9, StringOfChar(' ',devEditor.TabSize),[rfReplaceAll]);
+
+    fillRect := rect;
+    fillRect.Right := fillRect.Left + Sender.Canvas.TextWidth(txt);
+    Sender.Canvas.FillRect(fillRect);
+    DrawText(Sender.Canvas.Handle, PAnsiChar(txt), Length(txt), rect, DT_NOPREFIX or DT_NOCLIP);
+
+    // Get text extent
+    Inc(rect.Left, Sender.Canvas.TextWidth(txt) + 1); // 1 extra pixel for extra width caused by bold
+  end;
+
+begin
+  if Stage <> cdPrePaint then
+    Exit;
+
+  // Get rect of subitem to draw
+  Rect := Node.DisplayRect(False);
+
+  OldBrushColor := Sender.Canvas.Brush.Color;
+  OldPenColor := Sender.Canvas.Pen.Color;
+
+  OldFontColor := Sender.Canvas.Font.Color;
+  StrToThemeColor(tc,devEditor.Syntax.Values[cAL]);
+  tbg := tc.Background;
+  tfg := dmMain.Cpp.VariableAttri.Foreground;
+  abg := tc.Background;
+  afg := dmMain.Cpp.IdentifierAttri.Foreground;
+  fg := dmMain.Cpp.IdentifierAttri.Foreground;
+  bg := dmMain.Cpp.WhitespaceAttribute.Background;
+
+  // Draw background
+  if (cdsSelected in State) then begin
+    Sender.Canvas.Brush.Color := abg;
+    Sender.Canvas.Font.Color := afg;
+  end else begin
+    Sender.Canvas.Brush.Color := bg;
+    Sender.Canvas.Font.Color := fg;
+  end;
+  Sender.Canvas.FillRect(rect);
+
+  Rect := Node.DisplayRect(True);
+  if Node.HasChildren then begin
+    Sender.Canvas.Pen.Color := fg;
+    iRect.Right := rect.Left;
+    iRect.Bottom := rect.Bottom-1;
+    if (rect.bottom-rect.top) < 16 then begin
+      iRect.Left := iRect.Right - (rect.bottom-rect.top);
+      iRect.Top := iRect.Bottom - (rect.bottom-rect.top);
+    end else begin
+      iRect.Left := iRect.Right - 16;
+      iRect.Bottom := rect.Bottom-(rect.bottom-rect.top-16) div 2;
+      iRect.Top := iRect.Bottom - 16;
+    end;
+    oBGColor := Sender.Canvas.Brush.Color;
+    Sender.Canvas.Brush.Color  := tbg;
+    Sender.Canvas.FillRect(iRect);
+    Sender.Canvas.Brush.Color  := oBGColor;
+    sender.Canvas.MoveTo(iRect.Left,iRect.Top);
+    sender.Canvas.LineTo(iRect.Right,iRect.Top);
+    sender.Canvas.LineTo(iRect.Right,iRect.Bottom);
+    sender.Canvas.LineTo(iRect.Left,iRect.Bottom);
+    sender.Canvas.LineTo(iRect.Left,iRect.Top);
+    sender.Canvas.MoveTo(iRect.Left+3,iRect.Top + (iRect.Bottom - iRect.Top) div 2);
+    sender.Canvas.LineTo(iRect.Right-2,iRect.Top + (iRect.Bottom - iRect.Top) div 2);
+    if not Node.Expanded then begin
+      sender.Canvas.MoveTo(iRect.Left + (iRect.Right - iRect.Left) div 2,iRect.Top+3);
+      sender.Canvas.LineTo(iRect.Left + (iRect.Right - iRect.Left) div 2,iRect.Bottom-2);
+    end;
+  end;
+  OffsetRect(Rect, 4, 2);
+  case node.Level of
+    0: begin // find info node
+      if assigned(node.Data) then begin
+        pFind := PFindInfo(node.Data);
+        Draw(
+          Format('Search "%s" (%d hits in %d files of %d searched)',[
+            pFind.token,
+            pFind.hits,
+            pFind.filehitted,
+            pFind.filesearched])
+        );
+      end;
+    end;
+    1: begin // file info node
+      if assigned(node.Data) then begin
+        pFile := PFileInfo(node.Data);
+        Draw(
+          Format('%s (%d hits)', [pFile.filename,pFile.hits])
+        );
+      end;
+    end;
+    2: begin // file info node
+      if assigned(node.Data) then begin
+        pItem := PFindItem(node.Data);
+        LineToDraw := pItem.lineText;
+        Draw(Format('Line %d: ',[pItem.line]));
+        Draw(Copy(LineToDraw, 1, pItem.char - 1));
+        // Enable bold
+        Sender.Canvas.Font.Style := [fsBold];
+        oBgColor := Sender.Canvas.Brush.Color;
+        Sender.Canvas.Brush.Color := tbg;
+        oFgColor := Sender.Canvas.Font.Color;
+        Sender.Canvas.Font.Color := tfg;
+        Sender.Canvas.Refresh;
+
+        // Draw bold highlight
+        Draw(Copy(LineToDraw, pItem.char, pItem.tokenlen));
+
+        // Disable bold
+        Sender.Canvas.Font.Style := [];
+        Sender.Canvas.Brush.Color := oBgColor;
+        Sender.Canvas.Font.Color := oFgColor;
+        Sender.Canvas.Refresh;
+        Draw(Copy(LineToDraw, pItem.char + pItem.tokenlen, MaxInt));
+
+      end;
+    end;
+  end;
+  // Restore colors
+  Sender.Canvas.Brush.Color := OldBrushColor;
+  Sender.Canvas.Font.Color := OldFontColor;
+  Sender.Canvas.Pen.Color := OldPenColor;
+  
+  DefaultDraw := false;
+end;
+
+procedure TMainForm.mnuClearAllFindItemsClick(Sender: TObject);
+begin
+  FindOutput.Clear;
+end;
+
+procedure TMainForm.actCloseProjectUpdate(Sender: TObject);
+begin
+  actCloseProject.Enabled := Assigned(fProject) and not fClosing;
+end;
+
+procedure TMainForm.actCloseAllUpdate(Sender: TObject);
+begin
+  actCloseAll.Enabled:= ( fEditorList.PageCount > 0)
+    and not fClosing;
+end;
+
+procedure TMainForm.actCloseUpdate(Sender: TObject);
+begin
+  actClose.Enabled := (fEditorList.PageCount > 0)
+    and not fClosing;
 end;
 
 end.

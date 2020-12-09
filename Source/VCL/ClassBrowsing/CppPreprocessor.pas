@@ -53,7 +53,8 @@ type
     fPreProcIndex: integer;
     fIncludesList: TStringList;
     fHardDefines: TDevStringList; // set by "cpp -dM -E -xc NUL"
-    fDefines: TDevStringList; // working set, editable
+    fDefines: TStringList; // working set, editable
+    fDefineIndex: TStringHash; // index of defines
     fFileDefines: TStringList; //dictionary to save defines for each headerfile; PDefine should be diposed here
     fIncludes: TList; // stack of files we've stepped into. last one is current file, first one is source file
     fBranchResults: TList;
@@ -74,7 +75,7 @@ type
     procedure HandleUndefine(const Line: AnsiString);
     procedure HandleBranch(const Line: AnsiString);
     procedure HandleInclude(const Line: AnsiString);
-    function ExpandMacros(const Line: AnsiString): AnsiString;
+    function ExpandMacros(const Line: AnsiString; const depth :integer): AnsiString;
     function RemoveGCCAttributes(const Line: AnsiString): AnsiString;
     function RemoveSuffixes(const Input: AnsiString): AnsiString;
     // current file stuff
@@ -129,8 +130,9 @@ begin
   inherited Create(AOwner);
   fIncludes := TList.Create;
   fHardDefines := TDevStringList.Create;
-  fDefines := TDevStringList.Create;
-  fDefines.Sorted := True;
+  fDefines := TStringList.Create;
+  fDefines.CaseSensitive := True;
+  fDefineIndex := TStringHash.Create(2000);
   fDefines.Duplicates := dupAccept; // duplicate defines should generate warning
   fProcessed := TStringHash.Create;
   fFileDefines := TStringList.Create;
@@ -151,14 +153,18 @@ begin
   end;
   fIncludes.Clear;
   fDefines.Clear;
-  for I := 0 to fHardDefines.Count - 1 do
+  fDefineIndex.Clear;
+  for I := 0 to fHardDefines.Count - 1 do  begin
+    PDefine(fHardDefines.Objects[i]).ArgList.Free;
     Dispose(PDefine(fHardDefines.Objects[i]));
+  end;
   fProcessed.Clear;
   fHardDefines.Clear;
   for I:=0 to fFileDefines.Count -1 do begin
     FileName := fFileDefines[I];
     DefineList:=TList(fFileDefines.Objects[I]);
     for t:=0 to DefineList.Count-1 do begin
+      PDefine(DefineList[t])^.ArgList.Free;
       dispose(PDefine(DefineList[t]));
     end;
     DefineList.Free;
@@ -173,11 +179,13 @@ begin
   Clear;
   fIncludes.Free;
   fDefines.Free;
+  fDefineIndex.Free;
   fProcessed.Free;
   fHardDefines.Free;
   fFileDefines.Free;
   fBranchResults.Free;
   fResult.Free;
+
   inherited Destroy;
 end;
 
@@ -207,7 +215,7 @@ end;
 procedure TCppPreprocessor.AddDefinesInFile(const FileName:AnsiString);
 var
   FileIncludes:PFileIncludes;
-  i,idx: integer;
+  i,idx,index: integer;
   DefineList:TList;
   define:PDefine;
   sl : TStringList;
@@ -222,8 +230,10 @@ begin
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin
       define := PDefine(DefineList[I]);
-      if Assigned(define) then
-        fDefines.AddObject(define^.Name,Pointer(define));
+      if Assigned(define) then begin
+        index:=fDefines.AddObject(define^.Name,Pointer(define));
+        fDefineIndex.Add(define^.Name,index);
+      end;
     end;
   end;
   FileIncludes:=GetFileIncludesEntry(FileName);
@@ -242,6 +252,17 @@ var
   I,t: integer;
   FileIncludes:PFileIncludes;
 begin
+  for i:=0 to fIncludes.Count-1 do begin
+    tempItem := PFile(fIncludes[i]);
+    if SameText(tempItem^.FileName,FileName) then // don't include recursively
+      Exit;
+    if FastIndexOf(tempItem^.FileIncludes^.IncludeFiles,FileName)=-1 then
+      tempItem^.FileIncludes^.IncludeFiles.Add(FileName)
+    else
+      Exit; // already included
+    // := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
+  end;
+
   // Backup old position if we're entering a new file
   if fIncludes.Count > 0 then begin
     PFile(fIncludes[fIncludes.Count - 1])^.Index := fIndex;
@@ -259,12 +280,6 @@ begin
       if not ContainsText(IncludeFiles, FileName) then
         IncludeFiles := IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
   }
-  for i:=0 to fIncludes.Count-1 do begin
-    tempItem := PFile(fIncludes[i]);
-    if FastIndexOf(tempItem^.FileIncludes^.IncludeFiles,FileName)=-1 then
-      tempItem^.FileIncludes^.IncludeFiles.Add(FileName);
-    // := tempItem^.FileIncludes^.IncludeFiles + AnsiQuotedStr(FileName, '"') + ',';
-  end;
 
   // Create and add new buffer/position
   FileItem := new(PFile);
@@ -286,8 +301,9 @@ begin
     fCurrentIncludes^.Usings := TDevStringList.Create;
     fCurrentIncludes^.Usings.Duplicates := dupIgnore;
     fCurrentIncludes^.Usings.Sorted:=True;
-    fCurrentIncludes^.Usings.Add('std'); //using std by default
+    //fCurrentIncludes^.Usings.Add('std'); //using std by default
     fCurrentIncludes^.Statements:=TList.Create;
+    fCurrentIncludes^.StatementsIndex:=TDevStringHash.Create;
     fCurrentIncludes^.DeclaredStatements:=TList.Create;
     fCurrentIncludes^.Scopes := TIntList.Create;
     fCurrentIncludes^.Scopes.Sorted := True;    
@@ -444,7 +460,7 @@ begin
     if Pos('*/',fBuffer[fIndex]) >0 then
       InCComment:=False;
     if GetCurrentBranch then // if not skipping, expand current macros
-      fResult.Add(ExpandMacros(fBuffer[fIndex]))
+      fResult.Add(ExpandMacros(fBuffer[fIndex],1))
     else // If skipping due to a failed branch, clear line
       fResult.Add('');
     Inc(fIndex);
@@ -527,7 +543,7 @@ end;
 
 function TCppPreprocessor.GetDefine(const Name: AnsiString; var Index: integer): PDefine;
 begin
-  Index := FastIndexOf(fDefines,Name); // use sorted searching. is really fast
+  Index := fDefineIndex.ValueOf(Name); // use hashed searching. is really fast
   if Index <> -1 then
     Result := PDefine(fDefines.Objects[Index])
   else
@@ -546,8 +562,95 @@ end;
 procedure TCppPreprocessor.AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
 var
   Item: PDefine;
-  idx: integer;
+  idx,index: integer;
   DefineList:TList;
+
+  procedure tokenizeValue(const Value: string; tokens:TStringList);
+  var
+    i,endPos:integer;
+    token:string;
+  begin
+    i:=1;
+    endPos := length(value);
+    token:='';
+    while i<=endPos do begin
+      if value[i] in [' ',#9] then begin
+        if token <> '' then begin
+          tokens.Add(token);
+        end;
+        token:='';
+        inc(i);
+      end else if value[i] = '#' then begin
+        if token <> '' then begin
+          tokens.Add(token);
+        end;
+        token:='';
+        if (i+1<=endPos) and (value[i+1]='#') then begin
+          tokens.Add('##');
+          inc(i,2);
+        end else begin
+          tokens.Add('#');
+          inc(i,1);
+        end;
+      end else if value[i] in ['0'..'9','a'..'z','A'..'Z','_'] then begin
+        token:=token+value[i];
+        inc(i);
+      end else begin
+        if token <> '' then begin
+          tokens.Add(token);
+        end;
+        token:='';
+        tokens.Add(value[i]);
+        inc(i);
+      end;
+    end;
+    if token<>'' then begin
+      tokens.Add(token);
+    end;
+  end;
+
+  procedure ParseArgs(item:PDefine);
+  var
+    args,arg,formatStr:string;
+    tokens: TStringList;
+    i:integer;
+    lastIsConcat: boolean;
+  begin
+    args := Copy(item^.Args,2,length(item^.Args)-2); // remove '(' ')'
+    args := Trim(Args);
+    if args = '' then // we only handle macros with exactly one param here
+      Exit;
+    if Pos(',',Args)>0 then // we only handle macros with exactly one param here
+      Exit;
+    arg:=Args;
+    tokens:=TStringList.Create;
+    formatStr := '';
+    try
+      tokenizeValue(item^.Value,tokens);
+      lastIsConcat := False;
+      for i:=0 to tokens.Count-1 do begin
+        if sameStr(tokens[i],'#') then //we don't handle '#' operator
+          Exit;
+        if sameStr(tokens[i],'##') then begin// ignore ##
+          lastIsConcat:=True;
+          Continue;
+        end;
+        if not lastIsConcat then begin
+          formatStr:=formatStr+' ';
+        end;
+        if sameStr(tokens[i],arg) then begin
+          item^.ArgList.Add(1);
+          formatStr:=formatStr+'%s';
+        end else begin
+          formatStr:=formatStr+tokens[i];
+        end;
+        lastIsConcat := False;
+      end;
+      item^.FormatValue := trim(formatStr);
+    finally
+      tokens.Free;
+    end;
+  end;
 begin
   // Do not check for duplicates. It's too slow
   Item := new(PDefine);
@@ -555,8 +658,13 @@ begin
   Item^.Args := Args;
   Item^.Value := Value;
   Item^.FileName := fFileName;
+  Item^.ArgList := TIntList.Create;
+  Item^.FormatValue := '';
   Item^.IsMultiLine := ContainsStr(Item^.Value, #10);
   Item^.HardCoded := HardCoded;
+  if Args <> '' then begin
+    parseArgs(Item);
+  end;
   if HardCoded then
     fHardDefines.AddObject(Name, Pointer(Item)) // uses TStringList too to be able to assign to fDefines easily
   else begin
@@ -568,7 +676,8 @@ begin
       DefineList := TList(fFileDefines.Objects[idx]);
     end;
     DefineList.Add(Pointer(Item));
-    fDefines.AddObject(Name, Pointer(Item));
+    index:=fDefines.AddObject(Name, Pointer(Item));
+    fDefineIndex.Add(Name,index);
   end;
 end;
 
@@ -638,20 +747,20 @@ end;
 
 procedure TCppPreprocessor.ResetDefines;
 var
-  I: integer;
+  I,idx: integer;
   define : PDefine;
   //DefineList: TList;
 begin
-  fDefines.Sorted := False;
   fDefines.Clear;
+  fDefineIndex.Clear;
 
   for i:=0 to fHardDefines.Count -1 do
   begin
     define := PDefine(fHardDefines.Objects[i]);
-    fDefines.AddObject(define^.Name,Pointer(define));
+    idx:=fDefines.AddObject(define^.Name,Pointer(define));
+    fDefineIndex.Add(define^.Name,idx);
   end;
 
-  fDefines.Sorted := True;
 end;
 
 procedure TCppPreprocessor.HandlePreprocessor(const Value: AnsiString);
@@ -694,7 +803,8 @@ begin
     while True do begin
       Define := GetDefine(Name, Index);
       if Assigned(Define) then begin
-        fDefines.Delete(Index);
+        fDefineIndex.Remove(Name);
+        fDefines.objects[index]:=nil;
         files.AddObject(Define^.FileName,Pointer(Define));
       end else
         break;
@@ -705,6 +815,7 @@ begin
       if idx>0 then begin
         DefineList:=TList(fFileDefines.Objects[idx]);
         DefineList.Remove(Pointer(Define));
+        define^.ArgList.Free;
         Dispose(PDefine(Define));
       end;
     end;
@@ -1173,6 +1284,10 @@ begin
   while i<= lenLine do begin
     if Line[i] in ['_','a'..'z','A'..'Z','0'..'9'] then begin
       word:=word+Line[i];
+    end else if (Line[i]='/') and (i+1<=lenLine) and (Line[i]='/') then begin //skip line end comment
+      inc(i,2); //skip '//'
+      while (i<=LenLine) and not (Line[i] in LineChars) do
+        inc(i);
     end else begin
       if word<>'' then begin
         RemoveGCCAttribute;
@@ -1190,7 +1305,7 @@ begin
 end;
 
 { We also remove gcc's __attribtue__ here }
-function TCppPreprocessor.ExpandMacros(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here
+function TCppPreprocessor.ExpandMacros(const Line: AnsiString;const depth:integer): AnsiString; //we only expand non-parameter macros here
 var
   word:AnsiString;
   i:integer;
@@ -1199,8 +1314,11 @@ var
 
   procedure ExpandMacro;
   var
+    argStart,argEnd,t:integer;
     level,Index:integer;
     define:PDefine;
+    arg:string;
+    formatParams:array of TVarRec;
   begin
     if (SameStr(word,'__attribute__')) then begin
       while (i<= lenLine) and (Line[i] in [' ',#9]) do
@@ -1221,13 +1339,49 @@ var
       define:=GetDefine(word,index);
       if Assigned(define) and (define^.args='') and not (define^.IsMultiLine) then begin
         //newLine:=newLine+RemoveGCCAttributes(define^.Value);
-        newLine:=newLine+define^.Value;
+        if define^.Value <> word then
+          newLine:=newLine+ExpandMacros(define^.Value,depth+1)
+        else
+          newLine:=newLine+word;
+      end else if Assigned(define) and not (define^.IsMultiLine) and (define^.FormatValue<>'') then begin
+        while (i<= lenLine) and (Line[i] in [' ',#9]) do
+          inc(i);
+        argStart:=-1;
+        argEnd:=-1;
+        if (i<=LenLine) and (Line[i]='(') then begin
+          argStart:=i+1;
+          level:=0;
+          while (i<= lenLine) do begin
+            case Line[i] of
+              '(': inc(level);
+              ')': dec(level);
+            end;
+            inc(i);
+            if (level=0) then
+              break;
+          end;
+          if level=0 then begin
+            argEnd:=i-2;
+            arg:=Trim(Copy(Line,argStart,argEnd-argStart+1));
+            setLength(formatParams, define^.ArgList.Count);
+            for t:=0 to define^.ArgList.Count-1 do begin
+              formatParams[t].vtype := vtAnsiString;
+              formatParams[t].VAnsiString := pointer(arg);
+            end;
+
+            newLine:=newLine+ExpandMacros(Format(define^.FormatValue,formatParams),depth+1);
+          end;
+        end;
       end else
         newLine:=newLine+word;
     end;
   end;
-  
+
 begin
+  if depth > 20 then begin
+    Result := Line;
+    Exit;
+  end;
   word := '';
   newLine:='';
   lenLine := Length(Line);
@@ -1338,6 +1492,8 @@ begin
       end;
       for t:=0 to FileIncludes^.Statements.Count-1 do begin
         S:=FileIncludes^.Statements[t];
+        if not Assigned(S) then
+          Continue;
         Add(#9+'**'+Format('%s , %s',[s^._Command, s^._FullName] ));
       end;
     end;
@@ -1355,8 +1511,10 @@ begin
   with TStringList.Create do try
     for i:=0 to fDefines.Count -1 do begin
       define := PDefine(fDefines.Objects[i]);
-      Add(Format('%s %s %s %d',
-      [define^.Name,define^.Args,define^.Value,integer(define^.HardCoded)]));
+      if assigned(define) then begin
+        Add(Format('%s %s %s %d',
+          [define^.Name,define^.Args,define^.Value,integer(define^.HardCoded)]));
+      end;
     end;
     SaveToFile(FileName);
   finally
@@ -1375,13 +1533,16 @@ begin
     i:=fDefines.Count-1;
     while (i>=0) do begin
       define:=PDefine(fDefines.objects[i]);
-      if SameText(define^.FileName,FileName) then
-        fDefines.Delete(i);
+      if assigned(define) and SameText(define^.FileName,FileName) then begin
+        fDefineIndex.Remove(define^.Name);
+        fDefines.objects[i]:=nil;
+      end;
       dec(i);
     end;
     DefineList := TList(fFileDefines.Objects[idx]);
     for i:=0 to DefineList.Count-1 do begin
       define:=PDefine(DefineList[i]);
+      define^.ArgList.Free;
       Dispose(PDefine(define));
     end;
     DefineList.Free;

@@ -42,6 +42,18 @@ const
   
 type
 
+  { TStringList is case insensitive by default}
+  TDevStringList = class(TStringList)
+  protected
+    function CompareStrings(const S1, S2: string): Integer; override;
+  end;
+
+  TDevStringHash = class(TStringHash)
+  public
+    function FindItem(const Key: string): PPHashItem;
+    procedure RemoveItem(const Key: string; const Value:integer);
+  end;
+
   PCodeIns = ^TCodeIns;
   TCodeIns = record
     Caption: AnsiString; //Name
@@ -60,6 +72,8 @@ type
     FileName: AnsiString;
     IsMultiLine: boolean; // if true the expanded macro will span multiline
     HardCoded: boolean; // if true, don't free memory (points to hard defines)
+    ArgList: TIntList; // args list to format values
+    FormatValue: String;  // format template to format values
   end;
 
 
@@ -131,6 +145,7 @@ type
     _InProject: boolean; // statement in project
     _InSystemHeader: boolean; // statement in system header (#include <>)
     _Children: TList; // Children Statement to speedup search
+    _ChildrenIndex: TDevStringHash; // children statements index to speedup search
     _Friends: TStringHash; // friend class / functions
     _Static: boolean; // static function / variable
     _Inherited: boolean; // inherted member;
@@ -160,18 +175,13 @@ type
     count: integer;
   end;
 
-  { TStringList is case insensitive }
-  TDevStringList = class(TStringList)
-  protected
-    function CompareStrings(const S1, S2: string): Integer; override;
-  end;
-
   PFileIncludes = ^TFileIncludes;
   TFileIncludes = record
     BaseFile: AnsiString;
     IncludeFiles: TStringList; // "file","file" etc
     Usings: TDevStringList; // namespaces it usings
-    Statements: TList; // List<PStatement> , but we don't save temporary statements
+    Statements: TList; // List<Pointer,PStatement> , but we don't save temporary statements
+    StatementsIndex: TDevStringHash; // List<Pionter, PStatement>
     DeclaredStatements: TList; // List<PStatement> statement declared in this file
     Scopes: TIntList; // List<Int,PStatement> int is start line of the statement scope
   end;
@@ -235,6 +245,30 @@ begin
   Result := AnsiCompareStr(S1, S2);
 end;
 
+function TDevStringHash.FindItem(const Key: string): PPHashItem;
+begin
+  Result:=self.Find(Key);
+end;
+
+procedure TDevStringHash.RemoveItem(const Key: string;const Value:integer);
+var
+  P: PHashItem;
+  Prev: PPHashItem;
+begin
+  Prev := Find(Key);
+  P := Prev^;
+  while (P<>nil) and (P^.Value <> Value) do begin
+    Prev:=@P^.Next;
+    p:=Prev^;
+    if (P <> nil) and (p^.Key<>Key) then
+      Exit;
+  end;
+  if (P <> nil) then
+  begin
+    Prev^ := P^.Next;
+    Dispose(P);
+  end;
+end;
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
 var
   SearchStr, Patt, NewStr: AnsiString;

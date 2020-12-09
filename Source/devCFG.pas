@@ -280,6 +280,9 @@ type
     fPadHeader: boolean; // --pad-header; add spaces after 'if','for',etc.
     fPointerAlign: integer; // --align-pointer=none/type/middle/name
     fReferenceAlign: integer; // --align-reference=none/type/middle/name
+
+    fDeleteEmptyLines: boolean;
+    fDeleteMultipleEmptyLines: boolean;
     
     fFullCommand: AnsiString; // includes customizations
     fAStyleDir: AnsiString;
@@ -312,7 +315,9 @@ type
     property PadOper: boolean read fPadOper write fPadOper;
     property PadHeader: boolean read fPadHeader write fPadHeader;
     property PointerAlign: integer read fPointerAlign write fPointerAlign;
-    property ReferenceAlign: integer read fReferenceAlign write fReferenceAlign; 
+    property ReferenceAlign: integer read fReferenceAlign write fReferenceAlign;
+    property DeleteEmptyLines: boolean read fDeleteEmptyLines write fDeleteEmptyLines;
+    property DeleteMutipleEmptyLines: boolean read fDeleteMultipleEmptyLines write fDeleteMultipleEmptyLines;
   end;
 
   // List of programs to use for unknown file extensions
@@ -2210,6 +2215,41 @@ var
   BaseName: AnsiString;
   option: PCompilerOption;
   index, I: integer;
+
+  procedure SetReleaseOptions(targetSet:TdevCompilerSet);
+  begin
+    with targetSet do begin
+      if FindOption('-O', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
+        SetOption(option, 'a');
+
+      if FindOption('-s', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
+        SetOption(option, '1');
+    end;
+  end;
+
+  procedure SetDebugOptions(targetSet:TdevCompilerSet);
+  begin
+    with targetSet do begin
+      if FindOption('-g3', option, index) then
+        SetOption(option, '1');
+      if FindOption('-Wall', option, index) then
+        SetOption(option, '1');
+      if FindOption('-Wextra', option, index) then
+        SetOption(option, '1');
+      {
+      if FindOption('-Werror', option, index) then
+        SetOption(option, '1');
+      }
+    end;
+  end;
+
+  procedure SetProfileOptions(targetSet:TdevCompilerSet);
+  begin
+    with targetSet do begin
+      if FindOption('-pg', option, index) then
+        SetOption(option, '1');
+    end;
+  end;
 begin
   // Assume 64bit compilers are put in the MinGW64 folder
   if DirectoryExists(devDirs.Exec + 'MinGW64' + pd) then begin
@@ -2222,29 +2262,35 @@ begin
       BaseName := BaseSet.Name;
       with BaseSet do begin
         Name := BaseName + ' 64-bit Release';
+        SetReleaseOptions(BaseSet);
       end;
 
       // Debug profile
-      with AddSet(BaseSet) do begin
+      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
+      BaseName := BaseSet.Name;
+      with BaseSet do begin
         Name := BaseName + ' 64-bit Debug';
-        if FindOption('-g3', option, index) then  begin
-          SetOption(option, '1');
-        end;
+        SetDebugOptions(BaseSet);
       end;
 
       // Profiling profile
-      with AddSet(BaseSet) do begin
+      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
+      BaseName := BaseSet.Name;
+      with BaseSet do begin
         Name := BaseName + ' 64-bit Profiling';
-        if FindOption('-pg', option, index) then
-          SetOption(option, '1');
+        SetProfileOptions(BaseSet);
       end;
 
+      {
       // Default, 32bit release profile
-      BaseSet := AddSet(BaseSet);
+      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
+      BaseName := BaseSet.Name;
       with BaseSet do begin
         Name := BaseName + ' 32-bit Release';
         if FindOption('-', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
           SetOption(option, '1');
+
+        SetReleaseOptions(BaseSet);
 
         // Hack fix, but works...
         fgdbName := GDB32_PROGRAM;
@@ -2253,24 +2299,28 @@ begin
       end;
 
       // Debug profile
-      with AddSet(BaseSet) do begin
+      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
+      BaseName := BaseSet.Name;
+      with BaseSet do begin
         Name := BaseName + ' 32-bit Debug';
-        if FindOption('-g3', option, index) then
+        if FindOption('-', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
           SetOption(option, '1');
-        if FindOption('-Wall', option, index) then
-          SetOption(option, '1');
-        if FindOption('-Wextra', option, index) then
-          SetOption(option, '1');
+        SetDebugOptions(BaseSet);
       end;
 
       // Profiling profile
-      with AddSet(BaseSet) do begin
+      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
+      BaseName := BaseSet.Name;
+      with BaseSet do begin
         Name := BaseName + ' 32-bit Profiling';
-        if FindOption('-pg', option, index) then
+        if FindOption('-', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
           SetOption(option, '1');
+                  
+        setProfileOptions(BaseSet);
       end;
+      }
       // Set Debug profile as the default
-      fDefaultIndex := 2
+      fDefaultIndex := 1
     end;
   end;
 
@@ -2283,28 +2333,23 @@ begin
       BaseName := BaseSet.Name;
       with BaseSet do begin
         Name := BaseName + ' 32-bit Release';
+        SetReleaseOptions(BaseSet);
       end;
 
       // Debug profile
-      with AddSet(BaseSet) do begin
+      BaseSet := AddSet(devDirs.Exec + 'MinGW32');
+      BaseName := BaseSet.Name;
+      with BaseSet do begin
         Name := BaseName + ' 32-bit Debug';
-        if FindOption('-g3', option, index) then
-          SetOption(option, '1');
-        if FindOption('-Wall', option, index) then
-          SetOption(option, '1');
-        if FindOption('-Wextra', option, index) then
-          SetOption(option, '1');
-          {
-        if FindOption('-Werror', option, index) then
-          SetOption(option, '1');
-          }
+        setDebugOptions(BaseSet);
       end;
 
       // Profiling profile
-      with AddSet(BaseSet) do begin
+      BaseSet := AddSet(devDirs.Exec + 'MinGW32');
+      BaseName := BaseSet.Name;
+      with BaseSet do begin
         Name := BaseName + ' 32-bit Profiling';
-        if FindOption('-pg', option, index) then
-          SetOption(option, '1');
+        SetProfileOptions(BaseSet);
       end;
 
     end;
@@ -2803,6 +2848,8 @@ begin
   fPointerAlign := 0;
   fReferenceAlign := 0;
   fFullCommand := GetFullCommand; // includes customizations
+  fDeleteEmptyLines := False;
+  fDeleteMultipleEmptyLines := False;
   fAStyleDir := 'AStyle\';
   fAStyleFile := 'AStyle.exe';
 end;
@@ -2844,6 +2891,11 @@ begin
     Result := Result + ' --pad-oper';
   if fPadHeader then
     Result := Result + ' --pad-header';
+  if self.fDeleteEmptyLines then
+    Result := Result + ' -xe';
+  if self.fDeleteMultipleEmptyLines then
+    Result := Result + ' -xm';
+
 
   case fPointerAlign of
     1: Result := Result + ' --align-pointer=type';

@@ -115,12 +115,13 @@ type
     
     fUseUTF8: boolean;
 
-    fLastPressedIsIdChar: boolean;
+    fLastIdCharPressed: integer;
 
     fTabnine:TTabnine;
 
     //TIntList<Line,TList<PSyntaxError>>
     fErrorList: TIntList; // syntax check errors
+    fSelChanged: boolean; 
 
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -274,7 +275,9 @@ begin
   MainForm.OnBreakPointsChanged;
   LinesInsertedList(MainForm.CompilerOutput.Items);
   LinesInsertedList(MainForm.ResourceOutput.Items);
-  LinesInsertedList(MainForm.FindOutput.Items);
+  MainForm.FindOutput.LinesInserted(e.fFileName,FirstLine,Count);
+
+  //LinesInsertedList(MainForm.FindOutput.Items);
 end;
 
 procedure TDebugGutter.LinesDeleted(FirstLine, Count: integer);
@@ -315,7 +318,8 @@ begin
   MainForm.OnBreakPointsChanged;
   LinesDeletedList(MainForm.CompilerOutput.Items);
   LinesDeletedList(MainForm.ResourceOutput.Items);
-  LinesDeletedList(MainForm.FindOutput.Items);
+  MainForm.FindOutput.LinesDeleted(e.fFileName,FirstLine,Count);
+  //LinesDeletedList(MainForm.FindOutput.Items);
 end;
 
 { TEditor }
@@ -326,11 +330,12 @@ var
   I: integer;
   e: TEditor;
 begin
+  fSelChanged:=False;
   fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
   fLastParseTime := 0;
-  fLastPressedIsIdChar := False;
+  fLastIdCharPressed := 0;
   // Set generic options
   fErrorLine := -1;
   fActiveLine := -1;
@@ -800,8 +805,14 @@ begin
     end else
       fIgnoreCaretChange := false;
 
-    if fText.SelAvail then
+    if fText.SelAvail then begin
+      fText.Invalidate; //invalidate to highlight other occurencies of the selection world
+      fSelChanged:=True;
+    end else if fSelChanged then begin
+      fSelChanged:=False; //invalidate to unhighlight others
       fText.Invalidate;
+    end;
+
   end;
 
   if scInsertMode in Changes then begin
@@ -1047,7 +1058,7 @@ begin
         PopUserCodeInTabStops;
       end;
       if Code <> '' then
-        fLastPressedIsIdChar := False;
+        fLastIdCharPressed := 0;
       // prevent lots of repaints
     finally
       fText.EndUpdate;
@@ -1258,14 +1269,14 @@ begin
     Exit;
   // We received a key from the completion box...
     if (Key in [' ',',','(',')','[',']','+','-','/','*','&','|','!','~']) then begin // Continue filtering
-      fLastPressedIsIdChar := False;
+      fLastIdCharPressed := 0;
       fText.SelText := Key;
       TabnineQuery;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
       if phrase = '' then begin
-        fLastPressedIsIdChar:=False;
+        fLastIdCharPressed:=0;
         fTabnine.Hide;
       end else begin
         TabnineQuery;
@@ -1275,8 +1286,8 @@ begin
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
       TabnineCompletionInsert;
       fTabnine.Hide;
-    end else if fLastPressedIsIdChar then begin
-      fLastPressedIsIdChar := True;
+    end else if fLastIdCharPressed>0 then begin
+      //fLastIdCharPressed := True;
       fText.SelText := Key;
       TabnineQuery;
     end else begin  // other keys, stop completion
@@ -1324,8 +1335,7 @@ begin
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
-      if phrase = '' then
-        fLastPressedIsIdChar:=False;
+      fLastIdCharPressed:=Length(phrase);
       fCompletionBox.Search(phrase, fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
@@ -1705,9 +1715,9 @@ begin
     Exit;
 
   if (Key in fText.IdentChars) then begin
+    inc(fLastIdCharPressed);
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
-      if not fLastPressedIsIdChar then begin
-        fLastPressedIsIdChar:=True;
+      if fLastIdCharPressed=2 then begin
         lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
         if lastWord <> '' then begin
           if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
@@ -1729,11 +1739,10 @@ begin
         fText.SelText := Key;
         ShowCompletion(False);
         Key:=#0;
-      end else
-        fLastPressedIsIdChar:=True;
+      end
     end
   end else begin
-    fLastPressedIsIdChar:=False;
+    fLastIdCharPressed:=0;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
 
@@ -1779,7 +1788,7 @@ begin
   // See if we can undo what has been inserted by HandleSymbolCompletion
   case (Key) of
     VK_CONTROL: begin
-        fLastPressedIsIdChar:=False;
+        fLastIdCharPressed:=0;
         Reason := HandpointAllowed(p, Shift);
         if Reason <> hprNone then
           fText.Cursor := crHandPoint
@@ -1787,7 +1796,7 @@ begin
           fText.Cursor := crIBeam;
       end;
     VK_RETURN: begin
-        fLastPressedIsIdChar:=False;
+        fLastIdCharPressed:=0;
         if fTabStopBegin>=0 then begin
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
@@ -1795,7 +1804,7 @@ begin
         end;
       end;
     VK_ESCAPE: begin // Update function tip
-        fLastPressedIsIdChar:=False;
+        fLastIdCharPressed:=0;
         if fTabStopBegin>=0 then begin
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
@@ -1830,7 +1839,7 @@ begin
       end;
     VK_DELETE: begin
         // remove completed character
-        fLastPressedIsIdChar:=False;
+        fLastIdCharPressed:=0;
         if not fText.SelAvail then begin
           S := fText.LineText;
           if fText.CaretX < Length(S) then begin
@@ -1841,7 +1850,7 @@ begin
         end;
       end;
     VK_BACK: begin // remove completed character
-        fLastPressedIsIdChar:=False;
+        fLastIdCharPressed:=0;
         if not fText.SelAvail then begin
           S := fText.LineText;
           if (fText.CaretX > 1) and (fText.CaretX <= Length(S)) then begin
@@ -2912,7 +2921,7 @@ end;
     finally
       tmpList.Free;
     end;
-    fLastPressedIsIdChar := False;
+    fLastIdCharPressed := 0;
   end;
 
   procedure TEditor.SaveFile(FileName:String);
@@ -2929,7 +2938,7 @@ end;
     finally
       tmpList.Free;
     end;
-    fLastPressedIsIdChar := False;
+    fLastIdCharPressed := 0;
   end;
 
   procedure  TEditor.ClearUserCodeInTabStops;

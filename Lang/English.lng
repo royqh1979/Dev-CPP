@@ -218,6 +218,7 @@ Ver=1
 12022=Sort By Type
 12023=Open Project Folder
 12024=Open Console here
+12025=Clear All
 
 
 13001=Compiler
@@ -463,6 +464,7 @@ Ver=1
 27076=C File
 27077=C++ File
 27078=Check Syntax when RETURN/ENTER typed
+27079=Open the Tabnine download site
 
 28001=Name:
 28002=&C Project
@@ -569,7 +571,7 @@ Ver=1
 38005=Environment Options
 38006=General
 38007=Directories
-38008=Project Auto Open
+38008=Auto Open when a project opened
 38009=Default to C++ on new project
 38010=Show toolbars in full screen
 38011=Create backups when opening files
@@ -992,7 +994,7 @@ Ver=1
 61037=The selected expression is imcomplete.
 61038=The selected expression has identifiers which can't be extract.
 61039=Definition of %s is not in the project files.
-61040=TABNINE executable '%s' not exists.<CR>Please download tabnine.exe from https://github.com/codota/tabnine-sublime/tree/master/binaries .
+61040=TABNINE executable '%s' not exists, Tabnine Completion will be disabled.<CR>Please download tabnine.exe from %s , put it to devcpp folder, then turn on tabnine completion.
 
 
 62001=Untitled
@@ -1340,6 +1342,8 @@ Ver=1
 79023=Add spaces after statements like if/for
 79024=Put * at:
 79025=Put & at:
+79026=Delete Empty Lines
+79027=Delete Redundant Empty Lines
 
 80000=Rename Symbol
 80001=New Name

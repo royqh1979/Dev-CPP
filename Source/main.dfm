@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 252
-  Top = 195
+  Left = 490
+  Top = 224
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -545,49 +545,20 @@ object MainForm: TMainForm
     object FindSheet: TTabSheet
       Caption = 'Find results'
       ImageIndex = 21
-      object FindOutput: TListView
+      PopupMenu = FindPopup
+      object FindOutput: TFindOutput
         Left = 0
         Top = 0
         Width = 1179
         Height = 196
         Align = alClient
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        Columns = <
-          item
-            Width = 18
-          end
-          item
-            Caption = 'Line'
-            Width = 49
-          end
-          item
-            Caption = 'Col'
-            Width = 49
-          end
-          item
-            Caption = 'Unit'
-            Width = 394
-          end
-          item
-            AutoSize = True
-            Caption = 'Message'
-          end>
-        ColumnClick = False
-        GridLines = True
-        ReadOnly = True
-        RowSelect = True
-        ParentShowHint = False
-        PopupMenu = MessagePopup
-        ShowHint = True
+        Indent = 22
         TabOrder = 0
-        ViewStyle = vsReport
-        OnAdvancedCustomDraw = FindOutputAdvancedCustomDraw
-        OnAdvancedCustomDrawSubItem = FindOutputAdvancedCustomDrawSubItem
+        RowSelect = True
+        ShowLines = False
+        MaxFindCount = 30
+        OnAdvancedCustomDrawItem = FindOutputAdvancedCustomDrawItem
         OnDblClick = FindOutputDblClick
-        OnDeletion = FindOutputDeletion
-        OnKeyDown = FindOutputKeyDown
-        OnSelectItem = FindOutputSelectItem
       end
     end
     object CloseSheet: TTabSheet
@@ -1129,7 +1100,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftProjectSheet
+    ActivePage = WatchSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -2172,7 +2143,7 @@ object MainForm: TMainForm
       ImageIndex = 9
       ShortCut = 16471
       OnExecute = actCloseExecute
-      OnUpdate = actUpdatePageCount
+      OnUpdate = actCloseUpdate
     end
     object actCloseAll: TAction
       Tag = 11
@@ -2181,7 +2152,7 @@ object MainForm: TMainForm
       ImageIndex = 50
       ShortCut = 24663
       OnExecute = actCloseAllExecute
-      OnUpdate = actUpdatePageCount
+      OnUpdate = actCloseAllUpdate
     end
     object actCloseProject: TAction
       Tag = 6
@@ -2189,7 +2160,7 @@ object MainForm: TMainForm
       Caption = 'Close Project'
       ImageIndex = 11
       OnExecute = actCloseProjectExecute
-      OnUpdate = actUpdateProject
+      OnUpdate = actCloseProjectUpdate
     end
     object actExportHTML: TAction
       Tag = 1
@@ -2621,6 +2592,7 @@ object MainForm: TMainForm
     object actConfigdevShortcuts: TAction
       Category = 'Tools'
       Caption = 'Configure &Shortcuts'
+      ImageIndex = 30
       OnExecute = actConfigdevShortcutsExecute
     end
     object actComment: TAction
@@ -3556,6 +3528,14 @@ object MainForm: TMainForm
     end
     object MenuItem52: TMenuItem
       Action = actFileProperties
+    end
+  end
+  object FindPopup: TPopupMenu
+    Left = 789
+    Top = 248
+    object mnuClearAllFindItems: TMenuItem
+      Caption = 'Clear All'
+      OnClick = mnuClearAllFindItemsClick
     end
   end
 end

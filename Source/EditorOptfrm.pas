@@ -168,6 +168,7 @@ type
     rbCFile: TRadioButton;
     rbCppFile: TRadioButton;
     chkCheckSyntaxReturn: TCheckBox;
+    btnDownloadTabnine: TButton;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -209,6 +210,7 @@ type
     procedure chkRecordUsageClick(Sender: TObject);
     procedure btnClearUsageDataClick(Sender: TObject);
     procedure chkAutoCheckSyntaxInBackClick(Sender: TObject);
+    procedure btnDownloadTabnineClick(Sender: TObject);
   private
     ffgColor: TColor;
     fbgColor: TColor;
@@ -239,7 +241,7 @@ implementation
 
 uses
   shlobj, MultiLangSupport, devcfg, version, math, CommCtrl, DateUtils,cbUtils, CodeInsList, DataFrm, IniFiles, editor,
-  main;
+  main,shellAPI;
 
 {$R *.dfm}
 const
@@ -690,6 +692,7 @@ begin
   chkCBParseGlobalH.Caption := Lang[ID_EOPT_BROWSERGLOBAL];
   chkUseTabnine.Caption := Lang[ID_EOPT_USETABNINE];
   lblUseTabnine.Caption := Lang[ID_EOPT_USETABNINE_NOTE];
+  self.btnDownloadTabnine.Caption := Lang[ID_EOPT_DOWNLOAD_TABNINE];
 
   // Completion tab, symbol
   cbSymbolComplete.Caption := Lang[ID_EOPT_SYMBOLCOMPLETE];
@@ -1669,6 +1672,14 @@ end;
 procedure TEditorOptForm.chkAutoCheckSyntaxInBackClick(Sender: TObject);
 begin
   chkCheckSyntaxReturn.Enabled:=chkAutoCheckSyntaxInBack.Checked;
+end;
+
+procedure TEditorOptForm.btnDownloadTabnineClick(Sender: TObject);
+var
+  s:string;
+begin
+  s:=TABNINE_SITE;
+  ShellExecute(GetDesktopWindow(), 'open', PAnsiChar(s), nil, nil, SW_SHOWNORMAL);
 end;
 
 end.

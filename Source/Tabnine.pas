@@ -115,7 +115,7 @@ end;
 
 implementation
 
-uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms, main, devCFG;
+uses SysUtils, utils, Dialogs , uLkJSON, MultiLangSupport,Forms, main, devCFG,version;
 
 constructor TTabnine.Create;
 begin
@@ -162,7 +162,8 @@ begin
   fExecuting := true;
   if not FileExists(fPath) then begin
     LogError('Tabnine.pas TTabnine.Start',Format('Can''t find Tabnine in : %s',[fPath]));
-    MessageDlg(Format(Lang[ID_ERR_TABNINENOTEXIST],[fPath]), mtError, [mbOK], 0);
+    MessageDlg(Format(Lang[ID_ERR_TABNINENOTEXIST],[fPath,TABNINE_SITE]), mtError, [mbOK], 0);
+    devEditor.UseTabnine := False;
     fExecuting:=False;
     Exit;
   end;
