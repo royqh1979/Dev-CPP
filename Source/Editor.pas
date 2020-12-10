@@ -2562,6 +2562,7 @@ var
   tc:TThemeColor;
   st: PStatement;
   p: TBufferCoord;
+  s:String;
 begin
   if token='' then
     Exit;
@@ -2579,7 +2580,11 @@ begin
   if fCompletionBox.Visible then //don't do this when show
     Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
-    st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    //st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    p:=fText.DisplayToBufferPos(DisplayCoord(column+1,line));
+    s:= GetWordAtPosition(fText,p,wpInformation);
+    st := MainForm.CppParser.FindStatementOf(fFileName,
+      s , line);
     if assigned(st) then begin
       case st._Kind of
         skPreprocessor: begin

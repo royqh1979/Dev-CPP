@@ -3465,6 +3465,16 @@ begin
     if not assigned(statement) then
       Exit;
     // found in namespace
+  end else if (Length(Phrase)>2) and (Phrase[1]=':') and (Phrase[2]=':') then begin
+    //global
+    remainder:=Copy(Phrase,3,MAXINT);
+    NextScopeWord := GetClass(remainder);
+    OperatorToken := GetOperator(remainder);    
+    MemberName := GetMember(remainder);
+    remainder := GetRemainder(remainder);
+    statement:=findMemberOfStatement(NextScopeWord,nil);
+    if not assigned(statement) then
+      Exit;
   end else begin   //unqualified name
     CurrentClassType := CurrentClass;
     {

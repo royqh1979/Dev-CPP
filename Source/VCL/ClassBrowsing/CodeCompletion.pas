@@ -230,7 +230,7 @@ begin
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
   I := fParser.FindLastOperator(Phrase);
-  if I = 0 then begin
+  if (I = 0) then begin
 
     //add templates
     for i:=0 to fCodeInsList.Count-1 do begin
@@ -281,8 +281,13 @@ begin
     opType:=GetOperatorType(Phrase,I);
     scopeName := Copy(Phrase,1,I-1);
     namespaceStatementsList := nil;
-    //assume it's a namespace
-    if OpType = otDColon then
+    if (OpType = otDColon) and (scopeName = '') then begin
+      // start with '::', we only find in global
+     // add all global members and not added before
+      AddChildren(nil);
+      Exit;
+    end else
+      //assume it's a namespace
       namespaceStatementsList:=fParser.FindNamespace(scopeName);
     if assigned(namespaceStatementsList) then begin //yes, it's a namespace
       for k:=0 to namespaceStatementsList.Count-1 do begin

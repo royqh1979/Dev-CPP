@@ -23,6 +23,8 @@ Version 6.2-beta6
     - enhancement: reformat code now can remove empty lines/redundant empty lines
     - fix: update status bar info after convert a gbk file to utf8
     - fix: disable run/debug/compile buttons when editing a non-project non-c/cpp file
+    - enhancement: correctly color symbols chain like  m_myDialog.DoModal()
+    - enhancement: correctly parse symbols like ::PostMessage();
 
 Version 6.2-beta5 Dec 2020
 
