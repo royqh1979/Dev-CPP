@@ -2561,6 +2561,7 @@ procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
 var
   tc:TThemeColor;
   st: PStatement;
+  p: TBufferCoord;
 begin
   if token='' then
     Exit;

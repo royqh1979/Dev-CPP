@@ -397,6 +397,7 @@ begin
     if findcount > 0 then
       MainForm.FindSheet.Caption := Lang[ID_SHEET_FIND];
     MainForm.OpenCloseMessageSheet(TRUE);
+    self.Close;
   end else if findcount = 0 then begin
     MessageBox(
       Self.Handle,
@@ -405,7 +406,9 @@ begin
       MB_ICONINFORMATION or MB_TOPMOST);
     cboFindText.SetFocus;
   end;
-  self.Close;
+  if actiontype = faFind then begin
+    self.Close;
+  end;
 end;
 
 procedure TFindForm.FindAllAction(Sender: TObject; const aSearch, aReplace: AnsiString;
