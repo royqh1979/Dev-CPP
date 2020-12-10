@@ -514,7 +514,7 @@ object MainForm: TMainForm
             Font.Height = -14
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 16
+            ItemHeight = 0
             ParentCtl3D = False
             ParentFont = False
             TabOrder = 0

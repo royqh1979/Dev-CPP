@@ -5253,7 +5253,11 @@ begin
     Exit;
   if ClassBrowser.CurrentFile = e.FileName then begin
     Exit;
-  end else if ClassBrowser.CurrentFile<> '' then begin
+  end else if (ClassBrowser.CurrentFile<> '') and IsCFile(ClassBrowser.CurrentFile)
+    and (
+      not assigned(fProject)
+      or (fProject.Units.IndexOf(ClassBrowser.CurrentFile)<0)
+    ) then begin
     CppParser.InvalidateFile(ClassBrowser.CurrentFile); //invalid old file
   end;
   ClassBrowser.BeginUpdate;
