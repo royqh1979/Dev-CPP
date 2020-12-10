@@ -2026,6 +2026,24 @@ begin
         IsStatic);
       ScanMethodArgs( FunctionStatement, FunctionStatement^._Args);
       // For function declarations, any given statement can belong to multiple typedef names
+      if assigned(FunctionClass) and (FunctionClass^._Kind = skClass) and not isStatic then begin
+        //add this to non-static class member function
+       AddStatement(
+        FunctionStatement,
+        fCurrentFile,
+        '', // do not override hint
+        FunctionClass^._Command,
+        'this',
+        '',
+        '',
+        startLine,
+        skVariable,
+        ssLocal,
+        scsNone,
+        true,
+        nil,
+        False);
+      end;
     end else
       FunctionStatement:=AddChildStatement(
         GetCurrentScope,

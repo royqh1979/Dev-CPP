@@ -4031,7 +4031,25 @@ begin
 end;
 
 procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
+var
+  e:TEditor;
+  enabled:boolean;
 begin
+  TCustomAction(Sender).Enabled:=False;
+
+  //only enable run/complie/debug when we have project or current file is c/cpp file
+  if not Assigned(fProject) then begin
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
+    if (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end else begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end;
+
   TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
     Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
      and (not devExecutor.Running);
@@ -4075,7 +4093,23 @@ begin
 end;
 
 procedure TMainForm.actRunUpdate(Sender: TObject);
+var
+  e:TEditor;
 begin
+  TCustomAction(Sender).Enabled:=False;
+  //only enable run/complie/debug when we have project or current file is c/cpp file
+  if not Assigned(fProject) then begin
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
+    if (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end else begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end;
+
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (fProject.Options.typ <> dptStat) and (not
       fCompiler.Compiling) and (not fDebugger.Executing) and (not devExecutor.Running)
@@ -4085,7 +4119,23 @@ begin
 end;
 
 procedure TMainForm.actCompileRunUpdate(Sender: TObject);
+var
+  e:TEditor;
 begin
+  TCustomAction(Sender).Enabled:=False;
+  //only enable run/complie/debug when we have project or current file is c/cpp file
+  if not Assigned(fProject) then begin
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
+    if (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end else begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end;
+  
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling) and
       (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
