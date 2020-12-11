@@ -130,6 +130,7 @@ type
     fSymbolAttri: TSynHighlighterAttributes;
     fVariableAttri: TSynHighlighterAttributes;
     fFunctionAttri: TSynHighlighterAttributes;
+    fClassAttri: TSynHighlighterAttributes;
     procedure AnsiCProc;
     procedure AnsiCppProc;
     procedure AndSymbolProc;
@@ -241,6 +242,9 @@ type
       write fVariableAttri;
     property FunctionAttri: TSynHighlighterAttributes read fFunctionAttri
       write fFunctionAttri;
+    property ClassAttri: TSynHighlighterAttributes read fClassAttri
+      write fClassAttri;
+
   end;
 
 
@@ -353,6 +357,8 @@ begin
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
   fCommentAttri.Style:= [fsItalic];
   AddAttribute(fCommentAttri);
+  fClassAttri := TSynHighlighterAttributes.Create(SYNS_AttrClass);
+  AddAttribute(fClassAttri);
   fFloatAttri := TSynHighlighterAttributes.Create(SYNS_AttrFloat);
   AddAttribute(fFloatAttri);
   fFunctionAttri := TSynHighlighterAttributes.Create(SYNS_AttrFunction);

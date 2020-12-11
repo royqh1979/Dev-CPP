@@ -33,6 +33,7 @@ Version 6.2-beta6
     - fix: sometimes crash when switch editors
     - enhancement: optimize the process of project open;
     - enhancement: optimize don't refresh class browser in the process of parsing
+    - enhancement: code completion for C/C++ keyword
 
 Version 6.2-beta5 Dec 2020
 

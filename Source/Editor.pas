@@ -1721,7 +1721,7 @@ begin
   if (Key in fText.IdentChars) then begin
     inc(fLastIdCharPressed);
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
-      if fLastIdCharPressed=2 then begin
+      if fLastIdCharPressed=1 then begin
         lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
         if lastWord <> '' then begin
           if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
@@ -1981,6 +1981,7 @@ begin
   fCompletionBox.Position := fText.ClientToScreen(P);
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
+  fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.SymbolUsage := dmMain.SymbolUsage;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
@@ -2600,7 +2601,12 @@ begin
         skFunction,skConstructor,skDestructor: begin
           fg:=dmMain.Cpp.FunctionAttri.Foreground;
         end;
+        skClass,skNamespace : begin
+          fg:=dmMain.Cpp.ClassAttri.Foreground;
+        end;
       end;
+      if fg = clNone then //old color theme, use the default color
+        fg := dmMain.Cpp.IdentifierAttri.Foreground;
     end;
   end;
 end;

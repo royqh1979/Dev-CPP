@@ -169,6 +169,7 @@ type
     rbCppFile: TRadioButton;
     chkCheckSyntaxReturn: TCheckBox;
     btnDownloadTabnine: TButton;
+    chkShowKeywords: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -439,6 +440,7 @@ begin
   cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
+  chkShowKeywords.Checked := devCodeCompletion.ShowKeywords;
   btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
   chkUseTabnine.Checked := devEditor.UseTabnine;
@@ -570,6 +572,7 @@ begin
   lbCodeSuggestionShowCount.Caption := Lang[ID_EOPT_CODECOMPLETE_MAXCOUNT];
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
   chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE]; 
+  chkShowKeywords.Caption := Lang[ID_EOPT_SHOW_KEYWORDS]; 
   btnClearUsageData.Caption := Lang[ID_EOPT_CODECOMPLETE_CLEAR_USAGE];
   cbUseAltSlash.Caption := Lang[ID_EOPT_ALTSLASH];
   cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
@@ -912,6 +915,7 @@ begin
     ParseGlobalHeaders := chkCBParseGlobalH.Checked;
     UseAltSlash := cbUseAltSlash.Checked;
     RecordUsage := chkRecordUsage.Checked;
+    ShowKeywords := chkShowKeywords.Checked;
     ShowCompletionWhileInput := cbShowCompletionWhileInputing.Checked;
     MaxCount := txtCodeSuggestionMaxCount.Value;
   end;
@@ -1259,15 +1263,15 @@ begin
       end;
     end;
 
-    StrToThemeColor(fBPColor, LoadStr(offset + 17)); // breakpoints
-    StrToThemeColor(fErrColor, LoadStr(offset + 18)); // error line
-    StrToThemeColor(fABPColor, LoadStr(offset + 19)); // active breakpoint
-    StrToThemeColor(fgutColor, LoadStr(offset + 20)); // gutter
-    StrToThemeColor(fSelColor, LoadStr(offset + 21)); // selected text
-    StrToThemeColor(fFoldColor, LoadStr(offset + 22)); // folding bar lines
-    StrToThemeColor(fALColor, LoadStr(offset + 23)); // folding bar lines
-    StrToThemeColor(fWNColor, LoadStr(offset + 24)); // folding bar lines
-    StrToThemeColor(fPNLColor, LoadStr(offset + 25)); // folding bar lines
+    StrToThemeColor(fBPColor, LoadStr(offset + 18)); // breakpoints
+    StrToThemeColor(fErrColor, LoadStr(offset + 19)); // error line
+    StrToThemeColor(fABPColor, LoadStr(offset + 20)); // active breakpoint
+    StrToThemeColor(fgutColor, LoadStr(offset + 21)); // gutter
+    StrToThemeColor(fSelColor, LoadStr(offset + 22)); // selected text
+    StrToThemeColor(fFoldColor, LoadStr(offset + 23)); // folding bar lines
+    StrToThemeColor(fALColor, LoadStr(offset + 24)); // folding bar lines
+    StrToThemeColor(fWNColor, LoadStr(offset + 25)); // folding bar lines
+    StrToThemeColor(fPNLColor, LoadStr(offset + 26)); // folding bar lines
     UpdateDemoEditColor;
   end;
 
@@ -1448,6 +1452,7 @@ begin
     cbUseAltSlash.Enabled := Checked;
     cbShowCompletionWhileInputing.Enabled:=Checked;
     chkRecordUsage.Enabled := Checked;
+    chkShowKeywords.Enabled := Checked;
     txtCodeSuggestionMaxCount.Enabled:=Checked and cbShowCompletionWhileInputing.Checked;
   end;
 end;

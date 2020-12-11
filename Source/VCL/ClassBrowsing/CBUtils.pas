@@ -39,6 +39,10 @@ const
   SelectedBackColor = 9;
   SelectedForeColor = 10;
   InheritedColor = 11;
+  KeywordColor = 12;
+
+var
+  CppKeywordsList:TStringList;
   
 type
 
@@ -101,6 +105,7 @@ type
     skNamespaceAlias,
     skBlock,
     skUserCodeIn,  // user code template
+    skKeyword, // keywords
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;
@@ -694,6 +699,7 @@ begin
 
   CppTypeKeywords := TStringHash.Create();
   CppKeywords := TStringHash.Create();
+  CppKeywordsList := TStringList.Create;
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -753,7 +759,7 @@ begin
   CppKeywords.Add('default',Ord(skToColon));
 
   // Skip to )
-  CppKeywords.Add('__attribute__',Ord(skToRightParenthesis)); 
+  CppKeywords.Add('__attribute__',Ord(skToRightParenthesis));
   CppKeywords.Add('alignas',Ord(skToRightParenthesis));  // not right
   CppKeywords.Add('alignof',Ord(skToRightParenthesis));  // not right
   CppKeywords.Add('decltype',Ord(skToRightParenthesis)); // not right
@@ -844,12 +850,140 @@ begin
   // nullptr is value
   CppKeywords.Add('nullptr',Ord(skNone));
 
+
+  //CppKeywordsList
+
+  CppKeywordsList.Add('and');
+  CppKeywordsList.Add('and_eq');
+  CppKeywordsList.Add('bitand');
+  CppKeywordsList.Add('bitor');
+  CppKeywordsList.Add('break');
+  CppKeywordsList.Add('compl');
+  CppKeywordsList.Add('constexpr');
+  CppKeywordsList.Add('const_cast');
+  CppKeywordsList.Add('continue');
+  CppKeywordsList.Add('dynamic_cast');
+  CppKeywordsList.Add('else');
+  CppKeywordsList.Add('explicit');
+  CppKeywordsList.Add('export');
+  CppKeywordsList.Add('extern');
+  CppKeywordsList.Add('false');
+  CppKeywordsList.Add('mutable');
+  CppKeywordsList.Add('noexcept');
+  CppKeywordsList.Add('not');
+  CppKeywordsList.Add('not_eq');
+  CppKeywordsList.Add('nullptr');
+  CppKeywordsList.Add('or');
+  CppKeywordsList.Add('or_eq');
+  CppKeywordsList.Add('register');
+  CppKeywordsList.Add('reinterpret_cast');
+  CppKeywordsList.Add('static_assert');
+  CppKeywordsList.Add('static_cast');
+  CppKeywordsList.Add('template');
+//  CppKeywordsList.Add('this');
+  CppKeywordsList.Add('thread_local');
+  CppKeywordsList.Add('true');
+  CppKeywordsList.Add('typename');
+  CppKeywordsList.Add('virtual');
+  CppKeywordsList.Add('volatile');
+  CppKeywordsList.Add('xor');
+  CppKeywordsList.Add('xor_eq');
+
+
+  CppKeywordsList.Add('do');
+  CppKeywordsList.Add('try');
+
+  // Skip to ;
+  CppKeywordsList.Add('delete');
+  CppKeywordsList.Add('delete[]');
+  CppKeywordsList.Add('goto');
+  CppKeywordsList.Add('new');
+  CppKeywordsList.Add('return');
+  CppKeywordsList.Add('throw');
+
+  // Skip to :
+  CppKeywordsList.Add('case');
+  CppKeywordsList.Add('default');
+
+  // Skip to )
+  CppKeywordsList.Add('__attribute__');
+  CppKeywordsList.Add('alignas');  // not right
+  CppKeywordsList.Add('alignof');  // not right
+  CppKeywordsList.Add('decltype'); // not right
+  CppKeywordsList.Add('if');
+  CppKeywordsList.Add('sizeof');
+  CppKeywordsList.Add('switch');
+  CppKeywordsList.Add('typeid');
+  CppKeywordsList.Add('while');
+
+  // Skip to }
+  CppKeywordsList.Add('asm');
+
+  // wont handle
+
+  //Not supported yet
+  CppKeywordsList.Add('atomic_cancel');
+  CppKeywordsList.Add('atomic_commit');
+  CppKeywordsList.Add('atomic_noexcept');
+  CppKeywordsList.Add('concept');
+  CppKeywordsList.Add('consteval');
+  CppKeywordsList.Add('constinit');
+  CppKeywordsList.Add('co_wait');
+  CppKeywordsList.Add('co_return');
+  CppKeywordsList.Add('co_yield');
+  CppKeywordsList.Add('reflexpr');
+  CppKeywordsList.Add('requires');
+
+  // its a type
+  CppKeywordsList.Add('auto');
+  CppKeywordsList.Add('bool');
+  CppKeywordsList.Add('char');
+  CppKeywordsList.Add('char8_t');
+  CppKeywordsList.Add('char16_t');
+  CppKeywordsList.Add('char32_t');
+  CppKeywordsList.Add('double');
+  CppKeywordsList.Add('float');
+  CppKeywordsList.Add('int');
+  CppKeywordsList.Add('long');
+  CppKeywordsList.Add('short');
+  CppKeywordsList.Add('signed');
+  CppKeywordsList.Add('unsigned');
+  CppKeywordsList.Add('void');
+  CppKeywordsList.Add('wchar_t');
+
+
+  // it's part of type info
+  CppKeywordsList.Add('const');
+  CppKeywordsList.Add('inline');
+
+  // handled elsewhere
+  CppKeywordsList.Add('class');
+  CppKeywordsList.Add('enum');
+  CppKeywordsList.Add('friend');
+  CppKeywordsList.Add('operator');
+  CppKeywordsList.Add('private');
+  CppKeywordsList.Add('protected');
+  CppKeywordsList.Add('public');
+  CppKeywordsList.Add('static');
+  CppKeywordsList.Add('struct');
+  CppKeywordsList.Add('typedef');
+  CppKeywordsList.Add('union');
+  // namespace
+  CppKeywordsList.Add('namespace');
+  CppKeywordsList.Add('using');
+
+  CppKeywordsList.Add('for');
+  CppKeywordsList.Add('catch');
+
+  // nullptr is value
+  CppKeywordsList.Add('nullptr');
 end;
 
 finalization
 begin
   CppKeywords.Clear;
   CppKeywords.Free;
+  CppKeywordsList.Clear;
   CppTypeKeywords.Clear;
   CppTypeKeywords.Free;
 end;

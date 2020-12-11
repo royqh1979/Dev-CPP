@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabCBCompletion
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -1065,6 +1065,14 @@ object EditorOptForm: TEditorOptForm
             Caption = 'Clear Symbol Usage Data'
             TabOrder = 8
             OnClick = btnClearUsageDataClick
+          end
+          object chkShowKeywords: TCheckBox
+            Left = 304
+            Top = 235
+            Width = 321
+            Height = 22
+            Caption = 'Code Completion while inputing'
+            TabOrder = 9
           end
         end
         object tabSymbolCompletion: TTabSheet

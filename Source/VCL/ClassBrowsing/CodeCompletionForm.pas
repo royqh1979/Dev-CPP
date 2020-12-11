@@ -38,7 +38,7 @@ type
     { Private declarations }
     fOwner: TCodeCompletion;
     FOldWndProc: TWndMethod;
-    fColors : array[0..11] of TColor;
+    fColors : array[0..12] of TColor;
     procedure lbCompletionWindowProc(var Message: TMessage);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);    protected
@@ -118,6 +118,7 @@ begin
         skTypedef: Canvas.Font.Color := Colors[TypedefColor];
         skPreprocessor: Canvas.Font.Color := Colors[PreprocessorColor];
         skEnum: Canvas.Font.Color := Colors[EnumColor];
+        skKeyword, skUserCodeIn: Canvas.Font.Color := Colors[KeywordColor];
       else
         Canvas.Font.Color := Colors[ForeColor];
       end;

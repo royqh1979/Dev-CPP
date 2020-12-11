@@ -98,7 +98,7 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
-    fColors : array[0..11] of TColor;    
+    fColors : array[0..12] of TColor;    
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;

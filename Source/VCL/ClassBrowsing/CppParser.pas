@@ -350,6 +350,8 @@ begin
     skEnum: Result := 'E';
     skUnknown: Result := 'U';
     skNamespace: Result := 'N';
+    skUserCodeIn: Result := 'T';
+    skKeyword: Result :='K';
   end;
 end;
 

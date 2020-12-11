@@ -64,6 +64,7 @@ type
     fPhrase : AnsiString;
     fSymbolUsage:TDevStringList;
     fRecordUsage: boolean;
+    fShowKeywords: boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -86,6 +87,7 @@ type
     property SymbolUsage:TDevStringList read fSymbolUsage write fSymbolUsage;
     property RecordUsage: boolean read fRecordUsage write fRecordUsage;
     property Colors[Index: Integer]: TColor read GetColor write SetColor;
+    property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property Parser: TCppParser read fParser write fParser;
@@ -123,6 +125,8 @@ end;
 constructor TCodeCompletion.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  fShowKeywords:=True;
 
   fCodeInsStatements:=TList.Create;
 
@@ -241,6 +245,16 @@ begin
       codeInStatement^._Kind := skUserCodeIn;
       fCodeInsStatements.Add(pointer(codeInStatement));
       fFullCompletionStatementList.Add(pointer(codeInStatement));
+    end;
+
+    if fShowKeywords then begin
+      //add keywords
+      for i:=0 to CppKeywordsList.Count-1 do begin
+        new(codeInStatement);
+        codeInStatement^._Command := CppKeywordsList[i];
+        codeInStatement^._Kind := skKeyword;
+        fFullCompletionStatementList.Add(pointer(codeInStatement));
+      end;
     end;
 
     scopeStatement := fCurrentStatement;
@@ -397,6 +411,11 @@ begin
     end;
   end else if (Statement2^._Kind = skUserCodeIn) then begin
     Result := 1;
+  // show keywords first
+  end else if (Statement1^._Kind = skKeyword) and (not (Statement2^._Kind = skKeyword)) then begin
+    Result := -1;
+  end else if (not (Statement1^._Kind = skKeyword)) and (Statement2^._Kind = skKeyword) then begin
+    Result := 1;
   // Show stuff from local headers first
   end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
     Result := 1;
@@ -432,6 +451,11 @@ begin
     Result := 1;
   end else if (Statement1^._FreqTop <> Statement2^._FreqTop) then begin
     Result := Statement2^._FreqTop - Statement1^._FreqTop;
+  // show keywords first
+  end else if (Statement1^._Kind = skKeyword) and (not (Statement2^._Kind = skKeyword)) then begin
+    Result := -1;
+  end else if (not (Statement1^._Kind = skKeyword)) and (Statement2^._Kind = skKeyword) then begin
+    Result := 1;
   // Show stuff from local headers first
   end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
     Result := 1;

@@ -385,6 +385,7 @@ Ver=1
 26035=Show frequently used symbols first
 26036=Clear Symbol Usage Data
 26037=Use diffrent colors for embedding parentheses
+26038=Show Keyword in Code Completion
 
 27001=Show hidden line characters
 27002=Show mouseover hints

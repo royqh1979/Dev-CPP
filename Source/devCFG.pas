@@ -197,6 +197,7 @@ type
     fShowCompletionWhileInput: boolean;
     fMaxCount: integer;
     fRecordUsage: boolean;
+    fShowKeywords: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -215,6 +216,7 @@ type
     property UseAltSlash: boolean read fUseAltSlash write fUseAltSlash;
     property ShowCompletionWhileInput: boolean read fShowCompletionWhileInput write fShowCompletionWhileInput;
     property RecordUsage: boolean read fRecordUsage write fRecordUsage;
+    property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
   end;
 
   // class-browsing view style
@@ -2467,19 +2469,15 @@ begin
   devData.ReadObject('Editor', Self);
   //fix for old config files
   offset:=1000;
-  AddSpecial(cBP, offset + 17); // breakpoint
-  AddSpecial(cErr, offset + 18); // error line
-  AddSpecial(cABP, offset + 19); // active breakpoint
-  AddSpecial(cGut, offset + 20); // gutter
-  AddSpecial(cSel, offset + 21); // selected text
-  AddSpecial(cFld, offset + 22); // fold bar lines
-  AddSpecial(cAL, offset + 23); // active Line
-  AddSpecial(cWN, offset + 24); // warning Line
-  //AddSpecial(cPNL, offset + 25); // Panel
-  //panel
-  if fSyntax.IndexOf(cPNL) = -1 then begin    // use gutter setting as the default panel setting
-    fSyntax.Append(format('%s=%s', [cPNL, fSyntax.Values[cGut]]))
-  end;
+  AddSpecial(cBP, offset + 18); // breakpoint
+  AddSpecial(cErr, offset + 19); // error line
+  AddSpecial(cABP, offset + 20); // active breakpoint
+  AddSpecial(cGut, offset + 21); // gutter
+  AddSpecial(cSel, offset + 22); // selected text
+  AddSpecial(cFld, offset + 23); // fold bar lines
+  AddSpecial(cAL, offset + 24); // active Line
+  AddSpecial(cWN, offset + 25); // warning Line
+  AddSpecial(cPNL, offset + 26); // Panel
 end;
 
 procedure TdevEditor.SaveSettings;
@@ -2730,6 +2728,7 @@ begin
   fParseLocalHeaders := True;
   fParseGlobalHeaders := True;
   fShowCompletionWhileInput := True;
+  fShowKeywords := True;
   fRecordUsage := False;
   if GetACP = 936 then begin //Chinese user
     fUseAltSlash := True;

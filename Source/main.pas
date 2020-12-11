@@ -1512,12 +1512,13 @@ begin
   ClassBrowser.Colors[SelectedBackColor]:=selectedTC.Background;
   ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
   ClassBrowser.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
-  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
   ClassBrowser.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   ClassBrowser.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   ClassBrowser.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
   ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  ClassBrowser.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1527,12 +1528,13 @@ begin
   CodeCompletion.Colors[BackColor] := tc.Background;
   CodeCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
-  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
   CodeCompletion.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
 
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
