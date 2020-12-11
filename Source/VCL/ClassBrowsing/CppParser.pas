@@ -865,12 +865,12 @@ end;
 
 procedure TCppParser.SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
 var
-  Node: PStatementNode;
   Statement: PStatement;
   inheritScopeType: TStatementClassScope;
   lastInheritScopeType : TStatementClassScope;
   basename: AnsiString;
-  
+  pBegin:integer;
+
   function CheckForInheritScopeType(Index: integer): TStatementClassScope;
   begin
     Result := scsNone;
@@ -892,17 +892,18 @@ begin
     if inheritScopeType = scsNone  then
       if not (fTokenizer[Index]^.Text[1] in [',', ':', '(']) then begin
         basename:=fTokenizer[Index]^.Text;
+        //remove template staff
+        pBegin:=Pos('<',basename);
+        if pBegin>0 then begin
+          Delete(basename,pBegin,MaxInt);
+        end;
+
         // Find the corresponding PStatement
-        //todo: add class list to speed up search
-        Node := fStatementList.LastNode;
-        while Assigned(Node) do begin
-          Statement := Node^.Data;
-          if (Statement^._Kind = skClass) and SameStr(basename, Statement^._Command) then begin
+        Statement := FindStatementOf(fCurrentFile,basename,ClassStatement^._ParentScope,true);
+        if assigned(statement) and (Statement^._Kind = skClass) then begin
             ClassStatement._InheritanceList.Add(Statement); // next I please
             InheritClassStatement(ClassStatement,isStruct, Statement,lastInheritScopeType);
             break;
-          end;
-          Node := Node^.PrevNode;
         end;
       end;
     Inc(Index);

@@ -337,8 +337,19 @@ begin
         if Statement = ParentStatement then // prevent infinite recursion
           Continue;
 
-        if Statement^._ParentScope <> ParentStatement then
-          Continue;
+        if Statement^._ParentScope <> ParentStatement then begin
+          if Assigned(ParentStatement) then
+            Continue;
+          //we are adding an orphan statement, just add it
+
+          //should not happend, just in case of error
+          if not Assigned(Statement^._ParentScope) then
+            Continue;
+
+          if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
+            or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
+              Continue;
+        end;
 
         {
         if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
@@ -361,9 +372,9 @@ begin
   if not Visible or not TabVisible then
     Exit;
 
-  Clear;
   // We are busy...
   Items.BeginUpdate;
+  Clear;
   fUpdating:=True;
   try
     if fCurrentFile <> '' then begin
