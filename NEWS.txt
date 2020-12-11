@@ -25,6 +25,9 @@ Version 6.2-beta6
     - fix: disable run/debug/compile buttons when editing a non-project non-c/cpp file
     - enhancement: correctly color symbols chain like  m_myDialog.DoModal()
     - enhancement: correctly parse symbols like ::PostMessage();
+    - fix: don't try to convert encoding when check syntax
+    - enhancement: show definition info in class browser if a symbol is defined outside of the current file
+    - change: mouse left click in the class browser will navigate in the editing file by default.
 
 Version 6.2-beta5 Dec 2020
 

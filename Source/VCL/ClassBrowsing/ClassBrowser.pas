@@ -304,7 +304,11 @@ var
 
   procedure AddStatement(Statement: PStatement);
   begin
-    NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
+    if (node=nil) and Assigned(statement^._ParentScope) then begin
+      NewNode := Items.AddChildObject(Node, Statement^._FullName, Statement);
+    end else begin
+      NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
+    end;
     SetNodeImages(NewNode, Statement);
     if Statement^._Kind in [skClass,skNamespace] then
       AddMembers(NewNode, Statement);
@@ -435,9 +439,16 @@ begin
   with PStatement(Node.Data)^ do begin
     fLastSelection := _Type + ':' + _Command + ':' + _Args;
     if Assigned(fOnSelect) then
-      if Button = mbLeft then // need definition
-        fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
-      else if Button = mbMiddle then // need declaration
+      if Button = mbLeft then begin// need definition
+        //we navigate to the same file first
+        if SameText(_DefinitionFileName,fCurrentFile) then begin
+          fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+        end else if SameText(_FileName,fCurrentFile) then begin
+          fOnSelect(Self, _FileName, _Line)
+        end else begin
+          fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+        end;
+      end else if Button = mbMiddle then // need declaration
         fOnSelect(Self, _FileName, _Line);
   end;
 end;
