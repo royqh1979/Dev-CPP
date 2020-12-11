@@ -2378,9 +2378,11 @@ var
         end;
         Result:=hint;
       end;
-    end else begin
+    end else if st^._Line>0 then begin
       Result := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
         IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+    end else begin  // hard defines
+      Result := MainForm.CppParser.PrettyPrintStatement(st,p.Line);
     end;
     Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   end;
@@ -2592,7 +2594,7 @@ begin
       s , line);
     if assigned(st) then begin
       case st._Kind of
-        skPreprocessor: begin
+        skPreprocessor, skEnum: begin
           fg:=dmMain.Cpp.DirecAttri.Foreground;
         end;
         skVariable: begin
@@ -2601,7 +2603,7 @@ begin
         skFunction,skConstructor,skDestructor: begin
           fg:=dmMain.Cpp.FunctionAttri.Foreground;
         end;
-        skClass,skNamespace : begin
+        skClass,skNamespace,skTypedef : begin
           fg:=dmMain.Cpp.ClassAttri.Foreground;
         end;
       end;

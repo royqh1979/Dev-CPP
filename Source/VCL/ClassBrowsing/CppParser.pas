@@ -167,6 +167,7 @@ type
     function GetRemainder(const Phrase: AnsiString): AnsiString;
 
   public
+    procedure ParseHardDefines;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     procedure AddHardDefineByLine(const Line: AnsiString);
     procedure InvalidateFile(const FileName: AnsiString);
@@ -201,7 +202,7 @@ type
     procedure AddIncludePath(const Value: AnsiString);
     procedure AddProjectIncludePath(const Value: AnsiString);
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
-    function PrettyPrintStatement(Statement: PStatement): AnsiString;
+    function PrettyPrintStatement(Statement: PStatement; line:integer = -1): AnsiString;
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement; overload;
@@ -1021,10 +1022,7 @@ begin
     SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
 
   if Result then begin
-    if(fIndex < fTokenizer.Tokens.Count-3-dis)
-      and  (fTokenizer[fIndex + 3+dis]^.Text[1] in [';',',']) then begin
-      Result:=False;
-    end  else if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
+    if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
       I := fIndex+dis;
       // the check for ']' was added because of this example:
       // struct option long_options[] = {
@@ -1032,12 +1030,15 @@ begin
       //		{"info", 0, 0, 'i'},
       //    ...
       // };
-      while (I < fTokenizer.Tokens.Count) and not (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] in [';', ':', '{',
-        '}', ',', ')', ']']) do begin
+      while (I < fTokenizer.Tokens.Count) do begin
+        if (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] in [';', ':', '{',
+        '}', ',', ')', ']','=','*','&'])  then begin
+          break;
+        end;
         Inc(I);
       end;
 
-      if (I < fTokenizer.Tokens.Count) and not (fTokenizer[I]^.Text[1] in ['{', ':',';']) then begin
+      if (I < fTokenizer.Tokens.Count) and not (fTokenizer[I]^.Text[1] in ['{', ':']) then begin
         Result := False;
       end;
     end;
@@ -2485,7 +2486,7 @@ begin
     Exit;
   end;
 
-     {
+      {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
@@ -2493,6 +2494,7 @@ begin
     Free;
   end;
   }
+
 
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
@@ -2522,7 +2524,7 @@ begin
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
    //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
@@ -2746,6 +2748,46 @@ procedure TCppParser.AddHardDefineByParts(const Name, Args, Value: AnsiString);
 begin
   if Assigned(fPreprocessor) then
     fPreprocessor.AddDefineByParts(Name, Args, Value, True);
+end;
+
+procedure TCppParser.ParseHardDefines;
+var
+  i:integer;
+  define :PDefine;
+  HintText:String;
+begin
+  if fParsing then
+    Exit;
+  fParsing:=True;
+  try
+    for i:=0 to fPreprocessor.HardDefines.Count-1 do begin
+      define:=PDefine(fPreprocessor.HardDefines.Objects[i]);
+      HintText := '#define';
+      if define^.Name <> '' then
+        HintText := HintText + ' ' + define^.Name;
+      if define^.Args <> '' then
+        HintText := HintText + ' ' + define^.Args;
+      if define^.Value <> '' then
+        HintText := HintText + ' ' + define^.Value;
+      AddStatement(
+        nil, // defines don't belong to any scope
+        '',
+        HintText, // override hint
+        '', // define has no type
+        define^.Name,
+        define^.Value,
+        define^.Args,
+        -1,
+        skPreprocessor,
+        ssGlobal,
+        scsNone,
+        True,
+        nil,
+        False);
+    end;
+  finally
+    fParsing:=False;
+  end;
 end;
 
 procedure TCppParser.AddHardDefineByLine(const Line: AnsiString);
@@ -3180,7 +3222,8 @@ begin
   Result := 0;
 end;
 
-function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
+function TCppParser.PrettyPrintStatement(Statement: PStatement;line:integer): AnsiString;
+
   function GetScopePrefix: AnsiString;
   var
     ScopeStr: AnsiString;
@@ -3213,7 +3256,17 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement): AnsiString;
 begin
   Result := '';
   if Statement^._HintText <> '' then begin
-    Result := Statement^._HintText;
+    if Statement^._Kind <> skPreprocessor then begin
+      Result := Statement^._HintText;
+    end else if SameStr(Statement^._Command,'__FILE__') then begin
+      Result := '"'+fCurrentFile+'"';
+    end else if SameStr(Statement^._Command,'__LINE__') then begin
+      Result := '"'+IntToStr(line)+'"';
+    end else if SameStr(Statement^._Command,'__DATE__') then begin
+      Result := '"'+DateToStr(Now)+'"';
+    end else if SameStr(Statement^._Command,'__TIME__') then begin
+      Result := '"'+TimeToStr(Now)+'"';
+    end;
   end else begin
     case Statement^._Kind of
       skFunction,
@@ -3399,6 +3452,17 @@ begin
 //    if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass])  then
     if Assigned(Result) then
       Exit;
+    if (scopeStatement^._Kind = skNamespace) then begin
+      namespaceStatementsList:=FindNamespace(scopeStatement._Command);
+      if Assigned(namespaceStatementsList) then begin
+        for k:=0 to namespaceStatementsList.Count-1 do begin
+          namespaceStatement:=PStatement(namespaceStatementsList[k]);
+          Result:=FindMemberOfStatement(Phrase,namespaceStatement);
+          if Assigned(Result) then
+            Exit;
+        end;
+      end;
+    end;
     // search members of all usings (in current scope )
     for t:=0 to scopeStatement^._Usings.Count-1 do begin
       namespaceName := scopeStatement^._Usings[t];

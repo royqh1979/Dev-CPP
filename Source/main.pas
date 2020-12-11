@@ -4758,9 +4758,15 @@ begin
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
       // add a dev-cpp's own macro
-      CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY 1');
-
+      CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY');
+      // add C/C++ default macro
+      CppParser.AddHardDefineByLine('#define __FILE__  1');
+      CppParser.AddHardDefineByLine('#define __LINE__  1');
+      CppParser.AddHardDefineByLine('#define __DATE__  1');
+      CppParser.AddHardDefineByLine('#define __TIME__  1');  
     end;
+
+  CppParser.ParseHardDefines;
 
   // Configure code completion
   CodeCompletion.Color := devCodeCompletion.BackColor;

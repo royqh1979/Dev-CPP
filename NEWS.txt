@@ -33,7 +33,10 @@ Version 6.2-beta6
     - fix: sometimes crash when switch editors
     - enhancement: optimize the process of project open;
     - enhancement: optimize don't refresh class browser in the process of parsing
-    - enhancement: code completion for C/C++ keyword
+    - enhancement: code completion for C/C++ keyword and the option in the editor dialog
+    - enhancement: color enum/namespace/class/typedef
+    - enhancement: correctly parse variable define like struct Student *p;
+    - enhancement: code suggesion correctly show gcc compiler macro defines like __FILE__ __LINE__
 
 Version 6.2-beta5 Dec 2020
 

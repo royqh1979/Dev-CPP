@@ -187,7 +187,11 @@ begin
   if not Assigned(ScopeStatement) then begin //Global scope
     for i:=0 to Children.Count-1 do begin
       ChildStatement:=PStatement(Children[i]);
-      if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
+      if (ChildStatement^._FileName = '') then begin
+        // hard defines
+        fAddedStatements.Add(ChildStatement^._Command,1);
+        fFullCompletionStatementList.Add(ChildStatement);
+      end else if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
         and (fAddedStatements.ValueOf(ChildStatement^._Command) <0)
         and IsIncluded(ChildStatement^._FileName) then begin //we have to check for file include for symbols in the global scope
         fAddedStatements.Add(ChildStatement^._Command,1);
@@ -253,6 +257,7 @@ begin
         new(codeInStatement);
         codeInStatement^._Command := CppKeywordsList[i];
         codeInStatement^._Kind := skKeyword;
+        fCodeInsStatements.Add(pointer(codeInStatement));
         fFullCompletionStatementList.Add(pointer(codeInStatement));
       end;
     end;

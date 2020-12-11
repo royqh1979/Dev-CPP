@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabCBCompletion
+    ActivePage = tabGeneral
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -714,7 +714,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end

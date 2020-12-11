@@ -114,6 +114,7 @@ type
     //debug procedures
     procedure DumpIncludesListTo(FileName:ansiString);
     procedure DumpDefinesTo(FileName:ansiString);
+    property HardDefines:TDevStringList read fHardDefines;
   end;
 
 procedure Register;
