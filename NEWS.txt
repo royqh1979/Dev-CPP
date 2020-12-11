@@ -30,6 +30,7 @@ Version 6.2-beta6
     - fix: don't try to convert encoding when check syntax
     - enhancement: show definition info in class browser if a symbol is defined outside of the current file
     - change: mouse left click in the class browser will navigate in the editing file by default.
+    - fix: sometimes crash when switch editors
 
 Version 6.2-beta5 Dec 2020
 

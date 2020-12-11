@@ -499,10 +499,14 @@ begin
   // Don't waste time refocusing
   if fText.Focused then
     Exit;
-
-  // Allow the user to start typing right away
-  fTabSheet.PageControl.ActivePage := fTabSheet;
-  fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  fText.BeginUpdate;
+  try
+    // Allow the user to start typing right away
+    fTabSheet.PageControl.ActivePage := fTabSheet;
+    fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  finally
+    fText.EndUpdate;
+  end;
   
   //don't need to reparse here, in EditorEnter event handler we will do it
   MainForm.UpdateFileEncodingStatusPanel;
