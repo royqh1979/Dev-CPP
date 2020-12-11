@@ -205,7 +205,7 @@ end;
 procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: AnsiString);
 var
   scopeStatement : PStatement;
-  ChildStatement,ClassTypeStatement,namespaceStatement:PStatement;
+  ParentTypeStatement,ChildStatement,ClassTypeStatement,namespaceStatement:PStatement;
   namespaceStatementsList: TList;
   Children : TList;
   I,t,k: integer;
@@ -295,7 +295,7 @@ begin
         AddChildren(namespaceStatement);
       end;
     end else begin
-      Statement := fParser.FindStatementOf(FileName, scopeName,fCurrentStatement);
+      Statement := fParser.FindStatementOf(FileName, scopeName,fCurrentStatement,ParentTypeStatement);
       if not Assigned(statement) then
         Exit;
       ScopeTypeStatement := fCurrentStatement;
@@ -305,7 +305,8 @@ begin
       if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin
         // Get type statement  of current (scope) statement
 
-        ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
+        ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,ParentTypeStatement);
+//      ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
         if not Assigned(ClassTypeStatement) then
           Exit;
         //is a smart pointer

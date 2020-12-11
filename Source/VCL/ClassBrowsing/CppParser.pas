@@ -205,6 +205,8 @@ type
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement; overload;
+    function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement;
+      var CurrentClassType: PStatement ; force:boolean = False): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement; overload;
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
@@ -710,7 +712,7 @@ begin
     if assigned(oldStatement) then begin
       Result:= oldStatement;
       if IsDefinition then begin
-        if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
+        if not SameText(oldStatement^._FileName, FileName) then begin
           fileIncludes1:=FindFileIncludes(FileName);
           if Assigned(fileIncludes1) then begin
             idx:=fileIncludes1^.Statements.Add(oldStatement);
@@ -720,7 +722,7 @@ begin
         oldStatement^._DefinitionLine := Line;
         oldStatement^._DefinitionFileName := FileName;
       end else begin
-        if not SameText(oldStatement^._FileName, FileName) then begin
+        if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
           fileIncludes1:=FindFileIncludes(FileName);
           if Assigned(fileIncludes1) then begin
             idx:=fileIncludes1^.Statements.Add(oldStatement);
@@ -3423,20 +3425,25 @@ begin
   end;
 end;
 
-{
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement;
+var
+  StatementParentType:PStatement;
+begin
+  Result:=FindStatementOf(FileName,Phrase,CurrentClass,StatementParentType,force);
+end;
 
-
-}
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString;
+  CurrentClass: PStatement;var CurrentClassType : PStatement ; force:boolean): PStatement;
 var
   //Node: PStatementNode;
   OperatorToken: AnsiString;
-  currentNamespace, CurrentClassType ,Statement, MemberStatement, TypeStatement: PStatement;
+  currentNamespace, Statement, MemberStatement, TypeStatement: PStatement;
   i,idx: integer;
   namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin
   Result := nil;
+  CurrentClassType := CurrentClass;
   if fParsing and not force then
     Exit;
 
@@ -3535,6 +3542,8 @@ begin
     if not Assigned(MemberStatement) then begin;
       Exit;
     end;
+    
+    CurrentClassType:=statement;
     Statement:=MemberStatement;
     if statement._Kind in [skTypedef] then begin
       TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
