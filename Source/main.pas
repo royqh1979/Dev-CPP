@@ -2066,8 +2066,10 @@ begin
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
     e:=EditorList.GetEditor();
-    if assigned(e) and e.InProject then
+    if assigned(e) and e.InProject then begin
+      //CppParser.InvalidateFile(e.FileName);
       self.CheckSyntaxInBack(e);
+    end;
 
     if fProject.FileName <> '' then begin
       dmMain.RemoveFromHistory(s);
@@ -2079,8 +2081,11 @@ begin
       CheckForDLLProfiling;
       UpdateAppTitle;
       UpdateCompilerList;
-      { we do it in project.open }
+
+      //parse the project
+      UpdateClassBrowsing;
       ScanActiveProject(True);
+      fProject.DoAutoOpen;
       //ScanActiveProject;
     end else begin
       fProject.Free;
@@ -5265,7 +5270,8 @@ begin
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
-        CppParser.ParseFile(e.FileName,e.InProject,True);
+        // CppParser.ParseFile(e.FileName,e.InProject,True);
+        CppParser.ParseFile(e.FileName,e.InProject);
       end;
     end else begin
       ClassBrowser.CurrentFile := '';

@@ -1108,9 +1108,12 @@ var
         RightOpValue := StrToIntDef(RemoveSuffixes(RightOp), 0);
         if OperatorToken = '*' then
           ResultValue := LeftOpValue * RightOpValue
-        else if OperatorToken = '/' then
-          ResultValue := LeftOpValue div RightOpValue // int division
-        else if OperatorToken = '+' then
+        else if OperatorToken = '/' then begin
+          if RightOpValue = 0 then
+            ResultValue := LeftOpValue
+          else
+            ResultValue := LeftOpValue div RightOpValue; // int division
+        end else if OperatorToken = '+' then
           ResultValue := LeftOpValue + RightOpValue
         else if OperatorToken = '-' then
           ResultValue := LeftOpValue - RightOpValue

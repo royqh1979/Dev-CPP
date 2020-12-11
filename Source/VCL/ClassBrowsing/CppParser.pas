@@ -2460,9 +2460,10 @@ begin
   if (not ManualUpdate) and Assigned(fOnStartParsing) then
     fOnStartParsing(Self);
 
-
+{
   if not ManualUpdate and Assigned(fOnBusy) then
       fOnBusy(Self);
+}
   // Preprocess the file...
   try
     // Let the preprocessor augment the include records
@@ -2534,9 +2535,11 @@ begin
       fOnEndParsing(Self, 1);
   end;
 
+  {
   if not ManualUpdate then
     if Assigned(fOnUpdate) then
       fOnUpdate(Self);
+  }
 end;
 
 procedure TCppParser.Reset;
@@ -2616,17 +2619,29 @@ begin
       fOnStartParsing(Self);
     try
       // Support stopping of parsing when files closes unexpectedly
-      I := 0;
       fFilesScannedCount := 0;
       fFilesToScanCount := fFilesToScan.Count;
-      while I < fFilesToScan.Count do begin
+      //we only parse CFile in the first parse
+      for i:=0 to fFilesToScan.Count-1 do begin
+        if not IsCFile(fFilesToScan[i]) then
+          continue;
         Inc(fFilesScannedCount); // progress is mentioned before scanning begins
         if Assigned(fOnTotalProgress) then
           fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
         if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
           InternalParse(fFilesToScan[i], True);
         end;
-        Inc(I);
+      end;
+      // parse other files in the second parse
+      for i:=0 to fFilesToScan.Count-1 do begin
+        if IsCFile(fFilesToScan[i]) then
+          continue;
+        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+        if Assigned(fOnTotalProgress) then
+          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
+        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
+          InternalParse(fFilesToScan[i], True);
+        end;
       end;
       fFilesToScan.Clear;
     finally
@@ -2842,6 +2857,7 @@ begin
   InternalInvalidateFile(FileName);
   fParsing:=False;
 end;
+
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
 var
   I,j,idx: integer;

@@ -31,6 +31,8 @@ Version 6.2-beta6
     - enhancement: show definition info in class browser if a symbol is defined outside of the current file
     - change: mouse left click in the class browser will navigate in the editing file by default.
     - fix: sometimes crash when switch editors
+    - enhancement: optimize the process of project open;
+    - enhancement: optimize don't refresh class browser in the process of parsing
 
 Version 6.2-beta5 Dec 2020
 
