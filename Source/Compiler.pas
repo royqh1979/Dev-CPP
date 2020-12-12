@@ -682,7 +682,7 @@ begin
         GetLibrariesParams;
         GetIncludesParams;
 
-        if UseUTF8 then begin
+        if not fCheckSyntax and UseUTF8 then begin
           fCompileParams := fCompileParams + ' -finput-charset=utf-8 --exec-charset='
             +GetSystemCharsetName();
           fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 --exec-charset='

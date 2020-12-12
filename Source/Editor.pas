@@ -141,7 +141,8 @@ type
     procedure EditorPaintHighlightToken(Sender: TObject; Line: integer;
       column: integer; token: String; attr: TSynHighlighterAttributes;
       var style:TFontStyles; var FG,BG:TColor);
-
+    procedure ExporterFormatToken(Sender: TObject; Line: integer;
+      column: integer; token: String; var attr: TSynHighlighterAttributes);
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
     procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList;
@@ -499,10 +500,14 @@ begin
   // Don't waste time refocusing
   if fText.Focused then
     Exit;
-
-  // Allow the user to start typing right away
-  fTabSheet.PageControl.ActivePage := fTabSheet;
-  fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  fText.BeginUpdate;
+  try
+    // Allow the user to start typing right away
+    fTabSheet.PageControl.ActivePage := fTabSheet;
+    fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+  finally
+    fText.EndUpdate;
+  end;
   
   //don't need to reparse here, in EditorEnter event handler we will do it
   MainForm.UpdateFileEncodingStatusPanel;
@@ -596,17 +601,20 @@ begin
     StrToThemeColor(tc, devEditor.Syntax.Values[cABP]);
     BG := tc.Background;
     FG := tc.Foreground;
-    Special := TRUE;
+    if (BG <> clNone) or (FG<>clNone) then
+      Special := TRUE;
   end else if (HasBreakpoint(Line) <> -1) then begin
     StrToThemeColor(tc, devEditor.Syntax.Values[cBP]);
     BG := tc.Background;
     FG := tc.Foreground;
-    Special := TRUE;
+    if (BG <> clNone) or (FG<>clNone) then
+      Special := TRUE;
   end else if Line = fErrorLine then begin
     StrToThemeColor(tc,  devEditor.Syntax.Values[cErr]);
     BG := tc.Background;
     FG := tc.Foreground;
-    Special := TRUE;
+    if (BG <> clNone) or (FG<>clNone) then
+      Special := TRUE;
   end;
 end;
 
@@ -907,6 +915,8 @@ begin
     SynExporterRTF.UseBackground := True;
     SynExporterRTF.Font := fText.Font;
     SynExporterRTF.Highlighter := fText.Highlighter;
+    SynExporterRTF.OnFormatToken := ExporterFormatToken;
+
 
     if fText.SelText = '' then
       SynExporterRTF.ExportAll(fText.Lines)
@@ -946,6 +956,7 @@ begin
     SynExporterRTF.UseBackground := True;
     SynExporterRTF.Font := fText.Font;
     SynExporterRTF.Highlighter := fText.Highlighter;
+    SynExporterRTF.OnFormatToken := ExporterFormatToken;
 
     SynExporterRTF.ExportAll(fText.Lines);
 
@@ -1717,7 +1728,7 @@ begin
   if (Key in fText.IdentChars) then begin
     inc(fLastIdCharPressed);
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
-      if fLastIdCharPressed=2 then begin
+      if fLastIdCharPressed=1 then begin
         lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
         if lastWord <> '' then begin
           if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
@@ -1977,6 +1988,7 @@ begin
   fCompletionBox.Position := fText.ClientToScreen(P);
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
+  fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.SymbolUsage := dmMain.SymbolUsage;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
@@ -2373,9 +2385,11 @@ var
         end;
         Result:=hint;
       end;
-    end else begin
+    end else if st^._Line>0 then begin
       Result := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
         IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+    end else begin  // hard defines
+      Result := MainForm.CppParser.PrettyPrintStatement(st,p.Line);
     end;
     Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   end;
@@ -2555,12 +2569,53 @@ begin
   end;
 end;
 
+procedure TEditor.ExporterFormatToken(Sender: TObject; Line: integer;
+      column: integer; token: String; var attr: TSynHighlighterAttributes);
+var
+  st: PStatement;
+  p: TBufferCoord;
+  s:String;
+begin
+  if token='' then
+    Exit;
+
+  if fCompletionBox.Visible then //don't do this when show code suggestion
+    Exit;
+  if (attr = fText.Highlighter.IdentifierAttribute) then begin
+    p:=BufferCoord(column+1,line);
+    s:= GetWordAtPosition(fText,p,wpInformation);
+    st := MainForm.CppParser.FindStatementOf(fFileName,
+      s , line);
+    if assigned(st) then begin
+      case st._Kind of
+        skPreprocessor, skEnum: begin
+          attr:=dmMain.Cpp.DirecAttri;
+        end;
+        skVariable: begin
+          attr:=dmMain.Cpp.VariableAttri;
+        end;
+        skFunction,skConstructor,skDestructor: begin
+          attr:=dmMain.Cpp.FunctionAttri;
+        end;
+        skClass,skNamespace,skTypedef : begin
+          attr:=dmMain.Cpp.ClassAttri;
+        end;
+      end;
+      if attr.Foreground = clNone then //old color theme, use the default color
+        attr := dmMain.Cpp.IdentifierAttri;
+    end;
+  end;
+end;
+
+
 procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
   column: integer; token: String; attr: TSynHighlighterAttributes;
   var style:TFontStyles; var FG,BG:TColor);
 var
   tc:TThemeColor;
   st: PStatement;
+  p: TBufferCoord;
+  s:String;
 begin
   if token='' then
     Exit;
@@ -2578,10 +2633,14 @@ begin
   if fCompletionBox.Visible then //don't do this when show
     Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
-    st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    //st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    p:=fText.DisplayToBufferPos(DisplayCoord(column+1,line));
+    s:= GetWordAtPosition(fText,p,wpInformation);
+    st := MainForm.CppParser.FindStatementOf(fFileName,
+      s , line);
     if assigned(st) then begin
       case st._Kind of
-        skPreprocessor: begin
+        skPreprocessor, skEnum: begin
           fg:=dmMain.Cpp.DirecAttri.Foreground;
         end;
         skVariable: begin
@@ -2590,7 +2649,12 @@ begin
         skFunction,skConstructor,skDestructor: begin
           fg:=dmMain.Cpp.FunctionAttri.Foreground;
         end;
+        skClass,skNamespace,skTypedef : begin
+          fg:=dmMain.Cpp.ClassAttri.Foreground;
+        end;
       end;
+      if fg = clNone then //old color theme, use the default color
+        fg := dmMain.Cpp.IdentifierAttri.Foreground;
     end;
   end;
 end;

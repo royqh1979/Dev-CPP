@@ -23,7 +23,11 @@ interface
 
 uses
   SysUtils, Classes, Menus, Controls, SynEditHighlighter, SynHighlighterCpp,
-  CodeInsList, SynHighlighterRC, ImgList, CBUtils;
+  CodeInsList, SynHighlighterRC, ImgList, CBUtils, SynHighlighterCSS,
+  SynHighlighterJScript, SynHighlighterHtml, SynHighlighterXML,
+  SynHighlighterBat, SynHighlighterUNIXShellScript, SynHighlighterSQL,
+  SynHighlighterAsm, SynHighlighterIni, SynHighlighterInno,
+  SynHighlighterDOT, SynHighlighterGeneral;
 
 type
   PMRUItem = ^TMRUItem;
@@ -44,6 +48,18 @@ type
     MenuImages_Blue: TImageList;
     ProjectImage_Blue: TImageList;
     ClassImages: TImageList;
+    DotSyn: TSynDOTSyn;
+    InnoSyn: TSynInnoSyn;
+    IniSyn: TSynIniSyn;
+    AsmSyn: TSynAsmSyn;
+    SQLSyn: TSynSQLSyn;
+    UnixShellSyn: TSynUNIXShellScriptSyn;
+    BatSyn: TSynBatSyn;
+    XMLSyn: TSynXMLSyn;
+    HTMLSyn: TSynHTMLSyn;
+    JSSyn: TSynJScriptSyn;
+    CssSyn: TSynCssSyn;
+    GenSyn: TSynGeneralSyn;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
@@ -163,15 +179,15 @@ begin
       end;
     end;
   end;
-  AddSpecial(cBP, offset + 17); // breakpoint
-  AddSpecial(cErr, offset + 18); // error line
-  AddSpecial(cABP, offset + 19); // active breakpoint
-  AddSpecial(cGut, offset + 20); // gutter
-  AddSpecial(cSel, offset + 21); // selected text
-  AddSpecial(cFld, offset + 22); // fold bar lines
-  AddSpecial(cAL, offset + 23); // active Line
-  AddSpecial(cWN, offset + 24); // warning Line  
-  AddSpecial(cPNL, offset + 25); // warning Line  
+  AddSpecial(cBP, offset + 18); // breakpoint
+  AddSpecial(cErr, offset + 19); // error line
+  AddSpecial(cABP, offset + 20); // active breakpoint
+  AddSpecial(cGut, offset + 21); // gutter
+  AddSpecial(cSel, offset + 22); // selected text
+  AddSpecial(cFld, offset + 23); // fold bar lines
+  AddSpecial(cAL, offset + 24); // active Line
+  AddSpecial(cWN, offset + 25); // warning Line
+  AddSpecial(cPNL, offset + 26); // warning Line
 end;
 
 procedure TdmMain.UpdateHighlighter;
@@ -205,6 +221,155 @@ begin
     StringAttri.Assign(cpp.StringAttri);
     SymbolAttri.Assign(cpp.SymbolAttri);
   end;
+  with AsmSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+  end;
+  with BatSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    VariableAttri.Assign(cpp.VariableAttri);
+  end;
+  with CssSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    PropertyAttri.Assign(cpp.CharAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    ColorAttri.Assign(cpp.DirecAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    TextAttri.Assign(cpp.IdentifierAttri);
+    ValueAttri.Assign(cpp.VariableAttri);
+    UndefPropertyAttri.Assign(cpp.FunctionAttri);
+  end;
+  with DotSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+
+    ArrowHeadAttri.Assign(cpp.DirecAttri);
+    AttributeAttri.Assign(cpp.VariableAttri);
+    DirectionsAttri.Assign(cpp.NumberAttri);
+    ShapeAttri.Assign(cpp.FunctionAttri);
+    ValueAttri.Assign(cpp.ClassAttri);
+  end;
+  with HTMLSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+
+    AndAttri.Assign(cpp.VariableAttri);
+    TextAttri.Assign(cpp.StringAttri);
+    UndefKeyAttri.Assign(cpp.ClassAttri);
+    ValueAttri.Assign(cpp.NumberAttri);
+  end;
+  with IniSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+    TextAttri.Assign(cpp.VariableAttri);
+    SectionAttri.Assign(cpp.ClassAttri);
+  end;
+  with InnoSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+
+    ConstantAttri.Assign(cpp.AsmAttri);
+    SectionAttri.Assign(cpp.VariableAttri);
+    ParameterAttri.Assign(cpp.ClassAttri);
+    InvalidAttri.Assign(cpp.InvalidAttri);
+  end;
+  with JsSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+
+    NonReservedKeyAttri.Assign(cpp.VariableAttri);
+    EventAttri.Assign(cpp.ClassAttri);
+  end;
+  with SQLSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+    ConditionalCommentAttri.Assign(cpp.OctalAttri);
+    DataTypeAttri.Assign(cpp.HexAttri);
+    DefaultPackageAttri.Assign(cpp.AsmAttri);
+    DelimitedIdentifierAttri.Assign(cpp.FloatAttri);
+    ExceptionAttri.Assign(cpp.CharAttri);
+    FunctionAttri.Assign(cpp.FunctionAttri);
+    PLSQLAttri.Assign(cpp.KeyAttri);
+    SQLPlusAttri.Assign(cpp.KeyAttri);
+    TableNameAttri.Assign(cpp.ClassAttri);
+    VariableAttri.Assign(cpp.VariableAttri);
+  end;
+  with UnixShellSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+
+    SecondKeyAttri.Assign(cpp.ClassAttri);
+    VarAttri.Assign(cpp.VariableAttri);
+  end;
+  with XMLSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+    ElementAttri.Assign(cpp.VariableAttri);
+    TextAttri.Assign(cpp.StringAttri);
+    EntityRefAttri.Assign(cpp.ClassAttri);
+    ProcessingInstructionAttri.Assign(cpp.FunctionAttri);
+    CDATAAttri.Assign(cpp.DirecAttri);
+    DocTypeAttri.Assign(cpp.CharAttri);
+    AttributeAttri.Assign(cpp.NumberAttri);
+    NamespaceAttributeValueAttri.Assign(cpp.OctalAttri);
+    AttributeValueAttri.Assign(cpp.HexAttri);
+    NamespaceAttributeAttri.Assign(cpp.CharAttri);
+  end;
+
+  with GenSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    PreprocessorAttri.Assign(cpp.DirecAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+  end;
 end;
 
 function TdmMain.GetHighlighter(const FileName: AnsiString): TSynCustomHighlighter;
@@ -214,14 +379,38 @@ var
   tmp: TStrings;
 begin
   UpdateHighlighter;
-  result := nil;
+  result := GenSyn;
   if devEditor.UseSyntax then begin
+  {
     if (FileName = '') or (Pos(Lang[ID_UNTITLED], FileName) = 1) then
-      result := cpp
+      result := GenSyn
     else begin
+  }
       ext := ExtractFileExt(FileName);
       if CompareText(ext, RC_EXT) = 0 then
         result := Res
+      else if (CompareText(ext, '.html')  = 0)
+        or (CompareText(ext, '.htm')  = 0)then
+        result := HTMLSyn
+      else if (CompareText(ext, '.js')  = 0) then
+        result := JSSyn
+      else if CompareText(ext, '.css') = 0 then
+        result := CSSSyn
+      else if CompareText(ext, '.bat') = 0 then
+        result := BatSyn
+      else if CompareText(ext, '.asm') = 0 then
+        result := AsmSyn
+      else if CompareText(ext, '.ini') = 0 then
+        result := IniSyn
+      else if CompareText(ext, '.nsi') = 0 then
+        result := InnoSyn
+      else if CompareText(ext, '.sql') = 0 then
+        result := SQLSyn
+      else if CompareText(ext, '.xml') = 0 then
+        result := XMLSyn
+      else if (CompareText(ext, '.sh') = 0)
+        or StartsText('makefile',FileName) then
+        result := UnixShellSyn
       else begin
         tmp := TStringList.Create;
         try
@@ -238,7 +427,9 @@ begin
           tmp.Free;
         end;
       end;
+      {
     end;
+    }
   end;
 end;
 

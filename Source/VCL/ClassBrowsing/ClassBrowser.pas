@@ -98,7 +98,7 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
-    fColors : array[0..11] of TColor;    
+    fColors : array[0..12] of TColor;    
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
@@ -304,7 +304,11 @@ var
 
   procedure AddStatement(Statement: PStatement);
   begin
-    NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
+    if (node=nil) and Assigned(statement^._ParentScope) then begin
+      NewNode := Items.AddChildObject(Node, Statement^._FullName, Statement);
+    end else begin
+      NewNode := Items.AddChildObject(Node, Statement^._Command, Statement);
+    end;
     SetNodeImages(NewNode, Statement);
     if Statement^._Kind in [skClass,skNamespace] then
       AddMembers(NewNode, Statement);
@@ -337,8 +341,19 @@ begin
         if Statement = ParentStatement then // prevent infinite recursion
           Continue;
 
-        if Statement^._ParentScope <> ParentStatement then
-          Continue;
+        if Statement^._ParentScope <> ParentStatement then begin
+          if Assigned(ParentStatement) then
+            Continue;
+          //we are adding an orphan statement, just add it
+
+          //should not happend, just in case of error
+          if not Assigned(Statement^._ParentScope) then
+            Continue;
+
+          if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
+            or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
+              Continue;
+        end;
 
         {
         if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
@@ -361,9 +376,9 @@ begin
   if not Visible or not TabVisible then
     Exit;
 
-  Clear;
   // We are busy...
   Items.BeginUpdate;
+  Clear;
   fUpdating:=True;
   try
     if fCurrentFile <> '' then begin
@@ -424,9 +439,16 @@ begin
   with PStatement(Node.Data)^ do begin
     fLastSelection := _Type + ':' + _Command + ':' + _Args;
     if Assigned(fOnSelect) then
-      if Button = mbLeft then // need definition
-        fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
-      else if Button = mbMiddle then // need declaration
+      if Button = mbLeft then begin// need definition
+        //we navigate to the same file first
+        if SameText(_DefinitionFileName,fCurrentFile) then begin
+          fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+        end else if SameText(_FileName,fCurrentFile) then begin
+          fOnSelect(Self, _FileName, _Line)
+        end else begin
+          fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+        end;
+      end else if Button = mbMiddle then // need declaration
         fOnSelect(Self, _FileName, _Line);
   end;
 end;

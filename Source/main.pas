@@ -1512,12 +1512,13 @@ begin
   ClassBrowser.Colors[SelectedBackColor]:=selectedTC.Background;
   ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
   ClassBrowser.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
-  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
   ClassBrowser.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   ClassBrowser.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   ClassBrowser.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
   ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  ClassBrowser.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1527,12 +1528,13 @@ begin
   CodeCompletion.Colors[BackColor] := tc.Background;
   CodeCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   CodeCompletion.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
-  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.NumberAttri.Foreground;
+  CodeCompletion.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
   CodeCompletion.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
 
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
@@ -2066,8 +2068,10 @@ begin
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
     e:=EditorList.GetEditor();
-    if assigned(e) and e.InProject then
+    if assigned(e) and e.InProject then begin
+      //CppParser.InvalidateFile(e.FileName);
       self.CheckSyntaxInBack(e);
+    end;
 
     if fProject.FileName <> '' then begin
       dmMain.RemoveFromHistory(s);
@@ -2079,9 +2083,12 @@ begin
       CheckForDLLProfiling;
       UpdateAppTitle;
       UpdateCompilerList;
-      { we do it in project.open }
-      //ScanActiveProject(True);
-      ScanActiveProject;
+
+      //parse the project
+      UpdateClassBrowsing;
+      ScanActiveProject(True);
+      fProject.DoAutoOpen;
+      //ScanActiveProject;
     end else begin
       fProject.Free;
       fProject := nil;
@@ -3844,6 +3851,23 @@ begin
           fDebugger.SendCommand('exec-file', '"' + StringReplace(fProject.Options.HostApplication, '\', '/',
             [rfReplaceAll])
             + '"');
+
+        for i:=0 to fProject.Units.Count-1 do begin
+          fDebugger.SendCommand('dir', '"'+StringReplace(
+            ExtractFilePath(fProject.Units[i].FileName),'\', '/',[rfReplaceAll])
+            + '"');
+        end;
+        for i:=0 to fProject.Options.Includes.Count-1 do begin
+          fDebugger.SendCommand('dir', '"'+StringReplace(
+            fProject.Options.Includes[i],'\', '/',[rfReplaceAll])
+            + '"');
+        end;
+        for i:=0 to fProject.Options.Libs.Count-1 do begin
+          fDebugger.SendCommand('dir', '"'+StringReplace(
+            fProject.Options.Includes[i],'\', '/',[rfReplaceAll])
+            + '"');
+        end;
+
       end;
     ctFile: begin
         // Check if we enabled proper options
@@ -4031,7 +4055,25 @@ begin
 end;
 
 procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
+var
+  e:TEditor;
+  enabled:boolean;
 begin
+  TCustomAction(Sender).Enabled:=False;
+
+  //only enable run/complie/debug when we have project or current file is c/cpp file
+  if not Assigned(fProject) then begin
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
+    if (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end else begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end;
+
   TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
     Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
      and (not devExecutor.Running);
@@ -4075,7 +4117,23 @@ begin
 end;
 
 procedure TMainForm.actRunUpdate(Sender: TObject);
+var
+  e:TEditor;
 begin
+  TCustomAction(Sender).Enabled:=False;
+  //only enable run/complie/debug when we have project or current file is c/cpp file
+  if not Assigned(fProject) then begin
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
+    if (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end else begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end;
+
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (fProject.Options.typ <> dptStat) and (not
       fCompiler.Compiling) and (not fDebugger.Executing) and (not devExecutor.Running)
@@ -4085,7 +4143,23 @@ begin
 end;
 
 procedure TMainForm.actCompileRunUpdate(Sender: TObject);
+var
+  e:TEditor;
 begin
+  TCustomAction(Sender).Enabled:=False;
+  //only enable run/complie/debug when we have project or current file is c/cpp file
+  if not Assigned(fProject) then begin
+    e:=EditorList.GetEditor();
+    if not Assigned(e) then
+      Exit;
+    if (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end else begin
+    e:=EditorList.GetEditor();
+    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
+      Exit;
+  end;
+  
   if Assigned(fProject) then
     TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling) and
       (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
@@ -4701,9 +4775,15 @@ begin
       for I := 0 to Defines.Count - 1 do
         CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
       // add a dev-cpp's own macro
-      CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY 1');
-
+      CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY');
+      // add C/C++ default macro
+      CppParser.AddHardDefineByLine('#define __FILE__  1');
+      CppParser.AddHardDefineByLine('#define __LINE__  1');
+      CppParser.AddHardDefineByLine('#define __DATE__  1');
+      CppParser.AddHardDefineByLine('#define __TIME__  1');  
     end;
+
+  CppParser.ParseHardDefines;
 
   // Configure code completion
   CodeCompletion.Color := devCodeCompletion.BackColor;
@@ -5203,7 +5283,11 @@ begin
     Exit;
   if ClassBrowser.CurrentFile = e.FileName then begin
     Exit;
-  end else if ClassBrowser.CurrentFile<> '' then begin
+  end else if (ClassBrowser.CurrentFile<> '') and IsCFile(ClassBrowser.CurrentFile)
+    and (
+      not assigned(fProject)
+      or (fProject.Units.IndexOf(ClassBrowser.CurrentFile)<0)
+    ) then begin
     CppParser.InvalidateFile(ClassBrowser.CurrentFile); //invalid old file
   end;
   ClassBrowser.BeginUpdate;
@@ -5211,7 +5295,8 @@ begin
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
-        CppParser.ParseFile(e.FileName,e.InProject,True);
+        // CppParser.ParseFile(e.FileName,e.InProject,True);
+        CppParser.ParseFile(e.FileName,e.InProject);
       end;
     end else begin
       ClassBrowser.CurrentFile := '';

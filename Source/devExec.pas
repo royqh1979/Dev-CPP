@@ -101,6 +101,7 @@ var
   ProcessInfo: TProcessInformation;
   sa: TSecurityAttributes;
   params: String;
+  flags: DWORD;
 begin
   FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
   with StartupInfo do begin
@@ -154,8 +155,11 @@ begin
     params := '1 '+fParams
   else
     params := '0 '+fParams;
+  flags:= NORMAL_PRIORITY_CLASS;
+  if not ProgramHasConsole(fFile) then
+    flags:= CREATE_NEW_PROCESS_GROUP;
   if CreateProcess(nil, PAnsiChar('"' + fFile + '" ' + params), nil, nil, True,
-    NORMAL_PRIORITY_CLASS , nil,
+    flags, nil,
     PAnsiChar(fPath), StartupInfo, ProcessInfo) then begin
     fProcess := ProcessInfo.hProcess;
     SetEvent(StartupEvent);

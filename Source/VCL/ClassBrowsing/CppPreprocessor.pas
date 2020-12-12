@@ -114,6 +114,7 @@ type
     //debug procedures
     procedure DumpIncludesListTo(FileName:ansiString);
     procedure DumpDefinesTo(FileName:ansiString);
+    property HardDefines:TDevStringList read fHardDefines;
   end;
 
 procedure Register;
@@ -615,6 +616,7 @@ var
     tokens: TStringList;
     i:integer;
     lastIsConcat: boolean;
+    s:string;
   begin
     args := Copy(item^.Args,2,length(item^.Args)-2); // remove '(' ')'
     args := Trim(Args);
@@ -638,11 +640,14 @@ var
         if not lastIsConcat then begin
           formatStr:=formatStr+' ';
         end;
+        s:=tokens[i];
+        if s='%' then
+          s:='%%';
         if sameStr(tokens[i],arg) then begin
           item^.ArgList.Add(1);
           formatStr:=formatStr+'%s';
         end else begin
-          formatStr:=formatStr+tokens[i];
+          formatStr:=formatStr+s;
         end;
         lastIsConcat := False;
       end;
@@ -1108,9 +1113,12 @@ var
         RightOpValue := StrToIntDef(RemoveSuffixes(RightOp), 0);
         if OperatorToken = '*' then
           ResultValue := LeftOpValue * RightOpValue
-        else if OperatorToken = '/' then
-          ResultValue := LeftOpValue div RightOpValue // int division
-        else if OperatorToken = '+' then
+        else if OperatorToken = '/' then begin
+          if RightOpValue = 0 then
+            ResultValue := LeftOpValue
+          else
+            ResultValue := LeftOpValue div RightOpValue; // int division
+        end else if OperatorToken = '+' then
           ResultValue := LeftOpValue + RightOpValue
         else if OperatorToken = '-' then
           ResultValue := LeftOpValue - RightOpValue

@@ -102,6 +102,7 @@ type
     function GetMakeFileName: AnsiString;
     procedure SetModified(value: boolean);
     procedure SortUnitsByPriority;
+    procedure Open;
   public
     property Options: TProjOptions read fOptions write fOptions;
     property Name: AnsiString read fName write fName;
@@ -110,7 +111,7 @@ type
     property Directory: AnsiString read GetDirectory;
     property Executable: AnsiString read GetExecutableName;
     property Units: TUnitList read fUnits write fUnits;
-//    property INIFile: TMemIniFile read fINIFile write fINIFile;
+    property INIFile: TMemIniFile read fINIFile write fINIFile;
     property Modified: boolean read GetModified write SetModified;
     property MakeFileName: AnsiString read GetMakeFileName;
     constructor Create(const nFileName, nName: AnsiString);
@@ -122,6 +123,7 @@ type
     procedure AddFolder(const s: AnsiString);
     function OpenUnit(index: integer): TEditor;
     procedure CloseUnit(index: integer);
+    procedure DoAutoOpen;
     procedure SaveUnitAs(i: integer; sFileName: AnsiString); // save single [UnitX]
     procedure SaveAll; // save [Project] and  all [UnitX]
     procedure LoadLayout; // load all [UnitX]
@@ -134,7 +136,7 @@ type
     procedure LoadOptions;
     procedure SaveOptions;
     function SaveUnits: Boolean;
-    procedure Open;
+//    procedure Open;
     function FileAlreadyExists(const s: AnsiString): boolean;
     function RemoveFolder(Node: TTreeNode): boolean;
     function RemoveEditor(index: integer; DoClose: boolean): boolean;
@@ -260,9 +262,9 @@ begin
   fFileName := nFileName;
   finiFile := TMemIniFile.Create(fFileName);
   fOptions := TProjOptions.Create;
-  if nName = DEV_INTERNAL_OPEN then
-    Open
-  else begin
+  if nName = DEV_INTERNAL_OPEN then begin
+    Open; 
+  end else begin
     fName := nName;
     fIniFile.WriteString('Project', 'filename', nFileName);
     fIniFile.WriteString('Project', 'name', nName);
@@ -1051,8 +1053,15 @@ begin
   end;
 
   // reset cppparser
-  MainForm.SetCppParserProject(self);
+  //MainForm.SetCppParserProject(self);
 
+  RebuildNodes;
+end;
+
+procedure TProject.DoAutoOpen;
+var
+  i:integer;
+begin
   case devData.AutoOpen of
     0: begin
         for i := 0 to pred(fUnits.Count) do
@@ -1066,8 +1075,6 @@ begin
     2:
       LoadLayout; // Open previous selection
   end;
-
-  RebuildNodes;
 end;
 
 { end XXXKF changed }

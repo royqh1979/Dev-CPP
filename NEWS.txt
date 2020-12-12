@@ -1,3 +1,8 @@
+Version 6.2.1
+
+    - enhancement: Export as RTF/Copy as RTF use the same colors as the editor
+    - fix: debug logout is not turned off
+
 Version 6.2-beta6
 
     - fix: toolbar position error after restart
@@ -22,6 +27,27 @@ Version 6.2-beta6
     - change: don't close message panel after auto syntax check
     - enhancement: reformat code now can remove empty lines/redundant empty lines
     - fix: update status bar info after convert a gbk file to utf8
+    - fix: disable run/debug/compile buttons when editing a non-project non-c/cpp file
+    - enhancement: correctly color symbols chain like  m_myDialog.DoModal()
+    - enhancement: correctly parse symbols like ::PostMessage();
+    - fix: correctly parse inheritance
+    - enhancement: correctly show hints/code completion info for nested class/struct members;
+    - fix: don't try to convert encoding when check syntax
+    - enhancement: show definition info in class browser if a symbol is defined outside of the current file
+    - change: mouse left click in the class browser will navigate in the editing file by default.
+    - fix: sometimes crash when switch editors
+    - enhancement: optimize the process of project open;
+    - enhancement: optimize don't refresh class browser in the process of parsing
+    - enhancement: code completion for C/C++ keyword and the option in the editor dialog
+    - enhancement: color enum/namespace/class/typedef
+    - enhancement: correctly parse variable define like struct Student *p;
+    - enhancement: code suggesion correctly show gcc compiler macro defines like __FILE__ __LINE__
+    - enhancement: register highlighter for sql/html/css/js/html/xml/makefile/shell/bat/asm and other files
+    - fix: if the project's compiled exe is not in the same folder with the src, gdb will not find the source files
+    - fix: not add project's lib and include folder to gdb's source dir
+    - fix: correctly show custom color when setting colors in the editor dialog's color tab
+    - fix: devcpp crash if there's '%' in the macro define 
+    - fix: some gui program can't run 
 
 Version 6.2-beta5 Dec 2020
 
