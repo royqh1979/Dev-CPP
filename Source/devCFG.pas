@@ -2593,6 +2593,8 @@ begin
 
       // Set selection color
       if Assigned(Highlighter) then begin
+        Editor.Color := dmMain.Cpp.SpaceAttri.Background;
+        Editor.Font.Color := dmMain.Cpp.IdentifierAttri.Foreground;
         StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
         SelectedColor.Background := tc.Background;
         SelectedColor.Foreground := tc.Foreground;

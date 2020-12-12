@@ -8701,4 +8701,59 @@ object dmMain: TdmMain
       FE7FC003C003C003FFFFE007E007E00700000000000000000000000000000000
       000000000000}
   end
+  object DotSyn: TSynDOTSyn
+    Left = 296
+    Top = 24
+  end
+  object InnoSyn: TSynInnoSyn
+    Left = 432
+    Top = 152
+  end
+  object IniSyn: TSynIniSyn
+    Left = 496
+    Top = 224
+  end
+  object AsmSyn: TSynAsmSyn
+    Left = 592
+    Top = 128
+  end
+  object SQLSyn: TSynSQLSyn
+    Left = 584
+    Top = 216
+  end
+  object UnixShellSyn: TSynUNIXShellScriptSyn
+    Left = 304
+    Top = 264
+  end
+  object BatSyn: TSynBatSyn
+    Left = 416
+    Top = 288
+  end
+  object XMLSyn: TSynXMLSyn
+    WantBracesParsed = False
+    Left = 528
+    Top = 288
+  end
+  object HTMLSyn: TSynHTMLSyn
+    Left = 168
+    Top = 272
+  end
+  object JSSyn: TSynJScriptSyn
+    Left = 80
+    Top = 272
+  end
+  object CssSyn: TSynCssSyn
+    Left = 352
+    Top = 240
+  end
+  object GenSyn: TSynGeneralSyn
+    Comments = []
+    DetectPreprocessor = False
+    IdentifierChars = 
+      '!"#$%&'#39'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`' +
+      'abcdefghijklmnopqrstuvwxyz{|}~'#8364#20119#20750#21399#22130#22683#23229#23829#24385#25005#25666#26236#26841#27332#27924#28522#29018#12289#65509#12454#1046#9478#57449#57639#57829#36744#28818#20992#29359#36141#24739#39556#22391 +
+      #35845#23194#29260#20392#22674#39042#33216#38386#23721#37321#32617#26837#20189#22318#33929#21721#24469#27781#24400#29623#27547#33137#30477#38259#32817#31709#35978#40748#58091#58281#58471#63733
+    Left = 608
+    Top = 40
+  end
 end

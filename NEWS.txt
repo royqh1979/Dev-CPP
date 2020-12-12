@@ -37,6 +37,7 @@ Version 6.2-beta6
     - enhancement: color enum/namespace/class/typedef
     - enhancement: correctly parse variable define like struct Student *p;
     - enhancement: code suggesion correctly show gcc compiler macro defines like __FILE__ __LINE__
+    - enhancement: register highlighter for sql/html/css/js/html/xml/makefile/shell/bat/asm and other files
 
 Version 6.2-beta5 Dec 2020
 
