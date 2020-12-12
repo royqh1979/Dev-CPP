@@ -514,7 +514,7 @@ object MainForm: TMainForm
             Font.Height = -14
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 0
+            ItemHeight = 16
             ParentCtl3D = False
             ParentFont = False
             TabOrder = 0
@@ -2287,7 +2287,7 @@ object MainForm: TMainForm
       Tag = 3
       Category = 'Search'
       Caption = '&Replace'
-      ImageIndex = 66
+      ImageIndex = 76
       ShortCut = 16466
       OnExecute = actReplaceExecute
       OnUpdate = actUpdateEmptyEditorFindForm
@@ -2420,7 +2420,7 @@ object MainForm: TMainForm
       Tag = 6
       Category = 'Debug'
       Caption = '&Debug'
-      ImageIndex = 59
+      ImageIndex = 72
       ShortCut = 116
       OnExecute = actDebugExecute
       OnUpdate = actDebugExecuteUpdate
@@ -2538,7 +2538,7 @@ object MainForm: TMainForm
     object actAddWatch: TAction
       Category = 'Debug'
       Caption = 'Add &Watch...'
-      ImageIndex = 65
+      ImageIndex = 77
       OnExecute = actAddWatchExecute
       OnUpdate = actAddWatchUpdate
     end
@@ -2792,7 +2792,7 @@ object MainForm: TMainForm
     object actStepOver: TAction
       Category = 'Debug'
       Caption = '&Step Over'
-      ImageIndex = 58
+      ImageIndex = 75
       ShortCut = 118
       OnExecute = actStepOverExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2800,7 +2800,7 @@ object MainForm: TMainForm
     object actStepInto: TAction
       Category = 'Debug'
       Caption = 'Step &Into'
-      ImageIndex = 56
+      ImageIndex = 73
       ShortCut = 119
       OnExecute = actStepIntoExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2864,7 +2864,7 @@ object MainForm: TMainForm
     object actStepOut: TAction
       Category = 'Debug'
       Caption = 'Step &Out'
-      ImageIndex = 57
+      ImageIndex = 74
       ShortCut = 16503
       OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
