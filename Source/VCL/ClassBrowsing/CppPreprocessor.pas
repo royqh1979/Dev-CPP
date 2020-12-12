@@ -616,6 +616,7 @@ var
     tokens: TStringList;
     i:integer;
     lastIsConcat: boolean;
+    s:string;
   begin
     args := Copy(item^.Args,2,length(item^.Args)-2); // remove '(' ')'
     args := Trim(Args);
@@ -639,11 +640,14 @@ var
         if not lastIsConcat then begin
           formatStr:=formatStr+' ';
         end;
+        s:=tokens[i];
+        if s='%' then
+          s:='%%';
         if sameStr(tokens[i],arg) then begin
           item^.ArgList.Add(1);
           formatStr:=formatStr+'%s';
         end else begin
-          formatStr:=formatStr+tokens[i];
+          formatStr:=formatStr+s;
         end;
         lastIsConcat := False;
       end;
