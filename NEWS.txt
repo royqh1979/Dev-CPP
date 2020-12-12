@@ -1,3 +1,8 @@
+Version 6.2.1
+
+    - enhancement: Export as RTF/Copy as RTF use the same colors as the editor
+    - fix: debug logout is not turned off
+
 Version 6.2-beta6
 
     - fix: toolbar position error after restart

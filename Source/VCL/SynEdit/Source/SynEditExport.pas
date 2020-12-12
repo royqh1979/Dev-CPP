@@ -65,6 +65,9 @@ type
     classes have to fill it accordingly. }
   TSynReplaceCharsArray = array[char] of PChar;
 
+  TFormatTokenEvent = procedure(Sender: TObject; Line: integer;
+    column: integer; token: String; var attr: TSynHighlighterAttributes) of object;
+
   { Base exporter class, implements the buffering and the common functionality
     to track the changes of token attributes, to export to the clipboard or to
     save the output to a file. Descendant classes have to implement only the
@@ -73,6 +76,7 @@ type
   private
     fBuffer: TMemoryStream;
     fFirstAttribute: boolean;
+    fOnFormatToken: TFormatTokenEvent;
     procedure AssignFont(Value: TFont);
     procedure SetExportAsText(Value: boolean);
     procedure SetFont(Value: TFont);
@@ -195,6 +199,7 @@ type
     { Use the token attribute background for the exporting. }
     property UseBackground: boolean read fUseBackground write SetUseBackground;
     property Charset: string read fCharset write fCharset;
+    property OnFormatToken: TFormatTokenEvent read fOnFormatToken write fOnFormatToken;
   end;
 
 implementation
@@ -342,6 +347,8 @@ begin
     while not Highlighter.GetEOL do begin
       Attri := Highlighter.GetTokenAttribute;
       Token := ReplaceReservedChars(Highlighter.GetToken);
+      if Assigned(fOnFormatToken) then
+        fOnFormatToken(self,i, Highlighter.GetTokenPos, Token,attri);
       SetTokenAttribute(Attri);
       FormatToken(Token);
       Highlighter.Next;

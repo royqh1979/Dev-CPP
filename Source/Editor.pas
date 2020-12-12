@@ -141,7 +141,8 @@ type
     procedure EditorPaintHighlightToken(Sender: TObject; Line: integer;
       column: integer; token: String; attr: TSynHighlighterAttributes;
       var style:TFontStyles; var FG,BG:TColor);
-
+    procedure ExporterFormatToken(Sender: TObject; Line: integer;
+      column: integer; token: String; var attr: TSynHighlighterAttributes);
     procedure EditorPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
     procedure EditorEnter(Sender: TObject);
     procedure EditorEditingAreas(Sender: TObject; Line: Integer; areaList:TList;
@@ -914,6 +915,8 @@ begin
     SynExporterRTF.UseBackground := True;
     SynExporterRTF.Font := fText.Font;
     SynExporterRTF.Highlighter := fText.Highlighter;
+    SynExporterRTF.OnFormatToken := ExporterFormatToken;
+
 
     if fText.SelText = '' then
       SynExporterRTF.ExportAll(fText.Lines)
@@ -953,6 +956,7 @@ begin
     SynExporterRTF.UseBackground := True;
     SynExporterRTF.Font := fText.Font;
     SynExporterRTF.Highlighter := fText.Highlighter;
+    SynExporterRTF.OnFormatToken := ExporterFormatToken;
 
     SynExporterRTF.ExportAll(fText.Lines);
 
@@ -2564,6 +2568,45 @@ begin
     end;
   end;
 end;
+
+procedure TEditor.ExporterFormatToken(Sender: TObject; Line: integer;
+      column: integer; token: String; var attr: TSynHighlighterAttributes);
+var
+  st: PStatement;
+  p: TBufferCoord;
+  s:String;
+begin
+  if token='' then
+    Exit;
+
+  if fCompletionBox.Visible then //don't do this when show code suggestion
+    Exit;
+  if (attr = fText.Highlighter.IdentifierAttribute) then begin
+    p:=BufferCoord(column+1,line);
+    s:= GetWordAtPosition(fText,p,wpInformation);
+    st := MainForm.CppParser.FindStatementOf(fFileName,
+      s , line);
+    if assigned(st) then begin
+      case st._Kind of
+        skPreprocessor, skEnum: begin
+          attr:=dmMain.Cpp.DirecAttri;
+        end;
+        skVariable: begin
+          attr:=dmMain.Cpp.VariableAttri;
+        end;
+        skFunction,skConstructor,skDestructor: begin
+          attr:=dmMain.Cpp.FunctionAttri;
+        end;
+        skClass,skNamespace,skTypedef : begin
+          attr:=dmMain.Cpp.ClassAttri;
+        end;
+      end;
+      if attr.Foreground = clNone then //old color theme, use the default color
+        attr := dmMain.Cpp.IdentifierAttri;
+    end;
+  end;
+end;
+
 
 procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
   column: integer; token: String; attr: TSynHighlighterAttributes;
