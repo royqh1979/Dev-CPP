@@ -389,26 +389,26 @@ begin
       ext := ExtractFileExt(FileName);
       if CompareText(ext, RC_EXT) = 0 then
         result := Res
-      else if (CompareText(ext, 'html')  = 0)
-        or (CompareText(ext, 'htm')  = 0)then
+      else if (CompareText(ext, '.html')  = 0)
+        or (CompareText(ext, '.htm')  = 0)then
         result := HTMLSyn
-      else if (CompareText(ext, 'js')  = 0) then
+      else if (CompareText(ext, '.js')  = 0) then
         result := JSSyn
-      else if CompareText(ext, 'css') = 0 then
+      else if CompareText(ext, '.css') = 0 then
         result := CSSSyn
-      else if CompareText(ext, 'bat') = 0 then
+      else if CompareText(ext, '.bat') = 0 then
         result := BatSyn
-      else if CompareText(ext, 'asm') = 0 then
+      else if CompareText(ext, '.asm') = 0 then
         result := AsmSyn
-      else if CompareText(ext, 'ini') = 0 then
+      else if CompareText(ext, '.ini') = 0 then
         result := IniSyn
-      else if CompareText(ext, 'nsi') = 0 then
+      else if CompareText(ext, '.nsi') = 0 then
         result := InnoSyn
-      else if CompareText(ext, 'sql') = 0 then
+      else if CompareText(ext, '.sql') = 0 then
         result := SQLSyn
-      else if CompareText(ext, 'xml') = 0 then
+      else if CompareText(ext, '.xml') = 0 then
         result := XMLSyn
-      else if (CompareText(ext, 'sh') = 0)
+      else if (CompareText(ext, '.sh') = 0)
         or StartsText('makefile',FileName) then
         result := UnixShellSyn
       else begin

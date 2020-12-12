@@ -3851,6 +3851,23 @@ begin
           fDebugger.SendCommand('exec-file', '"' + StringReplace(fProject.Options.HostApplication, '\', '/',
             [rfReplaceAll])
             + '"');
+
+        for i:=0 to fProject.Units.Count-1 do begin
+          fDebugger.SendCommand('dir', '"'+StringReplace(
+            ExtractFilePath(fProject.Units[i].FileName),'\', '/',[rfReplaceAll])
+            + '"');
+        end;
+        for i:=0 to fProject.Options.Includes.Count-1 do begin
+          fDebugger.SendCommand('dir', '"'+StringReplace(
+            fProject.Options.Includes[i],'\', '/',[rfReplaceAll])
+            + '"');
+        end;
+        for i:=0 to fProject.Options.Libs.Count-1 do begin
+          fDebugger.SendCommand('dir', '"'+StringReplace(
+            fProject.Options.Includes[i],'\', '/',[rfReplaceAll])
+            + '"');
+        end;
+
       end;
     ctFile: begin
         // Check if we enabled proper options

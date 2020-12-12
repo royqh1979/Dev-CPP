@@ -38,6 +38,8 @@ Version 6.2-beta6
     - enhancement: correctly parse variable define like struct Student *p;
     - enhancement: code suggesion correctly show gcc compiler macro defines like __FILE__ __LINE__
     - enhancement: register highlighter for sql/html/css/js/html/xml/makefile/shell/bat/asm and other files
+    - fix: if the project's compiled exe is not in the same folder with the src, gdb will not find the source files
+    - fix: not add project's lib and include folder to gdb's source dir
 
 Version 6.2-beta5 Dec 2020
 
