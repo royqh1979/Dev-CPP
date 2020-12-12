@@ -600,17 +600,20 @@ begin
     StrToThemeColor(tc, devEditor.Syntax.Values[cABP]);
     BG := tc.Background;
     FG := tc.Foreground;
-    Special := TRUE;
+    if (BG <> clNone) or (FG<>clNone) then
+      Special := TRUE;
   end else if (HasBreakpoint(Line) <> -1) then begin
     StrToThemeColor(tc, devEditor.Syntax.Values[cBP]);
     BG := tc.Background;
     FG := tc.Foreground;
-    Special := TRUE;
+    if (BG <> clNone) or (FG<>clNone) then
+      Special := TRUE;
   end else if Line = fErrorLine then begin
     StrToThemeColor(tc,  devEditor.Syntax.Values[cErr]);
     BG := tc.Background;
     FG := tc.Foreground;
-    Special := TRUE;
+    if (BG <> clNone) or (FG<>clNone) then
+      Special := TRUE;
   end;
 end;
 

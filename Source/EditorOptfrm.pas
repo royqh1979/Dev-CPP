@@ -971,6 +971,7 @@ var
   tc: TThemeColor;
   procedure SetColor(fg,bg:TColor);
   begin
+    cpBackground.Selected:=clWhite;
     if bg = clNone then begin
       cpBackground.Enabled := False;
       cbBackground.Checked := False;
@@ -980,6 +981,7 @@ var
       cbBackground.Checked := True;
       cpBackground.Selected := bg;
     end;
+    cpForeground.Selected:=clWhite;
     if fg = clNone then begin
       cpForeground.Enabled := False;
       cbForeground.Checked := False;
@@ -1211,14 +1213,16 @@ begin
           BG := fBPColor.Background;
         if fBPColor.Foreground <> clNone then
           FG := fBPColor.Foreground;
-        Special := TRUE;
+        if (fBPColor.Background <> clNone) and (fBPColor.Foreground <> clNone) then
+          Special := TRUE;
       end;
     cABreakLine: begin
         if fABPColor.Background <> clNone then
           BG := fABPColor.Background;
         if fABPColor.Foreground <> clNone then
           FG := fABPColor.Foreground;
-        Special := TRUE;
+        if (fABPColor.Background <> clNone) and (fABPColor.Foreground <> clNone) then
+          Special := TRUE;
       end;
     cErrorLine: begin
         if fErrColor.Background <> clNone then
@@ -1651,11 +1655,13 @@ end;
 procedure TEditorOptForm.cbForegroundClick(Sender: TObject);
 begin
   cpForeground.Enabled := cbForeground.Checked;
+  self.StyleChange(Sender);
 end;
 
 procedure TEditorOptForm.cbBackgroundClick(Sender: TObject);
 begin
   cpBackground.Enabled := cbBackground.Checked;
+  self.StyleChange(Sender);
 end;
 
 procedure TEditorOptForm.cbShowCompletionWhileInputingClick(

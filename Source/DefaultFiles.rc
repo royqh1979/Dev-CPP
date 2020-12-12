@@ -361,9 +361,9 @@ STRINGTABLE
  11015, "$00859DD6, clNone, 0, 0, 0"
  11016, "$00D4D4D4, clNone, 0, 0, 0"
  11017, "$00FEDC9C, clNone, 0, 0, 0"
- 11018, "$00D4D4D4,$000014E5"
+ 11018, "clNone,clNone"
  11019, "clSilver,clMaroon"
- 11020, "$001E1E1E,clRed",
+ 11020, "$00CEFFFF,$006F3700",
  11021, "$00858585,$021E1E1E"
  11022, "clBlack,clGray"
  11023, "clSilver,clNone"
