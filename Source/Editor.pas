@@ -2865,7 +2865,7 @@ begin
       end;
 
       if devCodeCompletion.Enabled then begin
-        MainForm.CppParser.ParseFile(fFileName, InProject);
+        ParseFile(MainForm.CppParser,fFileName, InProject);
         fLastParseTime := Now;
         fText.invalidate;
       end;
@@ -3201,7 +3201,7 @@ begin
     fText.Lines.SaveToStream(M);
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
-    MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+    ParseFile(MainForm.CppParser,fFileName, InProject, False, False, M);
     fLastParseTime := Now;
   finally
     M.Free;

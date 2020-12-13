@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, Sysutils, Dateutils, Forms, ShellAPI, Dialogs, SynEdit, SynEditHighlighter,
-  Menus, Registry, Controls, ComCtrls, Messages, Graphics;
+  Menus, Registry, Controls, ComCtrls, Messages, Graphics, CppParser;
 
 type
   { File ID types }
@@ -55,6 +55,23 @@ type
   TThemeColor = packed record
     Foreground:TColor;
     Background:TColor;
+  end;
+
+  TCppParserParseFileThread = class(TThread)
+  public
+    Parser : TCppParser;
+    FileName: String;
+    InProject: boolean;
+    OnlyIfNotParsed: boolean;
+    UpdateView: boolean;
+    Stream: TMemoryStream;
+    procedure Execute; override;
+  end;
+
+  TCppParserParseFileListThread = class(TThread)
+  public
+    Parser : TCppParser;
+    procedure Execute; override;
   end;
 
 procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files: TStringList; Subdirs, ShowDirs,
@@ -194,6 +211,10 @@ procedure LogError(source:AnsiString; msg:AnsiString);
 function CreateDirRecursive(const Dir: string): Boolean;
 
 procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
+
+procedure ParseFileList(const Parser: TCppParser);
+procedure ParseFile(const Parser: TCppParser;const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
+  boolean = True; Stream: TMemoryStream = nil);
 
 implementation
 
@@ -1680,6 +1701,56 @@ LOGPIXELSY);
     SelectObject(PCanvas.Handle, OldFont);
     DeleteObject(NewFont);
   end;
+end;
+
+procedure ParseFile(const Parser:TCppParser; const FileName: AnsiString; InProject: boolean;
+    OnlyIfNotParsed: boolean = False; UpdateView: boolean = True; Stream: TMemoryStream = nil);
+var
+  thread : TCppParserParseFileThread;
+begin
+  if Parser.Parsing then
+    Exit;
+  thread := TCppParserParseFileThread.Create(TRUE);
+  thread.FreeOnTerminate:=True;
+  thread.Parser := Parser;
+  thread.FileName:=FileName;
+  thread.InProject:=InProject;
+  thread.OnlyIfNotParsed:=OnlyIfNotParsed;
+  thread.UpdateView:= UpdateView;
+  thread.Stream := stream;
+  thread.Execute;
+end;
+
+procedure ParseFileList(const Parser:TCppParser);
+var
+  thread : TCppParserParseFileListThread;
+begin
+  if Parser.Parsing then
+    Exit;
+  thread := TCppParserParseFileListThread.Create(TRUE);
+  thread.FreeOnTerminate:=True;
+  thread.Parser := Parser;
+  thread.Execute;
+end;
+
+
+{ TCppParserParseFileThread }
+procedure TCppParserParseFileThread.Execute;
+begin
+  inherited;
+  self.Parser.DoParseFile(
+    FileName,
+    InProject,
+    OnlyIfNotParsed,
+    UpdateView,
+    Stream);
+end;
+
+{ TCppParserParseFileThread }
+procedure TCppParserParseFileListThread.Execute;
+begin
+  inherited;
+  self.Parser.DoParseFileList;
 end;
 
 end.

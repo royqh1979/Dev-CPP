@@ -4838,7 +4838,7 @@ begin
   //UpdateClassBrowsing;
   SetCppParserProject(fProject);
   if parse then
-    CppParser.ParseFileList;
+    ParseFileList(CppParser);
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -5316,7 +5316,7 @@ begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
         // CppParser.ParseFile(e.FileName,e.InProject,True);
-        CppParser.ParseFile(e.FileName,e.InProject);
+        ParseFile(CppParser,e.FileName,e.InProject);
       end;
     end else begin
       ClassBrowser.CurrentFile := '';

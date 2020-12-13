@@ -194,9 +194,6 @@ type
     procedure DoParseFileList;
     procedure DoParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean; UpdateView:
       boolean; Stream: TMemoryStream);
-    procedure ParseFileList;
-    procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
-      boolean = True; Stream: TMemoryStream = nil);
     function StatementKindStr(Value: TStatementKind): AnsiString;
     function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
     procedure Reset;
@@ -236,23 +233,6 @@ type
     property OnStartParsing: TNotifyEvent read fOnStartParsing write fOnStartParsing;
     property OnEndParsing: TProgressEndEvent read fOnEndParsing write fOnEndParsing;
     property FilesToScan: TStringList read fFilesToScan;
-  end;
-
-  TCppParserParseFileThread = class(TThread)
-  public
-    Parser : TCppParser;
-    FileName: String;
-    InProject: boolean;
-    OnlyIfNotParsed: boolean;
-    UpdateView: boolean;
-    Stream: TMemoryStream;
-    procedure Execute; override;
-  end;
-
-  TCppParserParseFileListThread = class(TThread)
-  public
-    Parser : TCppParser;
-    procedure Execute; override;
   end;
 
 procedure Register;
@@ -4101,55 +4081,6 @@ begin
     namespace := '';
     member := Phrase;
   end;
-end;        
-
-procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean;
-    OnlyIfNotParsed: boolean = False; UpdateView: boolean = True; Stream: TMemoryStream = nil);
-var
-  thread : TCppParserParseFileThread;
-begin
-  if fParsing then
-    Exit;
-  thread := TCppParserParseFileThread.Create(TRUE);
-  thread.FreeOnTerminate:=True;
-  thread.Parser := self;
-  thread.FileName:=FileName;
-  thread.InProject:=InProject;
-  thread.OnlyIfNotParsed:=OnlyIfNotParsed;
-  thread.UpdateView:= UpdateView;
-  thread.Stream := stream;
-  thread.Execute;
-end;
-
-procedure TCppParser.ParseFileList;
-var
-  thread : TCppParserParseFileListThread;
-begin
-  if fParsing then
-    Exit;
-  thread := TCppParserParseFileListThread.Create(TRUE);
-  thread.FreeOnTerminate:=True;
-  thread.Parser := self;
-  thread.Execute;
-end;
-
-{ TCppParserParseFileThread }
-procedure TCppParserParseFileThread.Execute;
-begin
-  inherited;
-  self.Parser.DoParseFile(
-    FileName,
-    InProject,
-    OnlyIfNotParsed,
-    UpdateView,
-    Stream);
-end;
-
-{ TCppParserParseFileThread }
-procedure TCppParserParseFileListThread.Execute;
-begin
-  inherited;
-  self.Parser.DoParseFileList;
 end;
 
 end.

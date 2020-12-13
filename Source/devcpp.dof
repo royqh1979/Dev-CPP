@@ -86,7 +86,7 @@ ConsoleApp=1
 DebugInfo=0
 RemoteSymbols=0
 MinStackSize=32768
-MaxStackSize=8388608
+MaxStackSize=16777216
 ImageBase=1048576
 ExeDescription=
 [Directories]
@@ -134,3 +134,20 @@ OriginalFilename=devcpp.exe
 ProductName=Dev-C++
 ProductVersion=6
 Comments=Under the GNU General Public License
+[HistoryLists\hlDebugSourcePath]
+Count=2
+Item0=E:\workspace\contributes\Dev-CPP\Source\VCL\ClassBrowsing\
+Item1=C:\Program Files (x86)\Dev-Cpp\Source\VCL\SynEdit\Source\;C:\Program Files (x86)\Dev-Cpp\Source\VCL\ClassBrowsing\
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=2
+Item0=VCL\ClassBrowsing;VCL\DevCpp;VCL\DevCpp\devFileMonitor;VCL\DevCpp\devShortcuts;VCL\DevCpp\CompOptionsList;VCL\SynEdit\Source
+Item1=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
+[HistoryLists\hlUnitOutputDirectory]
+Count=1
+Item0=Units
+[HistoryLists\hlOutputDirectorry]
+Count=1
+Item0=..

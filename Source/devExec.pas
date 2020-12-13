@@ -61,7 +61,6 @@ type
   TdevExecutor = class(TPersistent)
   private
     fExec: TExecThread;
-    fPipe: TPipeInputThread;
     fIsRunning: boolean;
     fOnTermEvent: TNotifyEvent;
     procedure TerminateEvent(Sender: TObject);
@@ -201,6 +200,8 @@ end;
 procedure TdevExecutor.ExecuteAndWatch(sFileName, sParams, sPath: AnsiString;
   bVisible: boolean; bRedirectInput:boolean; InputFile: string;
   iTimeOut: Cardinal; OnTermEvent: TNotifyEvent);
+var
+  fPipe: TPipeInputThread;
 begin
   fIsRunning := True;
   fOnTermEvent := OnTermEvent;
@@ -223,6 +224,7 @@ begin
     fPipe := TPipeInputThread.Create(True);
     fPipe.WriteHandle := fExec.InputWrite;
     fPipe.InputFile := InputFile;
+    fPipe.FreeOnTerminate := True;
     fPipe.Execute;
   end;
 end;
