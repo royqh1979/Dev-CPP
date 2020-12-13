@@ -57,6 +57,7 @@ type
     Background:TColor;
   end;
 
+  {
   TCppParserParseFileThread = class(TThread)
   public
     Parser : TCppParser;
@@ -73,7 +74,7 @@ type
     Parser : TCppParser;
     procedure Execute; override;
   end;
-
+  }
 procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files: TStringList; Subdirs, ShowDirs,
   Multitasking: Boolean);
 
@@ -211,10 +212,6 @@ procedure LogError(source:AnsiString; msg:AnsiString);
 function CreateDirRecursive(const Dir: string): Boolean;
 
 procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
-
-procedure ParseFileList(const Parser: TCppParser);
-procedure ParseFile(const Parser: TCppParser;const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
-  boolean = True; Stream: TMemoryStream = nil);
 
 implementation
 
@@ -1702,7 +1699,7 @@ LOGPIXELSY);
     DeleteObject(NewFont);
   end;
 end;
-
+{
 procedure ParseFile(const Parser:TCppParser; const FileName: AnsiString; InProject: boolean;
     OnlyIfNotParsed: boolean = False; UpdateView: boolean = True; Stream: TMemoryStream = nil);
 var
@@ -1718,7 +1715,7 @@ begin
   thread.OnlyIfNotParsed:=OnlyIfNotParsed;
   thread.UpdateView:= UpdateView;
   thread.Stream := stream;
-  thread.Execute;
+  thread.Resume;
 end;
 
 procedure ParseFileList(const Parser:TCppParser);
@@ -1730,11 +1727,9 @@ begin
   thread := TCppParserParseFileListThread.Create(TRUE);
   thread.FreeOnTerminate:=True;
   thread.Parser := Parser;
-  thread.Execute;
+  thread.Resume;
 end;
 
-
-{ TCppParserParseFileThread }
 procedure TCppParserParseFileThread.Execute;
 begin
   inherited;
@@ -1746,12 +1741,11 @@ begin
     Stream);
 end;
 
-{ TCppParserParseFileThread }
 procedure TCppParserParseFileListThread.Execute;
 begin
   inherited;
   self.Parser.DoParseFileList;
 end;
-
+}
 end.
 

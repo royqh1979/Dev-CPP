@@ -79,7 +79,7 @@ begin
   fPipe.WriteHandle := hInputWrite;
   fPipe.InputText := InputText;
   fPipe.FreeOnTerminate := True;
-  fPipe.Execute;
+  fPipe.Resume;
 end;
 
 procedure TDevRun.Execute;

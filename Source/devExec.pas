@@ -225,7 +225,7 @@ begin
     fPipe.WriteHandle := fExec.InputWrite;
     fPipe.InputFile := InputFile;
     fPipe.FreeOnTerminate := True;
-    fPipe.Execute;
+    fPipe.Resume;
   end;
 end;
 

@@ -191,9 +191,9 @@ type
     function IsIncludeLine(const Line: AnsiString): boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure DoParseFileList;
-    procedure DoParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean; UpdateView:
-      boolean; Stream: TMemoryStream);
+    procedure ParseFileList;
+    procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
+      boolean = True; Stream: TMemoryStream = nil);
     function StatementKindStr(Value: TStatementKind): AnsiString;
     function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
     procedure Reset;
@@ -2614,7 +2614,7 @@ begin
   end;
 end;
 
-procedure TCppParser.DoParseFileList;
+procedure TCppParser.ParseFileList;
 var
   I: integer;
 begin
@@ -2879,8 +2879,8 @@ begin
   end;
 end;
 
-procedure TCppParser.DoParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean;
-  UpdateView: boolean; Stream: TMemoryStream);
+procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
+  boolean = True; Stream: TMemoryStream = nil);
 var
   FName: AnsiString;
   CFile, HFile: AnsiString;
