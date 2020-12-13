@@ -3392,6 +3392,8 @@ begin
       Result := '"'+DateToStr(Now)+'"';
     end else if SameStr(Statement^._Command,'__TIME__') then begin
       Result := '"'+TimeToStr(Now)+'"';
+    end else begin
+      Result := Statement^._HintText;
     end;
   end else begin
     case Statement^._Kind of
