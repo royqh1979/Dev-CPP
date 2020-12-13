@@ -191,6 +191,9 @@ type
     function IsIncludeLine(const Line: AnsiString): boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure DoParseFileList;
+    procedure DoParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean; UpdateView:
+      boolean; Stream: TMemoryStream);
     procedure ParseFileList;
     procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
       boolean = True; Stream: TMemoryStream = nil);
@@ -233,6 +236,23 @@ type
     property OnStartParsing: TNotifyEvent read fOnStartParsing write fOnStartParsing;
     property OnEndParsing: TProgressEndEvent read fOnEndParsing write fOnEndParsing;
     property FilesToScan: TStringList read fFilesToScan;
+  end;
+
+  TCppParserParseFileThread = class(TThread)
+  public
+    Parser : TCppParser;
+    FileName: String;
+    InProject: boolean;
+    OnlyIfNotParsed: boolean;
+    UpdateView: boolean;
+    Stream: TMemoryStream;
+    procedure Execute; override;
+  end;
+
+  TCppParserParseFileListThread = class(TThread)
+  public
+    Parser : TCppParser;
+    procedure Execute; override;
   end;
 
 procedure Register;
@@ -2614,7 +2634,7 @@ begin
   end;
 end;
 
-procedure TCppParser.ParseFileList;
+procedure TCppParser.DoParseFileList;
 var
   I: integer;
 begin
@@ -2622,7 +2642,11 @@ begin
   try
   if fParsing then
     Exit;
+  finally
+    fCriticalSection.Release;
+  end;
   fParsing:=True;
+  fCriticalSection.Acquire;  
   try
     if not fEnabled then
       Exit;
@@ -2664,10 +2688,8 @@ begin
     if Assigned(fOnUpdate) then
       fOnUpdate(Self);
   finally
-    fParsing:=False;
-  end;
-  finally
     fCriticalSection.Release;
+    fParsing:=False;
   end;
 end;
 
@@ -2877,8 +2899,8 @@ begin
   end;
 end;
 
-procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False;
-  UpdateView: boolean = True; Stream: TMemoryStream = nil);
+procedure TCppParser.DoParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean;
+  UpdateView: boolean; Stream: TMemoryStream);
 var
   FName: AnsiString;
   CFile, HFile: AnsiString;
@@ -2888,12 +2910,15 @@ begin
   try
   if fParsing then
     Exit;
+  finally
+    fCriticalSection.Release;
+  end;
   fParsing:=True;
-
+  fCriticalSection.Acquire;
   try
     if UpdateView and Assigned(fOnBusy) then
       fOnBusy(Self);
-      
+
     if not fEnabled then
       Exit;
     FName := FileName;
@@ -2956,12 +2981,10 @@ begin
         fOnEndParsing(Self, 1);
     end;
   finally
+    fCriticalSection.Release;
     if UpdateView and Assigned(fOnUpdate) then
         fOnUpdate(Self);
     fParsing:=False;
-  end;
-  finally
-    fCriticalSection.Release;
   end;
 end;
 
@@ -2971,11 +2994,16 @@ begin
   try
   if fParsing then
     Exit;
-  fParsing:=True;
-  InternalInvalidateFile(FileName);
-  fParsing:=False;
   finally
     fCriticalSection.Release;
+  end;
+  fParsing:=True;
+  fCriticalSection.Acquire;
+  try
+    InternalInvalidateFile(FileName);
+  finally
+    fCriticalSection.Release;
+    fParsing:=False;
   end;
 end;
 
@@ -4072,6 +4100,51 @@ begin
     member := Phrase;
   end;
 end;        
+
+procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean;
+    OnlyIfNotParsed: boolean = False; UpdateView: boolean = True; Stream: TMemoryStream = nil);
+var
+  thread : TCppParserParseFileThread;
+begin
+  thread := TCppParserParseFileThread.Create(TRUE);
+  thread.FreeOnTerminate:=True;
+  thread.Parser := self;
+  thread.FileName:=FileName;
+  thread.InProject:=InProject;
+  thread.OnlyIfNotParsed:=OnlyIfNotParsed;
+  thread.UpdateView:= UpdateView;
+  thread.Stream := stream;
+  thread.Execute;
+end;
+
+procedure TCppParser.ParseFileList;
+var
+  thread : TCppParserParseFileListThread;
+begin
+  thread := TCppParserParseFileListThread.Create(TRUE);
+  thread.FreeOnTerminate:=True;
+  thread.Parser := self;
+  thread.Execute;
+end;
+
+{ TCppParserParseFileThread }
+procedure TCppParserParseFileThread.Execute;
+begin
+  inherited;
+  self.Parser.DoParseFile(
+    FileName,
+    InProject,
+    OnlyIfNotParsed,
+    UpdateView,
+    Stream);
+end;
+
+{ TCppParserParseFileThread }
+procedure TCppParserParseFileListThread.Execute;
+begin
+  inherited;
+  self.Parser.DoParseFileList;
+end;
 
 end.
 

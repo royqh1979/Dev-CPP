@@ -2927,7 +2927,7 @@ begin
   end;
 
   // Remove *old* file from statement list
-  MainForm.CppParser.InvalidateFile(FileName);
+  //MainForm.CppParser.InvalidateFile(FileName);
 
   // Try to save to disk
   try

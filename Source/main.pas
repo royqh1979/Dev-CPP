@@ -3606,8 +3606,6 @@ begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not Assigned(e) then
           Exit;
-        if not e.Save then
-          Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
         fCompiler.sourceText := e.Text.Lines.Text;
