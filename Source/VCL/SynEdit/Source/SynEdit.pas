@@ -2667,6 +2667,7 @@ var
     if iCharWidth > 0 then
       Inc(rcToken.Left, iCharWidth);
   end;
+
   procedure PaintEditAreas(areaList:TList; colBorder:TColor;areaType:TEditingAreaType);
   var
     rc:TRect;
@@ -3027,6 +3028,9 @@ var
     areaList:TList;
     colBorder: TColor;
     areaType:TEditingAreaType;
+    foldRange:TSynEditFoldRange;
+    nC1,nC2,nFold:integer;
+    sFold: string;
   begin
     areaList:=TList.Create;
     try
@@ -3229,8 +3233,20 @@ var
         // of the invalid area with the correct colors.
         PaintHighlightToken(TRUE);
 
+        foldRange := FoldStartAtLine(vLine);
+        if assigned(foldRange) and foldRange.Collapsed then begin
+          sFold := '... }';
+          nFold := Length(sFold);
+          // Compute some helper variables.
+          nC1 := Max(FirstCol, Length(sLine)+1);
+          nC2 := Min(LastCol, Length(sLine) +1 + nFold + 1);
+          SetDrawingColors(FALSE);
+          PaintToken(sFold,nFold, Length(sLine)+1,nC1, nC2);
+        end;
+        
         //Paint editingAreaBorders
         PaintEditAreas(areaList,colBorder,areaType);
+
       end;
 
       // Now paint the right edge if necessary. We do it line by line to reduce
@@ -5970,6 +5986,7 @@ var
   StartPos: Integer;
   EndPos: Integer;
   tempStr : AnsiString;
+  nLinesInserted: integer;
 begin
   IncPaintLock;
   try
@@ -6446,6 +6463,7 @@ begin
       ecInsertLine,
         ecLineBreak:
         if not ReadOnly then begin
+          nLinesInserted:=0;
           UndoList.BeginBlock;
           try
             if SelAvail then begin
@@ -6472,6 +6490,7 @@ begin
                   Delete(Temp2, 1, CaretX - 1);
                   ProperSetLine(CaretY-1,Temp);
                   Lines.Insert(CaretY, GetLeftSpacing(SpaceCount1, true));
+                  inc(nLinesInserted);
                   if (eoAddIndent in Options) and GetHighlighterAttriAtRowCol(BufferCoord(Length(Temp3), CaretY),
                     Temp3, Attr) then begin // only add indent to source files
                     if Attr <> Highlighter.CommentAttribute then begin // and outside of comments
@@ -6495,6 +6514,7 @@ begin
 
                   if (Length(Temp)>0) and (Temp[Length(Temp)] = '{') and (Length(Temp2)>0) and (Temp2[1]='}') then begin
                     Lines.Insert(CaretY, GetLeftSpacing(LeftSpacesEx(Temp, true), true));
+                    inc(nLinesInserted);
                     if (eoAddIndent in Options) then begin;
                       if not (eoTabsToSpaces in Options) then begin
                         Lines[CaretY] := Lines[CaretY] + TSynTabChar;
@@ -6516,6 +6536,7 @@ begin
                   end;
                 end else begin
                   Lines.Insert(CaretY - 1, '');
+                  inc(nLinesInserted);
                   fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, Temp2,
                     smNormal);
                   if Command = ecLineBreak then
@@ -6532,6 +6553,7 @@ begin
                   until (BackCounter = 0) or (Temp <> '');
                 end;
                 Lines.Insert(CaretY, '');
+                inc(nLinesInserted);
                 Caret := CaretXY;
                 if Command = ecLineBreak then begin
                   if SpaceCount2 > 0 then begin
@@ -6571,12 +6593,13 @@ begin
                 end;
               end;
               Lines.Insert(CaretY - 1, '');
+              inc(nLinesInserted);
               fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, '', smNormal);
               if Command = ecLineBreak then begin
                 InternalCaretXY := BufferCoord(SpaceCount2 + 1, CaretY + 1);
               end;
             end;
-            DoLinesInserted(CaretY - InsDelta, 1);
+            DoLinesInserted(CaretY - InsDelta, nLinesInserted);
             BlockBegin := CaretXY;
             BlockEnd := CaretXY;
             EnsureCursorPosVisible;

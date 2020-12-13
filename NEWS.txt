@@ -1,6 +1,9 @@
 Version 6.3-beta1
     
     - enhancement: add ignore case option in the code completion tab of the editor option dialog
+    - fix: inserted lines calculated error when auto indent {}
+    - enhancement: add ... to the last of folded lines
+    - change: disable close buttons when parser is running. 
 
 Version 6.2.1
 

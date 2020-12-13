@@ -8647,7 +8647,7 @@ end;
 procedure TMainForm.actCloseUpdate(Sender: TObject);
 begin
   actClose.Enabled := (fEditorList.PageCount > 0)
-    and not fClosing;
+    and not fClosing and not CppParser.Parsing;
 end;
 
 end.

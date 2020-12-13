@@ -761,9 +761,11 @@ begin
       then begin
       Reparse;
     end;
+    {
     if devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
       mainForm.CheckSyntaxInBack(self);
     end;
+    }
   end;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
