@@ -4,6 +4,7 @@ Version 6.3-beta1
     - fix: inserted lines calculated error when auto indent {}
     - enhancement: add ... to the last of folded lines
     - change: disable close buttons when parser is running. 
+    - enhancement: auto check syntax when line break;
 
 Version 6.2.1
 

@@ -714,7 +714,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1219,7 +1219,6 @@ object EditorOptForm: TEditorOptForm
         Height = 22
         Caption = 'Check Syntax When Return Entered'
         TabOrder = 1
-        Visible = False
       end
     end
     object tabAutosave: TTabSheet

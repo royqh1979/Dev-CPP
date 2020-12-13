@@ -50,6 +50,7 @@ type
 
   TLineOutputFunc = procedure(const Line: AnsiString) of object;
   TCheckAbortFunc = procedure(var AbortThread: boolean) of object;
+  THandleFunc = procedure(const handle:THandle) of object;
 
   TThemeColor = packed record
     Foreground:TColor;
@@ -60,8 +61,10 @@ procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files
   Multitasking: Boolean);
 
 function ExecuteFile(const FileName, Params, DefaultDir: AnsiString; ShowCmd: Integer): THandle;
-function RunAndGetOutput(const Cmd, WorkDir: AnsiString; LineOutputFunc: TLineOutputFunc; CheckAbortFunc:
-  TCheckAbortFunc; ShowReturnValue: Boolean = True;pEnvironment:PChar=nil): AnsiString;
+function RunAndGetOutput(const Cmd, WorkDir: AnsiString;
+  LineOutputFunc: TLineOutputFunc; CheckAbortFunc:
+  TCheckAbortFunc; ShowReturnValue: Boolean = True;pEnvironment:PChar=nil;
+  InputHandleFunc:THandleFunc=nil): AnsiString;
 
 function GetShortName(const FileName: AnsiString): AnsiString;
 
@@ -197,6 +200,9 @@ implementation
 uses
   devcfg, version, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage,
   FileCtrl;
+
+var
+  RunAndExecCount : integer=0;
 
 function FastStringReplace(const S, OldPattern, NewPattern: AnsiString; Flags: TReplaceFlags): AnsiString;
 var
@@ -524,7 +530,11 @@ function RunAndGetOutput(const Cmd, WorkDir: AnsiString;
   LineOutputFunc: TLineOutputFunc;
   CheckAbortFunc: TCheckAbortFunc;
   ShowReturnValue: Boolean;
-  pEnvironment:PChar): AnsiString;
+  pEnvironment:PChar;
+  InputHandleFunc:THandleFunc): AnsiString;
+const
+  BUFSIZE:integer = 4096;
+  PipeNamePrefix : String = '\\.\pipe\devcpp_exec_';
 var
   si: TStartupInfo;
   pi: TProcessInformation;
@@ -536,7 +546,10 @@ var
   FOutput: AnsiString;
   CurrentLine: AnsiString;
   bAbort: boolean;
+  PipeName:String;
 begin
+  inc(RunAndExecCount);
+  PipeName := PipeNamePrefix + IntToStr(RunAndExecCount);
   FOutput := '';
   CurrentLine := '';
 
@@ -564,10 +577,32 @@ begin
   end;
 
   // Create the child input pipe
-  if not CreatePipe(hInputRead, hInputWriteTmp, @sa, 0) then begin
-    Result := 'CreatePipe 2 error: ' + SysErrorMessage(GetLastError);
-    LogError('Utils.pas RunAndGetOutput',Result);
+  hInputWriteTmp := CreateNamedPipe(
+     pAnsiChar(Pipename),             // pipe name
+     PIPE_ACCESS_OUTBOUND,       // read/write access
+     PIPE_TYPE_MESSAGE or       // message type pipe
+     PIPE_READMODE_MESSAGE or   // message-read mode
+     PIPE_WAIT,                // blocking mode
+     PIPE_UNLIMITED_INSTANCES, // max. instances
+     BUFSIZE,                  // output buffer size
+     BUFSIZE,                  // input buffer size
+     0,                        // client time-out
+  nil);                    // default security attribute
+  if hInputWriteTmp = INVALID_HANDLE_VALUE then begin
+    LogError('Utils.pas RunAndGetOutput',Format('Create named pipe failed: %s',[SysErrorMessage(GetLastError)]));
     Exit;
+  end;
+  hInputRead := CreateFile(
+    PAnsiChar(Pipename),   // pipe name
+    GENERIC_READ,
+    0,              // no sharing
+    @sa,           // default security attributes
+    OPEN_EXISTING,  // opens existing pipe
+    0,              // default attributes
+    0);
+  if hInputRead = INVALID_HANDLE_VALUE then begin
+    LogError('Utils.pas RunAndGetOutput',Format('Create File on Input Pipe Failed: %s',[SysErrorMessage(GetLastError)]));
+      Exit;
   end;
 
   // Create new output read handle and the input write handle. Set
@@ -645,6 +680,9 @@ begin
     Exit;
   end;
 
+  if Assigned(InputHandleFunc) then
+    InputHandleFunc(hInputWrite);
+
   bAbort := False;
   repeat
     // Ask our caller if he wants us to quit
@@ -683,10 +721,12 @@ begin
     LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
   end;
-  if not CloseHandle(hInputWrite) then begin
-    Result := 'CloseHandle 8 error: ' + SysErrorMessage(GetLastError);
-    LogError('Utils.pas RunAndGetOutput',Result);
-    Exit;
+  if not Assigned(InputHandleFunc) then begin // handle should be closed by the InputHandleFunc's owner
+    if not CloseHandle(hInputWrite) then begin
+      Result := 'CloseHandle 8 error: ' + SysErrorMessage(GetLastError);
+      LogError('Utils.pas RunAndGetOutput',Result);
+      Exit;
+    end;
   end;
   if not CloseHandle(pi.hProcess) then begin // TODO: shouldn't we terminate it?
     Result := 'CloseHandle 9 error: ' + SysErrorMessage(GetLastError);

@@ -2664,7 +2664,7 @@ begin
   if fCompiler.Compiling then
     Exit;
   fCheckSyntaxInBack:=True;
-  if not PrepareForCompile(ctFile) then begin
+  if not PrepareForCompile(ctStdin) then begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;
@@ -3525,6 +3525,7 @@ begin
   // Determine what to run
   fCompiler.Project := nil;
   fCompiler.SourceFile := '';
+  fCompiler.SourceText := '';
   fCompiler.CompilerSet := devCompilerSets.CompilationSet;
   if ForcedCompileTarget <> ctInvalid then
     fCompiler.Target := ForcedCompileTarget
@@ -3578,6 +3579,7 @@ begin
   // Determine what to compile
   fCompiler.Project := nil;
   fCompiler.SourceFile := '';
+  fCompiler.SourceText := '';  
   fCompiler.CompilerSet := devCompilerSets.CompilationSet;
   if ForcedCompileTarget <> ctInvalid then
     fCompiler.Target := ForcedCompileTarget
@@ -3599,6 +3601,16 @@ begin
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
+      end;
+    ctStdin: begin
+        e := fEditorList.GetEditor; // always succeeds if ctFile is returned
+        if not Assigned(e) then
+          Exit;
+        if not e.Save then
+          Exit;
+        fCompiler.UseUTF8 := e.UseUTF8;
+        fCompiler.SourceFile := e.FileName;
+        fCompiler.sourceText := e.Text.Lines.Text;
       end;
     ctProject: begin
         fCompiler.Project := fProject;
@@ -4743,14 +4755,10 @@ var
 begin
   // Configure parser
   CppParser.Reset;
-  CppParser.Preprocessor := CppPreprocessor;
-  CppParser.Tokenizer := CppTokenizer;
   CppParser.Enabled := devCodeCompletion.Enabled;
   CppParser.ParseLocalHeaders := devCodeCompletion.ParseLocalHeaders;
   CppParser.ParseGlobalHeaders := devCodeCompletion.ParseGlobalHeaders;
-  CppParser.OnStartParsing := CppParserStartParsing;
-  CppParser.OnEndParsing := CppParserEndParsing;
-  CppParser.OnTotalProgress := CppParserTotalProgress;
+
 
   //actCodeCompletionAlt.Enabled := devCodeCompletion.UseAltSlash;
   //actCodeCompletion.Enabled := not devCodeCompletion.UseAltSlash;
@@ -5278,17 +5286,28 @@ begin
 end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
+var
+  p1,p2:integer;
 begin
   if not devCodeCompletion.Enabled then
     Exit;
   if ClassBrowser.CurrentFile = e.FileName then begin
     Exit;
+    {
   end else if (ClassBrowser.CurrentFile<> '') and IsCFile(ClassBrowser.CurrentFile)
     and (
       not assigned(fProject)
       or (fProject.Units.IndexOf(ClassBrowser.CurrentFile)<0)
     ) then begin
     CppParser.InvalidateFile(ClassBrowser.CurrentFile); //invalid old file
+  }
+  end else if not assigned(fProject) then begin
+    UpdateClassBrowsing;
+  end else begin
+    p1:=fProject.Units.IndexOf(ClassBrowser.CurrentFile);
+    p2:=fProject.Units.IndexOf(e.FileName);
+    if (p1<0) or (p2<0) then
+      UpdateClassBrowsing;
   end;
   ClassBrowser.BeginUpdate;
   try
@@ -6921,8 +6940,13 @@ begin
   end;
 
   // Configure parser, code completion, class browser
-  UpdateClassBrowsing;
+  CppParser.Preprocessor := CppPreprocessor;
+  CppParser.Tokenizer := CppTokenizer;
+  CppParser.OnStartParsing := CppParserStartParsing;
+  CppParser.OnEndParsing := CppParserEndParsing;
+  CppParser.OnTotalProgress := CppParserTotalProgress;
   ClassBrowser.OnUpdated := OnClassBrowserUpdated;
+  UpdateClassBrowsing;
 
   // Showing for the first time? Maximize
   if devData.First then
