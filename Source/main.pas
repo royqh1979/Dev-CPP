@@ -798,8 +798,8 @@ type
     procedure lvBacktraceCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var
       DefaultDraw: Boolean);
     procedure lvBacktraceMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure actRunUpdate(Sender: TObject);
-    procedure actCompileRunUpdate(Sender: TObject);
+//    procedure actRunUpdate(Sender: TObject);
+//    procedure actCompileRunUpdate(Sender: TObject);
     procedure actDebugExecuteUpdate(Sender: TObject);
     procedure FileMonitorNotifyChange(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: string);
     procedure actFilePropertiesExecute(Sender: TObject);
@@ -971,6 +971,8 @@ type
     procedure actCloseProjectUpdate(Sender: TObject);
     procedure actCloseAllUpdate(Sender: TObject);
     procedure actCloseUpdate(Sender: TObject);
+    procedure EditorPageControlMouseUp(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -4073,23 +4075,21 @@ var
   enabled:boolean;
 begin
   TCustomAction(Sender).Enabled:=False;
-
-  //only enable run/complie/debug when we have project or current file is c/cpp file
-  if not Assigned(fProject) then begin
-    e:=EditorList.GetEditor();
-    if not Assigned(e) then
-      Exit;
-    if (not e.InProject) and not IsCfile(e.FileName) then
-      Exit;
-  end else begin
-    e:=EditorList.GetEditor();
-    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
-      Exit;
+  case GetCompileTarget of
+    ctFile: begin
+        e:=EditorList.GetEditor();
+        if not Assigned(e) then
+          Exit;
+        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+          and (not devExecutor.Running);
+      end;
+    ctProject: begin
+        TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling)
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+          and (not devExecutor.Running);
+      end;
   end;
-
-  TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-    Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-     and (not devExecutor.Running);
 end;
 
 procedure TMainForm.actUpdateProject(Sender: TObject);
@@ -4129,60 +4129,44 @@ begin
   TCustomAction(Sender).Enabled := Assigned(e) and (not Assigned(FindForm) or not FindForm.Showing);
 end;
 
+{
 procedure TMainForm.actRunUpdate(Sender: TObject);
 var
   e:TEditor;
 begin
   TCustomAction(Sender).Enabled:=False;
-  //only enable run/complie/debug when we have project or current file is c/cpp file
-  if not Assigned(fProject) then begin
-    e:=EditorList.GetEditor();
-    if not Assigned(e) then
-      Exit;
-    if (not e.InProject) and not IsCfile(e.FileName) then
-      Exit;
-  end else begin
-    e:=EditorList.GetEditor();
-    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
-      Exit;
+  case GetCompileTarget of
+    ctFile: begin
+      TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+        and (not fDebugger.Executing)  and (not devExecutor.Running);
+      end;
+    ctProject: begin
+      TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not
+        fCompiler.Compiling) and (not fDebugger.Executing) and (not devExecutor.Running)
+      end;
   end;
-
-  if Assigned(fProject) then
-    TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (fProject.Options.typ <> dptStat) and (not
-      fCompiler.Compiling) and (not fDebugger.Executing) and (not devExecutor.Running)
-  else
-    TCustomAction(Sender).Enabled := (GetCompileTarget <> ctNone) and (not fCompiler.Compiling)
-      and (not fDebugger.Executing)  and (not devExecutor.Running);
 end;
-
+}
+{
 procedure TMainForm.actCompileRunUpdate(Sender: TObject);
 var
   e:TEditor;
 begin
   TCustomAction(Sender).Enabled:=False;
-  //only enable run/complie/debug when we have project or current file is c/cpp file
-  if not Assigned(fProject) then begin
-    e:=EditorList.GetEditor();
-    if not Assigned(e) then
-      Exit;
-    if (not e.InProject) and not IsCfile(e.FileName) then
-      Exit;
-  end else begin
-    e:=EditorList.GetEditor();
-    if Assigned(e) and (not e.InProject) and not IsCfile(e.FileName) then
-      Exit;
+  case GetCompileTarget of
+    ctFile: begin
+        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+          and (not devExecutor.Running);
+      end;
+    ctProject: begin
+        TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling)
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+          and (not devExecutor.Running);
+      end;
   end;
-  
-  if Assigned(fProject) then
-    TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling) and
-      (GetCompileTarget <> ctNone) and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-       and (not devExecutor.Running)
-  else
-    TCustomAction(Sender).Enabled := (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
-      Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-      and (not devExecutor.Running);
 end;
-
+}
 procedure TMainForm.ToolbarDockClick(Sender: TObject);
 begin
   tbMain.Visible := ToolMainItem.Checked;
@@ -5290,6 +5274,8 @@ procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 var
   p1,p2:integer;
 begin
+  if self.fQuitting then
+    Exit;
   if not devCodeCompletion.Enabled then
     Exit;
   if ClassBrowser.CurrentFile = e.FileName then begin
@@ -5770,7 +5756,7 @@ var
   e: TEditor;
 begin
   // Update UI before the parser starts working
-  Application.ProcessMessages;
+  //Application.ProcessMessages;
 
   // Loading...
   Screen.Cursor := crHourglass;
@@ -5802,7 +5788,7 @@ begin
   // Only show if needed (it's a very slow operation)
   if (Current mod ShowStep = 0) or (Current = 1) then begin
     SetStatusBarMessage(Format(Lang[ID_PARSINGFILECOUNT], [Current, Total, Filename]));
-    Application.ProcessMessages;
+    //Application.ProcessMessages;
   end;
 end;
 
@@ -8673,6 +8659,15 @@ procedure TMainForm.actCloseUpdate(Sender: TObject);
 begin
   actClose.Enabled := (fEditorList.PageCount > 0)
     and not fClosing and not CppParser.Parsing;
+end;
+
+procedure TMainForm.EditorPageControlMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  SenderPageControl: TPageControl;
+begin
+  SenderPageControl := TPageControl(Sender);
+  SenderPageControl.Pages[SenderPageControl.ActivePageIndex].EndDrag(False);
 end;
 
 end.

@@ -1074,6 +1074,7 @@ object MainForm: TMainForm
       OnDrawTab = OnDrawTab
       OnMouseDown = EditorPageControlMouseDown
       OnMouseMove = EditorPageControlMouseMove
+      OnMouseUp = EditorPageControlMouseUp
     end
     object EditorPageControlRight: TPageControl
       Left = 974
@@ -1093,6 +1094,7 @@ object MainForm: TMainForm
       OnDrawTab = OnDrawTab
       OnMouseDown = EditorPageControlMouseDown
       OnMouseMove = EditorPageControlMouseMove
+      OnMouseUp = EditorPageControlMouseUp
     end
   end
   object LeftPageControl: TPageControl
@@ -2388,7 +2390,7 @@ object MainForm: TMainForm
       ImageIndex = 31
       ShortCut = 121
       OnExecute = actRunExecute
-      OnUpdate = actRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actCompRun: TAction
       Tag = 3
@@ -2397,7 +2399,7 @@ object MainForm: TMainForm
       ImageIndex = 33
       ShortCut = 122
       OnExecute = actCompRunExecute
-      OnUpdate = actCompileRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actRebuild: TAction
       Tag = 4
@@ -2693,7 +2695,7 @@ object MainForm: TMainForm
       Caption = 'Profile analysis'
       ImageIndex = 43
       OnExecute = actProfileExecute
-      OnUpdate = actCompileRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actBrowserAddFolder: TAction
       Category = 'ClassBrowser'
@@ -2810,7 +2812,7 @@ object MainForm: TMainForm
       Caption = 'Delete Profiling information'
       ImageIndex = 47
       OnExecute = actDeleteProfileExecute
-      OnUpdate = actRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actGotoDeclEditor: TAction
       Category = 'ClassBrowser'
