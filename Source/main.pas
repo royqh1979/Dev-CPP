@@ -1509,7 +1509,7 @@ begin
   ProjectView.Font.Color := ForegroundColor;
   ClassBrowser.Colors[ForeColor]:=ForegroundColor;
   ClassBrowser.Colors[BackColor]:=BackgroundColor;
-  ClassBrowser.Colors[SelectedBackColor]:=selectedTC.Background;
+  ClassBrowser.Colors[SelectedBackColor]:= selectedTC.Background;
   ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
   ClassBrowser.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
   ClassBrowser.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
@@ -1533,7 +1533,7 @@ begin
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
   CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
-  CodeCompletion.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  CodeCompletion.Colors[EnumColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
 
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;

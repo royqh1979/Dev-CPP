@@ -105,10 +105,9 @@ begin
     // Draw statement kind string, like 'Preprocessor'
     if odSelected in State then begin
       Canvas.Brush.Color := Colors[SelectedBackColor];
-      Canvas.FillRect(Rect);
-      Canvas.Font.Color := Colors[SelectedForeColor];
     end else begin
       Canvas.Brush.Color := Colors[BackColor];
+    end;
       Canvas.FillRect(Rect);
       case statement^._Kind of
         skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
@@ -122,7 +121,6 @@ begin
       else
         Canvas.Font.Color := Colors[ForeColor];
       end;
-    end;
     Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
     Offset := Offset +
       Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing
