@@ -4108,6 +4108,8 @@ procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean;
 var
   thread : TCppParserParseFileThread;
 begin
+  if fParsing then
+    Exit;
   thread := TCppParserParseFileThread.Create(TRUE);
   thread.FreeOnTerminate:=True;
   thread.Parser := self;
@@ -4123,6 +4125,8 @@ procedure TCppParser.ParseFileList;
 var
   thread : TCppParserParseFileListThread;
 begin
+  if fParsing then
+    Exit;
   thread := TCppParserParseFileListThread.Create(TRUE);
   thread.FreeOnTerminate:=True;
   thread.Parser := self;
