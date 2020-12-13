@@ -1067,12 +1067,20 @@ object EditorOptForm: TEditorOptForm
             OnClick = btnClearUsageDataClick
           end
           object chkShowKeywords: TCheckBox
-            Left = 304
+            Left = 302
             Top = 235
             Width = 321
             Height = 22
             Caption = 'Code Completion while inputing'
             TabOrder = 9
+          end
+          object chkIgnoreCase: TCheckBox
+            Left = 302
+            Top = 267
+            Width = 321
+            Height = 22
+            Caption = 'Ignore Case when show code suggestion'
+            TabOrder = 10
           end
         end
         object tabSymbolCompletion: TTabSheet

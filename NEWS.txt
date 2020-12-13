@@ -1,3 +1,7 @@
+Version 6.3-beta1
+    
+    - enhancement: add ignore case option in the code completion tab of the editor option dialog
+
 Version 6.2.1
 
     - enhancement: Export as RTF/Copy as RTF use the same colors as the editor

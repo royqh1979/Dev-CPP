@@ -1989,6 +1989,7 @@ begin
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
   fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
+  fCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.SymbolUsage := dmMain.SymbolUsage;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
