@@ -433,6 +433,7 @@ const
   ID_EOPT_SHOWRAINBOW_COLOR             = 26037;
   ID_EOPT_SHOW_KEYWORDS                 = 26038;
   ID_EOPT_IGNORE_CASE                   = 26039;
+  ID_EOPT_APPEND_FUNC                   = 26040;
 
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;

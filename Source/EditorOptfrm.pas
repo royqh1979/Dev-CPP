@@ -171,6 +171,7 @@ type
     btnDownloadTabnine: TButton;
     chkShowKeywords: TCheckBox;
     chkIgnoreCase: TCheckBox;
+    chkAppendFunc: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -443,6 +444,7 @@ begin
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
   chkShowKeywords.Checked := devCodeCompletion.ShowKeywords;
   chkIgnoreCase.Checked := devCodeCompletion.IgnoreCase;
+  chkAppendFunc.Checked := devCodeCompletion.AppendFunc;
   btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
   chkUseTabnine.Checked := devEditor.UseTabnine;
@@ -576,6 +578,7 @@ begin
   chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE]; 
   chkShowKeywords.Caption := Lang[ID_EOPT_SHOW_KEYWORDS];
   chkIgnoreCase.Caption := Lang[ID_EOPT_IGNORE_CASE];
+  chkAppendFunc.Caption := Lang[ID_EOPT_APPEND_FUNC];
   btnClearUsageData.Caption := Lang[ID_EOPT_CODECOMPLETE_CLEAR_USAGE];
   cbUseAltSlash.Caption := Lang[ID_EOPT_ALTSLASH];
   cbUseUTF8AsDefault.Caption := Lang[ID_EOPT_UTF8];
@@ -920,6 +923,7 @@ begin
     RecordUsage := chkRecordUsage.Checked;
     ShowKeywords := chkShowKeywords.Checked;
     IgnoreCase := chkIgnoreCase.Checked;
+    AppendFunc := chkAppendFunc.Checked;
     ShowCompletionWhileInput := cbShowCompletionWhileInputing.Checked;
     MaxCount := txtCodeSuggestionMaxCount.Value;
   end;
@@ -1462,6 +1466,7 @@ begin
     chkRecordUsage.Enabled := Checked;
     chkShowKeywords.Enabled := Checked;
     chkIgnoreCase.Enabled := Checked;
+    chkAppendFunc.Enabled := Checked;
     txtCodeSuggestionMaxCount.Enabled:=Checked and cbShowCompletionWhileInputing.Checked;
   end;
 end;

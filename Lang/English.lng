@@ -387,6 +387,7 @@ Ver=1
 26037=Use diffrent colors for embedding parentheses
 26038=Show Keyword in Code Completion
 26039=Ignore Case in Code Completion
+26040=Append () to Function
 
 27001=Show hidden line characters
 27002=Show mouseover hints

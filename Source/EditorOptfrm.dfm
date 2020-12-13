@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabCBCompletion
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -714,7 +714,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -956,7 +956,7 @@ object EditorOptForm: TEditorOptForm
           end
           object lbCodeSuggestionShowCount: TLabel
             Left = 8
-            Top = 304
+            Top = 336
             Width = 292
             Height = 20
             Caption = 'Max number of items in suggestion window:'
@@ -1012,16 +1012,16 @@ object EditorOptForm: TEditorOptForm
             OnChange = tbCompletionDelayChange
           end
           object cbUseAltSlash: TCheckBox
-            Left = 11
-            Top = 235
+            Left = 8
+            Top = 232
             Width = 609
             Height = 22
             Caption = 'Use Alt+/ instead of Ctrl+Space'
             TabOrder = 3
           end
           object cbShowCompletionWhileInputing: TCheckBox
-            Left = 11
-            Top = 267
+            Left = 8
+            Top = 296
             Width = 609
             Height = 22
             Caption = 'Code Completion while inputing'
@@ -1030,7 +1030,7 @@ object EditorOptForm: TEditorOptForm
           end
           object txtCodeSuggestionMaxCount: TSpinEdit
             Left = 8
-            Top = 336
+            Top = 368
             Width = 233
             Height = 31
             Increment = 10
@@ -1050,7 +1050,7 @@ object EditorOptForm: TEditorOptForm
           end
           object chkRecordUsage: TCheckBox
             Left = 11
-            Top = 379
+            Top = 411
             Width = 609
             Height = 22
             Caption = 'Save Symbol Usage Data'
@@ -1059,7 +1059,7 @@ object EditorOptForm: TEditorOptForm
           end
           object btnClearUsageData: TButton
             Left = 32
-            Top = 408
+            Top = 440
             Width = 241
             Height = 33
             Caption = 'Clear Symbol Usage Data'
@@ -1081,6 +1081,14 @@ object EditorOptForm: TEditorOptForm
             Height = 22
             Caption = 'Ignore Case when show code suggestion'
             TabOrder = 10
+          end
+          object chkAppendFunc: TCheckBox
+            Left = 8
+            Top = 264
+            Width = 289
+            Height = 22
+            Caption = 'Append () to Function'
+            TabOrder = 11
           end
         end
         object tabSymbolCompletion: TTabSheet

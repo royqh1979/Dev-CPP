@@ -1351,7 +1351,7 @@ begin
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
-      CompletionInsert(True);
+      CompletionInsert(devCodeCompletion.AppendFunc);
       fCompletionBox.Hide;
     end else begin  // other keys, stop completion
       //stop completion now
@@ -2288,6 +2288,8 @@ begin
   end else begin
     fText.SelText := Statement^._Command + FuncAddOn;
 
+    if FuncAddOn <> '' then
+      fLastIdCharPressed := 0;
     // Move caret inside the ()'s, only when the user has something to do there...
     if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
 
@@ -2631,14 +2633,16 @@ begin
     end;
   end;
 
+  {
   if fCompletionBox.Visible then //don't do this when show
     Exit;
+  }
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     //st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,line));
     s:= GetWordAtPosition(fText,p,wpInformation);
     st := MainForm.CppParser.FindStatementOf(fFileName,
-      s , line);
+      s , p.Line);
     if assigned(st) then begin
       case st._Kind of
         skPreprocessor, skEnum: begin

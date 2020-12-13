@@ -2825,7 +2825,7 @@ var
   // record. This will paint any chars already stored if there is
   // a (visible) change in the attributes.
   procedure AddHighlightToken(const Token: AnsiString;
-    CharsBefore, TokenLen: integer; vline:integer; p_Attri: TSynHighlighterAttributes);
+    CharsBefore, TokenLen: integer; cRow:integer; p_Attri: TSynHighlighterAttributes);
   var
     bSpacesTest, bIsSpaces: boolean;
 
@@ -2868,7 +2868,7 @@ var
       Foreground := Font.Color;
 
     if Assigned(OnPaintHighlightToken) then
-      OnPaintHighlightToken(self,vLine,fHighlighter.GetTokenPos,
+      OnPaintHighlightToken(self,cRow,fHighlighter.GetTokenPos,
         token,p_Attri,Style,Foreground,Background);
 
     
@@ -3203,7 +3203,7 @@ var
               GetBraceColorAttr(fHighlighter.GetBraceLevel+1,attr);
             end;
             AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
-              nTokenLen, vLine,attr);
+              nTokenLen, cRow,attr);
           end;
           // Let the highlighter scan the next token.
           fHighlighter.Next;
@@ -3219,14 +3219,14 @@ var
             if nTokenLen > 0 then begin
               sToken := Copy(sLine, nTokenPos + 1, nTokenLen);
               AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
-                nTokenLen, vLine, nil);
+                nTokenLen, cRow, nil);
             end;
           end;
           // Draw LineBreak glyph.
           if (eoShowSpecialChars in fOptions) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
-              Length(SynLineBreakGlyph),vLine, nil);
+              Length(SynLineBreakGlyph),cRow, nil);
           end;
         end;
         // Draw anything that's left in the TokenAccu record. Fill to the end
