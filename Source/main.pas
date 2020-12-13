@@ -2663,6 +2663,9 @@ begin
     Exit;
   if fCompiler.Compiling then
     Exit;
+  if fCheckSyntaxInBack then
+    Exit;
+
   fCheckSyntaxInBack:=True;
   if not PrepareForCompile(ctStdin) then begin
     fCheckSyntaxInBack:=False;
