@@ -324,7 +324,7 @@ begin
 
         // Only show one hundred statements...
         for I := 0 to min(fShowCount, fCompletionList.Count - 1) do begin
-          HeaderComplForm.lbCompletion.Items.Add(fCompletionList[I]);
+          HeaderComplForm.lbCompletion.Items.AddObject('',TObject(fCompletionList[I]));
         end;
 
         if HeaderComplForm.lbCompletion.Items.Count > 0 then begin

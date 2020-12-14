@@ -106,7 +106,7 @@ begin
     end;
     Canvas.FillRect(Rect);
     Canvas.Font.Color := Colors[PreprocessorColor];
-    Canvas.TextOut(Offset, Rect.Top, Items[Index]);
+    Canvas.TextOut(Offset, Rect.Top, String(Items.Objects[Index]));
   end;
 end;
 
