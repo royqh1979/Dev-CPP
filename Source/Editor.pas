@@ -1805,9 +1805,10 @@ begin
         end else begin
           lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
           if lastWord <> '' then begin
-            if (CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1) and devEditor.UseTabnine  then begin
+            if (CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1) then begin
             //last word is a type keyword, this is a var or param define, and dont show suggestion
-              ShowTabnineCompletion;
+              if devEditor.UseTabnine then
+                ShowTabnineCompletion;
               Exit;
             end;
             st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
@@ -1815,9 +1816,10 @@ begin
               //expand macro
               st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
             end;
-            if assigned(st) and (st^._Kind in [skClass,skTypedef]) and devEditor.UseTabnine then begin
+            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
               //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
-              ShowTabnineCompletion;
+              if devEditor.UseTabnine then
+                ShowTabnineCompletion;
               Exit;
             end;
           end;
@@ -2461,22 +2463,22 @@ begin
 
   FuncAddOn := '';
 
+  // delete the part of the word that's already been typed ...
+  p:=fText.CaretXY ; // CaretXY will change after call WordStart
+  fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
+  p:=fText.WordEnd;
+  fText.SelEnd := fText.RowColToCharIndex(p);
+
   // if we are inserting a function,
   if appendFunc then begin
     if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
-      if (Length(fText.LineText) < fText.WordEnd.Char+1 ) // it's the last char on line
-        or (fText.LineText[fText.WordEnd.Char+1] <> '(') then begin  // it don't have '(' after it
+      if (Length(fText.LineText) < p.Char+1 ) // it's the last char on line
+        or (fText.LineText[p.Char+1] <> '(') then begin  // it don't have '(' after it
       FuncAddOn := '()';
       end;
     end;
   end;
 
-
-  // delete the part of the word that's already been typed ...
-  p:=fText.CaretXY ; // CaretXY will change after call WordStart
-  fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
-  //fText.SelEnd := fText.RowColToCharIndex(p);
-  fText.SelEnd := fText.RowColToCharIndex(fText.WordEnd);
   // ... by replacing the selection
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
     InsertUserCodeIn(Statement^._Value);

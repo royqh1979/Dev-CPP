@@ -98,7 +98,6 @@ var
   s:String;
 begin
   Offset := 4;
-
   with lbCompletion do begin
     // Draw statement kind string, like 'Preprocessor'
     if odSelected in State then begin
