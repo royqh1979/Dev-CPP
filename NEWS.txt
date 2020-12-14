@@ -12,6 +12,8 @@ Version 6.3-beta1
     - fix: don't color var/func when code completion window is shown
     - fix: wrong macro define hint info 
     - enhancement: each project/source file use its own parser
+    - fix: toggle comment wont work if the cursor is at the begin of the line
+    - fix: correctly show code suggestion if at the end of the file and the current block is not closed with '}'
 
 Version 6.2.1
 

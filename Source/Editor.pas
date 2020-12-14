@@ -139,7 +139,7 @@ type
     procedure EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
 
-    procedure EditorPaintHighlightToken(Sender: TObject; Line: integer;
+    procedure EditorPaintHighlightToken(Sender: TObject; Row: integer;
       column: integer; token: String; attr: TSynHighlighterAttributes;
       var style:TFontStyles; var FG,BG:TColor);
     procedure ExporterFormatToken(Sender: TObject; Line: integer;
@@ -2633,7 +2633,7 @@ begin
 end;
 
 
-procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
+procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Row: integer;
   column: integer; token: String; attr: TSynHighlighterAttributes;
   var style:TFontStyles; var FG,BG:TColor);
 var
@@ -2661,7 +2661,7 @@ begin
   }
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     //st := fFindStatementOf(fFileName, token, line);
-    p:=fText.DisplayToBufferPos(DisplayCoord(column+1,line));
+    p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
     s:= GetWordAtPosition(fText,p,wpInformation);
     st := fParser.FindStatementOf(fFileName,
       s , p.Line);

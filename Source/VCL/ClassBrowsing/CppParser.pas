@@ -204,8 +204,8 @@ type
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
     function PrettyPrintStatement(Statement: PStatement; line:integer = -1): AnsiString;
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
-    function FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
-    function FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement; overload;
+    function FindAndScanBlockAt(const Filename: AnsiString; Line: integer): PStatement;
+    function FindStatementOf(FileName, Phrase: AnsiString; Line: integer): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement;
       var CurrentClassType: PStatement ; force:boolean = False): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement; overload;
@@ -2513,7 +2513,9 @@ begin
     Exit;
   end;
 
-  // Tokenize the token list
+  // Process the token list
+  fCurrentScope.Clear;
+  fCurrentClassScope.Clear;
   fIndex := 0;
   fClassScope := scsNone;
   fSkipList.Clear;
@@ -2529,8 +2531,8 @@ begin
    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
-    fCurrentScope.Clear;
-    fCurrentClassScope.Clear;
+    //fCurrentScope.Clear;
+    //fCurrentClassScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
     if (not ManualUpdate) and Assigned(fOnEndParsing) then
@@ -3031,10 +3033,10 @@ begin
   end;
 end;
 
-function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
+function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Line: integer): PStatement;
 var
   fileIncludes: PFileIncludes;
-  idx:integer;
+  idx,i:integer;
   statement:PStatement;
 begin
   Result := nil;
@@ -3060,10 +3062,18 @@ begin
   }
 
 
-  fileIncludes.Scopes.Find(row,idx);
-  if idx>=fileIncludes.Scopes.Count then
+  fileIncludes.Scopes.Find(Line,idx);
+  if idx>=fileIncludes.Scopes.Count then begin
+    for i:=fCurrentScope.Count-1 downto 0 do begin
+      statement := PStatement(fCurrentScope[i]);
+      if Line >= statement^._definitionLine then begin
+        Result:=statement;
+        break;
+      end;
+    end;
     Exit;
-  while (idx>=0) and (row < fileIncludes.Scopes[idx]) do
+  end;
+  while (idx>=0) and (Line < fileIncludes.Scopes[idx]) do
     dec(idx);
   if idx<0 then
     Exit;
@@ -3637,9 +3647,9 @@ begin
   Result := Statement;
 end;
 
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Line: integer): PStatement;
 begin
-  Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Row));
+  Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Line));
   //Statements.DumpWithScope('f:\\local-statements.txt');
 end;
 

@@ -2380,7 +2380,7 @@ object MainForm: TMainForm
       ImageIndex = 28
       ShortCut = 120
       OnExecute = actCompileExecute
-      OnUpdate = actDebugExecuteUpdate
+      OnUpdate = actCompileUpdate
     end
     object actRun: TAction
       Tag = 2
@@ -2407,7 +2407,7 @@ object MainForm: TMainForm
       ImageIndex = 30
       ShortCut = 123
       OnExecute = actRebuildExecute
-      OnUpdate = actDebugExecuteUpdate
+      OnUpdate = actCompileUpdate
     end
     object actClean: TAction
       Tag = 5

@@ -110,7 +110,7 @@ type
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: integer;
     var Special: boolean; var FG, BG: TColor) of object;
 
-  TPaintHighlightTokenEvent = procedure(Sender: TObject; Line: integer;
+  TPaintHighlightTokenEvent = procedure(Sender: TObject; Row: integer;
     column: integer; token: String; attr: TSynHighlighterAttributes;
      var style:TFontStyles; var FG,BG:TColor) of object;
 
@@ -6624,8 +6624,7 @@ begin
           OrigBlockEnd := BlockEnd;
 
           // Ignore the last line the cursor is placed on
-          BeginIndex := BlockBegin.Line - 1;
-          if BlockEnd.Char = 1 then
+          if (BlockEnd.Char = 1) and (BlockBegin.Line < BlockEnd.Line) then
             EndIndex := max(0, BlockEnd.Line - 2)
           else
             EndIndex := BlockEnd.Line - 1;

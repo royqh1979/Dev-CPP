@@ -973,6 +973,7 @@ type
     procedure actCloseUpdate(Sender: TObject);
     procedure EditorPageControlMouseUp(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure actCompileUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -8649,6 +8650,29 @@ begin
         Exit;
       Result := e.CppParser;
     end;
+  end;
+end;
+
+procedure TMainForm.actCompileUpdate(Sender: TObject);
+var
+  e:TEditor;
+  enabled:boolean;
+begin
+  TCustomAction(Sender).Enabled:=False;
+  case GetCompileTarget of
+    ctFile: begin
+        e:=EditorList.GetEditor();
+        if not Assigned(e) then
+          Exit;
+        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+          and (not devExecutor.Running);
+      end;
+    ctProject: begin
+        TCustomAction(Sender).Enabled := (not fCompiler.Compiling)
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
+          and (not devExecutor.Running);
+      end;
   end;
 end;
 
