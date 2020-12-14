@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, Tabnine,CBUtils, IntList;
+  CodeToolTip, Tabnine,CBUtils, IntList, HeaderCompletion;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
@@ -62,6 +62,8 @@ type
   TWordPurpose = (
     wpCompletion, // walk backwards over words, array, functions, parents, no forward movement
     wpEvaluation, // walk backwards over words, array, functions, parents, forwards over words, array
+    wpHeaderCompletion, // walk backwards over path
+    wpHeaderCompletionStart, // walk backwards over path, including start '<' or '"'
     wpInformation // walk backwards over words, array, functions, parents, forwards over words
     );
 
@@ -109,6 +111,7 @@ type
     fLineAfterTabStop : AnsiString;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
+    fHeaderCompletionBox : THeaderCompletion;
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
     fFunctionTip: TCodeToolTip;
@@ -151,6 +154,9 @@ type
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
+    procedure HeaderCompletionKeyPress(Sender: TObject; var Key: Char);
+    procedure HeaderCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
     procedure TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
     procedure TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
@@ -158,6 +164,7 @@ type
     procedure TabnineQuery;
 
     procedure CompletionInsert(appendFunc:boolean=False);
+    procedure HeaderCompletionInsert;
     procedure CompletionTimer(Sender: TObject);
     function FunctionTipAllowed: boolean;
     procedure FunctionTipTimer(Sender: TObject);
@@ -208,6 +215,7 @@ type
     procedure UnindentSelection;
     procedure InitCompletion;
     procedure ShowCompletion(autoComplete:boolean);
+    procedure ShowHeaderCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
     procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
     procedure ClearSyntaxErrors;
@@ -1330,12 +1338,49 @@ begin
     end;
 end;
 
+procedure TEditor.HeaderCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  fHeaderCompletionBox.Hide;
+  //Send the key to the SynEdit
+  PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
 procedure TEditor.CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
   fCompletionBox.Hide;
   //Send the key to the SynEdit
   PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
+procedure TEditor.HeaderCompletionKeyPress(Sender: TObject; var Key: Char);
+var
+  phrase:AnsiString;
+begin
+  // We received a key from the completion box...
+  if fHeaderCompletionBox.Enabled then begin
+    if (Key in fText.IdentChars) or (Key in ['.']) then begin // Continue filtering
+      fText.SelText := Key;
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpHeaderCompletion);
+      fHeaderCompletionBox.Search(phrase , fFileName,False);
+    end else if Key = Char(VK_BACK) then begin
+      fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpHeaderCompletion);
+      fLastIdCharPressed:=Length(phrase);
+      fHeaderCompletionBox.Search(phrase, fFileName, False);
+    end else if Key = Char(VK_ESCAPE) then begin
+      fHeaderCompletionBox.Hide;
+    end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
+      HeaderCompletionInsert;
+      fHeaderCompletionBox.Hide;
+    end else begin  // other keys, stop completion
+      //stop completion now
+      fHeaderCompletionBox.Hide;
+      //Send the key to the SynEdit
+      PostMessage(fText.Handle, WM_CHAR, Ord(Key), 0);
+    end;
+  end;
 end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
@@ -1727,6 +1772,8 @@ begin
           fCompletionTimer.Enabled := True;
       ':': if (fText.CaretX > 1) and (Length(fText.LineText) > 1) and (fText.LineText[fText.CaretX - 1] = ':') then
           fCompletionTimer.Enabled := True;
+      '/','\': if fParser.IsIncludeLine(fText.LineText) then
+        fCompletionTimer.Enabled := True;
     else
       fCompletionTimer.Enabled := False;
     end;
@@ -1750,35 +1797,45 @@ begin
     inc(fLastIdCharPressed);
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
       if fLastIdCharPressed=1 then begin
-        lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
-        if lastWord <> '' then begin
-          if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
-          //last word is a type keyword, this is a var or param define, and dont show suggestion
-            ShowTabnineCompletion;
-            Exit;
+        if fParser.IsIncludeLine(Text.LineText) then begin
+          // is a #include line
+          fText.SelText := Key;
+          ShowHeaderCompletion(False);
+          Key:=#0;
+        end else begin
+          lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
+          if lastWord <> '' then begin
+            if (CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1) and devEditor.UseTabnine  then begin
+            //last word is a type keyword, this is a var or param define, and dont show suggestion
+              ShowTabnineCompletion;
+              Exit;
+            end;
+            st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
+            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
+              //expand macro
+              st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
+            end;
+            if assigned(st) and (st^._Kind in [skClass,skTypedef]) and devEditor.UseTabnine then begin
+              //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              ShowTabnineCompletion;
+              Exit;
+            end;
           end;
-          st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
-          if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
-            //expand macro
-            st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
-          end;
-          if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
-            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
-            ShowTabnineCompletion;
-            Exit;
-          end;
-        end;
-        fText.SelText := Key;
-        ShowCompletion(False);
-        Key:=#0;
-      end
-    end
+          fText.SelText := Key;
+          ShowCompletion(False);
+          Key:=#0;
+        end ;
+      end;
+    end;
   end else begin
     fLastIdCharPressed:=0;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
 
-    if key in [' ','+','-','*','/','<','&','|','!','~'] then begin
+    if (key in [' ','+','-','*','/','<','&','|','!','~']) and devEditor.UseTabnine then begin
+      if (key = '/') and fParser.IsIncludeLine(fText.LineText) and devCodeCompletion.Enabled then begin
+        HandleCodeCompletion(Key);
+      end;
       //Show Tabnine
       fText.SelText := Key;
       Key:=#0;
@@ -1906,6 +1963,10 @@ end;
 
 procedure TEditor.CompletionTimer(Sender: TObject);
 begin
+  if fParser.IsIncludeLine(fText.LineText) then begin
+    ShowHeaderCompletion(False);
+    Exit;
+  end;
   // Don't show the completion box if the cursor has moved during the timer rundown
   if (fText.CaretX <> fCompletionInitialPosition.Char) or
     (fText.CaretY <> fCompletionInitialPosition.Line) then
@@ -1919,6 +1980,8 @@ begin
   fTabnine := MainForm.Tabnine;
   fCompletionBox := MainForm.CodeCompletion;
   fCompletionBox.Enabled := devCodeCompletion.Enabled;
+  fHeaderCompletionBox := MainForm.HeaderCompletion;
+  fHeaderCompletionBox.Enabled := devCodeCompletion.Enabled;
 
   if devEditor.ShowFunctionTip then begin
     if not Assigned(fFunctionTipTimer) then
@@ -1976,6 +2039,58 @@ begin
   fTabnine.OnKeyDown := TabnineCompletionKeyDown;
   fTabnine.Show;
   TabnineQuery;
+end;
+
+procedure TEditor.ShowHeaderCompletion(autoComplete:boolean);
+var
+  P: TPoint;
+  word: AnsiString;
+begin
+  if not devCodeCompletion.Enabled then
+    Exit;
+  fCompletionTimer.Enabled := False;
+
+  if fHeaderCompletionBox.Visible then // already in search, don't do it again
+    Exit;
+
+  // Position it at the top of the next line
+  P := fText.RowColumnToPixels(fText.DisplayXY);
+  Inc(P.Y, fText.LineHeight + 2);
+  fHeaderCompletionBox.Position := fText.ClientToScreen(P);
+
+  fHeaderCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;
+  fHeaderCompletionBox.ShowCount := devCodeCompletion.MaxCount;
+  //Set Font size;
+  fHeaderCompletionBox.FontSize := fText.Font.Size;
+
+  // Redirect key presses to completion box if applicable
+  fHeaderCompletionBox.OnKeyPress := HeaderCompletionKeyPress;
+  fHeaderCompletionBox.OnKeyDown := HeaderCompletionKeyDown;
+  fHeaderCompletionBox.Parser := fParser;
+
+
+  word:=GetWordAtPosition(fText, fText.CaretXY, wpHeaderCompletionStart);
+  if (word = '') then
+   Exit;
+
+  if (word[1]<>'"') and (word[1]<>'<') then
+    Exit;
+
+  if (LastPos('"',word) > 1) or (LastPos('>',word) > 1) then
+    Exit;
+
+  fHeaderCompletionBox.Show;    
+  fHeaderCompletionBox.SearchLocal := (word[1] = '"');
+  fHeaderCompletionBox.CurrentFile := fFileName;
+
+  Delete(word,1,1);
+  
+  //if not fCompletionBox.Visible then
+  fHeaderCompletionBox.PrepareSearch(word, fFileName);
+
+  // Filter the whole statement list
+  if fHeaderCompletionBox.Search(word, fFileName, autoComplete) then //only one suggestion and it's not input while typing
+    HeaderCompletionInsert(); // if only have one suggestion, just use it
 end;
 
 procedure TEditor.ShowCompletion(autoComplete:boolean);
@@ -2167,7 +2282,30 @@ begin
       end;
     end;
 
-    // Copy backward until end of word
+    // Copy backward until begin of path
+    if Purpose = wpHeaderCompletion then begin
+      while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in ['/','\','.']) then begin
+          Dec(WordBegin); 
+        end else if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else
+          break;
+      end;
+    end;
+
+    if Purpose = wpHeaderCompletionStart then begin
+      while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in ['/','\','"','<','.']) then begin
+          Dec(WordBegin); 
+        end else if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else
+          break;
+      end;
+    end;
+
+    // Copy backward until begin of word
     if Purpose in [wpCompletion, wpEvaluation, wpInformation] then begin
       while (WordBegin > 0) and (WordBegin <= len) do begin
         if (s[WordBegin] = ']') then begin
@@ -2263,6 +2401,40 @@ begin
   end;
 end;
 
+procedure TEditor.HeaderCompletionInsert;
+var
+  headerName: String;
+  P: TBufferCoord;
+  posBegin,posEnd:integer;
+  sLine:String;
+begin
+  headerName := fHeaderCompletionBox.SelectedFilename;
+  if headerName = '' then
+    Exit; 
+
+  // delete the part of the word that's already been typed ...
+  p:=fText.CaretXY ; // CaretXY will change after call WordStart
+  posBegin := p.Char;
+  posEnd := p.Char;
+  sLine := fText.LineText;
+  while (posBegin>1) and
+    ((sLine[posBegin-1] in fText.IdentChars) or (sLine[posBegin-1]='.')) do
+      dec(posBegin);
+
+  while (posEnd < Length(sLine)) and
+    ((sLine[posBegin] in fText.IdentChars) or (sLine[posBegin]='.')) do
+      inc(posEnd);
+
+
+  p.Char := posBegin;
+  fText.SelStart := fText.RowColToCharIndex(p);
+  p.Char := posEnd;
+  fText.SelEnd := fText.RowColToCharIndex(p);
+  fText.SelText := headerName;
+
+  fCompletionBox.Hide;
+end;
+
 procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
   statement: PStatement;
@@ -2303,7 +2475,8 @@ begin
   // delete the part of the word that's already been typed ...
   p:=fText.CaretXY ; // CaretXY will change after call WordStart
   fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
-  fText.SelEnd := fText.RowColToCharIndex(p);
+  //fText.SelEnd := fText.RowColToCharIndex(p);
+  fText.SelEnd := fText.RowColToCharIndex(fText.WordEnd);
   // ... by replacing the selection
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
     InsertUserCodeIn(Statement^._Value);

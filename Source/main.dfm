@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 558
-  Top = 172
+  Left = 1067
+  Top = 201
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -3218,7 +3218,7 @@ object MainForm: TMainForm
     OnResize = CodeCompletionResize
     OnlyGlobals = False
     Left = 60
-    Top = 228
+    Top = 180
   end
   object Shortcuts: TdevShortcuts
     Filename = 'shortcuts.ini'
@@ -3534,5 +3534,19 @@ object MainForm: TMainForm
   object DummyCppTokenizer: TCppTokenizer
     Left = 66
     Top = 363
+  end
+  object HeaderCompletion: THeaderCompletion
+    ShowCount = 1000
+    Color = clWindow
+    Width = 320
+    Height = 240
+    Enabled = True
+    MinWidth = 0
+    MinHeight = 0
+    MaxWidth = 0
+    MaxHeight = 0
+    FontSize = 0
+    Left = 130
+    Top = 355
   end
 end

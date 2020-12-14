@@ -31,7 +31,8 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput;
+  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput,
+  HeaderCompletion;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -669,6 +670,7 @@ type
     DummyCppParser: TCppParser;
     DummyCppPreprocessor: TCppPreprocessor;
     DummyCppTokenizer: TCppTokenizer;
+    HeaderCompletion: THeaderCompletion;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1542,6 +1544,12 @@ begin
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
   CodeCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
+
+  HeaderCompletion.Colors[BackColor] := tc.Background;
+  HeaderCompletion.Colors[ForeColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  HeaderCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
+  HeaderCompletion.Colors[SelectedBackColor] := BackgroundColor;
+  HeaderCompletion.Color := dmMain.Cpp.WhitespaceAttribute.Background;
 
   if Assigned(fTabnine) then begin
     fTabnine.Colors[BackColor] := tc.Background;
@@ -4069,7 +4077,6 @@ end;
 procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
 var
   e:TEditor;
-  enabled:boolean;
 begin
   TCustomAction(Sender).Enabled:=False;
   case GetCompileTarget of
@@ -4732,8 +4739,6 @@ begin
 end;
 
 procedure TMainForm.UpdateClassBrowsing;
-var
-  I: integer;
 begin
   //ResetCppParser(CppParser);
 
@@ -4748,6 +4753,10 @@ begin
   CodeCompletion.Color := devCodeCompletion.BackColor;
   CodeCompletion.Width := devCodeCompletion.Width;
   CodeCompletion.Height := devCodeCompletion.Height;
+
+  HeaderCompletion.Color := devCodeCompletion.BackColor;
+  HeaderCompletion.Width := devCodeCompletion.Width;
+  HeaderCompletion.Height := devCodeCompletion.Height;
 
   // Only attempt to redraw once
   ClassBrowser.BeginUpdate;
@@ -4775,7 +4784,6 @@ begin
   end;
   Project.CppParser.ClearProjectFiles;
   Project.CppParser.ClearProjectIncludePaths;
-  Project.CppParser.ProjectDir := Project.Directory;
   for I := 0 to Project.Units.Count - 1 do
     Project.CppParser.AddFileToScan(Project.Units[I].FileName, True);
   for I := 0 to Project.Options.Includes.Count - 1 do
@@ -8656,7 +8664,6 @@ end;
 procedure TMainForm.actCompileUpdate(Sender: TObject);
 var
   e:TEditor;
-  enabled:boolean;
 begin
   TCustomAction(Sender).Enabled:=False;
   case GetCompileTarget of
