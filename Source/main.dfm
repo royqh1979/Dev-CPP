@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 558
-  Top = 172
+  Left = 1067
+  Top = 201
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -48,7 +48,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = FindSheet
+    ActivePage = DebugSheet
     Align = alBottom
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -514,7 +514,7 @@ object MainForm: TMainForm
             Font.Height = -14
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 0
+            ItemHeight = 16
             ParentCtl3D = False
             ParentFont = False
             TabOrder = 0
@@ -1074,6 +1074,7 @@ object MainForm: TMainForm
       OnDrawTab = OnDrawTab
       OnMouseDown = EditorPageControlMouseDown
       OnMouseMove = EditorPageControlMouseMove
+      OnMouseUp = EditorPageControlMouseUp
     end
     object EditorPageControlRight: TPageControl
       Left = 974
@@ -1093,6 +1094,7 @@ object MainForm: TMainForm
       OnDrawTab = OnDrawTab
       OnMouseDown = EditorPageControlMouseDown
       OnMouseMove = EditorPageControlMouseMove
+      OnMouseUp = EditorPageControlMouseUp
     end
   end
   object LeftPageControl: TPageControl
@@ -1177,7 +1179,6 @@ object MainForm: TMainForm
           RowSelect = True
           ShowLines = False
           OnSelect = ClassBrowserSelect
-          Parser = CppParser
           ItemImages.Globals = 0
           ItemImages.Classes = 1
           ItemImages.VariablePrivate = 2
@@ -2287,7 +2288,7 @@ object MainForm: TMainForm
       Tag = 3
       Category = 'Search'
       Caption = '&Replace'
-      ImageIndex = 66
+      ImageIndex = 76
       ShortCut = 16466
       OnExecute = actReplaceExecute
       OnUpdate = actUpdateEmptyEditorFindForm
@@ -2379,7 +2380,7 @@ object MainForm: TMainForm
       ImageIndex = 28
       ShortCut = 120
       OnExecute = actCompileExecute
-      OnUpdate = actDebugExecuteUpdate
+      OnUpdate = actCompileUpdate
     end
     object actRun: TAction
       Tag = 2
@@ -2388,7 +2389,7 @@ object MainForm: TMainForm
       ImageIndex = 31
       ShortCut = 121
       OnExecute = actRunExecute
-      OnUpdate = actRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actCompRun: TAction
       Tag = 3
@@ -2397,7 +2398,7 @@ object MainForm: TMainForm
       ImageIndex = 33
       ShortCut = 122
       OnExecute = actCompRunExecute
-      OnUpdate = actCompileRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actRebuild: TAction
       Tag = 4
@@ -2406,7 +2407,7 @@ object MainForm: TMainForm
       ImageIndex = 30
       ShortCut = 123
       OnExecute = actRebuildExecute
-      OnUpdate = actDebugExecuteUpdate
+      OnUpdate = actCompileUpdate
     end
     object actClean: TAction
       Tag = 5
@@ -2420,7 +2421,7 @@ object MainForm: TMainForm
       Tag = 6
       Category = 'Debug'
       Caption = '&Debug'
-      ImageIndex = 59
+      ImageIndex = 72
       ShortCut = 116
       OnExecute = actDebugExecute
       OnUpdate = actDebugExecuteUpdate
@@ -2538,7 +2539,7 @@ object MainForm: TMainForm
     object actAddWatch: TAction
       Category = 'Debug'
       Caption = 'Add &Watch...'
-      ImageIndex = 65
+      ImageIndex = 77
       OnExecute = actAddWatchExecute
       OnUpdate = actAddWatchUpdate
     end
@@ -2693,7 +2694,7 @@ object MainForm: TMainForm
       Caption = 'Profile analysis'
       ImageIndex = 43
       OnExecute = actProfileExecute
-      OnUpdate = actCompileRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actBrowserAddFolder: TAction
       Category = 'ClassBrowser'
@@ -2792,7 +2793,7 @@ object MainForm: TMainForm
     object actStepOver: TAction
       Category = 'Debug'
       Caption = '&Step Over'
-      ImageIndex = 58
+      ImageIndex = 75
       ShortCut = 118
       OnExecute = actStepOverExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2800,7 +2801,7 @@ object MainForm: TMainForm
     object actStepInto: TAction
       Category = 'Debug'
       Caption = 'Step &Into'
-      ImageIndex = 56
+      ImageIndex = 73
       ShortCut = 119
       OnExecute = actStepIntoExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2810,7 +2811,7 @@ object MainForm: TMainForm
       Caption = 'Delete Profiling information'
       ImageIndex = 47
       OnExecute = actDeleteProfileExecute
-      OnUpdate = actRunUpdate
+      OnUpdate = actDebugExecuteUpdate
     end
     object actGotoDeclEditor: TAction
       Category = 'ClassBrowser'
@@ -2864,7 +2865,7 @@ object MainForm: TMainForm
     object actStepOut: TAction
       Category = 'Debug'
       Caption = 'Step &Out'
-      ImageIndex = 57
+      ImageIndex = 74
       ShortCut = 16503
       OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -3203,19 +3204,8 @@ object MainForm: TMainForm
       Action = actMsgClear
     end
   end
-  object CppParser: TCppParser
-    Enabled = True
-    OnTotalProgress = CppParserTotalProgress
-    ParseLocalHeaders = False
-    ParseGlobalHeaders = False
-    OnStartParsing = CppParserStartParsing
-    OnEndParsing = CppParserEndParsing
-    Left = 60
-    Top = 196
-  end
   object CodeCompletion: TCodeCompletion
     ShowCount = 1000
-    Parser = CppParser
     Color = clWhite
     Width = 320
     Height = 240
@@ -3228,7 +3218,7 @@ object MainForm: TMainForm
     OnResize = CodeCompletionResize
     OnlyGlobals = False
     Left = 60
-    Top = 228
+    Top = 180
   end
   object Shortcuts: TdevShortcuts
     Filename = 'shortcuts.ini'
@@ -3294,14 +3284,6 @@ object MainForm: TMainForm
     OnExecuteMacro = DevCppDDEServerExecuteMacro
     Left = 628
     Top = 240
-  end
-  object CppPreprocessor: TCppPreprocessor
-    Left = 60
-    Top = 134
-  end
-  object CppTokenizer: TCppTokenizer
-    Left = 60
-    Top = 166
   end
   object FolderPopup: TPopupMenu
     Images = dmMain.MenuImages_NewLook
@@ -3537,5 +3519,34 @@ object MainForm: TMainForm
       Caption = 'Clear All'
       OnClick = mnuClearAllFindItemsClick
     end
+  end
+  object DummyCppParser: TCppParser
+    Enabled = False
+    ParseLocalHeaders = False
+    ParseGlobalHeaders = False
+    Left = 77
+    Top = 304
+  end
+  object DummyCppPreprocessor: TCppPreprocessor
+    Left = 130
+    Top = 299
+  end
+  object DummyCppTokenizer: TCppTokenizer
+    Left = 66
+    Top = 363
+  end
+  object HeaderCompletion: THeaderCompletion
+    ShowCount = 1000
+    Color = clWindow
+    Width = 320
+    Height = 240
+    Enabled = True
+    MinWidth = 0
+    MinHeight = 0
+    MaxWidth = 0
+    MaxHeight = 0
+    FontSize = 0
+    Left = 130
+    Top = 355
   end
 end

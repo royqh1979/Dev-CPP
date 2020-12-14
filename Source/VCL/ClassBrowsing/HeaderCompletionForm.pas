@@ -17,16 +17,16 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-unit CodeCompletionForm;
+unit HeaderCompletionForm;
 
 interface
 
 uses
   Windows, Classes, Graphics, Forms, StdCtrls, Controls,
-  CodeCompletion, CppParser, CBUtils,Messages;
+  HeaderCompletion, CppParser, CBUtils,Messages;
 
 type
-  TCodeComplForm = class(TForm)
+  THeaderComplForm = class(TForm)
     lbCompletion: TListBox;
     procedure FormShow(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -36,7 +36,7 @@ type
     procedure FormCreate(Sender: TObject);              
   private
     { Private declarations }
-    fOwner: TCodeCompletion;
+    fOwner: THeaderCompletion;
     FOldWndProc: TWndMethod;
     fColors : array[0..12] of TColor;
     procedure lbCompletionWindowProc(var Message: TMessage);
@@ -49,38 +49,38 @@ type
   end;
 
 var
-  CodeComplForm: TCodeComplForm;
+  HeaderComplForm: THeaderComplForm;
 
 implementation
 
 {$R *.dfm}
 
-procedure TCodeComplForm.FormShow(Sender: TObject);
+procedure THeaderComplForm.FormShow(Sender: TObject);
 begin
   Width := fOwner.Width;
   Height := fOwner.Height;
   lbCompletion.DoubleBuffered := true; // performance hit, but reduces flicker a lit
 end;
 
-procedure TCodeComplForm.FormDeactivate(Sender: TObject);
+procedure THeaderComplForm.FormDeactivate(Sender: TObject);
 begin
   fOwner.Hide;
 end;
 
-procedure TCodeComplForm.CreateParams(var Params: TCreateParams);
+procedure THeaderComplForm.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
 //  Params.Style := (Params.Style or WS_SIZEBOX) ;
 end;
 
-constructor TCodeComplForm.Create(AOwner: TComponent);
+constructor THeaderComplForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fOwner := TCodeCompletion(AOwner);
+  fOwner := THeaderCompletion(AOwner);
 end;
 
-procedure TCodeComplForm.lbCompletionDblClick(Sender: TObject);
+procedure THeaderComplForm.lbCompletionDblClick(Sender: TObject);
 var
   Key: Char;
 begin
@@ -91,77 +91,38 @@ begin
   end;
 end;
 
-procedure TCodeComplForm.lbCompletionDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State:
+procedure THeaderComplForm.lbCompletionDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State:
   TOwnerDrawState);
 var
   Offset: integer;
-  statement: PStatement;
 begin
   Offset := 4;
-
   with lbCompletion do begin
-    statement := PStatement(Items.Objects[Index]);
-
     // Draw statement kind string, like 'Preprocessor'
     if odSelected in State then begin
       Canvas.Brush.Color := Colors[SelectedBackColor];
     end else begin
       Canvas.Brush.Color := Colors[BackColor];
     end;
-      Canvas.FillRect(Rect);
-      case statement^._Kind of
-        skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
-        skClass: Canvas.Font.Color := Colors[ClassColor];
-        skVariable: Canvas.Font.Color := Colors[VarColor];
-        skNamespace: Canvas.Font.Color := Colors[NamespaceColor];
-        skTypedef: Canvas.Font.Color := Colors[TypedefColor];
-        skPreprocessor: Canvas.Font.Color := Colors[PreprocessorColor];
-        skEnum: Canvas.Font.Color := Colors[EnumColor];
-        skKeyword, skUserCodeIn: Canvas.Font.Color := Colors[KeywordColor];
-      else
-        Canvas.Font.Color := Colors[ForeColor];
-      end;
-    Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
-    Offset := Offset +
-      Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing
-    {
-    if not (odSelected in State) then
-      Canvas.Font.Color := Colors[ForeColor];
-    }
-
-    // Draw data type string, like 'int', hide for defines/others that don't have this property
-// MinGW gcc's type info is too long , so we don't print it
-//    if Length(statement^._Type) > 0 then begin
-//      Canvas.TextOut(Offset, Rect.Top, statement^._Type);
-//      Offset := Offset + Canvas.TextWidth(statement^._Type + ' ');
-//    end;
-
-    // draw statement name, like 'foo'
-    Canvas.Font.Style := [fsBold];
-    Canvas.TextOut(Offset, Rect.Top, statement^._Command);
-//    Offset := Offset + Canvas.TextWidth(statement^._Command + ' ');
-    Offset := Offset + Canvas.TextWidth(statement^._Command );
-    // if applicable, draw arguments
-    if statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
-      Canvas.Font.Style := [];
-      Canvas.TextOut(Offset, Rect.Top, statement^._Args);
-    end;
+    Canvas.FillRect(Rect);
+    Canvas.Font.Color := Colors[PreprocessorColor];
+    Canvas.TextOut(Offset, Rect.Top, String(Items.Objects[Index]));
   end;
 end;
 
-procedure TCodeComplForm.lbCompletionKeyPress(Sender: TObject; var Key: Char);
+procedure THeaderComplForm.lbCompletionKeyPress(Sender: TObject; var Key: Char);
 begin
   if Assigned(fOwner.OnKeyPress) then
     fOwner.OnKeyPress(self, Key);
 end;
 
-procedure TCodeComplForm.FormCreate(Sender: TObject);
+procedure THeaderComplForm.FormCreate(Sender: TObject);
 begin
   FOldWndProc:= lbCompletion.WindowProc;
   lbCompletion.WindowProc:= lbCompletionWindowProc;
 end;
 
-procedure TCodeComplForm.lbCompletionWindowProc(var Message: TMessage);
+procedure THeaderComplForm.lbCompletionWindowProc(var Message: TMessage);
 var
   ch:Char;
   code:Word;
@@ -186,12 +147,12 @@ begin
     Message.Result:= Message.Result or DLGC_WANTTAB;
 end;
 
-function TCodeComplForm.GetColor(i:integer):TColor;
+function THeaderComplForm.GetColor(i:integer):TColor;
 begin
   Result := fColors[i];
 end;
 
-procedure TCodeComplForm.SetColor(i:integer; const Color:TColor);
+procedure THeaderComplForm.SetColor(i:integer; const Color:TColor);
 begin
   fColors[i] := Color;
   if i=BackColor then begin

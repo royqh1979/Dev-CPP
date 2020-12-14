@@ -85,7 +85,6 @@ type
     fOnSelect: TMemberSelectEvent;
     fImagesRecord: TImagesRecord;
     fCurrentFile: AnsiString;
-    fProjectDir: AnsiString;
     fControlCanvas: TControlCanvas;
     fShowInheritedMembers: boolean;
     fIncludedFiles: TStringList;
@@ -145,7 +144,6 @@ type
     property Parser: TCppParser read fParser write SetParser;
     property ItemImages: TImagesRecord read fImagesRecord write fImagesRecord;
     property CurrentFile: AnsiString read fCurrentFile write SetCurrentFile;
-    property ProjectDir: AnsiString read fProjectDir write fProjectDir;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write SetShowInheritedMembers;
     property TabVisible: boolean read fTabVisible write SetTabVisible;
     property SortAlphabetically: boolean read fSortAlphabetically write SetSortAlphabetically;
@@ -178,7 +176,6 @@ begin
   DragMode := dmAutomatic;
   fImagesRecord := TImagesRecord.Create;
   fCurrentFile := '';
-  fProjectDir := '';
   ShowHint := True;
   HideSelection := False;
   RightClickSelect := True;
@@ -591,7 +588,7 @@ begin
       Sender.Canvas.Font.Style := [fsBold];
     if  Node.Selected then begin
         Sender.Canvas.Brush.Color:=fColors[SelectedBackColor];
-        Sender.Canvas.Font.Color := fColors[SelectedForeColor];
+//        Sender.Canvas.Font.Color := fColors[SelectedForeColor];
     end else begin
       Sender.Canvas.Brush.Color:=fColors[BackColor];
       if bInherited then
@@ -602,26 +599,26 @@ begin
           Exit;
         case st^._Kind of
           skVariable:begin
-              Sender.Canvas.Font.Color := fColors[VarColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[VarColor];
+          end;
           skClass:begin
-              Sender.Canvas.Font.Color := fColors[ClassColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[ClassColor];
+          end;
           skNamespace:begin
-              Sender.Canvas.Font.Color := fColors[NamespaceColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[NamespaceColor];
+          end;
           skFunction,skConstructor,skDestructor:begin
-              Sender.Canvas.Font.Color := fColors[FunctionColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[FunctionColor];
+          end;
           skTypedef:begin
-              Sender.Canvas.Font.Color := fColors[TypedefColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[TypedefColor];
+          end;
           skPreprocessor:begin
-              Sender.Canvas.Font.Color := fColors[PreprocessorColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[PreprocessorColor];
+          end;
           skEnum:begin
-              Sender.Canvas.Font.Color := fColors[EnumColor];
-            end;
+            Sender.Canvas.Font.Color := fColors[EnumColor];
+          end;
           else begin
             Sender.Canvas.Font.Color := fColors[ForeColor];
           end;
@@ -671,7 +668,7 @@ begin
         if  Node.Selected then
           fControlCanvas.Font.Color := fColors[SelectedForeColor]
         else
-          fControlCanvas.Font.Color := fColors[ClassColor];
+        fControlCanvas.Font.Color := fColors[ClassColor];
         fControlCanvas.TextOut(DrawPoint.X, DrawPoint.Y + 2, ': ' + TypeText); // center vertically
       end;
       fControlCanvas.Brush.Color:=color;

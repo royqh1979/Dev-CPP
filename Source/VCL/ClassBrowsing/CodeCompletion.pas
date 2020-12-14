@@ -65,6 +65,7 @@ type
     fSymbolUsage:TDevStringList;
     fRecordUsage: boolean;
     fShowKeywords: boolean;
+    fIgnoreCase:boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -88,6 +89,7 @@ type
     property RecordUsage: boolean read fRecordUsage write fRecordUsage;
     property Colors[Index: Integer]: TColor read GetColor write SetColor;
     property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
+    property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property Parser: TCppParser read fParser write fParser;
@@ -153,6 +155,8 @@ begin
 
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
+
+  fIgnoreCase := false;
 end;
 
 destructor TCodeCompletion.Destroy;
@@ -497,7 +501,9 @@ begin
     if Member <> '' then begin // filter, case sensitive
       tmpList.Capacity := fFullCompletionStatementList.Count;
       for I := 0 to fFullCompletionStatementList.Count - 1 do
-        if StartsStr(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
+        if ignoreCase and StartsText(Member, PStatement(fFullCompletionStatementList[I])^._Command) then begin
+          tmpList.Add(fFullCompletionStatementList[I]);
+        end else if StartsStr(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
           tmpList.Add(fFullCompletionStatementList[I]);
     end else
       tmpList.Assign(fFullCompletionStatementList);

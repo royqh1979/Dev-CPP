@@ -198,6 +198,8 @@ type
     fMaxCount: integer;
     fRecordUsage: boolean;
     fShowKeywords: boolean;
+    fIgnoreCase:boolean;
+    fAppendFunc:boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -217,6 +219,8 @@ type
     property ShowCompletionWhileInput: boolean read fShowCompletionWhileInput write fShowCompletionWhileInput;
     property RecordUsage: boolean read fRecordUsage write fRecordUsage;
     property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
+    property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
+    property AppendFunc: boolean read fAppendFunc write fAppendFunc;
   end;
 
   // class-browsing view style
@@ -2732,6 +2736,8 @@ begin
   fShowCompletionWhileInput := True;
   fShowKeywords := True;
   fRecordUsage := False;
+  fIgnoreCase := False;
+  fAppendFunc := True;
   if GetACP = 936 then begin //Chinese user
     fUseAltSlash := True;
   end else

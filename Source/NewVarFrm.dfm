@@ -3,46 +3,46 @@ object NewVarForm: TNewVarForm
   Top = 586
   BorderStyle = bsDialog
   Caption = 'New variable'
-  ClientHeight = 374
-  ClientWidth = 444
+  ClientHeight = 460
+  ClientWidth = 546
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object lblType: TLabel
-    Left = 8
-    Top = 12
-    Width = 58
-    Height = 13
+    Left = 10
+    Top = 15
+    Width = 71
+    Height = 16
     Caption = 'Return type:'
   end
   object lblName: TLabel
-    Left = 8
-    Top = 36
-    Width = 70
-    Height = 13
+    Left = 10
+    Top = 44
+    Width = 91
+    Height = 16
     Caption = 'Variable name:'
   end
   object lblImplementIn: TLabel
-    Left = 8
-    Top = 60
-    Width = 62
-    Height = 13
+    Left = 10
+    Top = 74
+    Width = 78
+    Height = 16
     Caption = 'Implement in:'
   end
   object rgScope: TRadioGroup
-    Left = 8
-    Top = 88
-    Width = 425
-    Height = 41
+    Left = 10
+    Top = 108
+    Width = 523
+    Height = 51
     Caption = 'Access scope'
     Columns = 3
     ItemIndex = 0
@@ -53,26 +53,26 @@ object NewVarForm: TNewVarForm
     TabOrder = 3
   end
   object txtType: TEdit
-    Left = 88
-    Top = 8
-    Width = 348
+    Left = 108
+    Top = 10
+    Width = 429
     Height = 21
     TabOrder = 0
     OnChange = txtTypeChange
   end
   object txtName: TEdit
-    Left = 88
-    Top = 32
-    Width = 348
+    Left = 108
+    Top = 39
+    Width = 429
     Height = 21
     TabOrder = 1
     OnChange = txtTypeChange
   end
   object btnCreate: TButton
-    Left = 142
-    Top = 344
-    Width = 75
-    Height = 25
+    Left = 175
+    Top = 423
+    Width = 92
+    Height = 31
     Caption = 'Create'
     Default = True
     ModalResult = 1
@@ -80,22 +80,22 @@ object NewVarForm: TNewVarForm
     OnClick = btnCreateClick
   end
   object btnCancel: TButton
-    Left = 227
-    Top = 344
-    Width = 75
-    Height = 25
+    Left = 279
+    Top = 423
+    Width = 93
+    Height = 31
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 5
   end
   object cmbClass: TComboBox
-    Left = 88
-    Top = 56
-    Width = 348
-    Height = 21
+    Left = 108
+    Top = 69
+    Width = 429
+    Height = 24
     AutoDropDown = True
-    ItemHeight = 13
+    ItemHeight = 16
     Sorted = True
     TabOrder = 2
     Items.Strings = (
@@ -106,32 +106,32 @@ object NewVarForm: TNewVarForm
       'void')
   end
   object grpReadFunc: TGroupBox
-    Left = 8
-    Top = 160
-    Width = 425
-    Height = 70
+    Left = 10
+    Top = 197
+    Width = 523
+    Height = 86
     TabOrder = 6
     object Label3: TLabel
       Left = 8
-      Top = 20
-      Width = 31
-      Height = 13
+      Top = 25
+      Width = 40
+      Height = 16
       Alignment = taRightJustify
       Caption = 'Name:'
     end
     object chkInlineR: TCheckBox
-      Left = 8
-      Top = 44
-      Width = 53
-      Height = 17
+      Left = 10
+      Top = 54
+      Width = 65
+      Height = 21
       Caption = 'Inline'
       Enabled = False
       TabOrder = 0
     end
     object txtReadFunc: TEdit
-      Left = 84
-      Top = 16
-      Width = 333
+      Left = 103
+      Top = 20
+      Width = 410
       Height = 21
       TabOrder = 1
       OnChange = txtTypeChange
@@ -139,32 +139,32 @@ object NewVarForm: TNewVarForm
     end
   end
   object grpWriteFunc: TGroupBox
-    Left = 8
-    Top = 260
-    Width = 425
-    Height = 70
+    Left = 10
+    Top = 320
+    Width = 523
+    Height = 86
     TabOrder = 7
     object Label4: TLabel
       Left = 8
-      Top = 20
-      Width = 31
-      Height = 13
+      Top = 25
+      Width = 40
+      Height = 16
       Alignment = taRightJustify
       Caption = 'Name:'
     end
     object chkInlineW: TCheckBox
-      Left = 8
-      Top = 44
-      Width = 53
-      Height = 17
+      Left = 10
+      Top = 54
+      Width = 65
+      Height = 21
       Caption = 'Inline'
       Enabled = False
       TabOrder = 0
     end
     object txtWriteFunc: TEdit
-      Left = 84
-      Top = 16
-      Width = 333
+      Left = 103
+      Top = 20
+      Width = 410
       Height = 21
       TabOrder = 1
       OnChange = txtTypeChange
@@ -172,19 +172,19 @@ object NewVarForm: TNewVarForm
     end
   end
   object chkReadFunc: TCheckBox
-    Left = 12
-    Top = 140
-    Width = 333
-    Height = 17
+    Left = 15
+    Top = 172
+    Width = 410
+    Height = 21
     Caption = 'Create member function to read from this variable'
     TabOrder = 8
     OnClick = chkReadFuncClick
   end
   object chkWriteFunc: TCheckBox
-    Left = 12
-    Top = 240
-    Width = 333
-    Height = 17
+    Left = 15
+    Top = 295
+    Width = 410
+    Height = 21
     Caption = 'Create member function to write to this variable'
     TabOrder = 9
     OnClick = chkWriteFuncClick

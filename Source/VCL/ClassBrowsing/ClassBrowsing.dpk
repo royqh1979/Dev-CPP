@@ -40,6 +40,8 @@ contains
   CppTokenizer in 'CppTokenizer.pas',
   CodeCompletion in 'CodeCompletion.pas',
   CodeCompletionForm in 'CodeCompletionForm.pas' {CodeComplForm},
+  HeaderCompletion in 'HeaderCompletion.pas',
+  HeaderCompletionForm in 'HeaderCompletionForm.pas' {HeaderComplForm},
   CBUtils in 'CBUtils.pas',
   IntList in 'IntList.pas';
 

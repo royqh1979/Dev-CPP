@@ -162,7 +162,7 @@ begin
       Phrase := Copy(addeditem.Caption, 1, Pos('(', addeditem.Caption) - 1)
     else
       Phrase := addeditem.Caption;
-    addeditem.Data := MainForm.CppParser.FindStatementOf('',Phrase, nil);
+    addeditem.Data := MainForm.GetCppParser.FindStatementOf('',Phrase, nil);
 
     // Dive remaining part based on spaces
     Line := TrimLeft(buffer[i]);
@@ -265,7 +265,7 @@ begin
         Phrase := Copy(addeditem.Caption, 1, Pos('(', addeditem.Caption) - 1)
       else
         Phrase := addeditem.Caption;
-      addeditem.Data := MainForm.CppParser.FindStatementOf('',Phrase, nil);
+      addeditem.Data := MainForm.GetCppParser.FindStatementOf('',Phrase, nil);
 
       // Divide remaining part based on spaces
       Line := TrimLeft(buffer[i]);

@@ -368,7 +368,7 @@ begin
   BeginUpdate;
   try
     // Keep closing the first one to prevent redrawing
-    e:=GetEditor(-1,fLeftPageControl);
+    //e:=GetEditor(-1,fLeftPageControl);
     while fLeftPageControl.PageCount > 0 do
       if not CloseEditor(GetEditor(0, fLeftPageControl),False) then
         Exit;

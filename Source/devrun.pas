@@ -27,24 +27,39 @@ uses
 type
   TLineOutputEvent = procedure(Sender: TObject; const Line: AnsiString) of object;
 
+  TPipeStdinThread = class(TThread)
+  private
+    procedure PipeInput;
+  public
+    WriteHandle : THandle;
+    InputText: string;
+    procedure Execute; override;
+  end;
+
   TDevRun = class(TThread)
   private
     fCurrentLine: AnsiString;
     fLineOutput: TLineOutputEvent;
     fCheckAbort: TCheckAbortFunc;
+    fInputText : String;
+    fPipe:TPipeStdinThread;
   protected
     procedure CallLineOutputEvent;
     procedure Execute; override;
     procedure LineOutput(const Line: AnsiString);
+    procedure OnInputHandle(const hInputWrite:THandle);
   public
     Command: AnsiString;
     Directory: AnsiString;
     Output: AnsiString;
     property OnLineOutput: TLineOutputEvent read FLineOutput write FLineOutput;
     property OnCheckAbort: TCheckAbortFunc read FCheckAbort write FCheckAbort;
+    property InputText: String read fInputText write fInputText;
   end;
 
 implementation
+
+uses sysutils;
 
 procedure TDevRun.CallLineOutputEvent;
 begin
@@ -58,9 +73,53 @@ begin
     Synchronize(CallLineOutputEvent);
 end;
 
+procedure TDevRun.OnInputHandle(const hInputWrite:THandle);
+begin
+  fPipe := TPipeStdinThread.Create(True);
+  fPipe.WriteHandle := hInputWrite;
+  fPipe.InputText := InputText;
+  fPipe.FreeOnTerminate := True;
+  fPipe.Resume;
+end;
+
 procedure TDevRun.Execute;
 begin
-  Output := RunAndGetOutput(Command, Directory, LineOutput, FCheckAbort);
+  if InputText = '' then
+    Output := RunAndGetOutput(Command, Directory, LineOutput, FCheckAbort)
+  else
+    Output := RunAndGetOutput(Command, Directory, LineOutput, nil,true,nil,OnInputHandle);
+end;
+
+{ TPipeStdinThread }
+
+procedure TPipeStdinThread.PipeInput;
+var
+  buffer: pAnsichar;
+  FileHandle : THandle;
+  bytesRead: cardinal;
+  bytesWritten: cardinal;
+  bufSize: cardinal;
+begin
+  buffer := PAnsiChar(self.InputText);
+  bufSize := Length(self.InputText);
+  try
+    while bufSize>0 do begin
+      if not WriteFile(WriteHandle,buffer^,bufSize,bytesWritten,nil) then begin
+        LogError('devRun.pas PipeInput',Format('WriteFile failed: %s',[SysErrorMessage(GetLastError)]));
+        break;
+      end;
+      inc(buffer,bytesWritten);
+      dec(bufSize,bytesWritten);
+    end;
+  finally
+    CloseHandle(WriteHandle);
+  end;
+end;
+
+procedure TPipeStdinThread.Execute;
+begin
+  inherited;
+  PipeInput;
 end;
 
 end.

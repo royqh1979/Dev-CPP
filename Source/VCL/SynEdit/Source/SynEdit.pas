@@ -110,7 +110,7 @@ type
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: integer;
     var Special: boolean; var FG, BG: TColor) of object;
 
-  TPaintHighlightTokenEvent = procedure(Sender: TObject; Line: integer;
+  TPaintHighlightTokenEvent = procedure(Sender: TObject; Row: integer;
     column: integer; token: String; attr: TSynHighlighterAttributes;
      var style:TFontStyles; var FG,BG:TColor) of object;
 
@@ -2667,6 +2667,7 @@ var
     if iCharWidth > 0 then
       Inc(rcToken.Left, iCharWidth);
   end;
+
   procedure PaintEditAreas(areaList:TList; colBorder:TColor;areaType:TEditingAreaType);
   var
     rc:TRect;
@@ -2824,7 +2825,7 @@ var
   // record. This will paint any chars already stored if there is
   // a (visible) change in the attributes.
   procedure AddHighlightToken(const Token: AnsiString;
-    CharsBefore, TokenLen: integer; vline:integer; p_Attri: TSynHighlighterAttributes);
+    CharsBefore, TokenLen: integer; cRow:integer; p_Attri: TSynHighlighterAttributes);
   var
     bSpacesTest, bIsSpaces: boolean;
 
@@ -2867,7 +2868,7 @@ var
       Foreground := Font.Color;
 
     if Assigned(OnPaintHighlightToken) then
-      OnPaintHighlightToken(self,vLine,fHighlighter.GetTokenPos,
+      OnPaintHighlightToken(self,cRow,fHighlighter.GetTokenPos,
         token,p_Attri,Style,Foreground,Background);
 
     
@@ -3027,6 +3028,9 @@ var
     areaList:TList;
     colBorder: TColor;
     areaType:TEditingAreaType;
+    foldRange:TSynEditFoldRange;
+    nC1,nC2,nFold:integer;
+    sFold: string;
   begin
     areaList:=TList.Create;
     try
@@ -3199,7 +3203,7 @@ var
               GetBraceColorAttr(fHighlighter.GetBraceLevel+1,attr);
             end;
             AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
-              nTokenLen, vLine,attr);
+              nTokenLen, cRow,attr);
           end;
           // Let the highlighter scan the next token.
           fHighlighter.Next;
@@ -3215,22 +3219,34 @@ var
             if nTokenLen > 0 then begin
               sToken := Copy(sLine, nTokenPos + 1, nTokenLen);
               AddHighlightToken(sToken, nTokenPos - (vFirstChar - FirstCol),
-                nTokenLen, vLine, nil);
+                nTokenLen, cRow, nil);
             end;
           end;
           // Draw LineBreak glyph.
           if (eoShowSpecialChars in fOptions) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
-              Length(SynLineBreakGlyph),vLine, nil);
+              Length(SynLineBreakGlyph),cRow, nil);
           end;
         end;
         // Draw anything that's left in the TokenAccu record. Fill to the end
         // of the invalid area with the correct colors.
         PaintHighlightToken(TRUE);
 
+        foldRange := FoldStartAtLine(vLine);
+        if assigned(foldRange) and foldRange.Collapsed then begin
+          sFold := '... }';
+          nFold := Length(sFold);
+          // Compute some helper variables.
+          nC1 := Max(FirstCol, Length(sLine)+1);
+          nC2 := Min(LastCol, Length(sLine) +1 + nFold + 1);
+          SetDrawingColors(FALSE);
+          PaintToken(sFold,nFold, Length(sLine)+1,nC1, nC2);
+        end;
+        
         //Paint editingAreaBorders
         PaintEditAreas(areaList,colBorder,areaType);
+
       end;
 
       // Now paint the right edge if necessary. We do it line by line to reduce
@@ -5970,6 +5986,7 @@ var
   StartPos: Integer;
   EndPos: Integer;
   tempStr : AnsiString;
+  nLinesInserted: integer;
 begin
   IncPaintLock;
   try
@@ -6446,6 +6463,7 @@ begin
       ecInsertLine,
         ecLineBreak:
         if not ReadOnly then begin
+          nLinesInserted:=0;
           UndoList.BeginBlock;
           try
             if SelAvail then begin
@@ -6472,6 +6490,7 @@ begin
                   Delete(Temp2, 1, CaretX - 1);
                   ProperSetLine(CaretY-1,Temp);
                   Lines.Insert(CaretY, GetLeftSpacing(SpaceCount1, true));
+                  inc(nLinesInserted);
                   if (eoAddIndent in Options) and GetHighlighterAttriAtRowCol(BufferCoord(Length(Temp3), CaretY),
                     Temp3, Attr) then begin // only add indent to source files
                     if Attr <> Highlighter.CommentAttribute then begin // and outside of comments
@@ -6495,6 +6514,7 @@ begin
 
                   if (Length(Temp)>0) and (Temp[Length(Temp)] = '{') and (Length(Temp2)>0) and (Temp2[1]='}') then begin
                     Lines.Insert(CaretY, GetLeftSpacing(LeftSpacesEx(Temp, true), true));
+                    inc(nLinesInserted);
                     if (eoAddIndent in Options) then begin;
                       if not (eoTabsToSpaces in Options) then begin
                         Lines[CaretY] := Lines[CaretY] + TSynTabChar;
@@ -6516,6 +6536,7 @@ begin
                   end;
                 end else begin
                   Lines.Insert(CaretY - 1, '');
+                  inc(nLinesInserted);
                   fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, Temp2,
                     smNormal);
                   if Command = ecLineBreak then
@@ -6532,6 +6553,7 @@ begin
                   until (BackCounter = 0) or (Temp <> '');
                 end;
                 Lines.Insert(CaretY, '');
+                inc(nLinesInserted);
                 Caret := CaretXY;
                 if Command = ecLineBreak then begin
                   if SpaceCount2 > 0 then begin
@@ -6571,12 +6593,13 @@ begin
                 end;
               end;
               Lines.Insert(CaretY - 1, '');
+              inc(nLinesInserted);
               fUndoList.AddChange(crLineBreak, CaretXY, CaretXY, '', smNormal);
               if Command = ecLineBreak then begin
                 InternalCaretXY := BufferCoord(SpaceCount2 + 1, CaretY + 1);
               end;
             end;
-            DoLinesInserted(CaretY - InsDelta, 1);
+            DoLinesInserted(CaretY - InsDelta, nLinesInserted);
             BlockBegin := CaretXY;
             BlockEnd := CaretXY;
             EnsureCursorPosVisible;
@@ -6601,8 +6624,7 @@ begin
           OrigBlockEnd := BlockEnd;
 
           // Ignore the last line the cursor is placed on
-          BeginIndex := BlockBegin.Line - 1;
-          if BlockEnd.Char = 1 then
+          if (BlockEnd.Char = 1) and (BlockBegin.Line < BlockEnd.Line) then
             EndIndex := max(0, BlockEnd.Line - 2)
           else
             EndIndex := BlockEnd.Line - 1;

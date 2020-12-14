@@ -23,7 +23,7 @@ interface
 
 uses
   Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
-  cbutils, IntList;
+  cbutils, IntList,SyncObjs;
 
 
 type
@@ -62,7 +62,6 @@ type
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
     fParseLocalHeaders: boolean;
     fParseGlobalHeaders: boolean;
-    fProjectDir: AnsiString;
     fOnBusy: TNotifyEvent;
     fOnUpdate: TNotifyEvent;
     fOnTotalProgress: TProgressEvent;
@@ -104,16 +103,13 @@ type
       IsDefinition: boolean;
       InheritanceList: TList;
       isStatic: boolean): PStatement;
-    procedure AddHardDefineByParts(const Name, Args, Value: AnsiString);
     procedure SetInheritance(Index: integer; ClassStatement: PStatement; IsStruct:boolean);
     function GetCurrentScope: PStatement; // gets last item from last level
-    function GetCurrentNonBlockScope: PStatement; 
     function IsInCurrentScopeLevel(const Command: AnsiString): PStatement;
     procedure AddSoloScopeLevel(Statement: PStatement;line:integer); // adds new solo level
     procedure RemoveScopeLevel(line:integer); // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
-    function SkipParenthesis(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
     function CheckForNamespace: boolean;
@@ -155,7 +151,6 @@ type
     procedure SetTokenizer(tokenizer: TCppTokenizer);
     procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function GetFullStatementName(command:String; parent:PStatement):string;
-    function GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
     {procedure ResetDefines;}
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
@@ -204,8 +199,8 @@ type
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
     function PrettyPrintStatement(Statement: PStatement; line:integer = -1): AnsiString;
     procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
-    function FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
-    function FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement; overload;
+    function FindAndScanBlockAt(const Filename: AnsiString; Line: integer): PStatement;
+    function FindStatementOf(FileName, Phrase: AnsiString; Line: integer): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement;
       var CurrentClassType: PStatement ; force:boolean = False): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement; overload;
@@ -216,6 +211,9 @@ type
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
+
+    property IncludePaths: TStringList read fIncludePaths;
+    property ProjectIncludePaths: TStringList read fProjectIncludePaths;
   published
     property Parsing: boolean read fParsing;
     property Enabled: boolean read fEnabled write fEnabled;
@@ -228,7 +226,6 @@ type
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property ScannedFiles: TStringList read fScannedFiles;
-    property ProjectDir: AnsiString read fProjectDir write fProjectDir;
     property OnStartParsing: TNotifyEvent read fOnStartParsing write fOnStartParsing;
     property OnEndParsing: TProgressEndEvent read fOnEndParsing write fOnEndParsing;
     property FilesToScan: TStringList read fFilesToScan;
@@ -276,7 +273,6 @@ begin
   fNamespaces.Sorted := True;
   fBlockBeginSkips := TIntList.Create;
   fBlockEndSkips := TIntList.Create;
-
 end;
 
 destructor TCppParser.Destroy;
@@ -315,7 +311,6 @@ begin
   FreeAndNil(fScannedFiles);
   FreeAndNil(fIncludePaths);
   FreeAndNil(fProjectIncludePaths);
-
   inherited Destroy;
 end;
 
@@ -378,6 +373,7 @@ begin
   Result := StartAt;
 end;
 
+{
 
 function TCppParser.SkipParenthesis(StartAt: integer): integer;
 var
@@ -400,7 +396,6 @@ begin
   end;
   Result := StartAt;
 end;
-{
 function TCppParser.FindMacroDefine(const Command:AnsiString):PStatement;
 var
   Statement: PStatement;
@@ -464,9 +459,8 @@ end;
 
 function TCppParser.GetIncompleteClass(const Command: AnsiString; parentScope:PStatement): PStatement;
 var
-  key,s:string;
-  I,p: integer;
-  incompleteClass:PIncompleteClass;
+  p: integer;
+  s: String;
 begin
   Result:=nil;
   s:=command;
@@ -523,6 +517,8 @@ begin
   else
     Result := command;
 end;
+
+{
 function TCppParser.GetPendingKey(command:String; parent:PStatement; kind: TStatementKind;Args:String):String;
 begin
   if assigned(Parent) then
@@ -531,6 +527,7 @@ begin
     Result := '';
   Result := Result + IntToStr(ord(kind))+Command+Args;
 end;
+}
 
 function TCppParser.AddStatement(
   Parent: PStatement;
@@ -548,7 +545,7 @@ function TCppParser.AddStatement(
   InheritanceList: TList;
   isStatic:boolean): PStatement;
 var
-  Declaration,oldStatement: PStatement;
+  oldStatement: PStatement;
   //NewKind: TStatementKind;
   NewType, NewCommand,NoNameArgs: AnsiString;
   node: PStatementNode;
@@ -741,6 +738,7 @@ begin
   Result := AddToList;
 end;
 
+{
 function TCppParser.GetCurrentNonBlockScope: PStatement;
 var
   i:integer;
@@ -755,7 +753,7 @@ begin
     end;
   end;
 end;
-
+}
 function TCppParser.GetCurrentScope: PStatement;
 begin
   if fCurrentScope.Count = 0 then begin
@@ -1882,8 +1880,6 @@ procedure TCppParser.HandleCatchBlock;
 var
   i,i2:integer;
   block:PStatement;
-  s:string;
-  startPos,bracePos:integer;
   startLine:integer;
 begin
   startLine:= fTokenizer[fIndex]^.Line;
@@ -2515,7 +2511,9 @@ begin
     Exit;
   end;
 
-  // Tokenize the token list
+  // Process the token list
+  fCurrentScope.Clear;
+  fCurrentClassScope.Clear;
   fIndex := 0;
   fClassScope := scsNone;
   fSkipList.Clear;
@@ -2531,8 +2529,8 @@ begin
    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
-    fCurrentScope.Clear;
-    fCurrentClassScope.Clear;
+    //fCurrentScope.Clear;
+    //fCurrentClassScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
     if (not ManualUpdate) and Assigned(fOnEndParsing) then
@@ -2555,7 +2553,6 @@ begin
     fOnBusy(Self);
   if Assigned(fPreprocessor) then
     fPreprocessor.Clear;
-
   fUniqId:=0;
   fParsing:=False;
   fSkipList.Clear;
@@ -2744,11 +2741,13 @@ begin
 end;
 }
 
+{
 procedure TCppParser.AddHardDefineByParts(const Name, Args, Value: AnsiString);
 begin
   if Assigned(fPreprocessor) then
     fPreprocessor.AddDefineByParts(Name, Args, Value, True);
 end;
+}
 
 procedure TCppParser.ParseHardDefines;
 var
@@ -2810,21 +2809,19 @@ begin
   Result := cbutils.IsSystemHeaderFile(FileName, fProjectIncludePaths);
 end;
 
-procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False;
-  UpdateView: boolean = True; Stream: TMemoryStream = nil);
+procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
+  boolean = True; Stream: TMemoryStream = nil);
 var
   FName: AnsiString;
-  CFile, HFile: AnsiString;
   I: integer;
 begin
   if fParsing then
     Exit;
   fParsing:=True;
-
   try
     if UpdateView and Assigned(fOnBusy) then
       fOnBusy(Self);
-      
+
     if not fEnabled then
       Exit;
     FName := FileName;
@@ -2898,8 +2895,11 @@ begin
   if fParsing then
     Exit;
   fParsing:=True;
-  InternalInvalidateFile(FileName);
-  fParsing:=False;
+  try
+    InternalInvalidateFile(FileName);
+  finally
+    fParsing:=False;
+  end;
 end;
 
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
@@ -3004,7 +3004,7 @@ begin
       end;
     end;
   end;
-  
+
   if maxInScope = -1 then begin
     AddScopeStr := True;
     Result := maxInGeneral;
@@ -3032,10 +3032,10 @@ begin
   end;
 end;
 
-function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Row: integer): PStatement;
+function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Line: integer): PStatement;
 var
   fileIncludes: PFileIncludes;
-  idx:integer;
+  idx,i:integer;
   statement:PStatement;
 begin
   Result := nil;
@@ -3061,10 +3061,18 @@ begin
   }
 
 
-  fileIncludes.Scopes.Find(row,idx);
-  if idx>=fileIncludes.Scopes.Count then
+  fileIncludes.Scopes.Find(Line,idx);
+  if idx>=fileIncludes.Scopes.Count then begin
+    for i:=fCurrentScope.Count-1 downto 0 do begin
+      statement := PStatement(fCurrentScope[i]);
+      if Line >= statement^._definitionLine then begin
+        Result:=statement;
+        break;
+      end;
+    end;
     Exit;
-  while (idx>=0) and (row < fileIncludes.Scopes[idx]) do
+  end;
+  while (idx>=0) and (Line < fileIncludes.Scopes[idx]) do
     dec(idx);
   if idx<0 then
     Exit;
@@ -3202,7 +3210,6 @@ function TCppParser.FindLastOperator(const Phrase: AnsiString): integer;
 var
   I: integer;
 begin
-
   I := Length(phrase);
 
   // Obtain stuff after first operator
@@ -3254,6 +3261,8 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement;line:integer): An
       Result := '';
   end;
 begin
+  if fParsing then
+    Exit; 
   Result := '';
   if Statement^._HintText <> '' then begin
     if Statement^._Kind <> skPreprocessor then begin
@@ -3266,6 +3275,8 @@ begin
       Result := '"'+DateToStr(Now)+'"';
     end else if SameStr(Statement^._Command,'__TIME__') then begin
       Result := '"'+TimeToStr(Now)+'"';
+    end else begin
+      Result := Statement^._HintText;
     end;
   end else begin
     case Statement^._Kind of
@@ -3389,13 +3400,10 @@ begin
 
   Statement :=FindStatementOf(FileName,s,currentClass);
   Result := GetTypeDef(Statement);
-
 end;
 
 function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
 var
-  ChildStatement: PStatement;
-  Children : TList;
   ChildrenIndex:TStringHash;
   i:integer;
 begin
@@ -3444,7 +3452,7 @@ begin
   }
 
   scopeStatement := startScope;
-  
+
   // repeat until reach global
   while Assigned(scopeStatement) do begin
     //search members of current scope
@@ -3559,7 +3567,7 @@ begin
     //global
     remainder:=Copy(Phrase,3,MAXINT);
     NextScopeWord := GetClass(remainder);
-    OperatorToken := GetOperator(remainder);    
+    OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
     statement:=findMemberOfStatement(NextScopeWord,nil);
@@ -3614,7 +3622,7 @@ begin
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
-    remainder := GetRemainder(remainder);    
+    remainder := GetRemainder(remainder);
     if statement._Kind in [skVariable,skFunction] then begin
       TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
       if Assigned(TypeStatement) then
@@ -3624,7 +3632,7 @@ begin
     if not Assigned(MemberStatement) then begin;
       Exit;
     end;
-    
+
     CurrentClassType:=statement;
     Statement:=MemberStatement;
     if statement._Kind in [skTypedef] then begin
@@ -3634,12 +3642,11 @@ begin
     end;
   end;
   Result := Statement;
-
 end;
 
-function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Row: integer): PStatement;
+function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Line: integer): PStatement;
 begin
-  Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Row));
+  Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Line));
   //Statements.DumpWithScope('f:\\local-statements.txt');
 end;
 
@@ -3648,7 +3655,6 @@ var
   I, ParamStart, SpacePos, BracePos,bracketPos: integer;
   S,Args: AnsiString;
 begin
-
   // Split up argument string by ,
   I := 2; // assume it starts with ( and ends with )
   ParamStart := I;
@@ -3919,7 +3925,7 @@ begin
     namespace := '';
     member := Phrase;
   end;
-end;        
+end;
 
 end.
 

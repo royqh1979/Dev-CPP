@@ -381,11 +381,9 @@ begin
   UpdateHighlighter;
   result := GenSyn;
   if devEditor.UseSyntax then begin
-  {
     if (FileName = '') or (Pos(Lang[ID_UNTITLED], FileName) = 1) then
-      result := GenSyn
+      result := Cpp
     else begin
-  }
       ext := ExtractFileExt(FileName);
       if CompareText(ext, RC_EXT) = 0 then
         result := Res
@@ -427,9 +425,7 @@ begin
           tmp.Free;
         end;
       end;
-      {
     end;
-    }
   end;
 end;
 

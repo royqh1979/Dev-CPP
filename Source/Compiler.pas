@@ -33,7 +33,7 @@ type
   TCompSuccessEvent = procedure of object;
   TRunEndEvent = procedure of object;
 
-  TTarget = (ctInvalid, ctNone, ctFile, ctProject);
+  TTarget = (ctInvalid, ctNone, ctFile, ctProject, ctStdIn);
 
   TGCCMessageType = (gmtError,gmtWarning,gmtInfo,gmtNote,gmtNone);
 
@@ -47,6 +47,7 @@ type
     fOnRunEnd: TRunEndEvent;
     fProject: TProject;
     fSourceFile: AnsiString;
+    fSourceText: AnsiString;
     fUseRunParams: boolean;
     fRunParams: AnsiString;
     fUseInputFile: boolean;
@@ -85,6 +86,7 @@ type
     property OnCompSuccess: TCompSuccessEvent read fOnCompSuccess write fOnCompSuccess;
     property OnRunEnd: TRunEndEvent read fOnRunEnd write fOnRunEnd;
     property SourceFile: AnsiString read fSourceFile write fSourceFile;
+    property SourceText: AnsiString read fSourceText write fSourceText;
     property CompilerSet: TdevCompilerSet read fCompilerSet write fCompilerSet;
     property RunParams: AnsiString read fRunParams write fRunParams; // only for nonproject compilations
     property UseRunParams: boolean read fUseRunParams write fUseRunParams;
@@ -128,7 +130,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, Macros, devExec, main, StrUtils;
+  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser;
 
 procedure TCompiler.DoLogEntry(const msg: AnsiString);
 begin
@@ -354,7 +356,9 @@ var
   encodingStr: AnsiString;
   fileIncludes: TStringList;
   headerName: AnsiString;
+  parser:TCppParser;
 begin
+  parser:=MainForm.GetCppParser;
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
       Continue;
@@ -374,16 +378,16 @@ begin
     if GetFileTyp(ShortFileName) in [utcSrc, utcppSrc] then begin
       Writeln(F);
       objStr:=ShortFileName;
-      if MainForm.CppParser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
+      if parser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
         fileIncludes := TStringList.Create;
         try
-          MainForm.CppParser.GetFileIncludes(FileName,fileIncludes);
+          parser.GetFileIncludes(FileName,fileIncludes);
           for j:=0 to fileIncludes.Count-1 do begin
             headerName := fileIncludes[j];
             if headerName = FileName then
               continue;
-            if (not MainForm.CppParser.IsSystemHeaderFile(headerName))
-              and (not MainForm.CppParser.IsProjectHeaderFile(headerName)) then begin
+            if (not parser.IsSystemHeaderFile(headerName))
+              and (not parser.IsProjectHeaderFile(headerName)) then begin
               objStr := objStr + ' ' + ExtractRelativePath(Makefile,headerName);
             end;
           end;
@@ -650,6 +654,8 @@ resourcestring
   cResourceCmdLine = '%s --input-format=rc -i %s -o %s';
   // gcc, input, compileparams, includeparams, librariesparams
   cSyntaxCmdLine = '%s "%s" %s %s %s';
+  // gcc, filetype, compileparams, includeparams
+  cStdinSyntaxCmdLine = '%s -x %s - %s %s ';
   // gcc, input, compileparams, includeparams, librariesparams
   cHeaderCmdLine = '%s "%s" %s %s %s';
   // gcc, input, output, compileparams, includeparams, librariesparams
@@ -668,7 +674,7 @@ begin
   end;
 
   case Target of
-    ctFile: begin
+    ctFile,ctStdin: begin
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_COMPILINGFILE]);
@@ -705,9 +711,12 @@ begin
             end;
           utcSrc: begin
               compilerName := fCompilerSet.gccName;
-              if fCheckSyntax then
-                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams])
-              else
+              if fCheckSyntax then begin
+                if Target = ctFile then
+                  cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams])
+                else
+                  cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c',fCompileParams, fIncludesParams]);
+              end else
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
                   fIncludesParams, fLibrariesParams]);
 
@@ -721,10 +730,15 @@ begin
             end;
           utCppSrc: begin
               compilerName := fCompilerSet.gppName;
-              if fCheckSyntax then
-                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCppCompileParams, fCppIncludesParams,
-                  fLibrariesParams])
-              else
+              if fCheckSyntax then begin
+                if Target = ctFile then
+                  cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
+                    fCppCompileParams, fCppIncludesParams,
+                    fLibrariesParams])
+                else
+                  cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c++',
+                    fCppCompileParams, fCppIncludesParams]);
+              end else
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
 
@@ -738,10 +752,15 @@ begin
             end;
           utcHead, utcppHead: begin // any header files
               compilerName := fCompilerSet.gppName;
-              if fCheckSyntax then
-                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCppCompileParams, fCppIncludesParams,
-                  fLibrariesParams])
-              else
+              if fCheckSyntax then begin
+                if target = ctFile then
+                  cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
+                    fCppCompileParams, fCppIncludesParams,
+                    fLibrariesParams])
+                else
+                  cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c++',
+                    fCppCompileParams, fCppIncludesParams]);
+              end else
                 cmdline := Format(cHeaderCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams,
                   fLibrariesParams]);
 
@@ -1033,6 +1052,7 @@ begin
     fDevRun.OnTerminate := OnCompilationTerminated;
     fDevRun.OnLineOutput := OnLineOutput;
     fDevRun.OnCheckAbort := ThreadCheckAbort;
+    fDevRun.InputText := SourceText;
     fDevRun.FreeOnTerminate := True;
     fDevRun.Resume;
 
@@ -1102,11 +1122,13 @@ var
         OFile := Copy(OMsg, 1, delim - 1);
         Delete(OMsg, 1, delim);
       end else
-        Exit;
-        
+        break;
+
       if not EndsText('ld.exe',OFile) then // it's not a ld.exe output, stop parsing
         break;
     end;
+    if EndsStr('<stdin>',oFile) then
+      oFile := SourceFile;
   end;
 
   procedure GetLineNumber;

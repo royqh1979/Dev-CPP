@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, Tabnine,CBUtils, IntList;
+  CodeToolTip, Tabnine,CBUtils, IntList, HeaderCompletion;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
@@ -62,6 +62,8 @@ type
   TWordPurpose = (
     wpCompletion, // walk backwards over words, array, functions, parents, no forward movement
     wpEvaluation, // walk backwards over words, array, functions, parents, forwards over words, array
+    wpHeaderCompletion, // walk backwards over path
+    wpHeaderCompletionStart, // walk backwards over path, including start '<' or '"'
     wpInformation // walk backwards over words, array, functions, parents, forwards over words
     );
 
@@ -109,6 +111,7 @@ type
     fLineAfterTabStop : AnsiString;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
+    fHeaderCompletionBox : THeaderCompletion;
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
     fFunctionTip: TCodeToolTip;
@@ -121,7 +124,8 @@ type
 
     //TIntList<Line,TList<PSyntaxError>>
     fErrorList: TIntList; // syntax check errors
-    fSelChanged: boolean; 
+    fSelChanged: boolean;
+    fParser : TCppParser;
 
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -138,7 +142,7 @@ type
     procedure EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
 
-    procedure EditorPaintHighlightToken(Sender: TObject; Line: integer;
+    procedure EditorPaintHighlightToken(Sender: TObject; Row: integer;
       column: integer; token: String; attr: TSynHighlighterAttributes;
       var style:TFontStyles; var FG,BG:TColor);
     procedure ExporterFormatToken(Sender: TObject; Line: integer;
@@ -150,6 +154,9 @@ type
     procedure CompletionKeyPress(Sender: TObject; var Key: Char);
     procedure CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
+    procedure HeaderCompletionKeyPress(Sender: TObject; var Key: Char);
+    procedure HeaderCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
     procedure TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
     procedure TabnineCompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
@@ -157,6 +164,7 @@ type
     procedure TabnineQuery;
 
     procedure CompletionInsert(appendFunc:boolean=False);
+    procedure HeaderCompletionInsert;
     procedure CompletionTimer(Sender: TObject);
     function FunctionTipAllowed: boolean;
     procedure FunctionTipTimer(Sender: TObject);
@@ -207,17 +215,19 @@ type
     procedure UnindentSelection;
     procedure InitCompletion;
     procedure ShowCompletion(autoComplete:boolean);
+    procedure ShowHeaderCompletion(autoComplete:boolean);
     procedure DestroyCompletion;
     procedure AddSyntaxError(line:integer; col:integer; errorType:TSyntaxErrorType; hint:String);
     procedure ClearSyntaxErrors;
     procedure GotoNextError;
     procedure GotoPrevError;
+    procedure SetInProject(inProject:boolean);
     function HasPrevError:boolean;
     function HasNextError:boolean;
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
-    property InProject: boolean read fInProject write fInProject;
+    property InProject: boolean read fInProject write SetInProject;
     property New: boolean read fNew write fNew;
     property Text: TSynEdit read fText write fText;
 //    property TabSheet: TTabSheet read fTabSheet write fTabSheet;
@@ -227,6 +237,7 @@ type
     property PageControl: ComCtrls.TPageControl read GetPageControl write SetPageControl;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property GutterClickedLine: integer read fGutterClickedLine;
+    property CppParser: TCppParser read fParser;
   end;
 
   function GetWordAtPosition(editor:TSynEdit; P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
@@ -234,8 +245,9 @@ implementation
 
 uses
   main, project, MultiLangSupport, devcfg, utils,
-  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm, CodeCompletionForm, SynEditMiscClasses,
-  devCaretList;
+  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm,
+  CodeCompletionForm, SynEditMiscClasses,
+  devCaretList,cppPreprocessor, cppTokenizer;
 
 { TDebugGutter }
 
@@ -361,6 +373,7 @@ begin
   fTabSheet.PageControl := ParentPageControl;
   fTabSheet.Tag := integer(Self); // Define an index for each tab
 
+
   // Create an editor and set static options
   fText := TSynEdit.Create(fTabSheet);
 //  fOldTextWndProc := fText.WndProc();
@@ -416,10 +429,21 @@ begin
   // Create a gutter
   fDebugGutter := TDebugGutter.Create(self);
 
+  if InProject then begin
+    fParser := MainForm.Project.CppParser;
+  end else begin
+    // Create the parser
+    fParser:=TCppParser.Create(fText);
+    fParser.Preprocessor := TCppPreprocessor.Create(fText);
+    fParser.Tokenizer := TCppTokenizer.Create(fText);
+    ResetCppParser(fParser);
+  end;
+
+
   // Function parameter tips
   fFunctionTip := TCodeToolTip.Create(Application);
   fFunctionTip.Editor := fText;
-  fFunctionTip.Parser := MainForm.CppParser;
+  fFunctionTip.Parser := fParser;
 
   // Initialize code completion stuff
   InitCompletion;
@@ -452,6 +476,11 @@ begin
   MainForm.CaretList.RemoveEditor(self);
 
 
+  if not InProject then begin
+    fParser.Tokenizer.Free;
+    fParser.Preprocessor.Free;
+    fParser.Free;
+  end;
   // Delete breakpoints in this editor
   MainForm.Debugger.DeleteBreakPointsOf(self);
 
@@ -1309,12 +1338,49 @@ begin
     end;
 end;
 
+procedure TEditor.HeaderCompletionKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  fHeaderCompletionBox.Hide;
+  //Send the key to the SynEdit
+  PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
 procedure TEditor.CompletionKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
   fCompletionBox.Hide;
   //Send the key to the SynEdit
   PostMessage(fText.Handle, WM_KEYDOWN, key, 0);
+end;
+
+procedure TEditor.HeaderCompletionKeyPress(Sender: TObject; var Key: Char);
+var
+  phrase:AnsiString;
+begin
+  // We received a key from the completion box...
+  if fHeaderCompletionBox.Enabled then begin
+    if (Key in fText.IdentChars) or (Key in ['.']) then begin // Continue filtering
+      fText.SelText := Key;
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpHeaderCompletion);
+      fHeaderCompletionBox.Search(phrase , fFileName,False);
+    end else if Key = Char(VK_BACK) then begin
+      fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
+      phrase := GetWordAtPosition(fText,fText.CaretXY, wpHeaderCompletion);
+      fLastIdCharPressed:=Length(phrase);
+      fHeaderCompletionBox.Search(phrase, fFileName, False);
+    end else if Key = Char(VK_ESCAPE) then begin
+      fHeaderCompletionBox.Hide;
+    end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
+      HeaderCompletionInsert;
+      fHeaderCompletionBox.Hide;
+    end else begin  // other keys, stop completion
+      //stop completion now
+      fHeaderCompletionBox.Hide;
+      //Send the key to the SynEdit
+      PostMessage(fText.Handle, WM_CHAR, Ord(Key), 0);
+    end;
+  end;
 end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
@@ -1351,7 +1417,7 @@ begin
     end else if Key = Char(VK_ESCAPE) then begin
       fCompletionBox.Hide;
     end else if (Key in [Char(VK_RETURN), #9 ]) then begin // Ending chars, don't insert
-      CompletionInsert(True);
+      CompletionInsert(devCodeCompletion.AppendFunc);
       fCompletionBox.Hide;
     end else begin  // other keys, stop completion
       //stop completion now
@@ -1706,6 +1772,8 @@ begin
           fCompletionTimer.Enabled := True;
       ':': if (fText.CaretX > 1) and (Length(fText.LineText) > 1) and (fText.LineText[fText.CaretX - 1] = ':') then
           fCompletionTimer.Enabled := True;
+      '/','\': if fParser.IsIncludeLine(fText.LineText) then
+        fCompletionTimer.Enabled := True;
     else
       fCompletionTimer.Enabled := False;
     end;
@@ -1729,35 +1797,47 @@ begin
     inc(fLastIdCharPressed);
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
       if fLastIdCharPressed=1 then begin
-        lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
-        if lastWord <> '' then begin
-          if CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1  then begin
-          //last word is a type keyword, this is a var or param define, and dont show suggestion
-            ShowTabnineCompletion;
-            Exit;
+        if fParser.IsIncludeLine(Text.LineText) then begin
+          // is a #include line
+          fText.SelText := Key;
+          ShowHeaderCompletion(False);
+          Key:=#0;
+        end else begin
+          lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
+          if lastWord <> '' then begin
+            if (CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1) then begin
+            //last word is a type keyword, this is a var or param define, and dont show suggestion
+              if devEditor.UseTabnine then
+                ShowTabnineCompletion;
+              Exit;
+            end;
+            st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
+            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
+              //expand macro
+              st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
+            end;
+            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+              //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+              if devEditor.UseTabnine then
+                ShowTabnineCompletion;
+              Exit;
+            end;
           end;
-          st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
-          if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
-            //expand macro
-            st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
-          end;
-          if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
-            //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
-            ShowTabnineCompletion;
-            Exit;
-          end;
-        end;
-        fText.SelText := Key;
-        ShowCompletion(False);
-        Key:=#0;
-      end
-    end
+          fText.SelText := Key;
+          ShowCompletion(False);
+          Key:=#0;
+        end ;
+      end;
+    end;
   end else begin
     fLastIdCharPressed:=0;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
 
-    if key in [' ','+','-','*','/','<','&','|','!','~'] then begin
+    if (key in [' ','+','-','*','/','<','&','|','!','~']) and devEditor.UseTabnine then begin
+      if (key = '/') and fParser.IsIncludeLine(fText.LineText) and devCodeCompletion.Enabled then begin
+        HandleCodeCompletion(Key);
+      end;
       //Show Tabnine
       fText.SelText := Key;
       Key:=#0;
@@ -1885,6 +1965,10 @@ end;
 
 procedure TEditor.CompletionTimer(Sender: TObject);
 begin
+  if fParser.IsIncludeLine(fText.LineText) then begin
+    ShowHeaderCompletion(False);
+    Exit;
+  end;
   // Don't show the completion box if the cursor has moved during the timer rundown
   if (fText.CaretX <> fCompletionInitialPosition.Char) or
     (fText.CaretY <> fCompletionInitialPosition.Line) then
@@ -1898,6 +1982,8 @@ begin
   fTabnine := MainForm.Tabnine;
   fCompletionBox := MainForm.CodeCompletion;
   fCompletionBox.Enabled := devCodeCompletion.Enabled;
+  fHeaderCompletionBox := MainForm.HeaderCompletion;
+  fHeaderCompletionBox.Enabled := devCodeCompletion.Enabled;
 
   if devEditor.ShowFunctionTip then begin
     if not Assigned(fFunctionTipTimer) then
@@ -1957,6 +2043,58 @@ begin
   TabnineQuery;
 end;
 
+procedure TEditor.ShowHeaderCompletion(autoComplete:boolean);
+var
+  P: TPoint;
+  word: AnsiString;
+begin
+  if not devCodeCompletion.Enabled then
+    Exit;
+  fCompletionTimer.Enabled := False;
+
+  if fHeaderCompletionBox.Visible then // already in search, don't do it again
+    Exit;
+
+  // Position it at the top of the next line
+  P := fText.RowColumnToPixels(fText.DisplayXY);
+  Inc(P.Y, fText.LineHeight + 2);
+  fHeaderCompletionBox.Position := fText.ClientToScreen(P);
+
+  fHeaderCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;
+  fHeaderCompletionBox.ShowCount := devCodeCompletion.MaxCount;
+  //Set Font size;
+  fHeaderCompletionBox.FontSize := fText.Font.Size;
+
+  // Redirect key presses to completion box if applicable
+  fHeaderCompletionBox.OnKeyPress := HeaderCompletionKeyPress;
+  fHeaderCompletionBox.OnKeyDown := HeaderCompletionKeyDown;
+  fHeaderCompletionBox.Parser := fParser;
+
+
+  word:=GetWordAtPosition(fText, fText.CaretXY, wpHeaderCompletionStart);
+  if (word = '') then
+   Exit;
+
+  if (word[1]<>'"') and (word[1]<>'<') then
+    Exit;
+
+  if (LastPos('"',word) > 1) or (LastPos('>',word) > 1) then
+    Exit;
+
+  fHeaderCompletionBox.Show;    
+  fHeaderCompletionBox.SearchLocal := (word[1] = '"');
+  fHeaderCompletionBox.CurrentFile := fFileName;
+
+  Delete(word,1,1);
+  
+  //if not fCompletionBox.Visible then
+  fHeaderCompletionBox.PrepareSearch(word, fFileName);
+
+  // Filter the whole statement list
+  if fHeaderCompletionBox.Search(word, fFileName, autoComplete) then //only one suggestion and it's not input while typing
+    HeaderCompletionInsert(); // if only have one suggestion, just use it
+end;
+
 procedure TEditor.ShowCompletion(autoComplete:boolean);
 var
   P: TPoint;
@@ -1989,6 +2127,7 @@ begin
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
   fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
+  fCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.SymbolUsage := dmMain.SymbolUsage;
   fCompletionBox.ShowCount := devCodeCompletion.MaxCount;
@@ -1998,10 +2137,11 @@ begin
   // Redirect key presses to completion box if applicable
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
+  fCompletionBox.Parser := fParser;
   fCompletionBox.Show;
 
   // Scan the current function body
-  fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY);
+  fCompletionBox.CurrentStatement := fParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
   word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
@@ -2144,7 +2284,30 @@ begin
       end;
     end;
 
-    // Copy backward until end of word
+    // Copy backward until begin of path
+    if Purpose = wpHeaderCompletion then begin
+      while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in ['/','\','.']) then begin
+          Dec(WordBegin); 
+        end else if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else
+          break;
+      end;
+    end;
+
+    if Purpose = wpHeaderCompletionStart then begin
+      while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in ['/','\','"','<','.']) then begin
+          Dec(WordBegin); 
+        end else if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else
+          break;
+      end;
+    end;
+
+    // Copy backward until begin of word
     if Purpose in [wpCompletion, wpEvaluation, wpInformation] then begin
       while (WordBegin > 0) and (WordBegin <= len) do begin
         if (s[WordBegin] = ']') then begin
@@ -2240,6 +2403,40 @@ begin
   end;
 end;
 
+procedure TEditor.HeaderCompletionInsert;
+var
+  headerName: String;
+  P: TBufferCoord;
+  posBegin,posEnd:integer;
+  sLine:String;
+begin
+  headerName := fHeaderCompletionBox.SelectedFilename;
+  if headerName = '' then
+    Exit; 
+
+  // delete the part of the word that's already been typed ...
+  p:=fText.CaretXY ; // CaretXY will change after call WordStart
+  posBegin := p.Char;
+  posEnd := p.Char;
+  sLine := fText.LineText;
+  while (posBegin>1) and
+    ((sLine[posBegin-1] in fText.IdentChars) or (sLine[posBegin-1]='.')) do
+      dec(posBegin);
+
+  while (posEnd < Length(sLine)) and
+    ((sLine[posBegin] in fText.IdentChars) or (sLine[posBegin]='.')) do
+      inc(posEnd);
+
+
+  p.Char := posBegin;
+  fText.SelStart := fText.RowColToCharIndex(p);
+  p.Char := posEnd;
+  fText.SelEnd := fText.RowColToCharIndex(p);
+  fText.SelText := headerName;
+
+  fCompletionBox.Hide;
+end;
+
 procedure TEditor.CompletionInsert(appendFunc:boolean);
 var
   statement: PStatement;
@@ -2266,27 +2463,30 @@ begin
 
   FuncAddOn := '';
 
+  // delete the part of the word that's already been typed ...
+  p:=fText.CaretXY ; // CaretXY will change after call WordStart
+  fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
+  p:=fText.WordEnd;
+  fText.SelEnd := fText.RowColToCharIndex(p);
+
   // if we are inserting a function,
   if appendFunc then begin
     if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
-      if (Length(fText.LineText) < fText.WordEnd.Char+1 ) // it's the last char on line
-        or (fText.LineText[fText.WordEnd.Char+1] <> '(') then begin  // it don't have '(' after it
+      if (Length(fText.LineText) < p.Char+1 ) // it's the last char on line
+        or (fText.LineText[p.Char+1] <> '(') then begin  // it don't have '(' after it
       FuncAddOn := '()';
       end;
     end;
   end;
 
-
-  // delete the part of the word that's already been typed ...
-  p:=fText.CaretXY ; // CaretXY will change after call WordStart
-  fText.SelStart := fText.RowColToCharIndex(fText.WordStart);
-  fText.SelEnd := fText.RowColToCharIndex(p);
   // ... by replacing the selection
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
     InsertUserCodeIn(Statement^._Value);
   end else begin
     fText.SelText := Statement^._Command + FuncAddOn;
 
+    if FuncAddOn <> '' then
+      fLastIdCharPressed := 0;
     // Move caret inside the ()'s, only when the user has something to do there...
     if (FuncAddOn <> '') and (Statement^._Args <> '()') and (Statement^._Args <> '(void)') then begin
 
@@ -2351,7 +2551,7 @@ var
   var
     FileName: AnsiString;
   begin
-    FileName := MainForm.CppParser.GetHeaderFileName(fFileName, s);
+    FileName := fParser.GetHeaderFileName(fFileName, s);
     if (FileName <> '') and FileExists(FileName) then
       fText.Hint := FileName + ' - Ctrl+Click for more info'
     else
@@ -2372,31 +2572,31 @@ var
   begin
     if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
       hint:='';
-      children := MainForm.CppParser.Statements.GetChildrenStatements(st^._ParentScope);
+      children := fParser.Statements.GetChildrenStatements(st^._ParentScope);
       for i:=0 to children.Count-1 do begin
         childStatement:=PStatement(children[i]);
         if samestr(st^._Command,childStatement^._Command)
           and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
             if hint <> '' then
               hint:=hint+#13;
-            Hint := hint + MainForm.CppParser.PrettyPrintStatement(childStatement)
+            Hint := hint + fParser.PrettyPrintStatement(childStatement)
               + ' - ' + ExtractFileName(childStatement^._FileName)
               + ' ('  + IntToStr(childStatement^._Line) + ')';
         end;
         Result:=hint;
       end;
     end else if st^._Line>0 then begin
-      Result := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+      Result := fParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
         IntToStr(st^._Line) + ') - Ctrl+Click for more info';
     end else begin  // hard defines
-      Result := MainForm.CppParser.PrettyPrintStatement(st,p.Line);
+      Result := fParser.PrettyPrintStatement(st,p.Line);
     end;
     Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   end;
 
   procedure ShowDebugHint;
   begin
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
+    st := fParser.FindStatementOf(fFileName, s, p.Line);
 
     if not Assigned(st) then
       Exit;
@@ -2422,7 +2622,7 @@ var
   procedure ShowParserHint;
   begin
     // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
+    st := fParser.FindStatementOf(fFileName, s, p.Line);
 
     if Assigned(st) then begin
       // vertical bar is used to split up short and long hint versions...
@@ -2463,7 +2663,7 @@ begin
     // When hovering above a preprocessor line, determine if we want to show an include or a identifier hint
     hprPreprocessor: begin
         s := fText.Lines[p.Line - 1];
-        IsIncludeLine := MainForm.CppParser.IsIncludeLine(s); // show filename hint
+        IsIncludeLine := fParser.IsIncludeLine(s); // show filename hint
         if not IsIncludeLine then
           s := fText.GetWordAtRowCol(p);
       end;
@@ -2557,8 +2757,8 @@ begin
 
       // Try to open the header
       line := fText.Lines[p.Row - 1];
-      if MainForm.CppParser.IsIncludeLine(Line) then begin
-        FileName := MainForm.CppParser.GetHeaderFileName(fFileName, line);
+      if fParser.IsIncludeLine(Line) then begin
+        FileName := fParser.GetHeaderFileName(fFileName, line);
         e := MainForm.EditorList.GetEditorFromFileName(FileName);
         if Assigned(e) then begin
           e.SetCaretPosAndActivate(1, 1);
@@ -2584,7 +2784,7 @@ begin
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     p:=BufferCoord(column+1,line);
     s:= GetWordAtPosition(fText,p,wpInformation);
-    st := MainForm.CppParser.FindStatementOf(fFileName,
+    st := fParser.FindStatementOf(fFileName,
       s , line);
     if assigned(st) then begin
       case st._Kind of
@@ -2608,7 +2808,7 @@ begin
 end;
 
 
-procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Line: integer;
+procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Row: integer;
   column: integer; token: String; attr: TSynHighlighterAttributes;
   var style:TFontStyles; var FG,BG:TColor);
 var
@@ -2630,14 +2830,16 @@ begin
     end;
   end;
 
+  {
   if fCompletionBox.Visible then //don't do this when show
     Exit;
+  }
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
-    //st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
-    p:=fText.DisplayToBufferPos(DisplayCoord(column+1,line));
+    //st := fFindStatementOf(fFileName, token, line);
+    p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
     s:= GetWordAtPosition(fText,p,wpInformation);
-    st := MainForm.CppParser.FindStatementOf(fFileName,
-      s , line);
+    st := fParser.FindStatementOf(fFileName,
+      s , p.Line);
     if assigned(st) then begin
       case st._Kind of
         skPreprocessor, skEnum: begin
@@ -2860,7 +3062,7 @@ begin
       end;
 
       if devCodeCompletion.Enabled then begin
-        MainForm.CppParser.ParseFile(fFileName, InProject);
+        fParser.ParseFile(fFileName, InProject);
         fLastParseTime := Now;
         fText.invalidate;
       end;
@@ -2926,7 +3128,7 @@ begin
   end;
 
   // Remove *old* file from statement list
-  MainForm.CppParser.InvalidateFile(FileName);
+  fParser.InvalidateFile(FileName);
 
   // Try to save to disk
   try
@@ -3196,7 +3398,7 @@ begin
     fText.Lines.SaveToStream(M);
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
-    MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+    fParser.ParseFile(fFileName, InProject, False, False, M);
     fLastParseTime := Now;
   finally
     M.Free;
@@ -3309,7 +3511,22 @@ begin
   end;
 end;
 
-
+procedure TEditor.SetInProject(inProject:boolean);
+begin
+  if fInProject = inProject then
+    Exit;
+  if fInProject then begin
+    fParser := TCppParser.Create(fText);
+    fParser.Preprocessor := TCppPreprocessor.Create(fText);
+    fParser.Tokenizer := TCppTokenizer.Create(fText);
+    ResetCppParser(fParser);
+  end else begin
+    fParser.Tokenizer.Free;
+    fParser.Preprocessor.Free;
+    fParser.Free;
+    fParser := MainForm.Project.CppParser;
+  end;
+end;    
 
 end.
 

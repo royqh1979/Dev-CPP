@@ -1,3 +1,21 @@
+Version 6.3-beta1
+    
+    - enhancement: add ignore case option in the code completion tab of the editor options dialog
+    - enhancement: add append () to func option in the code completion tab of the editor options dialog
+    - fix: inserted lines calculated error when auto indent {}
+    - enhancement: add ... to the last of folded lines
+    - change: disable close buttons when parser is running. 
+    - enhancement: auto check syntax when line break;
+    - enhancement: run checker in the background thread;
+    - fix: auto completion flag not cleared when auto insert a function with ();
+    - fix: color error when some code is folded
+    - fix: don't color var/func when code completion window is shown
+    - fix: wrong macro define hint info 
+    - enhancement: each project/source file use its own parser
+    - fix: toggle comment wont work if the cursor is at the begin of the line
+    - fix: correctly show code suggestion if at the end of the file and the current block is not closed with '}'
+    - enhancement: auto completion for include header
+
 Version 6.2.1
 
     - enhancement: Export as RTF/Copy as RTF use the same colors as the editor
