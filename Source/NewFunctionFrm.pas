@@ -81,7 +81,7 @@ begin
 
   sl := TStringList.Create;
   try
-    MainForm.CppParser.GetClassesList(sl);
+    MainForm.GetCppParser.GetClassesList(sl);
     cmbClass.Items.Assign(sl);
   finally
     sl.Free;
@@ -113,7 +113,7 @@ begin
   end;
 
   // We need a CPP file if we want to define it over there
-  MainForm.CppParser.GetSourcePair(st^._DefinitionFileName, CppFname, fName);
+  MainForm.GetCppParser.GetSourcePair(st^._DefinitionFileName, CppFname, fName);
   if not chkInline.Checked and not FileExists(CppFname) then begin
     MessageDlg(Lang[ID_NEWVAR_MSG_NOIMPL], mtError, [mbOk], 0);
     Exit;
@@ -132,7 +132,7 @@ begin
   else
     VarScope := scsNone; // shut up compiler
   end;
-  Line := MainForm.CppParser.SuggestMemberInsertionLine(st, VarScope, AddScopeStr);
+  Line := MainForm.GetCppParser.SuggestMemberInsertionLine(st, VarScope, AddScopeStr);
   if Line = -1 then begin
     MessageDlg(Lang[ID_NEWVAR_MSG_NOLINE], mtError, [mbOk], 0);
     Exit;

@@ -121,7 +121,8 @@ type
 
     //TIntList<Line,TList<PSyntaxError>>
     fErrorList: TIntList; // syntax check errors
-    fSelChanged: boolean; 
+    fSelChanged: boolean;
+    fParser : TCppParser;
 
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -212,12 +213,13 @@ type
     procedure ClearSyntaxErrors;
     procedure GotoNextError;
     procedure GotoPrevError;
+    procedure SetInProject(inProject:boolean);
     function HasPrevError:boolean;
     function HasNextError:boolean;
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
-    property InProject: boolean read fInProject write fInProject;
+    property InProject: boolean read fInProject write SetInProject;
     property New: boolean read fNew write fNew;
     property Text: TSynEdit read fText write fText;
 //    property TabSheet: TTabSheet read fTabSheet write fTabSheet;
@@ -227,6 +229,7 @@ type
     property PageControl: ComCtrls.TPageControl read GetPageControl write SetPageControl;
     property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property GutterClickedLine: integer read fGutterClickedLine;
+    property CppParser: TCppParser read fParser;
   end;
 
   function GetWordAtPosition(editor:TSynEdit; P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
@@ -234,8 +237,9 @@ implementation
 
 uses
   main, project, MultiLangSupport, devcfg, utils,
-  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm, CodeCompletionForm, SynEditMiscClasses,
-  devCaretList;
+  DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm,
+  CodeCompletionForm, SynEditMiscClasses,
+  devCaretList,cppPreprocessor, cppTokenizer;
 
 { TDebugGutter }
 
@@ -361,6 +365,7 @@ begin
   fTabSheet.PageControl := ParentPageControl;
   fTabSheet.Tag := integer(Self); // Define an index for each tab
 
+
   // Create an editor and set static options
   fText := TSynEdit.Create(fTabSheet);
 //  fOldTextWndProc := fText.WndProc();
@@ -416,10 +421,21 @@ begin
   // Create a gutter
   fDebugGutter := TDebugGutter.Create(self);
 
+  if InProject then begin
+    fParser := MainForm.Project.CppParser;
+  end else begin
+    // Create the parser
+    fParser:=TCppParser.Create(fText);
+    fParser.Preprocessor := TCppPreprocessor.Create(fText);
+    fParser.Tokenizer := TCppTokenizer.Create(fText);
+    ResetCppParser(fParser);
+  end;
+
+
   // Function parameter tips
   fFunctionTip := TCodeToolTip.Create(Application);
   fFunctionTip.Editor := fText;
-  fFunctionTip.Parser := MainForm.CppParser;
+  fFunctionTip.Parser := fParser;
 
   // Initialize code completion stuff
   InitCompletion;
@@ -452,6 +468,11 @@ begin
   MainForm.CaretList.RemoveEditor(self);
 
 
+  if not InProject then begin
+    fParser.Tokenizer.Free;
+    fParser.Preprocessor.Free;
+    fParser.Free;
+  end;
   // Delete breakpoints in this editor
   MainForm.Debugger.DeleteBreakPointsOf(self);
 
@@ -1736,10 +1757,10 @@ begin
             ShowTabnineCompletion;
             Exit;
           end;
-          st := MainForm.CppParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
+          st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
           if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
             //expand macro
-            st:=MainForm.CppParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
+            st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
           end;
           if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
             //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
@@ -1999,10 +2020,11 @@ begin
   // Redirect key presses to completion box if applicable
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
+  fCompletionBox.Parser := fParser;
   fCompletionBox.Show;
 
   // Scan the current function body
-  fCompletionBox.CurrentStatement := MainForm.CppParser.FindAndScanBlockAt(fFileName, fText.CaretY);
+  fCompletionBox.CurrentStatement := fParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
   word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
   //if not fCompletionBox.Visible then
@@ -2354,7 +2376,7 @@ var
   var
     FileName: AnsiString;
   begin
-    FileName := MainForm.CppParser.GetHeaderFileName(fFileName, s);
+    FileName := fParser.GetHeaderFileName(fFileName, s);
     if (FileName <> '') and FileExists(FileName) then
       fText.Hint := FileName + ' - Ctrl+Click for more info'
     else
@@ -2375,31 +2397,31 @@ var
   begin
     if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
       hint:='';
-      children := MainForm.CppParser.Statements.GetChildrenStatements(st^._ParentScope);
+      children := fParser.Statements.GetChildrenStatements(st^._ParentScope);
       for i:=0 to children.Count-1 do begin
         childStatement:=PStatement(children[i]);
         if samestr(st^._Command,childStatement^._Command)
           and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
             if hint <> '' then
               hint:=hint+#13;
-            Hint := hint + MainForm.CppParser.PrettyPrintStatement(childStatement)
+            Hint := hint + fParser.PrettyPrintStatement(childStatement)
               + ' - ' + ExtractFileName(childStatement^._FileName)
               + ' ('  + IntToStr(childStatement^._Line) + ')';
         end;
         Result:=hint;
       end;
     end else if st^._Line>0 then begin
-      Result := MainForm.CppParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+      Result := fParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
         IntToStr(st^._Line) + ') - Ctrl+Click for more info';
     end else begin  // hard defines
-      Result := MainForm.CppParser.PrettyPrintStatement(st,p.Line);
+      Result := fParser.PrettyPrintStatement(st,p.Line);
     end;
     Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   end;
 
   procedure ShowDebugHint;
   begin
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
+    st := fParser.FindStatementOf(fFileName, s, p.Line);
 
     if not Assigned(st) then
       Exit;
@@ -2425,7 +2447,7 @@ var
   procedure ShowParserHint;
   begin
     // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    st := MainForm.CppParser.FindStatementOf(fFileName, s, p.Line);
+    st := fParser.FindStatementOf(fFileName, s, p.Line);
 
     if Assigned(st) then begin
       // vertical bar is used to split up short and long hint versions...
@@ -2466,7 +2488,7 @@ begin
     // When hovering above a preprocessor line, determine if we want to show an include or a identifier hint
     hprPreprocessor: begin
         s := fText.Lines[p.Line - 1];
-        IsIncludeLine := MainForm.CppParser.IsIncludeLine(s); // show filename hint
+        IsIncludeLine := fParser.IsIncludeLine(s); // show filename hint
         if not IsIncludeLine then
           s := fText.GetWordAtRowCol(p);
       end;
@@ -2560,8 +2582,8 @@ begin
 
       // Try to open the header
       line := fText.Lines[p.Row - 1];
-      if MainForm.CppParser.IsIncludeLine(Line) then begin
-        FileName := MainForm.CppParser.GetHeaderFileName(fFileName, line);
+      if fParser.IsIncludeLine(Line) then begin
+        FileName := fParser.GetHeaderFileName(fFileName, line);
         e := MainForm.EditorList.GetEditorFromFileName(FileName);
         if Assigned(e) then begin
           e.SetCaretPosAndActivate(1, 1);
@@ -2587,7 +2609,7 @@ begin
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     p:=BufferCoord(column+1,line);
     s:= GetWordAtPosition(fText,p,wpInformation);
-    st := MainForm.CppParser.FindStatementOf(fFileName,
+    st := fParser.FindStatementOf(fFileName,
       s , line);
     if assigned(st) then begin
       case st._Kind of
@@ -2638,10 +2660,10 @@ begin
     Exit;
   }
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
-    //st := MainForm.CppParser.FindStatementOf(fFileName, token, line);
+    //st := fFindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,line));
     s:= GetWordAtPosition(fText,p,wpInformation);
-    st := MainForm.CppParser.FindStatementOf(fFileName,
+    st := fParser.FindStatementOf(fFileName,
       s , p.Line);
     if assigned(st) then begin
       case st._Kind of
@@ -2865,7 +2887,7 @@ begin
       end;
 
       if devCodeCompletion.Enabled then begin
-        MainForm.CppParser.ParseFile(fFileName, InProject);
+        fParser.ParseFile(fFileName, InProject);
         fLastParseTime := Now;
         fText.invalidate;
       end;
@@ -2931,7 +2953,7 @@ begin
   end;
 
   // Remove *old* file from statement list
-  //MainForm.CppParser.InvalidateFile(FileName);
+  fParser.InvalidateFile(FileName);
 
   // Try to save to disk
   try
@@ -3201,7 +3223,7 @@ begin
     fText.Lines.SaveToStream(M);
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
-    MainForm.CppParser.ParseFile(fFileName, InProject, False, False, M);
+    fParser.ParseFile(fFileName, InProject, False, False, M);
     fLastParseTime := Now;
   finally
     M.Free;
@@ -3314,7 +3336,22 @@ begin
   end;
 end;
 
-
+procedure TEditor.SetInProject(inProject:boolean);
+begin
+  if fInProject = inProject then
+    Exit;
+  if fInProject then begin
+    fParser := TCppParser.Create(fText);
+    fParser.Preprocessor := TCppPreprocessor.Create(fText);
+    fParser.Tokenizer := TCppTokenizer.Create(fText);
+    ResetCppParser(fParser);
+  end else begin
+    fParser.Tokenizer.Free;
+    fParser.Preprocessor.Free;
+    fParser.Free;
+    fParser := MainForm.Project.CppParser;
+  end;
+end;    
 
 end.
 

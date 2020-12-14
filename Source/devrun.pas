@@ -115,6 +115,7 @@ begin
     CloseHandle(WriteHandle);
   end;
 end;
+
 procedure TPipeStdinThread.Execute;
 begin
   inherited;

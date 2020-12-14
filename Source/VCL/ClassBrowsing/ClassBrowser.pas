@@ -85,7 +85,6 @@ type
     fOnSelect: TMemberSelectEvent;
     fImagesRecord: TImagesRecord;
     fCurrentFile: AnsiString;
-    fProjectDir: AnsiString;
     fControlCanvas: TControlCanvas;
     fShowInheritedMembers: boolean;
     fIncludedFiles: TStringList;
@@ -145,7 +144,6 @@ type
     property Parser: TCppParser read fParser write SetParser;
     property ItemImages: TImagesRecord read fImagesRecord write fImagesRecord;
     property CurrentFile: AnsiString read fCurrentFile write SetCurrentFile;
-    property ProjectDir: AnsiString read fProjectDir write fProjectDir;
     property ShowInheritedMembers: boolean read fShowInheritedMembers write SetShowInheritedMembers;
     property TabVisible: boolean read fTabVisible write SetTabVisible;
     property SortAlphabetically: boolean read fSortAlphabetically write SetSortAlphabetically;
@@ -178,7 +176,6 @@ begin
   DragMode := dmAutomatic;
   fImagesRecord := TImagesRecord.Create;
   fCurrentFile := '';
-  fProjectDir := '';
   ShowHint := True;
   HideSelection := False;
   RightClickSelect := True;

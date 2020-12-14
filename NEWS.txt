@@ -7,11 +7,11 @@ Version 6.3-beta1
     - change: disable close buttons when parser is running. 
     - enhancement: auto check syntax when line break;
     - enhancement: run checker in the background thread;
-    - change: reset parser and reparse file when active editor switched.
     - fix: auto completion flag not cleared when auto insert a function with ();
     - fix: color error when some code is folded
     - fix: don't color var/func when code completion window is shown
     - fix: wrong macro define hint info 
+    - enhancement: each project/source file use its own parser
 
 Version 6.2.1
 

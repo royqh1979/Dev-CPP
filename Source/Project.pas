@@ -24,7 +24,7 @@ interface
 uses
   IniFiles, SysUtils, Dialogs, ComCtrls, Editor, Contnrs, SynExportHTML,
   Classes, Controls, version, Forms, Templates, ProjectTypes,
-  Windows;
+  Windows,CppParser;
 
 type
   TProjUnit = class;
@@ -95,6 +95,7 @@ type
     fModified: boolean;
     fFolders: TStringList;
     fFolderNodes: TObjectList;
+    fParser: TCppParser;
     function GetDirectory: AnsiString;
     function GetExecutableName: AnsiString;
     procedure SetFileName(const value: AnsiString);
@@ -114,6 +115,7 @@ type
     property INIFile: TMemIniFile read fINIFile write fINIFile;
     property Modified: boolean read GetModified write SetModified;
     property MakeFileName: AnsiString read GetMakeFileName;
+    property CppParser:TCppParser read fParser;
     constructor Create(const nFileName, nName: AnsiString);
     destructor Destroy; override;
     function NewUnit(NewProject: boolean; ParentNode: TTreeNode; const CustomFileName: AnsiString = ''): integer;
@@ -161,7 +163,7 @@ implementation
 
 uses
   main, MultiLangSupport, devcfg, ProjectOptionsFrm, DataFrm, utils,
-  RemoveUnitFrm, SynEdit, EditorList;
+  RemoveUnitFrm, SynEdit, EditorList, CppPreprocessor, CppTokenizer;
 
 { TProjUnit }
 
@@ -262,6 +264,10 @@ begin
   fFileName := nFileName;
   finiFile := TMemIniFile.Create(fFileName);
   fOptions := TProjOptions.Create;
+  fParser := TCppParser.Create(MainForm.PageControlPanel);
+  fParser.Preprocessor := TCppPreprocessor.Create(MainForm.PageControlPanel);
+  fParser.Tokenizer := TCppTokenizer.Create(MainForm.PageControlPanel);
+  ResetCppParser(fParser);
   if nName = DEV_INTERNAL_OPEN then begin
     Open; 
   end else begin
@@ -278,6 +284,9 @@ begin
   fFolderNodes.Free;
   fIniFile.Free;
   fUnits.Free;
+  fParser.Tokenizer.Free;
+  fParser.Preprocessor.Free;
+  fParser.Free;
   if Assigned(fNode) and (not fNode.Deleting) then
     fNode.Free;
   fOptions.Free;
@@ -1316,6 +1325,7 @@ begin
       end;
       try
         fEditor := MainForm.EditorList.NewEditor(FullPath, true, true, false);
+        fEditor.InProject := True;
         UseUTF8 := fEditor.UseUTF8;
         LoadUnitLayout(fEditor, index);
         Result := fEditor;

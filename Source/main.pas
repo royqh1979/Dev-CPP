@@ -273,7 +273,6 @@ type
     InsertBtn: TToolButton;
     ToggleBtn: TToolButton;
     GotoBtn: TToolButton;
-    CppParser: TCppParser;
     CodeCompletion: TCodeCompletion;
     Swapheadersource1: TMenuItem;
     N23: TMenuItem;
@@ -434,8 +433,6 @@ type
     N37: TMenuItem;
     DuplicateLine1: TMenuItem;
     DeleteLine1: TMenuItem;
-    CppPreprocessor: TCppPreprocessor;
-    CppTokenizer: TCppTokenizer;
     actMoveSelUp: TAction;
     actMoveSelDown: TAction;
     actCodeCompletion: TAction;
@@ -669,6 +666,9 @@ type
     FindOutput: TFindOutput;
     FindPopup: TPopupMenu;
     mnuClearAllFindItems: TMenuItem;
+    DummyCppParser: TCppParser;
+    DummyCppPreprocessor: TCppPreprocessor;
+    DummyCppTokenizer: TCppTokenizer;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1033,6 +1033,7 @@ type
     procedure StartTabnine;
     procedure StopTabnine;
   public
+    function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
     procedure UpdateClassBrowserForEditor(e:TEditor);
     procedure UpdateFileEncodingStatusPanel;
@@ -1318,11 +1319,10 @@ begin
   if fClosing then
     Exit;
   fQuitting:=True;
-  CppParser.Enabled := False; // disable parser, because we are exiting;
+  //CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
     CloseProject(False);
-//    actCloseProjectExecute(Self);
 
   if Assigned(fProject) then begin
     Action := caNone;
@@ -2721,7 +2721,7 @@ begin
     if Assigned(fProject) then begin
       fProject.SaveAll;
       UpdateAppTitle;
-      if CppParser.Statements.Count = 0 then // only scan entire project if it has not already been scanned...
+      if Project.CppParser.Statements.Count = 0 then // only scan entire project if it has not already been scanned...
         ScanActiveProject;
     end;
 
@@ -2796,7 +2796,7 @@ begin
 
     ClassBrowser.BeginUpdate;
     try
-
+      ClassBrowser.Clear;
       // Remember it
       dmMain.AddtoHistory(fProject.FileName);
 
@@ -2808,15 +2808,11 @@ begin
         if not fQuitting and RefreshEditor then begin
           //reset Class browsing
           LeftPageControl.ActivePage := LeftClassSheet;
-          ClassBrowser.TabVisible := True;
-          UpdateClassBrowsing;
-          ClassBrowser.ProjectDir := '';
-          //UpdateClassBrowserForEditor(EditorList.GetEditor());
-
           e:=EditorList.GetEditor();
           if Assigned(e) and not e.InProject then begin
             UpdateClassBrowserForEditor(e);
           end;
+          ClassBrowser.TabVisible := True;
         end;
       finally
         fEditorList.EndUpdate;
@@ -3344,7 +3340,7 @@ begin
       // Add all files
       for idx := 0 to Files.Count - 1 do begin
         fProject.AddUnit(Files[idx], FolderNode, false); // add under folder
-        CppParser.AddFileToScan(Files[idx], true);
+        fProject.CppParser.AddFileToScan(Files[idx], true);
       end;
 
       // Rebuild project tree and parse
@@ -3622,7 +3618,7 @@ begin
         if not fProject.SaveUnits then
           Exit;
         UpdateAppTitle;
-        if CppParser.Statements.Count = 0 then // only scan entire project if it has not already been scanned...
+        if fProject.CppParser.Statements.Count = 0 then // only scan entire project if it has not already been scanned...
           ScanActiveProject;
 
         // Check if saves have been succesful
@@ -4738,12 +4734,7 @@ procedure TMainForm.UpdateClassBrowsing;
 var
   I: integer;
 begin
-  // Configure parser
-  CppParser.Reset;
-  CppParser.Enabled := devCodeCompletion.Enabled;
-  CppParser.ParseLocalHeaders := devCodeCompletion.ParseLocalHeaders;
-  CppParser.ParseGlobalHeaders := devCodeCompletion.ParseGlobalHeaders;
-
+  //ResetCppParser(CppParser);
 
   //actCodeCompletionAlt.Enabled := devCodeCompletion.UseAltSlash;
   //actCodeCompletion.Enabled := not devCodeCompletion.UseAltSlash;
@@ -4751,32 +4742,6 @@ begin
     actCodeCompletion.ShortCut := 32959 { TextToShortcut('Alt+/') is 32879, which / is the one on the numpad}
   else
     actCodeCompletion.ShortCut := TextToShortCut('Ctrl+Space');
-
-  // Set options depending on the current compiler set
-  // TODO: do this every time OnCompilerSetChanged
-  if Assigned(devCompilerSets.DefaultSet) then
-    with devCompilerSets.DefaultSet do begin
-      CppParser.ClearIncludePaths;
-      for I := 0 to CDir.Count - 1 do
-        CppParser.AddIncludePath(CDir[I]);
-      for I := 0 to CppDir.Count - 1 do
-        CppParser.AddIncludePath(CppDir[I]);
-      for I := 0 to DefInclude.Count - 1 do // Add default include dirs last, just like gcc does
-        CppParser.AddIncludePath(DefInclude[I]); // TODO: retrieve those directories in devcfg
-      // Set defines
-      //CppParser.ResetDefines;
-      for I := 0 to Defines.Count - 1 do
-        CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
-      // add a dev-cpp's own macro
-      CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY');
-      // add C/C++ default macro
-      CppParser.AddHardDefineByLine('#define __FILE__  1');
-      CppParser.AddHardDefineByLine('#define __LINE__  1');
-      CppParser.AddHardDefineByLine('#define __DATE__  1');
-      CppParser.AddHardDefineByLine('#define __TIME__  1');  
-    end;
-
-  CppParser.ParseHardDefines;
 
   // Configure code completion
   CodeCompletion.Color := devCodeCompletion.BackColor;
@@ -4804,25 +4769,24 @@ procedure TMainForm.SetCppParserProject(Project:TProject);
 var
   i:integer;
 begin
-  CppParser.ClearProjectFiles;
-  CppParser.ClearProjectIncludePaths;
   if not Assigned(Project) then begin
-    CppParser.ProjectDir := '';
     Exit;
   end;
-  CppParser.ProjectDir := Project.Directory;
+  Project.CppParser.ClearProjectFiles;
+  Project.CppParser.ClearProjectIncludePaths;
+  Project.CppParser.ProjectDir := Project.Directory;
   for I := 0 to Project.Units.Count - 1 do
-    CppParser.AddFileToScan(Project.Units[I].FileName, True);
+    Project.CppParser.AddFileToScan(Project.Units[I].FileName, True);
   for I := 0 to Project.Options.Includes.Count - 1 do
-    CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
+    Project.CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
 end;
 
 procedure TMainForm.ScanActiveProject(parse:boolean);
 begin
   //UpdateClassBrowsing;
   SetCppParserProject(fProject);
-  if parse then
-    CppParser.ParseFileList;
+  if Assigned(fProject) and parse then
+    Project.CppParser.ParseFileList;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -4855,7 +4819,7 @@ begin
   iscfile := CBUtils.IsCfile(FromEditor.FileName);
   ishfile := CBUtils.IsHfile(FromEditor.FileName);
 
-  CppParser.GetSourcePair(FromEditor.FileName, CFile, HFile);
+  CBUtils.GetSourcePair(FromEditor.FileName, CFile, HFile);
   if iscfile then begin
     ToFile := HFile
   end else if ishfile then begin
@@ -5158,7 +5122,7 @@ begin
   with TFunctionSearchForm.Create(Self) do try
 
     fFileName := e.FileName;
-    fParser := CppParser;
+    fParser := GetCppParser;
 
     if ShowModal = mrOK then begin
       st := PStatement(lvEntries.Selected.Data);
@@ -5298,11 +5262,13 @@ begin
   end;
   ClassBrowser.BeginUpdate;
   try
+    ClassBrowser.Clear;
+    ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
         // CppParser.ParseFile(e.FileName,e.InProject,True);
-        CppParser.ParseFile(e.FileName,e.InProject);
+        GetCppParser.ParseFile(e.FileName,e.InProject);
       end;
     end else begin
       ClassBrowser.CurrentFile := '';
@@ -6234,7 +6200,7 @@ begin
     cmbClasses.Items.AddObject('(globals)', nil);
     e:=EditorList.GetEditor();
     if Assigned(e) then begin
-      Children:= CppParser.Statements.GetChildrenStatements(nil);
+      Children:= GetCppParser.Statements.GetChildrenStatements(nil);
       if (Assigned(Children)) then begin
         if e.InProject then begin // skClass equals struct + typedef struct + class
           // Add all classes inside the current project
@@ -6270,13 +6236,13 @@ var
     i:integer;
     children: TList;
   begin
-    children := CppParser.Statements.GetChildrenStatements(ParentStatement);
+    children := GetCppParser.Statements.GetChildrenStatements(ParentStatement);
     if Assigned(Children) then begin
       if e.InProject then begin
         for i:=0 to Children.Count-1 do begin
           Statement := PStatement(Children[i]);
           if  Statement^._InProject and (Statement^._Kind = AddKind) then
-            cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+            cmbMembers.Items.AddObject(GetCppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
               ' : ' + Statement^._Type,
               Pointer(Statement));
         end;
@@ -6284,7 +6250,7 @@ var
         for i:=0 to Children.Count-1 do begin
           Statement := PStatement(Children[i]);
           if  (Statement^._FileName=e.FileName) and (Statement^._Kind = AddKind) then
-            cmbMembers.Items.AddObject(CppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
+            cmbMembers.Items.AddObject(GetCppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
               ' : ' + Statement^._Type,
               Pointer(Statement));
         end;
@@ -6523,7 +6489,7 @@ begin
 
     // When searching using menu shortcuts, the caret is set to the proper place
     // When searching using ctrl+click, the cursor is set properly too, so do NOT use WordAtMouse
-    statement := CppParser.FindStatementOf(
+    statement := GetCppParser.FindStatementOf(
         e.FileName,
         phrase, e.Text.CaretY);
 
@@ -6732,6 +6698,8 @@ begin
   fCheckSyntaxInBack:=False;
   fCaretList:=TDevCaretList.Create;
 
+  DummyCppParser.Preprocessor := DummyCppPreprocessor;
+  DummyCppParser.Tokenizer := DummyCppTokenizer;
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
 
@@ -6926,12 +6894,6 @@ begin
     end;
   end;
 
-  // Configure parser, code completion, class browser
-  CppParser.Preprocessor := CppPreprocessor;
-  CppParser.Tokenizer := CppTokenizer;
-  CppParser.OnStartParsing := CppParserStartParsing;
-  CppParser.OnEndParsing := CppParserEndParsing;
-  CppParser.OnTotalProgress := CppParserTotalProgress;
   ClassBrowser.OnUpdated := OnClassBrowserUpdated;
   UpdateClassBrowsing;
 
@@ -7731,7 +7693,7 @@ begin
       OldTopLine := Editor.Text.TopLine;
       OldCaretXY := Editor.Text.CaretXY;
 
-      with TRefactorer.Create(devRefactorer,CppParser) do try
+      with TRefactorer.Create(devRefactorer,GetCppParser) do try
         RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
@@ -8260,7 +8222,7 @@ begin
   e:=EditorList.GetEditor();
   if Assigned(e) then begin
     e.Save;
-    with TRefactorer.Create(devRefactorer,CppParser) do try
+    with TRefactorer.Create(devRefactorer,GetCppParser) do try
       if not TestExtractMacro(e) then
         Exit;
       newName := 'NEW_MACRO';
@@ -8658,7 +8620,7 @@ end;
 procedure TMainForm.actCloseUpdate(Sender: TObject);
 begin
   actClose.Enabled := (fEditorList.PageCount > 0)
-    and not fClosing and not CppParser.Parsing;
+    and not fClosing and not GetCppParser.Parsing;
 end;
 
 procedure TMainForm.EditorPageControlMouseUp(Sender: TObject;
@@ -8668,6 +8630,26 @@ var
 begin
   SenderPageControl := TPageControl(Sender);
   SenderPageControl.Pages[SenderPageControl.ActivePageIndex].EndDrag(False);
+end;
+
+function TMainForm.GetCppParser:TCppParser;
+var
+  e:TEditor;
+begin
+  Result := DummyCppParser;
+  case GetCompileTarget of
+    ctProject: begin
+      if not Assigned(fProject) then
+        Exit;
+      Result := fProject.CppParser;
+    end;
+    ctFile: begin
+      e:=EditorList.GetEditor();
+      if not Assigned(e) then
+        Exit;
+      Result := e.CppParser;
+    end;
+  end;
 end;
 
 end.

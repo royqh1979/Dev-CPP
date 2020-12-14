@@ -130,7 +130,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, Macros, devExec, main, StrUtils;
+  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser;
 
 procedure TCompiler.DoLogEntry(const msg: AnsiString);
 begin
@@ -356,7 +356,9 @@ var
   encodingStr: AnsiString;
   fileIncludes: TStringList;
   headerName: AnsiString;
+  parser:TCppParser;
 begin
+  parser:=MainForm.GetCppParser;
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
       Continue;
@@ -376,16 +378,16 @@ begin
     if GetFileTyp(ShortFileName) in [utcSrc, utcppSrc] then begin
       Writeln(F);
       objStr:=ShortFileName;
-      if MainForm.CppParser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
+      if parser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
         fileIncludes := TStringList.Create;
         try
-          MainForm.CppParser.GetFileIncludes(FileName,fileIncludes);
+          parser.GetFileIncludes(FileName,fileIncludes);
           for j:=0 to fileIncludes.Count-1 do begin
             headerName := fileIncludes[j];
             if headerName = FileName then
               continue;
-            if (not MainForm.CppParser.IsSystemHeaderFile(headerName))
-              and (not MainForm.CppParser.IsProjectHeaderFile(headerName)) then begin
+            if (not parser.IsSystemHeaderFile(headerName))
+              and (not parser.IsProjectHeaderFile(headerName)) then begin
               objStr := objStr + ' ' + ExtractRelativePath(Makefile,headerName);
             end;
           end;

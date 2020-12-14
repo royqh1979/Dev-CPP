@@ -86,7 +86,7 @@ begin
 
   sl := TStringList.Create;
   try
-    MainForm.CppParser.GetClassesList(sl);
+    MainForm.GetCppParser.GetClassesList(sl);
     cmbClass.Items.Assign(sl);
   finally
     sl.Free;
@@ -217,7 +217,7 @@ begin
       InheritStatement := nil;
 
       // Find class we inherit from
-      Node := MainForm.CppParser.Statements.FirstNode;
+      Node := MainForm.GetCppParser.Statements.FirstNode;
       while Assigned(Node) do begin
         Statement := Node^.Data;
         if (Statement^._Kind = skClass) and (Statement^._Command = cmbClass.Text) and

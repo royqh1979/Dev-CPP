@@ -1179,7 +1179,6 @@ object MainForm: TMainForm
           RowSelect = True
           ShowLines = False
           OnSelect = ClassBrowserSelect
-          Parser = CppParser
           ItemImages.Globals = 0
           ItemImages.Classes = 1
           ItemImages.VariablePrivate = 2
@@ -3205,19 +3204,8 @@ object MainForm: TMainForm
       Action = actMsgClear
     end
   end
-  object CppParser: TCppParser
-    Enabled = True
-    OnTotalProgress = CppParserTotalProgress
-    ParseLocalHeaders = False
-    ParseGlobalHeaders = False
-    OnStartParsing = CppParserStartParsing
-    OnEndParsing = CppParserEndParsing
-    Left = 60
-    Top = 196
-  end
   object CodeCompletion: TCodeCompletion
     ShowCount = 1000
-    Parser = CppParser
     Color = clWhite
     Width = 320
     Height = 240
@@ -3296,14 +3284,6 @@ object MainForm: TMainForm
     OnExecuteMacro = DevCppDDEServerExecuteMacro
     Left = 628
     Top = 240
-  end
-  object CppPreprocessor: TCppPreprocessor
-    Left = 60
-    Top = 134
-  end
-  object CppTokenizer: TCppTokenizer
-    Left = 60
-    Top = 166
   end
   object FolderPopup: TPopupMenu
     Images = dmMain.MenuImages_NewLook
@@ -3539,5 +3519,20 @@ object MainForm: TMainForm
       Caption = 'Clear All'
       OnClick = mnuClearAllFindItemsClick
     end
+  end
+  object DummyCppParser: TCppParser
+    Enabled = False
+    ParseLocalHeaders = False
+    ParseGlobalHeaders = False
+    Left = 77
+    Top = 304
+  end
+  object DummyCppPreprocessor: TCppPreprocessor
+    Left = 130
+    Top = 299
+  end
+  object DummyCppTokenizer: TCppTokenizer
+    Left = 66
+    Top = 363
   end
 end

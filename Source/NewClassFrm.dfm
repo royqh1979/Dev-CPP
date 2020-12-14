@@ -65,7 +65,7 @@ object NewClassForm: TNewClassForm
     Left = 108
     Top = 10
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 0
     OnChange = txtNameChange
     OnKeyPress = txtNameKeyPress
@@ -126,7 +126,7 @@ object NewClassForm: TNewClassForm
       Left = 153
       Top = 79
       Width = 360
-      Height = 21
+      Height = 24
       Enabled = False
       TabOrder = 2
     end
@@ -135,7 +135,7 @@ object NewClassForm: TNewClassForm
     Left = 162
     Top = 276
     Width = 341
-    Height = 21
+    Height = 24
     TabOrder = 6
     OnChange = txtCppFileChange
   end
@@ -143,7 +143,7 @@ object NewClassForm: TNewClassForm
     Left = 162
     Top = 310
     Width = 341
-    Height = 21
+    Height = 24
     TabOrder = 7
     OnChange = txtCppFileChange
   end
@@ -191,7 +191,7 @@ object NewClassForm: TNewClassForm
     Left = 108
     Top = 39
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 1
   end
   object chkConstruct: TCheckBox

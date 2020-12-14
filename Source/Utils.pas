@@ -57,24 +57,6 @@ type
     Background:TColor;
   end;
 
-  {
-  TCppParserParseFileThread = class(TThread)
-  public
-    Parser : TCppParser;
-    FileName: String;
-    InProject: boolean;
-    OnlyIfNotParsed: boolean;
-    UpdateView: boolean;
-    Stream: TMemoryStream;
-    procedure Execute; override;
-  end;
-
-  TCppParserParseFileListThread = class(TThread)
-  public
-    Parser : TCppParser;
-    procedure Execute; override;
-  end;
-  }
 procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files: TStringList; Subdirs, ShowDirs,
   Multitasking: Boolean);
 
@@ -213,6 +195,7 @@ function CreateDirRecursive(const Dir: string): Boolean;
 
 procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
 
+procedure ResetCppParser(CppParser:TCppParser);
 implementation
 
 uses
@@ -1699,53 +1682,44 @@ LOGPIXELSY);
     DeleteObject(NewFont);
   end;
 end;
-{
-procedure ParseFile(const Parser:TCppParser; const FileName: AnsiString; InProject: boolean;
-    OnlyIfNotParsed: boolean = False; UpdateView: boolean = True; Stream: TMemoryStream = nil);
+
+procedure ResetCppParser(CppParser:TCppParser);
 var
-  thread : TCppParserParseFileThread;
+  I:integer;
 begin
-  if Parser.Parsing then
-    Exit;
-  thread := TCppParserParseFileThread.Create(TRUE);
-  thread.FreeOnTerminate:=True;
-  thread.Parser := Parser;
-  thread.FileName:=FileName;
-  thread.InProject:=InProject;
-  thread.OnlyIfNotParsed:=OnlyIfNotParsed;
-  thread.UpdateView:= UpdateView;
-  thread.Stream := stream;
-  thread.Resume;
-end;
+  // Configure parser
+  CppParser.Reset;
+  CppParser.OnStartParsing := MainForm.CppParserStartParsing;
+  CppParser.OnEndParsing := MainForm.CppParserEndParsing;
+  CppParser.OnTotalProgress := MainForm.CppParserTotalProgress;
+  CppParser.Enabled := devCodeCompletion.Enabled;
+  CppParser.ParseLocalHeaders := devCodeCompletion.ParseLocalHeaders;
+  CppParser.ParseGlobalHeaders := devCodeCompletion.ParseGlobalHeaders;
+  // Set options depending on the current compiler set
+  // TODO: do this every time OnCompilerSetChanged
+  if Assigned(devCompilerSets.DefaultSet) then
+    with devCompilerSets.DefaultSet do begin
+      CppParser.ClearIncludePaths;
+      for I := 0 to CDir.Count - 1 do
+        CppParser.AddIncludePath(CDir[I]);
+      for I := 0 to CppDir.Count - 1 do
+        CppParser.AddIncludePath(CppDir[I]);
+      for I := 0 to DefInclude.Count - 1 do // Add default include dirs last, just like gcc does
+        CppParser.AddIncludePath(DefInclude[I]); // TODO: retrieve those directories in devcfg
+      // Set defines
+      //CppParser.ResetDefines;
+      for I := 0 to Defines.Count - 1 do
+        CppParser.AddHardDefineByLine(Defines[i]); // predefined constants from -dM -E
+      // add a dev-cpp's own macro
+      CppParser.AddHardDefineByLine('#define EGE_FOR_AUTO_CODE_COMPLETETION_ONLY');
+      // add C/C++ default macro
+      CppParser.AddHardDefineByLine('#define __FILE__  1');
+      CppParser.AddHardDefineByLine('#define __LINE__  1');
+      CppParser.AddHardDefineByLine('#define __DATE__  1');
+      CppParser.AddHardDefineByLine('#define __TIME__  1');
+    end;
 
-procedure ParseFileList(const Parser:TCppParser);
-var
-  thread : TCppParserParseFileListThread;
-begin
-  if Parser.Parsing then
-    Exit;
-  thread := TCppParserParseFileListThread.Create(TRUE);
-  thread.FreeOnTerminate:=True;
-  thread.Parser := Parser;
-  thread.Resume;
+  CppParser.ParseHardDefines;
 end;
-
-procedure TCppParserParseFileThread.Execute;
-begin
-  inherited;
-  self.Parser.DoParseFile(
-    FileName,
-    InProject,
-    OnlyIfNotParsed,
-    UpdateView,
-    Stream);
-end;
-
-procedure TCppParserParseFileListThread.Execute;
-begin
-  inherited;
-  self.Parser.DoParseFileList;
-end;
-}
 end.
 
