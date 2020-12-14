@@ -95,7 +95,6 @@ procedure THeaderComplForm.lbCompletionDrawItem(Control: TWinControl; Index: Int
   TOwnerDrawState);
 var
   Offset: integer;
-  s:String;
 begin
   Offset := 4;
   with lbCompletion do begin
@@ -107,8 +106,7 @@ begin
     end;
     Canvas.FillRect(Rect);
     Canvas.Font.Color := Colors[PreprocessorColor];
-    s:=Items[Index];
-    Canvas.TextOut(Offset, Rect.Top, s);
+    Canvas.TextOut(Offset, Rect.Top, Items[Index]);
   end;
 end;
 

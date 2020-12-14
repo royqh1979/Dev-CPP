@@ -317,7 +317,6 @@ begin
     // filter fFullCompletionList to fCompletionList
     FilterList(symbol);
 
-
     if fCompletionList.Count > 0 then begin
       HeaderComplForm.lbCompletion.Items.BeginUpdate;
       try
