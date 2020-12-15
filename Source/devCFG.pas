@@ -2570,7 +2570,7 @@ begin
   fShowRainbowBacket:=True;
 
   fAutoCheckSyntax:=True;
-  fCheckSyntaxWhenReturn:=False;
+  fCheckSyntaxWhenReturn:=True;
 
   fUseCpp := True;
 
