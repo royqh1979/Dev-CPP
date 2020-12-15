@@ -220,10 +220,10 @@ var
   ParentTypeStatement,ChildStatement,ClassTypeStatement,namespaceStatement:PStatement;
   namespaceStatementsList: TList;
   Children : TList;
-  I,t,k: integer;
-  ScopeTypeStatement, Statement : PStatement;
-  ScopeName, namespaceName,typeName: AnsiString;
-  opType: TOperatorType;
+  lastI,I,t,k: integer;
+  LastScopeStatement, ScopeTypeStatement, Statement : PStatement;
+  LastScopeName, ScopeName, namespaceName,typeName: AnsiString;
+  LastOpType,opType: TOperatorType;
   codeIn:PCodeIns;
   codeInStatement:PStatement;
 begin
@@ -328,8 +328,23 @@ begin
       if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin
         // Get type statement  of current (scope) statement
 
-        ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,ParentTypeStatement);
-//      ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,fCurrentStatement);
+        // it's an element method of STL container
+        if (statement^._Kind = skFunction)
+          and assigned(statement^._ParentScope)
+          and  (STLContainers.ValueOf(statement^._ParentScope^._FullName)>0)
+          and (STLElementMethods.ValueOf(statement^._Command)>0) then begin
+          lastI:=fParser.FindLastOperator(scopeName);
+          LastScopeName := Copy(scopeName,1,lastI-1);
+          LastScopeStatement := fParser.FindStatementOf(FileName, LastScopeName,fCurrentStatement,ParentTypeStatement);
+          if not Assigned(LastScopeStatement) then
+            Exit;
+          i:=LastPos('<',LastScopeStatement^._Type);
+          t:=LastDelimiter('>',LastScopeStatement^._Type);
+          typeName:=Copy(LastScopeStatement^._Type,i+1,t-i-1);
+          ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,LastScopeStatement^._ParentScope);
+        end else
+          ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,ParentTypeStatement);
+          
         if not Assigned(ClassTypeStatement) then
           Exit;
         //is a smart pointer
@@ -341,7 +356,16 @@ begin
           i:=Pos('<',Statement^._Type);
           t:=LastDelimiter('>',Statement^._Type);
           typeName:=Copy(Statement^._Type,i+1,t-i-1);
-          ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,fCurrentStatement);
+          ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
+          if not Assigned(ClassTypeStatement) then
+            Exit;
+        end;    //is a stl container operator[]
+        if (STLContainers.ValueOf(ClassTypeStatement^._FullName)>0)
+          and EndsStr(']',scopeName) then begin
+          i:=Pos('<',Statement^._Type);
+          t:=LastDelimiter('>',Statement^._Type);
+          typeName:=Copy(Statement^._Type,i+1,t-i-1);
+          ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
           if not Assigned(ClassTypeStatement) then
             Exit;
         end;

@@ -4099,7 +4099,8 @@ begin
         e:=EditorList.GetEditor();
         if not Assigned(e) then
           Exit;
-        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+        TCustomAction(Sender).Enabled :=
+         ( (e.New and e.Text.Modified) or IsCfile(e.FileName)) and (not fCompiler.Compiling)
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
@@ -8692,7 +8693,8 @@ begin
         e:=EditorList.GetEditor();
         if not Assigned(e) then
           Exit;
-        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+        TCustomAction(Sender).Enabled :=
+          ( (e.New and e.Text.Modified) or IsCfile(e.FileName)) and (not fCompiler.Compiling)
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
@@ -8710,7 +8712,11 @@ var
 begin
   e:=EditorList.GetEditor();
   actSyntaxCheck.Enabled := Assigned(e)
-    and (IsCFile(e.FileName) or IsHFile(e.FileName));
+    and (
+      IsCFile(e.FileName)
+      or IsHFile(e.FileName)
+      or (e.New and e.Text.Modified)
+    );
 end;
 
 end.

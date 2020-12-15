@@ -196,6 +196,8 @@ const
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
+  STLContainers: TStringHash;
+  STLElementMethods: TStringHash;
 
   // These functions are about six times faster than the locale sensitive AnsiX() versions
 
@@ -700,6 +702,8 @@ begin
   CppTypeKeywords := TStringHash.Create();
   CppKeywords := TStringHash.Create();
   CppKeywordsList := TStringList.Create;
+  STLContainers := TStringHash.Create();
+  STLElementMethods := TStringHash.Create();
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -977,15 +981,43 @@ begin
 
   // nullptr is value
   CppKeywordsList.Add('nullptr');
+
+  {STL Containers}
+  STLContainers.Add('std::array',1);
+  STLContainers.Add('std::vector',1);
+  STLContainers.Add('std::deque',1);
+  STLContainers.Add('std::forward_list',1);
+  STLContainers.Add('std::list',1);
+
+  STLContainers.Add('std::set',1);
+  STLContainers.Add('std::map',1);
+  STLContainers.Add('std::multilist',1);
+  STLContainers.Add('std::multimap',1);
+
+  STLContainers.Add('std::unordered_set',1);
+  STLContainers.Add('std::unordered_map',1);
+  STLContainers.Add('std::unordered_multiset',1);
+  STLContainers.Add('std::unordered_multimap',1);
+
+  STLContainers.Add('std::stack',1);
+  STLContainers.Add('std::queue',1);
+  STLContainers.Add('std::priority_queue',1);
+
+  STLContainers.Add('std::span',1);
+
+  {STL element access methods}
+  STLElementMethods.Add('at',1);
+  STLElementMethods.Add('back',1);
+  STLElementMethods.Add('front',1);
+  STLElementMethods.Add('top',1);
 end;
 
 finalization
 begin
-  CppKeywords.Clear;
   CppKeywords.Free;
-  CppKeywordsList.Clear;
-  CppTypeKeywords.Clear;
+  CppKeywordsList.Free;
   CppTypeKeywords.Free;
+  STLContainers.Free;
 end;
 end.
 

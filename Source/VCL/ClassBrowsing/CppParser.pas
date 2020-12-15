@@ -3147,7 +3147,7 @@ begin
     Exit;
   end;
 
-  Result := Copy(Phrase, FirstOp, MaxInt)
+  Result := Copy(Phrase, FirstOp, MaxInt);
 end;
 
 
@@ -3427,28 +3427,24 @@ end;
 function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
 var
   ChildrenIndex:TStringHash;
-  i:integer;
+  i,p:integer;
+  s:string;
 begin
   Result := nil;
   ChildrenIndex := Statements.GetChildrenStatementIndex(ScopeStatement);
   if not Assigned(ChildrenIndex) then
     Exit;
-  i:=ChildrenIndex.ValueOf(Phrase);
+
+  //remove []
+  p:=Pos('[',Phrase);
+  if p>0 then
+    s:=Copy(Phrase,1,p-1)
+  else
+    s:=Phrase;
+  i:=ChildrenIndex.ValueOf(s);
   if i<>-1 then
     Result := PStatement(i);
 
-  {
-  Children := Statements.GetChildrenStatements(ScopeStatement);
-  if not Assigned(Children) then
-    Exit;
-  for i:=0 to Children.Count-1 do begin
-    ChildStatement:=PStatement(Children[i]);
-    if SameStr(ChildStatement^._Command, Phrase) then begin
-      Result:=ChildStatement;
-      Exit;
-    end;
-  end;
-  }
 end;
 
 // find allStatment
@@ -3548,9 +3544,9 @@ function TCppParser.FindStatementOf(FileName, Phrase: AnsiString;
   CurrentClass: PStatement;var CurrentClassType : PStatement ; force:boolean): PStatement;
 var
   //Node: PStatementNode;
-  OperatorToken: AnsiString;
-  currentNamespace, Statement, MemberStatement, TypeStatement: PStatement;
-  i,idx: integer;
+  OperatorToken, typeName: AnsiString;
+  LastScopeStatement,currentNamespace, Statement, MemberStatement, TypeStatement: PStatement;
+  i,t,idx: integer;
   namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin
@@ -3558,6 +3554,7 @@ begin
   CurrentClassType := CurrentClass;
   if fParsing and not force then
     Exit;
+
 
   getFullNamespace(Phrase, namespaceName, remainder);
   if namespaceName <> '' then begin  // (namespace )qualified Name
@@ -3640,16 +3637,46 @@ begin
       Exit;
   end;
 
+  LastScopeStatement:=nil;
   while MemberName <> '' do begin
+    if statement._Kind in [skVariable,skFunction] then begin
+      if (statement^._Kind = skFunction)
+          and assigned(statement^._ParentScope)
+          and  (STLContainers.ValueOf(statement^._ParentScope^._FullName)>0)
+          and (STLElementMethods.ValueOf(statement^._Command)>0)
+          and assigned(LastScopeStatement) then begin
+        i:=LastPos('<',LastScopeStatement^._Type);
+        t:=LastDelimiter('>',LastScopeStatement^._Type);
+        typeName:=Copy(LastScopeStatement^._Type,i+1,t-i-1);
+        TypeStatement:=FindTypeDefinitionOf(FileName, typeName,LastScopeStatement^._ParentScope);
+      end else
+        TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
+
+      if ((TypeStatement^._FullName = 'std::unique_ptr')
+           or (TypeStatement^._FullName = 'std::auto_ptr')
+           or (TypeStatement^._FullName = 'std::shared_ptr')
+           or (TypeStatement^._FullName = 'std::weak_ptr'))
+           and SameStr(OperatorToken,'->') then begin
+        i:=Pos('<',Statement^._Type);
+        t:=LastDelimiter('>',Statement^._Type);
+        typeName:=Copy(Statement^._Type,i+1,t-i-1);
+        TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
+      end else if (STLContainers.ValueOf(TypeStatement^._FullName)>0)
+          and EndsStr(']',NextScopeWord) then begin
+        i:=Pos('<',Statement^._Type);
+        t:=LastDelimiter('>',Statement^._Type);
+        typeName:=Copy(Statement^._Type,i+1,t-i-1);
+        TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
+      end;
+      lastScopeStatement:= statement;
+      if Assigned(TypeStatement) then
+        Statement := TypeStatement;
+    end else
+      lastScopeStatement:= statement;
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
-    if statement._Kind in [skVariable,skFunction] then begin
-      TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
-      if Assigned(TypeStatement) then
-        Statement := TypeStatement;
-    end;
     MemberStatement := FindMemberOfStatement(NextScopeWord,statement);
     if not Assigned(MemberStatement) then begin;
       Exit;

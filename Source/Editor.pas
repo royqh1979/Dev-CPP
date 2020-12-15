@@ -2098,6 +2098,8 @@ var
 begin
   if not devCodeCompletion.Enabled then
     Exit;
+  if not CppParser.Enabled then
+    Exit;
   fCompletionTimer.Enabled := False;
 
   if fCompletionBox.Visible then // already in search, don't do it again
@@ -2340,13 +2342,12 @@ begin
         Delete(Result,ParamBegin,1);
         continue;
       end else begin
-        break
+        ParamEnd := ParamBegin;
+        if FindComplement(Result, '(', ')', ParamEnd, 1) then begin
+          Delete(Result, ParamBegin, ParamEnd - ParamBegin + 1);
+        end else
+          break;
       end;
-      ParamEnd := ParamBegin;
-      if FindComplement(Result, '(', ')', ParamEnd, 1) then begin
-        Delete(Result, ParamBegin, ParamEnd - ParamBegin + 1);
-      end else
-        break;
     end else
       break;
   end;
@@ -2357,6 +2358,7 @@ begin
   end;
   Delete(Result,1,ParamBegin-1);
 
+  {
   // Strip array stuff
   if not (Purpose = wpEvaluation) then
     while true do begin
@@ -2370,6 +2372,7 @@ begin
       end else
         break;
     end;
+  }
 end;
 
 procedure TEditor.TabnineCompletionInsert;

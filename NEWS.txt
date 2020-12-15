@@ -18,6 +18,10 @@ Version 6.3-beta1
     - enhancement: Limit recent projects to use just half of the history.
     - enhancement: correctly match func definition & declaration in the same namespace but not in the same file
     - enhancement: beautify icons 
+    - enhancement: can show code completion for std containers elements
+    - enhancement: only c/cpp/new file/project can compile or syntax check
+    - enhancement: only c/cpp/h/new file/ non static library project can run or debug
+    - enhancement: only c/cpp/h/new file show code completion 
 
 Version 6.2.1
 
