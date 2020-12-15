@@ -976,6 +976,7 @@ type
     procedure EditorPageControlMouseUp(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actCompileUpdate(Sender: TObject);
+    procedure actSyntaxCheckFileUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -8701,6 +8702,15 @@ begin
           and (not devExecutor.Running);
       end;
   end;
+end;
+
+procedure TMainForm.actSyntaxCheckFileUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  actSyntaxCheck.Enabled := Assigned(e)
+    and (IsCFile(e.FileName) or IsHFile(e.FileName));
 end;
 
 end.
