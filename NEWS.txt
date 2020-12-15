@@ -17,6 +17,7 @@ Version 6.3-beta1
     - enhancement: auto completion for include header
     - enhancement: Limit recent projects to use just half of the history.
     - enhancement: correctly match func definition & declaration in the same namespace but not in the same file
+    - enhancement: beautify icons 
 
 Version 6.2.1
 
