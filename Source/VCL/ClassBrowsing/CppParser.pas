@@ -435,23 +435,45 @@ end;
 
 function TCppParser.FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
 var
-  index: TDevStringHash;
-  item: PPHashItem;
-  itemStatement:PStatement;
+  namespaceStatement:PStatement;
+  i: integer;
+  namespaceStatementsList:TList;
+
+  function DoFind(const _Name , _NoNameArgs:string; _kind:TStatementKind; _scope:PStatement):PStatement;
+  var
+    index: TDevStringHash;
+    item: PPHashItem;
+    itemStatement: PStatement;
+  begin
+    Result := nil;
+    index := self.fStatementList.GetChildrenStatementIndex(_scope);
+    if not assigned(index) then
+      Exit;
+    item:=index.FindItem(_Name);
+    while (assigned(item)) and assigned(item^) and SameStr(item^.Key,_Name) do begin
+      itemStatement:=PStatement(item^.Value);
+      if assigned(itemStatement) and (itemStatement^._Kind  = _kind)
+        and SameStr(itemStatement^._NoNameArgs, _NoNameArgs) then begin
+        Result:=itemStatement;
+        Exit;
+      end;
+      item:=@item^.Next;
+    end;
+  end;
 begin
   Result:=nil;
-  index := self.fStatementList.GetChildrenStatementIndex(scope);
-  if not assigned(index) then
-    Exit;
-  item:=index.FindItem(Name);
-  while (assigned(item)) and assigned(item^) and SameStr(item^.Key,Name) do begin
-    itemStatement:=PStatement(item^.Value);
-    if assigned(itemStatement) and (itemStatement^._Kind  = kind)
-      and SameStr(itemStatement^._NoNameArgs,NoNameArgs) then begin
-      Result:=itemStatement;
-      Exit;
-    end;
-    item:=@item^.Next;
+  if assigned(scope) and (scope^._Kind = skNamespace) then begin
+      namespaceStatementsList:=FindNamespace(scope^._Command);
+      if not Assigned(namespaceStatementsList) then
+        Exit;
+      for i:=0 to namespaceStatementsList.Count-1 do begin
+        namespaceStatement:=PStatement(namespaceStatementsList[i]);
+        Result:=DoFind(Name,NoNameArgs,Kind,namespaceStatement);
+        if Assigned(Result) then
+          Exit;
+      end;
+  end else begin
+    Result := DoFind(Name,NoNameArgs,Kind, Scope);
   end;
 end;
 

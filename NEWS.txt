@@ -16,7 +16,7 @@ Version 6.3-beta1
     - fix: correctly show code suggestion if at the end of the file and the current block is not closed with '}'
     - enhancement: auto completion for include header
     - enhancement: Limit recent projects to use just half of the history.
-
+    - enhancement: correctly match func definition & declaration in the same namespace but not in the same file
 
 Version 6.2.1
 
