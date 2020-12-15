@@ -3526,8 +3526,9 @@ begin
     fParser.Preprocessor.Free;
     fParser.Free;
     fParser := MainForm.Project.CppParser;
-    MainForm.UpdateClassBrowserForEditor(self);
+    //MainForm.UpdateClassBrowserForEditor(self);
   end;
+  fInProject := inProject;
 end;    
 
 end.

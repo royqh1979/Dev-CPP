@@ -1004,9 +1004,9 @@ end;
 
 procedure TProject.Open;
 var
-  ucount,
-    i: integer;
+  ucount,i: integer;
   NewUnit: TProjUnit;
+  e:TEditor;
 begin
 {$WARN SYMBOL_PLATFORM OFF}
   if FileExists(FileName) and (FileGetAttr(FileName) and faReadOnly <> 0) then begin
@@ -1057,6 +1057,12 @@ begin
 
         Node := MakeNewFileNode(ExtractFileName(FileName), False, FolderNodeFromName(Folder));
         Node.Data := pointer(fUnits.Add(NewUnit));
+{
+        if MainForm.EditorList.IsFileOpened(FileName) then begin
+          e:=MainForm.EditorList.GetEditorFromFileName(FileName);
+          e.InProject := True;
+        end;
+}
       end;
     end;
   end;

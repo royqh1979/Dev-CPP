@@ -2060,6 +2060,7 @@ procedure TMainForm.OpenProject(const s: AnsiString);
 var
   s2: AnsiString;
   e:TEditor;
+  i:integer;
 begin
   if Assigned(fProject) then begin
     if fProject.Name = '' then
@@ -2078,11 +2079,6 @@ begin
   ClassBrowser.BeginUpdate;
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
-    e:=EditorList.GetEditor();
-    if assigned(e) and e.InProject then begin
-      //CppParser.InvalidateFile(e.FileName);
-      self.CheckSyntaxInBack(e);
-    end;
 
     if fProject.FileName <> '' then begin
       dmMain.RemoveFromHistory(s);
@@ -2104,6 +2100,21 @@ begin
       fProject.Free;
       fProject := nil;
     end;
+
+    //update editor's inproject flag
+    for i:=0 to fProject.Units.Count-1 do begin
+      if EditorList.IsFileOpened(fProject.Units[i].FileName) then begin
+        e:=EditorList.GetEditorFromFileName(fProject.Units[i].FileName);
+        e.InProject := True;
+      end;
+    end;
+
+    e:=EditorList.GetEditor();
+    if assigned(e) then begin
+      //CppParser.InvalidateFile(e.FileName);
+      self.CheckSyntaxInBack(e);
+    end;
+    UpdateClassBrowserForEditor(e);
   finally
     ClassBrowser.EndUpdate;
   end;
@@ -5254,6 +5265,11 @@ begin
     Exit;
   if not devCodeCompletion.Enabled then
     Exit;
+  if not Assigned(e) then begin
+    ClassBrowser.Parser := nil;
+    ClassBrowser.CurrentFile:='';
+    Exit;
+  end;
   if (ClassBrowser.CurrentFile = e.FileName)
     and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;
@@ -5275,7 +5291,7 @@ begin
   end;
   ClassBrowser.BeginUpdate;
   try
-    ClassBrowser.Clear;
+    // ClassBrowser.Clear; //set parser will do the clear
     ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
