@@ -15,6 +15,8 @@ Version 6.3-beta1
     - fix: toggle comment wont work if the cursor is at the begin of the line
     - fix: correctly show code suggestion if at the end of the file and the current block is not closed with '}'
     - enhancement: auto completion for include header
+    - enhancement: Limit recent projects to use just half of the history.
+
 
 Version 6.2.1
 

@@ -667,7 +667,7 @@ begin
   FileCount := 0; // other files
 
   // First add projects
-  for I := 0 to min(devData.MRUMax, fMRU.Count) - 1 do begin
+  for I := 0 to min(devData.MRUMax Div 2, fMRU.Count) - 1 do begin
     if GetFileTyp(PMRUItem(fMRU[I])^.filename) = utPrj then begin
 
       // Add item to main menu

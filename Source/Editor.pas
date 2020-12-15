@@ -186,6 +186,7 @@ type
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
     procedure Reparse;
+    procedure InitParser;
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
     destructor Destroy; override;
@@ -433,10 +434,7 @@ begin
     fParser := MainForm.Project.CppParser;
   end else begin
     // Create the parser
-    fParser:=TCppParser.Create(fText);
-    fParser.Preprocessor := TCppPreprocessor.Create(fText);
-    fParser.Tokenizer := TCppTokenizer.Create(fText);
-    ResetCppParser(fParser);
+    InitParser;
   end;
 
 
@@ -3511,20 +3509,27 @@ begin
   end;
 end;
 
+procedure TEditor.InitParser;
+begin
+  fParser := TCppParser.Create(fText);
+  fParser.Preprocessor := TCppPreprocessor.Create(fText);
+  fParser.Tokenizer := TCppTokenizer.Create(fText);
+  ResetCppParser(fParser);
+  fParser.Enabled := (fText.Highlighter = dmMain.Cpp);
+end;
+
 procedure TEditor.SetInProject(inProject:boolean);
 begin
   if fInProject = inProject then
     Exit;
   if fInProject then begin
-    fParser := TCppParser.Create(fText);
-    fParser.Preprocessor := TCppPreprocessor.Create(fText);
-    fParser.Tokenizer := TCppTokenizer.Create(fText);
-    ResetCppParser(fParser);
+    InitParser;
   end else begin
     fParser.Tokenizer.Free;
     fParser.Preprocessor.Free;
     fParser.Free;
     fParser := MainForm.Project.CppParser;
+    Reparse;
   end;
 end;    
 

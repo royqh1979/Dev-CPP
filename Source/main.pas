@@ -2805,7 +2805,8 @@ begin
 
     ClassBrowser.BeginUpdate;
     try
-      ClassBrowser.Clear;
+      ClassBrowser.CurrentFile := '';
+      ClassBrowser.Parser:=nil; // set parser to nil will do the clear
       // Remember it
       dmMain.AddtoHistory(fProject.FileName);
 
@@ -5251,7 +5252,8 @@ begin
     Exit;
   if not devCodeCompletion.Enabled then
     Exit;
-  if ClassBrowser.CurrentFile = e.FileName then begin
+  if (ClassBrowser.CurrentFile = e.FileName)
+    and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;
     {
   end else if (ClassBrowser.CurrentFile<> '') and IsCFile(ClassBrowser.CurrentFile)
