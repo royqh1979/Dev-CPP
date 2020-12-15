@@ -1263,9 +1263,6 @@ begin
 end;
 
 procedure TEditor.TabnineQuery;
-var
-  pos:integer;
-  posBefore,posAfter:integer;
   function EscapeString(s:AnsiString):AnsiString;
   var
     i:integer;
@@ -1291,7 +1288,7 @@ var
     end;
   end;
 begin
-  pos := fText.RowColToCharIndex(fText.CaretXY);
+  //pos := fText.RowColToCharIndex(fText.CaretXY);
   fTabnine.Query(fFileName,
         TrimLeft(EscapeString(Copy(fText.LineText, 1, fText.CaretX-1))),
         TrimRight(EscapeString(Copy(fText.LineText, fText.CaretX,MaxInt))),
@@ -1784,7 +1781,7 @@ end;
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
 var
   lastWord:AnsiString;
-  st,currentStatement:PStatement;
+  st:PStatement;
   
 begin
   // Don't offer completion functions for plain text files
@@ -3529,7 +3526,7 @@ begin
     fParser.Preprocessor.Free;
     fParser.Free;
     fParser := MainForm.Project.CppParser;
-    Reparse;
+    MainForm.UpdateClassBrowserForEditor(self);
   end;
 end;    
 

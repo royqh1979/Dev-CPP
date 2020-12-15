@@ -3041,8 +3041,10 @@ begin
 end;
 
 procedure TMainForm.actFullScreenExecute(Sender: TObject);
+{
 var
   Active: TWinControl;
+}
 begin
   devData.FullScreen := FullScreenModeItem.Checked;
   if devData.FullScreen then begin
