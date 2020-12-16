@@ -110,7 +110,6 @@ type
     procedure RemoveScopeLevel(line:integer); // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
-    function SkipBracket(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
     function CheckForNamespace: boolean;
@@ -363,28 +362,6 @@ begin
     case fTokenizer[I]^.Text[1] of
       '{': Inc(Level);
       '}': begin
-          Dec(Level);
-          if Level = 0 then begin
-            Result := I;
-            Exit;
-          end;
-        end;
-    end;
-    Inc(I);
-  end;
-  Result := StartAt;
-end;
-
-function TCppParser.SkipBracket(StartAt: integer): integer;
-var
-  I, Level: integer;
-begin
-  I := StartAt;
-  Level := 0; // assume we start on top of [
-  while (I < fTokenizer.Tokens.Count) do begin
-    case fTokenizer[I]^.Text[1] of
-      '[': Inc(Level);
-      ']': begin
           Dec(Level);
           if Level = 0 then begin
             Result := I;
@@ -1335,12 +1312,12 @@ begin
 
   // Fail if we do not find a comma or a semicolon or a ( (inline constructor)
   while fIndex < fTokenizer.Tokens.Count do begin
-    if (fTokenizer[fIndex]^.Text[1] in ['#', '{', '}']) or CheckForKeyword then begin
+    if (fTokenizer[fIndex]^.Text[1] in ['#', '}']) or CheckForKeyword then begin
       Break; // fail
     end else if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '(') and
       (fTokenizer[fIndex]^.Text[2] = '(') then begin // TODO: is this used to remove __attribute stuff?
       Break;
-    end else if fTokenizer[fIndex]^.Text[1] in [',', ';'] then begin
+    end else if fTokenizer[fIndex]^.Text[1] in [',', ';','{'] then begin
       Result := True;
       Break;
     end;
@@ -2212,7 +2189,7 @@ begin
       if not IsFunctionPointer then
         break; // inline constructor
     end else if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';', ':', '}',
-      '#']) then begin
+      '#','{']) then begin
         break;
     end;
 
@@ -3672,7 +3649,7 @@ var
   //Node: PStatementNode;
   OperatorToken, typeName: AnsiString;
   LastScopeStatement,currentNamespace, Statement, MemberStatement, TypeStatement: PStatement;
-  i,t,idx: integer;
+  i,idx: integer;
   namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin

@@ -819,9 +819,13 @@ begin
   Inc(Run);
   fTokenID := tkNumber;
   while FLine[Run] in
-    ['0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X', '-', '+'] do
+    ['0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X', '-', '+',''''] do
   begin
     case FLine[Run] of
+      '''': if (fTokenID  <> tkNumber) then begin
+          fTokenID := tkUnknown;
+          Exit;
+        end;
       '.':
         if FLine[Succ(Run)] = '.' then
           Break
@@ -930,7 +934,8 @@ begin
     end; // case
     Inc(Run);
   end; // while
-  if FLine[Run] in ['A'..'Z', 'a'..'z', '_'] then
+  if (FLine[Run] in ['A'..'Z', 'a'..'z', '_'])
+    or (FLine[Run-1] in ['''']) then
     fTokenID := tkUnknown;
 end;
 

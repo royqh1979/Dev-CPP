@@ -1700,7 +1700,10 @@ begin
       if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
         'Character')) and not tokenFinished and not (key in ['''','"','(',')']) then
         Exit;
-      if (key in ['<','>']) and (Attr.Name<>'Preprocessor') then begin
+      if (key in ['<','>']) and (Attr<> dmMain.Cpp.DirecAttri) then begin
+        Exit;
+      end;
+      if (key = '''') and (Attr = dmMain.Cpp.NumberAttri) then begin
         Exit;
       end;
     end;
