@@ -3441,6 +3441,12 @@ begin
     s:=Copy(Phrase,1,p-1)
   else
     s:=Phrase;
+
+  //remove <>
+  p:=Pos('<',s);
+  if p>0 then
+    s:=Copy(s,1,p-1);
+    
   i:=ChildrenIndex.ValueOf(s);
   if i<>-1 then
     Result := PStatement(i);
@@ -3652,16 +3658,17 @@ begin
       end else
         TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
 
-      if ((TypeStatement^._FullName = 'std::unique_ptr')
+      if assigned(TypeStatement) and (
+        (TypeStatement^._FullName = 'std::unique_ptr')
            or (TypeStatement^._FullName = 'std::auto_ptr')
            or (TypeStatement^._FullName = 'std::shared_ptr')
-           or (TypeStatement^._FullName = 'std::weak_ptr'))
-           and SameStr(OperatorToken,'->') then begin
+           or (TypeStatement^._FullName = 'std::weak_ptr')
+        )   and SameStr(OperatorToken,'->') then begin
         i:=Pos('<',Statement^._Type);
         t:=LastDelimiter('>',Statement^._Type);
         typeName:=Copy(Statement^._Type,i+1,t-i-1);
         TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
-      end else if (STLContainers.ValueOf(TypeStatement^._FullName)>0)
+      end else if assigned(TypeStatement) and (STLContainers.ValueOf(TypeStatement^._FullName)>0)
           and EndsStr(']',NextScopeWord) then begin
         i:=Pos('<',Statement^._Type);
         t:=LastDelimiter('>',Statement^._Type);

@@ -310,6 +310,10 @@ begin
   Writeln(F, 'ENCODINGS = -finput-charset=utf-8 -fexec-charset='+GetSystemCharsetName);
   Writeln(F, 'CFLAGS   = $(INCS) ' + fCompileParams);
   Writeln(F, 'RM       = ' + CLEAN_PROGRAM + ' -f'); // TODO: use del or rm?
+  if fProject.Options.UsePrecompiledHeader then begin
+    Writeln(F, 'PCH_H = ' + fProject.Options.PrecompiledHeader );
+    Writeln(F, 'PCH = ' + fProject.Options.PrecompiledHeader +'.gch' );
+  end;
 
   // This needs to be put in before the clean command.
   if fProject.Options.typ = dptDyn then begin
@@ -335,6 +339,11 @@ begin
   Writeln(F);
   Writeln(F, 'all: all-before $(BIN) all-after');
   Writeln(F);
+  if fProject.Options.UsePrecompiledHeader then begin
+    Writeln(F, '$(PCH) : $(PCH_H)');
+    Writeln(F, '	$(CPP) -x c++-header $(PCH_H) -o $(PCH) $(CXXFLAGS)');
+    Writeln(F);
+  end;
 end;
 
 procedure TCompiler.WriteMakeIncludes(var F: TextFile);
@@ -357,8 +366,14 @@ var
   fileIncludes: TStringList;
   headerName: AnsiString;
   parser:TCppParser;
+  precompileStr:AnsiString;
 begin
   parser:=MainForm.GetCppParser;
+  if fProject.Options.UsePrecompiledHeader then
+    precompileStr := ' $(PCH) '
+  else
+    precompileStr := '';
+
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
       Continue;
@@ -416,7 +431,7 @@ begin
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
       end;
 
-      objStr:=ObjFileName + ': '+objStr;
+      objStr:=ObjFileName + ': '+objStr+precompileStr;
 
       Writeln(F,ObjStr);
 
@@ -432,6 +447,7 @@ begin
           encodingStr := ' $(ENCODINGS) '
         else
           encodingStr := '';
+
 
         if fCheckSyntax then begin
           if fProject.Units[i].CompileCpp then

@@ -770,6 +770,8 @@ begin
       fOptions.HostApplication := ReadString('Project', 'HostApplication', '');
       fOptions.UseCustomMakefile := ReadBool('Project', 'UseCustomMakefile', FALSE);
       fOptions.CustomMakefile := ReadString('Project', 'CustomMakefile', '');
+      fOptions.UsePrecompiledHeader := ReadBool('Project', 'UsePrecompiledHeader', FALSE);
+      fOptions.PrecompiledHeader := ReadString('Project', 'PrecompiledHeader', '');
       fOptions.CmdLineArgs := ReadString('Project', 'CommandLine', '');
       fFolders.CommaText := ReadString('Project', 'Folders', '');
       fOptions.IncludeVersionInfo := ReadBool('Project', 'IncludeVersionInfo', False);
@@ -852,6 +854,8 @@ begin
     WriteString('Project', 'HostApplication', fOptions.HostApplication);
     WriteBool('Project', 'UseCustomMakefile', fOptions.UseCustomMakefile);
     WriteString('Project', 'CustomMakefile', fOptions.CustomMakefile);
+    WriteBool('Project', 'UsePrecompiledHeader', fOptions.UsePrecompiledHeader);
+    WriteString('Project', 'PrecompiledHeader', fOptions.PrecompiledHeader);
     WriteString('Project', 'CommandLine', fOptions.CmdLineArgs);
     WriteString('Project', 'Folders', fFolders.CommaText);
     WriteBool('Project', 'IncludeVersionInfo', fOptions.IncludeVersionInfo);

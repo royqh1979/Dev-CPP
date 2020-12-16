@@ -1292,7 +1292,10 @@ const
   ID_POPT_RESETPROJECTCOMPILER          = 72030;
   ID_POPT_LANGUAGEDEP                   = 72031;
   ID_POPT_FILES                         = 72032;
-  
+  ID_POPT_PRECOMPILE                    = 72033;
+  ID_POPT_USEPRECOMPILEDHEADER          = 72034;
+  ID_POPT_PRECOMPILEDHEADER_TIP         = 72035;
+
   // New compiler options
   ID_COPT_STRIP                         = 73001;
   ID_COPT_ARCH                          = 73002;

@@ -84,6 +84,8 @@ type
     LogOutputEnabled: boolean;
     UseCustomMakefile: boolean;
     CustomMakefile: AnsiString;
+    UsePrecompiledHeader: boolean;
+    PrecompiledHeader: AnsiString;
     OverrideOutput: boolean;
     OverridenOutput: AnsiString;
     HostApplication: AnsiString;
@@ -216,6 +218,8 @@ begin
   LogOutputEnabled := input.LogOutputEnabled;
   UseCustomMakefile := input.UseCustomMakefile;
   CustomMakefile := input.CustomMakefile;
+  UsePrecompiledHeader:= input.UsePrecompiledHeader;
+  PrecompiledHeader:= input.PrecompiledHeader;
   OverrideOutput := input.OverrideOutput;
   OverridenOutput := input.OverridenOutput;
   HostApplication := input.HostApplication;

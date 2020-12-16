@@ -210,7 +210,6 @@ type
     procedure ToggleBreakPoint(Line: integer);
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
     procedure SaveFile(FileName:String);
-//    function GetWordAtPosition(P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
     function GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
     procedure IndentSelection;
     procedure UnindentSelection;
@@ -241,7 +240,8 @@ type
     property CppParser: TCppParser read fParser;
   end;
 
-  function GetWordAtPosition(editor:TSynEdit; P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+  function GetWordAtPosition(editor:TSynEdit; P: TBufferCoord;
+    var pWordBegin:TBufferCoord; var pWordEnd:TBufferCoord; Purpose: TWordPurpose): AnsiString;
 implementation
 
 uses
@@ -1299,6 +1299,7 @@ end;
 procedure TEditor.TabnineCompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
+  pWordBegin,pWordEnd : TBufferCoord;
 begin
   if not fTabnine.Visible then
     Exit;
@@ -1309,7 +1310,7 @@ begin
       TabnineQuery;
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY,pWordBegin,pWordEnd, wpCompletion);
       if phrase = '' then begin
         fLastIdCharPressed:=0;
         fTabnine.Hide;
@@ -1352,16 +1353,17 @@ end;
 procedure TEditor.HeaderCompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
+  pBeginPos,pEndPos: TBufferCoord;
 begin
   // We received a key from the completion box...
   if fHeaderCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) or (Key in ['.']) then begin // Continue filtering
       fText.SelText := Key;
-      phrase := GetWordAtPosition(fText,fText.CaretXY, wpHeaderCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY, pBeginPos,pEndPos, wpHeaderCompletion);
       fHeaderCompletionBox.Search(phrase , fFileName,False);
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      phrase := GetWordAtPosition(fText,fText.CaretXY, wpHeaderCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpHeaderCompletion);
       fLastIdCharPressed:=Length(phrase);
       fHeaderCompletionBox.Search(phrase, fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
@@ -1381,12 +1383,13 @@ end;
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
 var
   phrase:AnsiString;
+  pBeginPos,pEndPos : TBufferCoord;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
 
       fCompletionBox.Search(phrase , fFileName,False);
       //we don't auto use the completion even if there's only one suggestion
@@ -1406,7 +1409,7 @@ begin
       }
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
-      phrase := GetWordAtPosition(fText,fText.CaretXY, wpCompletion);
+      phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
       fLastIdCharPressed:=Length(phrase);
       fCompletionBox.Search(phrase, fFileName, False);
     end else if Key = Char(VK_ESCAPE) then begin
@@ -2042,6 +2045,7 @@ procedure TEditor.ShowHeaderCompletion(autoComplete:boolean);
 var
   P: TPoint;
   word: AnsiString;
+  pBeginPos,pEndPos : TBufferCoord;
 begin
   if not devCodeCompletion.Enabled then
     Exit;
@@ -2066,7 +2070,7 @@ begin
   fHeaderCompletionBox.Parser := fParser;
 
 
-  word:=GetWordAtPosition(fText, fText.CaretXY, wpHeaderCompletionStart);
+  word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpHeaderCompletionStart);
   if (word = '') then
    Exit;
 
@@ -2095,6 +2099,7 @@ var
   P: TPoint;
   s,word: AnsiString;
   attr: TSynHighlighterAttributes;
+  pBeginPos,pEndPos:TBufferCoord;
 begin
   if not devCodeCompletion.Enabled then
     Exit;
@@ -2140,7 +2145,7 @@ begin
   // Scan the current function body
   fCompletionBox.CurrentStatement := fParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
-  word:=GetWordAtPosition(fText, fText.CaretXY, wpCompletion);
+  word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
 
@@ -2255,10 +2260,15 @@ begin
   end;
 end;
 
-function GetWordAtPosition(editor: TSynEdit; P: TBufferCoord; Purpose: TWordPurpose): AnsiString;
+function GetWordAtPosition(editor: TSynEdit; P: TBufferCoord;
+  var pWordBegin:TBufferCoord; var pWordEnd:TBufferCoord; Purpose: TWordPurpose): AnsiString;
 var
-  WordBegin, WordEnd, ParamBegin, ParamEnd, len: integer;
+  WordBegin, WordEnd, ParamBegin, ParamEnd, len,line,i: integer;
   s: AnsiString;
+  HighlightPos,pDummy:TBufferCoord;
+  Token:string;
+  tokenType,start:integer;
+  Attr:TSynHighlighterAttributes;
 begin
   result := '';
   if (p.Line >= 1) and (p.Line <= editor.Lines.Count) then begin
@@ -2316,6 +2326,11 @@ begin
           Dec(WordBegin);
         end else if s[WordBegin] in ['.', ':', '~'] then begin // allow destructor signs
           Dec(WordBegin);
+        end else if (s[WordBegin] ='>') and (wordBegin+1<=len) and (s[WordBegin+1]=':') then begin // allow template
+          if not FindComplement(s, '>', '<', WordBegin, -1) then
+            break
+          else
+            Dec(WordBegin); // step over >
         end else if (WordBegin > 1) and (s[WordBegin - 1] = '-') and (s[WordBegin] = '>') then begin
           Dec(WordBegin, 2);
         end else if (WordBegin > 1) and (s[WordBegin] = ')') then begin
@@ -2331,6 +2346,37 @@ begin
 
   // Get end result
   Result := Copy(S, WordBegin + 1, WordEnd - WordBegin);
+  pWordBegin.Line := p.Line;
+  pWordBegin.Char := wordBegin+1;
+  pWordEnd.Line := p.Line;
+  pWordEnd.Char := wordEnd;
+  if (Result <> '') and (Result[1] in ['.','-'])
+    and (Purpose in [wpCompletion, wpEvaluation, wpInformation]) then begin
+    i:=WordBegin;
+    line:=p.Line;
+    while line>=1 do begin
+      while i>=1 do begin
+        if S[i] in [' ',#9] then
+          dec(i)
+        else
+          break;
+      end;
+      if i<1 then begin
+        dec(line);
+        if (line>=1) then begin
+          S:=editor.Lines[line-1];
+          i:=Length(s);
+          continue;
+        end else
+          break;
+      end else begin
+        HighlightPos.Line := line;
+        HighlightPos.Char := i+1;
+        Result := GetWordAtPosition(editor,highlightPos,pWordBegin,pDummy,Purpose)+Result;
+        break;
+      end;
+    end;
+  end;
 
   // Strip function parameters
   while true do begin
@@ -2544,6 +2590,7 @@ var
   IsIncludeLine: boolean;
   pError : pSyntaxError;
   line:integer;
+  pBeginPos,pEndPos:TBufferCoord;
 
   procedure ShowFileHint;
   var
@@ -2667,9 +2714,9 @@ begin
       end;
     hprIdentifier: begin
         if MainForm.Debugger.Executing then
-          s := GetWordAtPosition(fText, p, wpEvaluation) // debugging
+          s := GetWordAtPosition(fText, p, pBeginPos,pEndPos, wpEvaluation) // debugging
         else if devEditor.ParserHints and not fCompletionBox.Visible then
-          s := GetWordAtPosition(fText, p, wpInformation) // information during coding
+          s := GetWordAtPosition(fText, p, pBeginPos,pEndPos, wpInformation) // information during coding
         else
           s := '';
       end;
@@ -2773,6 +2820,7 @@ var
   st: PStatement;
   p: TBufferCoord;
   s:String;
+  pBeginPos,pEndPos : TBufferCoord;
 begin
   if token='' then
     Exit;
@@ -2781,7 +2829,7 @@ begin
     Exit;
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     p:=BufferCoord(column+1,line);
-    s:= GetWordAtPosition(fText,p,wpInformation);
+    s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
     st := fParser.FindStatementOf(fFileName,
       s , line);
     if assigned(st) then begin
@@ -2814,6 +2862,7 @@ var
   st: PStatement;
   p: TBufferCoord;
   s:String;
+  pBeginPos,pEndPos : TbufferCoord;
 begin
   if token='' then
     Exit;
@@ -2835,9 +2884,10 @@ begin
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     //st := fFindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
-    s:= GetWordAtPosition(fText,p,wpInformation);
+    s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
     st := fParser.FindStatementOf(fFileName,
       s , p.Line);
+    fg:= attr.Foreground;
     if assigned(st) then begin
       case st._Kind of
         skPreprocessor, skEnum: begin
@@ -2853,9 +2903,17 @@ begin
           fg:=dmMain.Cpp.ClassAttri.Foreground;
         end;
       end;
-      if fg = clNone then //old color theme, use the default color
-        fg := dmMain.Cpp.IdentifierAttri.Foreground;
+    end else begin
+      if (pEndPos.Line>=1)
+        and (pEndPos.Char+1 < length(fText.Lines[pEndPos.Line-1]))
+        and (fText.Lines[pEndPos.Line-1][pEndPos.Char+1] = '(') then begin
+        fg:=dmMain.Cpp.FunctionAttri.Foreground;
+      end else begin
+        fg:=dmMain.Cpp.VariableAttri.Foreground;
+      end;
     end;
+    if fg = clNone then //old color theme, use the default color
+      fg := attr.Foreground;
   end;
 end;
 

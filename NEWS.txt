@@ -22,6 +22,12 @@ Version 6.3-beta1
     - enhancement: only c/cpp/new file/project can compile or syntax check
     - enhancement: only c/cpp/h/new file/ non static library project can run or debug
     - enhancement: only c/cpp/h/new file show code completion 
+    - enhancement: when add file to Project , the dialog will open in the project's folder by default
+    - enhancement: when select custom makefile/precompile header for the project, the dialog will open in the project's folder by default
+    - enhancement: precompiled header in the project
+    - enhancement: support object call chain breaked by whitespace or linebreak;
+    - enhancement: show code completion for typedef/class nested in other classes.
+
 
 Version 6.2.1
 

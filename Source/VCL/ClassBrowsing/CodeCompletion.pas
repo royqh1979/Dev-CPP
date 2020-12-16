@@ -402,10 +402,13 @@ begin
             Exit;
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
-            if (ChildStatement^._Static) and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+            if (
+              (ChildStatement^._Static)
+              or (ChildStatement^._Kind in [skTypedef,skClass])
+              ) and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
               fAddedStatements.Add(ChildStatement^._Command,1);
               fFullCompletionStatementList.Add(ChildStatement);
-            end;
+            end
           end;
         end else begin // we can only use public static members
           Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);
@@ -413,8 +416,12 @@ begin
             Exit;
           for i:=0 to Children.Count-1 do begin
             ChildStatement:=PStatement(Children[i]);
-            if (ChildStatement^._Static) and  (ChildStatement^._ClassScope=scsPublic)
-             and(fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
+            if (
+              (ChildStatement^._Static)
+              or (ChildStatement^._Kind in [skTypedef,skClass])
+              )
+              and  (ChildStatement^._ClassScope=scsPublic)
+              and(fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
               fAddedStatements.Add(ChildStatement^._Command,1);
               fFullCompletionStatementList.Add(ChildStatement);
             end;

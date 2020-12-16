@@ -3353,6 +3353,7 @@ begin
     Title := Lang[ID_NV_OPENADD];
     Filter := BuildFilter([FLT_CS, FLT_CPPS, FLT_RES, FLT_HEADS]);
     Options := Options + [ofAllowMultiSelect];
+    InitialDir := fProject.Directory;
 
     // If sucessful, add to selected node
     if Execute then begin
@@ -6508,13 +6509,14 @@ var
   filename, phrase: AnsiString;
   line: integer;
   e: TEditor;
+  pBeginPos,pEndPos : TBufferCoord;
 begin
   e := fEditorList.GetEditor;
 
   if Assigned(e) then begin
 
     // Exit early, don't bother creating a stream (which is slow)
-    phrase := GetWordAtPosition(e.Text,e.Text.CaretXY, wpInformation);
+    phrase := GetWordAtPosition(e.Text,e.Text.CaretXY,pBeginPos,pEndPos, wpInformation);
     if Phrase = '' then
       Exit;
 
