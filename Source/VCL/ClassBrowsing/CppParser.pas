@@ -3413,6 +3413,34 @@ var
       Exit;
     Result := FindFirstTemplateParamOf(FileName,Statement^._Type, CurrentClass)
   end;
+
+  function getBracketEnd(s:AnsiString;startAt:integer):integer;
+  var
+    I, Level: integer;
+  begin
+    I := StartAt;
+    Level := 0; // assume we start on top of [
+    while (I <= length(s)) do begin
+      case s[i] of
+      '<': Inc(Level);
+      ',': begin
+          if Level = 1 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+      '>': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+      end;
+      Inc(I);
+    end;
+    Result := StartAt;
+  end;
 begin
   Result := '';
   if fParsing then
@@ -3420,8 +3448,8 @@ begin
   // Remove pointer stuff from type
   s := aPhrase; // 'Type' is a keyword
   i:=Pos('<',s);
-  t:=LastDelimiter('>',s);
   if i>0 then begin
+    t:=getBracketEnd(s,i);
     Result := Copy(s,i+1,t-i-1);
     Exit;
   end;
