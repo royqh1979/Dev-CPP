@@ -1160,7 +1160,7 @@ var
   begin
     Line := ExpandDefines(Line); // replace FOO by numerical value of FOO
     Line := EvaluateDefines(Line); // replace all defined() by 1 or 0
-    Result := StrToIntDef(EvaluateExpression(Line), -1) > 0; // perform the remaining int arithmetic
+    Result := StrToIntDef(RemoveSuffixes(EvaluateExpression(Line)), -1) > 0; // perform the remaining int arithmetic
   end;
 begin
 
@@ -1292,7 +1292,7 @@ begin
   while i<= lenLine do begin
     if Line[i] in ['_','a'..'z','A'..'Z','0'..'9'] then begin
       word:=word+Line[i];
-    end else if (Line[i]='/') and (i+1<=lenLine) and (Line[i]='/') then begin //skip line end comment
+    end else if (Line[i]='/') and (i+1<=lenLine) and (Line[i+1]='/') then begin //skip line end comment
       inc(i,2); //skip '//'
       while (i<=LenLine) and not (Line[i] in LineChars) do
         inc(i);

@@ -30,6 +30,8 @@ Version 6.3-beta1
     - enhancement: show code completion for var of typedef of smart pointers / stl container
     - enhancement: support C++ 14 long integer literal (such as 100'000'000)
     - fix: can't find stl chrono header (because it's name starts with 'c')
+    - fix: #if __cplusplus evaluates error
+    - fix: #define parse error if contains '/' in value
 
 Version 6.2.1
 

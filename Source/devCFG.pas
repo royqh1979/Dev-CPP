@@ -1371,9 +1371,19 @@ begin
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include');
 
+    AddExistingDirectory(fCDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include-fixed');
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include-fixed');
+
+
     // C++ only folder
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++');
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++' + pd + fDumpMachine );
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++' + pd + 'backward');
   end;
 end;
 
