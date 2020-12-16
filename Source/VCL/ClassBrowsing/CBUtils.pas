@@ -196,6 +196,7 @@ const
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
+  STLPointers : TStringHash;
   STLContainers: TStringHash;
   STLElementMethods: TStringHash;
 
@@ -704,6 +705,7 @@ begin
   CppKeywordsList := TStringList.Create;
   STLContainers := TStringHash.Create();
   STLElementMethods := TStringHash.Create();
+  STLPointers := TStringHash.Create();
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -1010,6 +1012,16 @@ begin
   STLElementMethods.Add('back',1);
   STLElementMethods.Add('front',1);
   STLElementMethods.Add('top',1);
+
+  {STL pointers }
+  STLPointers.Add('std::unique_ptr',1);
+  STLPointers.Add('std::auto_ptr',1);
+  STLPointers.Add('std::shared_ptr',1);
+  STLPointers.Add('std::weak_ptr',1);
+  STLPointers.Add('__gnu_cxx::__normal_iterator',1);
+  STLPointers.Add('std::reverse_iterator',1);
+  STLPointers.Add('std::iterator',1);    
+
 end;
 
 finalization
@@ -1018,6 +1030,7 @@ begin
   CppKeywordsList.Free;
   CppTypeKeywords.Free;
   STLContainers.Free;
+  STLPointers.Free;
 end;
 end.
 

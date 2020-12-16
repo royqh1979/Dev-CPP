@@ -110,6 +110,7 @@ type
     procedure RemoveScopeLevel(line:integer); // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
+    function SkipBracket(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
     function CheckForNamespace: boolean;
@@ -207,6 +208,7 @@ type
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
+    function FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
@@ -361,6 +363,28 @@ begin
     case fTokenizer[I]^.Text[1] of
       '{': Inc(Level);
       '}': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+    end;
+    Inc(I);
+  end;
+  Result := StartAt;
+end;
+
+function TCppParser.SkipBracket(StartAt: integer): integer;
+var
+  I, Level: integer;
+begin
+  I := StartAt;
+  Level := 0; // assume we start on top of [
+  while (I < fTokenizer.Tokens.Count) do begin
+    case fTokenizer[I]^.Text[1] of
+      '[': Inc(Level);
+      ']': begin
           Dec(Level);
           if Level = 0 then begin
             Result := I;
@@ -3369,15 +3393,59 @@ begin
   end;
 end;
 
+function TCppParser.FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
+var
+  //Node: PStatementNode;
+  Statement: PStatement;
+  position,i,t: integer;
+  s: AnsiString;
+//  Children: TList;
+  scopeStatement:PStatement;
+
+  function GetTemplateParam(statement:PStatement):String;
+  begin
+    Result:='';
+    if not Assigned(Statement) then
+      Exit;
+    if not (Statement^._Kind = skTypedef) then
+      Exit;
+    if SameStr(aPhrase, Statement^._Type) then // prevent infinite loop
+      Exit;
+    Result := FindFirstTemplateParamOf(FileName,Statement^._Type, CurrentClass)
+  end;
+begin
+  Result := '';
+  if fParsing then
+    Exit;
+  // Remove pointer stuff from type
+  s := aPhrase; // 'Type' is a keyword
+  i:=Pos('<',s);
+  t:=LastDelimiter('>',s);
+  if i>0 then begin
+    Result := Copy(s,i+1,t-i-1);
+    Exit;
+  end;
+  position := Length(s);
+  while (position > 0) and (s[position] in ['*',' ','&']) do
+    Dec(position);
+  if position <> Length(s) then
+    Delete(s, position + 1, Length(s) - 1);
+
+  scopeStatement:= currentClass;
+
+  Statement :=FindStatementOf(FileName,s,currentClass);
+  Result := GetTemplateParam(Statement);
+end;
+
 function TCppParser.FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; currentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   Statement: PStatement;
-  position: integer;
+  position, endPos: integer;
   s: AnsiString;
 //  Children: TList;
   scopeStatement:PStatement;
-  
+
   function GetTypeDef(statement:PStatement):PStatement;
   begin
     if not Assigned(Statement) then begin
@@ -3396,6 +3464,28 @@ var
     end else
       Result := nil;
   end;
+
+  function getBracketEnd(s:AnsiString;startAt:integer):integer;
+  var
+    I, Level: integer;
+  begin
+    I := StartAt;
+    Level := 0; // assume we start on top of [
+    while (I <= length(s)) do begin
+      case s[i] of
+      '<': Inc(Level);
+      '>': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+      end;
+      Inc(I);
+    end;
+    Result := StartAt;
+  end;
 begin
   Result := nil;
   if fParsing then
@@ -3410,8 +3500,10 @@ begin
 
   // Strip template stuff
   position := Pos('<', s);
-  if position > 0 then
-    Delete(s, position, MaxInt);
+  if position > 0 then begin
+    endPos := getBracketEnd(s,position);
+    Delete(s, position, endPos-position+1);
+  end;
 
   // Use last word only (strip 'const', 'static', etc)
   position := LastPos(' ', s);
@@ -3631,7 +3723,7 @@ begin
   end;
   CurrentClassType := CurrentClass;
 
-  if statement._Kind in [skTypedef] then begin
+  if (MemberName <> '') and (statement._Kind in [skTypedef]) then begin
     TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
     if Assigned(TypeStatement) then
       Statement := TypeStatement;
@@ -3651,28 +3743,19 @@ begin
           and  (STLContainers.ValueOf(statement^._ParentScope^._FullName)>0)
           and (STLElementMethods.ValueOf(statement^._Command)>0)
           and assigned(LastScopeStatement) then begin
-        i:=LastPos('<',LastScopeStatement^._Type);
-        t:=LastDelimiter('>',LastScopeStatement^._Type);
-        typeName:=Copy(LastScopeStatement^._Type,i+1,t-i-1);
+        typeName:=self.FindFirstTemplateParamOf(FileName,LastScopeStatement^._Type,LastScopeStatement^._ParentScope);
         TypeStatement:=FindTypeDefinitionOf(FileName, typeName,LastScopeStatement^._ParentScope);
       end else
         TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
 
       if assigned(TypeStatement) and (
-        (TypeStatement^._FullName = 'std::unique_ptr')
-           or (TypeStatement^._FullName = 'std::auto_ptr')
-           or (TypeStatement^._FullName = 'std::shared_ptr')
-           or (TypeStatement^._FullName = 'std::weak_ptr')
-        )   and SameStr(OperatorToken,'->') then begin
-        i:=Pos('<',Statement^._Type);
-        t:=LastDelimiter('>',Statement^._Type);
-        typeName:=Copy(Statement^._Type,i+1,t-i-1);
+        STLPointers.Valueof(TypeStatement^._FullName)>=0)
+         and SameStr(OperatorToken,'->') then begin
+        typeName:=self.FindFirstTemplateParamOf(FileName,Statement^._Type,statement^._ParentScope);
         TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
       end else if assigned(TypeStatement) and (STLContainers.ValueOf(TypeStatement^._FullName)>0)
           and EndsStr(']',NextScopeWord) then begin
-        i:=Pos('<',Statement^._Type);
-        t:=LastDelimiter('>',Statement^._Type);
-        typeName:=Copy(Statement^._Type,i+1,t-i-1);
+        typeName:=self.FindFirstTemplateParamOf(FileName,Statement^._Type,statement^._ParentScope);
         TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
       end;
       lastScopeStatement:= statement;
@@ -3691,7 +3774,7 @@ begin
 
     CurrentClassType:=statement;
     Statement:=MemberStatement;
-    if statement._Kind in [skTypedef] then begin
+    if (MemberName <> '') and (statement._Kind in [skTypedef]) then begin
       TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
       if Assigned(TypeStatement) then
         Statement := TypeStatement;

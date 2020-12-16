@@ -27,7 +27,7 @@ Version 6.3-beta1
     - enhancement: precompiled header in the project
     - enhancement: support object call chain breaked by whitespace or linebreak;
     - enhancement: show code completion for typedef/class nested in other classes.
-
+    - enhancement: show code completion for var of typedef of smart pointers / stl container
 
 Version 6.2.1
 

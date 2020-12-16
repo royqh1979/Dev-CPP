@@ -338,9 +338,7 @@ begin
           LastScopeStatement := fParser.FindStatementOf(FileName, LastScopeName,fCurrentStatement,ParentTypeStatement);
           if not Assigned(LastScopeStatement) then
             Exit;
-          i:=LastPos('<',LastScopeStatement^._Type);
-          t:=LastDelimiter('>',LastScopeStatement^._Type);
-          typeName:=Copy(LastScopeStatement^._Type,i+1,t-i-1);
+          typeName:= fParser.FindFirstTemplateParamOf(fileName,LastScopeStatement^._Type,LastScopeStatement^._ParentScope);
           ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,LastScopeStatement^._ParentScope);
         end else
           ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,ParentTypeStatement);
@@ -348,23 +346,16 @@ begin
         if not Assigned(ClassTypeStatement) then
           Exit;
         //is a smart pointer
-        if ((ClassTypeStatement^._FullName = 'std::unique_ptr')
-           or (ClassTypeStatement^._FullName = 'std::auto_ptr')
-           or (ClassTypeStatement^._FullName = 'std::shared_ptr')
-           or (ClassTypeStatement^._FullName = 'std::weak_ptr'))
+        if (STLPointers.ValueOf(ClassTypeStatement^._FullName)>=0)
            and (opType=otArrow) then begin
-          i:=Pos('<',Statement^._Type);
-          t:=LastDelimiter('>',Statement^._Type);
-          typeName:=Copy(Statement^._Type,i+1,t-i-1);
+          typeName:= fParser.FindFirstTemplateParamOf(fileName,Statement^._Type,statement^._ParentScope);
           ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
           if not Assigned(ClassTypeStatement) then
             Exit;
         end;    //is a stl container operator[]
         if (STLContainers.ValueOf(ClassTypeStatement^._FullName)>0)
           and EndsStr(']',scopeName) then begin
-          i:=Pos('<',Statement^._Type);
-          t:=LastDelimiter('>',Statement^._Type);
-          typeName:=Copy(Statement^._Type,i+1,t-i-1);
+          typeName:= fParser.FindFirstTemplateParamOf(fileName,Statement^._Type,statement^._ParentScope);
           ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
           if not Assigned(ClassTypeStatement) then
             Exit;
