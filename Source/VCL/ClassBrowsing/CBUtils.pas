@@ -196,6 +196,7 @@ const
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
+  STD_C_HEADER : TStringHash; 
   STLPointers : TStringHash;
   STLContainers: TStringHash;
   STLElementMethods: TStringHash;
@@ -477,12 +478,13 @@ begin
   s := StringReplace(FileName,'/','\',[rfReplaceAll]);
 //  Result := FileName;
 
+{
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
   if StartsStr('c', s) and not ContainsStr(s, '.') then begin
     Delete(s, 1, 1);
     s := s + '.h';
   end;
-
+}
   // Search local directory
   Dir := ExtractFilePath(RelativeTo);
   if FileExists(Dir + s) then begin // same dir as file
@@ -516,11 +518,13 @@ begin
   s := StringReplace(FileName,'/','\',[rfReplaceAll]);
 //  Result := FileName;
 
+{
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
   if StartsStr('c', s) and not ContainsStr(s, '.') then begin
     Delete(s, 1, 1);
     s := s + '.h';
   end;
+}
 
   // Search compiler include directories
   for I := 0 to IncludePaths.Count - 1 do
@@ -706,6 +710,7 @@ begin
   STLContainers := TStringHash.Create();
   STLElementMethods := TStringHash.Create();
   STLPointers := TStringHash.Create();
+  STD_C_HEADER := TStringHash.Create();
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -1020,7 +1025,9 @@ begin
   STLPointers.Add('std::weak_ptr',1);
   STLPointers.Add('__gnu_cxx::__normal_iterator',1);
   STLPointers.Add('std::reverse_iterator',1);
-  STLPointers.Add('std::iterator',1);    
+  STLPointers.Add('std::iterator',1);
+
+  {Standard c header}
 
 end;
 
@@ -1031,6 +1038,8 @@ begin
   CppTypeKeywords.Free;
   STLContainers.Free;
   STLPointers.Free;
+  STD_C_HEADER.Free;
 end;
+
 end.
 

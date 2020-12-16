@@ -2505,14 +2505,14 @@ begin
     Exit;
   end;
 
-      {
+  
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-  }
+
 
 
 
@@ -2545,9 +2545,9 @@ begin
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
+   fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
-   //Statements.DumpWithScope('f:\\statements.txt');
+   Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally

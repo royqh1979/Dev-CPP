@@ -29,6 +29,7 @@ Version 6.3-beta1
     - enhancement: show code completion for typedef/class nested in other classes.
     - enhancement: show code completion for var of typedef of smart pointers / stl container
     - enhancement: support C++ 14 long integer literal (such as 100'000'000)
+    - fix: can't find stl chrono header (because it's name starts with 'c')
 
 Version 6.2.1
 
