@@ -113,7 +113,6 @@ type
     procedure SetSortAlphabetically(Value: boolean);
     procedure SetSortByType(Value: boolean);
     procedure SetTabVisible(Value: boolean);
-    function IsIncluded(const FileName: AnsiString): boolean;
     procedure ReSelect;
     procedure Sort;
     function GetColor(i:integer):TColor;
@@ -518,6 +517,7 @@ begin
     Exit;
 
   fParser := Value;
+  Clear;
   if Assigned(fParser) then begin
     fParser.OnUpdate := OnParserUpdate;
     fParser.OnBusy := OnParserBusy;
@@ -676,18 +676,6 @@ begin
            // this is caused by repainting while the CppParser is busy.
     end;
   end;
-end;
-
-function TClassBrowser.IsIncluded(const FileName: AnsiString): boolean;
-begin
-  // Only do the slow check if the cache is invalid
-  if not SameStr(FileName, fIsIncludedCacheFileName) then begin
-    fIsIncludedCacheFileName := FileName;
-    fIsIncludedCacheResult := FastIndexOf(fIncludedFiles, FileName) <> -1;
-  end;
-
-  // Cache has been updated. Use it.
-  Result := fIsIncludedCacheResult;
 end;
 
 procedure TClassBrowser.ReSelect;

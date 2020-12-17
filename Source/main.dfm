@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 1067
-  Top = 201
+  Left = 568
+  Top = 203
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -2588,7 +2588,7 @@ object MainForm: TMainForm
       Caption = '&Syntax Check'
       ImageIndex = 49
       OnExecute = actSyntaxCheckExecute
-      OnUpdate = actDebugExecuteUpdate
+      OnUpdate = actCompileUpdate
     end
     object actConfigdevShortcuts: TAction
       Category = 'Tools'
@@ -2687,7 +2687,7 @@ object MainForm: TMainForm
       ImageIndex = 49
       ShortCut = 16504
       OnExecute = actSyntaxCheckFileExecute
-      OnUpdate = actDebugExecuteUpdate
+      OnUpdate = actSyntaxCheckFileUpdate
     end
     object actProfile: TAction
       Category = 'Execute'

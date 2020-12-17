@@ -95,8 +95,6 @@ end;
 procedure TPipeStdinThread.PipeInput;
 var
   buffer: pAnsichar;
-  FileHandle : THandle;
-  bytesRead: cardinal;
   bytesWritten: cardinal;
   bufSize: cardinal;
 begin

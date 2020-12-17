@@ -359,8 +359,6 @@ begin
 end;
 
 function TEditorList.CloseAll: boolean;
-var
-  e:TEditor;
 begin
   Result := False;
 

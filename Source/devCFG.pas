@@ -1327,7 +1327,8 @@ begin
   // Obtain default includes when changing current file?
   // Don't use CommaText:
   // http://stackoverflow.com/questions/1335027/delphi-stringlist-delimiter-is-always-a-space-character-even-if-delimiter-is-se
-  output := GetCompilerOutput(BinDir + pd, 'cpp.exe', '-dM -E -x c++ -std=gnu++11 NUL');
+//  output := GetCompilerOutput(BinDir + pd, 'cpp.exe', '-dM -E -x c++ -std=gnu++11 NUL');
+  output := GetCompilerOutput(BinDir + pd, 'cpp.exe', '-dM -E -x c++ -std=c++17 NUL');
   // TODO: use command of current file
   ExtractStrings([#10], [], PAnsiChar(output), fDefines);
 end;
@@ -1371,9 +1372,19 @@ begin
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include');
 
+    AddExistingDirectory(fCDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include-fixed');
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include-fixed');
+
+
     // C++ only folder
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++');
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++' + pd + fDumpMachine );
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++' + pd + 'backward');
   end;
 end;
 
@@ -2570,7 +2581,7 @@ begin
   fShowRainbowBacket:=True;
 
   fAutoCheckSyntax:=True;
-  fCheckSyntaxWhenReturn:=False;
+  fCheckSyntaxWhenReturn:=True;
 
   fUseCpp := True;
 

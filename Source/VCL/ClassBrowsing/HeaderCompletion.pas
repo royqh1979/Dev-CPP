@@ -167,7 +167,7 @@ var
       repeat
         ext:= ExtractFileExt(searchResult.Name);
         if Directoryexists(path +searchResult.Name) or SameText('.h',ext)
-          or SameText('.hpp',ext) then begin
+          or SameText('.hpp',ext) or (ext = '') then begin
           AddFile(searchResult.Name);
         end;
       until FindNext(searchResult) <> 0;

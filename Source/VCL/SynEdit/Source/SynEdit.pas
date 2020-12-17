@@ -3229,20 +3229,26 @@ var
               Length(SynLineBreakGlyph),cRow, nil);
           end;
         end;
+
+        // Paint folding
+        foldRange := FoldStartAtLine(vLine);
+        if assigned(foldRange) and foldRange.Collapsed then begin
+          sFold := ' ... }';
+          nFold := Length(sFold);
+          Attr := fHighlighter.SymbolAttribute;
+          GetBraceColorAttr(fHighlighter.GetBraceLevel,attr);
+          AddHighlightToken(sFold,Length(sLine)+1 - (vFirstChar - FirstCol)
+            , nFold, cRow, attr);
+          // Compute some helper variables.
+          //nC1 := Max(FirstCol, Length(sLine)+1);
+          //nC2 := Min(LastCol, Length(sLine) +1 + nFold + 1);
+          //SetDrawingColors(FALSE);
+          //PaintToken(sFold,nFold, Length(sLine)+1,nC1, nC2);
+        end;
+
         // Draw anything that's left in the TokenAccu record. Fill to the end
         // of the invalid area with the correct colors.
         PaintHighlightToken(TRUE);
-
-        foldRange := FoldStartAtLine(vLine);
-        if assigned(foldRange) and foldRange.Collapsed then begin
-          sFold := '... }';
-          nFold := Length(sFold);
-          // Compute some helper variables.
-          nC1 := Max(FirstCol, Length(sLine)+1);
-          nC2 := Min(LastCol, Length(sLine) +1 + nFold + 1);
-          SetDrawingColors(FALSE);
-          PaintToken(sFold,nFold, Length(sLine)+1,nC1, nC2);
-        end;
         
         //Paint editingAreaBorders
         PaintEditAreas(areaList,colBorder,areaType);

@@ -196,6 +196,10 @@ const
 var
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
+  STD_C_HEADER : TStringHash; 
+  STLPointers : TStringHash;
+  STLContainers: TStringHash;
+  STLElementMethods: TStringHash;
 
   // These functions are about six times faster than the locale sensitive AnsiX() versions
 
@@ -474,30 +478,20 @@ begin
   s := StringReplace(FileName,'/','\',[rfReplaceAll]);
 //  Result := FileName;
 
+{
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
   if StartsStr('c', s) and not ContainsStr(s, '.') then begin
     Delete(s, 1, 1);
     s := s + '.h';
   end;
-
+}
   // Search local directory
   Dir := ExtractFilePath(RelativeTo);
   if FileExists(Dir + s) then begin // same dir as file
     Result := Dir + s;
     Exit;
   end;
-
   Result := '';
-  {
-  // Search project include directories
-  for I := 0 to ProjectIncludePaths.Count - 1 do
-    if FileExists(ProjectIncludePaths[I] + '\' + FileName) then begin
-      Result := ProjectIncludePaths[I] + '\' + FileName;
-      Exit;
-    end;
-
-  Result := FileName; // signifies failure
-  }
 end;
 
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString;
@@ -513,11 +507,13 @@ begin
   s := StringReplace(FileName,'/','\',[rfReplaceAll]);
 //  Result := FileName;
 
+{
   // Try to convert a C++ filename from cxxx to xxx.h (ignore std:: namespace versions)
   if StartsStr('c', s) and not ContainsStr(s, '.') then begin
     Delete(s, 1, 1);
     s := s + '.h';
   end;
+}
 
   // Search compiler include directories
   for I := 0 to IncludePaths.Count - 1 do
@@ -558,6 +554,10 @@ begin
         Inc(CloseTokenPos, OpenTokenPos);
         FileName := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
         Result := GetLocalHeaderFileName(RelativeTo, FileName);
+        if Result = '' then
+          Result := GetSystemHeaderFileName(FileName, IncludePaths);
+        if Result = '' then
+          Result := GetSystemHeaderFileName(FileName, ProjectIncludePaths);
       end;
     end;
   end;
@@ -700,6 +700,10 @@ begin
   CppTypeKeywords := TStringHash.Create();
   CppKeywords := TStringHash.Create();
   CppKeywordsList := TStringList.Create;
+  STLContainers := TStringHash.Create();
+  STLElementMethods := TStringHash.Create();
+  STLPointers := TStringHash.Create();
+  STD_C_HEADER := TStringHash.Create();
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -824,7 +828,7 @@ begin
 
   // it's part of type info
   CppKeywords.Add('const',Ord(skNone));
-  CppKeywords.Add('inline',Ord(skItself));
+  CppKeywords.Add('inline',Ord(skNone));
 
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));
@@ -977,15 +981,58 @@ begin
 
   // nullptr is value
   CppKeywordsList.Add('nullptr');
+
+  {STL Containers}
+  STLContainers.Add('std::array',1);
+  STLContainers.Add('std::vector',1);
+  STLContainers.Add('std::deque',1);
+  STLContainers.Add('std::forward_list',1);
+  STLContainers.Add('std::list',1);
+
+  STLContainers.Add('std::set',1);
+  STLContainers.Add('std::map',1);
+  STLContainers.Add('std::multilist',1);
+  STLContainers.Add('std::multimap',1);
+
+  STLContainers.Add('std::unordered_set',1);
+  STLContainers.Add('std::unordered_map',1);
+  STLContainers.Add('std::unordered_multiset',1);
+  STLContainers.Add('std::unordered_multimap',1);
+
+  STLContainers.Add('std::stack',1);
+  STLContainers.Add('std::queue',1);
+  STLContainers.Add('std::priority_queue',1);
+
+  STLContainers.Add('std::span',1);
+
+  {STL element access methods}
+  STLElementMethods.Add('at',1);
+  STLElementMethods.Add('back',1);
+  STLElementMethods.Add('front',1);
+  STLElementMethods.Add('top',1);
+
+  {STL pointers }
+  STLPointers.Add('std::unique_ptr',1);
+  STLPointers.Add('std::auto_ptr',1);
+  STLPointers.Add('std::shared_ptr',1);
+  STLPointers.Add('std::weak_ptr',1);
+  STLPointers.Add('__gnu_cxx::__normal_iterator',1);
+  STLPointers.Add('std::reverse_iterator',1);
+  STLPointers.Add('std::iterator',1);
+
+  {Standard c header}
+
 end;
 
 finalization
 begin
-  CppKeywords.Clear;
   CppKeywords.Free;
-  CppKeywordsList.Clear;
-  CppTypeKeywords.Clear;
+  CppKeywordsList.Free;
   CppTypeKeywords.Free;
+  STLContainers.Free;
+  STLPointers.Free;
+  STD_C_HEADER.Free;
 end;
+
 end.
 

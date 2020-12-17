@@ -93,7 +93,8 @@ uses
   Registry,
   CodeInsList in 'CodeInsList.pas',
   TabnineForm in 'TabnineForm.pas' {TabnineForm},
-  Tabnine in 'Tabnine.pas';
+  Tabnine in 'Tabnine.pas',
+  AutoLinkList in 'AutoLinkList.pas';
 
 {$R *.res}
 

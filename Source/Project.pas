@@ -770,6 +770,8 @@ begin
       fOptions.HostApplication := ReadString('Project', 'HostApplication', '');
       fOptions.UseCustomMakefile := ReadBool('Project', 'UseCustomMakefile', FALSE);
       fOptions.CustomMakefile := ReadString('Project', 'CustomMakefile', '');
+      fOptions.UsePrecompiledHeader := ReadBool('Project', 'UsePrecompiledHeader', FALSE);
+      fOptions.PrecompiledHeader := ReadString('Project', 'PrecompiledHeader', '');
       fOptions.CmdLineArgs := ReadString('Project', 'CommandLine', '');
       fFolders.CommaText := ReadString('Project', 'Folders', '');
       fOptions.IncludeVersionInfo := ReadBool('Project', 'IncludeVersionInfo', False);
@@ -852,6 +854,8 @@ begin
     WriteString('Project', 'HostApplication', fOptions.HostApplication);
     WriteBool('Project', 'UseCustomMakefile', fOptions.UseCustomMakefile);
     WriteString('Project', 'CustomMakefile', fOptions.CustomMakefile);
+    WriteBool('Project', 'UsePrecompiledHeader', fOptions.UsePrecompiledHeader);
+    WriteString('Project', 'PrecompiledHeader', fOptions.PrecompiledHeader);
     WriteString('Project', 'CommandLine', fOptions.CmdLineArgs);
     WriteString('Project', 'Folders', fFolders.CommaText);
     WriteBool('Project', 'IncludeVersionInfo', fOptions.IncludeVersionInfo);
@@ -1004,9 +1008,9 @@ end;
 
 procedure TProject.Open;
 var
-  ucount,
-    i: integer;
+  ucount,i: integer;
   NewUnit: TProjUnit;
+  e:TEditor;
 begin
 {$WARN SYMBOL_PLATFORM OFF}
   if FileExists(FileName) and (FileGetAttr(FileName) and faReadOnly <> 0) then begin
@@ -1057,6 +1061,12 @@ begin
 
         Node := MakeNewFileNode(ExtractFileName(FileName), False, FolderNodeFromName(Folder));
         Node.Data := pointer(fUnits.Add(NewUnit));
+{
+        if MainForm.EditorList.IsFileOpened(FileName) then begin
+          e:=MainForm.EditorList.GetEditorFromFileName(FileName);
+          e.InProject := True;
+        end;
+}
       end;
     end;
   end;

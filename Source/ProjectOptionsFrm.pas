@@ -33,7 +33,7 @@ type
     btnHelp: TBitBtn;
     dlgOpen: TOpenDialog;
     dlgPic: TOpenPictureDialog;
-    PageControl: TPageControl;
+    FormPageControl: TPageControl;
     tabGeneral: TTabSheet;
     tabFilesDir: TTabSheet;
     lblPrjName: TLabel;
@@ -141,6 +141,12 @@ type
     CompilerSheet: TTabSheet;
     CppCompilerSheet: TTabSheet;
     LinkerSheet: TTabSheet;
+    tabPrecompile: TTabSheet;
+    chkPrecompiledHeader: TCheckBox;
+    btnPrecompiledHeaderBrowser: TSpeedButton;
+    edPrecompiledHeader: TEdit;
+    lblPrecompiledHeaderTip: TLabel;
+    Label2: TLabel;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);
@@ -181,6 +187,8 @@ type
     procedure OptionsLinkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cbUnitUseUTF8Click(Sender: TObject);
+    procedure chkPrecompiledHeaderClick(Sender: TObject);
+    procedure btnPrecompiledHeaderBrowserClick(Sender: TObject);
   private
     procedure UpdateDirButtons;
     procedure UpdateMakButtons;
@@ -391,6 +399,13 @@ begin
     MakeIncludes.Clear;
     MakeIncludes.AddStrings(lbMakeIncludes.Items);
 
+    //Precompile tab
+    if chkPrecompiledHeader.Checked and FileExists(edPrecompiledHeader.Text) then
+      UsePrecompiledHeader := true
+    else
+      UsePrecompiledHeader := false;
+    PrecompiledHeader := edPrecompiledHeader.Text;
+
     // Version tab
     IncludeVersionInfo := chkVersionInfo.Checked;
 
@@ -526,6 +541,11 @@ begin
     cbUseCustomMakefileClick(nil);
     lbMakeIncludes.Items.AddStrings(MakeIncludes);
 
+    //Precompile tab
+    chkPrecompiledHeader.Checked := fProjectCopy.Options.UsePrecompiledHeader;
+    edPrecompiledHeader.Text := fProjectCopy.Options.PrecompiledHeader;
+    chkPrecompiledHeaderClick(nil);
+
     // Version tab
     InitVersionInfo;
   end;
@@ -618,6 +638,7 @@ begin
   tabFilesDir.Caption := Lang[ID_POPT_DIRTAB];
   tabOutputDir.Caption := Lang[ID_POPT_OUTTAB];
   tabMakefile.Caption := Lang[ID_POPT_MAKTAB];
+  tabPrecompile.Caption := Lang[ID_POPT_PRECOMPILE];
   tabVersion.Caption := Lang[ID_POPT_VERTAB];
 
   // General tab
@@ -688,6 +709,10 @@ begin
   btnMakAdd.Caption := Lang[ID_BTN_ADD];
   btnMakDelete.Caption := Lang[ID_BTN_DELETE];
   btnMakDelInval.Caption := Lang[ID_BTN_DELINVAL];
+
+  //Precompile tab
+  chkPrecompiledHeader.Caption := Lang[ID_POPT_USEPRECOMPILEDHEADER];
+  lblPrecompiledHeaderTip.Caption := Lang[ID_POPT_PRECOMPILEDHEADER_TIP];
 
   // version info tab
   chkVersionInfo.Caption := Lang[ID_POPT_INCLUDEVERSION];
@@ -1133,6 +1158,7 @@ end;
 
 procedure TProjectOptionsFrm.btnCustomMakeBrowseClick(Sender: TObject);
 begin
+  dlgCustomMake.InitialDir := fProjectCopy.Directory;
   if dlgCustomMake.Execute then
     edCustomMakefile.Text := ExtractRelativePath(fProjectCopy.FileName, dlgCustomMake.FileName);
   edCustomMakefile.SetFocus;
@@ -1217,6 +1243,31 @@ begin
     idx := Integer(lvFiles.Selections[I].Data);
     if idx <> -1 then begin // unit
       fProjectCopy.Units[idx].UseUTF8 := cbUnitUseUTF8.Checked;    end;
+  end;
+end;
+
+procedure TProjectOptionsFrm.chkPrecompiledHeaderClick(Sender: TObject);
+begin
+  edPrecompiledHeader.Enabled := chkPrecompiledHeader.Checked;
+  btnPrecompiledHeaderBrowser.Enabled := chkPrecompiledHeader.Checked;
+end;
+
+procedure TProjectOptionsFrm.btnPrecompiledHeaderBrowserClick(
+  Sender: TObject);
+var
+  dlg:TOpenDialog;
+begin
+  dlg:=TOpenDialog.Create(self);
+  try
+    dlg.InitialDir := fProjectCopy.Directory;
+    dlg.Filter := BuildFilter([FLT_HEADS]);
+    dlg.Title := Lang[ID_NV_OPENFILE];
+    if dlg.Execute then
+      edPrecompiledHeader.Text := ExtractRelativePath(fProjectCopy.FileName,
+       dlg.FileName);
+    edPrecompiledHeader.SetFocus;
+  finally
+    dlg.Free;
   end;
 end;
 

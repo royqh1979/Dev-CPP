@@ -70,6 +70,7 @@ var
   M: TMemoryStream;
   Editor:TSynEdit;
   ownEditor:boolean;
+  pBeginPos,pEndPos : TBufferCoord;
 
   procedure ProcessLine;
   var
@@ -95,7 +96,7 @@ var
           //same name symbol , test if the same statement;
           p.Line := PosY+1;
           p.Char := Start;
-          phrase := GetWordAtPosition(Editor, p,wpInformation);
+          phrase := GetWordAtPosition(Editor, p, pBeginPos,pEndPos, wpInformation);
           statement := CppParser.FindStatementOf(
             FileName,
             phrase, p.Line);
@@ -181,6 +182,7 @@ var
   oldStatement : TStatement;
   M: TMemoryStream;
   i:integer;
+  pBeginPos,pEndPos : TBufferCoord;
 
   function getFullName(statement:PStatement):AnsiString;
   begin
@@ -215,7 +217,7 @@ begin
     Lines.SaveToStream(M);
     CppParser.Freeze(Editor.FileName,M);  // freeze it so it will not reprocess file each search
     // get full phrase (such as s.name instead of name)
-    phrase := GetWordAtPosition(Editor.Text,oldCaretXY,wpInformation);
+    phrase := GetWordAtPosition(Editor.Text,oldCaretXY,pBeginPos,pEndPos,wpInformation);
     // Find it's definition
     pOldStatement := CppParser.FindStatementOf(
       Editor.FileName,

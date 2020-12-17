@@ -24,7 +24,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Buttons, StdCtrls, Inifiles, ExtCtrls, ComCtrls, Spin, Math,
-  CompOptionsFrame, CompOptionsList;
+  CompOptionsFrame, CompOptionsList, Grids;
 
 type
   TCompOptForm = class(TForm)
@@ -78,6 +78,13 @@ type
     btnFindCompilers: TSpeedButton;
     cmbCompilerSetComp: TComboBox;
     btnAddFilledCompilerSet: TSpeedButton;
+    OptionPages: TPageControl;
+    tabCompilerSet: TTabSheet;
+    tabAutoLink: TTabSheet;
+    lvAutoLinks: TStringGrid;
+    btnAddAutoLink: TButton;
+    btnRemoveAutoLink: TButton;
+    AutoLinks: TMemo;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -104,6 +111,13 @@ type
     procedure InterfaceChange(Sender: TObject);
     procedure InterfaceSave(Sender: TObject);
     procedure btnAddFilledCompilerSetClick(Sender: TObject);
+    procedure btnAddAutoLinkClick(Sender: TObject);
+    procedure btnRemoveAutoLinkClick(Sender: TObject);
+    procedure lvAutoLinksSelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
+    procedure AutoLinksChange(Sender: TObject);
+    procedure lvAutoLinksSetEditText(Sender: TObject; ACol, ARow: Integer;
+      const Value: String);
   private
     fOldIndex: integer;
     fBinDirCopy: TStringList;
@@ -114,12 +128,16 @@ type
     procedure SaveSet(Index: integer);
     procedure UpdateButtons;
     procedure LoadText;
+    procedure UpdateALButtons;
+    procedure LoadAutoLinks;
+    procedure SaveAutoLinks;
   end;
 
 implementation
 
 uses
-  ShellAPI, Main, FileCtrl, version, devcfg, utils, MultiLangSupport, DataFrm;
+  ShellAPI, Main, FileCtrl, version, devcfg, utils, MultiLangSupport, DataFrm,
+  AutoLinkList;
 
 {$R *.dfm}
 
@@ -142,6 +160,7 @@ begin
 
   // Save list of sets only
   devCompilerSets.SaveSetList;
+  saveAutoLinks;
 end;
 
 procedure TCompOptForm.LoadSet(Index: integer);
@@ -355,6 +374,8 @@ var
   I: integer;
 begin
   LoadText;
+  lvAutoLinks.ColWidths[1] := lvAutoLinks.Width - lvAutoLinks.ColWidths[0]-10;
+
 
   // Create local copies we can modify
   fBinDirCopy := TStringList.Create;
@@ -381,6 +402,10 @@ begin
 
   // Load the current set
   cmbCompilerSetCompChange(nil);
+
+
+  LoadAutoLinks;
+  UpdateALButtons;
 end;
 
 procedure TCompOptForm.LoadText;
@@ -390,6 +415,9 @@ begin
   Font.Size := devData.InterfaceFontSize;
 
   Caption := Lang[ID_COPT];
+
+  tabCompilerSet.Caption := Lang[ID_COPT_COMPSETTAB];
+  tabAutoLink.Caption := Lang[ID_COPT_AUTOLINKTAB];
 
   // Tabs
   tabCompiler.Caption := Lang[ID_COPT_COMPTAB];
@@ -430,6 +458,18 @@ begin
   btnAddFilledCompilerSet.Hint := Lang[ID_COPT_ADDFOLDERCOMPHINT];
   btnDelCompilerSet.Hint := Lang[ID_COPT_DELCOMPHINT];
   btnRenameCompilerSet.Hint := Lang[ID_COPT_RENAMECOMPHINT];
+
+  // Auto links tab
+  lvAutoLinks.Cols[0][0] := Lang[ID_EOPT_ALHEADER];
+  lvAutoLinks.Cols[1][0] := Lang[ID_EOPT_ALPARAMS];
+  btnAddAutoLink.Caption := Lang[ID_BTN_ADD];
+  btnRemoveAutoLink.Caption := Lang[ID_BTN_REMOVE];
+end;
+
+procedure TCompOptForm.UpdateALButtons;
+begin
+  btnAddAutoLink.Enabled := true;
+  btnRemoveAutoLink.Enabled := lvAutoLinks.Row > 0;
 end;
 
 procedure TCompOptForm.btnBrws1Click(Sender: TObject);
@@ -662,6 +702,118 @@ end;
 procedure TCompOptForm.InterfaceSave(Sender: TObject);
 begin
   cmbCompilerSetComp.Tag := 0;
+end;
+
+procedure TCompOptForm.btnAddAutoLinkClick(Sender: TObject);
+begin
+  lvAutoLinks.RowCount := lvAutoLinks.RowCount + 1; // add blank row, assume fixedrows remains at 1
+
+  // Fill
+  lvAutoLinks.Cells[0, lvAutoLinks.RowCount - 1] := '';
+  lvAutoLinks.Cells[1, lvAutoLinks.RowCount - 1] := '';
+
+  lvAutoLinks.Row := lvAutoLinks.RowCount - 1; // set selection
+  lvAutoLinks.Col := 0; // set selection
+  lvAutoLinks.SetFocus;
+
+  AutoLinks.Clear;
+  UpdateALButtons;
+end;
+
+procedure TCompOptForm.btnRemoveAutoLinkClick(Sender: TObject);
+var
+  I: integer;
+  sl: TStringList;
+begin
+  if (lvAutoLinks.Row >= lvAutoLinks.FixedRows) then begin
+    if (lvAutoLinks.RowCount > 2) then begin // remove completely
+      dmMain.AutoLinks.Delete(lvAutoLinks.Row);
+
+      for I := lvAutoLinks.Row to lvAutoLinks.RowCount - 2 do
+        lvAutoLinks.Rows[i].Assign(lvAutoLinks.Rows[i + 1]); // moves objects too
+
+      lvAutoLinks.RowCount := lvAutoLinks.RowCount - 1;
+    end else begin // leave blank row
+      lvAutoLinks.Rows[lvAutoLinks.RowCount - 1].Text := ''; // removes data pointer
+    end;
+
+    lvAutoLinks.Repaint;
+    AutoLinks.Clear;
+    UpdateALButtons;
+  end;
+end;
+
+procedure TCompOptForm.lvAutoLinksSelectCell(Sender: TObject; ACol,
+  ARow: Integer; var CanSelect: Boolean);
+begin
+  AutoLinks.Clear;
+  if (ARow >= lvAutoLinks.FixedRows) then begin
+    AutoLinks.Text := StrToCodeIns(lvAutoLinks.Cells[1, ARow]); // store code in first column object
+    UpdateALButtons;
+  end;
+end;
+
+procedure TCompOptForm.AutoLinksChange(Sender: TObject);
+begin
+  if (lvAutoLinks.Row >= lvAutoLinks.FixedRows) then begin
+    lvAutoLinks.Cells[1, lvAutoLinks.Row] := CodeInstoStr(AutoLinks.Text); // store text in hidden field
+  end;
+end;
+
+procedure TCompOptForm.LoadAutoLinks;
+var
+  autolink: PAutoLink;
+  I: integer;
+  sl: TStringList;
+  canselect: boolean;
+begin
+  lvAutoLinks.FixedRows := 0;
+  lvAutoLinks.RowCount := 1; // re-add fixed row later on
+
+  for I := 0 to dmMain.AutoLinks.Count - 1 do begin
+    lvAutoLinks.RowCount := lvAutoLinks.RowCount + 1; // add new blank row
+
+    // Fill cols
+    autolink := dmMain.AutoLinks[I];
+    lvAutoLinks.Cells[0, lvAutoLinks.RowCount - 1] := autolink^.header;
+    lvAutoLinks.Cells[1, lvAutoLinks.RowCount - 1] := CodeInstoStr(autolink^.linkParams);
+  end;
+
+  // Add empty, but configured row
+  if lvAutoLinks.RowCount = 1 then begin
+    lvAutoLinks.RowCount := lvAutoLinks.RowCount + 1;
+
+    lvAutoLinks.Cells[0, lvAutoLinks.RowCount - 1] := '';
+    lvAutoLinks.Cells[1, lvAutoLinks.RowCount - 1] := '';
+  end;
+
+  lvAutoLinks.FixedRows := 1; // gets reset to 0 when removing all editable rows
+
+  lvAutoLinksSelectCell(nil, 0, 1, canselect);
+end;
+
+procedure TCompOptForm.SaveAutoLinks;
+var
+  I: integer;
+begin
+  dmMain.AutoLinks.Clear;
+  for I := lvAutoLinks.FixedRows to lvAutoLinks.RowCount - 1 do begin
+    if lvAutoLinks.Cells[0, I] <> '' then begin
+
+      // Get snippet from attached object
+      dmMain.AutoLinks.AddItem(lvAutoLinks.Cells[0, I],
+        StrToCodeIns(lvAutoLinks.Cells[1, I]));
+    end;
+  end;
+  dmMain.AutoLinks.Save;
+end;
+
+procedure TCompOptForm.lvAutoLinksSetEditText(Sender: TObject; ACol,
+  ARow: Integer; const Value: String);
+begin
+  if (ARow >= lvAutoLinks.FixedRows) and (ACol = 1) then begin
+    AutoLinks.Text := StrToCodeIns(Value); // store code in first column object
+  end;
 end;
 
 end.

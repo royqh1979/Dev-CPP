@@ -468,6 +468,8 @@ Ver=1
 27077=C++ File
 27078=Check Syntax when RETURN/ENTER typed
 27079=Open the Tabnine download site
+27080=Header
+27081=Addition Link Params
 
 28001=Name:
 28002=&C Project
@@ -651,6 +653,8 @@ Ver=1
 41006=Programs
 41007=For more information about GCC's options, please visit
 41008=Makefile
+41009=Compiler Sets
+41010=Auto Links
 
 42001=Binaries
 42002=Libraries
@@ -1218,6 +1222,9 @@ Ver=1
 72030=Reset to compiler set values?
 72031=Dev-C++ was unable to read executable version information options.<CR><CR>A common cause for this error is Data Execution Prevention (DEP).<CR><CR>Please add devcpp.exe to the whitelist of DEP at Control Panel >> System >> Advanced System Settings >> Advanced >> Performance >> DEP and try again.
 72032=Files:
+72033=Precompile
+72034=Use precompile header
+72035=For more information about GCC's predefined header, please see:
 
 73001=Strip executable (-s)
 73002=Optimize for the following machine (-march)

@@ -976,6 +976,7 @@ type
     procedure EditorPageControlMouseUp(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actCompileUpdate(Sender: TObject);
+    procedure actSyntaxCheckFileUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -2060,6 +2061,7 @@ procedure TMainForm.OpenProject(const s: AnsiString);
 var
   s2: AnsiString;
   e:TEditor;
+  i:integer;
 begin
   if Assigned(fProject) then begin
     if fProject.Name = '' then
@@ -2078,11 +2080,6 @@ begin
   ClassBrowser.BeginUpdate;
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
-    e:=EditorList.GetEditor();
-    if assigned(e) and e.InProject then begin
-      //CppParser.InvalidateFile(e.FileName);
-      self.CheckSyntaxInBack(e);
-    end;
 
     if fProject.FileName <> '' then begin
       dmMain.RemoveFromHistory(s);
@@ -2104,6 +2101,21 @@ begin
       fProject.Free;
       fProject := nil;
     end;
+
+    //update editor's inproject flag
+    for i:=0 to fProject.Units.Count-1 do begin
+      if EditorList.IsFileOpened(fProject.Units[i].FileName) then begin
+        e:=EditorList.GetEditorFromFileName(fProject.Units[i].FileName);
+        e.InProject := True;
+      end;
+    end;
+
+    e:=EditorList.GetEditor();
+    if assigned(e) then begin
+      //CppParser.InvalidateFile(e.FileName);
+      self.CheckSyntaxInBack(e);
+    end;
+    UpdateClassBrowserForEditor(e);
   finally
     ClassBrowser.EndUpdate;
   end;
@@ -2804,8 +2816,9 @@ begin
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
     ClassBrowser.BeginUpdate;
+    ClassBrowser.CurrentFile := '';
+    ClassBrowser.Parser:=nil; // set parser to nil will do the clear
     try
-      ClassBrowser.Clear;
       // Remember it
       dmMain.AddtoHistory(fProject.FileName);
 
@@ -3040,8 +3053,10 @@ begin
 end;
 
 procedure TMainForm.actFullScreenExecute(Sender: TObject);
+{
 var
   Active: TWinControl;
+}
 begin
   devData.FullScreen := FullScreenModeItem.Checked;
   if devData.FullScreen then begin
@@ -3338,6 +3353,7 @@ begin
     Title := Lang[ID_NV_OPENADD];
     Filter := BuildFilter([FLT_CS, FLT_CPPS, FLT_RES, FLT_HEADS]);
     Options := Options + [ofAllowMultiSelect];
+    InitialDir := fProject.Directory;
 
     // If sucessful, add to selected node
     if Execute then begin
@@ -4084,7 +4100,8 @@ begin
         e:=EditorList.GetEditor();
         if not Assigned(e) then
           Exit;
-        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+        TCustomAction(Sender).Enabled :=
+         ( (e.New and e.Text.Modified) or IsCfile(e.FileName)) and (not fCompiler.Compiling)
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
@@ -5251,7 +5268,13 @@ begin
     Exit;
   if not devCodeCompletion.Enabled then
     Exit;
-  if ClassBrowser.CurrentFile = e.FileName then begin
+  if not Assigned(e) then begin
+    ClassBrowser.Parser := nil;
+    ClassBrowser.CurrentFile:='';
+    Exit;
+  end;
+  if (ClassBrowser.CurrentFile = e.FileName)
+    and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;
     {
   end else if (ClassBrowser.CurrentFile<> '') and IsCFile(ClassBrowser.CurrentFile)
@@ -5271,7 +5294,7 @@ begin
   end;
   ClassBrowser.BeginUpdate;
   try
-    ClassBrowser.Clear;
+    // ClassBrowser.Clear; //set parser will do the clear
     ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
@@ -6486,13 +6509,14 @@ var
   filename, phrase: AnsiString;
   line: integer;
   e: TEditor;
+  pBeginPos,pEndPos : TBufferCoord;
 begin
   e := fEditorList.GetEditor;
 
   if Assigned(e) then begin
 
     // Exit early, don't bother creating a stream (which is slow)
-    phrase := GetWordAtPosition(e.Text,e.Text.CaretXY, wpInformation);
+    phrase := GetWordAtPosition(e.Text,e.Text.CaretXY,pBeginPos,pEndPos, wpInformation);
     if Phrase = '' then
       Exit;
 
@@ -8671,7 +8695,8 @@ begin
         e:=EditorList.GetEditor();
         if not Assigned(e) then
           Exit;
-        TCustomAction(Sender).Enabled := IsCfile(e.FileName) and (not fCompiler.Compiling)
+        TCustomAction(Sender).Enabled :=
+          ( (e.New and e.Text.Modified) or IsCfile(e.FileName)) and (not fCompiler.Compiling)
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
@@ -8681,6 +8706,19 @@ begin
           and (not devExecutor.Running);
       end;
   end;
+end;
+
+procedure TMainForm.actSyntaxCheckFileUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor();
+  actSyntaxCheck.Enabled := Assigned(e)
+    and (
+      IsCFile(e.FileName)
+      or IsHFile(e.FileName)
+      or (e.New and e.Text.Modified)
+    );
 end;
 
 end.

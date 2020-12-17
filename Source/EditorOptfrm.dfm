@@ -1,6 +1,6 @@
 object EditorOptForm: TEditorOptForm
-  Left = 699
-  Top = 183
+  Left = 259
+  Top = 169
   BorderStyle = bsDialog
   Caption = 'Editor Options'
   ClientHeight = 645
@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabSyntax
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -872,6 +872,11 @@ object EditorOptForm: TEditorOptForm
             ScrollBars = ssVertical
             TabOrder = 3
             OnSelectCell = lvCodeInsSelectCell
+            ColWidths = (
+              115
+              115
+              115
+              115)
           end
         end
         object tabCPDefault: TTabSheet

@@ -55,8 +55,9 @@ type
     fProjectIncludePaths: TStringList;
     { List of current project's include path }
     fProjectFiles: TStringList;
-    fBlockBeginSkips: TIntList; //list of for/catch block end token index;
+    fBlockBeginSkips: TIntList; //list of for/catch block begin token index;
     fBlockEndSkips: TIntList; //list of for/catch block end token index;
+    fInlineNamespaceEndSkips: TIntList; // list for inline namespace end token index;
     fFilesToScan: TStringList; // list of base files to scan
     fFilesScannedCount: Integer; // count of files that have been scanned
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
@@ -129,6 +130,7 @@ type
     function GetScope: TStatementScope;
     function GetCurrentBlockEndSkip:integer;
     function GetCurrentBlockBeginSkip:integer;
+    function GetCurrentInlineNamespaceEndSkip:integer;
     procedure HandlePreprocessor;
     procedure HandleOtherTypedefs;
     procedure HandleStructs(IsTypedef: boolean = False);
@@ -207,6 +209,7 @@ type
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
+    function FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
     procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
@@ -273,6 +276,7 @@ begin
   fNamespaces.Sorted := True;
   fBlockBeginSkips := TIntList.Create;
   fBlockEndSkips := TIntList.Create;
+  fInlineNamespaceEndSkips := TIntList.Create;
 end;
 
 destructor TCppParser.Destroy;
@@ -305,6 +309,7 @@ begin
   FreeAndNil(fSkipList);
   FreeAndNil(fBlockBeginSkips);
   FreeAndNil(fBlockEndSkips);
+  FreeAndNil(fInlineNamespaceEndSkips);
 
   FreeAndNil(fStatementList);
   FreeAndNil(fFilesToScan);
@@ -435,23 +440,45 @@ end;
 
 function TCppParser.FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
 var
-  index: TDevStringHash;
-  item: PPHashItem;
-  itemStatement:PStatement;
+  namespaceStatement:PStatement;
+  i: integer;
+  namespaceStatementsList:TList;
+
+  function DoFind(const _Name , _NoNameArgs:string; _kind:TStatementKind; _scope:PStatement):PStatement;
+  var
+    index: TDevStringHash;
+    item: PPHashItem;
+    itemStatement: PStatement;
+  begin
+    Result := nil;
+    index := self.fStatementList.GetChildrenStatementIndex(_scope);
+    if not assigned(index) then
+      Exit;
+    item:=index.FindItem(_Name);
+    while (assigned(item)) and assigned(item^) and SameStr(item^.Key,_Name) do begin
+      itemStatement:=PStatement(item^.Value);
+      if assigned(itemStatement) and (itemStatement^._Kind  = _kind)
+        and SameStr(itemStatement^._NoNameArgs, _NoNameArgs) then begin
+        Result:=itemStatement;
+        Exit;
+      end;
+      item:=@item^.Next;
+    end;
+  end;
 begin
   Result:=nil;
-  index := self.fStatementList.GetChildrenStatementIndex(scope);
-  if not assigned(index) then
-    Exit;
-  item:=index.FindItem(Name);
-  while (assigned(item)) and assigned(item^) and SameStr(item^.Key,Name) do begin
-    itemStatement:=PStatement(item^.Value);
-    if assigned(itemStatement) and (itemStatement^._Kind  = kind)
-      and SameStr(itemStatement^._NoNameArgs,NoNameArgs) then begin
-      Result:=itemStatement;
-      Exit;
-    end;
-    item:=@item^.Next;
+  if assigned(scope) and (scope^._Kind = skNamespace) then begin
+      namespaceStatementsList:=FindNamespace(scope^._Command);
+      if not Assigned(namespaceStatementsList) then
+        Exit;
+      for i:=0 to namespaceStatementsList.Count-1 do begin
+        namespaceStatement:=PStatement(namespaceStatementsList[i]);
+        Result:=DoFind(Name,NoNameArgs,Kind,namespaceStatement);
+        if Assigned(Result) then
+          Exit;
+      end;
+  end else begin
+    Result := DoFind(Name,NoNameArgs,Kind, Scope);
   end;
 end;
 
@@ -996,7 +1023,11 @@ end;
 
 function TCppParser.CheckForNamespace: boolean;
 begin
-  Result := (fIndex < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'namespace');
+  Result := ((fIndex < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'namespace'))
+    or (
+      (fIndex+1 < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'inline')
+        and SameStr(fTokenizer[fIndex+1]^.Text, 'namespace')
+    );
 end;
 
 function TCppParser.CheckForUsing: boolean;
@@ -1289,12 +1320,12 @@ begin
 
   // Fail if we do not find a comma or a semicolon or a ( (inline constructor)
   while fIndex < fTokenizer.Tokens.Count do begin
-    if (fTokenizer[fIndex]^.Text[1] in ['#', '{', '}']) or CheckForKeyword then begin
+    if (fTokenizer[fIndex]^.Text[1] in ['#', '}']) or CheckForKeyword then begin
       Break; // fail
     end else if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '(') and
       (fTokenizer[fIndex]^.Text[2] = '(') then begin // TODO: is this used to remove __attribute stuff?
       Break;
-    end else if fTokenizer[fIndex]^.Text[1] in [',', ';'] then begin
+    end else if fTokenizer[fIndex]^.Text[1] in [',', ';','{'] then begin
       Result := True;
       Break;
     end;
@@ -1527,8 +1558,16 @@ procedure TCppParser.HandleNamespace;
 var
   Command, aliasName: AnsiString;
   NamespaceStatement: PStatement;
-  startLine: integer;
+  startLine,i: integer;
+  isInline: boolean;
 begin
+  isInline:=False;
+  if SameStr(fTokenizer[fIndex]^.Text, 'inline') then begin
+    isInline:=True;
+    Inc(fIndex); //skip 'inline'
+  end;
+
+
   startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip 'namespace'
 
@@ -1537,6 +1576,8 @@ begin
     Exit;
   end;
   Command := fTokenizer[fIndex]^.Text;
+  if StartsStr('__', Command) then // hack for inline namespaces
+    isInline:= True;
   inc(fIndex);
   if (fIndex>=fTokenizer.Tokens.Count) then
     Exit;
@@ -1560,7 +1601,21 @@ begin
       nil,
       False);
     inc(fIndex,2); //skip ;
-  end else begin
+    Exit;
+  end else if isInline then begin
+    //inline namespace , just skip it
+    // Skip to '{'
+    while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do
+      Inc(fIndex);
+    i:=SkipBraces(fIndex); //skip '}'
+    if i=fIndex then
+      fInlineNamespaceEndSkips.Add(fTokenizer.Tokens.Count)
+    else
+      fInlineNamespaceEndSkips.Add(i);
+
+    if (fIndex<fTokenizer.Tokens.Count) then
+      Inc(fIndex); //skip '{'  
+  end else  begin
     NamespaceStatement := AddStatement(
       GetCurrentScope,
       fCurrentFile,
@@ -1577,6 +1632,7 @@ begin
       nil, //inheritance
       False);
     AddSoloScopeLevel(NamespaceStatement,startLine);
+
     // Skip to '{'
     while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do
       Inc(fIndex);
@@ -1815,6 +1871,16 @@ begin
     Exit;
   Result := fBlockEndSkips[fBlockEndSkips.Count-1];
 end;
+
+
+function TCppParser.GetCurrentInlineNamespaceEndSkip:integer;
+begin
+  Result := fTokenizer.Tokens.Count+1;
+  if fInlineNamespaceEndSkips.Count<=0 then
+    Exit;
+  Result := fInlineNamespaceEndSkips[fInlineNamespaceEndSkips.Count-1];
+end;
+
 
 function TCppParser.GetCurrentBlockBeginSkip:integer;
 begin
@@ -2166,7 +2232,7 @@ begin
       if not IsFunctionPointer then
         break; // inline constructor
     end else if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in ['(', ',', ';', ':', '}',
-      '#']) then begin
+      '#','{']) then begin
         break;
     end;
 
@@ -2367,10 +2433,11 @@ var
   S1, S2, S3: AnsiString;
   isStatic,isFriend: boolean;
   block : PStatement;
-  idx,idx2:integer;
+  idx,idx2,idx3:integer;
 begin
   idx:=GetCurrentBlockEndSkip;
   idx2:=GetCurrentBlockBeginSkip;
+  idx3:=GetCurrentInlineNamespaceEndSkip;
   if fIndex >= idx2 then begin
     fBlockBeginSkips.Delete(fBlockBeginSkips.Count-1);
     if fIndex = idx2 then
@@ -2382,6 +2449,10 @@ begin
     if (idx+1) < fTokenizer.Tokens.Count then
       RemoveScopeLevel(fTokenizer[idx+1]^.Line);
     if fIndex = idx then
+      inc(fIndex);
+  end else if fIndex >= idx3 then begin
+    fInlineNamespaceEndSkips.Delete(fInlineNamespaceEndSkips.Count-1);
+    if fIndex = idx3 then
       inc(fIndex);
   end else if (fTokenizer[fIndex]^.Text[1] = '{') then begin
     block := AddStatement(
@@ -2482,7 +2553,7 @@ begin
     Exit;
   end;
 
-      {
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
@@ -2490,9 +2561,7 @@ begin
     Free;
   end;
   }
-
-
-
+  
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
@@ -2519,6 +2588,7 @@ begin
   fSkipList.Clear;
   fBlockBeginSkips.Clear;
   fBlockEndSkips.Clear;
+  fInlineNamespaceEndSkips.Clear;
   try
     repeat
     until not HandleStatement;
@@ -2558,6 +2628,7 @@ begin
   fSkipList.Clear;
   fBlockBeginSkips.Clear;
   fBlockEndSkips.Clear;
+  fInlineNamespaceEndSkips.Clear;
   fLocked:=False;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
@@ -3125,7 +3196,7 @@ begin
     Exit;
   end;
 
-  Result := Copy(Phrase, FirstOp, MaxInt)
+  Result := Copy(Phrase, FirstOp, MaxInt);
 end;
 
 
@@ -3347,15 +3418,87 @@ begin
   end;
 end;
 
+function TCppParser.FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
+var
+  //Node: PStatementNode;
+  Statement: PStatement;
+  position,i,t: integer;
+  s: AnsiString;
+//  Children: TList;
+  scopeStatement:PStatement;
+
+  function GetTemplateParam(statement:PStatement):String;
+  begin
+    Result:='';
+    if not Assigned(Statement) then
+      Exit;
+    if not (Statement^._Kind = skTypedef) then
+      Exit;
+    if SameStr(aPhrase, Statement^._Type) then // prevent infinite loop
+      Exit;
+    Result := FindFirstTemplateParamOf(FileName,Statement^._Type, CurrentClass)
+  end;
+
+  function getBracketEnd(s:AnsiString;startAt:integer):integer;
+  var
+    I, Level: integer;
+  begin
+    I := StartAt;
+    Level := 0; // assume we start on top of [
+    while (I <= length(s)) do begin
+      case s[i] of
+      '<': Inc(Level);
+      ',': begin
+          if Level = 1 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+      '>': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+      end;
+      Inc(I);
+    end;
+    Result := StartAt;
+  end;
+begin
+  Result := '';
+  if fParsing then
+    Exit;
+  // Remove pointer stuff from type
+  s := aPhrase; // 'Type' is a keyword
+  i:=Pos('<',s);
+  if i>0 then begin
+    t:=getBracketEnd(s,i);
+    Result := Copy(s,i+1,t-i-1);
+    Exit;
+  end;
+  position := Length(s);
+  while (position > 0) and (s[position] in ['*',' ','&']) do
+    Dec(position);
+  if position <> Length(s) then
+    Delete(s, position + 1, Length(s) - 1);
+
+  scopeStatement:= currentClass;
+
+  Statement :=FindStatementOf(FileName,s,currentClass);
+  Result := GetTemplateParam(Statement);
+end;
+
 function TCppParser.FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; currentClass: PStatement): PStatement;
 var
   //Node: PStatementNode;
   Statement: PStatement;
-  position: integer;
+  position, endPos: integer;
   s: AnsiString;
 //  Children: TList;
   scopeStatement:PStatement;
-  
+
   function GetTypeDef(statement:PStatement):PStatement;
   begin
     if not Assigned(Statement) then begin
@@ -3366,13 +3509,35 @@ var
       Result:=statement;
     end else if Statement^._Kind = skTypedef then begin
       if not SameStr(aType, Statement^._Type) then // prevent infinite loop
-        Result := FindTypeDefinitionOf(FileName,Statement^._Type, CurrentClass)
+        Result := FindTypeDefinitionOf(FileName,Statement^._Type, Statement^._ParentScope)
       else
         Result := Statement; // stop walking the trail here
       if Result = nil then // found end of typedef trail, return result
         Result := Statement;
     end else
       Result := nil;
+  end;
+
+  function getBracketEnd(s:AnsiString;startAt:integer):integer;
+  var
+    I, Level: integer;
+  begin
+    I := StartAt;
+    Level := 0; // assume we start on top of [
+    while (I <= length(s)) do begin
+      case s[i] of
+      '<': Inc(Level);
+      '>': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+      end;
+      Inc(I);
+    end;
+    Result := StartAt;
   end;
 begin
   Result := nil;
@@ -3388,8 +3553,10 @@ begin
 
   // Strip template stuff
   position := Pos('<', s);
-  if position > 0 then
-    Delete(s, position, MaxInt);
+  if position > 0 then begin
+    endPos := getBracketEnd(s,position);
+    Delete(s, position, endPos-position+1);
+  end;
 
   // Use last word only (strip 'const', 'static', etc)
   position := LastPos(' ', s);
@@ -3405,28 +3572,30 @@ end;
 function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
 var
   ChildrenIndex:TStringHash;
-  i:integer;
+  i,p:integer;
+  s:string;
 begin
   Result := nil;
   ChildrenIndex := Statements.GetChildrenStatementIndex(ScopeStatement);
   if not Assigned(ChildrenIndex) then
     Exit;
-  i:=ChildrenIndex.ValueOf(Phrase);
+
+  //remove []
+  p:=Pos('[',Phrase);
+  if p>0 then
+    s:=Copy(Phrase,1,p-1)
+  else
+    s:=Phrase;
+
+  //remove <>
+  p:=Pos('<',s);
+  if p>0 then
+    s:=Copy(s,1,p-1);
+    
+  i:=ChildrenIndex.ValueOf(s);
   if i<>-1 then
     Result := PStatement(i);
 
-  {
-  Children := Statements.GetChildrenStatements(ScopeStatement);
-  if not Assigned(Children) then
-    Exit;
-  for i:=0 to Children.Count-1 do begin
-    ChildStatement:=PStatement(Children[i]);
-    if SameStr(ChildStatement^._Command, Phrase) then begin
-      Result:=ChildStatement;
-      Exit;
-    end;
-  end;
-  }
 end;
 
 // find allStatment
@@ -3526,16 +3695,18 @@ function TCppParser.FindStatementOf(FileName, Phrase: AnsiString;
   CurrentClass: PStatement;var CurrentClassType : PStatement ; force:boolean): PStatement;
 var
   //Node: PStatementNode;
-  OperatorToken: AnsiString;
-  currentNamespace, Statement, MemberStatement, TypeStatement: PStatement;
+  OperatorToken, typeName: AnsiString;
+  LastScopeStatement,currentNamespace, Statement, MemberStatement, TypeStatement: PStatement;
   i,idx: integer;
   namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin
+
   Result := nil;
   CurrentClassType := CurrentClass;
   if fParsing and not force then
     Exit;
+
 
   getFullNamespace(Phrase, namespaceName, remainder);
   if namespaceName <> '' then begin  // (namespace )qualified Name
@@ -3606,7 +3777,7 @@ begin
   end;
   CurrentClassType := CurrentClass;
 
-  if statement._Kind in [skTypedef] then begin
+  if (MemberName <> '') and (statement._Kind in [skTypedef]) then begin
     TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
     if Assigned(TypeStatement) then
       Statement := TypeStatement;
@@ -3618,16 +3789,38 @@ begin
       Exit;
   end;
 
+  LastScopeStatement:=nil;
   while MemberName <> '' do begin
+    if statement._Kind in [skVariable,skFunction] then begin
+      if (statement^._Kind = skFunction)
+          and assigned(statement^._ParentScope)
+          and  (STLContainers.ValueOf(statement^._ParentScope^._FullName)>0)
+          and (STLElementMethods.ValueOf(statement^._Command)>0)
+          and assigned(LastScopeStatement) then begin
+        typeName:=self.FindFirstTemplateParamOf(FileName,LastScopeStatement^._Type,LastScopeStatement^._ParentScope);
+        TypeStatement:=FindTypeDefinitionOf(FileName, typeName,LastScopeStatement^._ParentScope);
+      end else
+        TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
+
+      if assigned(TypeStatement) and (
+        STLPointers.Valueof(TypeStatement^._FullName)>=0)
+         and SameStr(OperatorToken,'->') then begin
+        typeName:=self.FindFirstTemplateParamOf(FileName,Statement^._Type,statement^._ParentScope);
+        TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
+      end else if assigned(TypeStatement) and (STLContainers.ValueOf(TypeStatement^._FullName)>0)
+          and EndsStr(']',NextScopeWord) then begin
+        typeName:=self.FindFirstTemplateParamOf(FileName,Statement^._Type,statement^._ParentScope);
+        TypeStatement:=FindTypeDefinitionOf(FileName, typeName,statement^._ParentScope);
+      end;
+      lastScopeStatement:= statement;
+      if Assigned(TypeStatement) then
+        Statement := TypeStatement;
+    end else
+      lastScopeStatement:= statement;
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
-    if statement._Kind in [skVariable,skFunction] then begin
-      TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
-      if Assigned(TypeStatement) then
-        Statement := TypeStatement;
-    end;
     MemberStatement := FindMemberOfStatement(NextScopeWord,statement);
     if not Assigned(MemberStatement) then begin;
       Exit;
@@ -3635,7 +3828,7 @@ begin
 
     CurrentClassType:=statement;
     Statement:=MemberStatement;
-    if statement._Kind in [skTypedef] then begin
+    if (MemberName <> '') and (statement._Kind in [skTypedef]) then begin
       TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
       if Assigned(TypeStatement) then
         Statement := TypeStatement;

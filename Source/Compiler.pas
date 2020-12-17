@@ -130,7 +130,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser;
+  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser, Editor, dataFrm;
 
 procedure TCompiler.DoLogEntry(const msg: AnsiString);
 begin
@@ -310,6 +310,10 @@ begin
   Writeln(F, 'ENCODINGS = -finput-charset=utf-8 -fexec-charset='+GetSystemCharsetName);
   Writeln(F, 'CFLAGS   = $(INCS) ' + fCompileParams);
   Writeln(F, 'RM       = ' + CLEAN_PROGRAM + ' -f'); // TODO: use del or rm?
+  if fProject.Options.UsePrecompiledHeader then begin
+    Writeln(F, 'PCH_H = ' + fProject.Options.PrecompiledHeader );
+    Writeln(F, 'PCH = ' + fProject.Options.PrecompiledHeader +'.gch' );
+  end;
 
   // This needs to be put in before the clean command.
   if fProject.Options.typ = dptDyn then begin
@@ -335,6 +339,11 @@ begin
   Writeln(F);
   Writeln(F, 'all: all-before $(BIN) all-after');
   Writeln(F);
+  if fProject.Options.UsePrecompiledHeader then begin
+    Writeln(F, '$(PCH) : $(PCH_H)');
+    Writeln(F, '	$(CPP) -x c++-header $(PCH_H) -o $(PCH) $(CXXFLAGS)');
+    Writeln(F);
+  end;
 end;
 
 procedure TCompiler.WriteMakeIncludes(var F: TextFile);
@@ -357,8 +366,14 @@ var
   fileIncludes: TStringList;
   headerName: AnsiString;
   parser:TCppParser;
+  precompileStr:AnsiString;
 begin
   parser:=MainForm.GetCppParser;
+  if fProject.Options.UsePrecompiledHeader then
+    precompileStr := ' $(PCH) '
+  else
+    precompileStr := '';
+
   for i := 0 to pred(fProject.Units.Count) do begin
     if not fProject.Units[i].Compile then
       Continue;
@@ -416,7 +431,7 @@ begin
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
       end;
 
-      objStr:=ObjFileName + ': '+objStr;
+      objStr:=ObjFileName + ': '+objStr+precompileStr;
 
       Writeln(F,ObjStr);
 
@@ -432,6 +447,7 @@ begin
           encodingStr := ' $(ENCODINGS) '
         else
           encodingStr := '';
+
 
         if fCheckSyntax then begin
           if fProject.Units[i].CompileCpp then
@@ -1255,6 +1271,9 @@ resourcestring
 var
   i, val: integer;
   option: TCompilerOption;
+  e:TEditor;
+  includedFiles : TStringList;
+  fullPath : String;
 begin
   // Add libraries
   fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);
@@ -1262,6 +1281,25 @@ begin
   // Add global compiler linker extras
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
+
+  if (fTarget = ctFile) then begin
+    e:=MainForm.EditorList.GetEditor();
+    if Assigned(e) then begin
+      includedFiles := TStringList.Create;
+      try
+        e.CppParser.GetFileIncludes(e.FileName,includedFiles);
+        includedFiles.Sorted:=True;
+        for i:=0 to dmMain.AutoLinks.Count - 1 do begin
+          fullPath := e.CppParser.GetHeaderFileName(e.FileName,'"'+dmMain.AutoLinks[i]^.header+'"');
+          if FastIndexOf(includedFiles,fullPath)<>-1 then begin
+            fLibrariesParams := fLibrariesParams + ' ' + dmMain.AutoLinks[i]^.linkParams;
+          end;
+        end;
+      finally
+        includedFiles.Free;
+      end;
+    end;
+  end;
 
   // Add libs added via project
   if (fTarget = ctProject) and assigned(fProject) then begin

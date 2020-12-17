@@ -46,6 +46,7 @@ const
   DEV_ERROR_LOG_FILE = 'devcpp-errors.log';
   DEV_TOOLS_FILE = 'tools.ini';
   DEV_SYMBOLUSAGE_INI = 'symbolusage.ini';
+  DEV_AUTOLINK_FILE = 'autolinks.ini';
 
   // make stuff
   DEV_MAKE_FILE = 'Makefile.win';

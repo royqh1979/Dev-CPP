@@ -27,7 +27,7 @@ uses
   SynHighlighterJScript, SynHighlighterHtml, SynHighlighterXML,
   SynHighlighterBat, SynHighlighterUNIXShellScript, SynHighlighterSQL,
   SynHighlighterAsm, SynHighlighterIni, SynHighlighterInno,
-  SynHighlighterDOT, SynHighlighterGeneral;
+  SynHighlighterDOT, SynHighlighterGeneral, autoLinkList;
 
 type
   PMRUItem = ^TMRUItem;
@@ -66,6 +66,7 @@ type
     fUnitCount: integer;
     fProjectCount: integer;
     fCodeList: TCodeInsList;
+    fAutoLinks : TAutoLinkList;
     fCodeMenu: TMenuItem;
     fCodePop: TMenuItem;
     fCodeEvent: TNotifyEvent;
@@ -77,6 +78,7 @@ type
     property CodePop: TMenuItem read fCodePop write fCodePop;
     property CodeClick: TNotifyEvent read fCodeEvent write fCodeEvent;
     property CodeInserts: TCodeInsList read fCodeList write fCodeList;
+    property AutoLinks: TAutoLinkList read fAutoLinks write fAutoLinks;
     property CodeOffset: byte read fCodeOffset write fCodeOffset;
     property SymbolUsage: TDevStringList read fSymbolUsage;
     { MRU List }
@@ -128,6 +130,7 @@ procedure TdmMain.DataModuleCreate(Sender: TObject);
 begin
   fMRU := TList.Create;
   fCodeList := TCodeInsList.Create;
+  fAutoLinks := TAutoLinkList.Create;
   fSymbolUsage := TDevStringList.Create;
   fSymbolUsage.Sorted:=True;
   fSymbolUsage.Duplicates := dupIgnore;
@@ -145,6 +148,7 @@ begin
   fMRU.Free;
   fSymbolUsage.Free;
   fCodeList.Free;
+  fAutoLinks.Free;
 end;
 
 procedure TdmMain.InitHighlighterFirstTime(index: integer);
@@ -444,7 +448,7 @@ end;
 procedure TdmMain.LoadDataMod;
 begin
   LoadHistory;
-  LoadCodeIns;
+  fAutoLinks.Load;
   UpdateHighlighter;
 end;
 
@@ -667,7 +671,7 @@ begin
   FileCount := 0; // other files
 
   // First add projects
-  for I := 0 to min(devData.MRUMax, fMRU.Count) - 1 do begin
+  for I := 0 to min(devData.MRUMax Div 2, fMRU.Count) - 1 do begin
     if GetFileTyp(PMRUItem(fMRU[I])^.filename) = utPrj then begin
 
       // Add item to main menu
