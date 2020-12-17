@@ -55,7 +55,7 @@ type
     fProjectIncludePaths: TStringList;
     { List of current project's include path }
     fProjectFiles: TStringList;
-    fBlockBeginSkips: TIntList; //list of for/catch block end token index;
+    fBlockBeginSkips: TIntList; //list of for/catch block begin token index;
     fBlockEndSkips: TIntList; //list of for/catch block end token index;
     fFilesToScan: TStringList; // list of base files to scan
     fFilesScannedCount: Integer; // count of files that have been scanned
@@ -1019,7 +1019,11 @@ end;
 
 function TCppParser.CheckForNamespace: boolean;
 begin
-  Result := (fIndex < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'namespace');
+  Result := ((fIndex < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'namespace'))
+    or (
+      (fIndex+1 < fTokenizer.Tokens.Count -1 ) and SameStr(fTokenizer[fIndex]^.Text, 'inline')
+        and SameStr(fTokenizer[fIndex+1]^.Text, 'namespace')
+    );
 end;
 
 function TCppParser.CheckForUsing: boolean;
@@ -1550,8 +1554,14 @@ procedure TCppParser.HandleNamespace;
 var
   Command, aliasName: AnsiString;
   NamespaceStatement: PStatement;
-  startLine: integer;
+  startLine,i: integer;
+  isInline: boolean;
 begin
+  if SameStr(fTokenizer[fIndex]^.Text, 'inline') then begin
+    isInline:=True;
+    Inc(fIndex); //skip 'inline'
+  end else
+    isInline:=False;
   startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip 'namespace'
 
@@ -1583,7 +1593,22 @@ begin
       nil,
       False);
     inc(fIndex,2); //skip ;
-  end else begin
+    Exit;
+  end else if isInline then begin
+    //inline namespace , just skip it
+    // Skip to '{'
+    while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do
+      Inc(fIndex);
+    i:=SkipBraces(fIndex); //skip '}'
+    if i=fIndex then
+      fBlockEndSkips.Add(fTokenizer.Tokens.Count)
+    else
+      fBlockEndSkips.Add(i);
+
+    if (fIndex<fTokenizer.Tokens.Count) then
+      Inc(fIndex); //skip '{'
+
+  end else  begin
     NamespaceStatement := AddStatement(
       GetCurrentScope,
       fCurrentFile,
@@ -1600,6 +1625,7 @@ begin
       nil, //inheritance
       False);
     AddSoloScopeLevel(NamespaceStatement,startLine);
+
     // Skip to '{'
     while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] <> '{') do
       Inc(fIndex);
@@ -2505,14 +2531,15 @@ begin
     Exit;
   end;
 
-
+  {
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-
+  }
+  
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
@@ -2542,11 +2569,11 @@ begin
   try
     repeat
     until not HandleStatement;
-   fTokenizer.DumpTokens('f:\tokens.txt');
-   Statements.DumpTo('f:\stats.txt');
-   Statements.DumpWithScope('f:\\statements.txt');
-   fPreprocessor.DumpDefinesTo('f:\defines.txt');
-   fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+   //fTokenizer.DumpTokens('f:\tokens.txt');
+   //Statements.DumpTo('f:\stats.txt');
+   //Statements.DumpWithScope('f:\\statements.txt');
+   //fPreprocessor.DumpDefinesTo('f:\defines.txt');
+   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     //fCurrentScope.Clear;

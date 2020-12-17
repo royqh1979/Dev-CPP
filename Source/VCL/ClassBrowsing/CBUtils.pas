@@ -835,7 +835,7 @@ begin
 
   // it's part of type info
   CppKeywords.Add('const',Ord(skNone));
-  CppKeywords.Add('inline',Ord(skItself));
+  CppKeywords.Add('inline',Ord(skNone));
 
   // handled elsewhere
   CppKeywords.Add('class',Ord(skNone));
