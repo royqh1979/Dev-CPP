@@ -2816,9 +2816,9 @@ begin
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
     ClassBrowser.BeginUpdate;
+    ClassBrowser.CurrentFile := '';
+    ClassBrowser.Parser:=nil; // set parser to nil will do the clear
     try
-      ClassBrowser.CurrentFile := '';
-      ClassBrowser.Parser:=nil; // set parser to nil will do the clear
       // Remember it
       dmMain.AddtoHistory(fProject.FileName);
 

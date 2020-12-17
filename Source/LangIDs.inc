@@ -530,6 +530,11 @@ const
   ID_EOPT_CPP_FILE                      = 27077;
   ID_EOPT_SYNTAXCHECK_WHEN_RETURN       = 27078;
   ID_EOPT_DOWNLOAD_TABNINE              = 27079;
+
+  // AUTO LINKS TAB
+  ID_EOPT_ALHEADER                      = 27080;
+  ID_EOPT_ALPARAMS                      = 27081;
+
   // new project
   ID_NP_PRJNAME                         = 28001;
   ID_NP_DEFAULTC                        = 28002;
@@ -710,6 +715,8 @@ const
   ID_COPT_PROGRAMSTAB                   = 41006;
   ID_COPT_COMPILERTIP                   = 41007;
   ID_COPT_MAKEFILETAB                   = 41008;
+  ID_COPT_COMPSETTAB                    = 41009;
+  ID_COPT_AUTOLINKTAB                   = 41010;
 
   ID_COPT_BIN                           = 42001;
   ID_COPT_LIB                           = 42002;

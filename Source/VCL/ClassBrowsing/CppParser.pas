@@ -57,6 +57,7 @@ type
     fProjectFiles: TStringList;
     fBlockBeginSkips: TIntList; //list of for/catch block begin token index;
     fBlockEndSkips: TIntList; //list of for/catch block end token index;
+    fInlineNamespaceEndSkips: TIntList; // list for inline namespace end token index;
     fFilesToScan: TStringList; // list of base files to scan
     fFilesScannedCount: Integer; // count of files that have been scanned
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
@@ -129,6 +130,7 @@ type
     function GetScope: TStatementScope;
     function GetCurrentBlockEndSkip:integer;
     function GetCurrentBlockBeginSkip:integer;
+    function GetCurrentInlineNamespaceEndSkip:integer;
     procedure HandlePreprocessor;
     procedure HandleOtherTypedefs;
     procedure HandleStructs(IsTypedef: boolean = False);
@@ -274,6 +276,7 @@ begin
   fNamespaces.Sorted := True;
   fBlockBeginSkips := TIntList.Create;
   fBlockEndSkips := TIntList.Create;
+  fInlineNamespaceEndSkips := TIntList.Create;
 end;
 
 destructor TCppParser.Destroy;
@@ -306,6 +309,7 @@ begin
   FreeAndNil(fSkipList);
   FreeAndNil(fBlockBeginSkips);
   FreeAndNil(fBlockEndSkips);
+  FreeAndNil(fInlineNamespaceEndSkips);
 
   FreeAndNil(fStatementList);
   FreeAndNil(fFilesToScan);
@@ -1557,11 +1561,13 @@ var
   startLine,i: integer;
   isInline: boolean;
 begin
+  isInline:=False;
   if SameStr(fTokenizer[fIndex]^.Text, 'inline') then begin
     isInline:=True;
     Inc(fIndex); //skip 'inline'
-  end else
-    isInline:=False;
+  end;
+
+
   startLine := fTokenizer[fIndex]^.Line;
   Inc(fIndex); //skip 'namespace'
 
@@ -1570,6 +1576,8 @@ begin
     Exit;
   end;
   Command := fTokenizer[fIndex]^.Text;
+  if StartsStr('__', Command) then // hack for inline namespaces
+    isInline:= True;
   inc(fIndex);
   if (fIndex>=fTokenizer.Tokens.Count) then
     Exit;
@@ -1601,13 +1609,12 @@ begin
       Inc(fIndex);
     i:=SkipBraces(fIndex); //skip '}'
     if i=fIndex then
-      fBlockEndSkips.Add(fTokenizer.Tokens.Count)
+      fInlineNamespaceEndSkips.Add(fTokenizer.Tokens.Count)
     else
-      fBlockEndSkips.Add(i);
+      fInlineNamespaceEndSkips.Add(i);
 
     if (fIndex<fTokenizer.Tokens.Count) then
-      Inc(fIndex); //skip '{'
-
+      Inc(fIndex); //skip '{'  
   end else  begin
     NamespaceStatement := AddStatement(
       GetCurrentScope,
@@ -1864,6 +1871,16 @@ begin
     Exit;
   Result := fBlockEndSkips[fBlockEndSkips.Count-1];
 end;
+
+
+function TCppParser.GetCurrentInlineNamespaceEndSkip:integer;
+begin
+  Result := fTokenizer.Tokens.Count+1;
+  if fInlineNamespaceEndSkips.Count<=0 then
+    Exit;
+  Result := fInlineNamespaceEndSkips[fInlineNamespaceEndSkips.Count-1];
+end;
+
 
 function TCppParser.GetCurrentBlockBeginSkip:integer;
 begin
@@ -2416,10 +2433,11 @@ var
   S1, S2, S3: AnsiString;
   isStatic,isFriend: boolean;
   block : PStatement;
-  idx,idx2:integer;
+  idx,idx2,idx3:integer;
 begin
   idx:=GetCurrentBlockEndSkip;
   idx2:=GetCurrentBlockBeginSkip;
+  idx3:=GetCurrentInlineNamespaceEndSkip;
   if fIndex >= idx2 then begin
     fBlockBeginSkips.Delete(fBlockBeginSkips.Count-1);
     if fIndex = idx2 then
@@ -2431,6 +2449,10 @@ begin
     if (idx+1) < fTokenizer.Tokens.Count then
       RemoveScopeLevel(fTokenizer[idx+1]^.Line);
     if fIndex = idx then
+      inc(fIndex);
+  end else if fIndex >= idx3 then begin
+    fInlineNamespaceEndSkips.Delete(fInlineNamespaceEndSkips.Count-1);
+    if fIndex = idx3 then
       inc(fIndex);
   end else if (fTokenizer[fIndex]^.Text[1] = '{') then begin
     block := AddStatement(
@@ -2566,6 +2588,7 @@ begin
   fSkipList.Clear;
   fBlockBeginSkips.Clear;
   fBlockEndSkips.Clear;
+  fInlineNamespaceEndSkips.Clear;
   try
     repeat
     until not HandleStatement;
@@ -2605,6 +2628,7 @@ begin
   fSkipList.Clear;
   fBlockBeginSkips.Clear;
   fBlockEndSkips.Clear;
+  fInlineNamespaceEndSkips.Clear;
   fLocked:=False;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
@@ -3485,7 +3509,7 @@ var
       Result:=statement;
     end else if Statement^._Kind = skTypedef then begin
       if not SameStr(aType, Statement^._Type) then // prevent infinite loop
-        Result := FindTypeDefinitionOf(FileName,Statement^._Type, CurrentClass)
+        Result := FindTypeDefinitionOf(FileName,Statement^._Type, Statement^._ParentScope)
       else
         Result := Statement; // stop walking the trail here
       if Result = nil then // found end of typedef trail, return result
@@ -3677,6 +3701,7 @@ var
   namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin
+
   Result := nil;
   CurrentClassType := CurrentClass;
   if fParsing and not force then

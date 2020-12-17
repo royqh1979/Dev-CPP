@@ -491,18 +491,7 @@ begin
     Result := Dir + s;
     Exit;
   end;
-
   Result := '';
-  {
-  // Search project include directories
-  for I := 0 to ProjectIncludePaths.Count - 1 do
-    if FileExists(ProjectIncludePaths[I] + '\' + FileName) then begin
-      Result := ProjectIncludePaths[I] + '\' + FileName;
-      Exit;
-    end;
-
-  Result := FileName; // signifies failure
-  }
 end;
 
 function GetSystemHeaderFileName(const FileName: AnsiString; IncludePaths: TStringList): AnsiString;
@@ -565,6 +554,10 @@ begin
         Inc(CloseTokenPos, OpenTokenPos);
         FileName := Copy(Line, OpenTokenPos + 1, CloseTokenPos - OpenTokenPos - 1);
         Result := GetLocalHeaderFileName(RelativeTo, FileName);
+        if Result = '' then
+          Result := GetSystemHeaderFileName(FileName, IncludePaths);
+        if Result = '' then
+          Result := GetSystemHeaderFileName(FileName, ProjectIncludePaths);
       end;
     end;
   end;

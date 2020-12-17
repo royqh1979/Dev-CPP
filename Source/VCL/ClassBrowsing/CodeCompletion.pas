@@ -342,7 +342,7 @@ begin
           ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, typeName,LastScopeStatement^._ParentScope);
         end else
           ClassTypeStatement:=fParser.FindTypeDefinitionOf(FileName, Statement^._Type,ParentTypeStatement);
-          
+
         if not Assigned(ClassTypeStatement) then
           Exit;
         //is a smart pointer

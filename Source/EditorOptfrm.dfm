@@ -872,6 +872,11 @@ object EditorOptForm: TEditorOptForm
             ScrollBars = ssVertical
             TabOrder = 3
             OnSelectCell = lvCodeInsSelectCell
+            ColWidths = (
+              115
+              115
+              115
+              115)
           end
         end
         object tabCPDefault: TTabSheet

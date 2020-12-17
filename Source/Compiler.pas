@@ -130,7 +130,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser;
+  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser, Editor, dataFrm;
 
 procedure TCompiler.DoLogEntry(const msg: AnsiString);
 begin
@@ -1271,6 +1271,9 @@ resourcestring
 var
   i, val: integer;
   option: TCompilerOption;
+  e:TEditor;
+  includedFiles : TStringList;
+  fullPath : String;
 begin
   // Add libraries
   fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);
@@ -1278,6 +1281,25 @@ begin
   // Add global compiler linker extras
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
+
+  if (fTarget = ctFile) then begin
+    e:=MainForm.EditorList.GetEditor();
+    if Assigned(e) then begin
+      includedFiles := TStringList.Create;
+      try
+        e.CppParser.GetFileIncludes(e.FileName,includedFiles);
+        includedFiles.Sorted:=True;
+        for i:=0 to dmMain.AutoLinks.Count - 1 do begin
+          fullPath := e.CppParser.GetHeaderFileName(e.FileName,'"'+dmMain.AutoLinks[i]^.header+'"');
+          if FastIndexOf(includedFiles,fullPath)<>-1 then begin
+            fLibrariesParams := fLibrariesParams + ' ' + dmMain.AutoLinks[i]^.linkParams;
+          end;
+        end;
+      finally
+        includedFiles.Free;
+      end;
+    end;
+  end;
 
   // Add libs added via project
   if (fTarget = ctProject) and assigned(fProject) then begin

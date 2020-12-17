@@ -33,7 +33,8 @@ Version 6.3-beta1
     - fix: #if __cplusplus evaluates error
     - fix: #define parse error if contains '/' in value
     - enhancement: support C++ 11 inline namespace; (inline namespace is treated as part of the outer namespace, it's ok for the most usages)
-    - update some icons
+    - enhancement: update some icons
+    - enhancement: auto link
 
 Version 6.2.1
 

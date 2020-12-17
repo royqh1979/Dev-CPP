@@ -468,6 +468,8 @@ Ver=1
 27077=C++ File
 27078=Check Syntax when RETURN/ENTER typed
 27079=Open the Tabnine download site
+27080=Header
+27081=Addition Link Params
 
 28001=Name:
 28002=&C Project
@@ -651,6 +653,8 @@ Ver=1
 41006=Programs
 41007=For more information about GCC's options, please visit
 41008=Makefile
+41009=Compiler Sets
+41010=Auto Links
 
 42001=Binaries
 42002=Libraries
