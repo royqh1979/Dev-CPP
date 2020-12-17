@@ -32,7 +32,8 @@ Version 6.3-beta1
     - fix: can't find stl chrono header (because it's name starts with 'c')
     - fix: #if __cplusplus evaluates error
     - fix: #define parse error if contains '/' in value
-    - enhancement: support C++ 11 inline namespace;
+    - enhancement: support C++ 11 inline namespace; (inline namespace is treated as part of the outer namespace, it's ok for the most usages)
+    - update some icons
 
 Version 6.2.1
 

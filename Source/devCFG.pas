@@ -1328,7 +1328,7 @@ begin
   // Don't use CommaText:
   // http://stackoverflow.com/questions/1335027/delphi-stringlist-delimiter-is-always-a-space-character-even-if-delimiter-is-se
 //  output := GetCompilerOutput(BinDir + pd, 'cpp.exe', '-dM -E -x c++ -std=gnu++11 NUL');
-  output := GetCompilerOutput(BinDir + pd, 'cpp.exe', '-dM -E -x c++ NUL');
+  output := GetCompilerOutput(BinDir + pd, 'cpp.exe', '-dM -E -x c++ -std=c++17 NUL');
   // TODO: use command of current file
   ExtractStrings([#10], [], PAnsiChar(output), fDefines);
 end;
