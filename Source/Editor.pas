@@ -841,8 +841,10 @@ begin
       fIgnoreCaretChange := false;
 
     if fText.SelAvail then begin
-      fText.Invalidate; //invalidate to highlight other occurencies of the selection world
-      fSelChanged:=True;
+      if fText.GetWordAtRowCol(fText.CaretXY) = fText.SelText then begin
+        fText.Invalidate; //invalidate to highlight other occurencies of the selection world
+        fSelChanged:=True;
+      end;
     end else if fSelChanged then begin
       fSelChanged:=False; //invalidate to unhighlight others
       fText.Invalidate;

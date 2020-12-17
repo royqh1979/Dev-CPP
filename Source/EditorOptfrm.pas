@@ -981,27 +981,45 @@ var
   begin
     cpBackground.Selected:=clWhite;
     if bg = clNone then begin
-      cpBackground.Enabled := False;
       cbBackground.Checked := False;
-      cpBackground.Selected := fbgColor;
+      cpBackground.Selected := clNone;
     end else begin
-      cpBackground.Enabled := True;
       cbBackground.Checked := True;
       cpBackground.Selected := bg;
     end;
     cpForeground.Selected:=clWhite;
     if fg = clNone then begin
-      cpForeground.Enabled := False;
       cbForeground.Checked := False;
-      cpForeground.Selected := ffgColor;
+      cpForeground.Selected := clNone;
     end else begin
-      cpForeground.Enabled := True;
       cbForeground.Checked := True;
       cpForeground.Selected := fg;
     end;
 
   end;
+
+  procedure setColorSettingsEnabled(enabled:boolean);
+  begin
+    if not enabled then begin
+      cbForeground.OnClick:=nil;
+      cbBackground.OnClick:=nil;
+      cpForeground.OnChange := nil;
+      cpBackground.OnChange := nil;
+      cbBold.OnClick:=nil;
+      cbItalic.OnClick := nil;
+      cbUnderlined.OnClick := nil
+    end else begin
+      cbForeground.OnClick:=styleChange;
+      cbBackground.OnClick:=styleChange;
+      cpForeground.OnChange := styleChange;
+      cpBackground.OnChange := styleChange;
+      cbBold.OnClick:=styleChange;
+      cbItalic.OnClick := styleChange;
+      cbUnderlined.OnClick := styleChange;
+    end;
+  end;
 begin
+  setColorSettingsEnabled(false);
   cbBackground.Enabled := True;
   cbForeground.Enabled := True;
 
@@ -1071,6 +1089,7 @@ begin
       cbUnderlined.Checked := fsUnderline in Style;
     end;
   end;
+  setColorSettingsEnabled(true);
 end;
 
 procedure TEditorOptForm.StyleChange(Sender: TObject);
