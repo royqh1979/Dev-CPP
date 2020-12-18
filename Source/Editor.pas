@@ -527,15 +527,21 @@ begin
   // Don't waste time refocusing
   if fText.Focused then
     Exit;
-  fText.BeginUpdate;
+  MainForm.ClassBrowser.BeginUpdate;
   try
-    // Allow the user to start typing right away
-    fTabSheet.PageControl.ActivePage := fTabSheet;
-    fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+    MainForm.UpdateClassBrowserForEditor(self);
+    fText.BeginUpdate;
+    try
+      // Allow the user to start typing right away
+      fTabSheet.PageControl.ActivePage := fTabSheet;
+      fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+    finally
+      fText.EndUpdate;
+    end;
   finally
-    fText.EndUpdate;
+    MainForm.ClassBrowser.EndUpdate;
   end;
-  
+
   //don't need to reparse here, in EditorEnter event handler we will do it
   MainForm.UpdateFileEncodingStatusPanel;
 end;

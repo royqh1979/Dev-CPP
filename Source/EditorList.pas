@@ -351,8 +351,9 @@ begin
     end;
 
     // Show new editor after forcing a layout update
-    if Assigned(PrevEditor) then
+    if Assigned(PrevEditor) then begin
       PrevEditor.Activate;
+    end;
   finally
     EndUpdate; // redraw once
   end;

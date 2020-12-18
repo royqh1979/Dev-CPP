@@ -4968,11 +4968,9 @@ begin
     // Update focus so user can keep typing
     if e.Text.CanFocus then // TODO: can fail for some reason
       e.Text.SetFocus; // this should trigger then OnEnter even of the Text control
-    // Set classbrowser to current file
-    //UpdateClassBrowserForEditor(e);
-//    ClassBrowser.CurrentFile := e.FileName;
-    // No editors are visible
+    // UpdateClassBrowserForEditor(e);
   end else begin
+    // No editors are visible
     // Set title bar to current file
     UpdateAppTitle;
 
@@ -5276,14 +5274,7 @@ begin
   if (ClassBrowser.CurrentFile = e.FileName)
     and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;
-    {
-  end else if (ClassBrowser.CurrentFile<> '') and IsCFile(ClassBrowser.CurrentFile)
-    and (
-      not assigned(fProject)
-      or (fProject.Units.IndexOf(ClassBrowser.CurrentFile)<0)
-    ) then begin
-    CppParser.InvalidateFile(ClassBrowser.CurrentFile); //invalid old file
-  }
+
   end else if not assigned(fProject) then begin
     UpdateClassBrowsing;
   end else begin
