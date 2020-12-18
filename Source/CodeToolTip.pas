@@ -83,11 +83,12 @@ type
     FSelIndex: Integer;
     FBmp: TBitmap;
     FOptions: TToolTipOptions;
-    FEditor: TCustomSynEdit;
+    FEditor: TSynEdit;
+    fFileName: String;
     FKeyDownProc: TKeyEvent;
     FToolTips: TStringList;
     FCurParamIndex: Integer;
-    FLookupEditor: TCustomSynEdit;
+    FLookupEditor: TSynEdit;
     FMaxScanLength: Integer;
     FOldFunction: AnsiString;
     FForceHide: boolean; // true if hidden by Esc
@@ -114,13 +115,14 @@ type
     property Options: TToolTipOptions read FOptions write FOptions;
     property Parser: TCppParser read FParser write FParser;
     property Activated: Boolean read FActivated write FActivated;
-    property Editor: TCustomSynEdit read FEditor write FEditor;
+    property Editor: TSynEdit read FEditor write FEditor;
+    property FileName: String read fFilename write fFilename;
   end;
 
 implementation
 
 uses
-  devcfg;
+  devcfg,editor;
 
 // contains the up/down buttons
 // I tried to draw them using DrawFrameControl first,
@@ -689,7 +691,7 @@ var
   nCommas: Integer;
   token: AnsiString;
   HLAttr: TSynHighlighterAttributes;
-  FuncStartXY: TBufferCoord;
+  FuncStartXY,pWordBegin,pWordEnd: TBufferCoord;
 begin
 
   // get the current position in the collapsed text
@@ -797,14 +799,15 @@ begin
 
   // Get the name of the function we're about to show
   FuncStartXY := FEditor.CharIndexToRowCol(CurPos - 1);
-  S := FEditor.GetWordAtRowCol(FuncStartXY);
-
-  // Don't bother scanning the database when there's no identifier to scan for
   FEditor.GetHighlighterAttriAtRowCol(FuncStartXY, token, HLAttr);
   if not (HLAttr = FEditor.Highlighter.IdentifierAttribute) then begin
     ReleaseHandle;
     Exit;
   end;
+
+  S := GetWordAtPosition(fEditor, FuncStartXY, pWordBegin,pWordEnd,wpInformation);
+
+  // Don't bother scanning the database when there's no identifier to scan for
 
   // Only do the cumbersome list filling when showing a new tooltip...
   if (S <> FOldFunction) or not Activated then begin
@@ -814,7 +817,7 @@ begin
     // Fill a cache of known functions...
     FToolTips.BeginUpdate;
     FToolTips.Clear;
-    FParser.FillListOfFunctions(S, FToolTips);
+    FParser.FillListOfFunctions(fFileName,S,FuncStartXY.Line, FToolTips);
     FToolTips.EndUpdate;
   end;
 

@@ -442,6 +442,7 @@ begin
   fFunctionTip := TCodeToolTip.Create(Application);
   fFunctionTip.Editor := fText;
   fFunctionTip.Parser := fParser;
+  fFunctionTip.FileName := filename;
 
   // Initialize code completion stuff
   InitCompletion;
@@ -828,9 +829,11 @@ begin
     // Update the function tip
     fFunctionTip.ForceHide := false;
     if Assigned(fFunctionTipTimer) then begin
-      if fFunctionTip.Activated and FunctionTipAllowed then
-        fFunctionTip.Show
-      else begin // Reset the timer
+      if fFunctionTip.Activated and FunctionTipAllowed then begin
+        fFunctionTip.Parser := fParser;
+        fFunctionTip.FileName := fFileName;
+        fFunctionTip.Show;
+      end else begin // Reset the timer
         fFunctionTipTimer.Enabled := false;
         fFunctionTipTimer.Enabled := true;
       end;
@@ -886,8 +889,11 @@ end;
 
 procedure TEditor.FunctionTipTimer(Sender: TObject);
 begin
-  if FunctionTipAllowed then
+  if FunctionTipAllowed then begin
+    fFunctionTip.Parser := fParser;
+    fFunctionTip.FileName := fFileName;
     fFunctionTip.Show;
+  end;
 end;
 
 procedure TEditor.ExportToHTML;
@@ -2529,7 +2535,8 @@ begin
     if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
       if (Length(fText.LineText) < p.Char+1 ) // it's the last char on line
         or (fText.LineText[p.Char+1] <> '(') then begin  // it don't have '(' after it
-      FuncAddOn := '()';
+        if not (SameStr('std::endl',Statement^._Fullname)) then
+          FuncAddOn := '()';
       end;
     end;
   end;
@@ -2550,6 +2557,8 @@ begin
       // immediately activate function hint
       if devEditor.ShowFunctionTip and Assigned(fText.Highlighter) then begin
         fText.SetFocus;
+        fFunctionTip.Parser := fParser;
+        fFunctionTip.FileName := fFileName;
         fFunctionTip.Show;
       end;
     end;
@@ -2619,28 +2628,56 @@ var
     fText.Hint := pError.Hint;
   end;
 
-  function GetHintFromStatement(st:PStatement):AnsiString;
+  function GetHintForFunction(statement,ScopeStatement:PStatement):String;
   var
     children:TList;
     childStatement:PStatement;
     i:integer;
+  begin
+    Result := '';
+    children := fParser.Statements.GetChildrenStatements(ScopeStatement);
+    if not assigned(children) then
+      Exit;
+    for i:=0 to children.Count-1 do begin
+      childStatement:=PStatement(children[i]);
+      if samestr(st^._Command,childStatement^._Command)
+        and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
+          if Result <> '' then
+            Result:=Result+#13;
+          Result := Result + fParser.PrettyPrintStatement(childStatement)
+            + ' - ' + ExtractFileName(childStatement^._FileName)
+            + ' ('  + IntToStr(childStatement^._Line) + ')';
+      end;
+    end;
+  end;
+
+
+  function GetHintFromStatement(st:PStatement):AnsiString;
+  var
     hint:AnsiString;
+    k:integer;
+    namespaceStatementsList:TList;
+    namespaceStatement:PStatement;
+
   begin
     if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
-      hint:='';
-      children := fParser.Statements.GetChildrenStatements(st^._ParentScope);
-      for i:=0 to children.Count-1 do begin
-        childStatement:=PStatement(children[i]);
-        if samestr(st^._Command,childStatement^._Command)
-          and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
-            if hint <> '' then
-              hint:=hint+#13;
-            Hint := hint + fParser.PrettyPrintStatement(childStatement)
-              + ' - ' + ExtractFileName(childStatement^._FileName)
-              + ' ('  + IntToStr(childStatement^._Line) + ')';
+      if Assigned(st^._ParentScope) and (st^._ParentScope^._Kind = skNamespace) then begin
+        namespaceStatementsList:=fParser.FindNamespace(st^._ParentScope^._Command);
+        if Assigned(namespaceStatementsList) then begin
+          for k:=0 to namespaceStatementsList.Count-1 do begin
+            namespaceStatement:=PStatement(namespaceStatementsList[k]);
+            if Assigned(namespaceStatement) then begin
+              hint := GetHintForFunction(st,namespaceStatement);
+              if hint <> '' then begin
+                if Result <> '' then
+                  Result :=Result+#13;
+                Result := Result + hint;
+              end;
+            end;
+          end;
         end;
-        Result:=hint;
-      end;
+      end else
+        Result:=GetHintForFunction(st,st^._ParentScope);
     end else if st^._Line>0 then begin
       Result := fParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
         IntToStr(st^._Line) + ') - Ctrl+Click for more info';

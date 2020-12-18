@@ -200,7 +200,7 @@ type
     procedure AddProjectIncludePath(const Value: AnsiString);
     procedure AddFileToScan(Value: AnsiString; InProject: boolean = False);
     function PrettyPrintStatement(Statement: PStatement; line:integer = -1): AnsiString;
-    procedure FillListOfFunctions(const Full: AnsiString; List: TStringList);
+    procedure FillListOfFunctions(const FileName, Phrase: AnsiString; const Line: integer;  List: TStringList);
     function FindAndScanBlockAt(const Filename: AnsiString; Line: integer): PStatement;
     function FindStatementOf(FileName, Phrase: AnsiString; Line: integer): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement;
@@ -3395,27 +3395,46 @@ begin
   end;
 end;
 
-procedure TCppParser.FillListOfFunctions(const Full: AnsiString; List: TStringList);
+procedure TCppParser.FillListOfFunctions(const FileName, Phrase: AnsiString; const Line: integer; List: TStringList);
 var
-  Node: PStatementNode;
-  Statement: PStatement;
-begin
-  List.Clear;
-  // Tweaked for specific use by CodeToolTip. Also avoids AnsiString compares whenever possible
-  Node := fStatementList.LastNode; // Prefer user declared names
-  while Assigned(Node) do begin
-    Statement := Node^.Data;
-    if Statement^._Kind in [skFunction, skConstructor, skDestructor] then begin
+  Statement,namespaceStatement: PStatement;
+  k:integer;
+  namespaceStatementsList:TList;
 
-      // Also add Win32 Ansi/Wide variants...
-      if SameStr(Full, Statement^._Command) or
-        SameStr(Full + 'A', Statement^._Command) or
-        SameStr(Full + 'W', Statement^._Command) then begin
-        List.Add(PrettyPrintStatement(Statement));
+  procedure FillList(statement, scopeStatement:PStatement);
+  var
+    childStatement:PStatement;
+    children: TList;
+    i:integer;
+  begin
+    children := Statements.GetChildrenStatements(scopeStatement);
+    if not Assigned(children) then
+      Exit;
+    for i:=0 to children.Count-1 do begin
+      childStatement:=PStatement(children[i]);
+      if samestr(Statement^._Command,childStatement^._Command)
+        or samestr(Statement^._Command + 'A',childStatement^._Command)
+        or samestr(Statement^._Command + 'W',childStatement^._Command) then begin
+          List.Add(PrettyPrintStatement(childStatement));
       end;
     end;
-    Node := Node^.PrevNode;
   end;
+begin
+  List.Clear;
+  Statement := self.FindStatementOf(FileName,Phrase, Line);
+  if not Assigned(statement) then
+    Exit;
+  if Assigned(statement^._ParentScope) and (statement^._ParentScope^._Kind = skNamespace) then begin
+    namespaceStatementsList:=FindNamespace(statement^._ParentScope^._Command);
+    if Assigned(namespaceStatementsList) then begin
+        for k:=0 to namespaceStatementsList.Count-1 do begin
+          namespaceStatement:=PStatement(namespaceStatementsList[k]);
+          if Assigned(namespaceStatement) then
+            FillList(statement, namespaceStatement);
+        end;
+      end;
+  end else
+    FillList(statement, statement^._ParentScope);
 end;
 
 function TCppParser.FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
@@ -3630,7 +3649,7 @@ begin
     if Assigned(Result) then
       Exit;
     if (scopeStatement^._Kind = skNamespace) then begin
-      namespaceStatementsList:=FindNamespace(scopeStatement._Command);
+      namespaceStatementsList:=FindNamespace(scopeStatement^._Command);
       if Assigned(namespaceStatementsList) then begin
         for k:=0 to namespaceStatementsList.Count-1 do begin
           namespaceStatement:=PStatement(namespaceStatementsList[k]);
