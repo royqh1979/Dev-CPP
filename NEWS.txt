@@ -37,6 +37,10 @@ Version 6.3-beta1
     - enhancement: auto link
     - fix: color setting is messed up when click in the editor option dialog's color tab page.
     - enhancement: reduce flicker when select a paragraph
+    - fix: crash when close an opened file
+    - enhancement: correctly detect and set mingw-w64 gcc compiler set
+    - enhancement: don't auto add () when complete std::endl
+    - enhancement: correctly show function tip of overloaded functions
 
 Version 6.2.1
 

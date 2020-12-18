@@ -69,6 +69,7 @@ type
     fFolder: AnsiString; // MinGW64, MinGW32
     fDefInclude: TStringList; // default include dir
     fDefines: TStringList; // list of predefined constants
+    fTarget: AnsiString; // 'X86_64' / 'i686'
 
     // User settings
     fCompAdd: boolean;
@@ -130,6 +131,7 @@ type
 
     // Properties
     property Name: AnsiString read fName write fName;
+    property Target: AnsiString read fTarget;
     property DefInclude: TStringList read fDefInclude;
     property Defines: TStringList read fDefines;
 
@@ -1271,6 +1273,21 @@ begin
 
   // Obtain version number and compiler distro etc
   output := GetCompilerOutput(BinDir + pd, BinFile, '-v');
+  //Target
+  DelimPos1 := Pos('Target: ', output);
+  if DelimPos1 = 0 then
+    Exit; // unknown binary
+  Inc(DelimPos1, Length('Target: '));
+  DelimPos2 := DelimPos1;
+  while (DelimPos2 <= Length(output)) and not (output[DelimPos2] in [#0..#32]) do
+    Inc(DelimPos2);
+  fTarget := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
+  if ContainsText(fTarget,'x86_64') then
+    fTarget := 'x86_64'
+  else
+    fTarget := 'i686';
+
+  //version
   DelimPos1 := Pos('gcc version ', output);
   if DelimPos1 = 0 then
     Exit; // unknown binary
@@ -1362,6 +1379,10 @@ begin
     AddExistingDirectory(fBinDir, fFolder + pd + fDumpMachine + pd + 'bin');
     AddExistingDirectory(fLibDir, fFolder + pd + fDumpMachine + pd + 'lib');
 
+    //mingw-w64 bin folder
+    AddExistingDirectory(fBinDir,
+      fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion );
+
     // Regular include folder
     AddExistingDirectory(fCDir, fFolder + pd + fDumpMachine + pd + 'include');
     AddExistingDirectory(fCppDir, fFolder + pd + fDumpMachine + pd + 'include');
@@ -1378,13 +1399,22 @@ begin
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include-fixed');
 
 
-    // C++ only folder
+    // C++ only folder (mingw.org)
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++');
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++' + pd + fDumpMachine );
     AddExistingDirectory(fCppDir,
       fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd + 'c++' + pd + 'backward');
+
+    // C++ only folder (Mingw-w64)
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'include' + pd + 'c++' + pd  + fVersion );
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'include' + pd + 'c++' + pd  + fVersion + pd + fDumpMachine);
+    AddExistingDirectory(fCppDir,
+      fFolder + pd + 'include' + pd + 'c++' + pd  + fVersion + pd + 'backward');
+
   end;
 end;
 

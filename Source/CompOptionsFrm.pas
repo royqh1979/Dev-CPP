@@ -567,6 +567,8 @@ begin
 
   // Add empty compiler set
   devCompilerSets.AddSet(Directory);
+  if devCompilerSets[devCompilerSets.Count - 1].Target = 'x86_64' then
+    devCompilerSets[devCompilerSets.Count - 1].Name := devCompilerSets[devCompilerSets.Count - 1].Name + ' 64-bit';
 
   // Add name to list
   cmbCompilerSetComp.ItemIndex := cmbCompilerSetComp.Items.Add(devCompilerSets[devCompilerSets.Count - 1].Name);
