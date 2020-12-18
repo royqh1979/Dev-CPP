@@ -38,6 +38,7 @@ Version 6.3-beta1
     - fix: color setting is messed up when click in the editor option dialog's color tab page.
     - enhancement: reduce flicker when select a paragraph
     - fix: crash when close an opened file
+    - enhancement: correctly detect and set mingw-w64 gcc compiler set
 
 Version 6.2.1
 
