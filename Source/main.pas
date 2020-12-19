@@ -7679,10 +7679,11 @@ end;
 
 procedure TMainForm.actRenameSymbolExecute(Sender: TObject);
 var
-  Editor : TEditor;
+  Editor,e : TEditor;
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
-  OldTopLine: integer;
+  OldTopLine,i : integer;
+  M: TMemoryStream;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -7727,7 +7728,24 @@ begin
       Editor.Text.TopLine := OldTopLine;
       Editor.Text.CaretXY := OldCaretXY;
 
-      Editor.Save;
+      //Editor.Save;
+
+      if devCodeCompletion.Enabled and assigned(fProject) then begin
+        for i:=0 to EditorList.PageCount-1 do begin
+          e:=EditorList.GetEditor(i);
+          if e.Text.Modified and e.InProject then begin
+            M := TMemoryStream.Create;
+            try
+              e.Text.Lines.SaveToStream(M);
+              // Reparse whole file (not function bodies) if it has been modified
+              // use stream, don't read from disk (not saved yet)
+              fProject.CppParser.ParseFile(e.FileName, e.InProject, False, False, M);
+            finally
+              M.Free;
+            end;
+          end;
+        end;
+      end;
     finally
       Free;
     end;

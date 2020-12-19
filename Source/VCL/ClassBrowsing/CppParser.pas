@@ -23,7 +23,7 @@ interface
 
 uses
   Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
-  cbutils, IntList,SyncObjs;
+  cbutils, IntList,SyncObjs, iniFiles;
 
 
 type
@@ -73,6 +73,7 @@ type
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
     fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
+    fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements> 
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -162,7 +163,7 @@ type
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function GetRemainder(const Phrase: AnsiString): AnsiString;
-
+    function getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
   public
     procedure ParseHardDefines;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
@@ -239,7 +240,7 @@ procedure Register;
 implementation
 
 uses
-  DateUtils, IniFiles;
+  DateUtils;
 
 procedure Register;
 begin
@@ -277,6 +278,8 @@ begin
   fBlockBeginSkips := TIntList.Create;
   fBlockEndSkips := TIntList.Create;
   fInlineNamespaceEndSkips := TIntList.Create;
+  fRemovedStatements := THashedStringList.Create;
+  fRemovedStatements.CaseSensitive:=True;
 end;
 
 destructor TCppParser.Destroy;
@@ -305,6 +308,7 @@ begin
     namespaceList.Free;
   end;
   FreeAndNil(fNamespaces);
+  FreeAndNil(fRemovedStatements);
 
   FreeAndNil(fSkipList);
   FreeAndNil(fBlockBeginSkips);
@@ -499,6 +503,11 @@ begin
     Result:=nil;
 end;
 
+function TCppParser.getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
+begin
+  Result := _Name + '--'+_Type+'--'+_NoNameArgs;
+end;
+
 function TCppParser.AddChildStatement(
   Parent: PStatement;
   const FileName: AnsiString;
@@ -577,7 +586,9 @@ var
   NewType, NewCommand,NoNameArgs: AnsiString;
   node: PStatementNode;
   fileIncludes1:PFileIncludes;
-  idx:integer;
+  idx,idx2:integer;
+  key:String;
+  removedStatement: PRemovedStatement;
   //t,lenCmd:integer;
 
   function AddToList: PStatement;
@@ -760,9 +771,26 @@ begin
         oldStatement^._FileName:=FileName;
       end;
       Exit;
-    end
+    end;
   end;
   Result := AddToList;
+
+  if kind in [skConstructor, skFunction,skDestructor] then begin
+    key:=GetStatementKey(Result^._FullName,Result^._Type,Result^._NoNameArgs);
+    idx := fRemovedStatements.IndexOf(key);
+    if idx>=0 then begin
+      removedStatement := PRemovedStatement(fRemovedStatements.Objects[idx]);
+      Result^._DefinitionLine := removedStatement^._DefinitionLine;
+      Result^._DefinitionFileName := removedStatement^._DefinitionFileName;
+      fileIncludes1:=FindFileIncludes(Result^._DefinitionFileName);
+      if Assigned(fileIncludes1) then begin
+        idx2:=fileIncludes1^.Statements.Add(Result);
+        fileIncludes1^.StatementsIndex.Add(IntToStr(integer(Result)),idx2);
+      end;
+      dispose(PRemovedStatement(removedStatement));
+      fRemovedStatements.Delete(idx);
+    end;
+  end;
 end;
 
 {
@@ -2666,6 +2694,11 @@ begin
   end;
   fNamespaces.Clear;
 
+  for i:=0 to fRemovedStatements.Count-1 do begin
+    dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
+  end;
+  fRemovedStatements.Clear;
+
   fProjectIncludePaths.Clear;
   fIncludePaths.Clear;
 
@@ -2949,6 +2982,10 @@ begin
         InternalParse(FileName);
       end else
         InternalParse(FileName, True, Stream); // or from stream
+      for i:=0 to fRemovedStatements.Count-1 do begin
+        dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
+      end;
+      fRemovedStatements.Clear;
       fFilesToScan.Clear;
     finally
       if Assigned(fOnEndParsing) then
@@ -2980,6 +3017,8 @@ var
 //  Node, NextNode: PStatementNode;
   Statement: PStatement;
   namespaceList:TList;
+  removedStatement: PRemovedStatement;
+  key:string;
 begin
   if Filename = '' then
     Exit;
@@ -3020,6 +3059,17 @@ begin
         fileIncludes := FindFileIncludes(Statement^._FileName);
       end else if not SameText(Statement^._DefinitionFileName,FileName) then begin
         fileIncludes := FindFileIncludes(Statement^._DefinitionFileName);
+        new(removedStatement);
+        removedStatement^._Type := Statement^._Type;
+        removedStatement^._Command := Statement^._Command;
+        removedStatement^._DefinitionLine := Statement^._DefinitionLine;
+        removedStatement^._DefinitionFileName := Statement^._DefinitionFileName;
+        removedStatement^._FullName := Statement^._FullName;
+        removedStatement^._NoNameArgs := Statement^._NoNameArgs;
+        key:=getStatementKey(removedStatement^._FullName,
+          removedStatement^._Type,
+          removedStatement^._NoNameArgs);
+        fRemovedStatements.AddObject(key,TObject(removedStatement));
       end;
       if Assigned(fileIncludes) then begin
         idx:=fileIncludes.StatementsIndex.ValueOf(IntToStr(integer(statement)));

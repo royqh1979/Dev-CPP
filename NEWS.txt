@@ -1,3 +1,8 @@
+Version 6.3-beta2
+
+    - enhancement: correct reparse header file in project (don't lose function definition in other files)
+    - fix: reparse changed files after rename symbols
+
 Version 6.3-beta1
     
     - enhancement: add ignore case option in the code completion tab of the editor options dialog
