@@ -70,6 +70,8 @@ var
   Editor:TSynEdit;
   ownEditor:boolean;
   pBeginPos,pEndPos : TBufferCoord;
+  OldCaretXY: TBufferCoord;
+  OldTopLine: integer;
 
   procedure ProcessLine;
   var
@@ -129,6 +131,9 @@ begin
     end;
   end;
 
+  OldTopLine := Editor.TopLine;
+  OldCaretXY := Editor.CaretXY;
+
   Lines := Editor.Lines;
   if Lines.Count<1 then
     Exit;
@@ -140,14 +145,22 @@ begin
       newLines.Add(currentNewLine);
       inc(PosY);
     end;
+
+    // remove added last new line
     // Use replace all functionality
     Editor.BeginUpdate;
     try
       Editor.SelectAll;
       Editor.SelText := newLines.Text;
+    if (newLines.Count >0) and (newLines[newLines.Count-1] = '') then begin
+      newLines.Delete(newLines.Count-1);
+    end;
+      Editor.TopLine := OldTopLine;
+      Editor.CaretXY := OldCaretXY;
     finally
       Editor.EndUpdate; // repaint once
     end;
+
     if ownEditor then begin
       with TStringList.Create do try
         Text:=editor.Lines.Text;
@@ -155,6 +168,8 @@ begin
       finally
         Free;
       end;
+    end else begin
+      mainForm.EditorList.GetEditorFromFileName(FileName).Save;
     end;
     Result := True;
   finally
@@ -203,6 +218,8 @@ begin
   Lines := Editor.Text.Lines;
   if Lines.Count<1 then
     Exit;
+
+  Editor.CppParser.Freeze;
   try
     // get full phrase (such as s.name instead of name)
     phrase := GetWordAtPosition(Editor.Text,oldCaretXY,pBeginPos,pEndPos,wpInformation);
@@ -227,6 +244,8 @@ begin
         pNewStatement^._DefinitionLine]), mtInformation, [mbOK], 0);
       Exit;
     end;
+
+
   if assigned(project) and (project.Units.IndexOf(editor.FileName)>=0) then begin
     // found but not in this project
     if not ((project.Units.IndexOf(oldStatement._FileName)>=0)
@@ -252,6 +271,9 @@ begin
     Result:=RenameSymbolInFile(editor.FileName,@oldStatement,oldName,newName);
   end;
 
+  finally
+    Editor.CppParser.UnFreeze;
+  end;
 end;
 
 function TRefactorer.CheckNotSpanTokens(FileName:AnsiString;edit: TSynEdit;

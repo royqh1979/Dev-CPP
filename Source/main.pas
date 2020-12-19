@@ -977,6 +977,8 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actCompileUpdate(Sender: TObject);
     procedure actSyntaxCheckFileUpdate(Sender: TObject);
+    procedure actRenameSymbolUpdate(Sender: TObject);
+    procedure actExtractMacroUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -2377,7 +2379,8 @@ begin
 
   e:=EditorList.GetEditor();
   if Assigned(e) then begin
-    e.Text.Invalidate;
+    e.BeginUpdate;
+    e.EndUpdate;
   end;
 
   // Jump to problem location, sorted by significance
@@ -4810,9 +4813,13 @@ end;
 procedure TMainForm.ScanActiveProject(parse:boolean);
 begin
   //UpdateClassBrowsing;
-  SetCppParserProject(fProject);
-  if Assigned(fProject) and parse then
+  if Assigned(fProject) and parse then begin
+    ResetCppParser(fProject.CppParser);
+    SetCppParserProject(fProject);
     Project.CppParser.ParseFileList;
+  end else begin
+    SetCppParserProject(fProject);
+  end;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -7682,27 +7689,29 @@ var
   Editor,e : TEditor;
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
-  OldTopLine,i : integer;
+  i : integer;
   M: TMemoryStream;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
+    Editor.BeginUpdate;
+    try
     word := Editor.Text.WordAtCursor;
     // MessageBox(Application.Handle,PAnsiChar(Concat(word,IntToStr(offset))),     PChar( 'Look'), MB_OK);
     if Word = '' then begin
       Exit;
     end;
 
-  if not IsIdentifier(word) then begin
-    MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[word]), mtInformation, [mbOK], 0);
-    Exit;
-  end;
+    if not IsIdentifier(word) then begin
+      MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[word]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
 
-  //Test if newName is a C++ keyword
-  if IsKeyword(word) then begin
-    MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[word]), mtInformation, [mbOK], 0);
-    Exit;
-  end;
+    //Test if newName is a C++ keyword
+    if IsKeyword(word) then begin
+      MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[word]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
 
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
@@ -7714,41 +7723,25 @@ begin
 
       if word = newword then
         Exit;
-
-      OldTopLine := Editor.Text.TopLine;
+        
       OldCaretXY := Editor.Text.CaretXY;
-
       with TRefactorer.Create(devRefactorer,GetCppParser) do try
+        if assigned(fProject) then begin
+          self.actSaveAllExecute(self);
+          ScanActiveProject(true);
+        end;
         RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
       end;
 
-      // Attempt to not scroll view
-      Editor.Text.TopLine := OldTopLine;
-      Editor.Text.CaretXY := OldCaretXY;
-
       //Editor.Save;
-
-      if devCodeCompletion.Enabled and assigned(fProject) then begin
-        for i:=0 to EditorList.PageCount-1 do begin
-          e:=EditorList.GetEditor(i);
-          if e.Text.Modified and e.InProject then begin
-            M := TMemoryStream.Create;
-            try
-              e.Text.Lines.SaveToStream(M);
-              // Reparse whole file (not function bodies) if it has been modified
-              // use stream, don't read from disk (not saved yet)
-              fProject.CppParser.ParseFile(e.FileName, e.InProject, False, False, M);
-              e.UpdateCaption;
-            finally
-              M.Free;
-            end;
-          end;
-        end;
-      end;
+      ScanActiveProject(true);      
     finally
       Free;
+    end;
+    finally
+      Editor.EndUpdate;
     end;
   end;
 end;
@@ -8729,6 +8722,24 @@ begin
       or IsHFile(e.FileName)
       or (e.New and e.Text.Modified)
     );
+end;
+
+procedure TMainForm.actRenameSymbolUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty
+    and not e.CppParser.Parsing;
+end;
+
+procedure TMainForm.actExtractMacroUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty
+    and not e.CppParser.Parsing;
 end;
 
 end.

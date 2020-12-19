@@ -73,7 +73,8 @@ type
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
     fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
-    fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements> 
+    fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements>
+    fCriticalSection: TCriticalSection;
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -213,13 +214,14 @@ type
     function FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
-    procedure Freeze(FileName:AnsiString; Stream: TMemoryStream);  // Freeze/Lock (stop reparse while searching)
-    procedure UnFreeze(); // UnFree/UnLock (reparse while searching)
-
+    procedure Freeze;  // Freeze/Lock (stop reparse while searching)
+    procedure UnFreeze; // UnFree/UnLock (reparse while searching)
+    function GetParsing: boolean;
+    
     property IncludePaths: TStringList read fIncludePaths;
     property ProjectIncludePaths: TStringList read fProjectIncludePaths;
   published
-    property Parsing: boolean read fParsing;
+    property Parsing: boolean read GetParsing;
     property Enabled: boolean read fEnabled write fEnabled;
     property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
     property OnBusy: TNotifyEvent read fOnBusy write fOnBusy;
@@ -280,6 +282,7 @@ begin
   fInlineNamespaceEndSkips := TIntList.Create;
   fRemovedStatements := THashedStringList.Create;
   fRemovedStatements.CaseSensitive:=True;
+  fCriticalSection:= TCriticalSection.Create;
 end;
 
 destructor TCppParser.Destroy;
@@ -320,6 +323,7 @@ begin
   FreeAndNil(fScannedFiles);
   FreeAndNil(fIncludePaths);
   FreeAndNil(fProjectIncludePaths);
+  FreeAndNil(fCriticalSection);
   inherited Destroy;
 end;
 
@@ -2647,6 +2651,8 @@ var
   I: integer;
   namespaceList:TList;
 begin
+  fCriticalSection.Acquire;
+  try
   if Assigned(fOnBusy) then
     fOnBusy(Self);
   if Assigned(fPreprocessor) then
@@ -2706,13 +2712,18 @@ begin
 
   if Assigned(fOnUpdate) then
     fOnUpdate(Self);
+  finally
+    fCriticalSection.Release;
+  end;    
 end;
 
 procedure TCppParser.ParseFileList;
 var
   I: integer;
 begin
-  if fParsing then
+  fCriticalSection.Acquire;
+  try
+  if fParsing or fLocked then
     Exit;
   fParsing:=True;
   try
@@ -2758,6 +2769,9 @@ begin
   finally
     fParsing:=False;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 {
@@ -2781,16 +2795,33 @@ end;
 
 function TCppParser.GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := cbutils.GetHeaderFileName(RelativeTo, Line, fIncludePaths, fProjectIncludePaths);
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.IsIncludeLine(const Line: AnsiString): boolean;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := cbutils.IsIncludeLine(Line);
+  finally
+    fCriticalSection.Release;
+  end;  
+end;
+
+function TCppParser.GetParsing:boolean;
+begin
+  Result:= fParsing or fLocked;
 end;
 
 procedure TCppParser.AddFileToScan(Value: AnsiString; InProject: boolean);
 begin
+  fCriticalSection.Acquire;
+  try
   Value := StringReplace(Value, '/', '\', [rfReplaceAll]); // only accept full file names
 
   // Update project listing
@@ -2802,39 +2833,67 @@ begin
   if FastIndexOf(fFilesToScan,Value) = -1 then // check scheduled files
     if FastIndexOf(fScannedFiles,Value) = -1 then // check files already parsed
       fFilesToScan.Add(Value);
+  finally
+    fCriticalSection.Release;
+  end;      
 end;
 
 procedure TCppParser.AddIncludePath(const Value: AnsiString);
 var
   S: AnsiString;
 begin
+  fCriticalSection.Acquire;
+  try
   S := AnsiDequotedStr(Value, '"');
   if FastIndexOf(fIncludePaths,S) = -1 then
     fIncludePaths.Add(S);
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.AddProjectIncludePath(const Value: AnsiString);
 var
   S: AnsiString;
 begin
+  fCriticalSection.Acquire;
+  try
   S := AnsiDequotedStr(Value, '"');
   if FastIndexOf(fProjectIncludePaths,S) = -1 then
     fProjectIncludePaths.Add(S);
+  finally
+    fCriticalSection.Release;
+  end;    
 end;
 
 procedure TCppParser.ClearIncludePaths;
 begin
-  fIncludePaths.Clear;
+  fCriticalSection.Acquire;
+  try
+    fIncludePaths.Clear;
+  finally
+    fCriticalSection.Release;
+  end;    
 end;
 
 procedure TCppParser.ClearProjectIncludePaths;
 begin
+  fCriticalSection.Acquire;
+  try
   fProjectIncludePaths.Clear;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.ClearProjectFiles;
 begin
+  fCriticalSection.Acquire;
+  try
   fProjectFiles.Clear;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 {
@@ -2859,6 +2918,8 @@ var
   define :PDefine;
   HintText:String;
 begin
+  fCriticalSection.Acquire;
+  try
   if fParsing then
     Exit;
   fParsing:=True;
@@ -2891,26 +2952,44 @@ begin
   finally
     fParsing:=False;
   end;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TCppParser.AddHardDefineByLine(const Line: AnsiString);
 begin
+  fCriticalSection.Acquire;
+  try
   if Assigned(fPreprocessor) then begin
     if Pos('#', Line) = 1 then
       fPreprocessor.AddDefineByLine(TrimLeft(Copy(Line, 2, MaxInt)), True)
     else
       fPreprocessor.AddDefineByLine(Line, True);
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.IsSystemHeaderFile(const FileName: AnsiString): boolean;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := cbutils.IsSystemHeaderFile(FileName, fIncludePaths);
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.IsProjectHeaderFile(const FileName: AnsiString): boolean;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := cbutils.IsSystemHeaderFile(FileName, fProjectIncludePaths);
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
@@ -2919,7 +2998,9 @@ var
   FName: AnsiString;
   I: integer;
 begin
-  if fParsing then
+  fCriticalSection.Acquire;
+  try
+  if fParsing or fLocked then
     Exit;
   fParsing:=True;
   try
@@ -2996,11 +3077,16 @@ begin
         fOnUpdate(Self);
     fParsing:=False;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
 begin
-  if fParsing then
+  fCriticalSection.Acquire;
+  try
+  if fParsing or fLocked then
     Exit;
   fParsing:=True;
   try
@@ -3008,6 +3094,9 @@ begin
   finally
     fParsing:=False;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
@@ -3099,6 +3188,8 @@ var
   i:integer;
   children: TList;
 begin
+  fCriticalSection.Acquire;
+  try
   // this function searches in the statements list for statements with
   // a specific _ParentID, and returns the suggested line in file for insertion
   // of a new var/method of the specified class scope. The good thing is that
@@ -3134,6 +3225,9 @@ begin
     AddScopeStr := False;
     Result := maxInScope;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.GetClassesList(var List: TStringList);
@@ -3141,6 +3235,8 @@ var
   Node: PStatementNode;
   Statement: PStatement;
 begin
+  fCriticalSection.Acquire;
+  try
   if fParsing then
     Exit;
   // fills List with a list of all the known classes
@@ -3152,6 +3248,9 @@ begin
       List.AddObject(Statement^._Command, Pointer(Statement));
     Node := Node^.PrevNode;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.FindAndScanBlockAt(const Filename: AnsiString; Line: integer): PStatement;
@@ -3160,6 +3259,8 @@ var
   idx,i:integer;
   statement:PStatement;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := nil;
   if fParsing then
     Exit;
@@ -3199,6 +3300,9 @@ begin
   if idx<0 then
     Exit;
   Result:= PStatement(fileIncludes.Scopes.Objects[idx]);
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.GetClass(const Phrase: AnsiString): AnsiString;
@@ -3320,11 +3424,16 @@ function TCppParser.FindNamespace(const name:AnsiString):TList; // return a list
 var
   i:integer;
 begin
+  fCriticalSection.Acquire;
+  try
   i:=FastIndexOf(fNamespaces,name);
   if i = -1 then
     Result:=nil
   else
     Result:=TList(fNamespaces.objects[i]);
+  finally
+    fCriticalSection.Release;
+  end;    
 end;
 
 
@@ -3383,6 +3492,8 @@ function TCppParser.PrettyPrintStatement(Statement: PStatement;line:integer): An
       Result := '';
   end;
 begin
+  fCriticalSection.Acquire;
+  try
   if fParsing then
     Exit; 
   Result := '';
@@ -3444,6 +3555,9 @@ begin
         end;
     end;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.FillListOfFunctions(const FileName, Phrase: AnsiString; const Line: integer; List: TStringList);
@@ -3471,6 +3585,8 @@ var
     end;
   end;
 begin
+  fCriticalSection.Acquire;
+  try
   List.Clear;
   Statement := self.FindStatementOf(FileName,Phrase, Line);
   if not Assigned(statement) then
@@ -3486,6 +3602,9 @@ begin
       end;
   end else
     FillList(statement, statement^._ParentScope);
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 function TCppParser.FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
@@ -3537,6 +3656,8 @@ var
     Result := StartAt;
   end;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := '';
   if fParsing then
     Exit;
@@ -3558,6 +3679,9 @@ begin
 
   Statement :=FindStatementOf(FileName,s,currentClass);
   Result := GetTemplateParam(Statement);
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; currentClass: PStatement): PStatement;
@@ -3610,6 +3734,8 @@ var
     Result := StartAt;
   end;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := nil;
   if fParsing then
     Exit;
@@ -3637,6 +3763,9 @@ begin
 
   Statement :=FindStatementOf(FileName,s,currentClass);
   Result := GetTypeDef(Statement);
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 function TCppParser.FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
@@ -3679,6 +3808,8 @@ var
   namespacename: AnsiString;
   FileUsings: TDevStringList;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := nil;
   if fParsing and not force then
     Exit;
@@ -3752,13 +3883,21 @@ begin
   finally
     FileUsings.Free;
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement;
 var
   StatementParentType:PStatement;
 begin
+  fCriticalSection.Acquire;
+  try
   Result:=FindStatementOf(FileName,Phrase,CurrentClass,StatementParentType,force);
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString;
@@ -3771,7 +3910,8 @@ var
   namespaceName, NextScopeWord, memberName,remainder : AnsiString;
   namespaceList:TList;
 begin
-
+  fCriticalSection.Acquire;
+  try
   Result := nil;
   CurrentClassType := CurrentClass;
   if fParsing and not force then
@@ -3905,12 +4045,21 @@ begin
     end;
   end;
   Result := Statement;
+
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 function TCppParser.FindStatementOf(FileName, Phrase: AnsiString; Line: integer): PStatement;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Line));
   //Statements.DumpWithScope('f:\\local-statements.txt');
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TCppParser.ScanMethodArgs(const FunctionStatement:PStatement; ArgStr:string);
@@ -3969,6 +4118,8 @@ function TCppParser.FindFileIncludes(const Filename: AnsiString; DeleteIt: boole
 var
   I: integer;
 begin
+  fCriticalSection.Acquire;
+  try
   Result := nil;
   i:=FastIndexOf(fIncludesList,Filename);
   if (i<> -1) then begin
@@ -3976,6 +4127,9 @@ begin
     if DeleteIt then
       fIncludesList.Delete(I);
   end;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 {
 
@@ -4002,6 +4156,8 @@ var
   sl: TStrings;
   name: AnsiString;
 begin
+  fCriticalSection.Acquire;
+  try
   if FileName = '' then
     Exit;
   List.Clear;
@@ -4028,6 +4184,9 @@ begin
     end;
   end;
   List.Sorted := True;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 //Since we have save all include files info, don't need to recursive find anymore
 procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
@@ -4036,6 +4195,8 @@ var
   P: PFileIncludes;
   sl: TStrings;
 begin
+  fCriticalSection.Acquire;
+  try
   if FileName = '' then
     Exit;
   List.Clear;
@@ -4051,6 +4212,9 @@ begin
       List.Add(sl[I]);
   end;
   List.Sorted := True;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 procedure TCppParser.InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
@@ -4120,24 +4284,24 @@ begin
     inherit^._Static);
 end;
 
-procedure TCppParser.Freeze(FileName:AnsiString;Stream: TMemoryStream);
+procedure TCppParser.Freeze;
 begin
-  // Preprocess the stream that contains the latest version of the current file (not on disk)
-  fPreprocessor.SetIncludesList(fIncludesList);
-  fPreprocessor.SetIncludePaths(fIncludePaths);
-  fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
-  fPreprocessor.SetScannedFileList(fScannedFiles);
-  fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
-  fPreprocessor.PreProcessStream(FileName, Stream);
-
-  // Tokenize the stream so we can find the start and end of the function body
-  fTokenizer.TokenizeBuffer(PAnsiChar(fPreprocessor.Result));
+  fCriticalSection.Acquire;
+  try
   fLocked := True;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
-procedure TCppParser.UnFreeze();
+procedure TCppParser.UnFreeze;
 begin
+  fCriticalSection.Acquire;
+  try
   fLocked := False;
+  finally
+    fCriticalSection.Release;
+  end;  
 end;
 
 

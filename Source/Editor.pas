@@ -111,6 +111,7 @@ type
     fLineAfterTabStop : AnsiString;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
+    fUpdateLock : integer;
     fHeaderCompletionBox : THeaderCompletion;
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
@@ -224,6 +225,8 @@ type
     procedure SetInProject(inProject:boolean);
     function HasPrevError:boolean;
     function HasNextError:boolean;
+    procedure BeginUpdate;
+    procedure EndUpdate;
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -344,6 +347,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fUpdateLock := 0;
   fSelChanged:=False;
   fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
@@ -759,10 +763,11 @@ begin
   MainForm.UpdateAppTitle;
 
   if devCodeCompletion.Enabled then begin
+    BeginUpdate;
     // Set classbrowser to current file (and parse file and refresh)
     MainForm.UpdateClassBrowserForEditor(self);
     fLastParseTime := Now;
-    fText.Invalidate;
+    EndUpdate;
   end;
 
   // Set compiler selector to current file
@@ -795,7 +800,7 @@ begin
       then begin
       Reparse;
     end;
-    if devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+    if self.fTabSheet.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
@@ -851,12 +856,14 @@ begin
 
     if fText.SelAvail then begin
       if fText.GetWordAtRowCol(fText.CaretXY) = fText.SelText then begin
-        fText.Invalidate; //invalidate to highlight other occurencies of the selection world
         fSelChanged:=True;
+        BeginUpdate;
+        EndUpdate;
       end;
     end else if fSelChanged then begin
       fSelChanged:=False; //invalidate to unhighlight others
-      fText.Invalidate;
+      BeginUpdate;
+      EndUpdate;
     end;
 
   end;
@@ -1218,6 +1225,23 @@ begin
     fText.InvalidateLine(fActiveLine);
     fText.InvalidateGutterLine(fActiveLine);
     fActiveLine := -1;
+  end;
+end;
+
+procedure TEditor.BeginUpdate;
+begin
+  if (fUpdateLock=0) then begin
+    fText.LockPainter;
+  end;
+  inc(fUpdateLock);
+end;
+
+procedure TEditor.EndUpdate;
+begin
+  dec(fUpdateLock);
+  if (fUpdateLock=0) then begin
+    fText.UnlockPainter;
+    fText.invalidate;
   end;
 end;
 
@@ -3175,9 +3199,10 @@ begin
       end;
 
       if devCodeCompletion.Enabled then begin
+        BeginUpdate;
         fParser.ParseFile(fFileName, InProject);
         fLastParseTime := Now;
-        fText.invalidate;
+        EndUpdate;
       end;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
@@ -3272,9 +3297,10 @@ begin
 
   if devCodeCompletion.Enabled then begin
     // Update class browser, redraw once
+    BeginUpdate;
     MainForm.UpdateClassBrowserForEditor(self);
     fLastParseTime := Now;
-    fText.Invalidate;
+    EndUpdate;
   end;
 end;
 
@@ -3488,8 +3514,10 @@ procedure TEditor.LinesDeleted(FirstLine,Count:integer);
       fErrorList.Sorted:=False;
       fErrorList.Assign(newList);
       fErrorList.Sorted:=True;
-      if not devCodeCompletion.Enabled then
-        fText.invalidate;
+      if not devCodeCompletion.Enabled then begin
+        BeginUpdate;
+        EndUpdate;
+      end;
     finally
       newList.Free;
     end;
@@ -3505,7 +3533,7 @@ procedure TEditor.Reparse;
 var
   M: TMemoryStream;
 begin
-  fText.LockPainter;
+  BeginUpdate;
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
@@ -3515,8 +3543,7 @@ begin
     fLastParseTime := Now;
   finally
     M.Free;
-    fText.UnlockPainter;
-    fText.Invalidate;
+    EndUpdate;
   end;
 end;
 
@@ -3539,8 +3566,10 @@ procedure TEditor.LinesInserted(FirstLine,Count:integer);
       fErrorList.Sorted:=False;
       fErrorList.Assign(newList);
       fErrorList.Sorted:=True;
-      if not devCodeCompletion.Enabled then
-        fText.invalidate;
+      if not devCodeCompletion.Enabled then begin
+        BeginUpdate;
+        EndUpdate;
+      end;
     finally
       newList.Free;
     end;

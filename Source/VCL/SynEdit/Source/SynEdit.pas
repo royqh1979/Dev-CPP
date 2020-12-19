@@ -3994,6 +3994,9 @@ var
       end;
       sRightSide := Copy(LineText, CaretX, MaxInt);
       SpaceCount := LeftSpacesEx(sLeftSide, true);
+      if (fLines.Count = 1) and (fLines[0]='') then begin
+        fLines.Clear;
+      end;
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);

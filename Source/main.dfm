@@ -3034,7 +3034,7 @@ object MainForm: TMainForm
       Caption = 'Rename Symbol'
       ShortCut = 24693
       OnExecute = actRenameSymbolExecute
-      OnUpdate = actUpdateEmptyEditor
+      OnUpdate = actRenameSymbolUpdate
     end
     object actUseUTF8: TAction
       Category = 'Edit'
@@ -3127,7 +3127,7 @@ object MainForm: TMainForm
       Category = 'Refactor'
       Caption = 'Extract Macro'
       OnExecute = actExtractMacroExecute
-      OnUpdate = actUpdateEmptyEditor
+      OnUpdate = actExtractMacroUpdate
     end
     object actCopyAsRTF: TAction
       Category = 'Edit'
