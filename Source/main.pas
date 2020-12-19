@@ -7740,6 +7740,7 @@ begin
               // Reparse whole file (not function bodies) if it has been modified
               // use stream, don't read from disk (not saved yet)
               fProject.CppParser.ParseFile(e.FileName, e.InProject, False, False, M);
+              e.UpdateCaption;
             finally
               M.Free;
             end;

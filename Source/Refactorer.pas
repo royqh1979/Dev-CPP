@@ -67,7 +67,6 @@ var
   newLines : TStringList;
   PosY:integer;
   CurrentNewLine,phrase: string;
-  M: TMemoryStream;
   Editor:TSynEdit;
   ownEditor:boolean;
   pBeginPos,pEndPos : TBufferCoord;
@@ -134,10 +133,7 @@ begin
   if Lines.Count<1 then
     Exit;
   newLines := TStringList.Create;
-  M := TMemoryStream.Create;
   try
-    Lines.SaveToStream(M);
-    CppParser.Freeze(FileName,M);  // freeze it so it will not reprocess file each search
     PosY := 0;
     while (PosY < Lines.Count) do begin
       ProcessLine;
@@ -162,8 +158,6 @@ begin
     end;
     Result := True;
   finally
-    CppParser.UnFreeze();
-    M.Free;
     newLines.Free;
     if ownEditor then begin
       Editor.Free;
@@ -176,11 +170,9 @@ function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
   oldName,newName: AnsiString; Project:TProject):boolean;
 var
   Lines:TSynEditStringList;
-  newLines : TStringList;
   phrase,newphrase,oldScopeName : string;
   pOldStatement,pNewStatement: PStatement;
   oldStatement : TStatement;
-  M: TMemoryStream;
   i:integer;
   pBeginPos,pEndPos : TBufferCoord;
 
@@ -211,11 +203,7 @@ begin
   Lines := Editor.Text.Lines;
   if Lines.Count<1 then
     Exit;
-  newLines := TStringList.Create;
-  M := TMemoryStream.Create;
   try
-    Lines.SaveToStream(M);
-    CppParser.Freeze(Editor.FileName,M);  // freeze it so it will not reprocess file each search
     // get full phrase (such as s.name instead of name)
     phrase := GetWordAtPosition(Editor.Text,oldCaretXY,pBeginPos,pEndPos,wpInformation);
     // Find it's definition
@@ -239,11 +227,6 @@ begin
         pNewStatement^._DefinitionLine]), mtInformation, [mbOK], 0);
       Exit;
     end;
-  finally
-    CppParser.UnFreeze();
-    M.Free;
-    newLines.Free;
-  end;
   if assigned(project) and (project.Units.IndexOf(editor.FileName)>=0) then begin
     // found but not in this project
     if not ((project.Units.IndexOf(oldStatement._FileName)>=0)

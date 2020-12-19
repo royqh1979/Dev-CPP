@@ -2622,7 +2622,7 @@ begin
     until not HandleStatement;
    //fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
-   //Statements.DumpWithScope('f:\\statements.txt');
+   Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -3073,7 +3073,8 @@ begin
       end;
       if Assigned(fileIncludes) then begin
         idx:=fileIncludes.StatementsIndex.ValueOf(IntToStr(integer(statement)));
-        fileIncludes.Statements[idx]:=nil;
+        if idx>=0 then
+          fileIncludes.Statements[idx]:=nil;
       end;
       fStatementList.DeleteStatement(Statement);
     end;

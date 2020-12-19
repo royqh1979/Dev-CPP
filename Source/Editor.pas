@@ -205,7 +205,7 @@ type
     procedure GotoActiveBreakpoint;
     procedure SetActiveBreakpointFocus(Line: integer);
     procedure RemoveBreakpointFocus;
-    procedure UpdateCaption(const NewCaption: AnsiString);
+    procedure UpdateCaption(const NewCaption: AnsiString='');
     procedure InsertDefaultText;
     procedure ToggleBreakPoint(Line: integer);
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
@@ -1222,10 +1222,19 @@ begin
 end;
 
 procedure TEditor.UpdateCaption(const NewCaption: AnsiString);
+var
+  caption:String;
 begin
+  caption:=NewCaption;
+  if caption = '' then begin
+    if fText.Modified then
+      caption := '[*] ' + ExtractFileName(fFileName)
+    else
+      caption := ExtractFileName(fFileName);
+  end;
   if Assigned(fTabSheet) then begin
-    if NewCaption <> fTabSheet.Caption then begin
-      fTabSheet.Caption := NewCaption;
+    if caption <> fTabSheet.Caption then begin
+      fTabSheet.Caption := caption;
     end;
   end;
 end;
