@@ -328,7 +328,7 @@ end;
 function TStatementList.GetChildrenStatementIndex(Statement:PStatement): TDevStringHash;
 begin
   if (Assigned(Statement)) then begin
-    Result:= Statement._ChildrenIndex;
+    Result:= Statement^._ChildrenIndex;
   end else
     Result:=fGlobalStatementIndex;
 end;

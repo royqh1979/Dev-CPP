@@ -977,6 +977,8 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actCompileUpdate(Sender: TObject);
     procedure actSyntaxCheckFileUpdate(Sender: TObject);
+    procedure actRenameSymbolUpdate(Sender: TObject);
+    procedure actExtractMacroUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -2377,7 +2379,8 @@ begin
 
   e:=EditorList.GetEditor();
   if Assigned(e) then begin
-    e.Text.Invalidate;
+    e.BeginUpdate;
+    e.EndUpdate;
   end;
 
   // Jump to problem location, sorted by significance
@@ -4810,9 +4813,13 @@ end;
 procedure TMainForm.ScanActiveProject(parse:boolean);
 begin
   //UpdateClassBrowsing;
-  SetCppParserProject(fProject);
-  if Assigned(fProject) and parse then
+  if Assigned(fProject) and parse then begin
+    ResetCppParser(fProject.CppParser);
+    SetCppParserProject(fProject);
     Project.CppParser.ParseFileList;
+  end else begin
+    SetCppParserProject(fProject);
+  end;
 end;
 
 procedure TMainForm.ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
@@ -7569,6 +7576,8 @@ begin
   if devFormatter.Validate then begin
     e := fEditorList.GetEditor;
     if Assigned(e) then begin
+      e.BeginUpdate;
+      try
       // Save for undo list creation
       OldTopLine := e.Text.TopLine;
       OldCaretXY := e.Text.CaretXY;
@@ -7578,6 +7587,9 @@ begin
       // Attempt to not scroll view
       e.Text.TopLine := OldTopLine;
       e.Text.CaretXY := OldCaretXY;
+      finally
+        e.EndUpdate;
+      end;
     end;
   end else
     MessageDlg(Lang[ID_FORMATTER_NOTVALID], mtWarning, [mbOK], 0);
@@ -7679,29 +7691,36 @@ end;
 
 procedure TMainForm.actRenameSymbolExecute(Sender: TObject);
 var
-  Editor : TEditor;
+  Editor,e : TEditor;
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
-  OldTopLine: integer;
+  i : integer;
+  M: TMemoryStream;
+  oldCursor : TCursor;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
+    Editor.BeginUpdate;
+    ClassBrowser.BeginUpdate;
+    oldCursor := Editor.Text.Cursor;
+    Editor.Text.Cursor := crHourglass;
+    try
     word := Editor.Text.WordAtCursor;
     // MessageBox(Application.Handle,PAnsiChar(Concat(word,IntToStr(offset))),     PChar( 'Look'), MB_OK);
     if Word = '' then begin
       Exit;
     end;
 
-  if not IsIdentifier(word) then begin
-    MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[word]), mtInformation, [mbOK], 0);
-    Exit;
-  end;
+    if not IsIdentifier(word) then begin
+      MessageDlg(Format(Lang[ID_ERR_NOT_IDENTIFIER],[word]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
 
-  //Test if newName is a C++ keyword
-  if IsKeyword(word) then begin
-    MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[word]), mtInformation, [mbOK], 0);
-    Exit;
-  end;
+    //Test if newName is a C++ keyword
+    if IsKeyword(word) then begin
+      MessageDlg(Format(Lang[ID_ERR_IS_KEYWORD],[word]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
 
     with TRenameForm.Create(Self) do try
       txtVarName.Text := word;
@@ -7713,23 +7732,31 @@ begin
 
       if word = newword then
         Exit;
-
-      OldTopLine := Editor.Text.TopLine;
+        
       OldCaretXY := Editor.Text.CaretXY;
-
       with TRefactorer.Create(devRefactorer,GetCppParser) do try
+        if assigned(fProject) then begin
+          self.actSaveAllExecute(self);
+          ScanActiveProject(true);
+        end else begin
+          Editor.Reparse;
+        end;
         RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
       end;
 
-      // Attempt to not scroll view
-      Editor.Text.TopLine := OldTopLine;
-      Editor.Text.CaretXY := OldCaretXY;
-
-      Editor.Save;
+      //Editor.Save;
+      if assigned(fProject) then begin
+        ScanActiveProject(true);
+      end;
     finally
       Free;
+    end;
+    finally
+      Editor.EndUpdate;
+      ClassBrowser.EndUpdate;
+      Editor.Text.Cursor := oldCursor;
     end;
   end;
 end;
@@ -8710,6 +8737,24 @@ begin
       or IsHFile(e.FileName)
       or (e.New and e.Text.Modified)
     );
+end;
+
+procedure TMainForm.actRenameSymbolUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty
+    and not e.CppParser.Parsing;
+end;
+
+procedure TMainForm.actExtractMacroUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e := fEditorList.GetEditor;
+  TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty
+    and not e.CppParser.Parsing;
 end;
 
 end.

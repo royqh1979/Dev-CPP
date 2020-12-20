@@ -317,8 +317,8 @@ begin
   if Assigned(Stream) or (FastIndexOf(fScannedFiles, FileName) = -1) then begin
 
     // Parse ONCE
-    if not Assigned(Stream) then
-      fScannedFiles.Add(FileName);
+    //if not Assigned(Stream) then
+    fScannedFiles.Add(FileName);
 
     // Only load up the file if we are allowed to parse it
     IsSystemFile := cbutils.IsSystemHeaderFile(FileName, fIncludePaths);

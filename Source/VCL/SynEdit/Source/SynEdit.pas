@@ -651,6 +651,7 @@ type
     procedure GotoBookMark(BookMark: Integer);
     procedure SetCaretXYCentered(ForceToMiddle: Boolean; const Value: TBufferCoord);
     function IdentChars: TSynIdentChars;
+    procedure Invalidate; override;
     procedure InvalidateGutter;
     procedure InvalidateGutterLine(aLine: integer);
     procedure InvalidateGutterLines(FirstLine, LastLine: integer);
@@ -1740,6 +1741,9 @@ procedure TCustomSynEdit.InvalidateLines(FirstLine, LastLine: integer);
 var
   rcInval: TRect;
 begin
+  if (fPainterLock>0) then
+    Exit;
+
   if Visible and HandleAllocated then
     if (FirstLine = -1) and (LastLine = -1) then begin
       rcInval := ClientRect;
@@ -1785,7 +1789,16 @@ end;
 
 procedure TCustomSynEdit.InvalidateSelection;
 begin
+  if (fPainterLock>0) then
+    Exit;
   InvalidateLines(BlockBegin.Line, BlockEnd.Line);
+end;
+
+procedure TCustomSynEdit.Invalidate;
+begin
+  if (fPainterLock>0) then
+    Exit;
+  Inherited;
 end;
 
 procedure TCustomSynEdit.KeyUp(var Key: Word; Shift: TShiftState);
@@ -4207,10 +4220,11 @@ begin
   if Value <> TopLine then begin
     Delta := TopLine - Value;
     fTopLine := Value;
-    if Abs(Delta) < fLinesInWindow then
-      ScrollWindow(Handle, 0, fTextHeight * Delta, nil, nil)
-    else
-      Invalidate;
+    if fPainterLock = 0 then
+      if Abs(Delta) < fLinesInWindow then begin
+        ScrollWindow(Handle, 0, fTextHeight * Delta, nil, nil)
+      end else
+        Invalidate;
     UpdateScrollBars;
     StatusChanged([scTopLine]);
   end;
@@ -8410,7 +8424,8 @@ end;
 
 procedure TCustomSynEdit.InvalidateRect(const aRect: TRect; aErase: boolean);
 begin
-  Windows.InvalidateRect(Handle, @aRect, aErase);
+  if not (fPainterLock>0) then
+    Windows.InvalidateRect(Handle, @aRect, aErase);
 end;
 
 procedure TCustomSynEdit.DoBlockIndent;
@@ -8718,6 +8733,8 @@ procedure TCustomSynEdit.InvalidateLine(Line: integer);
 var
   rcInval: TRect;
 begin
+  if (fPainterLock>0) then
+    Exit;
   if (not HandleAllocated) or (Line < 1) or (Line > Lines.Count) or (not Visible) then
     Exit;
 

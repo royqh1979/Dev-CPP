@@ -64,13 +64,14 @@ function TRefactorer.RenameSymbolInFile(const FileName: AnsiString;   pOldStatem
       oldName,newName: AnsiString):boolean;
 var
   Lines:TSynEditStringList;
-  newLines : TStringList;
+  DummyEditor :TSynEdit;
   PosY:integer;
   CurrentNewLine,phrase: string;
-  M: TMemoryStream;
   Editor:TSynEdit;
   ownEditor:boolean;
   pBeginPos,pEndPos : TBufferCoord;
+  OldCaretXY: TBufferCoord;
+  OldTopLine: integer;
 
   procedure ProcessLine;
   var
@@ -130,28 +131,33 @@ begin
     end;
   end;
 
+  OldTopLine := Editor.TopLine;
+  OldCaretXY := Editor.CaretXY;
+
   Lines := Editor.Lines;
   if Lines.Count<1 then
     Exit;
-  newLines := TStringList.Create;
-  M := TMemoryStream.Create;
+  DummyEditor := TSynEdit.Create(nil);
   try
-    Lines.SaveToStream(M);
-    CppParser.Freeze(FileName,M);  // freeze it so it will not reprocess file each search
     PosY := 0;
     while (PosY < Lines.Count) do begin
       ProcessLine;
-      newLines.Add(currentNewLine);
+      DummyEditor.Lines.Add(currentNewLine);
       inc(PosY);
     end;
+
+    // remove added last new line
     // Use replace all functionality
     Editor.BeginUpdate;
     try
       Editor.SelectAll;
-      Editor.SelText := newLines.Text;
+      Editor.SelText := DummyEditor.Lines.Text;
+      Editor.TopLine := OldTopLine;
+      Editor.CaretXY := OldCaretXY;
     finally
       Editor.EndUpdate; // repaint once
     end;
+
     if ownEditor then begin
       with TStringList.Create do try
         Text:=editor.Lines.Text;
@@ -159,12 +165,12 @@ begin
       finally
         Free;
       end;
+    end else begin
+      mainForm.EditorList.GetEditorFromFileName(FileName).Save;
     end;
     Result := True;
   finally
-    CppParser.UnFreeze();
-    M.Free;
-    newLines.Free;
+    DummyEditor.Free;
     if ownEditor then begin
       Editor.Free;
     end;
@@ -176,11 +182,9 @@ function TRefactorer.RenameSymbol(Editor: TEditor; OldCaretXY:TBufferCoord;
   oldName,newName: AnsiString; Project:TProject):boolean;
 var
   Lines:TSynEditStringList;
-  newLines : TStringList;
   phrase,newphrase,oldScopeName : string;
   pOldStatement,pNewStatement: PStatement;
   oldStatement : TStatement;
-  M: TMemoryStream;
   i:integer;
   pBeginPos,pEndPos : TBufferCoord;
 
@@ -211,11 +215,9 @@ begin
   Lines := Editor.Text.Lines;
   if Lines.Count<1 then
     Exit;
-  newLines := TStringList.Create;
-  M := TMemoryStream.Create;
+
+  Editor.CppParser.Freeze;
   try
-    Lines.SaveToStream(M);
-    CppParser.Freeze(Editor.FileName,M);  // freeze it so it will not reprocess file each search
     // get full phrase (such as s.name instead of name)
     phrase := GetWordAtPosition(Editor.Text,oldCaretXY,pBeginPos,pEndPos,wpInformation);
     // Find it's definition
@@ -239,11 +241,8 @@ begin
         pNewStatement^._DefinitionLine]), mtInformation, [mbOK], 0);
       Exit;
     end;
-  finally
-    CppParser.UnFreeze();
-    M.Free;
-    newLines.Free;
-  end;
+
+
   if assigned(project) and (project.Units.IndexOf(editor.FileName)>=0) then begin
     // found but not in this project
     if not ((project.Units.IndexOf(oldStatement._FileName)>=0)
@@ -269,6 +268,9 @@ begin
     Result:=RenameSymbolInFile(editor.FileName,@oldStatement,oldName,newName);
   end;
 
+  finally
+    Editor.CppParser.UnFreeze;
+  end;
 end;
 
 function TRefactorer.CheckNotSpanTokens(FileName:AnsiString;edit: TSynEdit;

@@ -130,6 +130,16 @@ type
     otOther
   );
 
+  PRemovedStatement = ^TRemovedStatement;
+  TRemovedStatement = record
+    _Type: AnsiString; // type "int"
+    _Command: AnsiString; // identifier/name of statement "foo"
+    _DefinitionLine: integer; // definition
+    _DefinitionFileName: AnsiString; // definition
+    _FullName: AnsiString; // fullname(including class and namespace)
+    _NoNameArgs: AnsiString; // Args without name
+  end;
+
   PStatement = ^TStatement;
   TStatement = record
     _ParentScope: PStatement; // parent class/struct/namespace scope

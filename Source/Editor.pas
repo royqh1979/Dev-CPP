@@ -111,6 +111,7 @@ type
     fLineAfterTabStop : AnsiString;
     fCompletionTimer: TTimer;
     fCompletionBox: TCodeCompletion;
+    fUpdateLock : integer;
     fHeaderCompletionBox : THeaderCompletion;
     fCompletionInitialPosition: TBufferCoord;
     fFunctionTipTimer: TTimer;
@@ -185,7 +186,6 @@ type
     //procedure TextWindowProc(var Message: TMessage);
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
-    procedure Reparse;
     procedure InitParser;
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
@@ -205,7 +205,7 @@ type
     procedure GotoActiveBreakpoint;
     procedure SetActiveBreakpointFocus(Line: integer);
     procedure RemoveBreakpointFocus;
-    procedure UpdateCaption(const NewCaption: AnsiString);
+    procedure UpdateCaption(const NewCaption: AnsiString='');
     procedure InsertDefaultText;
     procedure ToggleBreakPoint(Line: integer);
     procedure LoadFile(FileName:String;DetectEncoding:bool=False);
@@ -224,6 +224,9 @@ type
     procedure SetInProject(inProject:boolean);
     function HasPrevError:boolean;
     function HasNextError:boolean;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    procedure Reparse;
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -344,6 +347,7 @@ var
   I: integer;
   e: TEditor;
 begin
+  fUpdateLock := 0;
   fSelChanged:=False;
   fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
@@ -759,10 +763,14 @@ begin
   MainForm.UpdateAppTitle;
 
   if devCodeCompletion.Enabled then begin
+    BeginUpdate;
+    try
     // Set classbrowser to current file (and parse file and refresh)
     MainForm.UpdateClassBrowserForEditor(self);
     fLastParseTime := Now;
-    fText.Invalidate;
+    finally
+      EndUpdate;
+    end;
   end;
 
   // Set compiler selector to current file
@@ -795,7 +803,7 @@ begin
       then begin
       Reparse;
     end;
-    if devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+    if self.fTabSheet.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
@@ -851,12 +859,14 @@ begin
 
     if fText.SelAvail then begin
       if fText.GetWordAtRowCol(fText.CaretXY) = fText.SelText then begin
-        fText.Invalidate; //invalidate to highlight other occurencies of the selection world
         fSelChanged:=True;
+        BeginUpdate;
+        EndUpdate;
       end;
     end else if fSelChanged then begin
       fSelChanged:=False; //invalidate to unhighlight others
-      fText.Invalidate;
+      BeginUpdate;
+      EndUpdate;
     end;
 
   end;
@@ -1221,11 +1231,37 @@ begin
   end;
 end;
 
-procedure TEditor.UpdateCaption(const NewCaption: AnsiString);
+procedure TEditor.BeginUpdate;
 begin
+  if (fUpdateLock=0) then begin
+    fText.LockPainter;
+  end;
+  inc(fUpdateLock);
+end;
+
+procedure TEditor.EndUpdate;
+begin
+  dec(fUpdateLock);
+  if (fUpdateLock=0) then begin
+    fText.UnlockPainter;
+    fText.invalidate;
+  end;
+end;
+
+procedure TEditor.UpdateCaption(const NewCaption: AnsiString);
+var
+  caption:String;
+begin
+  caption:=NewCaption;
+  if caption = '' then begin
+    if fText.Modified then
+      caption := '[*] ' + ExtractFileName(fFileName)
+    else
+      caption := ExtractFileName(fFileName);
+  end;
   if Assigned(fTabSheet) then begin
-    if NewCaption <> fTabSheet.Caption then begin
-      fTabSheet.Caption := NewCaption;
+    if caption <> fTabSheet.Caption then begin
+      fTabSheet.Caption := caption;
     end;
   end;
 end;
@@ -2688,13 +2724,12 @@ var
   end;
 
   procedure ShowDebugHint;
+  var
+    kind: TStatementKind;
   begin
-    st := fParser.FindStatementOf(fFileName, s, p.Line);
+    kind := fParser.FindKindOfStatementOf(fFileName, s, p.Line);
 
-    if not Assigned(st) then
-      Exit;
-
-    if st^._Kind = skVariable then begin //only show debug info of variables;
+    if kind = skVariable then begin //only show debug info of variables;
       if MainForm.Debugger.Reader.CommandRunning then
         Exit;
 
@@ -2907,7 +2942,7 @@ procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Row: integer;
   var style:TFontStyles; var FG,BG:TColor);
 var
   tc:TThemeColor;
-  st: PStatement;
+  kind: TStatementKind;
   p: TBufferCoord;
   s:String;
   pBeginPos,pEndPos : TbufferCoord;
@@ -2933,31 +2968,30 @@ begin
     //st := fFindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
     s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
-    st := fParser.FindStatementOf(fFileName,
+    kind := fParser.FindKindOfStatementOf(fFileName,
       s , p.Line);
     fg:= attr.Foreground;
-    if assigned(st) then begin
-      case st._Kind of
-        skPreprocessor, skEnum: begin
-          fg:=dmMain.Cpp.DirecAttri.Foreground;
-        end;
-        skVariable: begin
+    case kind of
+      skPreprocessor, skEnum: begin
+        fg:=dmMain.Cpp.DirecAttri.Foreground;
+      end;
+      skVariable: begin
+        fg:=dmMain.Cpp.VariableAttri.Foreground;
+      end;
+      skFunction,skConstructor,skDestructor: begin
+        fg:=dmMain.Cpp.FunctionAttri.Foreground;
+      end;
+      skClass,skNamespace,skTypedef : begin
+        fg:=dmMain.Cpp.ClassAttri.Foreground;
+      end;
+      skUnknown: begin
+        if (pEndPos.Line>=1)
+          and (pEndPos.Char+1 < length(fText.Lines[pEndPos.Line-1]))
+          and (fText.Lines[pEndPos.Line-1][pEndPos.Char+1] = '(') then begin
+          fg:=dmMain.Cpp.FunctionAttri.Foreground;
+        end else begin
           fg:=dmMain.Cpp.VariableAttri.Foreground;
         end;
-        skFunction,skConstructor,skDestructor: begin
-          fg:=dmMain.Cpp.FunctionAttri.Foreground;
-        end;
-        skClass,skNamespace,skTypedef : begin
-          fg:=dmMain.Cpp.ClassAttri.Foreground;
-        end;
-      end;
-    end else begin
-      if (pEndPos.Line>=1)
-        and (pEndPos.Char+1 < length(fText.Lines[pEndPos.Line-1]))
-        and (fText.Lines[pEndPos.Line-1][pEndPos.Char+1] = '(') then begin
-        fg:=dmMain.Cpp.FunctionAttri.Foreground;
-      end else begin
-        fg:=dmMain.Cpp.VariableAttri.Foreground;
       end;
     end;
     if fg = clNone then //old color theme, use the default color
@@ -3166,9 +3200,13 @@ begin
       end;
 
       if devCodeCompletion.Enabled then begin
+        BeginUpdate;
+        try
         fParser.ParseFile(fFileName, InProject);
         fLastParseTime := Now;
-        fText.invalidate;
+        finally
+          EndUpdate;
+        end;
       end;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
@@ -3263,9 +3301,13 @@ begin
 
   if devCodeCompletion.Enabled then begin
     // Update class browser, redraw once
-    MainForm.UpdateClassBrowserForEditor(self);
-    fLastParseTime := Now;
-    fText.Invalidate;
+    BeginUpdate;
+    try
+      MainForm.UpdateClassBrowserForEditor(self);
+      fLastParseTime := Now;
+    finally
+      EndUpdate;
+    end;
   end;
 end;
 
@@ -3479,8 +3521,10 @@ procedure TEditor.LinesDeleted(FirstLine,Count:integer);
       fErrorList.Sorted:=False;
       fErrorList.Assign(newList);
       fErrorList.Sorted:=True;
-      if not devCodeCompletion.Enabled then
-        fText.invalidate;
+      if not devCodeCompletion.Enabled then begin
+        BeginUpdate;
+        EndUpdate;
+      end;
     finally
       newList.Free;
     end;
@@ -3496,7 +3540,7 @@ procedure TEditor.Reparse;
 var
   M: TMemoryStream;
 begin
-  fText.LockPainter;
+  BeginUpdate;
   M := TMemoryStream.Create;
   try
     fText.Lines.SaveToStream(M);
@@ -3506,8 +3550,7 @@ begin
     fLastParseTime := Now;
   finally
     M.Free;
-    fText.UnlockPainter;
-    fText.Invalidate;
+    EndUpdate;
   end;
 end;
 
@@ -3530,8 +3573,10 @@ procedure TEditor.LinesInserted(FirstLine,Count:integer);
       fErrorList.Sorted:=False;
       fErrorList.Assign(newList);
       fErrorList.Sorted:=True;
-      if not devCodeCompletion.Enabled then
-        fText.invalidate;
+      if not devCodeCompletion.Enabled then begin
+        BeginUpdate;
+        EndUpdate;
+      end;
     finally
       newList.Free;
     end;
