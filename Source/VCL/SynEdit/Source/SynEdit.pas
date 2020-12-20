@@ -1190,7 +1190,7 @@ constructor TCustomSynEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   fPaintLock := 0;
-  fPainting:=False;
+  fPainting := False;
   fLines := TSynEditStringList.Create;
   fOrigLines := fLines;
   fPlugins := TList.Create;

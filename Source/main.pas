@@ -7572,10 +7572,13 @@ var
   e: TEditor;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
+  oldCursor : TCursor;
 begin
   if devFormatter.Validate then begin
     e := fEditorList.GetEditor;
     if Assigned(e) then begin
+      oldCursor := e.Text.Cursor;
+      e.Text.Cursor := crHourglass;
       e.BeginUpdate;
       try
       // Save for undo list creation
@@ -7587,8 +7590,11 @@ begin
       // Attempt to not scroll view
       e.Text.TopLine := OldTopLine;
       e.Text.CaretXY := OldCaretXY;
+
+      e.Reparse;
       finally
         e.EndUpdate;
+        e.Text.Cursor := oldCursor;
       end;
     end;
   end else

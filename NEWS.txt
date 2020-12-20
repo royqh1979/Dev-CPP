@@ -5,8 +5,9 @@ Version 6.3-beta2
     - fix: rename symbol will add a new line to the last of the file
     - fix: random devcpp crash when rename symbol in the project
     - fix: flicker when rename symbol/reformat file
-    - enhancement: set the mouse cursor to wait when rename symbol
-    - enhancement: use critical section to avoid resource confliction in cpp parser
+    - enhancement: set the mouse cursor to wait when rename symbol / reformat code
+    - ifx: use critical section to avoid resource confliction in cpp parser
+    - enhancement: reparse the file after reformat code
 
 Version 6.3-beta1
     
