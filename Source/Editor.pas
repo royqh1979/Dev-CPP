@@ -764,10 +764,13 @@ begin
 
   if devCodeCompletion.Enabled then begin
     BeginUpdate;
+    try
     // Set classbrowser to current file (and parse file and refresh)
     MainForm.UpdateClassBrowserForEditor(self);
     fLastParseTime := Now;
-    EndUpdate;
+    finally
+      EndUpdate;
+    end;
   end;
 
   // Set compiler selector to current file
@@ -2721,13 +2724,12 @@ var
   end;
 
   procedure ShowDebugHint;
+  var
+    kind: TStatementKind;
   begin
-    st := fParser.FindStatementOf(fFileName, s, p.Line);
+    kind := fParser.FindKindOfStatementOf(fFileName, s, p.Line);
 
-    if not Assigned(st) then
-      Exit;
-
-    if st^._Kind = skVariable then begin //only show debug info of variables;
+    if kind = skVariable then begin //only show debug info of variables;
       if MainForm.Debugger.Reader.CommandRunning then
         Exit;
 
@@ -2940,7 +2942,7 @@ procedure TEditor.EditorPaintHighlightToken(Sender: TObject; Row: integer;
   var style:TFontStyles; var FG,BG:TColor);
 var
   tc:TThemeColor;
-  st: PStatement;
+  kind: TStatementKind;
   p: TBufferCoord;
   s:String;
   pBeginPos,pEndPos : TbufferCoord;
@@ -2966,31 +2968,30 @@ begin
     //st := fFindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
     s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
-    st := fParser.FindStatementOf(fFileName,
+    kind := fParser.FindKindOfStatementOf(fFileName,
       s , p.Line);
     fg:= attr.Foreground;
-    if assigned(st) then begin
-      case st._Kind of
-        skPreprocessor, skEnum: begin
-          fg:=dmMain.Cpp.DirecAttri.Foreground;
-        end;
-        skVariable: begin
+    case kind of
+      skPreprocessor, skEnum: begin
+        fg:=dmMain.Cpp.DirecAttri.Foreground;
+      end;
+      skVariable: begin
+        fg:=dmMain.Cpp.VariableAttri.Foreground;
+      end;
+      skFunction,skConstructor,skDestructor: begin
+        fg:=dmMain.Cpp.FunctionAttri.Foreground;
+      end;
+      skClass,skNamespace,skTypedef : begin
+        fg:=dmMain.Cpp.ClassAttri.Foreground;
+      end;
+      skUnknown: begin
+        if (pEndPos.Line>=1)
+          and (pEndPos.Char+1 < length(fText.Lines[pEndPos.Line-1]))
+          and (fText.Lines[pEndPos.Line-1][pEndPos.Char+1] = '(') then begin
+          fg:=dmMain.Cpp.FunctionAttri.Foreground;
+        end else begin
           fg:=dmMain.Cpp.VariableAttri.Foreground;
         end;
-        skFunction,skConstructor,skDestructor: begin
-          fg:=dmMain.Cpp.FunctionAttri.Foreground;
-        end;
-        skClass,skNamespace,skTypedef : begin
-          fg:=dmMain.Cpp.ClassAttri.Foreground;
-        end;
-      end;
-    end else begin
-      if (pEndPos.Line>=1)
-        and (pEndPos.Char+1 < length(fText.Lines[pEndPos.Line-1]))
-        and (fText.Lines[pEndPos.Line-1][pEndPos.Char+1] = '(') then begin
-        fg:=dmMain.Cpp.FunctionAttri.Foreground;
-      end else begin
-        fg:=dmMain.Cpp.VariableAttri.Foreground;
       end;
     end;
     if fg = clNone then //old color theme, use the default color
@@ -3200,9 +3201,12 @@ begin
 
       if devCodeCompletion.Enabled then begin
         BeginUpdate;
+        try
         fParser.ParseFile(fFileName, InProject);
         fLastParseTime := Now;
-        EndUpdate;
+        finally
+          EndUpdate;
+        end;
       end;
     end else if fNew then
       Result := SaveAs; // we need a file name, use dialog
@@ -3298,9 +3302,12 @@ begin
   if devCodeCompletion.Enabled then begin
     // Update class browser, redraw once
     BeginUpdate;
-    MainForm.UpdateClassBrowserForEditor(self);
-    fLastParseTime := Now;
-    EndUpdate;
+    try
+      MainForm.UpdateClassBrowserForEditor(self);
+      fLastParseTime := Now;
+    finally
+      EndUpdate;
+    end;
   end;
 end;
 

@@ -208,6 +208,9 @@ type
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement;
       var CurrentClassType: PStatement ; force:boolean = False): PStatement; overload;
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement; overload;
+
+    function FindKindOfStatementOf(FileName, Phrase: AnsiString; Line: integer): TStatementKind;
+
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
@@ -2626,7 +2629,7 @@ begin
     until not HandleStatement;
    //fTokenizer.DumpTokens('f:\tokens.txt');
    //Statements.DumpTo('f:\stats.txt');
-   Statements.DumpWithScope('f:\\statements.txt');
+   //Statements.DumpWithScope('f:\\statements.txt');
    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
@@ -4061,6 +4064,23 @@ begin
     fCriticalSection.Release;
   end;
 end;
+
+function TCppParser.FindKindOfStatementOf(FileName, Phrase: AnsiString; Line: integer): TStatementKind;
+var
+  st:PStatement;
+begin
+  fCriticalSection.Acquire;
+  try
+    Result:=skUnknown;
+    st := FindStatementOf(FileName, Phrase,Line);
+    if assigned(st) then begin
+      Result := st^._Kind;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
 
 procedure TCppParser.ScanMethodArgs(const FunctionStatement:PStatement; ArgStr:string);
 var
