@@ -3994,16 +3994,13 @@ var
       end;
       sRightSide := Copy(LineText, CaretX, MaxInt);
       SpaceCount := LeftSpacesEx(sLeftSide, true);
-      if (fLines.Count = 1) and (fLines[0]='') then begin
-        fLines.Clear;
-      end;
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
       if P^ <> #0 then begin
         Str := sLeftSide + Copy(Value, 1, P - Start);
         ProperSetLine(CaretY - 1, Str);
-        Lines.InsertLines(CaretY, CountLines(P));
+        Lines.InsertLines(CaretY, CountLines(P)-1);
       end else begin
         Str := sLeftSide + Value + sRightSide;
         ProperSetLine(CaretY - 1, Str);
