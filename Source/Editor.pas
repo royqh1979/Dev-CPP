@@ -186,7 +186,6 @@ type
     //procedure TextWindowProc(var Message: TMessage);
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
-    procedure Reparse;
     procedure InitParser;
   public
     constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
@@ -227,6 +226,7 @@ type
     function HasNextError:boolean;
     procedure BeginUpdate;
     procedure EndUpdate;
+    procedure Reparse;
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;

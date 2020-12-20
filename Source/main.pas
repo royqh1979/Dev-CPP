@@ -7576,6 +7576,8 @@ begin
   if devFormatter.Validate then begin
     e := fEditorList.GetEditor;
     if Assigned(e) then begin
+      e.BeginUpdate;
+      try
       // Save for undo list creation
       OldTopLine := e.Text.TopLine;
       OldCaretXY := e.Text.CaretXY;
@@ -7585,6 +7587,9 @@ begin
       // Attempt to not scroll view
       e.Text.TopLine := OldTopLine;
       e.Text.CaretXY := OldCaretXY;
+      finally
+        e.EndUpdate;
+      end;
     end;
   end else
     MessageDlg(Lang[ID_FORMATTER_NOTVALID], mtWarning, [mbOK], 0);
@@ -7691,10 +7696,14 @@ var
   OldCaretXY: TBufferCoord;
   i : integer;
   M: TMemoryStream;
+  oldCursor : TCursor;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
     Editor.BeginUpdate;
+    ClassBrowser.BeginUpdate;
+    oldCursor := Editor.Text.Cursor;
+    Editor.Text.Cursor := crHourglass;
     try
     word := Editor.Text.WordAtCursor;
     // MessageBox(Application.Handle,PAnsiChar(Concat(word,IntToStr(offset))),     PChar( 'Look'), MB_OK);
@@ -7729,6 +7738,8 @@ begin
         if assigned(fProject) then begin
           self.actSaveAllExecute(self);
           ScanActiveProject(true);
+        end else begin
+          Editor.Reparse;
         end;
         RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
@@ -7736,12 +7747,16 @@ begin
       end;
 
       //Editor.Save;
-      ScanActiveProject(true);      
+      if assigned(fProject) then begin
+        ScanActiveProject(true);
+      end;
     finally
       Free;
     end;
     finally
       Editor.EndUpdate;
+      ClassBrowser.EndUpdate;
+      Editor.Text.Cursor := oldCursor;
     end;
   end;
 end;
