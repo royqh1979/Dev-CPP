@@ -4000,7 +4000,7 @@ var
       if P^ <> #0 then begin
         Str := sLeftSide + Copy(Value, 1, P - Start);
         ProperSetLine(CaretY - 1, Str);
-        Lines.InsertLines(CaretY, CountLines(P)-1);
+        Lines.InsertLines(CaretY, CountLines(P));
       end else begin
         Str := sLeftSide + Value + sRightSide;
         ProperSetLine(CaretY - 1, Str);

@@ -64,7 +64,7 @@ function TRefactorer.RenameSymbolInFile(const FileName: AnsiString;   pOldStatem
       oldName,newName: AnsiString):boolean;
 var
   Lines:TSynEditStringList;
-  newLines : TStringList;
+  DummyEditor :TSynEdit;
   PosY:integer;
   CurrentNewLine,phrase: string;
   Editor:TSynEdit;
@@ -137,12 +137,12 @@ begin
   Lines := Editor.Lines;
   if Lines.Count<1 then
     Exit;
-  newLines := TStringList.Create;
+  DummyEditor := TSynEdit.Create(nil);
   try
     PosY := 0;
     while (PosY < Lines.Count) do begin
       ProcessLine;
-      newLines.Add(currentNewLine);
+      DummyEditor.Lines.Add(currentNewLine);
       inc(PosY);
     end;
 
@@ -151,10 +151,7 @@ begin
     Editor.BeginUpdate;
     try
       Editor.SelectAll;
-      Editor.SelText := newLines.Text;
-    if (newLines.Count >0) and (newLines[newLines.Count-1] = '') then begin
-      newLines.Delete(newLines.Count-1);
-    end;
+      Editor.SelText := DummyEditor.Lines.Text;
       Editor.TopLine := OldTopLine;
       Editor.CaretXY := OldCaretXY;
     finally
@@ -173,7 +170,7 @@ begin
     end;
     Result := True;
   finally
-    newLines.Free;
+    DummyEditor.Free;
     if ownEditor then begin
       Editor.Free;
     end;

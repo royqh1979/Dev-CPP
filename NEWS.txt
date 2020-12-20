@@ -2,7 +2,7 @@ Version 6.3-beta2
 
     - enhancement: correct reparse header file in project (don't lose function definition in other files)
     - fix: reparse changed files after rename symbols
-    - fix: rename symbol/reformat code will add a new line to the last of the file
+    - fix: rename symbol will add a new line to the last of the file
     - fix: random devcpp crash when rename symbol in the project
 
 Version 6.3-beta1
