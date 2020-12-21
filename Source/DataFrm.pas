@@ -448,6 +448,7 @@ end;
 procedure TdmMain.LoadDataMod;
 begin
   LoadHistory;
+  LoadCodeIns;
   fAutoLinks.Load;
   UpdateHighlighter;
 end;

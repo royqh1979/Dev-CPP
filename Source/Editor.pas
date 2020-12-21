@@ -1922,7 +1922,7 @@ var
     end;
   end;
 
-begin
+  begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
     Exit;
@@ -1942,7 +1942,7 @@ begin
         if fTabStopBegin>=0 then begin // editing user code template
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
-          self.ClearUserCodeInTabStops;
+          ClearUserCodeInTabStops;
         end;
       end;
     VK_ESCAPE: begin // Update function tip

@@ -9,6 +9,7 @@ Version 6.3-beta2
     - fix: use critical section to avoid resource confliction in cpp parser
     - enhancement: reparse the file after reformat code
     - fix: code completion flag not clear when set new position of the caret using mouse
+    - fix: user code template not loaded when devcpp start up
 
 Version 6.3-beta1
     
