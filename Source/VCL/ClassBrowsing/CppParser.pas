@@ -210,7 +210,7 @@ type
     function FindStatementOf(FileName, Phrase: AnsiString; CurrentClass: PStatement; force:boolean = False): PStatement; overload;
 
     function FindKindOfStatementOf(FileName, Phrase: AnsiString; Line: integer): TStatementKind;
-
+    function GetHintFromStatement(FileName, Phrase: AnsiString; Line: integer):AnsiString;
     {Find statement starting from startScope}
     function FindStatementStartingFrom(const FileName, Phrase: AnsiString; startScope: PStatement; force:boolean = False): PStatement;
     function FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; CurrentClass: PStatement): PStatement;
@@ -4060,6 +4060,73 @@ begin
   try
   Result := FindStatementOf(FileName, Phrase,FindAndScanBlockAt(FileName, Line));
   //Statements.DumpWithScope('f:\\local-statements.txt');
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+function TCppParser.GetHintFromStatement(FileName, Phrase: AnsiString; Line: integer):AnsiString;
+var
+  hint:AnsiString;
+  k:integer;
+  namespaceStatementsList:TList;
+  namespaceStatement:PStatement;
+  st: PStatement;
+
+  function GetHintForFunction(statement,ScopeStatement:PStatement):String;
+  var
+    children:TList;
+    childStatement:PStatement;
+    i:integer;
+  begin
+    Result := '';
+    children := Statements.GetChildrenStatements(ScopeStatement);
+    if not assigned(children) then
+      Exit;
+    for i:=0 to children.Count-1 do begin
+      childStatement:=PStatement(children[i]);
+      if samestr(st^._Command,childStatement^._Command)
+        and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
+          if Result <> '' then
+            Result:=Result+#13;
+          Result := Result + PrettyPrintStatement(childStatement)
+            + ' - ' + ExtractFileName(childStatement^._FileName)
+            + ' ('  + IntToStr(childStatement^._Line) + ')';
+      end;
+    end;
+  end;
+begin
+  fCriticalSection.Acquire;
+  try
+    Result:='';
+    st := FindStatementOf(fileName,phrase,line);
+    if not Assigned(st) then
+      Exit;
+    if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
+      if Assigned(st^._ParentScope) and (st^._ParentScope^._Kind = skNamespace) then begin
+        namespaceStatementsList:=FindNamespace(st^._ParentScope^._Command);
+        if Assigned(namespaceStatementsList) then begin
+          for k:=0 to namespaceStatementsList.Count-1 do begin
+            namespaceStatement:=PStatement(namespaceStatementsList[k]);
+            if Assigned(namespaceStatement) then begin
+              hint := GetHintForFunction(st,namespaceStatement);
+              if hint <> '' then begin
+                if Result <> '' then
+                  Result :=Result+#13;
+                Result := Result + hint;
+              end;
+            end;
+          end;
+        end;
+      end else
+        Result:=GetHintForFunction(st,st^._ParentScope);
+    end else if st^._Line>0 then begin
+      Result := PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
+        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
+    end else begin  // hard defines
+      Result := PrettyPrintStatement(st,Line);
+    end;
+    Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   finally
     fCriticalSection.Release;
   end;

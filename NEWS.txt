@@ -8,6 +8,7 @@ Version 6.3-beta2
     - enhancement: set the mouse cursor to wait when rename symbol / reformat code
     - ifx: use critical section to avoid resource confliction in cpp parser
     - enhancement: reparse the file after reformat code
+    - fix: devcpp crash when debug
 
 Version 6.3-beta1
     

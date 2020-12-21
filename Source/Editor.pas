@@ -2663,64 +2663,17 @@ var
   begin
     fText.Hint := pError.Hint;
   end;
-
-  function GetHintForFunction(statement,ScopeStatement:PStatement):String;
+  
+  procedure ShowParserHint;
   var
-    children:TList;
-    childStatement:PStatement;
-    i:integer;
+    hint: string;
   begin
-    Result := '';
-    children := fParser.Statements.GetChildrenStatements(ScopeStatement);
-    if not assigned(children) then
-      Exit;
-    for i:=0 to children.Count-1 do begin
-      childStatement:=PStatement(children[i]);
-      if samestr(st^._Command,childStatement^._Command)
-        and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
-          if Result <> '' then
-            Result:=Result+#13;
-          Result := Result + fParser.PrettyPrintStatement(childStatement)
-            + ' - ' + ExtractFileName(childStatement^._FileName)
-            + ' ('  + IntToStr(childStatement^._Line) + ')';
-      end;
+    // This piece of code changes the parser database, possibly making hints and code completion invalid...
+    hint := fParser.GetHintFromStatement(fFileName, s, p.Line);
+    if hint <> '' then begin
+      // vertical bar is used to split up short and long hint versions...
+      fText.Hint := hint;
     end;
-  end;
-
-
-  function GetHintFromStatement(st:PStatement):AnsiString;
-  var
-    hint:AnsiString;
-    k:integer;
-    namespaceStatementsList:TList;
-    namespaceStatement:PStatement;
-
-  begin
-    if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
-      if Assigned(st^._ParentScope) and (st^._ParentScope^._Kind = skNamespace) then begin
-        namespaceStatementsList:=fParser.FindNamespace(st^._ParentScope^._Command);
-        if Assigned(namespaceStatementsList) then begin
-          for k:=0 to namespaceStatementsList.Count-1 do begin
-            namespaceStatement:=PStatement(namespaceStatementsList[k]);
-            if Assigned(namespaceStatement) then begin
-              hint := GetHintForFunction(st,namespaceStatement);
-              if hint <> '' then begin
-                if Result <> '' then
-                  Result :=Result+#13;
-                Result := Result + hint;
-              end;
-            end;
-          end;
-        end;
-      end else
-        Result:=GetHintForFunction(st,st^._ParentScope);
-    end else if st^._Line>0 then begin
-      Result := fParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
-        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
-    end else begin  // hard defines
-      Result := fParser.PrettyPrintStatement(st,p.Line);
-    end;
-    Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   end;
 
   procedure ShowDebugHint;
@@ -2742,19 +2695,7 @@ var
       MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
       MainForm.Debugger.SendCommand('print', s, False);
     end else if devEditor.ParserHints then begin
-      fText.Hint := GetHintFromStatement(st);
-      // vertical bar is used to split up short and long hint versions...
-    end;
-  end;
-
-  procedure ShowParserHint;
-  begin
-    // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    st := fParser.FindStatementOf(fFileName, s, p.Line);
-
-    if Assigned(st) then begin
-      // vertical bar is used to split up short and long hint versions...
-      fText.Hint := GetHintFromStatement(st);
+      ShowParserHint;
     end;
   end;
 
