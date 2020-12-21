@@ -803,7 +803,7 @@ begin
       then begin
       Reparse;
     end;
-    if self.fTabSheet.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+    if fText.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
