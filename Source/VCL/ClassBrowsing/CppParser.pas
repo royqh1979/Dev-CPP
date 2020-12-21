@@ -3713,7 +3713,7 @@ begin
     if not Assigned(funcStatement) then
       Exit;
     Result := funcStatement^._FullName;
-    isVoid := SameStr(funcStatement^._Type, 'void');
+    isVoid := SameStr(trim(funcStatement^._Type), 'void');
     children:= funcStatement^._Children;
     params.Clear;
     if assigned(children) then begin

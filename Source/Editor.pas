@@ -1940,6 +1940,7 @@ var
     VK_RETURN: begin
         fLastIdCharPressed:=0;
         if fTabStopBegin>=0 then begin // editing user code template
+          key:=0;
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           ClearUserCodeInTabStops;
@@ -1968,6 +1969,7 @@ var
                   insertString.Add(' * @param '+params[i]+' '+USER_CODE_IN_INSERT_POS);
                 end;
                 if not isVoid then begin
+                  insertString.Add(' * ');
                   insertString.Add(' * @return '+USER_CODE_IN_INSERT_POS);
                 end;
                 insertString.Add(' **/');
