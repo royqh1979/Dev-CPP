@@ -1939,7 +1939,7 @@ begin
       end;
     VK_RETURN: begin
         fLastIdCharPressed:=0;
-        if fTabStopBegin>=0 then begin
+        if fTabStopBegin>=0 then begin // editing user code template
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           self.ClearUserCodeInTabStops;
@@ -1974,9 +1974,11 @@ begin
         end;
       end;
     VK_UP: begin
+        fLastIdCharPressed:=0;
         ClearUserCodeInTabStops;
       end;
     VK_DOWN: begin
+        fLastIdCharPressed:=0;
         ClearUserCodeInTabStops;
       end;
     VK_DELETE: begin
@@ -2815,6 +2817,9 @@ var
   line, FileName: AnsiString;
   e: TEditor;
 begin
+  if (Button = mbLeft) then begin
+    fLastIdCharPressed:=0;
+  end;
   // if ctrl+clicked
   if (ssCtrl in Shift) and (Button = mbLeft) and not fText.SelAvail then begin
 

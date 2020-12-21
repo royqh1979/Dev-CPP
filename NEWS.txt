@@ -6,9 +6,9 @@ Version 6.3-beta2
     - fix: random devcpp crash when rename symbol in the project
     - fix: flicker when rename symbol/reformat file
     - enhancement: set the mouse cursor to wait when rename symbol / reformat code
-    - ifx: use critical section to avoid resource confliction in cpp parser
+    - fix: use critical section to avoid resource confliction in cpp parser
     - enhancement: reparse the file after reformat code
-    - fix: devcpp crash when debug
+    - fix: code completion flag not clear when set new position of the caret using mouse
 
 Version 6.3-beta1
     
