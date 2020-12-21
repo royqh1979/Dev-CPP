@@ -1837,7 +1837,7 @@ end;
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
 var
   lastWord:AnsiString;
-  st:PStatement;
+  kind:TStatementKind;
   
 begin
   // Don't offer completion functions for plain text files
@@ -1862,12 +1862,8 @@ begin
                 ShowTabnineCompletion;
               Exit;
             end;
-            st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
-            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
-              //expand macro
-              st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
-            end;
-            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+            kind := fParser.FindKindOfStatementOf(fFileName, lastWord, fText.CaretY);
+            if (Kind in [skClass,skTypedef]) then begin
               //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
               if devEditor.UseTabnine then
                 ShowTabnineCompletion;
@@ -1908,6 +1904,10 @@ var
   DeletedChar, NextChar: Char;
   S: AnsiString;
   Reason: THandPointReason;
+  params,insertString:TStringList;
+  funcName:AnsiString;
+  isVoid : boolean;
+  i:integer;
 
   procedure UndoSymbolCompletion;
   begin
@@ -1943,6 +1943,54 @@ var
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
           ClearUserCodeInTabStops;
+        end else begin
+          s:=trim(Copy(fText.LineText,1,fText.CaretX-1));
+          if SameStr('/**',s) then begin //javadoc style docstring
+            s:=trim(Copy(fText.LineText,fText.CaretX,MAXINT));
+            if SameStr('*/',s) then begin
+              p:=fText.CaretXY;
+              fText.BlockBegin:=p;
+              p.Char := Length(fText.LineText)+1;
+              fText.BlockEnd := p;
+              fText.SelText := '';
+            end;
+            Key:=0;
+            params:=TStringList.Create;
+            insertString:= TStringList.Create;
+            try
+              insertString.Add('');
+              funcName := fParser.FindFunctionDoc(fFileName,fText.CaretY+1,
+                params,isVoid);
+              if funcName <> '' then begin
+                insertString.Add(' * @brief '+USER_CODE_IN_INSERT_POS);
+                insertString.Add(' * ');
+                for i:=0 to params.Count-1 do begin
+                  insertString.Add(' * @param '+params[i]+' '+USER_CODE_IN_INSERT_POS);
+                end;
+                if not isVoid then begin
+                  insertString.Add(' * @return '+USER_CODE_IN_INSERT_POS);
+                end;
+                insertString.Add(' **/');
+              end else begin
+                insertString.Add(' * ');
+                insertString.Add(' **/');
+              end;
+              InsertUserCodeIn(insertString.Text);
+            finally
+              insertString.Free;
+              params.Free;
+            end;
+          end else if fText.Highlighter.GetIsLastLineCommentNotFinish(fText.Lines.Ranges[fText.CaretY-2]) then
+            s:=trimLeft(fText.LineText);
+            if StartsStr('* ',s) then begin
+              Key:=0;
+              s:=#13#10+'* ';
+              self.insertString(s,false);
+              p:=fText.CaretXY;
+              inc(p.Line);
+              p.Char := length(fText.Lines[p.Line-1])+1;
+              fText.CaretXY := p;
+            end;
         end;
       end;
     VK_ESCAPE: begin // Update function tip
@@ -2684,7 +2732,7 @@ var
   begin
     kind := fParser.FindKindOfStatementOf(fFileName, s, p.Line);
 
-    if kind = skVariable then begin //only show debug info of variables;
+    if kind in [skVariable, skParameter] then begin //only show debug info of variables;
       if MainForm.Debugger.Reader.CommandRunning then
         Exit;
 
@@ -2846,7 +2894,7 @@ end;
 procedure TEditor.ExporterFormatToken(Sender: TObject; Line: integer;
       column: integer; token: String; var attr: TSynHighlighterAttributes);
 var
-  st: PStatement;
+  kind : TStatementKind;
   p: TBufferCoord;
   s:String;
   pBeginPos,pEndPos : TBufferCoord;
@@ -2859,14 +2907,14 @@ begin
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     p:=BufferCoord(column+1,line);
     s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
-    st := fParser.FindStatementOf(fFileName,
+    kind := fParser.FindKindOfStatementOf(fFileName,
       s , line);
-    if assigned(st) then begin
-      case st._Kind of
+    if Kind <> skUnknown then begin
+      case Kind of
         skPreprocessor, skEnum: begin
           attr:=dmMain.Cpp.DirecAttri;
         end;
-        skVariable: begin
+        skVariable, skParameter: begin
           attr:=dmMain.Cpp.VariableAttri;
         end;
         skFunction,skConstructor,skDestructor: begin
@@ -2921,7 +2969,7 @@ begin
       skPreprocessor, skEnum: begin
         fg:=dmMain.Cpp.DirecAttri.Foreground;
       end;
-      skVariable: begin
+      skVariable, skParameter: begin
         fg:=dmMain.Cpp.VariableAttri.Foreground;
       end;
       skFunction,skConstructor,skDestructor: begin

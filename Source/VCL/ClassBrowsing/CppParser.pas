@@ -220,6 +220,9 @@ type
     procedure Freeze;  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze; // UnFree/UnLock (reparse while searching)
     function GetParsing: boolean;
+
+    function FindFunctionDoc(const FileName:AnsiString; const Line: integer;
+      params:TStringList; var isVoid:boolean): AnsiString;
     
     property IncludePaths: TStringList read fIncludePaths;
     property ProjectIncludePaths: TStringList read fProjectIncludePaths;
@@ -343,17 +346,8 @@ end;
 function TCppParser.StatementKindStr(Value: TStatementKind): AnsiString;
 begin
   case Value of
-//    skPreprocessor: Result := 'preprocessor';
-//    skVariable: Result := 'variable';
-//    skConstructor: Result := 'constructor';
-//    skDestructor: Result := 'destructor';
-//    skFunction: Result := 'function';
-//    skClass: Result := 'class';
-//    skTypedef: Result := 'typedef';
-//    skEnum: Result := 'enum';
-//    skUnknown: Result := 'unknown';
     skPreprocessor: Result := 'P';
-    skVariable: Result := 'V';
+    skVariable, skParameter: Result := 'V';
     skConstructor: Result := 'Ct';
     skDestructor: Result := 'Dt';
     skFunction: Result := 'F';
@@ -3518,6 +3512,7 @@ begin
     case Statement^._Kind of
       skFunction,
         skVariable,
+        skParameter,
         skClass: begin
           if Statement^._Scope <> ssLocal then
             Result := GetScopePrefix; // public
@@ -3686,6 +3681,56 @@ begin
     fCriticalSection.Release;
   end;  
 end;
+
+function TCppParser.FindFunctionDoc(const FileName:AnsiString; const Line: integer;
+      params:TStringList; var isVoid:boolean): AnsiString;
+var
+  fileIncludes: PFileIncludes;
+  i:integer;
+  statement,funcStatement: PStatement;
+  children : TList;
+begin
+  fCriticalSection.Acquire;
+  try
+    Result := '';
+    fileIncludes:= self.FindFileIncludes(fileName);
+    if not assigned(fileIncludes) then
+      Exit;
+    funcStatement:=nil;
+    for i:=0 to fileIncludes.Statements.Count-1 do begin
+      statement:= PStatement(fileIncludes.Statements[i]);
+      if not assigned(statement) then
+        continue;
+      if (statement^._Kind in [skFunction,skConstructor,skDestructor])
+        and (
+          (statement^._Line = Line)
+          or (statement^._DefinitionLine = Line)
+        ) then begin
+        funcStatement := statement;
+        break;
+      end;
+    end;
+    if not Assigned(funcStatement) then
+      Exit;
+    Result := funcStatement^._FullName;
+    isVoid := SameStr(funcStatement^._Type, 'void');
+    children:= funcStatement^._Children;
+    params.Clear;
+    if assigned(children) then begin
+      for i:=0 to children.Count-1 do begin
+        statement:=PStatement(children[i]);
+        if not assigned(statement) then
+          continue;
+        if statement^._Kind = skParameter then begin
+          params.Add(statement^._Command);
+        end;
+      end;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
 
 function TCppParser.FindTypeDefinitionOf(const FileName: AnsiString;const aType: AnsiString; currentClass: PStatement): PStatement;
 var
@@ -4004,7 +4049,7 @@ begin
 
   LastScopeStatement:=nil;
   while MemberName <> '' do begin
-    if statement._Kind in [skVariable,skFunction] then begin
+    if statement._Kind in [skVariable,skParameter,skFunction] then begin
       if (statement^._Kind = skFunction)
           and assigned(statement^._ParentScope)
           and  (STLContainers.ValueOf(statement^._ParentScope^._FullName)>0)
@@ -4187,7 +4232,7 @@ begin
           Args,
           '',
           FunctionStatement^._DefinitionLine,
-          skVariable,
+          skParameter,
           ssLocal,
           scsNone,
           True,

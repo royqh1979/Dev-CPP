@@ -325,7 +325,7 @@ begin
       while Assigned(ScopeTypeStatement) and not (ScopeTypeStatement^._Kind in ScopeTypeKinds) do begin
         ScopeTypeStatement := ScopeTypeStatement^._ParentScope;
       end;
-      if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable,skFunction]) then  begin
+      if (opType in [otArrow, otDot]) and (statement^._Kind in [skVariable, skParameter,skFunction]) then  begin
         // Get type statement  of current (scope) statement
 
         // it's an element method of STL container

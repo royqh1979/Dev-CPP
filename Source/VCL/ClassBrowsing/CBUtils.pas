@@ -101,6 +101,7 @@ type
     skConstructor,
     skDestructor,
     skVariable,
+    skParameter,
     skNamespace,
     skNamespaceAlias,
     skBlock,

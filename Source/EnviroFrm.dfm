@@ -75,7 +75,7 @@ object EnviroForm: TEnviroForm
     Top = 0
     Width = 645
     Height = 567
-    ActivePage = tabGeneral
+    ActivePage = tabAssocs
     HotTrack = True
     TabOrder = 0
     object tabGeneral: TTabSheet
@@ -766,6 +766,7 @@ object EnviroForm: TEnviroForm
         Width = 556
         Height = 440
         Anchors = [akLeft, akTop, akRight, akBottom]
+        DefaultRowHeight = 30
         KeyOptions = [keyEdit, keyAdd, keyDelete]
         Options = [goVertLine, goHorzLine, goEditing, goAlwaysShowEditor, goThumbTracking]
         TabOrder = 0

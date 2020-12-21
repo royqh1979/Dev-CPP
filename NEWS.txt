@@ -10,6 +10,7 @@ Version 6.3-beta2
     - enhancement: reparse the file after reformat code
     - fix: code completion flag not clear when set new position of the caret using mouse
     - fix: user code template not loaded when devcpp start up
+    - enhancement: javadoc style docstring input support
 
 Version 6.3-beta1
     

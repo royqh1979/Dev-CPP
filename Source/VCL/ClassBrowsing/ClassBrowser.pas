@@ -249,7 +249,7 @@ begin
     skTypedef: begin
         Node.ImageIndex := fImagesRecord.TypeImg;
       end;
-    skVariable: case Statement^._ClassScope of
+    skVariable,skParameter: case Statement^._ClassScope of
         scsPrivate: Node.ImageIndex := fImagesRecord.VariablePrivate;
         scsProtected: if not bInherited then
             Node.ImageIndex := fImagesRecord.VariableProtected
@@ -598,7 +598,7 @@ begin
         if not Assigned(st) then
           Exit;
         case st^._Kind of
-          skVariable:begin
+          skVariable,skParameter:begin
             Sender.Canvas.Font.Color := fColors[VarColor];
           end;
           skClass:begin
