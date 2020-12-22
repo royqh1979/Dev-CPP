@@ -86,7 +86,6 @@ type
     btnSaveSyntax: TSpeedButton;
     tabCBCompletion: TTabSheet;
     lblCompletionDelay: TLabel;
-    lblCompletionColor: TLabel;
     tbCompletionDelay: TTrackBar;
     cbMatch: TCheckBox;
     grpEditorOpts: TGroupBox;
@@ -134,7 +133,6 @@ type
     cpMarginColor: TColorBox;
     cpForeground: TColorBox;
     cpBackground: TColorBox;
-    cpCompletionBackground: TColorBox;
     PagesCompletion: TPageControl;
     tabSymbolCompletion: TTabSheet;
     grpSpecific: TGroupBox;
@@ -172,6 +170,10 @@ type
     chkShowKeywords: TCheckBox;
     chkIgnoreCase: TCheckBox;
     chkAppendFunc: TCheckBox;
+    lbCodeSuggestionWidth: TLabel;
+    txtCodeSuggestionWidth: TSpinEdit;
+    lbCodeSuggestionHeight: TLabel;
+    txtCodeSuggestionHeight: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -209,7 +211,6 @@ type
     procedure NameOptionsClick(Sender: TObject);
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
-    procedure cbShowCompletionWhileInputingClick(Sender: TObject);
     procedure chkRecordUsageClick(Sender: TObject);
     procedure btnClearUsageDataClick(Sender: TObject);
     procedure chkAutoCheckSyntaxInBackClick(Sender: TObject);
@@ -437,7 +438,6 @@ begin
   chkCBParseLocalH.Checked := devCodeCompletion.ParseLocalHeaders;
   chkCBParseGlobalH.Checked := devCodeCompletion.ParseGlobalHeaders;
   tbCompletionDelay.Position := devCodeCompletion.Delay;
-  cpCompletionBackground.Selected := devCodeCompletion.BackColor;
   chkEnableCompletionClick(nil);
   cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
@@ -447,6 +447,8 @@ begin
   chkAppendFunc.Checked := devCodeCompletion.AppendFunc;
   btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
   txtCodeSuggestionMaxCount.Value := devCodeCompletion.MaxCount;
+  txtCodeSuggestionWidth.Value := devCodeCompletion.Width;
+  txtCodeSuggestionHeight.Value := devCodeCompletion.Height;
   chkUseTabnine.Checked := devEditor.UseTabnine;
   
   // Symbol Completion
@@ -482,7 +484,6 @@ begin
 
   // Set defaults of color buttons, don't want all system colors too
   cpMarginColor.Items.InsertObject(1, 'Default', TObject(cpMarginColor.DefaultColorColor));
-  cpCompletionBackground.Items.InsertObject(1, 'Default', TObject(cpCompletionBackground.DefaultColorColor));
 end;
 
 procedure TEditorOptForm.cboEditorFontDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State:
@@ -574,8 +575,10 @@ begin
   Font.Size := devData.InterfaceFontSize;
 
   lbCodeSuggestionShowCount.Caption := Lang[ID_EOPT_CODECOMPLETE_MAXCOUNT];
+  lbCodeSuggestionWidth.Caption := Lang[ID_EOPT_CODECOMPLETE_WIDTH];
+  lbCodeSuggestionHeight.Caption := Lang[ID_EOPT_CODECOMPLETE_HEIGHT];
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
-  chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE]; 
+  chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE];
   chkShowKeywords.Caption := Lang[ID_EOPT_SHOW_KEYWORDS];
   chkIgnoreCase.Caption := Lang[ID_EOPT_IGNORE_CASE];
   chkAppendFunc.Caption := Lang[ID_EOPT_APPEND_FUNC];
@@ -695,7 +698,6 @@ begin
 
   // Completion tab, code
   chkEnableCompletion.Caption := Lang[ID_EOPT_COMPLETIONENABLE];
-  lblCompletionColor.Caption := Lang[ID_EOPT_COMPLETIONCOLOR];
   gbCBEngine.Caption := Lang[ID_EOPT_BROWSERENGINE];
   chkCBParseLocalH.Caption := Lang[ID_EOPT_BROWSERLOCAL];
   chkCBParseGlobalH.Caption := Lang[ID_EOPT_BROWSERGLOBAL];
@@ -916,7 +918,6 @@ begin
   with devCodeCompletion do begin
     Enabled := chkEnableCompletion.Checked;
     Delay := tbCompletionDelay.Position;
-    BackColor := cpCompletionBackground.Selected;
     ParseLocalHeaders := chkCBParseLocalH.Checked;
     ParseGlobalHeaders := chkCBParseGlobalH.Checked;
     UseAltSlash := cbUseAltSlash.Checked;
@@ -926,6 +927,8 @@ begin
     AppendFunc := chkAppendFunc.Checked;
     ShowCompletionWhileInput := cbShowCompletionWhileInputing.Checked;
     MaxCount := txtCodeSuggestionMaxCount.Value;
+    width := txtCodeSuggestionWidth.Value;
+    height := txtCodeSuggestionHeight.Value;
   end;
 
   // Only create the timer if autosaving is enabled
@@ -1477,7 +1480,6 @@ procedure TEditorOptForm.chkEnableCompletionClick(Sender: TObject);
 begin
   with chkEnableCompletion do begin
     tbCompletionDelay.Enabled := Checked;
-    cpCompletionBackground.Enabled := Checked;
     chkCBParseGlobalH.Enabled := Checked;
     chkCBParseLocalH.Enabled := Checked;
     cbUseAltSlash.Enabled := Checked;
@@ -1486,7 +1488,9 @@ begin
     chkShowKeywords.Enabled := Checked;
     chkIgnoreCase.Enabled := Checked;
     chkAppendFunc.Enabled := Checked;
-    txtCodeSuggestionMaxCount.Enabled:=Checked and cbShowCompletionWhileInputing.Checked;
+    txtCodeSuggestionMaxCount.Enabled:=Checked;
+    txtCodeSuggestionWidth.Enabled:=Checked;
+    txtCodeSuggestionHeight.Enabled:=Checked;   
   end;
 end;
 
@@ -1691,12 +1695,6 @@ procedure TEditorOptForm.cbBackgroundClick(Sender: TObject);
 begin
   cpBackground.Enabled := cbBackground.Checked;
   self.StyleChange(Sender);
-end;
-
-procedure TEditorOptForm.cbShowCompletionWhileInputingClick(
-  Sender: TObject);
-begin
-  txtCodeSuggestionMaxCount.Enabled := cbShowCompletionWhileInputing.Checked;
 end;
 
 procedure TEditorOptForm.chkRecordUsageClick(Sender: TObject);

@@ -4770,11 +4770,9 @@ begin
     actCodeCompletion.ShortCut := TextToShortCut('Ctrl+Space');
 
   // Configure code completion
-  CodeCompletion.Color := devCodeCompletion.BackColor;
   CodeCompletion.Width := devCodeCompletion.Width;
   CodeCompletion.Height := devCodeCompletion.Height;
 
-  HeaderCompletion.Color := devCodeCompletion.BackColor;
   HeaderCompletion.Width := devCodeCompletion.Width;
   HeaderCompletion.Height := devCodeCompletion.Height;
 

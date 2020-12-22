@@ -13,6 +13,7 @@ Version 6.3-beta2
     - enhancement: javadoc style docstring input support
     - enhancement: code completion for c/cpp preprocessors
     - enhancement: code completion for javadoc tags
+    - enhancement: adjust code suggestion window width/height in the editor option dialog
 
 Version 6.3-beta1
     

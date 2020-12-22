@@ -388,6 +388,9 @@ Ver=1
 26038=Show Keyword in Code Completion
 26039=Ignore Case in Code Completion
 26040=Append () to Function
+26041=Code Suggestion Window width:
+26042=Code Suggestion Window height:
+
 
 27001=Show hidden line characters
 27002=Show mouseover hints

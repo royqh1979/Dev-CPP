@@ -2767,10 +2767,9 @@ end;
 
 procedure TdevCodeCompletion.SettoDefaults;
 begin
-  fWidth := 320;
-  fHeight := 240;
+  fWidth := 700;
+  fHeight := 300;
   fDelay := 180;
-  fBackColor := clWindow;
   fEnabled := True;
   fParseLocalHeaders := True;
   fParseGlobalHeaders := True;
