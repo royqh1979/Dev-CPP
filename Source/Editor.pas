@@ -1431,18 +1431,25 @@ end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
 var
-  phrase:AnsiString;
+  phrase,s:AnsiString;
   pBeginPos,pEndPos : TBufferCoord;
+  attr:TSynHighlighterAttributes;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      if (StartsStr('#',fText.LineText)) then begin
-        phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpDirective);
-      end else if StartsStr('* ',TrimLeft(fText.LineText)) then begin
-        phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpJavadoc);
-      end else begin
+
+      s:=fText.LineText;
+      phrase :='';
+      if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then begin
+        if attr = dmMain.Cpp.DirecAttri then begin //Preprocessor
+          phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpDirective);
+        end else if attr = dmMain.Cpp.CommentAttri then begin //Comment, javadoc tag
+          phrase:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpJavadoc);
+        end;
+      end;
+      if (phrase = '') then begin
         phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
       end;
       
