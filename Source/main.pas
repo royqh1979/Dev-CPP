@@ -5295,7 +5295,6 @@ begin
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
-        // CppParser.ParseFile(e.FileName,e.InProject,True);
         GetCppParser.ParseFile(e.FileName,e.InProject);
       end;
     end else begin

@@ -96,7 +96,6 @@ type
     fPreviousEditors: TList;
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
-    fLastParseTime:TDateTime;
     fLastMatchingBeginLine: integer;
     fLastMatchingEndLine: integer;
     {
@@ -354,7 +353,6 @@ begin
   fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
-  fLastParseTime := 0;
   fLastIdCharPressed := 0;
   // Set generic options
   fErrorLine := -1;
@@ -769,7 +767,6 @@ begin
     try
     // Set classbrowser to current file (and parse file and refresh)
     MainForm.UpdateClassBrowserForEditor(self);
-    fLastParseTime := Now;
     finally
       EndUpdate;
     end;
@@ -1441,24 +1438,15 @@ begin
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
-
-      fCompletionBox.Search(phrase , fFileName,False);
-      //we don't auto use the completion even if there's only one suggestion
-      {
-      // There's only one suggestion and is exactly the search word
-      if fCompletionBox.Search(phrase , fFileName,False) then begin
-        // we don't auto insert code tempate, so we must test for it
-        Statement := fCompletionBox.SelectedStatement;
-        if not Assigned(Statement) then
-          Exit;
-        if Statement^._Kind = skUserCodeIn then
-          Exit;
-        //not code tempate, auto use it
-        CompletionInsert();
-        fCompletionBox.Hide;
+      if (StartsStr('#',fText.LineText)) then begin
+        phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpDirective);
+      end else if StartsStr('* ',TrimLeft(fText.LineText)) then begin
+        phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpJavadoc);
+      end else begin
+        phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
       end;
-      }
+      
+      fCompletionBox.Search(phrase , fFileName,False);
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
@@ -3260,7 +3248,6 @@ begin
         BeginUpdate;
         try
         fParser.ParseFile(fFileName, InProject);
-        fLastParseTime := Now;
         finally
           EndUpdate;
         end;
@@ -3361,7 +3348,6 @@ begin
     BeginUpdate;
     try
       MainForm.UpdateClassBrowserForEditor(self);
-      fLastParseTime := Now;
     finally
       EndUpdate;
     end;
@@ -3604,7 +3590,6 @@ begin
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
     fParser.ParseFile(fFileName, InProject, False, False, M);
-    fLastParseTime := Now;
   finally
     M.Free;
     EndUpdate;

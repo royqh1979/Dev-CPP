@@ -1032,6 +1032,7 @@ begin
   STLPointers.Add('std::iterator',1);
 
   {C/CPP preprocessor directives }
+  CppDirectiveList.Add('#include');
   CppDirectiveList.Add('#if');
   CppDirectiveList.Add('#ifdef');
   CppDirectiveList.Add('#ifndef');
