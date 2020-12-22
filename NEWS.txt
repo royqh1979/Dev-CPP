@@ -11,6 +11,8 @@ Version 6.3-beta2
     - fix: code completion flag not clear when set new position of the caret using mouse
     - fix: user code template not loaded when devcpp start up
     - enhancement: javadoc style docstring input support
+    - enhancement: code completion for c/cpp preprocessors
+    - enhancement: code completion for javadoc tags
 
 Version 6.3-beta1
     

@@ -64,6 +64,8 @@ type
     wpEvaluation, // walk backwards over words, array, functions, parents, forwards over words, array
     wpHeaderCompletion, // walk backwards over path
     wpHeaderCompletionStart, // walk backwards over path, including start '<' or '"'
+    wpDirective, // preprocessor
+    wpJavadoc, //javadoc
     wpInformation // walk backwards over words, array, functions, parents, forwards over words
     );
 
@@ -1877,6 +1879,26 @@ begin
       end;
     end;
   end else begin
+    //preprocessor ?
+    if (fLastIdCharPressed=0) and (key='#') and (fText.LineText='')
+      and devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
+      then begin
+      inc(fLastIdCharPressed);
+      fText.SelText := Key;
+      ShowCompletion(False);
+      Key:=#0;
+      Exit;
+    end;
+    //javadoc directive?
+    if (fLastIdCharPressed=0) and (key='@') and StartsStr('* ',TrimLeft(fText.LineText))
+      and devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
+      then begin
+      inc(fLastIdCharPressed);
+      fText.SelText := Key;
+      ShowCompletion(False);
+      Key:=#0;
+      Exit;
+    end;
     fLastIdCharPressed:=0;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
@@ -1974,7 +1996,7 @@ var
                 end;
                 insertString.Add(' **/');
               end else begin
-                insertString.Add(' * ');
+                insertString.Add(' * '+USER_CODE_IN_INSERT_POS);
                 insertString.Add(' **/');
               end;
               InsertUserCodeIn(insertString.Text);
@@ -2215,16 +2237,25 @@ begin
   if fCompletionBox.Visible then // already in search, don't do it again
     Exit;
 
+  word:='';
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
   if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then begin
     if attr = dmMain.Cpp.DirecAttri then begin //Preprocessor
-      ShowTabnineCompletion;
+      word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpDirective);
+      if not StartsStr('#',word) then begin
+        ShowTabnineCompletion;
+        Exit;
+      end;
+    end else if attr = dmMain.Cpp.CommentAttri then begin //Comment, javadoc tag
+      word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpJavadoc);
+      if not StartsStr('@',word) then begin
+        Exit;
+      end;
+    end else if (attr <> fText.Highlighter.SymbolAttribute) and
+      (attr <> fText.Highlighter.WhitespaceAttribute) and
+      (attr <> fText.Highlighter.IdentifierAttribute) then begin
       Exit;
     end;
-    if (attr <> fText.Highlighter.SymbolAttribute) and
-      (attr <> fText.Highlighter.WhitespaceAttribute) and
-      (attr <> fText.Highlighter.IdentifierAttribute) then
-      Exit;
   end;
 
   // Position it at the top of the next line
@@ -2250,7 +2281,8 @@ begin
   // Scan the current function body
   fCompletionBox.CurrentStatement := fParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
-  word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
+  if word='' then
+    word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
 
@@ -2392,6 +2424,30 @@ begin
         end else if (s[WordEnd + 1] in editor.IdentChars) then
           Inc(WordEnd)
         else
+          break;
+      end;
+    end;
+
+    // Copy backward until #
+    if Purpose = wpDirective then begin
+     while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else if s[WordBegin] in ['#'] then begin // allow destructor signs
+          Dec(WordBegin);
+        end else
+          break;
+      end;
+    end;
+
+    // Copy backward until @
+    if Purpose = wpJavadoc then begin
+     while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else if s[WordBegin] in ['@'] then begin // allow destructor signs
+          Dec(WordBegin);
+        end else
           break;
       end;
     end;
@@ -2633,7 +2689,12 @@ begin
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
     InsertUserCodeIn(Statement^._Value);
   end else begin
-    fText.SelText := Statement^._Command + FuncAddOn;
+    if (Statement^._Kind = skKeyword) and
+      (length(Statement^._Command)>0) and
+      (Statement^._Command[1] in ['#','@']) then begin
+      fText.SelText := Copy(Statement^._Command,2,MAXINT);
+    end else
+      fText.SelText := Statement^._Command + FuncAddOn;
 
     if FuncAddOn <> '' then
       fLastIdCharPressed := 0;

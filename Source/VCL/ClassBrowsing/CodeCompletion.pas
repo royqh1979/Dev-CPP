@@ -231,14 +231,33 @@ begin
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
 
-  {
-  //Clear Code Statements
-  for i:= 0 to  fCodeInsStatements.Count-1 do begin
-    dispose(PStatement(fCodeInsStatements[i]));
+  if StartsStr('#',Phrase) then begin
+    if fShowKeywords then begin
+      //add keywords
+      for i:=0 to CppDirectiveList.Count-1 do begin
+        new(codeInStatement);
+        codeInStatement^._Command := CppDirectiveList[i];
+        codeInStatement^._Kind := skKeyword;
+        fCodeInsStatements.Add(pointer(codeInStatement));
+        fFullCompletionStatementList.Add(pointer(codeInStatement));
+      end;
+    end;
+    Exit;
   end;
-  fCodeInsStatements.Clear;
-  }
 
+  if StartsStr('@',Phrase) then begin
+    if fShowKeywords then begin
+      //add keywords
+      for i:=0 to JavadocTags.Count-1 do begin
+        new(codeInStatement);
+        codeInStatement^._Command := JavadocTags[i];
+        codeInStatement^._Kind := skKeyword;
+        fCodeInsStatements.Add(pointer(codeInStatement));
+        fFullCompletionStatementList.Add(pointer(codeInStatement));
+      end;
+    end;
+    Exit;
+  end;
 
   // Pulling off the same trick as in TCppParser.FindStatementOf, but ignore everything after last operator
   I := fParser.FindLastOperator(Phrase);
