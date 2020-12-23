@@ -1176,7 +1176,7 @@ var
     end;
 
     statement := self.FindStatementOf(fCurrentFile,word,getCurrentScope,true);
-    if assigned(statement) and not (statement^._Kind in [skClass,skTypedef]) then begin
+    if assigned(statement) and not (statement^._Kind in [skClass,skTypedef,skEnumType]) then begin
       Result:=True;
       Exit;
     end;
@@ -2403,14 +2403,14 @@ begin
     AddStatement(
       GetCurrentScope,
       fCurrentFile,
-      '', // do not override hint
+      'enum '+EnumName,
       'enum',
       EnumName,
       Args,
       '',
       //fTokenizer[fIndex]^.Line,
       startLine,
-      skEnum,
+      skEnumType,
       GetScope,
       fClassScope,
       True,
@@ -3542,7 +3542,7 @@ begin
       skTypedef: begin
           Result := 'skTypedef hint'; // should be set by HintText
         end;
-      skEnum: begin
+      skEnum, skEnumType: begin
           Result := 'skEnum hint'; // should be set by HintText
         end;
       skPreprocessor: begin
@@ -3862,20 +3862,12 @@ begin
   if fParsing and not force then
     Exit;
 
-  //Find in local members
-  {
-  Result:=FindMemberOfStatement(Phrase,nil,True);
-  if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass]) then
-    Exit;
-  }
-
   scopeStatement := startScope;
 
   // repeat until reach global
   while Assigned(scopeStatement) do begin
     //search members of current scope
     Result:=FindMemberOfStatement(Phrase,scopeStatement);
-//    if Assigned(Result) and not (Result^._Kind in [skTypedef,skClass])  then
     if Assigned(Result) then
       Exit;
     if (scopeStatement^._Kind = skNamespace) then begin

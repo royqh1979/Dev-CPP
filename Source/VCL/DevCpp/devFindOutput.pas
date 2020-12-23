@@ -132,7 +132,7 @@ end;
 
 destructor TFindOutput.Destroy;
 begin
-  ClearFinds(False);
+  Clear;
   {
   FreeAndNil(fControlCanvas);
   }

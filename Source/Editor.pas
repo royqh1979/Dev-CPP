@@ -1860,7 +1860,7 @@ begin
               Exit;
             end;
             kind := fParser.FindKindOfStatementOf(fFileName, lastWord, fText.CaretY);
-            if (Kind in [skClass,skTypedef]) then begin
+            if (Kind in [skClass,skTypedef,skEnumType]) then begin
               //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
               if devEditor.UseTabnine then
                 ShowTabnineCompletion;
@@ -2972,13 +2972,19 @@ begin
         skPreprocessor, skEnum: begin
           attr:=dmMain.Cpp.DirecAttri;
         end;
-        skVariable, skParameter: begin
+        skVariable: begin
           attr:=dmMain.Cpp.VariableAttri;
+        end;
+        skLocalVariable, skParameter: begin
+          attr:=dmMain.Cpp.LocalVarAttri;
+        end;
+        skGlobalVariable: begin
+          attr:=dmMain.Cpp.GlobalVarAttri;
         end;
         skFunction,skConstructor,skDestructor: begin
           attr:=dmMain.Cpp.FunctionAttri;
         end;
-        skClass,skNamespace,skTypedef : begin
+        skClass,skNamespace,skTypedef,skEnumType : begin
           attr:=dmMain.Cpp.ClassAttri;
         end;
       end;
@@ -3039,7 +3045,7 @@ begin
       skFunction,skConstructor,skDestructor: begin
         fg:=dmMain.Cpp.FunctionAttri.Foreground;
       end;
-      skClass,skNamespace,skTypedef : begin
+      skClass,skNamespace,skTypedef, skEnumType : begin
         fg:=dmMain.Cpp.ClassAttri.Foreground;
       end;
       skUnknown: begin

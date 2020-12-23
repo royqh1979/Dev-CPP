@@ -91,6 +91,7 @@ type
 
   TStatementKind = (
     skPreprocessor,
+    skEnumType,
     skEnum,
     skTypedef,
     skClass,

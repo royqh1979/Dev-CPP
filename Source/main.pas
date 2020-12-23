@@ -979,6 +979,7 @@ type
     procedure actSyntaxCheckFileUpdate(Sender: TObject);
     procedure actRenameSymbolUpdate(Sender: TObject);
     procedure actExtractMacroUpdate(Sender: TObject);
+    procedure actFindAllUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -3453,21 +3454,21 @@ var
   e: TEditor;
   s: AnsiString;
 begin
+  s:='';
+  // Create it when needed!
+  if not Assigned(FindForm) then
+    FindForm := TFindForm.Create(Self);
+
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
-
-    // Create it when needed!
-    if not Assigned(FindForm) then
-      FindForm := TFindForm.Create(Self);
-
     s := e.Text.SelText;
     if s = '' then
       s := e.Text.WordAtCursor;
-
-    FindForm.TabIndex := 1;
-    FindForm.cboFindText.Text := s;
-    FindForm.Show;
   end;
+
+  FindForm.TabIndex := 1;
+  FindForm.cboFindText.Text := s;
+  FindForm.Show;
 end;
 
 procedure TMainForm.actReplaceExecute(Sender: TObject);
@@ -3497,21 +3498,21 @@ var
   e: TEditor;
   s: AnsiString;
 begin
+  s:='';
+  // Create it when needed!
+  if not Assigned(FindForm) then
+    FindForm := TFindForm.Create(Self);
+
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
-
-    // Create it when needed!
-    if not Assigned(FindForm) then
-      FindForm := TFindForm.Create(Self);
-
     s := e.Text.SelText;
     if s = '' then
       s := e.Text.WordAtCursor;
-
-    FindForm.TabIndex := 3;
-    FindForm.cboFindText.Text := s;
-    FindForm.Show;
   end;
+
+  FindForm.TabIndex := 3;
+  FindForm.cboFindText.Text := s;
+  FindForm.Show;
 end;
 
 procedure TMainForm.actGotoLineExecute(Sender: TObject);
@@ -8758,6 +8759,12 @@ begin
   e := fEditorList.GetEditor;
   TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty
     and not e.CppParser.Parsing;
+end;
+
+procedure TMainForm.actFindAllUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := Assigned(fProject)
+    or (fEditorList.PageCount>0)
 end;
 
 end.
