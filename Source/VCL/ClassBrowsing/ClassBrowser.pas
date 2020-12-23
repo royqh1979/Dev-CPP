@@ -613,10 +613,10 @@ begin
           skTypedef:begin
             Sender.Canvas.Font.Color := fColors[TypedefColor];
           end;
-          skPreprocessor:begin
+          skPreprocessor,skEnum:begin
             Sender.Canvas.Font.Color := fColors[PreprocessorColor];
           end;
-          skEnum:begin
+          skEnumType:begin
             Sender.Canvas.Font.Color := fColors[EnumColor];
           end;
           else begin

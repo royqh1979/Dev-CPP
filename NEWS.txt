@@ -15,7 +15,7 @@ Version 6.3-beta2
     - enhancement: code completion for javadoc tags
     - enhancement: adjust code suggestion window width/height in the editor option dialog
     - enhancement: global variable and local variable can use different color
-    - enhancement: correct process function parameters with default value
+    - enhancement: correctly process function parameters with default value
     - enhancement: differentiate enum name and enum values in the parser
 
 Version 6.3-beta1
