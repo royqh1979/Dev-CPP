@@ -104,6 +104,8 @@ type
     skBlock,
     skUserCodeIn,  // user code template
     skKeyword, // keywords
+    skGlobalVariable,
+    skLocalVariable,
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;

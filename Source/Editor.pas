@@ -3027,8 +3027,14 @@ begin
       skPreprocessor, skEnum: begin
         fg:=dmMain.Cpp.DirecAttri.Foreground;
       end;
-      skVariable, skParameter: begin
+      skVariable: begin
         fg:=dmMain.Cpp.VariableAttri.Foreground;
+      end;
+      skLocalVariable, skParameter: begin
+        fg:=dmMain.Cpp.LocalVarAttri.Foreground;
+      end;
+      skGlobalVariable: begin
+        fg:=dmMain.Cpp.GlobalVarAttri.Foreground;
       end;
       skFunction,skConstructor,skDestructor: begin
         fg:=dmMain.Cpp.FunctionAttri.Foreground;

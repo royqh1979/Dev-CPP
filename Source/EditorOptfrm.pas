@@ -1297,15 +1297,15 @@ begin
       end;
     end;
 
-    StrToThemeColor(fBPColor, LoadStr(offset + 18)); // breakpoints
-    StrToThemeColor(fErrColor, LoadStr(offset + 19)); // error line
-    StrToThemeColor(fABPColor, LoadStr(offset + 20)); // active breakpoint
-    StrToThemeColor(fgutColor, LoadStr(offset + 21)); // gutter
-    StrToThemeColor(fSelColor, LoadStr(offset + 22)); // selected text
-    StrToThemeColor(fFoldColor, LoadStr(offset + 23)); // folding bar lines
-    StrToThemeColor(fALColor, LoadStr(offset + 24)); // folding bar lines
-    StrToThemeColor(fWNColor, LoadStr(offset + 25)); // folding bar lines
-    StrToThemeColor(fPNLColor, LoadStr(offset + 26)); // folding bar lines
+    StrToThemeColor(fBPColor, LoadStr(offset + 20)); // breakpoints
+    StrToThemeColor(fErrColor, LoadStr(offset + 21)); // error line
+    StrToThemeColor(fABPColor, LoadStr(offset + 22)); // active breakpoint
+    StrToThemeColor(fgutColor, LoadStr(offset + 23)); // gutter
+    StrToThemeColor(fSelColor, LoadStr(offset + 24)); // selected text
+    StrToThemeColor(fFoldColor, LoadStr(offset + 25)); // folding bar lines
+    StrToThemeColor(fALColor, LoadStr(offset + 26)); // folding bar lines
+    StrToThemeColor(fWNColor, LoadStr(offset + 27)); // folding bar lines
+    StrToThemeColor(fPNLColor, LoadStr(offset + 28)); // folding bar lines
     UpdateDemoEditColor;
   end;
 

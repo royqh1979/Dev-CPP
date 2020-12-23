@@ -4186,7 +4186,16 @@ begin
     Result:=skUnknown;
     st := FindStatementOf(FileName, Phrase,Line);
     if assigned(st) then begin
-      Result := st^._Kind;
+      if st^._Kind = skVariable then begin
+        if not Assigned(st^._ParentScope)
+          or (st^._ParentScope^._Kind = skNamespace) then begin
+          Result:=skGlobalVariable;
+        end else if st^._Scope = ssLocal then begin
+          Result:=skLocalVariable;
+        end else
+          Result:=skVariable;
+      end else
+        Result := st^._Kind;
     end;
   finally
     fCriticalSection.Release;
@@ -4196,7 +4205,7 @@ end;
 
 procedure TCppParser.ScanMethodArgs(const FunctionStatement:PStatement; ArgStr:string);
 var
-  I, ParamStart, SpacePos, BracePos,bracketPos: integer;
+  I, ParamStart, SpacePos, BracePos,bracketPos,assignPos: integer;
   S,Args: AnsiString;
 begin
   // Split up argument string by ,
@@ -4209,6 +4218,13 @@ begin
       // We've found "int* a" for example
       S := Trim(Copy(ArgStr, ParamStart, I - ParamStart));
 
+      //remove default value
+      assignPos := Pos('=',S);
+      if assignPos > 0 then begin
+        Delete(S, assignPos,MaxInt);
+        S:=TrimRight(S);
+      end;
+      
       // Can be a function pointer. If so, scan after last )
       BracePos := LastPos(')', S);
       if BracePos > 0 then // it's a function pointer...

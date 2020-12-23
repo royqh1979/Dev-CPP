@@ -131,6 +131,8 @@ type
     fVariableAttri: TSynHighlighterAttributes;
     fFunctionAttri: TSynHighlighterAttributes;
     fClassAttri: TSynHighlighterAttributes;
+    fGlobalVarAttri: TSynHighlighterAttributes;
+    fLocalVarAttri : TSynHighlighterAttributes;
     procedure AnsiCProc;
     procedure AnsiCppProc;
     procedure AndSymbolProc;
@@ -244,6 +246,10 @@ type
       write fFunctionAttri;
     property ClassAttri: TSynHighlighterAttributes read fClassAttri
       write fClassAttri;
+    property GlobalVarAttri: TSynHighlighterAttributes read fGlobalVarAttri
+      write fGlobalVarAttri;
+    property LocalVarAttri: TSynHighlighterAttributes read fLocalVarAttri
+      write fLocalVarAttri;
 
   end;
 
@@ -363,12 +369,16 @@ begin
   AddAttribute(fFloatAttri);
   fFunctionAttri := TSynHighlighterAttributes.Create(SYNS_AttrFunction);
   AddAttribute(fFunctionAttri);
+  fGlobalVarAttri := TSynHighlighterAttributes.Create(SYNS_AttrGlobalVariable);
+  AddAttribute(fGlobalVarAttri);
   fHexAttri := TSynHighlighterAttributes.Create(SYNS_AttrHexadecimal);
   AddAttribute(fHexAttri);
   fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
   AddAttribute(fIdentifierAttri);
   fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
   AddAttribute(fInvalidAttri);
+  fLocalVarAttri := TSynHighlighterAttributes.Create(SYNS_AttrLocalVariable);
+  AddAttribute(fLocalVarAttri);
   fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
   AddAttribute(fNumberAttri);
   fOctalAttri := TSynHighlighterAttributes.Create(SYNS_AttrOctal);
