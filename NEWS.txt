@@ -20,6 +20,7 @@ Version 6.3-beta2
     - fixes: Goto Function dialog
     - enhancement: Rename symbols only save the files using the symbols. And rename local symbols only parse the current file.
     - change: allow more than one instances of  devcpp to run at the same time
+    - change: add freeglut 3.2.1 to the included gcc 9.2
 
 Version 6.3-beta1
     

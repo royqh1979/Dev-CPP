@@ -3000,7 +3000,7 @@ var
 begin
   TempDir := GetEnvironmentVariable('TEMP');
   // Store file backup in AStyle dir and format that file
-  FileName := TempDir + PathDelim+ 'astyle-temp.cpp';
+  FileName := TempDir + PathDelim+ 'astyle-temp.'+IntToStr(GetCurrentProcessID)+'.cpp';
   Editor.Text.Lines.SaveToFile(FileName);
   FormatFile(FileName, OverrideCommand);
 
