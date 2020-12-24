@@ -108,12 +108,14 @@ var
 begin
   // Check for previous instances (only allow once instance)
   // If we are able to find a previous instance, activate that one instead
+  {
   PrevInstance := GetPreviousInstance;
   if PrevInstance <> 0 then begin
     if PrevInstance <> INVALID_HANDLE_VALUE then
       SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
     Exit;
   end;
+  }
 
   // Read INI filename
   INIFileName := ChangeFileExt(ExtractFileName(Application.ExeName), INI_EXT);

@@ -19,6 +19,7 @@ Version 6.3-beta2
     - enhancement: differentiate enum name and enum values in the parser
     - fixes: Goto Function dialog
     - enhancement: Rename symbols only save the files using the symbols. And rename local symbols only parse the current file.
+    - change: allow more than one instances of  devcpp to run at the same time
 
 Version 6.3-beta1
     

@@ -550,7 +550,7 @@ var
   PipeName:String;
 begin
   inc(RunAndExecCount);
-  PipeName := PipeNamePrefix + IntToStr(RunAndExecCount);
+  PipeName := PipeNamePrefix + IntToStr(GetCurrentProcessId) +'_'  + IntToStr(RunAndExecCount);
   FOutput := '';
   CurrentLine := '';
 
