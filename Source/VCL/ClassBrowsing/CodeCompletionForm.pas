@@ -112,11 +112,11 @@ begin
       case statement^._Kind of
         skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
         skClass: Canvas.Font.Color := Colors[ClassColor];
-        skVariable: Canvas.Font.Color := Colors[VarColor];
+        skVariable, skParameter: Canvas.Font.Color := Colors[VarColor];
         skNamespace: Canvas.Font.Color := Colors[NamespaceColor];
         skTypedef: Canvas.Font.Color := Colors[TypedefColor];
-        skPreprocessor: Canvas.Font.Color := Colors[PreprocessorColor];
-        skEnum: Canvas.Font.Color := Colors[EnumColor];
+        skPreprocessor, skEnum: Canvas.Font.Color := Colors[PreprocessorColor];
+        skEnumType: Canvas.Font.Color := Colors[EnumColor];
         skKeyword, skUserCodeIn: Canvas.Font.Color := Colors[KeywordColor];
       else
         Canvas.Font.Color := Colors[ForeColor];

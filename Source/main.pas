@@ -979,6 +979,7 @@ type
     procedure actSyntaxCheckFileUpdate(Sender: TObject);
     procedure actRenameSymbolUpdate(Sender: TObject);
     procedure actExtractMacroUpdate(Sender: TObject);
+    procedure actFindAllUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -3453,21 +3454,21 @@ var
   e: TEditor;
   s: AnsiString;
 begin
+  s:='';
+  // Create it when needed!
+  if not Assigned(FindForm) then
+    FindForm := TFindForm.Create(Self);
+
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
-
-    // Create it when needed!
-    if not Assigned(FindForm) then
-      FindForm := TFindForm.Create(Self);
-
     s := e.Text.SelText;
     if s = '' then
       s := e.Text.WordAtCursor;
-
-    FindForm.TabIndex := 1;
-    FindForm.cboFindText.Text := s;
-    FindForm.Show;
   end;
+
+  FindForm.TabIndex := 1;
+  FindForm.cboFindText.Text := s;
+  FindForm.Show;
 end;
 
 procedure TMainForm.actReplaceExecute(Sender: TObject);
@@ -3497,21 +3498,21 @@ var
   e: TEditor;
   s: AnsiString;
 begin
+  s:='';
+  // Create it when needed!
+  if not Assigned(FindForm) then
+    FindForm := TFindForm.Create(Self);
+
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
-
-    // Create it when needed!
-    if not Assigned(FindForm) then
-      FindForm := TFindForm.Create(Self);
-
     s := e.Text.SelText;
     if s = '' then
       s := e.Text.WordAtCursor;
-
-    FindForm.TabIndex := 3;
-    FindForm.cboFindText.Text := s;
-    FindForm.Show;
   end;
+
+  FindForm.TabIndex := 3;
+  FindForm.cboFindText.Text := s;
+  FindForm.Show;
 end;
 
 procedure TMainForm.actGotoLineExecute(Sender: TObject);
@@ -3582,7 +3583,6 @@ var
   e: TEditor;
 begin
   Result := False;
-
   ClearCompileMessages;
 
   // always show compilation log (no intrusive windows anymore)
@@ -3634,6 +3634,8 @@ begin
     ctStdin: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not Assigned(e) then
+          Exit;
+        if e.Text.Lines.Text = '' then
           Exit;
         fCompiler.UseUTF8 := e.UseUTF8;
         fCompiler.SourceFile := e.FileName;
@@ -4770,11 +4772,9 @@ begin
     actCodeCompletion.ShortCut := TextToShortCut('Ctrl+Space');
 
   // Configure code completion
-  CodeCompletion.Color := devCodeCompletion.BackColor;
   CodeCompletion.Width := devCodeCompletion.Width;
   CodeCompletion.Height := devCodeCompletion.Height;
 
-  HeaderCompletion.Color := devCodeCompletion.BackColor;
   HeaderCompletion.Width := devCodeCompletion.Width;
   HeaderCompletion.Height := devCodeCompletion.Height;
 
@@ -5297,7 +5297,6 @@ begin
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
-        // CppParser.ParseFile(e.FileName,e.InProject,True);
         GetCppParser.ParseFile(e.FileName,e.InProject);
       end;
     end else begin
@@ -7572,10 +7571,13 @@ var
   e: TEditor;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
+  oldCursor : TCursor;
 begin
   if devFormatter.Validate then begin
     e := fEditorList.GetEditor;
     if Assigned(e) then begin
+      oldCursor := e.Text.Cursor;
+      e.Text.Cursor := crHourglass;
       e.BeginUpdate;
       try
       // Save for undo list creation
@@ -7587,8 +7589,11 @@ begin
       // Attempt to not scroll view
       e.Text.TopLine := OldTopLine;
       e.Text.CaretXY := OldCaretXY;
+
+      e.Reparse;
       finally
         e.EndUpdate;
+        e.Text.Cursor := oldCursor;
       end;
     end;
   end else
@@ -8755,6 +8760,12 @@ begin
   e := fEditorList.GetEditor;
   TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty
     and not e.CppParser.Parsing;
+end;
+
+procedure TMainForm.actFindAllUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := Assigned(fProject)
+    or (fEditorList.PageCount>0)
 end;
 
 end.

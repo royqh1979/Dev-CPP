@@ -766,6 +766,7 @@ object EnviroForm: TEnviroForm
         Width = 556
         Height = 440
         Anchors = [akLeft, akTop, akRight, akBottom]
+        DefaultRowHeight = 30
         KeyOptions = [keyEdit, keyAdd, keyDelete]
         Options = [goVertLine, goHorzLine, goEditing, goAlwaysShowEditor, goThumbTracking]
         TabOrder = 0

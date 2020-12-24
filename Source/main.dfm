@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 568
-  Top = 203
+  Left = 550
+  Top = 182
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -2282,7 +2282,7 @@ object MainForm: TMainForm
       Caption = 'Fin&d in all Files'
       ShortCut = 24646
       OnExecute = actFindAllExecute
-      OnUpdate = actUpdateEmptyEditorFindForm
+      OnUpdate = actFindAllUpdate
     end
     object actReplace: TAction
       Tag = 3
@@ -2298,7 +2298,7 @@ object MainForm: TMainForm
       Caption = 'Replace All'
       ShortCut = 24658
       OnExecute = actReplaceAllExecute
-      OnUpdate = actUpdateEmptyEditorFindForm
+      OnUpdate = actFindAllUpdate
     end
     object actIncremental: TAction
       Category = 'Search'

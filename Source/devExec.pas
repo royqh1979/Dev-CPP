@@ -82,7 +82,7 @@ uses
   main,sysutils,dialogs;
 
 const
-  Pipename:String = '\\.\pipe\devcpp_run';
+  PipenamePrefix :String = '\\.\pipe\devcpp_run';
 
 { TExecThread }
 
@@ -101,7 +101,9 @@ var
   sa: TSecurityAttributes;
   params: String;
   flags: DWORD;
+  PipeName:String;
 begin
+  PipeName := PipeNamePrefix + IntToStr(GetCurrentProcessID);
   FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
   with StartupInfo do begin
     cb := SizeOf(TStartupInfo);

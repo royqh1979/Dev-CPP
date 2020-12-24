@@ -183,15 +183,15 @@ begin
       end;
     end;
   end;
-  AddSpecial(cBP, offset + 18); // breakpoint
-  AddSpecial(cErr, offset + 19); // error line
-  AddSpecial(cABP, offset + 20); // active breakpoint
-  AddSpecial(cGut, offset + 21); // gutter
-  AddSpecial(cSel, offset + 22); // selected text
-  AddSpecial(cFld, offset + 23); // fold bar lines
-  AddSpecial(cAL, offset + 24); // active Line
-  AddSpecial(cWN, offset + 25); // warning Line
-  AddSpecial(cPNL, offset + 26); // warning Line
+  AddSpecial(cBP, offset + 20); // breakpoint
+  AddSpecial(cErr, offset + 21); // error line
+  AddSpecial(cABP, offset + 22); // active breakpoint
+  AddSpecial(cGut, offset + 23); // gutter
+  AddSpecial(cSel, offset + 24); // selected text
+  AddSpecial(cFld, offset + 25); // fold bar lines
+  AddSpecial(cAL, offset + 26); // active Line
+  AddSpecial(cWN, offset + 27); // warning Line
+  AddSpecial(cPNL, offset + 28); // warning Line
 end;
 
 procedure TdmMain.UpdateHighlighter;
@@ -448,6 +448,7 @@ end;
 procedure TdmMain.LoadDataMod;
 begin
   LoadHistory;
+  LoadCodeIns;
   fAutoLinks.Load;
   UpdateHighlighter;
 end;

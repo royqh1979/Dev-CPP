@@ -816,7 +816,7 @@ implementation
 
 uses
   MultiLangSupport, DataFrm, SysUtils, StrUtils, Forms, main, compiler, Controls, version, utils, SynEditMiscClasses,
-  FileAssocs, TypInfo, DateUtils, Types;
+  FileAssocs, TypInfo, DateUtils, Types, SynEditStrConst;
 
 procedure CreateOptions;
 var
@@ -2513,16 +2513,36 @@ var
 begin
   devData.ReadObject('Editor', Self);
   //fix for old config files
+  if ( fSyntax.IndexOf(SYNS_AttrVariable) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrVariable,
+        fSyntax.Values[SYNS_AttrIdentifier]]));
+  if ( fSyntax.IndexOf(SYNS_AttrFunction) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrFunction,
+        fSyntax.Values[SYNS_AttrIdentifier]]));
+  if ( fSyntax.IndexOf(SYNS_AttrClass) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrClass,
+        fSyntax.Values[SYNS_AttrIdentifier]]));
+  if ( fSyntax.IndexOf(SYNS_AttrLocalVariable) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrLocalVariable,
+        fSyntax.Values[SYNS_AttrVariable]]));
+
+  if ( fSyntax.IndexOf(SYNS_AttrGlobalVariable) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrGlobalVariable,
+        fSyntax.Values[SYNS_AttrVariable]]));
+  if ( fSyntax.IndexOf(SYNS_AttrLocalVariable) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrLocalVariable,
+        fSyntax.Values[SYNS_AttrVariable]]));
+
   offset:=1000;
-  AddSpecial(cBP, offset + 18); // breakpoint
-  AddSpecial(cErr, offset + 19); // error line
-  AddSpecial(cABP, offset + 20); // active breakpoint
-  AddSpecial(cGut, offset + 21); // gutter
-  AddSpecial(cSel, offset + 22); // selected text
-  AddSpecial(cFld, offset + 23); // fold bar lines
-  AddSpecial(cAL, offset + 24); // active Line
-  AddSpecial(cWN, offset + 25); // warning Line
-  AddSpecial(cPNL, offset + 26); // Panel
+  AddSpecial(cBP, offset + 20); // breakpoint
+  AddSpecial(cErr, offset + 21); // error line
+  AddSpecial(cABP, offset + 22); // active breakpoint
+  AddSpecial(cGut, offset + 23); // gutter
+  AddSpecial(cSel, offset + 24); // selected text
+  AddSpecial(cFld, offset + 25); // fold bar lines
+  AddSpecial(cAL, offset + 26); // active Line
+  AddSpecial(cWN, offset + 27); // warning Line
+  AddSpecial(cPNL, offset + 28); // Panel
 end;
 
 procedure TdevEditor.SaveSettings;
@@ -2767,10 +2787,9 @@ end;
 
 procedure TdevCodeCompletion.SettoDefaults;
 begin
-  fWidth := 320;
-  fHeight := 240;
+  fWidth := 700;
+  fHeight := 300;
   fDelay := 180;
-  fBackColor := clWindow;
   fEnabled := True;
   fParseLocalHeaders := True;
   fParseGlobalHeaders := True;

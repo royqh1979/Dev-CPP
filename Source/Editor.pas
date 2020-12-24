@@ -64,6 +64,8 @@ type
     wpEvaluation, // walk backwards over words, array, functions, parents, forwards over words, array
     wpHeaderCompletion, // walk backwards over path
     wpHeaderCompletionStart, // walk backwards over path, including start '<' or '"'
+    wpDirective, // preprocessor
+    wpJavadoc, //javadoc
     wpInformation // walk backwards over words, array, functions, parents, forwards over words
     );
 
@@ -94,7 +96,6 @@ type
     fPreviousEditors: TList;
     fDblClickTime: Cardinal;
     fDblClickMousePos: TBufferCoord;
-    fLastParseTime:TDateTime;
     fLastMatchingBeginLine: integer;
     fLastMatchingEndLine: integer;
     {
@@ -352,7 +353,6 @@ begin
   fLineCount:=-1;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
-  fLastParseTime := 0;
   fLastIdCharPressed := 0;
   // Set generic options
   fErrorLine := -1;
@@ -767,7 +767,6 @@ begin
     try
     // Set classbrowser to current file (and parse file and refresh)
     MainForm.UpdateClassBrowserForEditor(self);
-    fLastParseTime := Now;
     finally
       EndUpdate;
     end;
@@ -803,7 +802,7 @@ begin
       then begin
       Reparse;
     end;
-    if self.fTabSheet.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+    if fText.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
@@ -1432,31 +1431,29 @@ end;
 
 procedure TEditor.CompletionKeyPress(Sender: TObject; var Key: Char);
 var
-  phrase:AnsiString;
+  phrase,s:AnsiString;
   pBeginPos,pEndPos : TBufferCoord;
+  attr:TSynHighlighterAttributes;
 begin
   // We received a key from the completion box...
   if fCompletionBox.Enabled then begin
     if (Key in fText.IdentChars) then begin // Continue filtering
       fText.SelText := Key;
-      phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
 
-      fCompletionBox.Search(phrase , fFileName,False);
-      //we don't auto use the completion even if there's only one suggestion
-      {
-      // There's only one suggestion and is exactly the search word
-      if fCompletionBox.Search(phrase , fFileName,False) then begin
-        // we don't auto insert code tempate, so we must test for it
-        Statement := fCompletionBox.SelectedStatement;
-        if not Assigned(Statement) then
-          Exit;
-        if Statement^._Kind = skUserCodeIn then
-          Exit;
-        //not code tempate, auto use it
-        CompletionInsert();
-        fCompletionBox.Hide;
+      s:=fText.LineText;
+      phrase :='';
+      if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then begin
+        if attr = dmMain.Cpp.DirecAttri then begin //Preprocessor
+          phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpDirective);
+        end else if attr = dmMain.Cpp.CommentAttri then begin //Comment, javadoc tag
+          phrase:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpJavadoc);
+        end;
       end;
-      }
+      if (phrase = '') then begin
+        phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
+      end;
+      
+      fCompletionBox.Search(phrase , fFileName,False);
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
       phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
@@ -1837,7 +1834,7 @@ end;
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
 var
   lastWord:AnsiString;
-  st:PStatement;
+  kind:TStatementKind;
   
 begin
   // Don't offer completion functions for plain text files
@@ -1862,12 +1859,8 @@ begin
                 ShowTabnineCompletion;
               Exit;
             end;
-            st := fParser.FindStatementOf(fFileName, lastWord, fText.CaretY);
-            if assigned(st) and (st^._Kind = skPreprocessor) and (st^._Args='') then begin
-              //expand macro
-              st:=fParser.FindStatementOf(fFileName,st^._Value,fText.CaretY);
-            end;
-            if assigned(st) and (st^._Kind in [skClass,skTypedef]) then begin
+            kind := fParser.FindKindOfStatementOf(fFileName, lastWord, fText.CaretY);
+            if (Kind in [skClass,skTypedef,skEnumType]) then begin
               //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
               if devEditor.UseTabnine then
                 ShowTabnineCompletion;
@@ -1881,6 +1874,26 @@ begin
       end;
     end;
   end else begin
+    //preprocessor ?
+    if (fLastIdCharPressed=0) and (key='#') and (fText.LineText='')
+      and devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
+      then begin
+      inc(fLastIdCharPressed);
+      fText.SelText := Key;
+      ShowCompletion(False);
+      Key:=#0;
+      Exit;
+    end;
+    //javadoc directive?
+    if (fLastIdCharPressed=0) and (key='@') and StartsStr('* ',TrimLeft(fText.LineText))
+      and devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput
+      then begin
+      inc(fLastIdCharPressed);
+      fText.SelText := Key;
+      ShowCompletion(False);
+      Key:=#0;
+      Exit;
+    end;
     fLastIdCharPressed:=0;
     // Doing this here instead of in EditorKeyDown to be able to delete some key messages
     HandleSymbolCompletion(Key);
@@ -1908,6 +1921,10 @@ var
   DeletedChar, NextChar: Char;
   S: AnsiString;
   Reason: THandPointReason;
+  params,insertString:TStringList;
+  funcName:AnsiString;
+  isVoid : boolean;
+  i:integer;
 
   procedure UndoSymbolCompletion;
   begin
@@ -1922,7 +1939,7 @@ var
     end;
   end;
 
-begin
+  begin
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
     Exit;
@@ -1939,10 +1956,60 @@ begin
       end;
     VK_RETURN: begin
         fLastIdCharPressed:=0;
-        if fTabStopBegin>=0 then begin
+        if fTabStopBegin>=0 then begin // editing user code template
+          key:=0;
           fTabStopBegin:=-1;
           fText.InvalidateLine(fText.CaretY);
-          self.ClearUserCodeInTabStops;
+          ClearUserCodeInTabStops;
+        end else begin
+          s:=trim(Copy(fText.LineText,1,fText.CaretX-1));
+          if SameStr('/**',s) then begin //javadoc style docstring
+            s:=trim(Copy(fText.LineText,fText.CaretX,MAXINT));
+            if SameStr('*/',s) then begin
+              p:=fText.CaretXY;
+              fText.BlockBegin:=p;
+              p.Char := Length(fText.LineText)+1;
+              fText.BlockEnd := p;
+              fText.SelText := '';
+            end;
+            Key:=0;
+            params:=TStringList.Create;
+            insertString:= TStringList.Create;
+            try
+              insertString.Add('');
+              funcName := fParser.FindFunctionDoc(fFileName,fText.CaretY+1,
+                params,isVoid);
+              if funcName <> '' then begin
+                insertString.Add(' * @brief '+USER_CODE_IN_INSERT_POS);
+                insertString.Add(' * ');
+                for i:=0 to params.Count-1 do begin
+                  insertString.Add(' * @param '+params[i]+' '+USER_CODE_IN_INSERT_POS);
+                end;
+                if not isVoid then begin
+                  insertString.Add(' * ');
+                  insertString.Add(' * @return '+USER_CODE_IN_INSERT_POS);
+                end;
+                insertString.Add(' **/');
+              end else begin
+                insertString.Add(' * '+USER_CODE_IN_INSERT_POS);
+                insertString.Add(' **/');
+              end;
+              InsertUserCodeIn(insertString.Text);
+            finally
+              insertString.Free;
+              params.Free;
+            end;
+          end else if fText.Highlighter.GetIsLastLineCommentNotFinish(fText.Lines.Ranges[fText.CaretY-2]) then
+            s:=trimLeft(fText.LineText);
+            if StartsStr('* ',s) then begin
+              Key:=0;
+              s:=#13#10+'* ';
+              self.insertString(s,false);
+              p:=fText.CaretXY;
+              inc(p.Line);
+              p.Char := length(fText.Lines[p.Line-1])+1;
+              fText.CaretXY := p;
+            end;
         end;
       end;
     VK_ESCAPE: begin // Update function tip
@@ -1974,9 +2041,11 @@ begin
         end;
       end;
     VK_UP: begin
+        fLastIdCharPressed:=0;
         ClearUserCodeInTabStops;
       end;
     VK_DOWN: begin
+        fLastIdCharPressed:=0;
         ClearUserCodeInTabStops;
       end;
     VK_DELETE: begin
@@ -2163,16 +2232,25 @@ begin
   if fCompletionBox.Visible then // already in search, don't do it again
     Exit;
 
+  word:='';
   // Only scan when cursor is placed after a symbol, inside a word, or inside whitespace
   if (fText.GetHighlighterAttriAtRowCol(BufferCoord(fText.CaretX - 1, fText.CaretY), s, attr)) then begin
     if attr = dmMain.Cpp.DirecAttri then begin //Preprocessor
-      ShowTabnineCompletion;
+      word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpDirective);
+      if not StartsStr('#',word) then begin
+        ShowTabnineCompletion;
+        Exit;
+      end;
+    end else if attr = dmMain.Cpp.CommentAttri then begin //Comment, javadoc tag
+      word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpJavadoc);
+      if not StartsStr('@',word) then begin
+        Exit;
+      end;
+    end else if (attr <> fText.Highlighter.SymbolAttribute) and
+      (attr <> fText.Highlighter.WhitespaceAttribute) and
+      (attr <> fText.Highlighter.IdentifierAttribute) then begin
       Exit;
     end;
-    if (attr <> fText.Highlighter.SymbolAttribute) and
-      (attr <> fText.Highlighter.WhitespaceAttribute) and
-      (attr <> fText.Highlighter.IdentifierAttribute) then
-      Exit;
   end;
 
   // Position it at the top of the next line
@@ -2198,7 +2276,8 @@ begin
   // Scan the current function body
   fCompletionBox.CurrentStatement := fParser.FindAndScanBlockAt(fFileName, fText.CaretY);
 
-  word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
+  if word='' then
+    word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
   //if not fCompletionBox.Visible then
   fCompletionBox.PrepareSearch(word, fFileName);
 
@@ -2340,6 +2419,30 @@ begin
         end else if (s[WordEnd + 1] in editor.IdentChars) then
           Inc(WordEnd)
         else
+          break;
+      end;
+    end;
+
+    // Copy backward until #
+    if Purpose = wpDirective then begin
+     while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else if s[WordBegin] in ['#'] then begin // allow destructor signs
+          Dec(WordBegin);
+        end else
+          break;
+      end;
+    end;
+
+    // Copy backward until @
+    if Purpose = wpJavadoc then begin
+     while (WordBegin > 0) and (WordBegin <= len) do begin
+        if (s[WordBegin] in editor.IdentChars) then begin
+          Dec(WordBegin);
+        end else if s[WordBegin] in ['@'] then begin // allow destructor signs
+          Dec(WordBegin);
+        end else
           break;
       end;
     end;
@@ -2581,7 +2684,12 @@ begin
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
     InsertUserCodeIn(Statement^._Value);
   end else begin
-    fText.SelText := Statement^._Command + FuncAddOn;
+    if (Statement^._Kind = skKeyword) and
+      (length(Statement^._Command)>0) and
+      (Statement^._Command[1] in ['#','@']) then begin
+      fText.SelText := Copy(Statement^._Command,2,MAXINT);
+    end else
+      fText.SelText := Statement^._Command + FuncAddOn;
 
     if FuncAddOn <> '' then
       fLastIdCharPressed := 0;
@@ -2663,64 +2771,17 @@ var
   begin
     fText.Hint := pError.Hint;
   end;
-
-  function GetHintForFunction(statement,ScopeStatement:PStatement):String;
+  
+  procedure ShowParserHint;
   var
-    children:TList;
-    childStatement:PStatement;
-    i:integer;
+    hint: string;
   begin
-    Result := '';
-    children := fParser.Statements.GetChildrenStatements(ScopeStatement);
-    if not assigned(children) then
-      Exit;
-    for i:=0 to children.Count-1 do begin
-      childStatement:=PStatement(children[i]);
-      if samestr(st^._Command,childStatement^._Command)
-        and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
-          if Result <> '' then
-            Result:=Result+#13;
-          Result := Result + fParser.PrettyPrintStatement(childStatement)
-            + ' - ' + ExtractFileName(childStatement^._FileName)
-            + ' ('  + IntToStr(childStatement^._Line) + ')';
-      end;
+    // This piece of code changes the parser database, possibly making hints and code completion invalid...
+    hint := fParser.GetHintFromStatement(fFileName, s, p.Line);
+    if hint <> '' then begin
+      // vertical bar is used to split up short and long hint versions...
+      fText.Hint := hint;
     end;
-  end;
-
-
-  function GetHintFromStatement(st:PStatement):AnsiString;
-  var
-    hint:AnsiString;
-    k:integer;
-    namespaceStatementsList:TList;
-    namespaceStatement:PStatement;
-
-  begin
-    if st^._Kind in [skFunction,skConstructor,skDestructor] then begin
-      if Assigned(st^._ParentScope) and (st^._ParentScope^._Kind = skNamespace) then begin
-        namespaceStatementsList:=fParser.FindNamespace(st^._ParentScope^._Command);
-        if Assigned(namespaceStatementsList) then begin
-          for k:=0 to namespaceStatementsList.Count-1 do begin
-            namespaceStatement:=PStatement(namespaceStatementsList[k]);
-            if Assigned(namespaceStatement) then begin
-              hint := GetHintForFunction(st,namespaceStatement);
-              if hint <> '' then begin
-                if Result <> '' then
-                  Result :=Result+#13;
-                Result := Result + hint;
-              end;
-            end;
-          end;
-        end;
-      end else
-        Result:=GetHintForFunction(st,st^._ParentScope);
-    end else if st^._Line>0 then begin
-      Result := fParser.PrettyPrintStatement(st) + ' - ' + ExtractFileName(st^._FileName) + ' (' +
-        IntToStr(st^._Line) + ') - Ctrl+Click for more info';
-    end else begin  // hard defines
-      Result := fParser.PrettyPrintStatement(st,p.Line);
-    end;
-    Result := StringReplace(Result, '|', #5, [rfReplaceAll]);
   end;
 
   procedure ShowDebugHint;
@@ -2729,7 +2790,7 @@ var
   begin
     kind := fParser.FindKindOfStatementOf(fFileName, s, p.Line);
 
-    if kind = skVariable then begin //only show debug info of variables;
+    if kind in [skVariable, skParameter] then begin //only show debug info of variables;
       if MainForm.Debugger.Reader.CommandRunning then
         Exit;
 
@@ -2742,19 +2803,7 @@ var
       MainForm.Debugger.OnEvalReady := OnMouseOverEvalReady;
       MainForm.Debugger.SendCommand('print', s, False);
     end else if devEditor.ParserHints then begin
-      fText.Hint := GetHintFromStatement(st);
-      // vertical bar is used to split up short and long hint versions...
-    end;
-  end;
-
-  procedure ShowParserHint;
-  begin
-    // This piece of code changes the parser database, possibly making hints and code completion invalid...
-    st := fParser.FindStatementOf(fFileName, s, p.Line);
-
-    if Assigned(st) then begin
-      // vertical bar is used to split up short and long hint versions...
-      fText.Hint := GetHintFromStatement(st);
+      ShowParserHint;
     end;
   end;
 
@@ -2874,6 +2923,9 @@ var
   line, FileName: AnsiString;
   e: TEditor;
 begin
+  if (Button = mbLeft) then begin
+    fLastIdCharPressed:=0;
+  end;
   // if ctrl+clicked
   if (ssCtrl in Shift) and (Button = mbLeft) and not fText.SelAvail then begin
 
@@ -2900,7 +2952,7 @@ end;
 procedure TEditor.ExporterFormatToken(Sender: TObject; Line: integer;
       column: integer; token: String; var attr: TSynHighlighterAttributes);
 var
-  st: PStatement;
+  kind : TStatementKind;
   p: TBufferCoord;
   s:String;
   pBeginPos,pEndPos : TBufferCoord;
@@ -2913,20 +2965,26 @@ begin
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     p:=BufferCoord(column+1,line);
     s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
-    st := fParser.FindStatementOf(fFileName,
+    kind := fParser.FindKindOfStatementOf(fFileName,
       s , line);
-    if assigned(st) then begin
-      case st._Kind of
+    if Kind <> skUnknown then begin
+      case Kind of
         skPreprocessor, skEnum: begin
           attr:=dmMain.Cpp.DirecAttri;
         end;
         skVariable: begin
           attr:=dmMain.Cpp.VariableAttri;
         end;
+        skLocalVariable, skParameter: begin
+          attr:=dmMain.Cpp.LocalVarAttri;
+        end;
+        skGlobalVariable: begin
+          attr:=dmMain.Cpp.GlobalVarAttri;
+        end;
         skFunction,skConstructor,skDestructor: begin
           attr:=dmMain.Cpp.FunctionAttri;
         end;
-        skClass,skNamespace,skTypedef : begin
+        skClass,skNamespace,skTypedef,skEnumType : begin
           attr:=dmMain.Cpp.ClassAttri;
         end;
       end;
@@ -2978,10 +3036,16 @@ begin
       skVariable: begin
         fg:=dmMain.Cpp.VariableAttri.Foreground;
       end;
+      skLocalVariable, skParameter: begin
+        fg:=dmMain.Cpp.LocalVarAttri.Foreground;
+      end;
+      skGlobalVariable: begin
+        fg:=dmMain.Cpp.GlobalVarAttri.Foreground;
+      end;
       skFunction,skConstructor,skDestructor: begin
         fg:=dmMain.Cpp.FunctionAttri.Foreground;
       end;
-      skClass,skNamespace,skTypedef : begin
+      skClass,skNamespace,skTypedef, skEnumType : begin
         fg:=dmMain.Cpp.ClassAttri.Foreground;
       end;
       skUnknown: begin
@@ -3203,7 +3267,6 @@ begin
         BeginUpdate;
         try
         fParser.ParseFile(fFileName, InProject);
-        fLastParseTime := Now;
         finally
           EndUpdate;
         end;
@@ -3304,7 +3367,6 @@ begin
     BeginUpdate;
     try
       MainForm.UpdateClassBrowserForEditor(self);
-      fLastParseTime := Now;
     finally
       EndUpdate;
     end;
@@ -3547,7 +3609,6 @@ begin
     // Reparse whole file (not function bodies) if it has been modified
     // use stream, don't read from disk (not saved yet)
     fParser.ParseFile(fFileName, InProject, False, False, M);
-    fLastParseTime := Now;
   finally
     M.Free;
     EndUpdate;

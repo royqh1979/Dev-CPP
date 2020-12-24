@@ -132,7 +132,7 @@ end;
 
 destructor TFindOutput.Destroy;
 begin
-  ClearFinds(False);
+  //ClearFinds(False);
   {
   FreeAndNil(fControlCanvas);
   }
@@ -173,8 +173,10 @@ begin
       child := child.getNextSibling;
     end;
   end;
-  if assigned(node.Data) then
+  if assigned(node.Data) then begin
     Dispose(PFindInfo(node.Data));
+    node.Data := nil;
+  end;
   if deleteNode then begin
     items.Delete(node);
   end;

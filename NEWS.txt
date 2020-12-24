@@ -5,8 +5,21 @@ Version 6.3-beta2
     - fix: rename symbol will add a new line to the last of the file
     - fix: random devcpp crash when rename symbol in the project
     - fix: flicker when rename symbol/reformat file
-    - enhancement: set the mouse cursor to wait when rename symbol
-    - enhancement: use critical section to avoid resource confliction in cpp parser
+    - enhancement: set the mouse cursor to wait when rename symbol / reformat code
+    - fix: use critical section to avoid resource confliction in cpp parser
+    - enhancement: reparse the file after reformat code
+    - fix: code completion flag not clear when set new position of the caret using mouse
+    - fix: user code template not loaded when devcpp start up
+    - enhancement: javadoc style docstring input support
+    - enhancement: code completion for c/cpp preprocessors
+    - enhancement: code completion for javadoc tags
+    - enhancement: adjust code suggestion window width/height in the editor option dialog
+    - enhancement: global variable and local variable can use different color
+    - enhancement: correctly process function parameters with default value
+    - enhancement: differentiate enum name and enum values in the parser
+    - fixes: Goto Function dialog
+    - enhancement: Rename symbols only save the files using the symbols. And rename local symbols only parse the current file.
+    - change: allow more than one instances of  devcpp to run at the same time
 
 Version 6.3-beta1
     

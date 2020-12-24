@@ -1,15 +1,15 @@
 object FindForm: TFindForm
-  Left = 162
-  Top = 182
+  Left = 238
+  Top = 183
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Find Text'
-  ClientHeight = 366
-  ClientWidth = 330
+  ClientHeight = 450
+  ClientWidth = 406
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   FormStyle = fsStayOnTop
@@ -22,15 +22,15 @@ object FindForm: TFindForm
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    330
-    366)
-  PixelsPerInch = 96
-  TextHeight = 13
+    406
+    450)
+  PixelsPerInch = 120
+  TextHeight = 16
   object btnExecute: TButton
-    Left = 8
-    Top = 336
-    Width = 100
-    Height = 25
+    Left = 10
+    Top = 414
+    Width = 123
+    Height = 30
     Anchors = [akLeft, akBottom]
     Caption = 'Find'
     Default = True
@@ -39,10 +39,10 @@ object FindForm: TFindForm
     OnClick = btnExecuteClick
   end
   object btnCancel: TButton
-    Left = 222
-    Top = 336
-    Width = 100
-    Height = 25
+    Left = 273
+    Top = 414
+    Width = 123
+    Height = 30
     Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
@@ -53,8 +53,8 @@ object FindForm: TFindForm
   object FindTabs: TTabControl
     Left = 0
     Top = 0
-    Width = 330
-    Height = 326
+    Width = 406
+    Height = 401
     Align = alTop
     TabOrder = 2
     Tabs.Strings = (
@@ -65,90 +65,90 @@ object FindForm: TFindForm
     TabIndex = 0
     OnChange = FindTabsChange
     object lblFind: TLabel
-      Left = 8
-      Top = 29
-      Width = 56
-      Height = 13
+      Left = 10
+      Top = 36
+      Width = 67
+      Height = 16
       Caption = '&Text to find:'
       FocusControl = cboFindText
     end
     object lblReplace: TLabel
-      Left = 8
-      Top = 71
-      Width = 65
-      Height = 13
+      Left = 10
+      Top = 87
+      Width = 80
+      Height = 16
       Caption = 'Replace with:'
       FocusControl = cboFindText
     end
     object cboFindText: TComboBox
-      Left = 8
-      Top = 46
-      Width = 314
-      Height = 21
-      ItemHeight = 13
+      Left = 10
+      Top = 57
+      Width = 386
+      Height = 24
+      ItemHeight = 16
       TabOrder = 0
       OnKeyUp = cboFindTextKeyUp
     end
     object grpOptions: TGroupBox
-      Left = 8
-      Top = 118
-      Width = 152
-      Height = 117
+      Left = 10
+      Top = 145
+      Width = 187
+      Height = 144
       Caption = '  Options:  '
       TabOrder = 2
       object cbMatchCase: TCheckBox
-        Left = 8
-        Top = 16
-        Width = 120
-        Height = 17
+        Left = 10
+        Top = 20
+        Width = 148
+        Height = 21
         Caption = 'C&ase sensitive'
         TabOrder = 0
       end
       object cbWholeWord: TCheckBox
-        Left = 8
-        Top = 40
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 49
+        Width = 149
+        Height = 21
         Caption = '&Whole words only'
         TabOrder = 1
       end
       object cbPrompt: TCheckBox
-        Left = 8
-        Top = 90
-        Width = 120
-        Height = 17
+        Left = 10
+        Top = 111
+        Width = 148
+        Height = 21
         Caption = '&Prompt on Replace'
         TabOrder = 2
       end
       object cbRegExp: TCheckBox
-        Left = 8
-        Top = 66
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 81
+        Width = 149
+        Height = 21
         Caption = 'Regular Expression'
         TabOrder = 3
       end
     end
     object grpDirection: TGroupBox
-      Left = 169
-      Top = 118
-      Width = 152
-      Height = 70
+      Left = 208
+      Top = 145
+      Width = 187
+      Height = 86
       Caption = '  Direction:  '
       TabOrder = 3
       object rbBackward: TRadioButton
-        Left = 8
-        Top = 42
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 52
+        Width = 149
+        Height = 21
         Caption = '&Backward'
         TabOrder = 0
       end
       object rbForward: TRadioButton
-        Left = 8
-        Top = 18
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 22
+        Width = 149
+        Height = 21
         Caption = '&Forward'
         Checked = True
         TabOrder = 1
@@ -156,97 +156,97 @@ object FindForm: TFindForm
       end
     end
     object grpWhere: TGroupBox
-      Left = 169
-      Top = 118
-      Width = 152
-      Height = 117
+      Left = 208
+      Top = 145
+      Width = 187
+      Height = 144
       Caption = '  Where:  '
       TabOrder = 4
       object rbProjectFiles: TRadioButton
-        Left = 8
-        Top = 18
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 22
+        Width = 149
+        Height = 21
         Caption = 'Files in Project'
         Checked = True
         TabOrder = 0
         TabStop = True
       end
       object rbOpenFiles: TRadioButton
-        Left = 8
-        Top = 42
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 52
+        Width = 149
+        Height = 21
         Caption = 'Open Files'
         TabOrder = 1
       end
       object rbCurFile: TRadioButton
-        Left = 8
-        Top = 64
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 79
+        Width = 149
+        Height = 21
         Caption = 'Current file'
         TabOrder = 2
       end
     end
     object grpScope: TGroupBox
-      Left = 8
-      Top = 245
-      Width = 152
-      Height = 69
+      Left = 10
+      Top = 302
+      Width = 187
+      Height = 84
       Caption = '  Scope:  '
       TabOrder = 5
       object rbGlobal: TRadioButton
-        Left = 8
-        Top = 18
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 22
+        Width = 149
+        Height = 21
         Caption = '&Global'
         Checked = True
         TabOrder = 0
         TabStop = True
       end
       object rbSelectedOnly: TRadioButton
-        Left = 8
-        Top = 42
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 52
+        Width = 149
+        Height = 21
         Caption = '&Selected only'
         TabOrder = 1
       end
     end
     object grpOrigin: TGroupBox
-      Left = 169
-      Top = 245
-      Width = 152
-      Height = 69
+      Left = 208
+      Top = 302
+      Width = 187
+      Height = 84
       Caption = '  Origin:  '
       TabOrder = 6
       object rbFromCursor: TRadioButton
-        Left = 8
-        Top = 18
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 22
+        Width = 149
+        Height = 21
         Caption = 'From &cursor'
         Checked = True
         TabOrder = 0
         TabStop = True
       end
       object rbEntireScope: TRadioButton
-        Left = 8
-        Top = 42
-        Width = 121
-        Height = 17
+        Left = 10
+        Top = 52
+        Width = 149
+        Height = 21
         Caption = 'Entire &scope'
         TabOrder = 1
       end
     end
     object cboReplaceText: TComboBox
-      Left = 8
-      Top = 88
-      Width = 314
-      Height = 21
-      ItemHeight = 13
+      Left = 10
+      Top = 108
+      Width = 386
+      Height = 24
+      ItemHeight = 16
       TabOrder = 1
       OnKeyUp = cboReplaceTextKeyUp
     end

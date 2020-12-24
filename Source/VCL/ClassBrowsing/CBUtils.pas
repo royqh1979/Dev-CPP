@@ -41,9 +41,6 @@ const
   InheritedColor = 11;
   KeywordColor = 12;
 
-var
-  CppKeywordsList:TStringList;
-  
 type
 
   { TStringList is case insensitive by default}
@@ -94,6 +91,7 @@ type
 
   TStatementKind = (
     skPreprocessor,
+    skEnumType,
     skEnum,
     skTypedef,
     skClass,
@@ -101,11 +99,14 @@ type
     skConstructor,
     skDestructor,
     skVariable,
+    skParameter,
     skNamespace,
     skNamespaceAlias,
     skBlock,
     skUserCodeIn,  // user code template
     skKeyword, // keywords
+    skGlobalVariable,
+    skLocalVariable,
     skUnknown
     );
   TStatementKindSet = set of TStatementKind;
@@ -204,9 +205,11 @@ type
 const
   ScopeTypeKinds : TStatementKindSet = [skClass,skNamespace,skFunction,skConstructor,skDestructor];
 var
+  CppDirectiveList : TStringList;
+  JavadocTags: TStringList;
+  CppKeywordsList:TStringList;
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
-  STD_C_HEADER : TStringHash; 
   STLPointers : TStringHash;
   STLContainers: TStringHash;
   STLElementMethods: TStringHash;
@@ -713,7 +716,8 @@ begin
   STLContainers := TStringHash.Create();
   STLElementMethods := TStringHash.Create();
   STLPointers := TStringHash.Create();
-  STD_C_HEADER := TStringHash.Create();
+  CppDirectiveList := TStringList.Create();
+  JavadocTags := TStringList.Create();
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -1030,8 +1034,39 @@ begin
   STLPointers.Add('std::reverse_iterator',1);
   STLPointers.Add('std::iterator',1);
 
-  {Standard c header}
+  {C/CPP preprocessor directives }
+  CppDirectiveList.Add('#include');
+  CppDirectiveList.Add('#if');
+  CppDirectiveList.Add('#ifdef');
+  CppDirectiveList.Add('#ifndef');
+  CppDirectiveList.Add('#else');
+  CppDirectiveList.Add('#elif');
+  CppDirectiveList.Add('#endif');
+  CppDirectiveList.Add('#define');
+  CppDirectiveList.Add('#error');
+  CppDirectiveList.Add('#pragma');
+  CppDirectiveList.Add('#line');
 
+  { javadoc tags }
+  JavadocTags.Add('@author');
+  JavadocTags.Add('@code');
+  JavadocTags.Add('@docRoot');
+  JavadocTags.Add('@deprecated');
+  JavadocTags.Add('@exception');
+  JavadocTags.Add('@inheritDoc');
+  JavadocTags.Add('@link');
+  JavadocTags.Add('@linkplain');
+  JavadocTags.Add('@literal');
+  JavadocTags.Add('@param');
+  JavadocTags.Add('@return');
+  JavadocTags.Add('@see');
+  JavadocTags.Add('@serial');
+  JavadocTags.Add('@serialData');
+  JavadocTags.Add('@serialField');
+  JavadocTags.Add('@since');
+  JavadocTags.Add('@throws');
+  JavadocTags.Add('@value');
+  JavadocTags.Add('@version');
 end;
 
 finalization
@@ -1041,7 +1076,8 @@ begin
   CppTypeKeywords.Free;
   STLContainers.Free;
   STLPointers.Free;
-  STD_C_HEADER.Free;
+  CppDirectiveList.Free;
+  JavadocTags.Free;
 end;
 
 end.

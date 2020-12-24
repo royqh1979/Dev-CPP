@@ -91,6 +91,8 @@ resourcestring
   SYNS_AttrForm                 =  'Form';
   SYNS_AttrFourthTri            =  'FourthTri';
   SYNS_AttrFunction             =  'Function';
+  SYNS_AttrFunctionParameter    =  'Function Parameter';
+  SYNS_AttrGlobalVariable       =  'Global variable';
   SYNS_AttrHexadecimal          =  'Hexadecimal';
   SYNS_AttrIcon                 =  'Icon Reference';
   SYNS_AttrIdentifier           =  'Identifier';
@@ -103,6 +105,7 @@ resourcestring
   SYNS_AttrKey                  =  'Key';
   SYNS_AttrLabel                =  'Label';
   SYNS_AttrLace                 =  'Lace';
+  SYNS_AttrLocalVariable        =  'Local Variable';
   SYNS_AttrLine                 =  'Line';
   SYNS_AttrMacro                =  'Macro';
   SYNS_AttrMarker               =  'Marker';
