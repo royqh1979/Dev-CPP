@@ -69,7 +69,7 @@ object FunctionSearchForm: TFunctionSearchForm
     Left = 112
     Top = 5
     Width = 505
-    Height = 23
+    Height = 28
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
     OnChange = txtSearchChange

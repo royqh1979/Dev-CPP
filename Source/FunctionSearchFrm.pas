@@ -57,9 +57,10 @@ uses
 
 procedure TFunctionSearchForm.txtSearchChange(Sender: TObject);
 var
-  Node: PStatementNode;
   Statement: PStatement;
   ScopeCommand: AnsiString;
+  fileIncludes : PFileIncludes;
+  i:integer;
 begin
   if not Assigned(fParser) then
     Exit;
@@ -69,25 +70,20 @@ begin
     lvEntries.Items.Clear;
 
     // For all statements...
-    Node := fParser.Statements.FirstNode;
-    while Assigned(Node) do begin
-      Statement := Node^.Data;
-      Node := Node^.NextNode; // needs to be up here if one wants to use Continue
+    fileIncludes := fParser.FindFileIncludes(fFileName);
+    if not Assigned(fileIncludes) then
+      Exit;
 
+    for i:=0 to fileIncludes.Statements.Count-1 do begin
+      Statement := PStatement(fileIncludes.Statements[i]);
+      if not assigned(statement) then
+        continue;
       // Only show functions...
       if not (Statement^._Kind in [skFunction, skConstructor, skDestructor]) then
         Continue;
 
-      // Inside the current file...
-      if not (Statement^._HasDefinition and SameFileName(Statement^._DefinitionFileName, fFilename)) or (not
-        Statement^._HasDefinition and SameFileName(Statement^._FileName, fFilename)) then
-        Continue;
-
       // Add parent name (Foo::Bar)
-      if Assigned(Statement^._ParentScope) then
-        ScopeCommand := Statement^._ParentScope^._Command + '::' + Statement^._Command
-      else
-        ScopeCommand := Statement^._Command;
+      ScopeCommand := Statement^._FullName + Statement^._Args;
 
       // Add it if it matches the search keyword or if no keyword has been typed yet
       if (txtSearch.Text = '') or ContainsText(ScopeCommand, txtSearch.Text) then begin
@@ -100,7 +96,7 @@ begin
           end;
           SubItems.Add(Statement^._Type);
           SubItems.Add(ScopeCommand);
-          if Statement^._HasDefinition then
+          if SameText(Statement^._FileName, fFileName) then
             SubItems.Add(IntToStr(Statement^._DefinitionLine))
           else
             SubItems.Add(IntToStr(Statement^._Line));

@@ -17,6 +17,7 @@ Version 6.3-beta2
     - enhancement: global variable and local variable can use different color
     - enhancement: correctly process function parameters with default value
     - enhancement: differentiate enum name and enum values in the parser
+    - fixes: Goto Function dialog
 
 Version 6.3-beta1
     

@@ -3583,7 +3583,6 @@ var
   e: TEditor;
 begin
   Result := False;
-
   ClearCompileMessages;
 
   // always show compilation log (no intrusive windows anymore)
