@@ -691,6 +691,10 @@ begin
 
   case Target of
     ctFile,ctStdin: begin
+        if (Target = ctStdin) and (fSourceText = '') then begin
+          LogError('Compiler.pas TCompiler.Compile:', 'SourceText not set!');
+          Exit;
+        end;
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_COMPILINGFILE]);
