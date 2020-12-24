@@ -72,14 +72,16 @@ var
   pBeginPos,pEndPos : TBufferCoord;
   OldCaretXY: TBufferCoord;
   OldTopLine: integer;
+  changed : boolean;
 
-  procedure ProcessLine;
+  function ProcessLine:boolean;
   var
     Line,Token:String;
     start:integer;
     p: TBufferCoord;
     statement: PStatement;
   begin
+    Result := False;
     CurrentNewLine := '';
     Line := Lines[PosY];
     if Line = '' then
@@ -102,9 +104,10 @@ var
             FileName,
             phrase, p.Line);
           if assigned(statement) and ((statement^._FileName = pOldStatement^._FileName)
-            and (statement^._Line = pOldStatement^._Line)) then // same statement
-            CurrentNewLine := Concat(CurrentNewLine,NewName)
-          else
+            and (statement^._Line = pOldStatement^._Line)) then begin// same statement
+            CurrentNewLine := Concat(CurrentNewLine,NewName);
+            Result := True;
+          end else
             CurrentNewLine := Concat(CurrentNewLine,Token);
         end else begin
           //not same name symbol
@@ -137,36 +140,42 @@ begin
   Lines := Editor.Lines;
   if Lines.Count<1 then
     Exit;
+
+  changed := False;
   DummyEditor := TSynEdit.Create(nil);
   try
     PosY := 0;
     while (PosY < Lines.Count) do begin
-      ProcessLine;
+      changed := ProcessLine or changed;
       DummyEditor.Lines.Add(currentNewLine);
       inc(PosY);
     end;
 
     // remove added last new line
     // Use replace all functionality
-    Editor.BeginUpdate;
-    try
-      Editor.SelectAll;
-      Editor.SelText := DummyEditor.Lines.Text;
-      Editor.TopLine := OldTopLine;
-      Editor.CaretXY := OldCaretXY;
-    finally
-      Editor.EndUpdate; // repaint once
-    end;
 
-    if ownEditor then begin
-      with TStringList.Create do try
-        Text:=editor.Lines.Text;
-        SaveToFile(FileName);
+    // only save if changed
+    if changed then begin
+      Editor.BeginUpdate;
+      try
+        Editor.SelectAll;
+        Editor.SelText := DummyEditor.Lines.Text;
+        Editor.TopLine := OldTopLine;
+        Editor.CaretXY := OldCaretXY;
       finally
-        Free;
+        Editor.EndUpdate; // repaint once
       end;
-    end else begin
-      mainForm.EditorList.GetEditorFromFileName(FileName).Save;
+
+      if ownEditor then begin
+        with TStringList.Create do try
+          Text:=editor.Lines.Text;
+          SaveToFile(FileName);
+        finally
+          Free;
+        end;
+      end else begin
+        mainForm.EditorList.GetEditorFromFileName(FileName).Save;
+      end;
     end;
     Result := True;
   finally
@@ -245,23 +254,49 @@ begin
 
   if assigned(project) and (project.Units.IndexOf(editor.FileName)>=0) then begin
     // found but not in this project
-    if not ((project.Units.IndexOf(oldStatement._FileName)>=0)
-        and  (project.Units.IndexOf(oldStatement._DefinitionFileName)>=0))  then begin
-      MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_IN_PROJECT],[phrase,Editor.FileName]), mtInformation, [mbOK], 0);
+    if not (project.Units.IndexOf(oldStatement._FileName)>=0) then begin
+      MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_IN_PROJECT],[phrase,oldStatement._FileName]), mtInformation, [mbOK], 0);
       Exit;
     end;
-    for i:=0 to project.Units.Count-1 do begin
-      if not SameText(project.Units[i].FileName,oldStatement._FileName) then begin
-        Result:=RenameSymbolInFile(project.Units[i].FileName,@oldStatement,oldName,newName);
-        if not Result then
-          Exit;
-      end;
+    if not (project.Units.IndexOf(oldStatement._DefinitionFileName)>=0) then begin
+      MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_IN_PROJECT],[phrase,oldStatement._DefinitionFileName]), mtInformation, [mbOK], 0);
+      Exit;
     end;
-    Result:=RenameSymbolInFile(oldStatement._FileName,@oldStatement,oldName,newName);
+    if (oldStatement._Scope = ssLocal) then begin
+      if (oldStatement._Kind = skVariable) then begin
+        Result:=RenameSymbolInFile(oldStatement._FileName,@oldStatement,oldName,newName);
+      end else begin
+        if (not assigned(oldStatement._ParentScope)) then begin
+          // should not happen
+          MessageDlg('Parser Error: parameter no parent', mtInformation, [mbOK], 0);
+          Exit;
+        end;
+        if not (project.Units.IndexOf(oldStatement._ParentScope^._FileName)>=0) then begin
+          MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_IN_PROJECT],[phrase,oldStatement._ParentScope^._FileName]), mtInformation, [mbOK], 0);
+          Exit;
+        end;
+        if not (project.Units.IndexOf(oldStatement._ParentScope^._DefinitionFileName)>=0) then begin
+          MessageDlg(Format(Lang[ID_ERR_STATEMENT_NOT_IN_PROJECT],[phrase,oldStatement._ParentScope^._DefinitionFileName]), mtInformation, [mbOK], 0);
+          Exit;
+        end;
+        Result:=RenameSymbolInFile(oldStatement._ParentScope^._FileName,@oldStatement,oldName,newName);
+        if not SameText(oldStatement._ParentScope^._FileName, oldStatement._ParentScope^._DefinitionFileName) then
+          Result:=RenameSymbolInFile(oldStatement._ParentScope^._DefinitionFileName,@oldStatement,oldName,newName);
+      end;
+    end else begin
+      for i:=0 to project.Units.Count-1 do begin
+        if not SameText(project.Units[i].FileName,oldStatement._FileName) then begin
+          Result:=RenameSymbolInFile(project.Units[i].FileName,@oldStatement,oldName,newName);
+          if not Result then
+            Exit;
+        end;
+      end;
+      Result:=RenameSymbolInFile(oldStatement._FileName,@oldStatement,oldName,newName);
+    end;
   end else begin
     // found but not in this file
-    if not SameStr(oldStatement._FileName, Editor.FileName)
-      or not SameStr(oldStatement._DefinitionFileName, Editor.FileName) then begin
+    if not SameText(oldStatement._FileName, Editor.FileName)
+      or not SameText(oldStatement._DefinitionFileName, Editor.FileName) then begin
       MessageDlg(Format(Lang[ID_ERR_STATEMENT_OUT_OF_BOUND],[phrase,Editor.FileName]), mtInformation, [mbOK], 0);
       Exit;
     end;

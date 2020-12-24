@@ -18,6 +18,7 @@ Version 6.3-beta2
     - enhancement: correctly process function parameters with default value
     - enhancement: differentiate enum name and enum values in the parser
     - fixes: Goto Function dialog
+    - enhancement: Rename symbols only save the files using the symbols. And rename local symbols only parse the current file.
 
 Version 6.3-beta1
     
