@@ -24,6 +24,8 @@ Version 6.3-beta2
     - enhancement: packmaker: show destination infos in the file list
     - enhancement: packmaker: edit the selected item in the file list with double click
     - enhancement: slightly increase menu item height
+    - fix: text messed when click in the auto-link list in the compiler options dialog
+    - enhancement: use topology sort to decide the order of the auto-links for the file to be compiled
 
 Version 6.3-beta1
     

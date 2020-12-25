@@ -139,7 +139,7 @@ var
 begin
   if devData.First then begin
     AddItem('ege.h','-lgraphics -luuid -lmsimg32 -lgdi32 -limm32 -lole32 -loleaut32 -lwinmm -lgdiplus -mwindows');
-    AddItem('turtle.h','-lturtle -lgraphics -luuid -lmsimg32 -lgdi32 -limm32 -lole32 -loleaut32 -lwinmm -lgdiplus -mwindows');
+    AddItem('turtle.h','-lturtle');
      // Save to disk as defaults
     Save;
 

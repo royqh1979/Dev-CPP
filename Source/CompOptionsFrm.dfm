@@ -98,7 +98,7 @@ object CompOptForm: TCompOptForm
     Top = 0
     Width = 645
     Height = 666
-    ActivePage = tabCompilerSet
+    ActivePage = tabAutoLink
     TabOrder = 3
     object tabCompilerSet: TTabSheet
       Caption = 'Compiler Set'

@@ -130,7 +130,7 @@ type
 implementation
 
 uses
-  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser, Editor, dataFrm;
+  MultiLangSupport, Macros, devExec, main, StrUtils, CppParser, Editor, dataFrm, iniFiles;
 
 procedure TCompiler.DoLogEntry(const msg: AnsiString);
 begin
@@ -1276,8 +1276,36 @@ var
   i, val: integer;
   option: TCompilerOption;
   e:TEditor;
-  includedFiles : TStringList;
   fullPath : String;
+  autolinkIndexes : TStringHash;
+  parsedFiles: TStringHash;
+
+  procedure ParseFileInclude(_FileName:String);
+  var
+    includedFiles : TStringList;
+    i,idx: integer;
+  begin
+    if parsedFiles.ValueOf(_FileName)>=0 then
+      Exit;
+    parsedFiles.Add(_FileName,1);
+    includedFiles := TStringList.Create;
+    try
+      idx := autolinkIndexes.ValueOf(_filename);
+      if idx>=0 then begin
+         fLibrariesParams := fLibrariesParams + ' ' + dmMain.AutoLinks[idx]^.linkParams;
+      end;
+      //the includedFiles must not be sorted
+      e.CppParser.GetFileDirectIncludes(_filename,includedFiles);
+      //last included file parsed first,cause it may depends on the files included before it
+      for i:=includedFiles.Count-1 downto 0 do begin
+        if (SameText(_filename,includedFiles[i])) then
+          continue;
+        ParseFileInclude(includedFiles[i]);
+      end;
+    finally
+      includedFiles.Free;
+    end;
+  end;
 begin
   // Add libraries
   fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);
@@ -1289,18 +1317,17 @@ begin
   if (fTarget = ctFile) then begin
     e:=MainForm.EditorList.GetEditor();
     if Assigned(e) then begin
-      includedFiles := TStringList.Create;
+      autolinkIndexes := TStringHash.Create;
+      parsedFiles := TStringHash.Create;
       try
-        e.CppParser.GetFileIncludes(e.FileName,includedFiles);
-        includedFiles.Sorted:=True;
         for i:=0 to dmMain.AutoLinks.Count - 1 do begin
           fullPath := e.CppParser.GetHeaderFileName(e.FileName,'"'+dmMain.AutoLinks[i]^.header+'"');
-          if FastIndexOf(includedFiles,fullPath)<>-1 then begin
-            fLibrariesParams := fLibrariesParams + ' ' + dmMain.AutoLinks[i]^.linkParams;
-          end;
+          autolinkIndexes.Add(fullPath,i);
         end;
+          ParseFileInclude(e.FileName);
       finally
-        includedFiles.Free;
+        parsedFiles.Free;
+        autolinkIndexes.Free;
       end;
     end;
   end;

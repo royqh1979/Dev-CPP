@@ -299,6 +299,8 @@ begin
     fCurrentIncludes^.IncludeFiles := TStringList.Create;
     fCurrentIncludes^.IncludeFiles.Duplicates:=dupIgnore;
     fCurrentIncludes^.IncludeFiles.Sorted:=True;
+    fCurrentIncludes^.DirectIncludeFiles := TStringList.Create;
+    fCurrentIncludes^.DirectIncludeFiles.Duplicates:=dupIgnore;
     fCurrentIncludes^.Usings := TDevStringList.Create;
     fCurrentIncludes^.Usings.Duplicates := dupIgnore;
     fCurrentIncludes^.Usings.Sorted:=True;
@@ -1249,6 +1251,7 @@ begin
   if FileName = '' then
     Exit;
 
+  fCurrentIncludes.DirectIncludeFiles.Add(FileName);
   // And open a new entry
   OpenInclude(FileName);
 end;

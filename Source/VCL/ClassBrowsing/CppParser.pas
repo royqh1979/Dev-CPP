@@ -170,6 +170,7 @@ type
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
     procedure AddHardDefineByLine(const Line: AnsiString);
     procedure InvalidateFile(const FileName: AnsiString);
+    procedure GetFileDirectIncludes(const Filename: AnsiString; var List: TStringList);
     procedure GetFileIncludes(const Filename: AnsiString; var List: TStringList);
     procedure GetFileUsings(const Filename: AnsiString; var List: TDevStringList);
 
@@ -303,6 +304,7 @@ begin
 
   for i:=0 to fIncludesList.Count - 1 do begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DirectIncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
@@ -2682,6 +2684,7 @@ begin
   // We don't include anything anymore
   for I := fIncludesList.Count - 1 downto 0 do begin
     PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DirectIncludeFiles.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
@@ -3137,6 +3140,7 @@ begin
   if Assigned(P) then begin
     //fPreprocessor.InvalidDefinesInFile(FileName); //we don't need this, since we reset defines after each parse
     P^.IncludeFiles.Free;
+    P^.DirectIncludeFiles.Free;
     P^.Usings.Free;
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
       Statement:= P^.DeclaredStatements[i];
@@ -4326,8 +4330,35 @@ begin
   List.Sorted := True;
   finally
     fCriticalSection.Release;
-  end;  
+  end;
 end;
+
+procedure TCppParser.GetFileDirectIncludes(const Filename: AnsiString; var List: TStringList);
+var
+  I: integer;
+  P: PFileIncludes;
+  sl: TStrings;
+begin
+  fCriticalSection.Acquire;
+  try
+  if FileName = '' then
+    Exit;
+  List.Clear;
+  if fParsing then
+    Exit;
+
+  P := FindFileIncludes(FileName);
+  if Assigned(P) then begin
+    sl := P^.DirectIncludeFiles;
+    for I := 0 to sl.Count - 1 do
+      List.Add(sl[I]);
+  end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+
 //Since we have save all include files info, don't need to recursive find anymore
 procedure TCppParser.GetFileIncludes(const Filename: AnsiString; var List: TStringList);
 var
@@ -4354,7 +4385,7 @@ begin
   List.Sorted := True;
   finally
     fCriticalSection.Release;
-  end;  
+  end;
 end;
 
 procedure TCppParser.InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
