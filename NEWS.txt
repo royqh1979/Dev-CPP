@@ -20,12 +20,14 @@ Version 6.3-beta2
     - fixes: Goto Function dialog
     - enhancement: Rename symbols only save the files using the symbols. And rename local symbols only parse the current file.
     - change: allow more than one instances of  devcpp to run at the same time
-    - change: add freeglut 3.2.1 and glew 2.1 to the included gcc 9.2
+    - change: add freeglut 3.2.1 and glew 2.1 and glfw 3.3.2 to the included gcc 9.2, for learning CG and opengl
     - enhancement: packmaker: show destination infos in the file list
     - enhancement: packmaker: edit the selected item in the file list with double click
     - enhancement: slightly increase menu item height
     - fix: text messed when click in the auto-link list in the compiler options dialog
     - enhancement: use topology sort to decide the order of the auto-links for the file to be compiled
+    - enhancement: autolink settings for freeglut/glew/glfw
+    - fix: copy all in the context menu for the compile log panel
 
 Version 6.3-beta1
     
