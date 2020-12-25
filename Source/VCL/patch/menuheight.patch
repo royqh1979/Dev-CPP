@@ -1,0 +1,11 @@
+--- "Menus - \345\211\257\346\234\254.pas"	2004-06-02 20:13:04.000000000 +0800
++++ Menus.pas	2020-12-25 15:07:21.972846300 +0800
+@@ -1578,7 +1578,7 @@
+   if DrawGlyph and not TopLevel then
+     Inc(Width, 15);
+   if not TopLevel then
+-    Inc(Height, 3);
++    Inc(Height, 5);
+   FillChar(R, SizeOf(R), 0);
+   if ParentMenu is TMenu then
+     Alignment := paLeft
