@@ -481,6 +481,7 @@ begin
       fi.Dest := files.Values[files.Names[i]];
       fi.Node := FileView.Items.Add;
       fi.Node.Caption := fi.Source;
+      fi.Node.SubItems.Add(fi.Dest);
       if //(pos(';recursive', files.Values[files.Names[i]]) <> 0) or
          DirectoryExists(files.Names[i]) then begin
         fi.Node.ImageIndex := 1;
@@ -668,6 +669,7 @@ begin
      fi.Node := FileView.Items.Add;
      fi.Node.Caption := fi.Source;
      fi.Node.ImageIndex := 1;
+     fi.Node.SubItems.Add(fi.Dest);     
      fi.IsDir := true;
      FileList.Add(pointer(fi));
     end;
@@ -690,6 +692,7 @@ begin
      fi.Node := FileView.Items.Add;
      fi.Node.Caption := fi.Source;
      fi.Node.ImageIndex := 0;
+     fi.Node.SubItems.Add(fi.Dest);     
      fi.IsDir := false;
      FileList.Add(pointer(fi));
     end;
