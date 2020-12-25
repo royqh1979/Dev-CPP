@@ -22,6 +22,7 @@ Version 6.3-beta2
     - change: allow more than one instances of  devcpp to run at the same time
     - change: add freeglut 3.2.1 and glew 2.1 to the included gcc 9.2
     - enhancement: packmaker: show destination infos in the file list
+    - enhancement: packmaker: edit the selected item in the file list with double click
 
 Version 6.3-beta1
     

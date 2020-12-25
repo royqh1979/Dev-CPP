@@ -299,7 +299,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 20
         Width = 168
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -313,7 +313,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 49
         Width = 168
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -327,7 +327,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 79
         Width = 168
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -662,6 +662,7 @@ object MainForm: TMainForm
         SmallImages = ImageList
         TabOrder = 0
         ViewStyle = vsReport
+        OnDblClick = FileViewDblClick
       end
     end
     object gbOptionalInfo: TGroupBox
@@ -879,7 +880,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 49
         Width = 168
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -892,7 +893,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 79
         Width = 135
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -905,7 +906,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 108
         Width = 135
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -918,7 +919,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 138
         Width = 135
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -931,7 +932,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 20
         Width = 168
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -958,7 +959,7 @@ object MainForm: TMainForm
         Left = 10
         Top = 231
         Width = 296
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
@@ -971,7 +972,7 @@ object MainForm: TMainForm
         Left = 138
         Top = 170
         Width = 168
-        Height = 21
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -15
