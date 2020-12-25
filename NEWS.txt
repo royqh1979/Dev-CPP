@@ -23,6 +23,7 @@ Version 6.3-beta2
     - change: add freeglut 3.2.1 and glew 2.1 to the included gcc 9.2
     - enhancement: packmaker: show destination infos in the file list
     - enhancement: packmaker: edit the selected item in the file list with double click
+    - enhancement: slightly increase menu item height
 
 Version 6.3-beta1
     
