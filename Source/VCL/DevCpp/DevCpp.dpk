@@ -25,14 +25,14 @@ package DevCpp;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Dev-C++ Components'}
-{$DESIGNONLY}
 {$IMPLICITBUILD ON}
 
 requires
   vcl,
   vclx,
   designide,
-  rtl;
+  rtl,
+  visualclx;
 
 contains
   CompOptionsList in 'CompOptionsList\CompOptionsList.pas',
@@ -43,7 +43,10 @@ contains
   devShortcutsEditorForm in 'devShortcuts\devShortcutsEditorForm.pas' {frmShortcutsEditor},
   devConsole in 'devConsole.pas',
   devCaretList in 'devCaretList.pas',
-  devFindOutput in 'devFindOutput.pas';
+  devFindOutput in 'devFindOutput.pas',
+  devReg in 'devReg.pas',
+  devTabs in 'devTabs.pas',
+  ColorPickerButton in 'ColorPickerButton.pas';
 
 end.
 

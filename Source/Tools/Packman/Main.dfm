@@ -1,13 +1,13 @@
 object MainForm: TMainForm
   Left = 289
   Top = 166
-  Width = 488
-  Height = 418
+  Width = 981
+  Height = 594
   Caption = 'Dev-C++ Package Manager (version 2.2.6)'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu1
@@ -15,24 +15,23 @@ object MainForm: TMainForm
   Position = poDefault
   ShowHint = True
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Splitter1: TSplitter
-    Left = 161
+    Left = 198
     Top = 46
-    Width = 3
-    Height = 307
-    Cursor = crHSplit
+    Width = 4
+    Height = 457
     Beveled = True
     ResizeStyle = rsLine
   end
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 480
+    Width = 963
     Height = 46
-    ButtonHeight = 44
-    ButtonWidth = 47
+    ButtonHeight = 47
+    ButtonWidth = 59
     Caption = 'ToolBar1'
     Customizable = True
     Flat = True
@@ -49,7 +48,7 @@ object MainForm: TMainForm
       OnClick = InstallPackage1Click
     end
     object VerifyBtn: TToolButton
-      Left = 50
+      Left = 62
       Top = 0
       Hint = 'Check for missing files in the selected package entry.'
       Caption = 'Verify'
@@ -58,7 +57,7 @@ object MainForm: TMainForm
       OnClick = Verify1Click
     end
     object RemoveBtn: TToolButton
-      Left = 97
+      Left = 121
       Top = 0
       Hint = 'Remove the selected package'
       Caption = 'Remove'
@@ -67,7 +66,7 @@ object MainForm: TMainForm
       OnClick = Remove1Click
     end
     object ToolButton1: TToolButton
-      Left = 144
+      Left = 180
       Top = 0
       Width = 8
       Caption = 'ToolButton1'
@@ -75,7 +74,7 @@ object MainForm: TMainForm
       Style = tbsSeparator
     end
     object HelpButton: TToolButton
-      Left = 152
+      Left = 188
       Top = 0
       Hint = 'Display help message'
       Caption = 'Help'
@@ -83,7 +82,7 @@ object MainForm: TMainForm
       OnClick = Help2Click
     end
     object AboutBtn: TToolButton
-      Left = 199
+      Left = 247
       Top = 0
       Hint = 'About Package Manager'
       Caption = 'About'
@@ -91,7 +90,7 @@ object MainForm: TMainForm
       OnClick = About1Click
     end
     object ToolButton2: TToolButton
-      Left = 246
+      Left = 306
       Top = 0
       Width = 8
       Caption = 'ToolButton2'
@@ -99,7 +98,7 @@ object MainForm: TMainForm
       Style = tbsSeparator
     end
     object ExitBtn: TToolButton
-      Left = 254
+      Left = 314
       Top = 0
       Hint = 'Exit this application.'
       Caption = 'Exit'
@@ -110,44 +109,44 @@ object MainForm: TMainForm
   object DetailsPanel: TPanel
     Left = 0
     Top = 46
-    Width = 161
-    Height = 307
+    Width = 198
+    Height = 457
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
     object Panel2: TPanel
       Left = 0
       Top = 0
-      Width = 161
-      Height = 25
+      Width = 198
+      Height = 31
       Align = alTop
       BevelOuter = bvLowered
       Color = 16711808
       TabOrder = 0
       object Label1: TLabel
-        Left = 7
-        Top = 6
-        Width = 94
-        Height = 13
+        Left = 9
+        Top = 7
+        Width = 116
+        Height = 16
         Caption = 'Package Details'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
       end
       object SpeedButton1: TSpeedButton
-        Left = 137
+        Left = 169
         Top = 2
-        Width = 23
-        Height = 21
+        Width = 28
+        Height = 26
         Hint = 'Hide details panel.'
         Caption = '<<'
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
@@ -156,16 +155,16 @@ object MainForm: TMainForm
     end
     object devPages1: TdevPages
       Left = 0
-      Top = 25
-      Width = 161
-      Height = 282
+      Top = 31
+      Width = 198
+      Height = 426
       Align = alClient
       ActivePage = devPage1
       object devPage1: TdevPage
         Left = 0
-        Top = 23
-        Width = 161
-        Height = 259
+        Top = 26
+        Width = 198
+        Height = 400
         HorzScrollBar.Smooth = True
         HorzScrollBar.Tracking = True
         VertScrollBar.Smooth = True
@@ -174,40 +173,40 @@ object MainForm: TMainForm
         TabOrder = 0
         Caption = 'General'
         object Label2: TLabel
-          Left = 8
-          Top = 8
-          Width = 75
-          Height = 13
+          Left = 10
+          Top = 10
+          Width = 95
+          Height = 16
           Caption = 'Package name:'
           Enabled = False
         end
         object Label3: TLabel
-          Left = 8
-          Top = 56
-          Width = 83
-          Height = 13
+          Left = 10
+          Top = 69
+          Width = 105
+          Height = 16
           Caption = 'Package version:'
           Enabled = False
         end
         object Label4: TLabel
-          Left = 8
-          Top = 104
-          Width = 56
-          Height = 13
+          Left = 10
+          Top = 128
+          Width = 71
+          Height = 16
           Caption = 'Description:'
           Enabled = False
         end
         object Label5: TLabel
-          Left = 8
-          Top = 176
-          Width = 42
-          Height = 13
+          Left = 10
+          Top = 217
+          Width = 53
+          Height = 16
           Cursor = crHandPoint
           Caption = 'Website:'
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clBlue
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'MS Sans Serif'
           Font.Style = [fsUnderline]
           ParentFont = False
@@ -215,37 +214,37 @@ object MainForm: TMainForm
           OnClick = Label5Click
         end
         object PackageName: TEdit
-          Left = 8
-          Top = 24
-          Width = 145
+          Left = 10
+          Top = 30
+          Width = 178
           Height = 21
           Enabled = False
           ReadOnly = True
           TabOrder = 0
         end
         object PackageVersion: TEdit
-          Left = 8
-          Top = 72
-          Width = 145
+          Left = 10
+          Top = 89
+          Width = 178
           Height = 21
           Enabled = False
           ReadOnly = True
           TabOrder = 1
         end
         object PackageDescription: TMemo
-          Left = 8
-          Top = 120
-          Width = 145
-          Height = 49
+          Left = 10
+          Top = 148
+          Width = 178
+          Height = 60
           Enabled = False
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 2
         end
         object PackageURL: TEdit
-          Left = 8
-          Top = 192
-          Width = 145
+          Left = 10
+          Top = 236
+          Width = 178
           Height = 21
           Enabled = False
           ReadOnly = True
@@ -253,10 +252,10 @@ object MainForm: TMainForm
           Visible = False
         end
         object BitBtn1: TBitBtn
-          Left = 8
-          Top = 224
-          Width = 145
-          Height = 25
+          Left = 10
+          Top = 276
+          Width = 178
+          Height = 30
           Caption = 'Show Picture'
           Enabled = False
           TabOrder = 4
@@ -265,9 +264,9 @@ object MainForm: TMainForm
       end
       object devPage2: TdevPage
         Left = 0
-        Top = 23
-        Width = 161
-        Height = 259
+        Top = 26
+        Width = 198
+        Height = 400
         HorzScrollBar.Smooth = True
         HorzScrollBar.Tracking = True
         VertScrollBar.Smooth = True
@@ -279,13 +278,13 @@ object MainForm: TMainForm
         object FileList: TRichEdit
           Left = 0
           Top = 0
-          Width = 161
-          Height = 259
+          Width = 198
+          Height = 400
           Align = alClient
           Enabled = False
-          Font.Charset = ANSI_CHARSET
+          Font.Charset = GB2312_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier New'
           Font.Style = []
           HideSelection = False
@@ -301,10 +300,10 @@ object MainForm: TMainForm
     end
   end
   object Packages: TListView
-    Left = 164
+    Left = 202
     Top = 46
-    Width = 316
-    Height = 307
+    Width = 761
+    Height = 457
     Align = alClient
     Columns = <>
     FlatScrollBars = True
@@ -318,17 +317,16 @@ object MainForm: TMainForm
     TabOrder = 2
     OnSelectItem = PackagesSelectItem
   end
-  object Statusbar1: TStatusbar
+  object Statusbar1: TStatusBar
     Left = 0
-    Top = 353
-    Width = 480
+    Top = 503
+    Width = 963
     Height = 19
     Panels = <
       item
         Text = 'Ready.'
         Width = 50
       end>
-    SimplePanel = False
   end
   object MainMenu1: TMainMenu
     Images = MenuImages
