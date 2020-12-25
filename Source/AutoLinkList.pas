@@ -140,6 +140,12 @@ begin
   if devData.First then begin
     AddItem('ege.h','-lgraphics -luuid -lmsimg32 -lgdi32 -limm32 -lole32 -loleaut32 -lwinmm -lgdiplus -mwindows');
     AddItem('turtle.h','-lturtle');
+    AddItem('GL/gl.h','-lopengl32');
+    AddItem('GL/freeglut.h','-lfreeglut');
+    AddItem('GL/glut.h','-lfreeglut -lopengl32 -lgdi32');
+    AddItem('GL/glew.h','-lglew32 -lopengl32 -lgdi32');
+    AddItem('GLFW/glfw3.h','-lglfw2 -lopengl32 -lgdi32');
+
      // Save to disk as defaults
     Save;
 
