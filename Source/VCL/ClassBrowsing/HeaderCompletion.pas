@@ -196,32 +196,30 @@ begin
       AddFilesInPath(fParser.ProjectIncludePaths[i]);
     end;
   end else begin
-    founddir := '';
     current := Copy(Phrase,1,idx-1);
     remainder := Copy(Phrase,idx+1,MaxInt);
 
     if searchLocal then begin
       founddir:=FindDirInPath(ExtractFilePath(fCurrentFile),current);
-    end;
-
-    if founddir = '' then begin
-      for i:=0 to fParser.IncludePaths.Count-1 do begin
-        founddir:=FindDirInPath(fParser.IncludePaths[i],current);
-        if founddir<>'' then
-          break;
+      if founddir<>'' then  begin
+        AddFilesInPath(founddir);
       end;
     end;
 
-    if founddir = '' then begin
-      for i:=0 to fParser.ProjectIncludePaths.Count-1 do begin
-        founddir:=FindDirInPath(fParser.ProjectIncludePaths[i],current);
-        if founddir<>'' then
-          break;
+    for i:=0 to fParser.IncludePaths.Count-1 do begin
+      founddir:=FindDirInPath(fParser.IncludePaths[i],current);
+      if founddir<>'' then  begin
+        AddFilesInPath(founddir);
       end;
     end;
 
-    if founddir<>'' then
-      AddFilesInPath(founddir);
+    for i:=0 to fParser.ProjectIncludePaths.Count-1 do begin
+      founddir:=FindDirInPath(fParser.ProjectIncludePaths[i],current);
+      if founddir<>'' then  begin
+        AddFilesInPath(founddir);
+      end;
+    end;
+
   end;
 end;
 

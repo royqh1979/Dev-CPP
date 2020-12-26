@@ -3289,7 +3289,7 @@ begin
   if idx>=fileIncludes.Scopes.Count then begin
     for i:=fCurrentScope.Count-1 downto 0 do begin
       statement := PStatement(fCurrentScope[i]);
-      if Line >= statement^._definitionLine then begin
+      if (not assigned(statement)) or (Line >= statement^._definitionLine) then begin
         Result:=statement;
         break;
       end;

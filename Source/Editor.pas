@@ -1069,6 +1069,7 @@ var
   p:PPoint;
   CursorPos: TBufferCoord;
   spaceCount :integer;
+  hasTabs: boolean;
 begin
   ClearUserCodeInTabStops;
   fXOffsetSince := 0;
@@ -1085,10 +1086,13 @@ begin
     try
       sl.Text:=Code;
       lastI:=0;
-      spaceCount := Text.LeftSpacesEx(fText.LineText,True);
+      spaceCount := Length(Text.GetLeftSpacing(
+        Text.LeftSpacesEx(fText.LineText,devEditor.UseTabs),
+        devEditor.UseTabs));
       for i:=0 to sl.Count -1 do begin
         lastPos := 0;
-        s:=sl[i];
+        if devEditor.UseTabs then
+          s:= sl[i];
         if i>0 then
           lastPos := -spaceCount; 
         while True do begin
@@ -2866,6 +2870,7 @@ begin
 
   // Don't rescan the same stuff over and over again (that's slow)
 //  if (s = fCurrentWord) and (fText.Hint<>'') then
+  s:=trim(s);
   if (s = fCurrentWord) then
     Exit; // do NOT remove hint when subject stays the same
 

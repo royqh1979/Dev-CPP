@@ -161,6 +161,7 @@ type
     property OnInserted: TStringListChangeEvent read fOnInserted
       write fOnInserted;
     property OnPutted: TStringListChangeEvent read fOnPutted write fOnPutted;
+    property ConvertTabsProc: TConvertTabsProcEx read fConvertTabsProc;
   end;
 
   ESynEditStringList = class(Exception);

@@ -761,6 +761,8 @@ begin
     Item.Caption := fCodeList[idx]^.Caption;
     Item.OnClick := fCodeEvent;
     Item.Tag := idx;
+    if fCodeList[idx]^.Section < 0 then
+      Continue;
     if fCodeList[idx]^.Section <= cdx then
       fCodeMenu.Add(Item)
     else begin
