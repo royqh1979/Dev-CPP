@@ -195,6 +195,7 @@ type
   TFileIncludes = record
     BaseFile: AnsiString;
     IncludeFiles: TStringList; // "file","file" etc
+    DirectIncludeFiles: TStringList; // "file","file" etc
     Usings: TDevStringList; // namespaces it usings
     Statements: TList; // List<Pointer,PStatement> , but we don't save temporary statements
     StatementsIndex: TDevStringHash; // List<Pionter, PStatement>

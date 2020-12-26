@@ -747,11 +747,15 @@ end;
 
 procedure TCompOptForm.lvAutoLinksSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
+var
+  oldOnChange: TNotifyEvent;
 begin
-  AutoLinks.Clear;
   if (ARow >= lvAutoLinks.FixedRows) then begin
+    oldOnChange:=AutoLinks.OnChange;
+    AutoLinks.OnChange:=nil;
     AutoLinks.Text := StrToCodeIns(lvAutoLinks.Cells[1, ARow]); // store code in first column object
     UpdateALButtons;
+    AutoLinks.OnChange:=oldOnChange;
   end;
 end;
 
@@ -812,9 +816,14 @@ end;
 
 procedure TCompOptForm.lvAutoLinksSetEditText(Sender: TObject; ACol,
   ARow: Integer; const Value: String);
+var
+  oldOnChange: TNotifyEvent;  
 begin
   if (ARow >= lvAutoLinks.FixedRows) and (ACol = 1) then begin
+    oldOnChange:=AutoLinks.OnChange;
+    AutoLinks.OnChange:=nil;
     AutoLinks.Text := StrToCodeIns(Value); // store code in first column object
+    AutoLinks.OnChange:=oldOnChange;    
   end;
 end;
 

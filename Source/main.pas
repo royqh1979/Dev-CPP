@@ -4300,8 +4300,9 @@ begin
         for i := 0 to pred(ResourceOutput.Items.Count) do
           Clipboard.AsText := Clipboard.AsText + GetPrettyLine(ResourceOutput, i) + #13#10;
       end;
-    2:
-      LogOutput.CopyToClipboard;
+    2: begin
+      Clipboard.AsText := LogOutput.Text;
+      end;
     3: begin
         if EvaluateInput.Focused then
           Clipboard.AsText := EvaluateInput.Text

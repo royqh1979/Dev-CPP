@@ -4,105 +4,105 @@ object RemoveForm: TRemoveForm
   BorderIcons = [biMinimize, biMaximize]
   BorderStyle = bsDialog
   Caption = 'Removing package %s...'
-  ClientHeight = 250
-  ClientWidth = 322
+  ClientHeight = 308
+  ClientWidth = 396
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Label1: TLabel
-    Left = 8
-    Top = 80
-    Width = 74
-    Height = 13
+    Left = 10
+    Top = 98
+    Width = 95
+    Height = 16
     Caption = 'Deleting file: %s'
   end
   object Animate1: TAnimate
-    Left = 8
-    Top = 8
-    Width = 304
+    Left = 10
+    Top = 10
+    Width = 272
     Height = 60
     Active = True
     CommonAVI = aviEmptyRecycle
-    StopFrame = 24
+    StopFrame = 1
   end
   object GroupBox1: TGroupBox
-    Left = 8
-    Top = 104
-    Width = 305
-    Height = 105
+    Left = 10
+    Top = 128
+    Width = 375
+    Height = 129
     Caption = 'Progress (0%)'
     TabOrder = 1
     object Label2: TLabel
-      Left = 35
-      Top = 48
-      Width = 61
-      Height = 13
+      Left = 43
+      Top = 59
+      Width = 74
+      Height = 16
       Caption = 'Total files:'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
     end
     object Label3: TLabel
-      Left = 19
-      Top = 64
-      Width = 77
-      Height = 13
+      Left = 23
+      Top = 79
+      Width = 96
+      Height = 16
       Caption = 'Files deleted:'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
     end
     object Label4: TLabel
-      Left = 43
-      Top = 80
-      Width = 53
-      Height = 13
+      Left = 53
+      Top = 98
+      Width = 64
+      Height = 16
       Caption = 'Files left:'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
     end
     object Label5: TLabel
-      Left = 104
-      Top = 48
-      Width = 6
-      Height = 13
+      Left = 128
+      Top = 59
+      Width = 7
+      Height = 16
       Caption = '0'
     end
     object Label6: TLabel
-      Left = 104
-      Top = 64
-      Width = 6
-      Height = 13
+      Left = 128
+      Top = 79
+      Width = 7
+      Height = 16
       Caption = '0'
     end
     object Label7: TLabel
-      Left = 104
-      Top = 80
-      Width = 6
-      Height = 13
+      Left = 128
+      Top = 98
+      Width = 7
+      Height = 16
       Caption = '0'
     end
     object Image1: TImage
-      Left = 248
-      Top = 48
+      Left = 305
+      Top = 59
       Width = 46
       Height = 47
       AutoSize = True
@@ -318,21 +318,19 @@ object RemoveForm: TRemoveForm
       Transparent = True
     end
     object ProgressBar1: TProgressBar
-      Left = 8
-      Top = 16
-      Width = 289
-      Height = 20
-      Min = 0
-      Max = 100
+      Left = 10
+      Top = 20
+      Width = 356
+      Height = 24
       Smooth = True
       TabOrder = 0
     end
   end
   object BitBtn1: TBitBtn
-    Left = 115
-    Top = 218
-    Width = 92
-    Height = 25
+    Left = 142
+    Top = 268
+    Width = 113
+    Height = 31
     Caption = 'Abort'
     Default = True
     TabOrder = 2

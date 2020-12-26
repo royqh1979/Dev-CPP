@@ -133,6 +133,7 @@ type
     procedure RemoveBtnClick(Sender: TObject);
     procedure AddDirBtnClick(Sender: TObject);
     procedure AddFileBtnClick(Sender: TObject);
+    procedure FileViewDblClick(Sender: TObject);
   private
     { Private declarations }
     function GetSelectedIcon : TIconItem;
@@ -481,6 +482,7 @@ begin
       fi.Dest := files.Values[files.Names[i]];
       fi.Node := FileView.Items.Add;
       fi.Node.Caption := fi.Source;
+      fi.Node.SubItems.Add(fi.Dest);
       if //(pos(';recursive', files.Values[files.Names[i]]) <> 0) or
          DirectoryExists(files.Names[i]) then begin
         fi.Node.ImageIndex := 1;
@@ -668,6 +670,7 @@ begin
      fi.Node := FileView.Items.Add;
      fi.Node.Caption := fi.Source;
      fi.Node.ImageIndex := 1;
+     fi.Node.SubItems.Add(fi.Dest);
      fi.IsDir := true;
      FileList.Add(pointer(fi));
     end;
@@ -690,6 +693,7 @@ begin
      fi.Node := FileView.Items.Add;
      fi.Node.Caption := fi.Source;
      fi.Node.ImageIndex := 0;
+     fi.Node.SubItems.Add(fi.Dest);     
      fi.IsDir := false;
      FileList.Add(pointer(fi));
     end;
@@ -703,6 +707,47 @@ begin
   IniFile := TIniFile.Create(devpakfile);
   if FileExists(devpakfile) then
       ReadDevPackFile;
+end;
+
+procedure TMainForm.FileViewDblClick(Sender: TObject);
+var
+  fi : TFileItem;
+  f  : TFileForm;
+  i  :integer;
+  found : boolean;
+begin
+  found := False;
+  for i:=0 to FileList.Count -1 do begin
+    fi:=TFileItem(FileList[i]);
+    if fi.Node = FileView.Selected then begin
+      found := True;
+      break;
+    end;
+  end;
+  if not found then
+    Exit;
+  f := TFileForm.Create(self);
+  try
+    f.SetMode(true);
+    f.edSource.Text := fi.Source;
+    f.edDest.Text := fi.Dest;
+    if f.ShowModal = mrOk then begin
+     fi.Source := f.edSource.Text;
+     fi.Dest := f.edDest.Text;
+     fi.Node.Caption := fi.Source;
+     fi.Node.SubItems[0] := fi.Dest;
+     fi.IsDir := true;
+     if DirectoryExists(fi.Source) then begin
+        fi.Node.ImageIndex := 1;
+        fi.IsDir := true;
+     end else begin
+        fi.Node.ImageIndex := 0;
+        fi.IsDir := false;
+      end;
+    end;
+  finally
+    f.Free;
+  end;
 end;
 
 end.

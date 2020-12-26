@@ -4,12 +4,12 @@ object MainForm: TMainForm
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Dev-C++ Package Maker v0.5'
-  ClientHeight = 390
-  ClientWidth = 602
+  ClientHeight = 480
+  ClientWidth = 794
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Icon.Data = {
@@ -233,76 +233,76 @@ object MainForm: TMainForm
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Panel1: TPanel
     Left = 0
     Top = 26
-    Width = 602
-    Height = 364
+    Width = 794
+    Height = 454
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object gbSetupInfo: TGroupBox
-      Left = 8
-      Top = 8
-      Width = 258
-      Height = 97
+      Left = 10
+      Top = 10
+      Width = 317
+      Height = 119
       Caption = 'Setup Info :'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clNavy
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 0
       object lblName: TLabel
-        Left = 8
-        Top = 22
-        Width = 80
-        Height = 13
+        Left = 10
+        Top = 27
+        Width = 101
+        Height = 16
         Caption = 'Package Name :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object lblNameVersion: TLabel
-        Left = 8
-        Top = 44
-        Width = 93
-        Height = 13
+        Left = 10
+        Top = 54
+        Width = 118
+        Height = 16
         Caption = 'Name and Version :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object lblVersion: TLabel
-        Left = 8
-        Top = 68
-        Width = 41
-        Height = 13
+        Left = 10
+        Top = 84
+        Width = 52
+        Height = 16
         Caption = 'Version :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object edName: TEdit
-        Left = 112
-        Top = 16
-        Width = 137
-        Height = 21
+        Left = 138
+        Top = 20
+        Width = 168
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
@@ -310,13 +310,13 @@ object MainForm: TMainForm
         Text = 'MyPackage'
       end
       object edNameVersion: TEdit
-        Left = 112
-        Top = 40
-        Width = 137
-        Height = 21
+        Left = 138
+        Top = 49
+        Width = 168
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
@@ -324,13 +324,13 @@ object MainForm: TMainForm
         Text = 'MyPackage version 1.0'
       end
       object edVersion: TEdit
-        Left = 112
-        Top = 64
-        Width = 137
-        Height = 21
+        Left = 138
+        Top = 79
+        Width = 168
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
@@ -339,28 +339,28 @@ object MainForm: TMainForm
       end
     end
     object gbStartMenuIcons: TGroupBox
-      Left = 274
-      Top = 8
-      Width = 322
-      Height = 118
+      Left = 337
+      Top = 10
+      Width = 448
+      Height = 145
       Caption = 'Start menu Icons :'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clNavy
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 2
       object AddItemBtn: TSpeedButton
-        Left = 8
-        Top = 20
-        Width = 97
-        Height = 22
+        Left = 10
+        Top = 25
+        Width = 119
+        Height = 27
         Caption = 'Add Item '
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         Glyph.Data = {
@@ -394,15 +394,15 @@ object MainForm: TMainForm
         OnClick = AddItemBtnClick
       end
       object EditItemBtn: TSpeedButton
-        Left = 112
-        Top = 20
-        Width = 97
-        Height = 22
+        Left = 138
+        Top = 25
+        Width = 119
+        Height = 27
         Caption = 'Edit Item'
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         Glyph.Data = {
@@ -436,15 +436,15 @@ object MainForm: TMainForm
         OnClick = EditItemBtnClick
       end
       object RemoveIconBtn: TSpeedButton
-        Left = 216
-        Top = 20
-        Width = 97
-        Height = 22
+        Left = 266
+        Top = 25
+        Width = 119
+        Height = 27
         Caption = 'Remove'
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         Glyph.Data = {
@@ -478,15 +478,15 @@ object MainForm: TMainForm
         OnClick = RemoveIconBtnClick
       end
       object IconView: TListView
-        Left = 8
-        Top = 48
-        Width = 305
-        Height = 60
+        Left = 10
+        Top = 59
+        Width = 431
+        Height = 74
         BorderWidth = 4
         Columns = <>
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         FlatScrollBars = True
@@ -501,28 +501,28 @@ object MainForm: TMainForm
       end
     end
     object gbFilesToInstall: TGroupBox
-      Left = 274
-      Top = 132
-      Width = 322
-      Height = 222
+      Left = 337
+      Top = 162
+      Width = 448
+      Height = 274
       Caption = 'Files/Directories to install :'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clNavy
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 3
       object AddDirBtn: TSpeedButton
-        Left = 8
-        Top = 20
-        Width = 97
-        Height = 22
+        Left = 10
+        Top = 25
+        Width = 119
+        Height = 27
         Caption = 'Add Directory'
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         Glyph.Data = {
@@ -556,15 +556,15 @@ object MainForm: TMainForm
         OnClick = AddDirBtnClick
       end
       object AddFileBtn: TSpeedButton
-        Left = 112
-        Top = 20
-        Width = 97
-        Height = 22
+        Left = 138
+        Top = 25
+        Width = 119
+        Height = 27
         Caption = 'Add File'
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         Glyph.Data = {
@@ -598,15 +598,15 @@ object MainForm: TMainForm
         OnClick = AddFileBtnClick
       end
       object RemoveBtn: TSpeedButton
-        Left = 216
-        Top = 20
-        Width = 97
-        Height = 22
+        Left = 266
+        Top = 25
+        Width = 119
+        Height = 27
         Caption = 'Remove'
         Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         Glyph.Data = {
@@ -640,97 +640,101 @@ object MainForm: TMainForm
         OnClick = RemoveBtnClick
       end
       object FileView: TListView
-        Left = 8
-        Top = 48
-        Width = 305
-        Height = 164
-        BorderWidth = 4
-        Columns = <>
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
+        Left = 10
+        Top = 59
+        Width = 431
+        Height = 202
+        Columns = <
+          item
+            Caption = 'Source'
+            MinWidth = 50
+            Width = 200
+          end
+          item
+            Caption = 'Destination'
+            MinWidth = 50
+            Width = 200
+          end>
         IconOptions.Arrangement = iaLeft
         IconOptions.WrapText = False
         ReadOnly = True
         RowSelect = True
-        ParentFont = False
         SmallImages = ImageList
         TabOrder = 0
-        ViewStyle = vsList
+        ViewStyle = vsReport
+        OnDblClick = FileViewDblClick
       end
     end
     object gbOptionalInfo: TGroupBox
-      Left = 8
-      Top = 112
-      Width = 258
-      Height = 241
+      Left = 10
+      Top = 138
+      Width = 317
+      Height = 296
       Caption = 'Optional Info :'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clNavy
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 1
       object lblWebsite: TLabel
-        Left = 8
-        Top = 44
-        Width = 28
-        Height = 13
+        Left = 10
+        Top = 54
+        Width = 33
+        Height = 16
         Caption = 'URL :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object lblReadMe: TLabel
-        Left = 8
-        Top = 68
-        Width = 63
-        Height = 13
+        Left = 10
+        Top = 84
+        Width = 79
+        Height = 16
         Caption = 'ReadMe file :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object lblLicense: TLabel
-        Left = 8
-        Top = 92
-        Width = 59
-        Height = 13
+        Left = 10
+        Top = 113
+        Width = 73
+        Height = 16
         Caption = 'License file :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object lblPicture: TLabel
-        Left = 8
-        Top = 116
-        Width = 55
-        Height = 13
+        Left = 10
+        Top = 143
+        Width = 67
+        Height = 16
         Caption = 'Picture file :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object ReadMeBtn: TSpeedButton
-        Left = 226
-        Top = 66
-        Width = 23
-        Height = 22
+        Left = 278
+        Top = 81
+        Width = 28
+        Height = 27
         Flat = True
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
@@ -762,10 +766,10 @@ object MainForm: TMainForm
         OnClick = ReadMeBtnClick
       end
       object LicenseBtn: TSpeedButton
-        Left = 226
-        Top = 90
-        Width = 23
-        Height = 22
+        Left = 278
+        Top = 111
+        Width = 28
+        Height = 27
         Flat = True
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
@@ -797,10 +801,10 @@ object MainForm: TMainForm
         OnClick = LicenseBtnClick
       end
       object PictureBtn: TSpeedButton
-        Left = 226
-        Top = 114
-        Width = 23
-        Height = 22
+        Left = 278
+        Top = 140
+        Width = 28
+        Height = 27
         Flat = True
         Glyph.Data = {
           36030000424D3603000000000000360000002800000010000000100000000100
@@ -832,146 +836,146 @@ object MainForm: TMainForm
         OnClick = PictureBtnClick
       end
       object lblDescription: TLabel
-        Left = 8
-        Top = 20
-        Width = 59
-        Height = 13
+        Left = 10
+        Top = 25
+        Width = 74
+        Height = 16
         Caption = 'Description :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object lblDepend: TLabel
-        Left = 8
-        Top = 168
-        Width = 237
-        Height = 13
+        Left = 10
+        Top = 207
+        Width = 298
+        Height = 16
         BiDiMode = bdLeftToRight
         Caption = 'Depends on packages (separate names by a ";") :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentBiDiMode = False
         ParentFont = False
       end
       object Label1: TLabel
-        Left = 8
-        Top = 142
-        Width = 87
-        Height = 13
+        Left = 10
+        Top = 175
+        Width = 107
+        Height = 16
         Caption = 'Start menu group :'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
       end
       object edURL: TEdit
-        Left = 112
-        Top = 40
-        Width = 137
-        Height = 21
+        Left = 138
+        Top = 49
+        Width = 168
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 1
       end
       object edReadMe: TEdit
-        Left = 112
-        Top = 64
-        Width = 110
-        Height = 21
+        Left = 138
+        Top = 79
+        Width = 135
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 2
       end
       object edLicense: TEdit
-        Left = 112
-        Top = 88
-        Width = 110
-        Height = 21
+        Left = 138
+        Top = 108
+        Width = 135
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 3
       end
       object edPicture: TEdit
-        Left = 112
-        Top = 112
-        Width = 110
-        Height = 21
+        Left = 138
+        Top = 138
+        Width = 135
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 4
       end
       object edDescription: TEdit
-        Left = 112
-        Top = 16
-        Width = 137
-        Height = 21
+        Left = 138
+        Top = 20
+        Width = 168
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 0
       end
       object chbReboot: TCheckBox
-        Left = 8
-        Top = 220
-        Width = 153
-        Height = 17
+        Left = 10
+        Top = 271
+        Width = 188
+        Height = 21
         Caption = 'Reboot system after install'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 7
       end
       object edDepend: TEdit
-        Left = 8
-        Top = 188
-        Width = 241
-        Height = 21
+        Left = 10
+        Top = 231
+        Width = 296
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
         TabOrder = 6
       end
       object edStartMenu: TEdit
-        Left = 112
-        Top = 138
-        Width = 137
-        Height = 21
+        Left = 138
+        Top = 170
+        Width = 168
+        Height = 24
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
@@ -982,7 +986,7 @@ object MainForm: TMainForm
   object ToolBar: TToolBar
     Left = 0
     Top = 0
-    Width = 602
+    Width = 794
     Height = 26
     Caption = 'ToolBar'
     EdgeBorders = [ebTop, ebBottom]

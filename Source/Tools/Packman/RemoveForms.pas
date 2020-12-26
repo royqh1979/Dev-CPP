@@ -104,6 +104,23 @@ var
   Files, Dirs: TStringList;
   i, IMod: Integer;
   currdir: AnsiString;
+
+  function IsDirEmpty(Path:filename):boolean;
+  var
+    SR : TSearchRec;
+    count: integer;
+  begin
+    count:=0;
+    if FindFirst(IncludeTrailingPathDelimiter(Path) + '*.*', faAnyFile, SR) = 0 then begin
+      repeat
+        if (SameStr(SR.Name,'.') or (SameStr(SR.Name,'..')) then begin
+          inc(count);
+        end;
+      until FindNext(SR) <> 0;
+      FindClose(SR);
+    end;
+    Result := (count=0);
+  end;
 begin
   Timer1.Enabled := False;
   Abort := False;
@@ -174,6 +191,7 @@ begin
 
     Label1.Caption := 'Removing empty directories...';
     Dirs.CaseSensitive := False;
+    Dirs.Sorted := True; // sub dirs will be sorted  to the back of the list
     for i := Dirs.Count - 1 downto 0 do
     begin
       if Abort then
@@ -188,7 +206,8 @@ begin
         BitBtn1.OnClick := nil;
         Exit;
       end;
-      RemoveDirsRec(Dirs.Strings[i]);
+      if IsDirEmpty(Dirs.Strings[i]) then
+        RemoveDirsRec(Dirs.Strings[i]);
 
       if (IMod = 0) or (i mod IMod = 0) then
         Application.ProcessMessages;
