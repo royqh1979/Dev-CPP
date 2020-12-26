@@ -1,6 +1,6 @@
 object FindForm: TFindForm
-  Left = 238
-  Top = 183
+  Left = 478
+  Top = 184
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Find Text'
