@@ -1078,10 +1078,7 @@ begin
     fDevRun.OnCheckAbort := ThreadCheckAbort;
     fDevRun.InputText := SourceText;
     fDevRun.FreeOnTerminate := True;
-    // fix: sometimes SourceText is wrongly setted
-    if redirectStdin and (fDevRun.InputText='') then begin
-      fDevRun.InputText := '    ';
-    end;
+    fDevRun.RedirectStdin:= redirectStdin;
     fDevRun.Resume;
 
     MainForm.UpdateAppTitle;

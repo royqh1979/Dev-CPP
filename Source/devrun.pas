@@ -43,6 +43,7 @@ type
     fCheckAbort: TCheckAbortFunc;
     fInputText : String;
     fPipe:TPipeStdinThread;
+    fRedirectStdin: boolean;
   protected
     procedure CallLineOutputEvent;
     procedure Execute; override;
@@ -55,6 +56,7 @@ type
     property OnLineOutput: TLineOutputEvent read FLineOutput write FLineOutput;
     property OnCheckAbort: TCheckAbortFunc read FCheckAbort write FCheckAbort;
     property InputText: String read fInputText write fInputText;
+    property RedirectStdin: boolean read fRedirectStdin write fRedirectStdin;
   end;
 
 implementation
@@ -84,7 +86,7 @@ end;
 
 procedure TDevRun.Execute;
 begin
-  if InputText = '' then
+  if not fRedirectStdin then
     Output := RunAndGetOutput(Command, Directory, LineOutput, FCheckAbort)
   else
     Output := RunAndGetOutput(Command, Directory, LineOutput, nil,true,nil,OnInputHandle);
