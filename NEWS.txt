@@ -30,6 +30,8 @@ Version 6.3-beta2
     - fix: copy all in the context menu for the compile log panel
     - enhancement: include packmaker.exe to the binary distribution
     - enhancement: add hdpi fix for packman.exe/packmaker.exe
+    - fix: packman.exe will remove folders which contains installed package files when remove a package.
+    - fix?: compiler hangs when start compiling file and (auto) check syntax run at the same time
 
 Version 6.3-beta1
     

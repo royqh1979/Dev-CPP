@@ -113,7 +113,7 @@ type
     procedure GetCompileParams;
     procedure GetLibrariesParams;
     procedure GetIncludesParams;
-    procedure LaunchThread(const s, dir: AnsiString);
+    procedure LaunchThread(const s, dir: AnsiString; redirectStdin: boolean = False);
     procedure ThreadCheckAbort(var AbortThread: boolean);
     procedure OnCompilationTerminated(Sender: TObject);
     procedure OnLineOutput(Sender: TObject; const Line: AnsiString);
@@ -682,6 +682,7 @@ var
   cmdline: AnsiString;
   //s: AnsiString;
   compilerName: AnsiString;
+  redirectStdin: boolean;
 begin
   if fCompilerSet.BinDir.Count < 1 then begin
     LogError('Compiler.pas TCompiler.Compile:', 'Active compiler set''s bin directory is not set!');
@@ -689,12 +690,9 @@ begin
     Exit;
   end;
 
+  redirectStdin := False;
   case Target of
     ctFile,ctStdin: begin
-        if (Target = ctStdin) and (fSourceText = '') then begin
-          LogError('Compiler.pas TCompiler.Compile:', 'SourceText not set!');
-          Exit;
-        end;
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_COMPILINGFILE]);
@@ -734,8 +732,10 @@ begin
               if fCheckSyntax then begin
                 if Target = ctFile then
                   cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams])
-                else
+                else begin
                   cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c',fCompileParams, fIncludesParams]);
+                  redirectStdin := True;
+                end;
               end else
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
                   fIncludesParams, fLibrariesParams]);
@@ -755,9 +755,11 @@ begin
                   cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
                     fCppCompileParams, fCppIncludesParams,
                     fLibrariesParams])
-                else
+                else  begin
                   cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c++',
                     fCppCompileParams, fCppIncludesParams]);
+                  redirectStdin := True;
+                end;
               end else
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
@@ -777,9 +779,11 @@ begin
                   cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
                     fCppCompileParams, fCppIncludesParams,
                     fLibrariesParams])
-                else
+                else begin
                   cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c++',
                     fCppCompileParams, fCppIncludesParams]);
+                  redirectStdin := True;
+                end;
               end else
                 cmdline := Format(cHeaderCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams,
                   fLibrariesParams]);
@@ -812,7 +816,7 @@ begin
         end;
 
         // Execute it
-        LaunchThread(cmdline, ExtractFilePath(fSourceFile));
+        LaunchThread(cmdline, ExtractFilePath(fSourceFile), redirectStdin);
       end;
     ctProject: begin
         InitProgressForm;
@@ -1060,7 +1064,7 @@ begin
   end;
 end;
 
-procedure TCompiler.LaunchThread(const s, dir: AnsiString);
+procedure TCompiler.LaunchThread(const s, dir: AnsiString; redirectStdin: boolean);
 begin
   if Assigned(fDevRun) then
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0)
@@ -1074,6 +1078,10 @@ begin
     fDevRun.OnCheckAbort := ThreadCheckAbort;
     fDevRun.InputText := SourceText;
     fDevRun.FreeOnTerminate := True;
+    // fix: sometimes SourceText is wrongly setted
+    if redirectStdin and (fDevRun.InputText='') then begin
+      fDevRun.InputText := '    ';
+    end;
     fDevRun.Resume;
 
     MainForm.UpdateAppTitle;
