@@ -28,6 +28,8 @@ Version 6.3-beta2
     - enhancement: use topology sort to decide the order of the auto-links for the file to be compiled
     - enhancement: autolink settings for freeglut/glew/glfw
     - fix: copy all in the context menu for the compile log panel
+    - enhancement: include packmaker.exe to the binary distribution
+    - enhancement: add hdpi fix for packman.exe/packmaker.exe
 
 Version 6.3-beta1
     

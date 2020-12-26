@@ -156,7 +156,6 @@ begin
 
   // Don't touch editors which we are only scanning
   if action in [faFindFiles] then begin
-
     // Put backup back into place
     editor.CaretXY := caretbackup;
     editor.BlockBegin := blockbeginbackup;

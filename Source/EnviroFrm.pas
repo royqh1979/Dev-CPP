@@ -497,6 +497,9 @@ begin
     lReg.OpenKey('\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', True);
     // write last Left, Top, Width and Height
     lReg.WriteString(Application.ExeName, '~ HIGHDPIAWARE');
+    lReg.WriteString(ExtractFilePath(Application.ExeName)+'PackMaker.exe', '~ HIGHDPIAWARE');
+    lReg.WriteString(ExtractFilePath(Application.ExeName)+'PackMan.exe', '~ HIGHDPIAWARE');
+
   // close all
   lReg.CloseKey;
   finally

@@ -115,6 +115,7 @@ Section "$(SectionMainName)" SectionMain
   ; Write required files
   File "devcpp.exe"
   File "packman.exe"
+  File "PackMaker.exe"
   File "ConsolePauser.exe"
   File "devcpp.exe.manifest"
   File "LICENSE"
