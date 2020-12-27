@@ -94,7 +94,7 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=
+SearchPath=E:\workspace\contributes\Dev-CPP\Source\VCL\VirtualTreeViewV5.5.3\Source
 Packages=
 Conditionals=
 DebugSourceDirs=
@@ -141,8 +141,9 @@ Item0=C:\Program Files (x86)\Dev-Cpp\Source\VCL\SynEdit\Source\;C:\Program Files
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=1
-Item0=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
+Count=2
+Item0=E:\workspace\contributes\Dev-CPP\Source\VCL\VirtualTreeViewV5.5.3\Source
+Item1=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
 [HistoryLists\hlUnitOutputDirectory]
 Count=1
 Item0=Units

@@ -132,8 +132,6 @@ begin
 end;
 
 destructor THeaderCompletion.Destroy;
-var
-  i:integer;
 begin
   FreeAndNil(HeaderComplForm);
   FreeAndNil(fCompletionList);
@@ -146,7 +144,7 @@ end;
 procedure THeaderCompletion.GetCompletionFor(FileName,Phrase: AnsiString);
 var
   I,idx: integer;
-  path,remainder,current,founddir: String;
+  remainder,current,founddir: String;
   searchResult : TSearchRec;
   ext:string;
 
@@ -262,8 +260,6 @@ begin
 end;
 
 procedure THeaderCompletion.Hide;
-var
-  i:integer;
 begin
   if fPreparing then
     Exit;

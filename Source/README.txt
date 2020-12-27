@@ -7,10 +7,10 @@ The main executable devcpp.exe can be built using the following steps:
        (it fixes the problem that press alt will cause buttons in dialogs to disapear in windows with themes)
 
 	1) Compile and install the following package(s):
-		Source\VCL\DevCpp\DevCpp.dpk
 		Source\VCL\SynEdit\Packages\SynEdit_<Delphi Version>.dpk
 		Source\VCL\ClassBrowsing\ClassBrowsing.dpk
-        Source\VCL\Containers\Containers.dpk
+		Source\VCL\DevCpp\DevCpp.dpk
+        Source\VCL\Containers\Containers.dpk (not used now)
 
 	2) Compile resources by running the following script(s):
 		Source\CompileResources.bat

@@ -2314,6 +2314,8 @@ var
     s := fText.Lines[y];
     posY := y;
     posX := x;
+    if posX > length(s) then
+      posX := length(s);
     bracketLevel:=0;
     while True do begin
       while posX < 1 do begin
@@ -2351,6 +2353,8 @@ begin
 
     s := fText.Lines[p.Line - 1];
     WordEnd := p.Char-1;
+    if WordEnd > length(s) then
+      WordEnd := Length(s);
     while True do begin
       bracketLevel:=0;
       skipNextWord:=False;

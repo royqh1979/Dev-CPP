@@ -44,7 +44,7 @@ type
     procedure SetColor(i:integer; const Color:TColor);    protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
-    constructor Create(AOwner: TComponent; owner: TObject); 
+    constructor Create(AOwner: TComponent; owner: TObject);
     property Colors[Index: Integer]: TColor read GetColor write SetColor;
   end;
 
