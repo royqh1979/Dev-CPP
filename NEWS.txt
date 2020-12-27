@@ -3,6 +3,7 @@ Version 6.3-beta3 DEC 2020
     - fix: code suggestion for #include headers in the sub directories which appears in more than two system or project include dirs
     - enhancement : don't show user code template when the value of section is less than 0
     - fix: cursor position wrong when insert a user code tempalte (codeIns ) 
+    - fix: devcpp exception when write a for loop out of a function
 
 Version 6.3-beta2 DEC 2020
 

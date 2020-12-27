@@ -138,7 +138,7 @@ var
   I: integer;
 begin
   if devData.First then begin
-    AddItem('ege.h','-lgraphics -luuid -lmsimg32 -lgdi32 -limm32 -lole32 -loleaut32 -lwinmm -lgdiplus -mwindows');
+    AddItem('ege.h','-lgraphics -luuid -lmsimg32 -lgdi32 -limm32 -lole32 -loleaut32 -lwinmm -lgdiplus');
     AddItem('turtle.h','-lturtle');
     AddItem('GL/gl.h','-lopengl32');
     AddItem('GL/glu.h','-lglu32 -lopengl32');
