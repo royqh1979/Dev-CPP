@@ -1,9 +1,9 @@
 object MainForm: TMainForm
-  Left = 289
-  Top = 166
+  Left = 566
+  Top = 250
   Width = 981
   Height = 594
-  Caption = 'Dev-C++ Package Manager (version 2.2.6)'
+  Caption = 'Dev-C++ Package Manager (version 2.2.7)'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -217,7 +217,7 @@ object MainForm: TMainForm
           Left = 10
           Top = 30
           Width = 178
-          Height = 21
+          Height = 24
           Enabled = False
           ReadOnly = True
           TabOrder = 0
@@ -226,7 +226,7 @@ object MainForm: TMainForm
           Left = 10
           Top = 89
           Width = 178
-          Height = 21
+          Height = 24
           Enabled = False
           ReadOnly = True
           TabOrder = 1
@@ -245,7 +245,7 @@ object MainForm: TMainForm
           Left = 10
           Top = 236
           Width = 178
-          Height = 21
+          Height = 24
           Enabled = False
           ReadOnly = True
           TabOrder = 3
