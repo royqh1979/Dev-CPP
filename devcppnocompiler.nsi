@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "No.Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.3-beta2"
+!define DEVCPP_VERSION "6.3-beta3"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -30,6 +30,7 @@ AutoCloseWindow false
 SilentInstall normal
 CRCCheck on
 SetCompressor /SOLID /FINAL lzma
+SetCompressorDictSize 64
 SetDatablockOptimize on
 SetOverwrite try
 XPStyle on
