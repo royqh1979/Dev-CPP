@@ -5,6 +5,7 @@ Version 6.3-beta3 DEC 2020
     - fix: cursor position wrong when insert a user code tempalte (codeIns ) 
     - fix: devcpp exception when write a for loop out of a function
     - fix: Turn on the option "Trim trailing spaces" in the editor option dialog will cause error when editing
+    - fix: Correctly remove invalid compiler sets and auto detect compiler sets when startup
 
 Version 6.3-beta2 DEC 2020
 
