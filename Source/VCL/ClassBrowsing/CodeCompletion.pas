@@ -22,14 +22,8 @@ unit CodeCompletion;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Classes, Forms, SysUtils, Controls, Graphics, CppParser,
   cbutils, StatementList, iniFiles;
-{$ENDIF}
-{$IFDEF LINUX}
-Xlib, Classes, QForms, SysUtils, QControls, QGraphics, CppParser,
-U_IntList, QDialogs, Types;
-{$ENDIF}
 
 type
   TCodeCompletion = class(TComponent)
@@ -62,7 +56,7 @@ type
     fAddedStatements : TStringHash;
     fPreparing: boolean;
     fPhrase : AnsiString;
-    fSymbolUsage:TDevStringList;
+    fSymbolUsage:THashedStringList;
     fRecordUsage: boolean;
     fShowKeywords: boolean;
     fIgnoreCase:boolean;
@@ -85,7 +79,7 @@ type
     function SelectedStatement: PStatement;
     property CurrentStatement: PStatement read fCurrentStatement write fCurrentStatement;
     property CodeInsList: TList read fCodeInsList write fCodeInsList;
-    property SymbolUsage:TDevStringList read fSymbolUsage write fSymbolUsage;
+    property SymbolUsage:THashedStringList read fSymbolUsage write fSymbolUsage;
     property RecordUsage: boolean read fRecordUsage write fRecordUsage;
     property Colors[Index: Integer]: TColor read GetColor write SetColor;
     property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
@@ -238,6 +232,7 @@ begin
         new(codeInStatement);
         codeInStatement^._Command := CppDirectiveList[i];
         codeInStatement^._Kind := skKeyword;
+        codeInStatement^._FullName := CppDirectiveList[i];
         fCodeInsStatements.Add(pointer(codeInStatement));
         fFullCompletionStatementList.Add(pointer(codeInStatement));
       end;
@@ -252,6 +247,7 @@ begin
         new(codeInStatement);
         codeInStatement^._Command := JavadocTags[i];
         codeInStatement^._Kind := skKeyword;
+        codeInStatement^._FullName := JavadocTags[i];
         fCodeInsStatements.Add(pointer(codeInStatement));
         fFullCompletionStatementList.Add(pointer(codeInStatement));
       end;
@@ -270,6 +266,7 @@ begin
       codeInStatement^._Command := codeIn.Prefix;
       codeInStatement^._Value := codeIn.Code;
       codeInStatement^._Kind := skUserCodeIn;
+      codeInStatement^._FullName := codeIn.Prefix;
       fCodeInsStatements.Add(pointer(codeInStatement));
       fFullCompletionStatementList.Add(pointer(codeInStatement));
     end;
@@ -280,6 +277,7 @@ begin
         new(codeInStatement);
         codeInStatement^._Command := CppKeywordsList[i];
         codeInStatement^._Kind := skKeyword;
+        codeInStatement^._FullName := CppKeywordsList[i];
         fCodeInsStatements.Add(pointer(codeInStatement));
         fFullCompletionStatementList.Add(pointer(codeInStatement));
       end;
@@ -552,8 +550,8 @@ begin
       TopCount:=0; SecondCount:=0; ThirdCount:=0;
       for I:=0 to tmpList.Count -1 do begin
         if PStatement(tmpList[I])^._UsageCount = 0 then begin
-          idx:=FastIndexOf(SymbolUsage,PStatement(tmpList[I])^._FullName);
-          if idx=-1 then
+          idx:=SymbolUsage.IndexOf(PStatement(tmpList[I])^._FullName);
+          if idx<0 then
             continue;
           usageCount := integer(SymbolUsage.Objects[idx]);
           PStatement(tmpList[I])^._UsageCount := usageCount;

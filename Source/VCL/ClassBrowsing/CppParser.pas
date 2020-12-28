@@ -630,7 +630,10 @@ var
       _Friends := nil;
       _Static := isStatic;
       _Inherited:= False;
-      _FullName :=  GetFullStatementName(NewCommand, Parent);
+      if Scope = ssLocal then begin
+        _FullName :=  NewCommand;
+      end else
+        _FullName :=  GetFullStatementName(NewCommand, Parent);
       _Usings:=TStringList.Create;
       _Usings.Duplicates:=dupIgnore;
       _Usings.Sorted:=True;

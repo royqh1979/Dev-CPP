@@ -27,7 +27,7 @@ uses
   SynHighlighterJScript, SynHighlighterHtml, SynHighlighterXML,
   SynHighlighterBat, SynHighlighterUNIXShellScript, SynHighlighterSQL,
   SynHighlighterAsm, SynHighlighterIni, SynHighlighterInno,
-  SynHighlighterDOT, SynHighlighterGeneral, autoLinkList;
+  SynHighlighterDOT, SynHighlighterGeneral, autoLinkList,iniFiles;
 
 type
   PMRUItem = ^TMRUItem;
@@ -71,7 +71,7 @@ type
     fCodePop: TMenuItem;
     fCodeEvent: TNotifyEvent;
     fCodeOffset: byte;
-    fSymbolUsage: TDevStringList;
+    fSymbolUsage: THashedStringList;
     procedure LoadCodeIns;
   public
     property CodeMenu: TMenuItem read fCodeMenu write fCodeMenu;
@@ -80,7 +80,7 @@ type
     property CodeInserts: TCodeInsList read fCodeList write fCodeList;
     property AutoLinks: TAutoLinkList read fAutoLinks write fAutoLinks;
     property CodeOffset: byte read fCodeOffset write fCodeOffset;
-    property SymbolUsage: TDevStringList read fSymbolUsage;
+    property SymbolUsage: THashedStringList read fSymbolUsage;
     { MRU List }
   private
     fMRU: TList; // let them store their own location
@@ -120,7 +120,7 @@ var
 implementation
 
 uses
-  devcfg, utils, version, math, MultiLangSupport, iniFiles;
+  devcfg, utils, version, math, MultiLangSupport;
 
 {$R *.dfm}
 
@@ -131,8 +131,8 @@ begin
   fMRU := TList.Create;
   fCodeList := TCodeInsList.Create;
   fAutoLinks := TAutoLinkList.Create;
-  fSymbolUsage := TDevStringList.Create;
-  fSymbolUsage.Sorted:=True;
+  fSymbolUsage := THashedStringList.Create;
+  fSymbolUsage.CaseSensitive:=True;
   fSymbolUsage.Duplicates := dupIgnore;
   LoadSymbolUsage;
 end;
@@ -551,7 +551,7 @@ var
   filename:AnsiString;
   i:integer;
   KeyList:TStringList;
-  key:ansiString;
+  key,s:ansiString;
 begin
   filename := devDirs.Config + DEV_SYMBOLUSAGE_INI;
 
@@ -563,7 +563,9 @@ begin
       ReadSection('Usage', KeyList);
       for I := 0 to KeyList.Count - 1 do begin
         key := KeyList[i];
-        fSymbolUsage.AddObject(key,pointer(ReadInteger('Usage',key,0)));
+        s := StringReplace(key,'_@','@',[rfReplaceAll]);
+        s := StringReplace(s,'_#','#',[rfReplaceAll]);
+        fSymbolUsage.AddObject(s,pointer(ReadInteger('Usage',key,0)));
       end;
       fSymbolUsage.EndUpdate;
     finally
@@ -577,6 +579,7 @@ procedure TdmMain.SaveSymbolUsage;
 var
   filename:AnsiString;
   i : integer;
+  s: String;
 begin
   filename := devDirs.Config + DEV_SYMBOLUSAGE_INI;
 
@@ -585,7 +588,11 @@ begin
     Exit;
   with TINIFile.Create(filename) do try
     for i:=0 to fSymbolUsage.Count-1 do begin
-      WriteString('Usage',fSymbolUsage[i],IntToStr(integer(fSymbolUsage.Objects[i])));
+      if fSymbolUsage[i]<>'' then begin
+        s:=StringReplace(fSymbolUsage[i],'#','_#',[rfReplaceAll]);
+        s:=StringReplace(s,'@','_@',[rfReplaceAll]);
+        WriteString('Usage',s,IntToStr(integer(fSymbolUsage.Objects[i])));
+      end;
     end;
   finally
     free;

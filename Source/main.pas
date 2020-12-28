@@ -2768,8 +2768,15 @@ var
 begin
   fClosing:=True;
   e := fEditorList.GetEditor;
-  if Assigned(e) then
-    fEditorList.CloseEditor(e);
+  ClassBrowser.BeginUpdate;
+  try
+    UpdateClassBrowserForEditor(nil);
+    if Assigned(e) then
+      fEditorList.CloseEditor(e);
+  finally
+    ClassBrowser.EndUpdate;
+  end;
+
   fClosing:=False;
 end;
 
@@ -2778,6 +2785,7 @@ begin
   fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
+    UpdateClassBrowserForEditor(nil);  
     fEditorList.CloseAll; // PageControlChange triggers other UI updates
   finally
     ClassBrowser.EndUpdate;
