@@ -356,10 +356,13 @@ begin
     skClass: Result := 'C';
     skTypedef: Result := 'T';
     skEnum: Result := 'E';
+    skEnumType: Result := 'T';
     skUnknown: Result := 'U';
     skNamespace: Result := 'N';
-    skUserCodeIn: Result := 'T';
+    skUserCodeIn: Result := '';
     skKeyword: Result :='K';
+    else
+      Result := 'U';
   end;
 end;
 

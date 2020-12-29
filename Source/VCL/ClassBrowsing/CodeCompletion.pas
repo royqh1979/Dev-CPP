@@ -426,7 +426,7 @@ begin
             ChildStatement:=PStatement(Children[i]);
             if (
               (ChildStatement^._Static)
-              or (ChildStatement^._Kind in [skTypedef,skClass])
+              or (ChildStatement^._Kind in [skTypedef,skClass,skEnum,skEnumType])
               )
               and  (ChildStatement^._ClassScope=scsPublic)
               and(fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin

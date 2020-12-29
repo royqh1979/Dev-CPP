@@ -9,6 +9,9 @@ Version 6.3-beta3 DEC 2020
     - enhancement: better color for fold sign in editor gutter
     - fix: set class browser's current editor to nil when close editor ( to prevent possible pointer access error).
     - fix: correctly load/save code completion usage  data
+    - fix: show code suggestion infos for enum defined in a class
+    - fix: correct type abbreviation in code suggestion window for enum types
+    - fix: show header file suggestion for #include<> / #include""
 
 Version 6.3-beta2 DEC 2020
 

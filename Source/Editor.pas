@@ -2469,8 +2469,11 @@ begin
 
     if Purpose = wpHeaderCompletionStart then begin
       while (WordBegin > 0) and (WordBegin <= len) do begin
-        if (s[WordBegin] in ['/','\','"','<','.']) then begin
-          Dec(WordBegin); 
+        if (s[WordBegin] in ['"','<']) then begin
+          Dec(WordBegin);
+          break;
+        end else if (s[WordBegin] in ['/','\','.']) then begin
+          Dec(WordBegin);
         end else if (s[WordBegin] in editor.IdentChars) then begin
           Dec(WordBegin);
         end else
@@ -2547,7 +2550,8 @@ begin
     ParamBegin := Pos('(', Result);
     if ParamBegin > 0 then begin
       ParamEnd := ParamBegin;
-      if (ParamBegin=1) and FindComplement(Result, '(', ')', ParamEnd, 1) then begin
+      if (ParamBegin=1) and FindComplement(Result, '(', ')', ParamEnd, 1)
+        and (ParamEnd = Length(Result)) then begin
         Delete(Result,ParamEnd,1);
         Delete(Result,ParamBegin,1);
         continue;
