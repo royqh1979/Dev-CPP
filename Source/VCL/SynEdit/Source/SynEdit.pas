@@ -2373,7 +2373,10 @@ begin
         rcFold.Bottom := rcFold.Top + (rcFold.Right - rcFold.Left);
 
         // Paint the square the user can click on
-        Canvas.Brush.Color := clWindow;
+        if assigned(self.Gutter) then
+          Canvas.Brush.Color := Gutter.Color
+        else
+          Canvas.Brush.Color := clWindow;
         Canvas.FillRect(rcFold);
         Canvas.Brush.Color := fCodeFolding.FolderBarLinesColor;
         Canvas.FrameRect(rcFold);

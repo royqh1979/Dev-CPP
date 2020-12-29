@@ -3,14 +3,9 @@ unit RemoveForms;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, Buttons, IniFiles, ExtCtrls;
-{$ENDIF}
-{$IFDEF LINUX}
-  SysUtils, Variants, Classes, QGraphics, QControls, QForms,
-  QDialogs, QComCtrls, QStdCtrls, QButtons, IniFiles, QExtCtrls;
-{$ENDIF}
+
 
 type
   TRemoveForm = class(TForm)
@@ -105,7 +100,7 @@ var
   i, IMod: Integer;
   currdir: AnsiString;
 
-  function IsDirEmpty(Path:filename):boolean;
+  function IsDirEmpty(Path:String):boolean;
   var
     SR : TSearchRec;
     count: integer;
@@ -113,7 +108,7 @@ var
     count:=0;
     if FindFirst(IncludeTrailingPathDelimiter(Path) + '*.*', faAnyFile, SR) = 0 then begin
       repeat
-        if (SameStr(SR.Name,'.') or (SameStr(SR.Name,'..')) then begin
+        if (CompareStr(SR.Name,'.') = 0) or (CompareStr(SR.Name,'..') = 0) then begin
           inc(count);
         end;
       until FindNext(SR) <> 0;

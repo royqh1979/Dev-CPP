@@ -90,7 +90,7 @@ MaxStackSize=1048576
 ImageBase=4194304
 ExeDescription=
 [Directories]
-OutputDir=..\..
+OutputDir=..\..\..
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
@@ -135,7 +135,12 @@ ProductName=Bloodshed Dev-C++ 5.0
 ProductVersion=2.2.6
 Comments=GPL'ed
 Website=http://www.bloodshed.net/
-[Excluded Packages]
-c:\program files\borland\delphi6\Bin\dclshlctrls60.bpl=Shell Control Property and Component Editors
-c:\program files\borland\delphi6\Projects\Bpl\Package1.bpl=(untitled)
-c:\program files\borland\delphi6\Projects\Bpl\dclusr60.bpl=Borland User Components
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=1
+Item0=..\Vcl
+[HistoryLists\hlOutputDirectorry]
+Count=1
+Item0=..\..\..

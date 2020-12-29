@@ -1069,6 +1069,7 @@ var
   p:PPoint;
   CursorPos: TBufferCoord;
   spaceCount :integer;
+  hasTabs: boolean;
 begin
   ClearUserCodeInTabStops;
   fXOffsetSince := 0;
@@ -1085,10 +1086,13 @@ begin
     try
       sl.Text:=Code;
       lastI:=0;
-      spaceCount := Text.LeftSpacesEx(fText.LineText,True);
+      spaceCount := Length(Text.GetLeftSpacing(
+        Text.LeftSpacesEx(fText.LineText,devEditor.UseTabs),
+        devEditor.UseTabs));
       for i:=0 to sl.Count -1 do begin
         lastPos := 0;
-        s:=sl[i];
+        if devEditor.UseTabs then
+          s:= sl[i];
         if i>0 then
           lastPos := -spaceCount; 
         while True do begin
@@ -2310,6 +2314,8 @@ var
     s := fText.Lines[y];
     posY := y;
     posX := x;
+    if posX > length(s) then
+      posX := length(s);
     bracketLevel:=0;
     while True do begin
       while posX < 1 do begin
@@ -2347,6 +2353,8 @@ begin
 
     s := fText.Lines[p.Line - 1];
     WordEnd := p.Char-1;
+    if WordEnd > length(s) then
+      WordEnd := Length(s);
     while True do begin
       bracketLevel:=0;
       skipNextWord:=False;
@@ -2461,8 +2469,11 @@ begin
 
     if Purpose = wpHeaderCompletionStart then begin
       while (WordBegin > 0) and (WordBegin <= len) do begin
-        if (s[WordBegin] in ['/','\','"','<','.']) then begin
-          Dec(WordBegin); 
+        if (s[WordBegin] in ['"','<']) then begin
+          Dec(WordBegin);
+          break;
+        end else if (s[WordBegin] in ['/','\','.']) then begin
+          Dec(WordBegin);
         end else if (s[WordBegin] in editor.IdentChars) then begin
           Dec(WordBegin);
         end else
@@ -2539,7 +2550,8 @@ begin
     ParamBegin := Pos('(', Result);
     if ParamBegin > 0 then begin
       ParamEnd := ParamBegin;
-      if (ParamBegin=1) and FindComplement(Result, '(', ')', ParamEnd, 1) then begin
+      if (ParamBegin=1) and FindComplement(Result, '(', ')', ParamEnd, 1)
+        and (ParamEnd = Length(Result)) then begin
         Delete(Result,ParamEnd,1);
         Delete(Result,ParamBegin,1);
         continue;
@@ -2866,6 +2878,7 @@ begin
 
   // Don't rescan the same stuff over and over again (that's slow)
 //  if (s = fCurrentWord) and (fText.Hint<>'') then
+  s:=trim(s);
   if (s = fCurrentWord) then
     Exit; // do NOT remove hint when subject stays the same
 
@@ -3009,7 +3022,11 @@ begin
     Exit;
   //selection
   if fText.SelAvail then begin
-    if (attr = fText.Highlighter.IdentifierAttribute)
+    if (
+      (attr = fText.Highlighter.IdentifierAttribute)
+      or (attr = fText.Highlighter.KeywordAttribute)
+      or (attr = dmMain.Cpp.DirecAttri)
+      )
       and SameStr(token, fText.SelText) then begin
       StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
       FG := tc.Foreground;

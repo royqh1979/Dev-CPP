@@ -43,6 +43,7 @@ contains
   HeaderCompletion in 'HeaderCompletion.pas',
   HeaderCompletionForm in 'HeaderCompletionForm.pas' {HeaderComplForm},
   CBUtils in 'CBUtils.pas',
+  IntHash in 'IntHash.pas',
   IntList in 'IntList.pas';
 
 end.

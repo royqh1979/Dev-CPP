@@ -92,9 +92,9 @@ type
     procedure SetINIOptions(const value: AnsiString);
 
     // Validation
-    function Validate: boolean; // returns true if valid
-    function ValidateDirs: boolean; // idem
-    function ValidateExes: boolean; // idem
+    //function Validate: boolean; // returns true if valid
+    function ValidateDirs(var msg:String): boolean; // idem
+    function ValidateExes(var msg:String): boolean; // idem
   public
     constructor Create; overload; // create empty shell
     constructor Create(const CompilerFolder: AnsiString); overload; // create, and let if configure itself
@@ -1670,9 +1670,9 @@ begin
   result := Trim(RunAndGetOutput(BinDir + pd + BinFile + ' ' + Input, BinDir, nil, nil, false))
 end;
 
-function TdevCompilerSet.ValidateDirs: boolean;
+function TdevCompilerSet.ValidateDirs(var msg:string): boolean;
 var
-  msg, goodbin, badbin, goodlib, badlib, goodinc, badinc, goodinccpp, badinccpp: AnsiString;
+  goodbin, badbin, goodlib, badlib, goodinc, badinc, goodinccpp, badinccpp: AnsiString;
 
   procedure CheckDirs(dirlist: TStringList; var gooddirs: AnsiString; var baddirs: AnsiString);
   var
@@ -1755,78 +1755,12 @@ begin
     msg := msg + #13#10 + #13#10;
   end;
   if msg <> '' then begin
-    msg := Format(Lang[ID_COMPVALID_CHECKINGSET], [Name]) + #13#10#13#10 + msg + Lang[ID_COMPVALID_DIRFIXSUGGESTION];
-
-    // If confirmed, insert working dirs into default path list
-    if MessageDlg(msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
-
-      // Remove invalid
-      RemoveDirs(fBinDir, badbin);
-      RemoveDirs(fLibDir, badlib);
-      RemoveDirs(fCDir, badinc);
-      RemoveDirs(fCppDir, badinccpp);
-
-      // If we know the folder, we should be able to predict dirs (copy from SetDirectories)
-      if fFolder <> '' then begin
-
-        // Add both the default and the autoconf directories
-        AddUnique(fBinDir, fFolder + pd + 'bin');
-        AddUnique(fLibDir, fFolder + pd + 'lib');
-        AddUnique(fCDir, fFolder + pd + 'include');
-        AddUnique(fCppDir, fFolder + pd + 'include');
-
-        // Try to obtain our target/autoconf folder
-        if fDumpMachine <> '' then begin
-          AddUnique(fBinDir, fFolder + pd + fDumpMachine + pd + 'bin');
-          AddUnique(fLibDir, fFolder + pd + fDumpMachine + pd + 'lib');
-          AddUnique(fCDir, fFolder + pd + fDumpMachine + pd + 'include');
-          AddUnique(fCppDir, fFolder + pd + fDumpMachine + pd + 'include');
-
-          // Custom STL folder?
-          // Currently, Dev-C++ is a bit slow at parsing this shit
-          AddUnique(fCppDir, fFolder + pd + 'lib' + pd + 'gcc' + pd + fDumpMachine + pd + fVersion + pd + 'include' + pd
-            + 'c++');
-        end;
-
-        // Otherwise, make some guesses based on the set name...
-      end else if ContainsStr(fName, 'MinGW') and ContainsStr(fName, '32-bit') then begin
-
-        // Add defaults
-        if (badbin <> '') or (fBinDir.Count = 0) then
-          AddUnique(fBinDir, devDirs.fExec + 'MinGW32' + pd + 'bin');
-        if badlib <> '' then
-          AddUnique(fLibDir, devDirs.fExec + 'MinGW32' + pd + 'lib');
-        if badinc <> '' then
-          AddUnique(fCDir, devDirs.fExec + 'MinGW32' + pd + 'include');
-        if badinccpp <> '' then
-          AddUnique(fCppDir, devDirs.fExec + 'MinGW32' + 'include');
-
-      end else begin
-
-        // Add defaults
-        if (badbin <> '') or (fBinDir.Count = 0) then
-          AddUnique(fBinDir, devDirs.fExec + 'MinGW64\bin');
-        if badlib <> '' then begin
-          if ContainsStr(fName, 'TDM-GCC') and ContainsStr(fName, '32-bit') then
-            AddUnique(fLibDir, devDirs.fExec + 'MinGW64' + pd + 'x86_64-w64-mingw32' + pd + 'lib32')
-          else
-            AddUnique(fLibDir, devDirs.fExec + 'MinGW64' + pd + 'x86_64-w64-mingw32' + pd + 'lib');
-        end;
-        if badinc <> '' then
-          AddUnique(fCDir, devDirs.fExec + 'MinGW64' + 'x86_64-w64-mingw32' + pd + 'include');
-        if badinccpp <> '' then
-          AddUnique(fCppDir, devDirs.fExec + 'MinGW64' + pd + 'x86_64-w64-mingw32' + pd + 'include');
-
-      end;
-
       result := false; // not valid
-    end;
   end;
 end;
 
-function TdevCompilerSet.ValidateExes: boolean;
+function TdevCompilerSet.ValidateExes(var msg:string): boolean;
 var
-  msg: AnsiString;
   I: integer;
 
   function FindFile(dirlist: TStringList; const FileName: AnsiString): boolean;
@@ -1884,10 +1818,24 @@ begin
   end;
 end;
 
+{
 function TdevCompilerSet.Validate: boolean;
+var
+  msg:string;
+  i:integer;
 begin
-  result := ValidateDirs and ValidateExes; // return true if valid
+  Result:=ValidateDirs(msg);
+  if not Result then begin
+    msg := Format(Lang[ID_COMPVALID_CHECKINGSET], [Name]) + #13#10#13#10 + msg + Lang[ID_COMPVALID_DIRFIXSUGGESTION];
+
+    // If confirmed, insert working dirs into default path list
+    if MessageDlg(msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+
+    end;
+  end;
+  result := ValidateExes(msg); // return true if valid
 end;
+}
 
 procedure TdevCompilerSet.Clear;
 begin
@@ -2187,6 +2135,7 @@ var
   I, SetToActivate: integer;
   sl: TStringList;
   CurrentSet: TdevCompilerSet;
+  msg:string;
 begin
   // Don't append, but replace
   ClearSets;
@@ -2212,7 +2161,27 @@ begin
     CurrentSet := GetDefaultSet;
 
     // Check if it is usable
-    if Assigned(CurrentSet) and CurrentSet.Validate then begin
+    if Assigned(CurrentSet) then begin
+      if not CurrentSet.ValidateDirs(msg) then begin
+        msg := Format(Lang[ID_COMPVALID_CHECKINGSET], [CurrentSet.Name]) + #13#10#13#10 + msg + Lang[ID_COMPVALID_DIRFIXSUGGESTION];
+
+        // If confirmed, insert working dirs into default path list
+        if MessageDlg(msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+          for i:=self.fList.Count-1 downto 0  do begin
+            if not self.Sets[i].ValidateDirs(msg) then
+              DeleteSet(i);
+          end;
+          FindSets;
+          if fList.Count<=DefaultSetIndex then begin
+            self.fDefaultIndex := fList.Count-1;
+          end;
+        end else begin
+          Exit;
+        end;
+      end;
+      CurrentSet := GetDefaultSet;
+      if not assigned(CurrentSet) or not CurrentSet.ValidateExes(msg) then
+        Exit;
       SaveSet(DefaultSetIndex);
       if CurrentSet.BinDir.Count > 0 then begin
         CurrentSet.SetProperties(CurrentSet.BinDir[0], CurrentSet.gccName);

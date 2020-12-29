@@ -3,105 +3,105 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
   Top = 172
   BorderStyle = bsDialog
   Caption = 'Oops!'
-  ClientHeight = 369
-  ClientWidth = 465
+  ClientHeight = 454
+  ClientWidth = 572
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Shape1: TShape
     Left = 0
     Top = 0
-    Width = 465
-    Height = 45
+    Width = 572
+    Height = 55
     Align = alTop
     Pen.Style = psClear
   end
   object lblError: TLabel
-    Left = 84
-    Top = 68
-    Width = 373
-    Height = 53
+    Left = 103
+    Top = 84
+    Width = 459
+    Height = 65
     AutoSize = False
     Caption = 'lblError'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
     WordWrap = True
   end
   object lblTitle: TLabel
-    Left = 52
-    Top = 16
-    Width = 304
-    Height = 13
+    Left = 64
+    Top = 20
+    Width = 363
+    Height = 16
     Caption = 'An unexpected error has occured in the application...'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
     ParentFont = False
     Transparent = True
   end
   object lblAddressTitle: TLabel
-    Left = 8
-    Top = 52
-    Width = 41
-    Height = 13
+    Left = 10
+    Top = 64
+    Width = 54
+    Height = 16
     Caption = 'Address:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object lblAddress: TLabel
-    Left = 84
-    Top = 52
-    Width = 48
-    Height = 13
+    Left = 103
+    Top = 64
+    Width = 65
+    Height = 16
     Caption = 'lblAddress'
   end
   object lblErrorTitle: TLabel
-    Left = 8
-    Top = 68
-    Width = 70
-    Height = 13
+    Left = 10
+    Top = 84
+    Width = 92
+    Height = 16
     Caption = 'Error message:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object btnSend: TSpeedButton
-    Left = 96
-    Top = 130
-    Width = 83
-    Height = 25
+    Left = 118
+    Top = 160
+    Width = 102
+    Height = 31
     Caption = '&Send bug report'
     ParentShowHint = False
     ShowHint = True
     OnClick = btnSendClick
   end
   object btnView: TSpeedButton
-    Left = 8
-    Top = 130
-    Width = 83
-    Height = 25
+    Left = 10
+    Top = 160
+    Width = 102
+    Height = 31
     AllowAllUp = True
     GroupIndex = 1
     Caption = '&View bug report'
@@ -110,23 +110,23 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
     OnClick = btnViewClick
   end
   object Bevel1: TBevel
-    Left = 8
-    Top = 160
-    Width = 449
+    Left = 10
+    Top = 197
+    Width = 552
     Height = 2
   end
   object Bevel2: TBevel
     Left = 0
-    Top = 45
-    Width = 465
-    Height = 2
+    Top = 55
+    Width = 572
+    Height = 3
     Align = alTop
   end
   object Image1: TImage
-    Left = 8
-    Top = 4
-    Width = 32
-    Height = 32
+    Left = 10
+    Top = 5
+    Width = 40
+    Height = 40
     AutoSize = True
     Picture.Data = {
       055449636F6E0000010001002020000001000800B00800001600000028000000
@@ -202,18 +202,18 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
       FFFFFFFF0000000000000000}
   end
   object btnHelp: TSpeedButton
-    Left = 384
-    Top = 130
-    Width = 73
-    Height = 25
+    Left = 473
+    Top = 160
+    Width = 89
+    Height = 31
     Caption = '&Help'
     OnClick = btnHelpClick
   end
   object btnClose: TButton
-    Left = 196
-    Top = 130
-    Width = 83
-    Height = 25
+    Left = 241
+    Top = 160
+    Width = 102
+    Height = 31
     Cancel = True
     Caption = '&Continue'
     Default = True
@@ -223,10 +223,10 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
     TabOrder = 0
   end
   object btnTerminate: TButton
-    Left = 284
-    Top = 130
-    Width = 83
-    Height = 25
+    Left = 350
+    Top = 160
+    Width = 102
+    Height = 31
     Caption = '&Terminate'
     ModalResult = 3
     ParentShowHint = False
@@ -234,44 +234,43 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
     TabOrder = 1
   end
   object PageControl1: TPageControl
-    Left = 8
-    Top = 168
-    Width = 449
-    Height = 197
+    Left = 10
+    Top = 207
+    Width = 552
+    Height = 242
     ActivePage = tabMemory
     Style = tsFlatButtons
-    TabIndex = 2
     TabOrder = 2
     TabStop = False
     object tabProgram: TTabSheet
       Caption = 'Program'
       ImageIndex = 1
       object Label1: TLabel
-        Left = 12
-        Top = 16
-        Width = 66
-        Height = 13
+        Left = 15
+        Top = 20
+        Width = 84
+        Height = 16
         Caption = 'Program path:'
       end
       object lblProgramPath: TLabel
-        Left = 100
-        Top = 16
-        Width = 71
-        Height = 13
+        Left = 123
+        Top = 20
+        Width = 93
+        Height = 16
         Caption = 'lblProgramPath'
       end
       object Label3: TLabel
-        Left = 12
-        Top = 36
-        Width = 79
-        Height = 13
+        Left = 15
+        Top = 44
+        Width = 102
+        Height = 16
         Caption = 'Program version:'
       end
       object lblProgramVersion: TLabel
-        Left = 100
-        Top = 36
-        Width = 84
-        Height = 13
+        Left = 123
+        Top = 44
+        Width = 112
+        Height = 16
         Caption = 'lblProgramVersion'
       end
     end
@@ -279,59 +278,59 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
       Caption = 'Machine'
       ImageIndex = 2
       object Label2: TLabel
-        Left = 12
-        Top = 16
-        Width = 41
-        Height = 13
+        Left = 15
+        Top = 20
+        Width = 52
+        Height = 16
         Caption = 'Platform:'
       end
       object lblPlatform: TLabel
-        Left = 100
-        Top = 16
-        Width = 48
-        Height = 13
+        Left = 123
+        Top = 20
+        Width = 63
+        Height = 16
         Caption = 'lblPlatform'
       end
       object Label5: TLabel
-        Left = 12
-        Top = 36
-        Width = 55
-        Height = 13
+        Left = 15
+        Top = 44
+        Width = 69
+        Height = 16
         Caption = 'OS version:'
       end
       object lblOSversion: TLabel
-        Left = 100
-        Top = 36
-        Width = 59
-        Height = 13
+        Left = 123
+        Top = 44
+        Width = 77
+        Height = 16
         Caption = 'lblOSversion'
       end
       object Label7: TLabel
-        Left = 12
-        Top = 56
-        Width = 69
-        Height = 13
+        Left = 15
+        Top = 69
+        Width = 87
+        Height = 16
         Caption = 'Additional info:'
       end
       object lblAdditionalInfo: TLabel
-        Left = 100
-        Top = 56
-        Width = 74
-        Height = 13
+        Left = 123
+        Top = 69
+        Width = 95
+        Height = 16
         Caption = 'lblAdditionalInfo'
       end
       object Label9: TLabel
-        Left = 12
-        Top = 76
-        Width = 77
-        Height = 13
+        Left = 15
+        Top = 94
+        Width = 98
+        Height = 16
         Caption = 'Computer name:'
       end
       object lblComputerName: TLabel
-        Left = 100
-        Top = 76
-        Width = 83
-        Height = 13
+        Left = 123
+        Top = 94
+        Width = 109
+        Height = 16
         Caption = 'lblComputerName'
       end
     end
@@ -339,72 +338,72 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
       Caption = 'Memory'
       ImageIndex = 3
       object Label10: TLabel
-        Left = 166
-        Top = 144
-        Width = 63
-        Height = 13
+        Left = 204
+        Top = 177
+        Width = 82
+        Height = 16
         Caption = 'Memory load:'
       end
       object lblMemoryLoad: TLabel
-        Left = 238
-        Top = 144
-        Width = 71
-        Height = 13
+        Left = 293
+        Top = 177
+        Width = 94
+        Height = 16
         Caption = 'lblMemoryLoad'
       end
       object GroupBox1: TGroupBox
-        Left = 12
-        Top = 16
-        Width = 133
-        Height = 117
+        Left = 15
+        Top = 20
+        Width = 163
+        Height = 144
         Caption = 'Physical memory'
         TabOrder = 0
         object Label4: TLabel
-          Left = 4
-          Top = 24
-          Width = 27
-          Height = 13
+          Left = 5
+          Top = 30
+          Width = 34
+          Height = 16
           Caption = 'Total:'
         end
         object lblTotalPhys: TLabel
-          Left = 52
-          Top = 24
-          Width = 73
-          Height = 13
+          Left = 64
+          Top = 30
+          Width = 90
+          Height = 16
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblTotalPhys'
           WordWrap = True
         end
         object Label8: TLabel
-          Left = 4
-          Top = 44
-          Width = 32
-          Height = 13
+          Left = 5
+          Top = 54
+          Width = 38
+          Height = 16
           Caption = 'In use:'
         end
         object lblUsedPhys: TLabel
-          Left = 52
-          Top = 44
-          Width = 73
-          Height = 29
+          Left = 64
+          Top = 54
+          Width = 90
+          Height = 36
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblUsedPhys'
           WordWrap = True
         end
         object Label11: TLabel
-          Left = 4
-          Top = 80
-          Width = 24
-          Height = 13
+          Left = 5
+          Top = 98
+          Width = 31
+          Height = 16
           Caption = 'Free:'
         end
         object lblFreePhys: TLabel
-          Left = 52
-          Top = 80
-          Width = 73
-          Height = 29
+          Left = 64
+          Top = 98
+          Width = 90
+          Height = 36
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblFreePhys'
@@ -412,58 +411,58 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
         end
       end
       object GroupBox2: TGroupBox
-        Left = 152
-        Top = 16
-        Width = 133
-        Height = 117
+        Left = 187
+        Top = 20
+        Width = 164
+        Height = 144
         Caption = 'Virtual memory'
         TabOrder = 1
         object Label6: TLabel
-          Left = 12
-          Top = 24
-          Width = 27
-          Height = 13
+          Left = 15
+          Top = 30
+          Width = 34
+          Height = 16
           Caption = 'Total:'
         end
         object lblTotalVirt: TLabel
-          Left = 52
-          Top = 24
-          Width = 73
-          Height = 13
+          Left = 64
+          Top = 30
+          Width = 90
+          Height = 16
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblTotalVirt'
           WordWrap = True
         end
         object Label12: TLabel
-          Left = 12
-          Top = 44
-          Width = 32
-          Height = 13
+          Left = 15
+          Top = 54
+          Width = 38
+          Height = 16
           Caption = 'In use:'
         end
         object lblUsedVirt: TLabel
-          Left = 52
-          Top = 44
-          Width = 73
-          Height = 29
+          Left = 64
+          Top = 54
+          Width = 90
+          Height = 36
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblUsedVirt'
           WordWrap = True
         end
         object Label14: TLabel
-          Left = 12
-          Top = 80
-          Width = 24
-          Height = 13
+          Left = 15
+          Top = 98
+          Width = 31
+          Height = 16
           Caption = 'Free:'
         end
         object lblFreeVirt: TLabel
-          Left = 52
-          Top = 80
-          Width = 73
-          Height = 29
+          Left = 64
+          Top = 98
+          Width = 90
+          Height = 36
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblFreeVirt'
@@ -471,58 +470,58 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
         end
       end
       object GroupBox3: TGroupBox
-        Left = 292
-        Top = 16
-        Width = 133
-        Height = 117
+        Left = 359
+        Top = 20
+        Width = 164
+        Height = 144
         Caption = 'Cache memory'
         TabOrder = 2
         object Label16: TLabel
-          Left = 12
-          Top = 24
-          Width = 27
-          Height = 13
+          Left = 15
+          Top = 30
+          Width = 34
+          Height = 16
           Caption = 'Total:'
         end
         object lblTotalCache: TLabel
-          Left = 52
-          Top = 24
-          Width = 73
-          Height = 13
+          Left = 64
+          Top = 30
+          Width = 90
+          Height = 16
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblTotalCache'
           WordWrap = True
         end
         object Label18: TLabel
-          Left = 12
-          Top = 44
-          Width = 32
-          Height = 13
+          Left = 15
+          Top = 54
+          Width = 38
+          Height = 16
           Caption = 'In use:'
         end
         object lblUsedCache: TLabel
-          Left = 52
-          Top = 44
-          Width = 73
-          Height = 29
+          Left = 64
+          Top = 54
+          Width = 90
+          Height = 36
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblUsedCache'
           WordWrap = True
         end
         object Label20: TLabel
-          Left = 12
-          Top = 80
-          Width = 24
-          Height = 13
+          Left = 15
+          Top = 98
+          Width = 31
+          Height = 16
           Caption = 'Free:'
         end
         object lblFreeCache: TLabel
-          Left = 52
-          Top = 80
-          Width = 73
-          Height = 29
+          Left = 64
+          Top = 98
+          Width = 90
+          Height = 36
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'lblFreeCache'
@@ -531,16 +530,16 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
       end
     end
     object tabStackTrace: TTabSheet
-      Caption = 'StackTrace'#169
+      Caption = 'StackTrace?'
       object memStackTrace: TMemo
         Left = 0
         Top = 0
-        Width = 441
-        Height = 166
+        Width = 544
+        Height = 208
         Align = alClient
         Font.Charset = GREEK_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'Courier New'
         Font.Style = []
         Lines.Strings = (
@@ -557,12 +556,12 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
       object memBugReport: TMemo
         Left = 0
         Top = 0
-        Width = 441
-        Height = 166
+        Width = 544
+        Height = 208
         Align = alClient
         Font.Charset = GREEK_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
+        Font.Height = -15
         Font.Name = 'Courier New'
         Font.Style = []
         Lines.Strings = (
@@ -573,35 +572,5 @@ object frmExceptionsAnalyzer: TfrmExceptionsAnalyzer
         TabOrder = 0
       end
     end
-  end
-  object XPMenu: TXPMenu
-    DimLevel = 30
-    GrayLevel = 10
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clMenuText
-    Font.Height = -11
-    Font.Name = 'Microsoft Sans Serif'
-    Font.Style = []
-    Color = clBtnFace
-    DrawMenuBar = False
-    IconBackColor = clBtnFace
-    MenuBarColor = clBtnFace
-    SelectColor = clHighlight
-    SelectBorderColor = clHighlight
-    SelectFontColor = clMenuText
-    DisabledColor = clInactiveCaption
-    SeparatorColor = clBtnFace
-    CheckedColor = clHighlight
-    IconWidth = 24
-    DrawSelect = True
-    UseSystemColors = True
-    UseDimColor = False
-    OverrideOwnerDraw = False
-    Gradient = False
-    FlatMenu = False
-    AutoDetect = True
-    Active = False
-    Left = 168
-    Top = 64
   end
 end

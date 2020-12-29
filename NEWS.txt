@@ -1,4 +1,19 @@
-Version 6.3-beta2
+Version 6.3-beta3 DEC 2020
+
+    - fix: code suggestion for #include headers in the sub directories which appears in more than two system or project include dirs
+    - enhancement: don't show user code template when the value of section is less than 0
+    - fix: cursor position wrong when insert a user code tempalte (codeIns ) 
+    - fix: devcpp exception when write a for loop out of a function
+    - fix: Turn on the option "Trim trailing spaces" in the editor option dialog will cause error when editing
+    - fix: Correctly remove invalid compiler sets and auto detect compiler sets when startup
+    - enhancement: better color for fold sign in editor gutter
+    - fix: set class browser's current editor to nil when close editor ( to prevent possible pointer access error).
+    - fix: correctly load/save code completion usage  data
+    - fix: show code suggestion infos for enum defined in a class
+    - fix: correct type abbreviation in code suggestion window for enum types
+    - fix: show header file suggestion for #include<> / #include""
+
+Version 6.3-beta2 DEC 2020
 
     - enhancement: correct reparse header file in project (don't lose function definition in other files)
     - fix: reparse changed files after rename symbols
@@ -33,7 +48,7 @@ Version 6.3-beta2
     - fix: packman.exe will remove folders which contains installed package files when remove a package.
     - fix?: compiler hangs when start compiling file and (auto) check syntax run at the same time
 
-Version 6.3-beta1
+Version 6.3-beta1 DEC 2020
     
     - enhancement: add ignore case option in the code completion tab of the editor options dialog
     - enhancement: add append () to func option in the code completion tab of the editor options dialog

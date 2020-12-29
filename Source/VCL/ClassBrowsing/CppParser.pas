@@ -356,10 +356,13 @@ begin
     skClass: Result := 'C';
     skTypedef: Result := 'T';
     skEnum: Result := 'E';
+    skEnumType: Result := 'T';
     skUnknown: Result := 'U';
     skNamespace: Result := 'N';
-    skUserCodeIn: Result := 'T';
+    skUserCodeIn: Result := '';
     skKeyword: Result :='K';
+    else
+      Result := 'U';
   end;
 end;
 
@@ -630,7 +633,10 @@ var
       _Friends := nil;
       _Static := isStatic;
       _Inherited:= False;
-      _FullName :=  GetFullStatementName(NewCommand, Parent);
+      if Scope = ssLocal then begin
+        _FullName :=  NewCommand;
+      end else
+        _FullName :=  GetFullStatementName(NewCommand, Parent);
       _Usings:=TStringList.Create;
       _Usings.Duplicates:=dupIgnore;
       _Usings.Sorted:=True;
@@ -3289,7 +3295,7 @@ begin
   if idx>=fileIncludes.Scopes.Count then begin
     for i:=fCurrentScope.Count-1 downto 0 do begin
       statement := PStatement(fCurrentScope[i]);
-      if Line >= statement^._definitionLine then begin
+      if (not assigned(statement)) or (Line >= statement^._definitionLine) then begin
         Result:=statement;
         break;
       end;
