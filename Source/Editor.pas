@@ -3022,7 +3022,11 @@ begin
     Exit;
   //selection
   if fText.SelAvail then begin
-    if (attr = fText.Highlighter.IdentifierAttribute)
+    if (
+      (attr = fText.Highlighter.IdentifierAttribute)
+      or (attr = fText.Highlighter.KeywordAttribute)
+      or (attr = dmMain.Cpp.DirecAttri)
+      )
       and SameStr(token, fText.SelText) then begin
       StrToThemeColor(tc, devEditor.Syntax.Values[cSel]);
       FG := tc.Foreground;
