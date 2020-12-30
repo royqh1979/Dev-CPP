@@ -12,6 +12,10 @@ Version 6.3-beta3 DEC 2020
     - fix: show code suggestion infos for enum defined in a class
     - fix: correct type abbreviation in code suggestion window for enum types
     - fix: show header file suggestion for #include<> / #include""
+    - fix: can't show code suggestion for symbols like (char*)malloc(...)
+    - fix: hight selected keywords
+    - change: redesign encoding ui and logic
+    - enhancement: convert UTF-8 encoding file to ansi (system default encoding) encoding
 
 Version 6.3-beta2 DEC 2020
 

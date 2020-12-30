@@ -443,10 +443,22 @@ begin
 
         // Or roll our own
       end else begin
-        if fProject.Units[i].UseUTF8 then
-          encodingStr := ' $(ENCODINGS) '
-        else
-          encodingStr := '';
+        encodingStr := '';
+        if fProject.Units[i].Encoding = etUTF8 then begin
+          encodingStr := ' $(ENCODINGS) ';
+        end else if fProject.Units[i].Encoding = etAuto then begin
+          if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding = etUTF8) then begin
+            encodingStr := ' $(ENCODINGS) ';
+          end else begin
+            with TStringList.Create do try
+              LoadFromFile(fProject.Units[i].FileName);
+              if GetFileEncodingType(Text) = etUTF8 then
+                encodingStr := ' $(ENCODINGS) '
+            finally
+              Free;
+            end;
+          end;
+        end;
 
 
         if fCheckSyntax then begin

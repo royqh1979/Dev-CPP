@@ -1,6 +1,6 @@
 object ProjectOptionsFrm: TProjectOptionsFrm
-  Left = 788
-  Top = 298
+  Left = 316
+  Top = 288
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Project Options'
@@ -351,6 +351,14 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           AutoSize = False
           Caption = 'Build priority:'
         end
+        object lblEncoding: TLabel
+          Left = 11
+          Top = 139
+          Width = 126
+          Height = 20
+          AutoSize = False
+          Caption = 'Encoding:'
+        end
         object chkCompile: TCheckBox
           Left = 11
           Top = 59
@@ -373,7 +381,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         end
         object chkOverrideBuildCmd: TCheckBox
           Left = 11
-          Top = 165
+          Top = 173
           Width = 289
           Height = 23
           Caption = 'Override build command'
@@ -383,9 +391,9 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         end
         object txtOverrideBuildCmd: TMemo
           Left = 11
-          Top = 192
+          Top = 200
           Width = 374
-          Height = 193
+          Height = 185
           Enabled = False
           ScrollBars = ssBoth
           TabOrder = 3
@@ -414,15 +422,15 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Value = 0
           OnChange = spnPriorityChange
         end
-        object cbUnitUseUTF8: TCheckBox
-          Left = 11
-          Top = 139
-          Width = 289
-          Height = 22
-          Caption = 'Use UTF-8 Encoding'
-          Enabled = False
+        object cbEncoding: TComboBox
+          Left = 152
+          Top = 136
+          Width = 164
+          Height = 28
+          Style = csDropDownList
+          ItemHeight = 20
           TabOrder = 6
-          OnClick = cbUnitUseUTF8Click
+          OnChange = cbEncodingChange
         end
       end
     end

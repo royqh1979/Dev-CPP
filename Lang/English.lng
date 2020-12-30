@@ -320,6 +320,8 @@ Ver=1
 22015=Use UTF-8 File encoding
 22016=Encoding
 22017=Convert to UTF-8 encoding
+22018=Auto Detect
+22017=Convert to %s encoding
 
 23001=Editor Options
 23002=General
@@ -964,6 +966,7 @@ Ver=1
 60032=Execute to evaluate
 60033=Not found in current context
 60034=Are you sure you want to delete all the custom configurations, including shortcuts, user templates, color schemes, etc?
+60035=The editing file will be saved using %s encoding. <CR>This operation can't be reverted. <CR>Are you sure to continue?
 
 61001=Cannot open file %s
 61002=Cannot save file %s

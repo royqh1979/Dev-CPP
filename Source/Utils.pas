@@ -41,9 +41,10 @@ type
     );
 
   TFileEncodingType = (
+    etAuto, // auto detect
     etUTF8,   // utf8 encoding
     etAscii,  // all chars are ascii encoding (0-127)
-    etOther  // other encoding such as GB2312
+    etAnsi  // other encoding such as GB2312
   );
 
   TFilterSet = (ftOpen, ftPrj, ftSrc, ftAll);
@@ -1452,33 +1453,33 @@ begin
     if tmp < $80 then        //值小于0x80的为ASCII字符
       Inc(ii)
     else if tmp < $C0 then begin   //值介于0x80与0xC0之间的为无效UTF-8字符
-      Result := etOther;
+      Result := etAnsi;
       Exit;
     end else if tmp < $E0 then begin   //此范围内为2字节UTF-8字符
       if ii >= (size - 1) then begin
-        Result := etOther;
+        Result := etAnsi;
         Exit;
       end;
       if (Byte(buffer[ii + 1]) and $C0) <> $80 then begin
-        Result := etOther;
+        Result := etAnsi;
         Exit;
       end;
       allAscii := False;
       Inc(ii, 2);
     end else if tmp < $F0 then begin //此范围内为3字节UTF-8字符
       if ii >= size - 2 then begin
-        Result := etOther;
+        Result := etAnsi;
         Exit;
       end;
       if ((Byte(buffer[ii + 1]) and $C0) <> $80) or
        ((Byte(buffer[ii + 2]) and $C0) <> $80) then begin
-        Result := etOther;
+        Result := etAnsi;
         Exit;
       end;
       allAscii := False;
       Inc(ii, 3);
     end else begin
-      Result := etOther;
+      Result := etAnsi;
       Exit;
     end; 
   end;

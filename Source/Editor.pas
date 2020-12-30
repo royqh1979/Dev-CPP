@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, CodeCompletion, CppParser, SynExportTeX,
   SynEditExport, SynExportRTF, Menus, ImgList, ComCtrls, StdCtrls, ExtCtrls, SynEdit, SynEditKeyCmds, version,
   SynEditCodeFolding, SynExportHTML, SynEditTextBuffer, Math, StrUtils, SynEditTypes, SynEditHighlighter, DateUtils,
-  CodeToolTip, Tabnine,CBUtils, IntList, HeaderCompletion;
+  CodeToolTip, Tabnine,CBUtils, IntList, HeaderCompletion, Utils;
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
@@ -118,7 +118,8 @@ type
     fFunctionTipTimer: TTimer;
     fFunctionTip: TCodeToolTip;
     
-    fUseUTF8: boolean;
+    fFileEncoding: TFileEncodingType;
+    fEncodingOption : TFileEncodingType;
 
     fLastIdCharPressed: integer;
 
@@ -189,7 +190,7 @@ type
     procedure LinesInserted(FirstLine,Count:integer);
     procedure InitParser;
   public
-    constructor Create(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
+    constructor Create(const Filename: AnsiString; Encoding:TFileEncodingType; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
@@ -209,7 +210,7 @@ type
     procedure UpdateCaption(const NewCaption: AnsiString='');
     procedure InsertDefaultText;
     procedure ToggleBreakPoint(Line: integer);
-    procedure LoadFile(FileName:String;DetectEncoding:bool=False);
+    procedure LoadFile(FileName:String);
     procedure SaveFile(FileName:String);
     function GetPreviousWordAtPositionForSuggestion(P: TBufferCoord): AnsiString;
     procedure IndentSelection;
@@ -228,6 +229,7 @@ type
     procedure BeginUpdate;
     procedure EndUpdate;
     procedure Reparse;
+    procedure SetEncodingOption(encoding:TFileEncodingType);
 
     property PreviousEditors: TList read fPreviousEditors;
     property FileName: AnsiString read fFileName write SetFileName;
@@ -239,9 +241,10 @@ type
     property FunctionTip: TCodeToolTip read fFunctionTip;
     property CompletionBox: TCodeCompletion read fCompletionBox;
     property PageControl: ComCtrls.TPageControl read GetPageControl write SetPageControl;
-    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
     property GutterClickedLine: integer read fGutterClickedLine;
     property CppParser: TCppParser read fParser;
+    property FileEncoding: TFileEncodingType read fFileEncoding ;
+    property EncodingOption: TFileEncodingType read fEncodingOption write SetEncodingOption;
   end;
 
   function GetWordAtPosition(editor:TSynEdit; P: TBufferCoord;
@@ -249,7 +252,7 @@ type
 implementation
 
 uses
-  main, project, MultiLangSupport, devcfg, utils,
+  main, project, MultiLangSupport, devcfg,
   DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm,
   CodeCompletionForm, SynEditMiscClasses,
   devCaretList,cppPreprocessor, cppTokenizer;
@@ -342,12 +345,13 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; AutoDetectUTF8:boolean; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; Encoding:TFileEncodingType; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
 var
   s: AnsiString;
   I: integer;
   e: TEditor;
 begin
+  fEncodingOption := Encoding;
   fUpdateLock := 0;
   fSelChanged:=False;
   fLineCount:=-1;
@@ -383,11 +387,9 @@ begin
   fText := TSynEdit.Create(fTabSheet);
 //  fOldTextWndProc := fText.WndProc();
 
-  fUseUTF8 := AutoDetectUTF8;
-
   // Load the file using Lines
   if not NewFile and FileExists(FileName) then begin
-    LoadFile(FileName,AutoDetectUTF8);
+    LoadFile(FileName);
     fNew := False;
 
     // Save main.cpp as main.123456789.cpp
@@ -397,6 +399,7 @@ begin
     end;
   end else begin
     fNew := True;
+    fFileEncoding := etAscii;
   end;
 
   // Set constant options
@@ -934,7 +937,7 @@ begin
     SynExporterHTML.UseBackground := True;
     SynExporterHTML.Font := fText.Font;
     SynExporterHTML.Highlighter := fText.Highlighter;
-    if UseUTF8 then begin
+    if FileEncoding = etUTF8 then begin
       SynExporterHTML.Charset := 'utf-8';
       newText := TStringList.Create;
       try
@@ -3390,22 +3393,19 @@ begin
   end;
 end;
 
-  procedure TEditor.LoadFile(FileName:String;DetectEncoding:bool=False);
+  procedure TEditor.LoadFile(FileName:String);
   var
     tmpList: TStringList;
-    FileEncodingType: TFileEncodingType;
   begin
     tmpList := TStringList.Create;
     try
       tmpList.LoadFromFile(FileName);
-      if DetectEncoding then begin
-        FileEncodingType := GetFileEncodingType(tmpList.Text);
-        if FileEncodingType = etUTF8 then
-          UseUTF8 := True
-        else if FileEncodingType = etOther then
-          UseUTF8 := False;
+      if fEncodingOption = etAuto then begin
+        fFileEncoding := GetFileEncodingType(tmpList.Text);
+      end else begin
+        fFileEncoding := fEncodingOption;
       end;
-      if UseUTF8 then
+      if FileEncoding = etUTF8 then
         Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
       else
         Text.Lines.Text := tmpList.Text;
@@ -3421,7 +3421,20 @@ end;
   begin
     tmpList := TStringList.Create;
     try
-      if UseUTF8 then
+      if (fEncodingOption <> etAuto) and (fEncodingOption <> fFileEncoding) then begin
+        fFileEncoding:=fEncodingOption;
+      end;
+      if (fEncodingOption = etAuto) and (fFileEncoding = etAscii) then begin
+        fFileEncoding:=GetFileEncodingType(fText.Lines.Text);
+        if (fFileEncoding <> etAscii) then begin
+          if  not InProject and devEditor.UseUTF8ByDefault then
+            fFileEncoding := etUTF8
+          else if InProject and Assigned(MainForm.Project) and (MainForm.Project.Options.UseUTF8) then
+            fFileEncoding := etUTF8;
+        end;
+        MainForm.UpdateFileEncodingStatusPanel;
+      end;
+      if fFileEncoding = etUTF8 then
         tmpList.Text := AnsiToUTF8(Text.Lines.Text)
       else
         tmpList.Text := Text.Lines.Text;
@@ -3761,7 +3774,17 @@ begin
     //MainForm.UpdateClassBrowserForEditor(self);
   end;
   fInProject := inProject;
-end;    
+end;
+
+procedure TEditor.SetEncodingOption(encoding:TFileEncodingType);
+var
+  OldTopLine : integer;
+  OldCaretXY : TBufferCoord;
+begin
+  if fEncodingOption = encoding then
+    exit;
+  fEncodingOption := encoding;
+end;
 
 end.
 

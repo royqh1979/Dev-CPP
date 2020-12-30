@@ -364,6 +364,8 @@ const
   ID_ITEM_UTF8                          = 22015;
   ID_ITEM_ENCODING                      = 22016;
   ID_ITEM_CONV_UTF8                     = 22017;
+  ID_ITEM_AUTO_DETECT_ENCODING          = 22018;
+  ID_ITEM_CONV_ANSI                     = 22019;
 
   // Editor options form
   ID_EOPT                               = 23001;
@@ -1042,7 +1044,7 @@ const
   ID_MSG_EXECUTE_TO_EVALUATE            = 60032;
   ID_MSG_NOT_FOUND_IN_CONTEXT           = 60033;
   ID_MSG_CLEARCONFIG                    = 60034;
-
+  ID_MSG_CONVERTTOANSI                  = 60035;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;

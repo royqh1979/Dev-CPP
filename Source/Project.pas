@@ -24,7 +24,7 @@ interface
 uses
   IniFiles, SysUtils, Dialogs, ComCtrls, Editor, Contnrs, SynExportHTML,
   Classes, Controls, version, Forms, Templates, ProjectTypes,
-  Windows,CppParser;
+  Windows,CppParser,Utils;
 
 type
   TProjUnit = class;
@@ -60,7 +60,8 @@ type
     fBuildCmd: AnsiString;
     fLink: boolean;
     fPriority: integer;
-    fUseUTF8 : boolean;
+    fDetectEncoding : boolean;
+    fEncoding: TFileEncodingType;
     function GetModified: boolean;
     procedure SetModified(value: boolean);
     function Save: boolean;
@@ -80,7 +81,8 @@ type
     property BuildCmd: AnsiString read fBuildCmd write fBuildCmd;
     property Link: boolean read fLink write fLink;
     property Priority: integer read fPriority write fPriority;
-    property UseUTF8: boolean read fUseUTF8 write fUseUTF8;
+    property DetectEncoding: boolean read fDetectEncoding write fDetectEncoding;
+    property Encoding: TFileEncodingType read fEncoding write fEncoding;
     procedure Assign(Source: TProjUnit);
   end;
 
@@ -162,7 +164,7 @@ type
 implementation
 
 uses
-  main, MultiLangSupport, devcfg, ProjectOptionsFrm, DataFrm, utils,
+  main, MultiLangSupport, devcfg, ProjectOptionsFrm, DataFrm,
   RemoveUnitFrm, SynEdit, EditorList, CppPreprocessor, CppTokenizer;
 
 { TProjUnit }
@@ -943,7 +945,8 @@ begin
       finifile.WriteInteger('Unit' + IntToStr(idx + 1), 'Priority', Priority);
       finifile.WriteBool('Unit' + IntToStr(idx + 1), 'OverrideBuildCmd', OverrideBuildCmd);
       finifile.WriteString('Unit' + IntToStr(idx + 1), 'BuildCmd', BuildCmd);
-      finifile.WriteBool('Unit' + IntToStr(idx + 1), 'UseUTF8', UseUTF8);
+      finifile.WriteBool('Unit' + IntToStr(idx + 1), 'DetectEncoding', DetectEncoding);
+      finifile.WriteInteger('Unit' + IntToStr(idx + 1), 'Encoding', ord(Encoding));
 
     end;
   end;
@@ -1010,7 +1013,8 @@ procedure TProject.Open;
 var
   ucount,i: integer;
   NewUnit: TProjUnit;
-  e:TEditor;
+//  e:TEditor;
+//  UseUTF8:boolean;
 begin
 {$WARN SYMBOL_PLATFORM OFF}
   if FileExists(FileName) and (FileGetAttr(FileName) and faReadOnly <> 0) then begin
@@ -1053,7 +1057,12 @@ begin
         Priority := finifile.ReadInteger('Unit' + IntToStr(i + 1), 'Priority', 1000);
         OverrideBuildCmd := finifile.ReadBool('Unit' + IntToStr(i + 1), 'OverrideBuildCmd', False);
         BuildCmd := finifile.ReadString('Unit' + IntToStr(i + 1), 'BuildCmd', '');
-        UseUTF8 := finifile.ReadBool('Unit' + IntToStr(i + 1), 'UseUTF8', self.fOptions.UseUTF8);
+        DetectEncoding := finifile.ReadBool('Unit' + IntToStr(i + 1), 'DetectEncoding', self.fOptions.UseUTF8);
+        //compitible old project files
+//        UseUTF8:=finifile.ReadBool('Unit' + IntToStr(i + 1), 'UseUTF8', self.fOptions.UseUTF8);
+        
+        Encoding :=
+          TFileEncodingType(finifile.ReadInteger('Unit' + IntToStr(i + 1), 'Encoding', 0));
 
         Editor := nil;
         New := FALSE;
@@ -1334,9 +1343,9 @@ begin
         Exit;
       end;
       try
-        fEditor := MainForm.EditorList.NewEditor(FullPath, true, true, false);
+        fEditor := MainForm.EditorList.NewEditor(FullPath, Encoding, true, false);
         fEditor.InProject := True;
-        UseUTF8 := fEditor.UseUTF8;
+        Encoding := fEditor.EncodingOption;
         LoadUnitLayout(fEditor, index);
         Result := fEditor;
       except
@@ -1644,7 +1653,7 @@ begin
         fIniFile := TMemIniFile.Create(aFileName);
       NewUnit(FALSE, nil);
       with fUnits[fUnits.Count - 1] do begin
-        Editor := MainForm.EditorList.NewEditor(FileName,UseUTF8, True, True);
+        Editor := MainForm.EditorList.NewEditor(FileName,Encoding, True, True);
         Editor.InsertDefaultText;
         Editor.Activate;
       end;
@@ -1687,7 +1696,7 @@ begin
 
         // Create an editor
         with fUnits[fUnits.Count - 1] do begin
-          Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].UseUTF8,True, True);
+          Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].Encoding,True, True);
           try
             // Set filename depending on C/C++ choice
             if (Length(aTemplate.Units[I].CppName) > 0) and (aTemplate.Options.useGPP) then begin
@@ -1719,7 +1728,7 @@ begin
     end else begin
       NewUnit(FALSE, nil);
       with fUnits[fUnits.Count - 1] do begin
-        Editor := MainForm.EditorList.NewEditor(FileName,False, TRUE, True);
+        Editor := MainForm.EditorList.NewEditor(FileName,Encoding, TRUE, True);
         if fOptions.useGPP then
           s := aTemplate.OldData.CppText
         else

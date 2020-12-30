@@ -101,7 +101,7 @@ uses
 var
   AppData, INIFileName, ExeFolder: AnsiString;
   Buffer: array[0..MAX_PATH] of char;
-  PrevInstance: THandle;
+  //PrevInstance: THandle;
   lReg: TRegistry;
   regPath: AnsiString;
   configFolder : AnsiString;
