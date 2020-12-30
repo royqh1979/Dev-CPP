@@ -1516,6 +1516,9 @@ var
 
     Line := Text.Lines[fText.CaretY-1];
     posX :=fText.CaretX-1;
+    if posX > Length(Line) then begin
+      posX := Length(Line);
+    end;
     i:=1;
     while (i<=posX) do begin
       if (Line[i] = 'R') and (Line[i+1] = '"') and (Result = NotQuote) then begin
@@ -1627,7 +1630,7 @@ var
 
   procedure HandleMultilineCommentCompletion;
   begin
-    if ((fText.CaretX > 1) and (fText.LineText[fText.CaretX - 1] = '/')) then begin
+    if ((fText.CaretX > 1) and (fText.CaretX-1 <= Length(fText.LineText)) and (fText.LineText[fText.CaretX - 1] = '/')) then begin
       InsertString('*/', false);
     end;
   end;

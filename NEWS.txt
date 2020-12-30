@@ -16,6 +16,9 @@ Version 6.3-beta3 DEC 2020
     - fix: hight selected keywords
     - change: redesign encoding ui and logic
     - enhancement: convert UTF-8 encoding file to ansi (system default encoding) encoding
+    - fix: Turn on the option "Trim trailing spaces" in the editor option dialog will cause error when editing multiline comment
+ '*'
+    - fix: Position of the folder icon on the gutter is wrong if the option "use custom font" for gutter is turned on.
 
 Version 6.3-beta2 DEC 2020
 
