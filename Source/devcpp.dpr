@@ -101,21 +101,40 @@ uses
 var
   AppData, INIFileName, ExeFolder: AnsiString;
   Buffer: array[0..MAX_PATH] of char;
-  //PrevInstance: THandle;
+  PrevInstance: THandle;
   lReg: TRegistry;
   regPath: AnsiString;
   configFolder : AnsiString;
+  I:integer;
+  hasFileToOpen:boolean;
+  hasDevToOpen:boolean;
 begin
+  I := 1; // skip first one
+  hasFileToOpen := False;    
+  while (I <= ParamCount) do begin
+    // Skip the configuration redirect stuff
+    if ParamStr(i) = '-c' then begin
+      I := I + 2;
+      Continue;
+    end;
+
+    hasFileToOpen := True;
+    if EndsStr('.dev',ParamStr(i)) then
+      hasDevToOpen := True;
+    Inc(I);
+  end;
+
   // Check for previous instances (only allow once instance)
   // If we are able to find a previous instance, activate that one instead
-  {
-  PrevInstance := GetPreviousInstance;
-  if PrevInstance <> 0 then begin
-    if PrevInstance <> INVALID_HANDLE_VALUE then
-      SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
-    Exit;
+  if hasFileToOpen and not hasDevToOpen then begin
+    PrevInstance := GetPreviousInstance;
+    if PrevInstance <> 0 then begin
+      if PrevInstance <> INVALID_HANDLE_VALUE then  begin
+        SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
+        Exit;
+      end;
+    end;
   end;
-  }
 
   // Read INI filename
   INIFileName := ChangeFileExt(ExtractFileName(Application.ExeName), INI_EXT);
@@ -135,6 +154,7 @@ begin
   finally
     lReg.Free;
   end;
+
 
   // Create config files directory
   // Set devData.INIFileName, ConfigMode

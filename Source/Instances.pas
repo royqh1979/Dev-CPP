@@ -132,8 +132,8 @@ begin
 
   // Check if a previous has already claimed this mutex name
   // This mutex is closed automatically when the application terminates
-  UniqueMutex := CreateMutex(nil, True, 'DevCppSingleInstanceMutex');
-  if (UniqueMutex <> 0) and (GetLastError = ERROR_ALREADY_EXISTS) then begin
+  // UniqueMutex := CreateMutex(nil, True, 'DevCppSingleInstanceMutex');
+//  if (UniqueMutex <> 0) and (GetLastError = ERROR_ALREADY_EXISTS) then begin
     //ShowMessage('ERROR_ALREADY_EXISTS');
     // Store our own module filename
     if GetModuleFileName(GetModuleHandle(nil), Buffer, SizeOf(Buffer)) = 0 then
@@ -149,7 +149,7 @@ begin
       Result:=INVALID_HANDLE_VALUE;
       Exit;
     end;
-  end;
+//  end;
 end;
 
 end.

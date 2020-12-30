@@ -19,6 +19,7 @@ Version 6.3-beta3 DEC 2020
     - fix: Turn on the option "Trim trailing spaces" in the editor option dialog will cause error when editing multiline comment
  '*'
     - fix: Position of the folder icon on the gutter is wrong if the option "use custom font" for gutter is turned on.
+    - fix: Using the running devcpp instance when double click c/cpp/h/hpp file in the explorer. 
 
 Version 6.3-beta2 DEC 2020
 
