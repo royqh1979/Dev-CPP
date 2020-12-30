@@ -65,6 +65,16 @@ begin
     DataStruct.cbData := SizeOf(Char) * (Length(Data) + 1);
     DataStruct.lpData := Buffer;
 
+    ShowWindow(Instance,SW_SHOW);
+    BringWindowToTop(Instance);
+    SetForegroundWindow(Instance);
+
+    {
+//-- on Windows 7, this workaround brings window to top
+::SetWindowPos(hWnd,HWND_NOTOPMOST,0,0,0,0, SWP_NOMOVE | SWP_NOSIZE);
+::SetWindowPos(hWnd,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE | SWP_NOSIZE);
+::SetWindowPos(hWnd,HWND_NOTOPMOST,0,0,0,0,SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+    }
     // Send the send struct
     SendMessage(Instance,
       WM_COPYDATA,
