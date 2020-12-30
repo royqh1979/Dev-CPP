@@ -108,9 +108,13 @@ var
   I:integer;
   hasFileToOpen:boolean;
   hasDevToOpen:boolean;
+  TempDir : string;
+  lockPath : string;
+  hLockFile : THandle;
+  count :integer;  
 begin
   I := 1; // skip first one
-  hasFileToOpen := False;    
+  hasFileToOpen := False;
   while (I <= ParamCount) do begin
     // Skip the configuration redirect stuff
     if ParamStr(i) = '-c' then begin
@@ -124,16 +128,39 @@ begin
     Inc(I);
   end;
 
-  // Check for previous instances (only allow once instance)
-  // If we are able to find a previous instance, activate that one instead
-  if hasFileToOpen and not hasDevToOpen then begin
-    PrevInstance := GetPreviousInstance;
-    if PrevInstance <> 0 then begin
-      if PrevInstance <> INVALID_HANDLE_VALUE then  begin
-        SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
-        Exit;
+  count:=0;
+  TempDir := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP'));
+  LockPath := TempDir + 'RedPandaDevCppStartUp.lock';
+  while True do begin
+    hLockFile := CreateFile(pAnsiChar(LockPath), GENERIC_READ or GENERIC_WRITE, 0,
+      nil, OPEN_ALWAYS, FILE_ATTRIBUTE_TEMPORARY,0);
+    if hLockFile = INVALID_HANDLE_VALUE then begin
+      if GetLastError <> ERROR_SHARING_VIOLATION then begin
+        break;
+      end;
+      inc(count);
+      Sleep(100);
+      if count>50 then begin
+        break;
+      end;
+    end else
+      break;
+  end;
+  try
+    // Check for previous instances (only allow once instance)
+    // If we are able to find a previous instance, activate that one instead
+    if hasFileToOpen and not hasDevToOpen then begin
+      PrevInstance := GetPreviousInstance;
+      if PrevInstance <> 0 then begin
+        if PrevInstance <> INVALID_HANDLE_VALUE then  begin
+          SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
+          Exit;
+        end;
       end;
     end;
+  finally
+    if hLockFile<>INVALID_HANDLE_VALUE then
+      CloseHandle(hLockFile);
   end;
 
   // Read INI filename
