@@ -1708,8 +1708,10 @@ object MainForm: TMainForm
           OnClick = ToolbarDockClick
         end
         object ToolDebugItem: TMenuItem
+          AutoCheck = True
           Caption = 'Debug'
           Checked = True
+          OnClick = ToolbarDockClick
         end
         object N9: TMenuItem
           Caption = '-'

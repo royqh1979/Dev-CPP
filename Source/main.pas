@@ -4137,7 +4137,6 @@ procedure TMainForm.actDebugExecuteUpdate(Sender: TObject);
 var
   e:TEditor;
 begin
-  TCustomAction(Sender).Enabled:=False;
   case GetCompileTarget of
     ctFile: begin
         e:=EditorList.GetEditor();
@@ -4153,6 +4152,9 @@ begin
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
+    else begin
+      TCustomAction(Sender).Enabled:=False;
+    end;
   end;
 end;
 
@@ -8762,7 +8764,6 @@ procedure TMainForm.actCompileUpdate(Sender: TObject);
 var
   e:TEditor;
 begin
-  TCustomAction(Sender).Enabled:=False;
   case GetCompileTarget of
     ctFile: begin
         e:=EditorList.GetEditor();
@@ -8778,6 +8779,9 @@ begin
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
+    else begin
+      TCustomAction(Sender).Enabled:=False;        
+    end;
   end;
 end;
 

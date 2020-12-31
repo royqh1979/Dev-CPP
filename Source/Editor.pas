@@ -3355,6 +3355,7 @@ begin
     Free;
   end;
 
+  MainForm.FileMonitor.UnMonitor(fFileName);
   // Remove *old* file from statement list
   fParser.InvalidateFile(FileName);
 
@@ -3381,7 +3382,8 @@ begin
 
   // Set new file name
   FileName := SaveFileName;
-    
+  MainForm.FileMonitor.Monitor(fFileName);
+
   // Update window captions
   MainForm.UpdateAppTitle;
 
