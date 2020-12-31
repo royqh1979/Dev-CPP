@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 550
-  Top = 182
+  Left = 628
+  Top = 168
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1500,11 +1500,23 @@ object MainForm: TMainForm
       end
       object EncodingItem: TMenuItem
         Caption = 'Encoding'
-        object UseUTF8Encoding1: TMenuItem
-          Action = actUseUTF8
+        object AutoDetect1: TMenuItem
+          Action = actAutoDetectEncoding
+        end
+        object ANSI1: TMenuItem
+          Action = actANSI
+        end
+        object UTF81: TMenuItem
+          Action = actUTF8
+        end
+        object N41: TMenuItem
+          Caption = '-'
         end
         object ConvertToUTF8Item: TMenuItem
           Action = actConvertToUTF8
+        end
+        object ConvertToAnsi1: TMenuItem
+          Action = actConvertToAnsi
         end
       end
       object N47: TMenuItem
@@ -1696,8 +1708,10 @@ object MainForm: TMainForm
           OnClick = ToolbarDockClick
         end
         object ToolDebugItem: TMenuItem
+          AutoCheck = True
           Caption = 'Debug'
           Checked = True
+          OnClick = ToolbarDockClick
         end
         object N9: TMenuItem
           Caption = '-'
@@ -3168,6 +3182,30 @@ object MainForm: TMainForm
       ShortCut = 113
       OnExecute = actNextErrorExecute
       OnUpdate = actNextErrorUpdate
+    end
+    object actAutoDetectEncoding: TAction
+      Category = 'Edit'
+      Caption = 'Auto Detect'
+      OnExecute = actEncodingTypeExecute
+      OnUpdate = actEncodingTypeUpdate
+    end
+    object actANSI: TAction
+      Category = 'Edit'
+      Caption = 'ANSI'
+      OnExecute = actEncodingTypeExecute
+      OnUpdate = actEncodingTypeUpdate
+    end
+    object actUTF8: TAction
+      Category = 'Edit'
+      Caption = 'UTF-8'
+      OnExecute = actEncodingTypeExecute
+      OnUpdate = actEncodingTypeUpdate
+    end
+    object actConvertToAnsi: TAction
+      Category = 'Edit'
+      Caption = 'Convert To Ansi'
+      OnExecute = actConvertToAnsiExecute
+      OnUpdate = actConvertToAnsiUpdate
     end
   end
   object MessagePopup: TPopupMenu

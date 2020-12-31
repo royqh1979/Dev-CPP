@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, Sysutils, Dateutils, Forms, ShellAPI, Dialogs, NewProjectFrm, Project,
-  Menus, Registry, Controls, ComCtrls, Math, ActnList, CompOptionsFrm, SynEditKeyCmds, SynEditTypes;
+  Menus, Registry, Controls, ComCtrls, Math, ActnList, CompOptionsFrm, SynEditKeyCmds, SynEditTypes,Utils;
 
 type
   TTestClass = class
@@ -63,7 +63,7 @@ var
     else
       StartCount := 0;
     for I := 1 to Count do begin
-      MainForm.EditorList.NewEditor('',True, False, True, PageControl);
+      MainForm.EditorList.NewEditor('',etAuto, False, True, PageControl);
       if Assigned(PageControl) then
         // make sure property PageCount is correct
         Assert(PageControl.PageCount = StartCount + I);

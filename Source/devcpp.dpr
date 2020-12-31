@@ -105,17 +105,63 @@ var
   lReg: TRegistry;
   regPath: AnsiString;
   configFolder : AnsiString;
+  I:integer;
+  hasFileToOpen:boolean;
+  hasDevToOpen:boolean;
+  TempDir : string;
+  lockPath : string;
+  hLockFile : THandle;
+  count :integer;  
 begin
-  // Check for previous instances (only allow once instance)
-  // If we are able to find a previous instance, activate that one instead
-  {
-  PrevInstance := GetPreviousInstance;
-  if PrevInstance <> 0 then begin
-    if PrevInstance <> INVALID_HANDLE_VALUE then
-      SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
-    Exit;
+  I := 1; // skip first one
+  hasFileToOpen := False;
+  while (I <= ParamCount) do begin
+    // Skip the configuration redirect stuff
+    if ParamStr(i) = '-c' then begin
+      I := I + 2;
+      Continue;
+    end;
+
+    hasFileToOpen := True;
+    if EndsStr('.dev',ParamStr(i)) then
+      hasDevToOpen := True;
+    Inc(I);
   end;
-  }
+
+  count:=0;
+  TempDir := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP'));
+  LockPath := TempDir + 'RedPandaDevCppStartUp.lock';
+  while True do begin
+    hLockFile := CreateFile(pAnsiChar(LockPath), GENERIC_READ or GENERIC_WRITE, 0,
+      nil, OPEN_ALWAYS, FILE_ATTRIBUTE_TEMPORARY,0);
+    if hLockFile = INVALID_HANDLE_VALUE then begin
+      if GetLastError <> ERROR_SHARING_VIOLATION then begin
+        break;
+      end;
+      inc(count);
+      Sleep(100);
+      if count>50 then begin
+        break;
+      end;
+    end else
+      break;
+  end;
+  try
+    // Check for previous instances (only allow once instance)
+    // If we are able to find a previous instance, activate that one instead
+    if hasFileToOpen and not hasDevToOpen then begin
+      PrevInstance := GetPreviousInstance;
+      if PrevInstance <> 0 then begin
+        if PrevInstance <> INVALID_HANDLE_VALUE then  begin
+          SendToPreviousInstance(PrevInstance, AnsiString(GetCommandLineW));
+          Exit;
+        end;
+      end;
+    end;
+  finally
+    if hLockFile<>INVALID_HANDLE_VALUE then
+      CloseHandle(hLockFile);
+  end;
 
   // Read INI filename
   INIFileName := ChangeFileExt(ExtractFileName(Application.ExeName), INI_EXT);
@@ -135,6 +181,7 @@ begin
   finally
     lReg.Free;
   end;
+
 
   // Create config files directory
   // Set devData.INIFileName, ConfigMode

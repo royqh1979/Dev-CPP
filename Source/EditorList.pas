@@ -41,7 +41,7 @@ type
     function GetNewEditorPageControl: ComCtrls.TPageControl;
     procedure ShowLayout(Layout: TLayoutShowType);
   public
-    function NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl = nil):
+    function NewEditor(const Filename: AnsiString;Encoding:TFileEncodingType; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl = nil):
       TEditor;
     function FileIsOpen(const FileName: AnsiString; ProjectOnly: boolean = FALSE): TEditor;
     function GetEditor(PageIndex: integer = -1; PageControl: ComCtrls.TPageControl = nil): TEditor;
@@ -163,7 +163,7 @@ begin
   end;
 end;
 
-function TEditorList.NewEditor(const Filename: AnsiString;AutoDetectUTF8:boolean; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl =
+function TEditorList.NewEditor(const Filename: AnsiString;Encoding:TFileEncodingType; InProject, NewFile: boolean; PageControl: ComCtrls.TPageControl =
   nil):
   TEditor;
 var
@@ -175,7 +175,7 @@ begin
       ParentPageControl := GetNewEditorPageControl
     else
       ParentPageControl := PageControl;
-    Result := TEditor.Create(FileName, AutoDetectUTF8,InProject, NewFile, ParentPageControl);
+    Result := TEditor.Create(FileName, Encoding,InProject, NewFile, ParentPageControl);
 
     // Force layout update when creating, destroying or moving editors
     UpdateLayout;
@@ -494,8 +494,12 @@ begin
   end;
 
   // Else, just open from disk
-  if FileExists(FullFileName) then
-    Result := NewEditor(FullFileName, devEditor.UseUTF8ByDefault, False, False);
+  if FileExists(FullFileName) then begin
+    if devEditor.UseUTF8ByDefault then
+      Result := NewEditor(FullFileName, etAuto, False, False)
+    else
+      Result := NewEditor(FullFileName, etAnsi, False, False)
+  end;
 end;
 
 function TEditorList.GetEditorFromTag(tag: integer): TEditor;

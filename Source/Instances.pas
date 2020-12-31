@@ -65,6 +65,16 @@ begin
     DataStruct.cbData := SizeOf(Char) * (Length(Data) + 1);
     DataStruct.lpData := Buffer;
 
+    ShowWindow(Instance,SW_SHOW);
+    BringWindowToTop(Instance);
+    SetForegroundWindow(Instance);
+
+    {
+//-- on Windows 7, this workaround brings window to top
+::SetWindowPos(hWnd,HWND_NOTOPMOST,0,0,0,0, SWP_NOMOVE | SWP_NOSIZE);
+::SetWindowPos(hWnd,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE | SWP_NOSIZE);
+::SetWindowPos(hWnd,HWND_NOTOPMOST,0,0,0,0,SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+    }
     // Send the send struct
     SendMessage(Instance,
       WM_COPYDATA,
@@ -124,16 +134,26 @@ end;
 
 function GetPreviousInstance: THandle;
 var
-  UniqueMutex: THandle;
+  //UniqueMutex: THandle;
   ThisModuleFileName: AnsiString;
   Buffer: array[0..511] of char;
+  waitResult: cardinal;
 begin
   Result := 0;
-
+  {
   // Check if a previous has already claimed this mutex name
   // This mutex is closed automatically when the application terminates
-  UniqueMutex := CreateMutex(nil, True, 'DevCppSingleInstanceMutex');
-  if (UniqueMutex <> 0) and (GetLastError = ERROR_ALREADY_EXISTS) then begin
+  UniqueMutex := CreateMutex(nil, True, 'DevCppStartUpMutex');
+  if UniqueMutex = 0 then
+     Exit;
+  try
+    //wait 5s
+    if  GetLastError = ERROR_ALREADY_EXISTS then begin
+      waitResult := WaitForSingleObject(UniqueMutex,5000);
+      if waitResult <> WAIT_OBJECT_0 then
+        Exit;
+    end;
+   }
     //ShowMessage('ERROR_ALREADY_EXISTS');
     // Store our own module filename
     if GetModuleFileName(GetModuleHandle(nil), Buffer, SizeOf(Buffer)) = 0 then
@@ -146,10 +166,10 @@ begin
       Result := PreviousInstance;
       Exit;
     end else begin
-      Result:=INVALID_HANDLE_VALUE;
+      Result := INVALID_HANDLE_VALUE;
       Exit;
     end;
-  end;
+
 end;
 
 end.

@@ -136,7 +136,6 @@ type
     lblCompilerHint: TLabel;
     CheckBox1: TCheckBox;
     cbUseUTF8: TCheckBox;
-    cbUnitUseUTF8: TCheckBox;
     PageControl1: TPageControl;
     CompilerSheet: TTabSheet;
     CppCompilerSheet: TTabSheet;
@@ -147,6 +146,8 @@ type
     edPrecompiledHeader: TEdit;
     lblPrecompiledHeaderTip: TLabel;
     Label2: TLabel;
+    cbEncoding: TComboBox;
+    lblEncoding: TLabel;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);
@@ -189,6 +190,7 @@ type
     procedure cbUnitUseUTF8Click(Sender: TObject);
     procedure chkPrecompiledHeaderClick(Sender: TObject);
     procedure btnPrecompiledHeaderBrowserClick(Sender: TObject);
+    procedure cbEncodingChange(Sender: TObject);
   private
     procedure UpdateDirButtons;
     procedure UpdateMakButtons;
@@ -499,6 +501,9 @@ begin
       cntOther]);
 
     // Files tab
+    cbEncoding.Items.Add(Lang[ID_ITEM_AUTO_DETECT_ENCODING]);
+    cbEncoding.Items.Add(UpperCase(GetSystemCharsetName));
+    cbEncoding.Items.Add('UTF-8');
 
     // Compiler tab
     for I := 0 to devCompilerSets.Count - 1 do
@@ -671,8 +676,8 @@ begin
   chkCompileCpp.Caption := Lang[ID_POPT_UNITUSEGPP];
   chkOverrideBuildCmd.Caption := Lang[ID_POPT_OVERRIDEBUILDCMD];
   chkLink.Caption := Lang[ID_POPT_LINKUNIT];
-  cbUnitUseUTF8.Caption := Lang[ID_POPT_UNITUTF8];
-
+  lblEncoding.Caption := Lang[ID_ITEM_ENCODING];
+  
   // Compiler tab
   lblCompilerSet.Caption := Lang[ID_POPT_COMP];
   lblCompilerHint.Caption := Lang[iD_POPT_COMPCUSTOMHINT];
@@ -874,7 +879,8 @@ begin
     chkCompile.Enabled := False;
     chkCompileCpp.Enabled := False;
     chkLink.Enabled := False;
-    cbUnitUseUTF8.Enabled:= False;
+    lblEncoding.Enabled:= False;
+    cbEncoding.Enabled:= False;
     chkOverrideBuildCmd.Enabled := False;
     txtOverrideBuildCmd.Enabled := False;
     spnPriority.Enabled := False;
@@ -887,8 +893,9 @@ begin
   chkLink.OnClick := nil;
   chkOverrideBuildCmd.OnClick := nil;
   txtOverrideBuildCmd.OnChange := nil;
-  cbUnitUseUTF8.OnClick := nil;
   spnPriority.OnChange := nil;
+  cbEncoding.OnChange := nil;
+
 
   idx := Integer(Node.Data);
   if (Node.Level > 0) and (idx <> -1) then begin // unit
@@ -910,8 +917,15 @@ begin
     chkLink.Checked := fProjectCopy.Units[idx].Link;
     spnPriority.Enabled := chkCompile.Checked and chkCompile.Enabled;
     spnPriority.Value := fProjectCopy.Units[idx].Priority;
-    cbUnitUseUTF8.Enabled := True;
-    cbUnitUseUTF8.Checked := fProjectCopy.Units[idx].UseUTF8;
+    lblEncoding.Enabled:= True;
+    cbEncoding.Enabled:= True;
+
+    case fProjectCopy.Units[idx].Encoding of
+      etAuto: cbEncoding.ItemIndex := 0;
+      etANSI: cbEncoding.ItemIndex := 1;
+      etUTF8: cbEncoding.ItemIndex := 2;
+    end;
+
     chkOverrideBuildCmd.Enabled := chkCompile.Checked and (lvFiles.SelectionCount = 1) and not (filetype in [utcHead,
       utcppHead, utResSrc]);
     txtOverrideBuildCmd.Enabled := chkOverrideBuildCmd.Enabled and chkOverrideBuildCmd.Checked;
@@ -921,7 +935,8 @@ begin
     chkLink.Enabled := False;
     chkOverrideBuildCmd.Enabled := False;
     txtOverrideBuildCmd.Enabled := False;
-    cbUnitUseUTF8.Enabled:=False;
+    cbEncoding.Enabled := False;
+    lblEncoding.Enabled := False;
     spnPriority.Enabled := False;
   end;
 
@@ -932,7 +947,8 @@ begin
   chkOverrideBuildCmd.OnClick := chkCompileClick;
   txtOverrideBuildCmd.OnChange := txtOverrideBuildCmdChange;
   spnPriority.OnChange := spnPriorityChange;
-  cbUnitUseUTF8.OnClick := cbUnitUseUTF8Click;
+  cbEncoding.OnChange := cbEncodingChange;
+  //cbUnitUseUTF8.OnClick := cbUnitUseUTF8Click;
 end;
 
 procedure TProjectOptionsFrm.chkCompileClick(Sender: TObject);
@@ -1221,20 +1237,6 @@ begin
 end;
 
 procedure TProjectOptionsFrm.cbUnitUseUTF8Click(Sender: TObject);
-  procedure DoNode(Node: TTreeNode);
-  var
-    I: integer;
-    idx: integer;
-  begin
-    for I := 0 to Node.Count - 1 do begin
-      idx := Integer(Node[I].Data);
-      if idx <> -1 then begin // unit
-        fProjectCopy.Units[idx].Compile := chkCompile.Checked;
-        fProjectCopy.Units[idx].CompileCpp := chkCompileCpp.Checked;
-      end else if Node[I].HasChildren then
-        DoNode(Node[I]);
-    end;
-  end;
 var
   I: integer;
   idx: integer;
@@ -1242,7 +1244,8 @@ begin
   for I := 0 to lvFiles.SelectionCount - 1 do begin
     idx := Integer(lvFiles.Selections[I].Data);
     if idx <> -1 then begin // unit
-      fProjectCopy.Units[idx].UseUTF8 := cbUnitUseUTF8.Checked;    end;
+    //  fProjectCopy.Units[idx].UseUTF8 := cbUnitUseUTF8.Checked;
+    end;
   end;
 end;
 
@@ -1268,6 +1271,23 @@ begin
     edPrecompiledHeader.SetFocus;
   finally
     dlg.Free;
+  end;
+end;
+
+procedure TProjectOptionsFrm.cbEncodingChange(Sender: TObject);
+var
+  I: integer;
+  idx: integer;
+begin
+  for I := 0 to lvFiles.SelectionCount - 1 do begin
+    idx := Integer(lvFiles.Selections[I].Data);
+    if idx <> -1 then begin // unit
+      case idx of
+        0: fProjectCopy.Units[idx].Encoding := etAuto;
+        1: fProjectCopy.Units[idx].Encoding := etANSI;
+        2: fProjectCopy.Units[idx].Encoding := etUTF8;
+      end;
+    end;
   end;
 end;
 

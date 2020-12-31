@@ -2334,7 +2334,8 @@ begin
         break;
 
       // Form a rectangle for the square the user can click on
-      rcFold.Left := Gutter.RealGutterWidth(CharWidth) - Gutter.RightOffset;
+      //rcFold.Left := Gutter.RealGutterWidth(CharWidth) - Gutter.RightOffset;
+      rcFold.Left := fGutterWidth - Gutter.RightOffset;
       rcFold.Right := rcFold.Left + Gutter.RightOffset - 4;
       rcFold.Top := (cRow - fTopLine) * LineHeight;
       rcFold.Bottom := rcFold.Top + LineHeight;

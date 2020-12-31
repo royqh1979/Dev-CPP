@@ -12,6 +12,17 @@ Version 6.3-beta3 DEC 2020
     - fix: show code suggestion infos for enum defined in a class
     - fix: correct type abbreviation in code suggestion window for enum types
     - fix: show header file suggestion for #include<> / #include""
+    - fix: can't show code suggestion for symbols like (char*)malloc(...)
+    - fix: hight selected keywords
+    - change: redesign encoding ui and logic
+    - enhancement: convert UTF-8 encoding file to ansi (system default encoding) encoding
+    - fix: Turn on the option "Trim trailing spaces" in the editor option dialog will cause error when editing multiline comment
+ '*'
+    - fix: Position of the folder icon on the gutter is wrong if the option "use custom font" for gutter is turned on.
+    - fix: Using the running devcpp instance when double click c/cpp/h/hpp file in the explorer. 
+    - fix: view menu -> toolbar -> debug item doesn't work
+    - fix: open a project or file will cause compile/run buttons in the toolbar keep repainting themselves
+    - fix: A save-ased file is not correctly monitered for its change outside devcpp.
 
 Version 6.3-beta2 DEC 2020
 
