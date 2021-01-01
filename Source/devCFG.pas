@@ -615,9 +615,6 @@ type
     fToolbarSearch: boolean;
     fToolbarSearchX: integer;
     fToolbarSearchY: integer;
-    fToolbarClasses: boolean;
-    fToolbarClassesX: integer;
-    fToolbarClassesY: integer;
     fToolbarCompilers: boolean;
     fToolbarCompilersX: integer;
     fToolbarCompilersY: integer;
@@ -735,9 +732,6 @@ type
     property ToolbarSearch: boolean read fToolbarSearch write fToolbarSearch;
     property ToolbarSearchX: integer read fToolbarSearchX write fToolbarSearchX;
     property ToolbarSearchY: integer read fToolbarSearchY write fToolbarSearchY;
-    property ToolbarClasses: boolean read fToolbarClasses write fToolbarClasses;
-    property ToolbarClassesX: integer read fToolbarClassesX write fToolbarClassesX;
-    property ToolbarClassesY: integer read fToolbarClassesY write fToolbarClassesY;
     property ToolbarCompilers: boolean read fToolbarCompilers write fToolbarCompilers;
     property ToolbarCompilersX: integer read fToolbarCompilersX write fToolbarCompilersX;
     property ToolbarCompilersY: integer read fToolbarCompilersY write fToolbarCompilersY;
@@ -1048,9 +1042,6 @@ begin
   fToolbarUndo := False;
   fToolbarUndoX := 349;
   fToolbarUndoY := 34;
-  fToolbarClasses := False;
-  fToolbarClassesX := 420;
-  fToolbarClassesY := 34;
   // Office 2007 / Vista support
   osinfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
   GetVersionEx(osinfo);

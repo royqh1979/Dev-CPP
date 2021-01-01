@@ -115,6 +115,7 @@ var
 begin
   I := 1; // skip first one
   hasFileToOpen := False;
+  hasDevToOpen := False;
   while (I <= ParamCount) do begin
     // Skip the configuration redirect stuff
     if ParamStr(i) = '-c' then begin
@@ -158,81 +159,79 @@ begin
         end;
       end;
     end;
+
+    // Read INI filename
+    INIFileName := ChangeFileExt(ExtractFileName(Application.ExeName), INI_EXT);
+    ExeFolder := ExtractFilePath(Application.ExeName);
+
+    // open registry, set root and key
+    regPath:= '';
+    lReg := TRegistry.Create;
+    try
+      lReg.RootKey := HKEY_LOCAL_MACHINE;
+      if lReg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++', True) then begin
+        // write last Left, Top, Width and Height
+        regPath := ExtractFilePath(lReg.ReadString('UninstallString'));
+        // close all
+        lReg.CloseKey;
+      end;
+    finally
+      lReg.Free;
+    end;
+
+    // Create config files directory
+    // Set devData.INIFileName, ConfigMode
+    // Did someone pass the -c command to us?
+    if (ParamCount >= 2) and SameStr(ParamStr(1), '-c') then begin
+      if not DirectoryExists(ParamStr(2)) then
+        CreateDir(ParamStr(2));
+
+      // Store the INI file in the directory given to us
+      if ParamStr(2)[2] <> ':' then begin// if a relative path is specified...
+        devData.INIFileName := ExeFolder + IncludeTrailingBackslash(ParamStr(2)) + INIFileName;
+      end else begin
+        devData.INIFileName := IncludeTrailingBackslash(ParamStr(2)) + INIFileName;
+      end;
+    end else begin
+      // default dir should be %APPDATA%\Dev-Cpp
+      AppData := '';
+      if SUCCEEDED(SHGetFolderPath(0, CSIDL_APPDATA, 0, 0, Buffer)) then
+        AppData := IncludeTrailingBackslash(AnsiString(Buffer));
+
+      // Store the INI file in %APPDATA% or if we are not allowed to do so, in the exe directory
+      if SameStr(regPath,exeFolder) and
+         (AppData <> '') and
+        (DirectoryExists(AppData + 'Dev-Cpp') or CreateDir(AppData + 'Dev-Cpp')) then begin
+        devData.INIFileName := AppData + 'Dev-Cpp\' + INIFileName;
+        devData.Portable := False;
+      end else begin
+          // store it in the default portable config folder anyways...
+        configFolder := ExeFolder + 'config';
+        if not DirectoryExists(configFolder) then
+          CreateDir(configFolder);
+        devData.INIFileName := configFolder + '\' + INIFileName;
+        devData.Portable := True;
+      end;
+    end;
+
+  // free ansistrings...
+    SetLength(AppData, 0);
+    SetLength(INIFileName, 0);
+    SetLength(ExeFolder, 0);
+
+    // Load settings
+    devData.ReadSelf;
+    CreateOptions;
+
+    // Create main window
+    Application.Initialize;
+    Application.Title := 'Dev-C++';
+    Application.CreateForm(TMainForm, MainForm);
+    Application.CreateForm(TRenameForm, RenameForm);
   finally
     if hLockFile<>INVALID_HANDLE_VALUE then
       CloseHandle(hLockFile);
   end;
-
-  // Read INI filename
-  INIFileName := ChangeFileExt(ExtractFileName(Application.ExeName), INI_EXT);
-  ExeFolder := ExtractFilePath(Application.ExeName);
-
-  // open registry, set root and key
-  regPath:= '';
-  lReg := TRegistry.Create;
-  try
-    lReg.RootKey := HKEY_LOCAL_MACHINE;
-    if lReg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++', True) then begin
-      // write last Left, Top, Width and Height
-      regPath := ExtractFilePath(lReg.ReadString('UninstallString'));
-      // close all
-      lReg.CloseKey;
-    end;
-  finally
-    lReg.Free;
-  end;
-
-
-  // Create config files directory
-  // Set devData.INIFileName, ConfigMode
-  // Did someone pass the -c command to us?
-  if (ParamCount >= 2) and SameStr(ParamStr(1), '-c') then begin
-    if not DirectoryExists(ParamStr(2)) then
-      CreateDir(ParamStr(2));
-
-    // Store the INI file in the directory given to us
-    if ParamStr(2)[2] <> ':' then begin// if a relative path is specified...
-      devData.INIFileName := ExeFolder + IncludeTrailingBackslash(ParamStr(2)) + INIFileName;
-    end else begin
-      devData.INIFileName := IncludeTrailingBackslash(ParamStr(2)) + INIFileName;
-    end;
-  end else begin
-
-    // default dir should be %APPDATA%\Dev-Cpp
-    AppData := '';
-    if SUCCEEDED(SHGetFolderPath(0, CSIDL_APPDATA, 0, 0, Buffer)) then
-      AppData := IncludeTrailingBackslash(AnsiString(Buffer));
-
-    // Store the INI file in %APPDATA% or if we are not allowed to do so, in the exe directory
-    if SameStr(regPath,exeFolder) and
-       (AppData <> '') and
-      (DirectoryExists(AppData + 'Dev-Cpp') or CreateDir(AppData + 'Dev-Cpp')) then begin
-      devData.INIFileName := AppData + 'Dev-Cpp\' + INIFileName;
-      devData.Portable := False;
-    end else begin
-      // store it in the default portable config folder anyways...
-      configFolder := ExeFolder + 'config';
-      if not DirectoryExists(configFolder) then
-        CreateDir(configFolder);
-      devData.INIFileName := configFolder + '\' + INIFileName;
-      devData.Portable := True;
-    end;
-  end;
-
-  // free ansistrings...
-  SetLength(AppData, 0);
-  SetLength(INIFileName, 0);
-  SetLength(ExeFolder, 0);
-
-  // Load settings
-  devData.ReadSelf;
-  CreateOptions;
-
-  // Create main window
-  Application.Initialize;
-  Application.Title := 'Dev-C++';
-  Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TRenameForm, RenameForm);
   Application.Run;
 end.
 

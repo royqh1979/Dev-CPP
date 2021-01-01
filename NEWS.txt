@@ -23,6 +23,8 @@ Version 6.3-beta3 DEC 2020
     - fix: view menu -> toolbar -> debug item doesn't work
     - fix: open a project or file will cause compile/run buttons in the toolbar keep repainting themselves
     - fix: A save-ased file is not correctly monitered for its change outside devcpp.
+    - enhancement: open with multiple source files
+    - change: remove class toolbar (which is buggy and seldom used)
 
 Version 6.3-beta2 DEC 2020
 
