@@ -359,12 +359,7 @@ type
     actSaveProjectAs: TAction;
     SaveprojectasItem: TMenuItem;
     mnuOpenWith: TMenuItem;
-    tbClasses: TToolBar;
-    cmbClasses: TComboBox;
-    cmbMembers: TComboBox;
     cmbCompilers: TComboBox;
-    N17: TMenuItem;
-    ToolClassesItem: TMenuItem;
     N67: TMenuItem;
     actAttachProcess: TAction;
     ModifyWatchPop: TMenuItem;
@@ -844,8 +839,6 @@ type
     procedure ReportWindowClose(Sender: TObject; var Action: TCloseAction);
     procedure actSaveProjectAsExecute(Sender: TObject);
     procedure mnuOpenWithClick(Sender: TObject);
-    procedure cmbClassesChange(Sender: TObject);
-    procedure cmbMembersChange(Sender: TObject);
     procedure CompilerOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FindOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure WatchViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1041,7 +1034,6 @@ type
     procedure CheckForDLLProfiling;
     procedure ProjectWindowClose(Sender: TObject; var Action: TCloseAction);
     procedure BuildOpenWith;
-    procedure RebuildClassesToolbar;
     procedure PrepareDebugger;
     procedure ClearCompileMessages;
     procedure ClearMessageControl;
@@ -1311,7 +1303,6 @@ begin
       tbMain.Images := CurrentTheme.MenuImages;
       tbCompile.Images := CurrentTheme.MenuImages;
       tbProject.Images := CurrentTheme.MenuImages;
-      tbClasses.Images := CurrentTheme.MenuImages;
       tbedit.Images := CurrentTheme.MenuImages;
       tbSearch.Images := CurrentTheme.MenuImages;
       tbSpecials.Images := CurrentTheme.MenuImages;
@@ -1377,8 +1368,6 @@ begin
   devData.ToolbarSpecialsY := tbSpecials.Top;
   devData.ToolbarSearchX := tbSearch.Left;
   devData.ToolbarSearchY := tbSearch.Top;
-  devData.ToolbarClassesX := tbClasses.Left;
-  devData.ToolbarClassesY := tbClasses.Top;
   devData.ToolbarCompilersX := tbCompilers.Left;
   devData.ToolbarCompilersY := tbCompilers.Top;
   devData.ToolbarDebugX := tbDebug.Left;
@@ -1507,10 +1496,6 @@ begin
   DebugViews.OwnerDraw:=True;
   cmbCompilers.Color := panelTC.Background;
   cmbCompilers.Font := mainForm.Font;
-  cmbClasses.Color := panelTC.Background;
-  cmbClasses.Font := mainForm.Font;
-  cmbMembers.Color := panelTC.Background;
-  cmbMembers.Font := mainForm.Font;
   evaluateInput.Color := panelTC.Background;
   evaluateInput.Font := MainForm.Font;
   evalOutput.Color := panelTC.Background;
@@ -1773,7 +1758,6 @@ begin
   ToolCompileAndRunItem.Caption := Lang[ID_TOOLCOMPRUN];
   ToolProjectItem.Caption := Lang[ID_TOOLPROJECT];
   ToolSpecialsItem.Caption := Lang[ID_TOOLSPECIAL];
-  ToolClassesItem.Caption := Lang[ID_LP_CLASSES];
   ToolCompilersItem.Caption := Lang[ID_TOOLCOMPILERS];
   ToolDebugItem.Caption := Lang[ID_TOOLDEBUG];
   ToolUndoItem.Caption := Lang[ID_TOOLUNDO];
@@ -4241,7 +4225,6 @@ begin
   tbProject.Visible := ToolProjectItem.Checked;
   tbSpecials.Visible := ToolSpecialsItem.Checked;
   tbSearch.Visible := ToolSearchItem.Checked;
-  tbClasses.Visible := ToolClassesItem.Checked;
   tbCompilers.Visible := ToolCompilersItem.Checked;
   tbDebug.Visible := ToolDebugItem.Checked;
   tbUndo.Visible := ToolUndoItem.Checked;
@@ -4252,7 +4235,6 @@ begin
   devData.ToolbarProject := ToolProjectItem.Checked;
   devData.ToolbarSpecials := ToolSpecialsItem.Checked;
   devData.ToolbarSearch := ToolSearchItem.Checked;
-  devData.ToolbarClasses := ToolClassesItem.Checked;
   devData.ToolbarCompilers := ToolCompilersItem.Checked;
   devData.ToolbarDebug := ToolDebugItem.Checked;
   devData.ToolbarUndo := ToolUndoItem.Checked;
@@ -6260,134 +6242,6 @@ end;
 
 procedure TMainForm.OnClassBrowserUpdated(sender:TObject);
 begin
-  RebuildClassesToolbar;
-end;
-
-procedure TMainForm.RebuildClassesToolbar;
-var
-  Statement: PStatement;
-  OldSelection: AnsiString;
-  e:TEditor;
-  Children:TList;
-  i:integer;
-begin
-  OldSelection := cmbClasses.Text;
-
-  cmbClasses.Items.BeginUpdate;
-  try
-    cmbClasses.Clear;
-
-    // Add globals list
-    cmbClasses.Items.AddObject('(globals)', nil);
-    e:=EditorList.GetEditor();
-    if Assigned(e) then begin
-      Children:= GetCppParser.Statements.GetChildrenStatements(nil);
-      if (Assigned(Children)) then begin
-        if e.InProject then begin // skClass equals struct + typedef struct + class
-          // Add all classes inside the current project
-          for i:=0 to Children.Count-1 do begin
-            Statement := PStatement(Children[i]);
-            if Statement^._InProject and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
-              cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
-          end;
-        end else begin
-          // Add all classes inside the current file
-          for i:=0 to Children.Count-1 do begin
-            Statement := PStatement(Children[i]);
-            if (Statement^._FileName=e.FileName) and (Statement^._Kind = skClass) then // skClass equals struct + typedef struct + class
-              cmbClasses.Items.AddObject(Statement^._Command, Pointer(Statement));
-          end;
-        end;
-      end;
-    end;
-  finally
-    cmbClasses.Items.EndUpdate;
-  end;
-  // if we can't find the old selection anymore (-> -1), default to 0 (globals)
-  cmbClasses.ItemIndex := max(0, cmbClasses.Items.IndexOf(OldSelection));
-  cmbClassesChange(cmbClasses);
-end;
-
-procedure TMainForm.cmbClassesChange(Sender: TObject);
-var
-  Statement, ParentStatement: PStatement;
-  e:TEditor;
-  procedure AddStatementKind(AddKind: TStatementKind);
-  var
-    i:integer;
-    children: TList;
-  begin
-    children := GetCppParser.Statements.GetChildrenStatements(ParentStatement);
-    if Assigned(Children) then begin
-      if e.InProject then begin
-        for i:=0 to Children.Count-1 do begin
-          Statement := PStatement(Children[i]);
-          if  Statement^._InProject and (Statement^._Kind = AddKind) then
-            cmbMembers.Items.AddObject(GetCppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
-              ' : ' + Statement^._Type,
-              Pointer(Statement));
-        end;
-      end else begin
-        for i:=0 to Children.Count-1 do begin
-          Statement := PStatement(Children[i]);
-          if  (Statement^._FileName=e.FileName) and (Statement^._Kind = AddKind) then
-            cmbMembers.Items.AddObject(GetCppParser.StatementKindStr(AddKind) + ' ' + Statement^._Command + Statement^._Args +
-              ' : ' + Statement^._Type,
-              Pointer(Statement));
-        end;
-      end;
-    end;
-  end;
-begin
-  cmbMembers.Items.BeginUpdate;
-  try
-    cmbMembers.Clear;
-    e:=EditorList.GetEditor();
-    if not Assigned(e) then
-      Exit;
-
-    // Select what parent we need to display info for
-    if cmbClasses.ItemIndex > 0 then
-      ParentStatement := PStatement(cmbClasses.Items.Objects[cmbClasses.ItemIndex]) // any class
-    else if cmbClasses.ItemIndex = 0 then
-      ParentStatement := nil // '(globals)'
-    else
-      Exit; // -1?
-
-
-    // Show functions that belong to this scope or class/struct
-    AddStatementKind(skConstructor);
-    AddStatementKind(skDestructor);
-    AddStatementKind(skFunction);
-
-
-  finally
-    cmbMembers.Items.EndUpdate;
-  end;
-end;
-
-procedure TMainForm.cmbMembersChange(Sender: TObject);
-var
-  Statement: PStatement;
-  Line: Integer;
-  e: TEditor;
-  FileName: AnsiString;
-begin
-  if cmbMembers.ItemIndex = -1 then // sometimes happens too?
-    Exit;
-
-  Statement := PStatement(cmbMembers.Items.Objects[cmbMembers.ItemIndex]);
-  if not Assigned(Statement) then
-    Exit;
-
-  // Go to definition if applicable
-  Line := Statement^._DefinitionLine;
-  FileName := Statement^._DefinitionFileName;
-
-  e := fEditorList.GetEditorFromFilename(FileName);
-  if Assigned(e) then begin
-    e.SetCaretPosAndActivate(Line, 1);
-  end;
 end;
 
 procedure TMainForm.CompilerOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -6870,7 +6724,6 @@ begin
   tbProject.Visible := False;
   tbSpecials.Visible := False;
   tbSearch.Visible := False;
-  tbClasses.Visible := False;
   tbCompilers.Visible := False;
   tbDebug.Visible := False;
   tbUndo.Visible := False;
@@ -6901,9 +6754,6 @@ begin
   tbSearch.Top := devData.ToolbarSearchY;
   tbSearch.Visible := devData.ToolbarSearch;
 
-  tbClasses.Left := devData.ToolbarClassesX;
-  tbClasses.Top := devData.ToolbarClassesY;
-  tbClasses.Visible := devData.ToolbarClasses;
 
   tbCompilers.Left := devData.ToolbarCompilersX;
   tbCompilers.Top := devData.ToolbarCompilersY;
@@ -6925,7 +6775,6 @@ begin
   ToolProjectItem.Checked := devData.ToolbarProject;
   ToolSpecialsItem.Checked := devData.ToolbarSpecials;
   ToolSearchItem.Checked := devData.ToolbarSearch;
-  ToolClassesItem.Checked := devData.ToolbarClasses;
   ToolCompilersItem.Checked := devData.ToolbarCompilers;
   ToolDebugItem.Checked := devData.ToolbarDebug;
   ToolUndoItem.Checked := devData.ToolbarUndo;

@@ -821,68 +821,6 @@ object MainForm: TMainForm
         Action = actGoto
       end
     end
-    object tbClasses: TToolBar
-      Left = 420
-      Top = 34
-      Width = 700
-      Height = 28
-      ButtonHeight = 24
-      Caption = 'tbClasses'
-      EdgeBorders = []
-      EdgeInner = esNone
-      EdgeOuter = esNone
-      Flat = True
-      TabOrder = 8
-      Wrapable = False
-      object cmbClasses: TComboBox
-        Left = 0
-        Top = 0
-        Width = 350
-        Height = 24
-        Style = csDropDownList
-        Color = clBtnFace
-        Ctl3D = True
-        DropDownCount = 16
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -14
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ItemHeight = 16
-        ItemIndex = 0
-        ParentCtl3D = False
-        ParentFont = False
-        Sorted = True
-        TabOrder = 0
-        Text = '(globals)'
-        OnChange = cmbClassesChange
-        OnDropDown = cmbGenericDropDown
-        Items.Strings = (
-          '(globals)')
-      end
-      object cmbMembers: TComboBox
-        Left = 350
-        Top = 0
-        Width = 350
-        Height = 24
-        Style = csDropDownList
-        Color = clBtnFace
-        Ctl3D = True
-        DropDownCount = 16
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -14
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ItemHeight = 16
-        ParentCtl3D = False
-        ParentFont = False
-        Sorted = True
-        TabOrder = 1
-        OnChange = cmbMembersChange
-        OnDropDown = cmbGenericDropDown
-      end
-    end
     object tbCompilers: TToolBar
       Left = 590
       Top = 2
@@ -996,7 +934,7 @@ object MainForm: TMainForm
       Images = dmMain.MenuImages_NewLook
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 9
+      TabOrder = 8
       Wrapable = False
       object ToolButton7: TToolButton
         Left = 0
@@ -1720,14 +1658,6 @@ object MainForm: TMainForm
           AutoCheck = True
           Caption = '&Specials'
           Checked = True
-          OnClick = ToolbarDockClick
-        end
-        object N17: TMenuItem
-          Caption = '-'
-        end
-        object ToolClassesItem: TMenuItem
-          AutoCheck = True
-          Caption = 'Classes'
           OnClick = ToolbarDockClick
         end
       end
