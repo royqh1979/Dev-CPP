@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 628
-  Top = 168
+  Left = 307
+  Top = 175
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -48,7 +48,7 @@ object MainForm: TMainForm
     Top = 421
     Width = 1187
     Height = 225
-    ActivePage = DebugSheet
+    ActivePage = CompSheet
     Align = alBottom
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -514,7 +514,7 @@ object MainForm: TMainForm
             Font.Height = -14
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 16
+            ItemHeight = 0
             ParentCtl3D = False
             ParentFont = False
             TabOrder = 0

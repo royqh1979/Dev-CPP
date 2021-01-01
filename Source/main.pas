@@ -2867,11 +2867,13 @@ begin
     finally
       ClassBrowser.EndUpdate;
     end;
-    // Clear project browser
-    ProjectView.Items.Clear;
+    if not fQuitting then begin
+      // Clear project browser
+      ProjectView.Items.Clear;
 
-    // Clear error browser
-    ClearMessageControl;
+      // Clear error browser
+      ClearMessageControl;
+    end;
 
     if not fQuitting and RefreshEditor then begin
       // Because fProject was assigned during editor closing, force update trigger again
@@ -7182,9 +7184,11 @@ end;
 
 procedure TMainForm.CompilerOutputDeletion(Sender: TObject; Item: TListItem);
 begin
-  if Application.Terminated then
+  if Application.Terminated or fQuitting then
     Exit; // form is being destroyed
-  if CompilerOutput.Items.Count > 1 then
+  if not LangOK then
+    Exit;
+  if (CompilerOutput.Items.Count > 1) then
     CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count - 1) + ')'
   else
     CompSheet.Caption := Lang[ID_SHEET_COMP];
