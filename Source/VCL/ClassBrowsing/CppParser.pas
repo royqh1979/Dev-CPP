@@ -4304,10 +4304,12 @@ begin
       end;
       
       // Can be a function pointer. If so, scan after last )
+      {
       BracePos := LastPos(')', S);
-      if BracePos > 0 then // it's a function pointer...
+      if (BracePos > 0) then // it's a function pointer...
         SpacePos := LastPos(' ', Copy(S, BracePos, MaxInt)) // start search at brace
       else
+      }
         SpacePos := LastPos(' ', S); // Cut up at last space
 
       if SpacePos > 0 then begin
