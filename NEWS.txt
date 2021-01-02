@@ -4,7 +4,8 @@ Version 6.3-beta4 JAN 2021
     - enhancement: the parser support complex template parameters in type definitions;
     - enhancement: the parser support C++ 11 attr in struct/class/union defininitions;
     - enhancement: the parser support {} object initializer , like A x {new A};    
-    - enhancement: correctly parse and show code suggestion for std::parse
+    - enhancement: correctly parse and show code suggestion for std::future
+    - enhancement: left click the message panel's active tab will hide it
 
 Version 6.3-beta3 DEC 2020
 

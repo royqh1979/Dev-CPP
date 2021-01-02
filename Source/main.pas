@@ -985,6 +985,8 @@ type
     procedure actEncodingTypeExecute(Sender: TObject);
     procedure actConvertToAnsiExecute(Sender: TObject);
     procedure actConvertToAnsiUpdate(Sender: TObject);
+    procedure MessageControlMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fTools: TToolController; // tool list controller
@@ -1010,6 +1012,7 @@ type
     fCheckSyntaxInBack : boolean;
     fCaretList: TDevCaretList;
     fClosing: boolean;
+    fMessageControlChanged : boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -2017,6 +2020,7 @@ end;
 
 procedure TMainForm.MessageControlChange(Sender: TObject);
 begin
+  fMessageControlChanged := True;
   if MessageControl.ActivePage = CloseSheet then begin
     if Assigned(fReportToolWindow) then begin
       fReportToolWindow.Close;
@@ -2379,11 +2383,15 @@ begin
     // Or open it if there is anything to show
   end else begin
     if (CompilerOutput.Items.Count > 0) then begin
-      if MessageControl.ActivePage <> CompSheet then
+      if MessageControl.ActivePage <> CompSheet then  begin
         MessageControl.ActivePage := CompSheet;
+        fMessageControlChanged := False;
+      end;
     end else if (ResourceOutput.Items.Count > 0) then begin
-      if MessageControl.ActivePage <> ResSheet then
+      if MessageControl.ActivePage <> ResSheet then begin
         MessageControl.ActivePage := ResSheet;
+        fMessageControlChanged := False;
+      end;
     end;
     OpenCloseMessageSheet(TRUE);
   end;
@@ -3613,6 +3621,7 @@ begin
   if devData.ShowProgress and not (fCheckSyntaxInBack) then begin
     OpenCloseMessageSheet(True);
     MessageControl.ActivePage := LogSheet;
+    fMessageControlChanged := False;
   end;
 
   // Set PATH variable (not overriden by SetCurrentDir)
@@ -3706,6 +3715,7 @@ begin
   if devData.ShowProgress then begin
     OpenCloseMessageSheet(True);
     MessageControl.ActivePage := LogSheet;
+    fMessageControlChanged := False;
   end;
 
   // Set PATH variable (not overriden by SetCurrentDir)
@@ -3832,6 +3842,7 @@ begin
   LeftPageControl.ActivePage := WatchSheet;
   ClassBrowser.TabVisible:=False;  
   MessageControl.ActivePage := DebugSheet;
+  fMessageControlChanged := False;
   OpenCloseMessageSheet(True);
 
   // Reset watch vars
@@ -6635,6 +6646,7 @@ begin
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
   fCaretList:=TDevCaretList.Create;
+  fMessageControlChanged := False;
 
   DummyCppParser.Preprocessor := DummyCppPreprocessor;
   DummyCppParser.Tokenizer := DummyCppTokenizer;
@@ -8773,6 +8785,30 @@ begin
     actConvertToAnsi.Enabled := (e.FileEncoding = etUTF8);
   end;
 end;
+
+procedure TMainForm.MessageControlMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  hi: TTCHitTestInfo;
+  tabindex: Integer;
+  e:TEditor;
+  oldTabIndex: integer;
+begin
+  If Button = mbLeft Then Begin
+    hi.pt.x := X;
+    hi.pt.y := Y;
+    hi.flags := 0;
+    if not fMessageControlChanged then begin
+      oldTabIndex := MessageControl.ActivePageIndex;
+      tabindex := MessageControl.Perform( TCM_HITTEST, 0, longint(@hi));
+      if (tabindex>=0) and (tabIndex = oldTabIndex) then begin
+        OpenCloseMessageSheet(not SplitterBottom.Visible);
+      end;
+    end;
+    fMessageControlChanged := False;
+  End;
+end;
+
 
 end.
 

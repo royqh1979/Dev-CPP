@@ -62,6 +62,7 @@ object MainForm: TMainForm
     TabPosition = tpBottom
     OnChange = MessageControlChange
     OnDrawTab = OnDrawTab
+    OnMouseUp = MessageControlMouseUp
     object CompSheet: TTabSheet
       Caption = 'Compiler'
       ImageIndex = 28
@@ -564,6 +565,7 @@ object MainForm: TMainForm
     object CloseSheet: TTabSheet
       Caption = 'Close'
       ImageIndex = 9
+      TabVisible = False
     end
   end
   object ToolbarDock: TControlBar
