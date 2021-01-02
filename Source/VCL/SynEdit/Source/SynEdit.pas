@@ -2112,7 +2112,8 @@ begin
     if Assigned(FoldRange) then begin
 
       // See if we actually clicked on the rectangle...
-      rect.Left := Gutter.RealGutterWidth(CharWidth) - Gutter.RightOffset;
+      //rect.Left := Gutter.RealGutterWidth(CharWidth) - Gutter.RightOffset;
+      rect.Left := fGutterWidth - Gutter.RightOffset;
       rect.Right := rect.Left + Gutter.RightOffset - 4;
       rect.Top := (RowColumn.Row - fTopLine) * LineHeight;
       rect.Bottom := rect.Top + LineHeight;
