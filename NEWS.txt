@@ -1,9 +1,10 @@
 Version 6.3-beta4 JAN 2021
    
     - fix: devcpp crash when tring to turn off the windows sytem while devcpp is running
-    - enhancement: complex template parameters in type definitions;
-    - enhancement: support C++ 11 attr in struct/class/union defininitions;
-    
+    - enhancement: the parser support complex template parameters in type definitions;
+    - enhancement: the parser support C++ 11 attr in struct/class/union defininitions;
+    - enhancement: the parser support {} object initializer , like A x {new A};    
+    - enhancement: correctly parse and show code suggestion for std::parse
 
 Version 6.3-beta3 DEC 2020
 

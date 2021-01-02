@@ -2332,11 +2332,14 @@ var
   LastType, Args, Cmd, S: AnsiString;
   IsFunctionPointer: boolean;
   IsStatic : boolean;
+  varAdded:boolean;
+  i:integer;
 begin
   IsStatic := False;
   // Keep going and stop on top of the variable name
   LastType := '';
   IsFunctionPointer := False;
+  varAdded:=False;
   repeat
     if (fIndex + 2 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') and (fTokenizer[fIndex +
       2]^.Text[1] = '(') then begin
@@ -2435,6 +2438,8 @@ begin
           fClassScope,
           True,
           IsStatic); // TODO: not supported to pass list
+
+        varAdded:=True;
       end;
 
       // Step over the variable name
@@ -2443,9 +2448,16 @@ begin
     end;
   until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';', '{', '}']);
 
+  if varAdded and (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text = '{') then begin
+    // skip { } like A x {new A};
+    i:=skipBraces(fIndex);
+    if (i<>fIndex) then
+      fIndex := i+1;
+  end;
   // Skip ; and ,
   if (fIndex < fTokenizer.Tokens.Count) and not (fTokenizer[fIndex]^.Text[1] in ['{', '}']) then
     Inc(fIndex);
+
 end;
 
 procedure TCppParser.HandleEnum;
@@ -2710,7 +2722,7 @@ begin
     //Statements.DumpTo('f:\stats.txt');
     Statements.DumpWithScope('f:\\statements.txt');
     //fPreprocessor.DumpDefinesTo('f:\defines.txt');
-    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+    fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     //fCurrentScope.Clear;
@@ -3352,7 +3364,7 @@ begin
   if not Assigned(fileIncludes) then
     Exit;
 
-  {
+
   with TStringList.Create do try
     for idx:=0 to fileIncludes.Scopes.Count-1 do begin
       statement:=PStatement(fileIncludes.Scopes.Objects[idx]);
@@ -3365,7 +3377,7 @@ begin
   finally
     Free;
   end;
-  }
+  
 
 
   fileIncludes.Scopes.Find(Line,idx);
@@ -4302,40 +4314,40 @@ begin
         Delete(S, assignPos,MaxInt);
         S:=TrimRight(S);
       end;
-      
-      // Can be a function pointer. If so, scan after last )
+      // we don't support function pointer parameters now, till we can tokenize function parameters
       {
+      // Can be a function pointer. If so, scan after last )
       BracePos := LastPos(')', S);
-      if (BracePos > 0) then // it's a function pointer...
+      if (BracePos > 0) then // it's a function pointer... begin
         SpacePos := LastPos(' ', Copy(S, BracePos, MaxInt)) // start search at brace
-      else
+      end else begin
       }
         SpacePos := LastPos(' ', S); // Cut up at last space
 
-      if SpacePos > 0 then begin
-        Args:='';
-        bracketPos := Pos('[',S);
-        if bracketPos > 0 then begin
-          Args := Copy(S, bracketPos,MaxInt);
-          Delete(S,bracketPos,MaxInt);
+        if SpacePos > 0 then begin
+          Args:='';
+          bracketPos := Pos('[',S);
+          if bracketPos > 0 then begin
+            Args := Copy(S, bracketPos,MaxInt);
+            Delete(S,bracketPos,MaxInt);
+          end;
+          AddStatement(
+            FunctionStatement,
+            FunctionStatement^._FileName,
+            '', // do not override hint
+            Copy(S, 1, SpacePos - 1), // 'int*'
+            Copy(S, SpacePos + 1, MaxInt), // a
+            Args,
+            '',
+            FunctionStatement^._DefinitionLine,
+            skParameter,
+            ssLocal,
+            scsNone,
+            True,
+            nil,
+            False);
         end;
-        AddStatement(
-          FunctionStatement,
-          FunctionStatement^._FileName,
-          '', // do not override hint
-          Copy(S, 1, SpacePos - 1), // 'int*'
-          Copy(S, SpacePos + 1, MaxInt), // a
-          Args,
-          '',
-          FunctionStatement^._DefinitionLine,
-          skParameter,
-          ssLocal,
-          scsNone,
-          True,
-          nil,
-          False);
-      end;
-
+        
       ParamStart := I + 1; // step over ,
     end;
     Inc(I);
