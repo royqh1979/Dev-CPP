@@ -6,6 +6,7 @@ Version 6.3-beta4 JAN 2021
     - enhancement: the parser support {} object initializer , like A x {new A};    
     - enhancement: correctly parse and show code suggestion for std::future
     - enhancement: left click the message panel's active tab will hide it
+    - enhancement: add local variables tab to the debug panel
 
 Version 6.3-beta3 DEC 2020
 

@@ -304,12 +304,13 @@ const
   ID_DEB_SEND                           = 17005;
   ID_DEB_EVALUATE                       = 17006;
   
-  ID_DEB_SHOWCOMMAND					= 17007;
-  ID_DEB_FULLANNOATION					= 17008;
-  ID_DEB_WATCH                = 17009;
+  ID_DEB_SHOWCOMMAND					        = 17007;
+  ID_DEB_FULLANNOATION					      = 17008;
+  ID_DEB_WATCH                        = 17009;
   ID_DEB_CONSOLE_SHEET                = 17010;
-  ID_DEB_CALLSTACK                = 17011;
-  ID_DEB_BREAK_POINTS         = 17012;
+  ID_DEB_CALLSTACK                    = 17011;
+  ID_DEB_BREAK_POINTS                 = 17012;
+  ID_DEB_LOCALS                       = 17013;
 
   // specials toolbar
   ID_TB_NEW                             = 18001;

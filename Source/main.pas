@@ -674,6 +674,8 @@ type
     actUTF8: TAction;
     actConvertToAnsi: TAction;
     ConvertToAnsi1: TMenuItem;
+    LocalSheet: TTabSheet;
+    txtLocals: TMemo;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1047,6 +1049,7 @@ type
     procedure StartTabnine;
     procedure StopTabnine;
     procedure ChangeEncoding(encoding:TFileEncodingType);
+    procedure UpdateDebugInfo;
   public
     function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
@@ -1501,8 +1504,6 @@ begin
   cmbCompilers.Font := mainForm.Font;
   evaluateInput.Color := panelTC.Background;
   evaluateInput.Font := MainForm.Font;
-  evalOutput.Color := panelTC.Background;
-  evalOutput.Font := MainForm.Font;
 
   BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
   ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
@@ -1514,6 +1515,9 @@ begin
   WatchView.Color := BackgroundColor;
   WatchView.Font := MainForm.Font;
   WatchView.Font.Color := ForegroundColor;
+  LocalSheet.Color := BackgroundColor;
+  LocalSheet.Font := MainForm.Font;
+  LocalSheet.Font.Color := ForegroundColor;
   ProjectView.Color := BackgroundColor;
   ProjectView.Font := MainForm.Font;
   ProjectView.Font.Color := ForegroundColor;
@@ -1592,6 +1596,10 @@ begin
   EvalOutput.Color := BackgroundColor;
   EvalOutput.Font := MainForm.Font;
   EvalOutput.Font.Color := ForegroundColor;
+
+  txtLocals.Color := BackgroundColor;
+  txtLocals.Font := MainForm.Font;
+  txtLocals.Font.Color := ForegroundColor;
 end;
 
 procedure TMainForm.ReloadColor;
@@ -1599,6 +1607,7 @@ begin
   LoadColor;
   debugOutput.Repaint;
   WatchView.Repaint;
+  LocalSheet.Repaint;
   ProjectView.Repaint;
   ClassBrowser.Repaint;
   StackTrace.Repaint;
@@ -1608,6 +1617,7 @@ begin
   LogOutput.Repaint;
   FindOutput.Repaint;
   EvalOutput.Repaint;
+  txtLocals.Repaint;
   MainForm.Repaint;
   PageControlPanel.Repaint;
   EditorPageControlLeft.Invalidate;
@@ -1904,6 +1914,7 @@ begin
   DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
   CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
   BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
+  LocalSheet.Caption := Lang[ID_DEB_LOCALS];
 
 
   {
@@ -3865,6 +3876,13 @@ begin
   Result := CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2));
 end;
 
+procedure TMainForm.UpdateDebugInfo;
+begin
+  fDebugger.SendCommand('backtrace', '');
+  fDebugger.SendCommand('info locals', '');
+  fDebugger.SendCommand('info args', '');  
+end;
+
 procedure TMainForm.actDebugExecute(Sender: TObject);
 var
   e: TEditor;
@@ -4045,7 +4063,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('start', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
       ctProject:  begin
         params := '';
@@ -4055,7 +4073,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('start', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
     end;
   end else begin
@@ -4069,7 +4087,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('run', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
       ctProject: begin
         params := '';
@@ -4079,7 +4097,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('run', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
     end;
   end;
@@ -4598,7 +4616,7 @@ begin
     WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('next', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -4612,7 +4630,8 @@ begin
     WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('step', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
+
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -4666,7 +4685,7 @@ begin
     RemoveActiveBreakpoints;
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('continue', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -6968,7 +6987,7 @@ begin
     WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('finish', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -6987,7 +7006,7 @@ begin
       fDebugger.InvalidateAllVars;
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
-      fDebugger.SendCommand('backtrace', '');
+      UpdateDebugInfo;
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
       WatchView.Items.EndUpdate();

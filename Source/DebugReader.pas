@@ -43,7 +43,8 @@ type
     TArgBegin, TArgEnd, TArgValue, TArgNameEnd,
     TFieldBegin, TFieldEnd, TFieldValue, TFieldNameEnd,
     TInfoReg, TInfoAsm,
-    TUnknown, TEOF);
+    TUnknown, TEOF,
+    TLocal, TParam);
 
   PWatchVar = ^TWatchVar;
   TWatchVar = record
@@ -133,6 +134,8 @@ type
     procedure HandleError;
     procedure HandleDisplay;
     procedure HandleSource;
+    procedure HandleLocals;
+    procedure HandleParams;
 
     // Evaluation tree output handlers
     procedure ProcessWatchOutput(WatchVar: PWatchVar);
@@ -518,6 +521,16 @@ begin
     IndexBackup := fIndex;
     t := GetNextFilledLine;
     fIndex := IndexBackup;
+
+    //hack to catch local
+    if Assigned(fCurrentCmd) and SameStr(fCurrentCmd^.Cmd,'info locals') then begin
+      result := TLocal;
+    end;
+
+    //hack to catch params
+    if Assigned(fCurrentCmd) and SameStr(fCurrentCmd^.Cmd,'info args') then begin
+      result := TParam;
+    end;
 
     // Hack fix to catch register dump
     if Assigned(fRegisters) then
@@ -909,6 +922,39 @@ begin
   doregistersready := true;
 end;
 
+procedure TDebugReader.HandleLocals;
+var
+  s: AnsiString;
+begin
+  MainForm.txtLocals.Lines.Text:='';
+  // name(spaces)hexvalue(tab)decimalvalue
+  s := GetNextFilledLine;
+
+  repeat
+    s := TrimLeft(s);
+    if SameStr(s,'No locals.') then
+      Exit;
+    MainForm.txtLocals.Lines.Add(s);
+    s := GetNextLine;
+  until SameStr('', s);
+end;
+
+procedure TDebugReader.HandleParams;
+var
+  s: AnsiString;
+begin
+  // name(spaces)hexvalue(tab)decimalvalue
+  s := GetNextFilledLine;
+
+  repeat
+    s := TrimLeft(s);
+    if SameStr(s,'No arguments.') then
+      Exit;
+    MainForm.txtLocals.Lines.Add(s);
+    s := GetNextLine;
+  until SameStr('', s);
+end;
+
 procedure TDebugReader.HandleError;
 var
   s, WatchName: AnsiString;
@@ -1052,6 +1098,10 @@ begin
           HandleDisassembly;
         TInfoReg:
           HandleRegisters;
+        TLocal:
+          HandleLocals;
+        TParam:
+          HandleParams;
         TErrorBegin:
           HandleError;
         TDisplayBegin:

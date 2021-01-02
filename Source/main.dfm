@@ -242,7 +242,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = DebugConsoleSheet
+        ActivePage = LocalSheet
         Align = alClient
         TabOrder = 0
         OnDrawTab = OnDrawTab
@@ -347,6 +347,28 @@ object MainForm: TMainForm
             TabOrder = 0
             ViewStyle = vsReport
             OnSelectItem = BreakpointsViewSelectItem
+          end
+        end
+        object LocalSheet: TTabSheet
+          Caption = 'Locals'
+          ImageIndex = 3
+          object txtLocals: TMemo
+            Left = 0
+            Top = 0
+            Width = 713
+            Height = 165
+            Align = alClient
+            BevelOuter = bvNone
+            BorderStyle = bsNone
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -14
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+            ReadOnly = True
+            ScrollBars = ssBoth
+            TabOrder = 0
           end
         end
       end
@@ -1042,7 +1064,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftClassSheet
+    ActivePage = WatchSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

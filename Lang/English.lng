@@ -266,6 +266,7 @@ Ver=1
 17010=GDB Console
 17011=Call Stack
 17012=Breakpoints
+17013=Locals
 
 
 18001=New
