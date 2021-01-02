@@ -113,6 +113,7 @@ type
     procedure RemoveScopeLevel(line:integer); // removes level
     procedure CheckForSkipStatement;
     function SkipBraces(StartAt: integer): integer;
+    function SkipBracket(StartAt: integer): integer;
     function CheckForPreprocessor: boolean;
     function CheckForKeyword: boolean;
     function CheckForNamespace: boolean;
@@ -121,7 +122,7 @@ type
     function CheckForTypedef: boolean;
     function CheckForTypedefEnum: boolean;
     function CheckForTypedefStruct: boolean;
-    function CheckForStructs: boolean;
+    function CheckForStructs : boolean;
     function CheckForMethod(var sType, sName, sArgs: AnsiString;
       var IsStatic:boolean; var IsFriend:boolean): boolean; // caching of results
     function CheckForScope: boolean;
@@ -366,6 +367,28 @@ begin
   end;
 end;
 
+function TCppParser.SkipBracket(StartAt: integer): integer;
+var
+  I, Level: integer;
+begin
+  I := StartAt;
+  Level := 0; // assume we start on top of {
+  while (I < fTokenizer.Tokens.Count) do begin
+    case fTokenizer[I]^.Text[1] of
+      '[': Inc(Level);
+      ']': begin
+          Dec(Level);
+          if Level = 0 then begin
+            Result := I;
+            Exit;
+          end;
+        end;
+    end;
+    Inc(I);
+  end;
+  Result := StartAt;
+end;
+
 function TCppParser.SkipBraces(StartAt: integer): integer;
 var
   I, Level: integer;
@@ -432,10 +455,12 @@ function TCppParser.expandMacroType(const name:AnsiString): AnsiString;
 //  Statement: PStatement;
 begin
   Result := name;
+  {
   if StartsStr('__',name) then begin
     Result := '';
     Exit;
   end;
+  }
   { we have expanded macro in the preprocessor , so we don't need do it here{
   {
   Statement := FindMacroDefine(name);
@@ -1049,13 +1074,26 @@ begin
 end;
 
 function TCppParser.CheckForTypedefStruct: boolean;
+var
+  i,keyLen:integer;
+  word:String;
 begin
   //we assume that typedef is the current index, so we check the next
   //should call CheckForTypedef first!!!
-  Result := (fIndex < fTokenizer.Tokens.Count - 1) and (
-    SameStr(fTokenizer[fIndex + 1]^.Text, 'struct') or
-    SameStr(fTokenizer[fIndex + 1]^.Text, 'class') or
-    SameStr(fTokenizer[fIndex + 1]^.Text, 'union'));
+  Result := False;
+  if (fIndex >= fTokenizer.Tokens.Count) then
+    Exit;
+  keyLen := -1;
+  word := fTokenizer[fIndex + 1]^.Text;
+  if StartsStr('struct',word) then
+    keyLen:=6
+  else if StartsStr('class',word)
+    or StartsStr('union',word) then
+    keyLen:=5;
+  if keyLen<0 then
+    Exit;
+  Result := (length(word) = keyLen)
+    or (word[keyLen+1] in [' ',#9,'[']);
 end;
 
 function TCppParser.CheckForNamespace: boolean;
@@ -1074,22 +1112,33 @@ end;
 
 function TCppParser.CheckForStructs: boolean;
 var
-  I: integer;
+  I,keyLen: integer;
   dis: integer;
+  word:string;
 begin
   if SameStr(fTokenizer[fIndex]^.Text, 'friend')
    or SameStr(fTokenizer[fIndex]^.Text, 'public') or SameStr(fTokenizer[fIndex]^.Text, 'private') then
     dis := 1
   else
     dis := 0;
-  Result := (fIndex < fTokenizer.Tokens.Count -2-dis) and (
-    SameStr(fTokenizer[fIndex+dis]^.Text, 'struct') or
-    SameStr(fTokenizer[fIndex+dis]^.Text, 'class') or
-    SameStr(fTokenizer[fIndex+dis]^.Text, 'union'));
+  Result := False;
+  if (fIndex >= fTokenizer.Tokens.Count - 2 - dis) then
+    Exit;
+  keyLen := -1;
+  word := fTokenizer[fIndex+dis]^.Text;
+  if StartsStr('struct',word) then
+    keyLen:=6
+  else if StartsStr('class', word)
+    or StartsStr('union',word) then
+    keyLen:=5;
+  if keyLen<0 then
+    Exit;
+  Result := (length(word) = keyLen)
+    or (word[keyLen+1] in [' ',#9,'[']);
 
   if Result then begin
     if fTokenizer[fIndex + 2+dis]^.Text[1] <> ';' then begin // not: class something;
-      I := fIndex+dis;
+      I := fIndex+dis +1;
       // the check for ']' was added because of this example:
       // struct option long_options[] = {
       //		{"debug", 1, 0, 'D'},
@@ -1097,8 +1146,8 @@ begin
       //    ...
       // };
       while (I < fTokenizer.Tokens.Count) do begin
-        if (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)] in [';', ':', '{',
-        '}', ',', ')', ']','=','*','&'])  then begin
+        if (fTokenizer[I]^.Text[Length(fTokenizer[I]^.Text)]
+          in [';', ':', '{', '}', ',', ')', ']','=','*','&'])  then begin
           break;
         end;
         Inc(I);
@@ -1695,8 +1744,9 @@ begin
   end;
   // Check if were dealing with a struct or union
   Prefix := fTokenizer[fIndex]^.Text;
-  IsStruct := SameStr(Prefix, 'struct') or SameStr(Prefix, 'union');
+  IsStruct := StartsStr('struct',Prefix) or StartsStr('union',Prefix);
   startLine := fTokenizer[fIndex]^.Line;
+
   Inc(fIndex); //skip struct/class/union
 
   // Do not modifiy index initially
@@ -1756,10 +1806,10 @@ begin
     // Add class/struct name BEFORE opening brace
     if fTokenizer[fIndex]^.Text[1] <> '{' then begin
       repeat
-        if (fIndex + 1 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] in [',', ';', '{', ':']) then
-          begin
+        if (fIndex + 1 < fTokenizer.Tokens.Count)
+          and (fTokenizer[fIndex + 1]^.Text[1] in [',', ';', '{', ':']) then begin
           Command := fTokenizer[fIndex]^.Text;
-          if (Command <> '') then begin //todo: how to handle unamed struct variables define, like struct { int x;} s; ?
+          if (Command <> '') then begin
             FirstSynonym := AddStatement(
               GetCurrentScope,
               fCurrentFile,
@@ -1778,8 +1828,33 @@ begin
               False);
             Command := '';
           end;
-        end;
-        Inc(fIndex);
+          Inc(fIndex);
+        end else if (fIndex + 2 < fTokenizer.Tokens.Count)
+          and SameText(fTokenizer[fIndex + 1]^.Text,'final')
+          and (fTokenizer[fIndex + 2]^.Text[1] in [',', ';', '{', ':']) then begin
+          Command := fTokenizer[fIndex]^.Text;
+          if (Command <> '') then begin
+            FirstSynonym := AddStatement(
+              GetCurrentScope,
+              fCurrentFile,
+              '', // do not override hint
+              Prefix, // type
+              Command, // command
+              '', // args
+              '', // values
+              //fTokenizer[fIndex]^.Line,
+              startLine,
+              skClass,
+              GetScope,
+              fClassScope,
+              True,
+              TList.Create,
+              False);
+            Command := '';
+          end;
+          Inc(fIndex,2);
+        end else
+          Inc(fIndex);
       until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [':', '{', ';']);
     end;
 
@@ -2471,6 +2546,7 @@ var
   isStatic,isFriend: boolean;
   block : PStatement;
   idx,idx2,idx3:integer;
+  attrEndIndex:integer;
 begin
   idx:=GetCurrentBlockEndSkip;
   idx2:=GetCurrentBlockBeginSkip;
@@ -2528,7 +2604,7 @@ begin
   end else if CheckForTypedef then begin
     if CheckForTypedefStruct then begin // typedef struct something
       Inc(fIndex); // skip 'typedef'
-      HandleStructs(True)
+      HandleStructs(True);
     end else if CheckForTypedefEnum then begin // typedef enum something
       Inc(fIndex); // skip 'typedef'
       HandleEnum;
@@ -2590,15 +2666,16 @@ begin
     Exit;
   end;
 
-  {
+
   with TStringList.Create do try
     Text:=fPreprocessor.Result;
     SaveToFile('f:\\Preprocess.txt');
   finally
     Free;
   end;
-  }
   
+  
+
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
 
   // Tokenize the preprocessed buffer file
@@ -2629,11 +2706,11 @@ begin
   try
     repeat
     until not HandleStatement;
-   //fTokenizer.DumpTokens('f:\tokens.txt');
-   //Statements.DumpTo('f:\stats.txt');
-   //Statements.DumpWithScope('f:\\statements.txt');
-   //fPreprocessor.DumpDefinesTo('f:\defines.txt');
-   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+    fTokenizer.DumpTokens('f:\tokens.txt');
+    //Statements.DumpTo('f:\stats.txt');
+    Statements.DumpWithScope('f:\\statements.txt');
+    //fPreprocessor.DumpDefinesTo('f:\defines.txt');
+    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     //fCurrentScope.Clear;
@@ -4189,8 +4266,7 @@ begin
     st := FindStatementOf(FileName, Phrase,Line);
     if assigned(st) then begin
       if st^._Kind = skVariable then begin
-        if not Assigned(st^._ParentScope)
-          or (st^._ParentScope^._Kind = skNamespace) then begin
+        if not Assigned(st^._ParentScope) then begin
           Result:=skGlobalVariable;
         end else if st^._Scope = ssLocal then begin
           Result:=skLocalVariable;

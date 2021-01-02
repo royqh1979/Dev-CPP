@@ -283,7 +283,13 @@ procedure TCppTokenizer.SkipPair(cStart, cEnd: Char; FailChars: TSysCharSet); //
 begin
   Inc(pCurrent);
   while pCurrent^ <> #0 do begin
-    if pCurrent^ = cStart then begin
+    if (pCurrent^ = '(') and not ('(' in FailChars) then begin
+      SkipPair('(', ')', FailChars);
+    end else if (pCurrent^ = '[') and not ('[' in FailChars) then begin
+      SkipPair('[', ']', FailChars);
+    end else if (pCurrent^ = '{') and not ('}' in FailChars) then begin
+      SkipPair('{', '}', FailChars);
+    end else if (pCurrent^ = cStart) then begin
       SkipPair(cStart, cEnd, FailChars);
     end else if pCurrent^ = cEnd then begin
       Inc(pCurrent); // skip over end
@@ -467,7 +473,8 @@ begin
     Inc(pCurrent);
 
   // Append the operator characters and argument list to the operator word
-  if CurrentWordEquals('operator') then begin
+  if CurrentWordEquals('operator') or CurrentWordEquals('operator*')
+    or CurrentWordEquals('operator&') then begin
 
     // Spaces between 'operator' and the operator itself are allowed
     while pCurrent^ in SpaceChars do
