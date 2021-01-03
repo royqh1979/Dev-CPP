@@ -26,6 +26,12 @@ uses
   Dialogs, editor, ComCtrls, StrUtils, Forms;
 
 type
+
+  TDebugCmdSource = (
+    dcsConsole,
+    dcsOther
+  );
+  
   TAnnotateType = (
     TPrePrompt, TPrompt, TPostPrompt,
     TSource,
@@ -59,6 +65,7 @@ type
     Params: AnsiString;
     UpdateWatch: boolean;
     ShowInConsole: boolean;
+    Source :  TDebugCmdSource;
   end;
 
   PBreakPoint = ^TBreakPoint;
@@ -181,7 +188,8 @@ type
     property OnInvalidateAllVars: TInvalidateAllVarsEvent  read fOnInvalidateAllVars write fOnInvalidateAllVars; 
 
     procedure PostCommand(const Command, Params: AnsiString;
-      UpdateWatch: boolean; ShowInConsole: boolean);
+      UpdateWatch: boolean; ShowInConsole: boolean;
+      Source: TDebugCmdSource);
   end;
 
 implementation
@@ -328,7 +336,13 @@ begin
 
 
   if doupdateexecution then begin
-    MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine); // set active line
+    {
+    if not assigned(fCurrentCmd) or (fCurrentCmd^.Source <> dcsConsole) then
+      MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine) // set active line
+    else
+      MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine,False); // set active line
+    }
+    MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine);
     MainForm.Debugger.RefreshWatchVars; // update variable information
   end;
 
@@ -1161,7 +1175,7 @@ begin
   ClearCmdQueue;
 end;
 procedure TDebugReader.PostCommand(const Command, Params: AnsiString;
-  UpdateWatch: boolean; ShowInConsole: boolean);
+  UpdateWatch: boolean; ShowInConsole: boolean;  Source: TDebugCmdSource);
 var
   PCmd: PGDBCmd;
 begin
@@ -1176,6 +1190,7 @@ begin
     pCmd^.Params := Params;
     pCmd^.UpdateWatch := UpdateWatch;
     pCmd^.ShowInConsole := ShowInConsole;
+    pCmd^.Source := Source;
     fCmdQueue.Push(pCmd);
   if not fCmdRunning then begin
     RunNextCmd;

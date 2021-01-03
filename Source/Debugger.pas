@@ -54,7 +54,8 @@ type
     procedure Start;
     procedure Stop;
     procedure SendCommand(const command, params: AnsiString;
-      UpdateWatch: boolean = true; ShowInConsole:boolean = false);
+      UpdateWatch: boolean = true; ShowInConsole:boolean = false;
+      Source: TDebugCmdSource = dcsOther);
 
     // breakpoints
     procedure AddBreakPoint(i: integer); overload;
@@ -267,11 +268,11 @@ begin
 end;
 
 procedure TDebugger.SendCommand(const Command, Params: AnsiString;
-  UpdateWatch: boolean; ShowInConsole:boolean);
+  UpdateWatch: boolean; ShowInConsole:boolean; Source: TDebugCmdSource);
 begin
   MainForm.DebugOutput.InputEnabled:=False;
   if Executing then
-    fReader.PostCommand(command,params,UpdateWatch, ShowInConsole);
+    fReader.PostCommand(command,params,UpdateWatch, ShowInConsole,Source);
 end;
 
 function TDebugger.GetBreakPointFile: AnsiString;

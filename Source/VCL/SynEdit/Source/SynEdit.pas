@@ -3207,6 +3207,11 @@ var
             end;
             // It's at least partially visible. Get the token attributes now.
             attr := fHighlighter.GetTokenAttribute;
+            {
+            if (nTokenPos = 0) and (attr = fHighlighter.WhitespaceAttribute) then begin
+              sToken := StringOfChar('.',nTokenLen);
+            end;
+            }
             if sToken = '[' then begin
               GetBraceColorAttr(fHighlighter.GetBracketLevel,attr);
             end else if sToken = ']' then begin

@@ -32,6 +32,7 @@ object MainForm: TMainForm
     Height = 353
     MinSize = 45
     ResizeStyle = rsUpdate
+    OnMoved = SplitterLeftMoved
   end
   object SplitterBottom: TSplitter
     Left = 0
@@ -242,7 +243,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = LocalSheet
+        ActivePage = BreakpointsSheet
         Align = alClient
         TabOrder = 0
         OnDrawTab = OnDrawTab
@@ -1064,7 +1065,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = WatchSheet
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -1078,6 +1079,7 @@ object MainForm: TMainForm
     TabPosition = tpLeft
     OnChange = LeftPageControlChange
     OnDrawTab = OnDrawTab
+    OnMouseUp = LeftPageControlMouseUp
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
       ImageIndex = -1

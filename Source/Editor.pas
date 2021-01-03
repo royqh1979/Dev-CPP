@@ -190,13 +190,16 @@ type
     procedure LinesInserted(FirstLine,Count:integer);
     procedure InitParser;
   public
-    constructor Create(const Filename: AnsiString; Encoding:TFileEncodingType; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
+    constructor Create(const Filename: AnsiString; Encoding:TFileEncodingType;
+      InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl;
+       textEdit: TSynEdit = nil);
     destructor Destroy; override;
     function Save: boolean;
     function SaveAs: boolean;
     procedure Activate;
     procedure GotoLine;
     procedure SetCaretPosAndActivate(Line, Col: integer); // needs to activate in order to place cursor properly
+    procedure SetCaretPos(Line, Col: integer); // needs to activate in order to place cursor properly
     procedure ExportToHTML;
     procedure ExportToRTF;
     procedure RTFToClipboard;
@@ -205,7 +208,7 @@ type
     procedure InsertUserCodeIn(Code: AnsiString);
     procedure SetErrorFocus(Col, Line: integer);
     procedure GotoActiveBreakpoint;
-    procedure SetActiveBreakpointFocus(Line: integer);
+    procedure SetActiveBreakpointFocus(Line: integer; setFocus:boolean=True);
     procedure RemoveBreakpointFocus;
     procedure UpdateCaption(const NewCaption: AnsiString='');
     procedure InsertDefaultText;
@@ -345,7 +348,8 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; Encoding:TFileEncodingType; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; Encoding:TFileEncodingType;
+  InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl; textEdit: TSynEdit);
 var
   s: AnsiString;
   I: integer;
@@ -367,24 +371,30 @@ begin
   else
     fFileName := Lang[ID_UNTITLED] + IntToStr(dmMain.GetNewFileNumber);
 
+  fTabSheet:=nil;
   // Remember previous tabs
   fPreviousEditors := TList.Create;
-  if Assigned(ParentPageControl.ActivePage) then begin
-    e := TEditor(ParentPageControl.ActivePage.Tag); // copy list of previous editor
-    for I := 0 to e.PreviousEditors.Count - 1 do
-      fPreviousEditors.Add(e.PreviousEditors[i]);
-    fPreviousEditors.Add(Pointer(e)); // make current editor history too
-  end;
+  if Assigned(ParentPageControl) then begin
+    if Assigned(ParentPageControl.ActivePage) then begin
+      e := TEditor(ParentPageControl.ActivePage.Tag); // copy list of previous editor
+      for I := 0 to e.PreviousEditors.Count - 1 do
+        fPreviousEditors.Add(e.PreviousEditors[i]);
+      fPreviousEditors.Add(Pointer(e)); // make current editor history too
+    end;
 
-  // Create a new tab
-  fTabSheet := TTabSheet.Create(ParentPageControl);
-  fTabSheet.Caption := ExtractFileName(fFilename); // UntitlexX or main.cpp
-  fTabSheet.PageControl := ParentPageControl;
-  fTabSheet.Tag := integer(Self); // Define an index for each tab
+    // Create a new tab
+    fTabSheet := TTabSheet.Create(ParentPageControl);
+    fTabSheet.Caption := ExtractFileName(fFilename); // UntitlexX or main.cpp
+    fTabSheet.PageControl := ParentPageControl;
+    fTabSheet.Tag := integer(Self); // Define an index for each tab
+  end;
 
 
   // Create an editor and set static options
-  fText := TSynEdit.Create(fTabSheet);
+  if Assigned(fTabSheet) then
+    fText := TSynEdit.Create(fTabSheet)
+  else
+    fText := TextEdit;
 //  fOldTextWndProc := fText.WndProc();
 
   // Load the file using Lines
@@ -403,7 +413,8 @@ begin
   end;
 
   // Set constant options
-  fText.Parent := fTabSheet;
+  if Assigned(fTabSheet) then
+    fText.Parent := fTabSheet;
   fText.Visible := True;
   fText.Align := alClient;
   fText.PopupMenu := MainForm.EditorPopup;
@@ -541,8 +552,10 @@ begin
     fText.BeginUpdate;
     try
       // Allow the user to start typing right away
-      fTabSheet.PageControl.ActivePage := fTabSheet;
-      fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+      if assigned(fTabSheet) then begin
+        fTabSheet.PageControl.ActivePage := fTabSheet;
+        fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+      end;
     finally
       fText.EndUpdate;
     end;
@@ -1208,7 +1221,7 @@ begin
     SetCaretPosAndActivate(fActiveLine, 1);
 end;
 
-procedure TEditor.SetActiveBreakpointFocus(Line: integer);
+procedure TEditor.SetActiveBreakpointFocus(Line: integer; setFocus:boolean);
 begin
   if Line <> fActiveLine then begin
 
@@ -1220,7 +1233,13 @@ begin
 
     // Put the caret at the active breakpoint
     fActiveLine := Line;
-    SetCaretPosAndActivate(fActiveLine, 1);
+    {
+    if setFocus then
+      SetCaretPosAndActivate(fActiveLine, 1)
+    else
+      SetCaretPos(fActiveLine,1);
+    }
+    SetCaretPosAndActivate(fActiveLine, 1)
 
     // Invalidate new active line
     fText.InvalidateGutterLine(fActiveLine);
@@ -1294,6 +1313,16 @@ begin
     end;
   end;
 end;
+
+procedure TEditor.SetCaretPos(Line, Col: integer);
+begin
+  // Open up the closed folds around the focused line until we can see the line we're looking for
+  fText.UncollapseAroundLine(Line);
+
+  // Position the caret, call EnsureCursorPosVisibleEx after setting block
+  fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
+end;
+
 
 procedure TEditor.SetCaretPosAndActivate(Line, Col: integer);
 begin
@@ -2836,7 +2865,8 @@ var
 
     // disable page control hint
     MainForm.CurrentPageHint := '';
-    fTabSheet.PageControl.Hint := '';
+    if assigned(fTabSheet) then
+      fTabSheet.PageControl.Hint := '';
   end;
 begin
   // Leverage Ctrl-Clickability to determine if we can show any information
@@ -3044,6 +3074,13 @@ begin
   {
   if fCompletionBox.Visible then //don't do this when show
     Exit;
+  }
+  {
+  if (attr = fText.Highlighter.WhitespaceAttribute) and StartsStr('.',token) then begin
+    FG:=fText.Gutter.Font.Color;
+    BG:=attr.Background;
+    Exit;
+  end;
   }
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     //st := fFindStatementOf(fFileName, token, line);
@@ -3377,8 +3414,10 @@ begin
     UnitIndex := MainForm.Project.Units.IndexOf(FileName); // index of *old* filename
     if UnitIndex <> -1 then
       MainForm.Project.SaveUnitAs(UnitIndex, SaveFileName); // save as new filename
-  end else
-    fTabSheet.Caption := ExtractFileName(SaveFileName);
+  end else begin
+    if assigned(fTabSheet) then
+      fTabSheet.Caption := ExtractFileName(SaveFileName);
+  end;
 
   // Set new file name
   FileName := SaveFileName;
