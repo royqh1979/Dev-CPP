@@ -10,6 +10,7 @@ Version 6.3-beta4 JAN 2021
     - fix: Click test for the folder icon on the gutter is wrong if the option "use custom font" for gutter is turned on. 
     - enhancement: left click the left panel's active tab will hide it
     - enhancement: GDB console won't lose focus after executing commands.
+    - fix: Special toolbar display error under dark themes.
 
 Version 6.3-beta3 DEC 2020
 

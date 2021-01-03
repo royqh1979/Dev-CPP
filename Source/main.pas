@@ -3873,14 +3873,14 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
-  OpenCloseMessageSheet(True);
   LeftPageControl.ActivePage := WatchSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
   MessageControl.ActivePage := DebugSheet;
-  DebugViews.ActivePage := LocalSheet;  // we must have this line or devcpp ui will freeze
-  DebugViews.ActivePage := DebugConsoleSheet;
   fMessageControlChanged := False;
+  DebugViews.ActivePage := LocalSheet;  // we must have this line or devcpp ui will freeze, if the local sheet is not active in the designer
+  DebugViews.ActivePage := DebugConsoleSheet;
+  OpenCloseMessageSheet(True);
 
 
   // Reset watch vars

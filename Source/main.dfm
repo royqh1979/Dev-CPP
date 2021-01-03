@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 307
-  Top = 175
+  Left = 858
+  Top = 177
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -359,6 +359,7 @@ object MainForm: TMainForm
             Width = 713
             Height = 165
             Align = alClient
+            BevelInner = bvNone
             BevelOuter = bvNone
             BorderStyle = bsNone
             Font.Charset = DEFAULT_CHARSET
@@ -622,6 +623,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
+      Transparent = True
       Wrapable = False
       object NewFileBtn: TToolButton
         Left = 0
@@ -662,6 +664,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
+      Transparent = True
       Wrapable = False
       object CompileBtn: TToolButton
         Left = 0
@@ -700,6 +703,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 2
+      Transparent = True
       Wrapable = False
       object AddToProjectBtn: TToolButton
         Left = 0
@@ -741,6 +745,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 3
+      Transparent = True
       Wrapable = False
       object BackBtn: TToolButton
         Left = 0
@@ -782,6 +787,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 4
+      Transparent = True
       Wrapable = False
       object FindBtn: TToolButton
         Left = 0
@@ -828,7 +834,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 5
-      Transparent = False
+      Transparent = True
       Wrapable = False
       object InsertBtn: TToolButton
         Left = 0
@@ -858,6 +864,7 @@ object MainForm: TMainForm
       EdgeOuter = esNone
       Flat = True
       TabOrder = 6
+      Transparent = True
       Wrapable = False
       DesignSize = (
         339
@@ -900,6 +907,7 @@ object MainForm: TMainForm
       Flat = True
       Images = dmMain.MenuImages_NewLook
       TabOrder = 7
+      Transparent = True
       object ToolButton17: TToolButton
         Left = 0
         Top = 0
@@ -960,6 +968,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 8
+      Transparent = True
       Wrapable = False
       object ToolButton7: TToolButton
         Left = 0

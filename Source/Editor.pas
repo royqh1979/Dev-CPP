@@ -33,6 +33,13 @@ const
 
 type
 
+  PTabStop = ^TTabStop;
+  TTabStop = record
+    x:integer;
+    endX:integer;
+    y:integer;
+  end;
+
   TSyntaxErrorType = (
     setError,
     setWarning);
