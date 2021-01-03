@@ -29,6 +29,8 @@ uses
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
+  USER_CODE_IN_REPL_POS_BEGIN: AnsiString = '%REPL_BEGIN%';
+  USER_CODE_IN_REPL_POS_END: AnsiString = '%REPL_END%';
   MAX_CARET_COUNT = 100;
 
 type
@@ -1086,10 +1088,10 @@ end;
 
 procedure TEditor.InsertUserCodeIn(Code: AnsiString);
 var
-  I, insertPos, lastPos, lastI: integer;
+  I, insertPos,insertEndPos, lastPos, lastI: integer;
   sl,newSl: TStringList;
   s :AnsiString;
-  p:PPoint;
+  p:PTabStop;
   CursorPos: TBufferCoord;
   spaceCount :integer;
   hasTabs: boolean;
@@ -1126,8 +1128,31 @@ begin
           Delete(s,insertPos,Length(USER_CODE_IN_INSERT_POS));
           dec(insertPos);
           p.x:=insertPos - lastPos;
+          p.endX := p.x;
           p.y:=i-lastI;
           lastPos := insertPos;
+          lastI:=i;
+          fUserCodeInTabStops.Add(p);
+        end;
+        while True do begin
+          insertPos := Pos(USER_CODE_IN_REPL_POS_BEGIN,s);
+          if insertPos = 0 then // no %INSERT% macro in this line now
+            break;
+          System.new(p);
+          Delete(s,insertPos,Length(USER_CODE_IN_REPL_POS_BEGIN));
+          dec(insertPos);
+          p.x:=insertPos - lastPos;
+
+          insertEndPos := insertPos + Pos(USER_CODE_IN_REPL_POS_END,copy(s,insertPos+1,MaxInt));
+          if insertEndPos <= insertPos then begin
+            p.endX := length(s);
+          end else begin
+            Delete(s,insertEndPos,Length(USER_CODE_IN_REPL_POS_END));
+            dec(insertEndPos);
+            p.endX := insertEndPos - lastPos;
+          end;
+          p.y:=i-lastI;
+          lastPos := insertEndPos;
           lastI:=i;
           fUserCodeInTabStops.Add(p);
         end;
@@ -1142,7 +1167,8 @@ begin
       fText.SelText := s;
       Text.CaretXY := CursorPos; //restore cursor pos before insert
       if fUserCodeInTabStops.Count > 0  then begin
-        fTabStopBegin :=0;
+        fTabStopBegin :=Text.CaretX;
+        fTabStopEnd := Text.CaretX;
         PopUserCodeInTabStops;
       end;
       if Code <> '' then
@@ -3498,11 +3524,11 @@ end;
 
   procedure  TEditor.ClearUserCodeInTabStops;
   var
-    p:PPoint;
+    p:PTabStop;
     i:integer;
   begin
     for i:=0 to fUserCodeInTabStops.Count-1 do begin
-      p:=PPoint(fUserCodeInTabStops[i]);
+      p:=PTabStop(fUserCodeInTabStops[i]);
       dispose(PPoint(p));
     end;
     fUserCodeInTabStops.Clear;
@@ -3511,29 +3537,37 @@ end;
   procedure TEditor.PopUserCodeInTabStops;
   var
       NewCursorPos: TBufferCoord;
-      p:PPoint;
+      p:PTabStop;
+      tabStopEnd:integer;
   begin
     if fTabStopBegin < 0 then begin
       ClearUserCodeInTabStops;
       Exit;
     end;
     if fUserCodeInTabStops.Count > 0 then begin
-      p:=PPoint(fUserCodeInTabStops[0]);
+      p:=PTabStop(fUserCodeInTabStops[0]);
       // Update the cursor
-      if p^.Y = 0 then
-        NewCursorPos.Char := fText.CaretX - fXOffsetSince + p^.X
-      else begin
+      if p^.Y = 0 then begin
+//        NewCursorPos.Char := fText.CaretX - fXOffsetSince + p^.X;
+//        tabStopEnd := fText.CaretX - fXOffsetSince + p^.endX;
+        NewCursorPos.Char := fTabStopEnd + p^.X;
+        tabStopEnd := fTabStopEnd + p^.endX;
+      end else begin
         NewCursorPos.Char := p^.X+1;
+        tabStopEnd := p^.endX+1;
       end;
       NewCursorPos.Line := fText.CaretY + p^.Y;
       fText.CaretXY := NewCursorPos;
       dispose(p);
       
-      fTabStopBegin:=fText.CaretX;
-      fTabStopEnd:=fText.CaretX;
       fTabStopY:=fText.CaretY;
+      fText.BlockBegin := NewCursorPos;
+      NewCursorPos.Char := tabStopEnd;
+      fText.BlockEnd := NewCursorPos;
+      fTabStopBegin:=fText.CaretX;
+      fTabStopEnd:=tabStopEnd;
       fLineBeforeTabStop:= Copy(fText.LineText,1,fTabStopBegin) ;
-      fLineAfterTabStop := Copy(fText.LineText,fTabStopBegin+1,MaxInt) ;
+      fLineAfterTabStop := Copy(fText.LineText,fTabStopEnd+1,MaxInt) ;
       fXOffsetSince:=0;
       fUserCodeInTabStops.Delete(0);
     end;
