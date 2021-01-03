@@ -1233,13 +1233,13 @@ begin
 
     // Put the caret at the active breakpoint
     fActiveLine := Line;
-    {
+
     if setFocus then
       SetCaretPosAndActivate(fActiveLine, 1)
     else
       SetCaretPos(fActiveLine,1);
-    }
-    SetCaretPosAndActivate(fActiveLine, 1)
+
+    //SetCaretPosAndActivate(fActiveLine, 1);
 
     // Invalidate new active line
     fText.InvalidateGutterLine(fActiveLine);

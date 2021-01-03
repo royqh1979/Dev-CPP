@@ -3873,13 +3873,15 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
-  DebugViews.ActivePage := DebugConsoleSheet;
+  OpenCloseMessageSheet(True);
   LeftPageControl.ActivePage := WatchSheet;
   fLeftPageControlChanged := False;
-  ClassBrowser.TabVisible:=False;  
+  ClassBrowser.TabVisible:=False;
   MessageControl.ActivePage := DebugSheet;
+  DebugViews.ActivePage := LocalSheet;  // we must have this line or devcpp ui will freeze
+  DebugViews.ActivePage := DebugConsoleSheet;
   fMessageControlChanged := False;
-  OpenCloseMessageSheet(True);
+
 
   // Reset watch vars
   fDebugger.DeleteWatchVars(false);
@@ -4697,9 +4699,9 @@ begin
   // Then active the current line in the current file
   e := fEditorList.GetEditorFromFileName(StringReplace(FileName, '/', '\', [rfReplaceAll]));
   if Assigned(e) then begin
-    //e.SetActiveBreakpointFocus(Line,setFocus);
-    e.SetActiveBreakpointFocus(Line);
-    e.Activate;
+    e.SetActiveBreakpointFocus(Line,setFocus);
+    //e.SetActiveBreakpointFocus(Line);
+    //e.Activate;
   end;
 //  if setFocus then
     Application.BringToFront;

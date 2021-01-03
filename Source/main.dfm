@@ -243,7 +243,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         TabOrder = 0
         OnDrawTab = OnDrawTab

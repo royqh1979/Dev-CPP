@@ -336,13 +336,11 @@ begin
 
 
   if doupdateexecution then begin
-    {
     if not assigned(fCurrentCmd) or (fCurrentCmd^.Source <> dcsConsole) then
       MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine) // set active line
     else
       MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine,False); // set active line
-    }
-    MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine);
+    //MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine);
     MainForm.Debugger.RefreshWatchVars; // update variable information
   end;
 
