@@ -6951,6 +6951,8 @@ begin
 
   //Load Colors
   LoadColor;
+
+  self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);

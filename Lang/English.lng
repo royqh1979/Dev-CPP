@@ -1348,7 +1348,7 @@ Ver=1
 79013=Namespaces
 79014=Labels
 79015=Preprocessor
-79016=Final command (add customizations here):
+79016=Final command:
 79017=Preview:
 79018=Could not find AStyle
 79019=Powered by %s
@@ -1360,6 +1360,7 @@ Ver=1
 79025=Put & at:
 79026=Delete Empty Lines
 79027=Delete Redundant Empty Lines
+79028=Custom Options:
 
 80000=Rename Symbol
 80001=New Name

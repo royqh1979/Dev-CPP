@@ -291,6 +291,8 @@ type
 
     fDeleteEmptyLines: boolean;
     fDeleteMultipleEmptyLines: boolean;
+
+    fCustomCommand: AnsiString;
     
     fFullCommand: AnsiString; // includes customizations
     fAStyleDir: AnsiString;
@@ -326,6 +328,7 @@ type
     property ReferenceAlign: integer read fReferenceAlign write fReferenceAlign;
     property DeleteEmptyLines: boolean read fDeleteEmptyLines write fDeleteEmptyLines;
     property DeleteMutipleEmptyLines: boolean read fDeleteMultipleEmptyLines write fDeleteMultipleEmptyLines;
+    property CustomCommand : string read fCustomCommand write fCustomCommand;
   end;
 
   // List of programs to use for unknown file extensions
@@ -2879,6 +2882,7 @@ begin
   fDeleteMultipleEmptyLines := False;
   fAStyleDir := 'AStyle\';
   fAStyleFile := 'AStyle.exe';
+  fCustomCommand := '';
 end;
 
 function TdevFormatter.GetFullCommand: AnsiString;
@@ -2934,7 +2938,9 @@ begin
     1: Result := Result + ' --align-reference=type';
     2: Result := Result + ' --align-reference=middle';
     3: Result := Result + ' --align-reference=name';
-  end;           
+  end;
+
+  Result := Result + ' ' + Trim(fCustomCommand);          
 
   Result := TrimLeft(Result);
 end;
