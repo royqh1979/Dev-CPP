@@ -13,6 +13,8 @@ Version 6.3-beta4 JAN 2021
     - fix: Special toolbar display error under dark themes.
     - enhancement: Position holder in user code template.
     - fix: ctrl+F11 maximization works properly
+    - fix: check syntax for new files
+    - enhancement: don't check syntax if new file is saved to a non c/cpp file
 
 Version 6.3-beta3 DEC 2020
 

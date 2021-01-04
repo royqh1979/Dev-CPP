@@ -426,7 +426,10 @@ begin
   Result := False;
 
   // ExpandFileName reduces all the "\..\" in the path
-  FullFileName := ExpandFileName(FileName);
+  if ContainsStr('..\',FileName) or ContainsStr('\..',FileName) then
+    FullFileName := ExpandFileName(FileName)
+  else
+    FullFileName := FileName;
 
   // First, check wether the file is already open
   for I := 0 to fLeftPageControl.PageCount - 1 do begin
@@ -460,7 +463,10 @@ begin
   Result := nil;
 
   // ExpandFileName reduces all the "\..\" in the path
-  FullFileName := ExpandFileName(FileName);
+  if ContainsStr('..\',FileName) or ContainsStr('\..',FileName) then
+    FullFileName := ExpandFileName(FileName)
+  else
+    FullFileName := FileName;
 
   // First, check wether the file is already open
   for I := 0 to fLeftPageControl.PageCount - 1 do begin

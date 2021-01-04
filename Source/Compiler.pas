@@ -808,10 +808,17 @@ begin
             end;
         else begin
             compilerName := fCompilerSet.gppName;
-            if fCheckSyntax then
-              cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCppCompileParams, fCppIncludesParams,
-                fLibrariesParams])
-            else
+            if fCheckSyntax then begin
+              if Target = ctFile then
+                cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
+                  fCppCompileParams, fCppIncludesParams,
+                  fLibrariesParams])
+              else  begin
+                cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c++',
+                  fCppCompileParams, fCppIncludesParams]);
+                redirectStdin := True;
+              end;
+            end else
               cmdline := Format(cHeaderCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams]);
 
             DoLogEntry(Lang[ID_LOG_PROCESSINGUNKNOWN]);

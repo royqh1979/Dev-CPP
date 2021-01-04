@@ -2160,7 +2160,7 @@ begin
     e:=EditorList.GetEditor();
     if assigned(e) then begin
       //CppParser.InvalidateFile(e.FileName);
-      self.CheckSyntaxInBack(e);
+      CheckSyntaxInBack(e);
     end;
     UpdateClassBrowserForEditor(e);
   finally
@@ -2357,7 +2357,8 @@ begin
   with CompilerOutput.Items.Add do begin
     Caption := _Line;
     SubItems.Add(_Col);
-    SubItems.Add(GetRealPath(_Unit));
+    //SubItems.Add(GetRealPath(_Unit));
+    SubItems.Add(_Unit);
     SubItems.Add(_Message);
   end;
 
@@ -2745,6 +2746,9 @@ begin
   if not Assigned(e) then
     Exit;
   if not devEditor.AutoCheckSyntax then
+    Exit;
+  //not c or cpp file
+  if e.Text.Highlighter <> dmMain.Cpp then
     Exit;
   if fCompiler.Compiling then
     Exit;

@@ -502,7 +502,7 @@ begin
   MainForm.CaretList.RemoveEditor(self);
 
 
-  if not InProject then begin
+  if not InProject and assigned(fParser) then begin
     fParser.Tokenizer.Free;
     fParser.Preprocessor.Free;
     fParser.Free;
@@ -827,7 +827,8 @@ begin
       then begin
       Reparse;
     end;
-    if fText.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+    if fText.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn
+      and (fText.Highlighter = dmMain.Cpp) then begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
@@ -3356,7 +3357,7 @@ begin
         Result := False;
       end;
 
-      if devCodeCompletion.Enabled then begin
+      if devCodeCompletion.Enabled and assigned(fParser) then begin
         BeginUpdate;
         try
         fParser.ParseFile(fFileName, InProject);
@@ -3427,7 +3428,8 @@ begin
 
   MainForm.FileMonitor.UnMonitor(fFileName);
   // Remove *old* file from statement list
-  fParser.InvalidateFile(FileName);
+  if assigned(fParser) then
+    fParser.InvalidateFile(FileName);
 
   // Try to save to disk
   try
@@ -3442,6 +3444,12 @@ begin
   // Update highlighter
   devEditor.AssignEditor(fText, SaveFileName);
 
+  if fText.Highlighter <> dmMain.Cpp then begin
+    MainForm.CompilerOutput.Items.Clear;
+    fErrorList.Clear;
+  end;
+
+
   // Update project information
   if Assigned(MainForm.Project) and Self.InProject then begin
     UnitIndex := MainForm.Project.Units.IndexOf(FileName); // index of *old* filename
@@ -3455,6 +3463,8 @@ begin
   // Set new file name
   FileName := SaveFileName;
   MainForm.FileMonitor.Monitor(fFileName);
+  if assigned(fParser) then
+    fParser.InvalidateFile(FileName);
 
   // Update window captions
   MainForm.UpdateAppTitle;
@@ -3852,9 +3862,11 @@ begin
   if fInProject then begin
     InitParser;
   end else begin
-    fParser.Tokenizer.Free;
-    fParser.Preprocessor.Free;
-    fParser.Free;
+    if assigned(fParser) then begin
+      fParser.Tokenizer.Free;
+      fParser.Preprocessor.Free;
+      fParser.Free;
+    end;
     fParser := MainForm.Project.CppParser;
     //MainForm.UpdateClassBrowserForEditor(self);
   end;
