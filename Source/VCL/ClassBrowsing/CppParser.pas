@@ -1749,6 +1749,9 @@ begin
 
   Inc(fIndex); //skip struct/class/union
 
+  if fIndex>=fTokenizer.Tokens.Count then
+    Exit;
+
   // Do not modifiy index initially
   I := fIndex;
 
@@ -2517,36 +2520,37 @@ begin
 
   // Call every member "enum NAME ITEMNAME"
   LastType := TrimRight('enum ' + EnumName);
-  repeat
-    if not (fTokenizer[fIndex]^.Text[1] in [',', ';']) then begin
-      if fTokenizer[fIndex]^.Text[Length(fTokenizer[fIndex]^.Text)] = ']' then begin //array; break args
-        Cmd := Copy(fTokenizer[fIndex]^.Text, 1, Pos('[', fTokenizer[fIndex]^.Text) - 1);
-        Args := Copy(fTokenizer[fIndex]^.Text, Pos('[', fTokenizer[fIndex]^.Text), Length(fTokenizer[fIndex]^.Text) -
-          Pos('[', fTokenizer[fIndex]^.Text) + 1);
-      end else begin
-        Cmd := fTokenizer[fIndex]^.Text;
-        Args := '';
+  if fTokenizer[fIndex]^.Text[1] <> '}' then begin
+    repeat
+      if not (fTokenizer[fIndex]^.Text[1] in [',', ';']) then begin
+        if fTokenizer[fIndex]^.Text[Length(fTokenizer[fIndex]^.Text)] = ']' then begin //array; break args
+          Cmd := Copy(fTokenizer[fIndex]^.Text, 1, Pos('[', fTokenizer[fIndex]^.Text) - 1);
+          Args := Copy(fTokenizer[fIndex]^.Text, Pos('[', fTokenizer[fIndex]^.Text), Length(fTokenizer[fIndex]^.Text) -
+            Pos('[', fTokenizer[fIndex]^.Text) + 1);
+        end else begin
+          Cmd := fTokenizer[fIndex]^.Text;
+          Args := '';
+        end;
+        AddStatement(
+          GetCurrentScope,
+          fCurrentFile,
+          LastType + ' ' + fTokenizer[fIndex]^.Text, // override hint
+          LastType,
+          Cmd,
+          Args,
+          '',
+          //fTokenizer[fIndex]^.Line,
+          startLine,
+          skEnum,
+          GetScope,
+          fClassScope,
+          True,
+          nil,
+          False);
       end;
-      AddStatement(
-        GetCurrentScope,
-        fCurrentFile,
-        LastType + ' ' + fTokenizer[fIndex]^.Text, // override hint
-        LastType,
-        Cmd,
-        Args,
-        '',
-        //fTokenizer[fIndex]^.Line,
-        startLine,
-        skEnum,
-        GetScope,
-        fClassScope,
-        True,
-        nil,
-        False);
-    end;
-    Inc(fIndex);
-  until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';', '{', '}']);
-
+      Inc(fIndex);
+    until (fIndex >= fTokenizer.Tokens.Count) or (fTokenizer[fIndex]^.Text[1] in [';', '{', '}']);
+  end;
   // Step over closing brace
   if (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex]^.Text[1] = '}') then
     Inc(fIndex);
@@ -2613,14 +2617,17 @@ begin
   end else if CheckForEnum then begin
     HandleEnum;
   end else if CheckForTypedef then begin
-    if CheckForTypedefStruct then begin // typedef struct something
-      Inc(fIndex); // skip 'typedef'
-      HandleStructs(True);
-    end else if CheckForTypedefEnum then begin // typedef enum something
-      Inc(fIndex); // skip 'typedef'
-      HandleEnum;
+    if fIndex+1 < fTokenizer.Tokens.Count then begin
+      if CheckForTypedefStruct then begin // typedef struct something
+        Inc(fIndex); // skip 'typedef'
+        HandleStructs(True);
+      end else if CheckForTypedefEnum then begin // typedef enum something
+        Inc(fIndex); // skip 'typedef'
+        HandleEnum;
+      end else
+        HandleOtherTypedefs; // typedef Foo Bar
     end else
-      HandleOtherTypedefs; // typedef Foo Bar
+      inc(fIndex);
   end else if CheckForNamespace then begin
     HandleNamespace;
   end else if CheckForUsing then begin

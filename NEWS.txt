@@ -11,13 +11,18 @@ Version 6.3-beta4 JAN 2021
     - enhancement: left click the left panel's active tab will hide it
     - enhancement: GDB console won't lose focus after executing commands.
     - fix: Special toolbar display error under dark themes.
-    - enhancement: Position holder in user code template.
+    - enhancement: Placeholder in user code template.
     - fix: ctrl+F11 maximization works properly
     - fix: check syntax for new files
     - enhancement: don't check syntax if new file is saved to a non c/cpp file
     - fix: installer : delete 'PackMaker.exe' when uninstall
     - fix: correctly intercept and process  windows turned off message
     - fix: auto-save modified files when windows turned off
+    - fix: parser error when 'typedef' is the last symbol
+    - fix: parser error when 'typedef struct' is the last symbol
+    - fix: parser error when 'typedef enum' is the last symbol
+    - fix: parser error for things like 'typedef enum {} E;'
+
 
 Version 6.3-beta3 DEC 2020
 
