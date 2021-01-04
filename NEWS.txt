@@ -12,6 +12,7 @@ Version 6.3-beta4 JAN 2021
     - enhancement: GDB console won't lose focus after executing commands.
     - fix: Special toolbar display error under dark themes.
     - enhancement: Position holder in user code template.
+    - fix: ctrl+F11 maximization works properly
 
 Version 6.3-beta3 DEC 2020
 

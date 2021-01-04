@@ -995,6 +995,10 @@ type
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
+    fPreviousLeftPanelOpened: boolean;
+    fPreviousBottomPanelOpened: boolean;
+    fPreviousLeftPageIndex : integer;
+    fPreviousBottomPageIndex: integer;
     fTools: TToolController; // tool list controller
     fProjectToolWindow: TForm; // floating left tab control
     fReportToolWindow: TForm; // floating bottom tab control
@@ -2039,9 +2043,9 @@ procedure TMainForm.OpenCloseLeftPageControl(Open: boolean);
 begin
 
   // Switch between open and close
-  if Open then
+  if Open then begin
     LeftPageControl.Width := fPreviousWidth
-  else begin
+  end else begin
     LeftPageControl.Width := LeftPageControl.Width - LeftProjectSheet.Width; // only show the tab captions
     LeftPageControl.ActivePageIndex := -1;
   end;
@@ -3129,13 +3133,23 @@ var
 begin
   devData.FullScreen := FullScreenModeItem.Checked;
   if devData.FullScreen then begin
-    self.OpenCloseMessageSheet(False);
-    devData.ProjectWidth:=self.LeftPageControl.Width;
-    self.LeftPageControl.Width := self.LeftPageControl.Constraints.MinWidth;
+    fPreviousLeftPanelOpened := splitterLeft.Visible;
+    fPreviousBottomPanelOpened:= splitterBottom.Visible;
+    fPreviousLeftPageIndex := leftPageControl.ActivePageIndex;
+    fPreviousBottomPageIndex := MessageControl.ActivePageIndex;
+    OpenCloseMessageSheet(False);
+    OpenCloseLeftPageControl(False);
   end else begin
-    //self.OpenCloseMessageSheet(True);
-    self.LeftPageControl.Width := devData.ProjectWidth;
-    self.MessageControl.ActivePage := self.DebugSheet;
+    if fPreviousLeftPanelOpened then begin
+      leftPageControl.ActivePageIndex := fPreviousLeftPageIndex;
+      fLeftPageControlChanged := False;
+      OpenCloseLeftPageControl(true);
+    end;
+    if fPreviousBottomPanelOpened then begin
+      MessageControl.ActivePageIndex := fPreviousBottomPageIndex;
+      fMessageControlChanged := False;
+      OpenCloseMessageSheet(true);
+    end;
   end;
 {
   // Remember focus
