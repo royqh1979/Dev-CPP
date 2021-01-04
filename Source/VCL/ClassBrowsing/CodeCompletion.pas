@@ -217,7 +217,7 @@ var
   lastI,I,t,k: integer;
   LastScopeStatement, ScopeTypeStatement, Statement : PStatement;
   LastScopeName, ScopeName, namespaceName,typeName: AnsiString;
-  LastOpType,opType: TOperatorType;
+  opType: TOperatorType;
   codeIn:PCodeIns;
   codeInStatement:PStatement;
 begin

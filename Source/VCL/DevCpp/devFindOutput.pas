@@ -52,7 +52,7 @@ type
 
   TFindOutput = class(TCustomTreeView)
   private
-    fControlCanvas: TControlCanvas;
+    //fControlCanvas: TControlCanvas;
     fFindNode: TTreeNode;
     fFileNode: TTreeNode;
     fMaxFindCount: integer;
@@ -142,7 +142,7 @@ end;
 
 procedure TFindOutput.removeFind(node:TTreeNode;deleteNode:boolean);
 var
-  child,oldChild:TTreeNode;
+  child:TTreeNode;
 
   procedure RemoveFileNode(node:TTreeNode;deleteNode:boolean);
   var
@@ -169,7 +169,7 @@ begin
     child := node.getFirstChild;
     while (assigned(child)) do begin
       removeFileNode(child,deleteNode);
-      oldChild := child;
+//      oldChild := child;
       child := child.getNextSibling;
     end;
   end;

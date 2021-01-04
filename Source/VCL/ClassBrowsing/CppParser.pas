@@ -1075,7 +1075,7 @@ end;
 
 function TCppParser.CheckForTypedefStruct: boolean;
 var
-  i,keyLen:integer;
+  keyLen:integer;
   word:String;
 begin
   //we assume that typedef is the current index, so we check the next
@@ -2558,7 +2558,6 @@ var
   isStatic,isFriend: boolean;
   block : PStatement;
   idx,idx2,idx3:integer;
-  attrEndIndex:integer;
 begin
   idx:=GetCurrentBlockEndSkip;
   idx2:=GetCurrentBlockBeginSkip;
@@ -4295,7 +4294,7 @@ end;
 
 procedure TCppParser.ScanMethodArgs(const FunctionStatement:PStatement; ArgStr:string);
 var
-  I, ParamStart, SpacePos, BracePos,bracketPos,assignPos: integer;
+  I, ParamStart, SpacePos, bracketPos,assignPos: integer;
   S,Args: AnsiString;
 begin
   // Split up argument string by ,

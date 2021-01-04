@@ -925,6 +925,7 @@ type
       Selected: Boolean);
     procedure actRunTestsExecute(Sender: TObject);
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
+    procedure WMQueryEndSession(var   Msg:TMessage); message   WM_QUERYENDSESSION;  
     procedure actDonateExecute(Sender: TObject);
     procedure actRenameSymbolExecute(Sender: TObject);
     procedure actUseUTF8Execute(Sender: TObject);
@@ -1162,7 +1163,7 @@ procedure TPageControl.WMPaint(var Message: TWMPaint);
 var
 //  C: TControlCanvas;
   R: TRect;
-  i,nsel:integer;
+  i:integer;
   DC: HDC;
   PS: TPaintStruct;
   bgColor,fgColor: TColor;
@@ -7620,6 +7621,12 @@ begin
   end;
 end;
 
+procedure TMainForm.WMQueryEndSession(var   Msg:TMessage);
+begin
+  self.Close;
+  msg.Result:=1;
+end;
+
 procedure TMainForm.WMCopyData(var Message: TMessage);
 var
   MessageData: AnsiString;
@@ -7688,11 +7695,9 @@ end;
 
 procedure TMainForm.actRenameSymbolExecute(Sender: TObject);
 var
-  Editor,e : TEditor;
+  Editor: TEditor;
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
-  i : integer;
-  M: TMemoryStream;
   oldCursor : TCursor;
 begin
   Editor := fEditorList.GetEditor;
@@ -8866,7 +8871,6 @@ procedure TMainForm.MessageControlMouseUp(Sender: TObject;
 var
   hi: TTCHitTestInfo;
   tabindex: Integer;
-  e:TEditor;
   oldTabIndex: integer;
 begin
   If Button = mbLeft Then Begin
@@ -8895,7 +8899,6 @@ procedure TMainForm.LeftPageControlMouseUp(Sender: TObject;
 var
   hi: TTCHitTestInfo;
   tabindex: Integer;
-  e:TEditor;
   oldTabIndex: integer;
 begin
   If Button = mbLeft Then Begin

@@ -153,6 +153,7 @@ procedure TDevCaretList.LinesDeleted(const editor:TObject;const FirstLine: integ
 var
   i,oldIndex: integer;
 begin
+  oldIndex := FIndex;
   for i:= 1 to FCount do begin
     if (FList[i].editor = editor)
       and (FList[i].line >= FirstLine) then begin
