@@ -1023,6 +1023,7 @@ type
     fCheckSyntaxInBack : boolean;
     fCaretList: TDevCaretList;
     fClosing: boolean;
+    fWindowsTurnedOff:boolean;
     fMessageControlChanged : boolean;
     fLeftPageControlChanged : boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
@@ -1352,7 +1353,7 @@ begin
   if Assigned(fProject) then
     CloseProject(False);
 
-  if Assigned(fProject) then begin
+  if Assigned(fProject) and not fWindowsTurnedOff then begin
     Action := caNone;
     Exit;
   end;
@@ -2848,8 +2849,8 @@ begin
   fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
-    UpdateClassBrowserForEditor(nil);  
-    fEditorList.CloseAll; // PageControlChange triggers other UI updates
+    UpdateClassBrowserForEditor(nil);
+    fEditorList.CloseAll(fWindowsTurnedOff); // PageControlChange triggers other UI updates
   finally
     ClassBrowser.EndUpdate;
   end;
@@ -2874,7 +2875,10 @@ begin
       else
         s := fProject.Name;
 
-      case MessageDlg(Format(Lang[ID_MSG_SAVEPROJECT], [s]), mtConfirmation, mbYesNoCancel, 0) of
+      if fWindowsTurnedOff then
+        fProject.SaveAll
+      else
+        case MessageDlg(Format(Lang[ID_MSG_SAVEPROJECT], [s]), mtConfirmation, mbYesNoCancel, 0) of
         mrYes: begin
             fProject.SaveAll; // do NOT save layout twice
           end;
@@ -6714,6 +6718,7 @@ begin
   Application.HintHidePause:=300000; //5mins before the hint auto disapear
   fQuitting:=False;
   fClosing:=False;
+  fWindowsTurnedOff:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
   fCaretList:=TDevCaretList.Create;
@@ -7621,7 +7626,8 @@ end;
 
 procedure TMainForm.WMQueryEndSession(var   Msg:TMessage);
 begin
-  self.Close;
+  fWindowsTurnedOff := True;
+  Close;
   msg.Result:=1;
 end;
 

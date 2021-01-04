@@ -203,7 +203,7 @@ type
       InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl;
        textEdit: TSynEdit = nil);
     destructor Destroy; override;
-    function Save: boolean;
+    function Save(force:boolean=False): boolean;
     function SaveAs: boolean;
     procedure Activate;
     procedure GotoLine;
@@ -3323,7 +3323,7 @@ begin
   end;
 end;
 
-function TEditor.Save: boolean;
+function TEditor.Save(force:boolean = False): boolean;
 begin
   Result := True;
 
@@ -3332,7 +3332,7 @@ begin
   try
 
     // Is this file read-only?
-    if FileExists(fFileName) and (FileGetAttr(fFileName) and faReadOnly <> 0) then begin
+    if (not force) and FileExists(fFileName) and (FileGetAttr(fFileName) and faReadOnly <> 0) then begin
 
       // Yes, ask the user if he wants us to fix that
       if MessageDlg(Format(Lang[ID_MSG_FILEISREADONLY], [fFileName]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
@@ -3353,11 +3353,12 @@ begin
         SaveFile(fFileName);
         fText.Modified := false;
       except
-        MessageDlg(Format(Lang[ID_ERR_SAVEFILE], [fFileName]), mtError, [mbOk], 0);
+        if not force then
+          MessageDlg(Format(Lang[ID_ERR_SAVEFILE], [fFileName]), mtError, [mbOk], 0);
         Result := False;
       end;
 
-      if devCodeCompletion.Enabled and assigned(fParser) then begin
+      if not force and devCodeCompletion.Enabled and assigned(fParser) then begin
         BeginUpdate;
         try
         fParser.ParseFile(fFileName, InProject);
