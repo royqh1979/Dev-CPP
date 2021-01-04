@@ -7272,8 +7272,6 @@ procedure TMainForm.CompilerOutputDeletion(Sender: TObject; Item: TListItem);
 begin
   if Application.Terminated or fQuitting then
     Exit; // form is being destroyed
-  if not LangOK then
-    Exit;
   if (CompilerOutput.Items.Count > 1) then
     CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count - 1) + ')'
   else

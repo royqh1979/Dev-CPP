@@ -52,7 +52,6 @@ type
   end;
 
 function Lang: TdevMultiLangSupport;
-function LangOK: boolean;
 
 implementation
 
@@ -61,20 +60,13 @@ uses
 
 var
   fLangSingleton: TdevMultiLangSupport = nil;
-  fInitialed : boolean = False;
 
 function Lang: TdevMultiLangSupport;
 begin
-  if not Assigned(fLangSingleton) and not Application.Terminated and not fInitialed then begin
+  if not Assigned(fLangSingleton) and not Application.Terminated then begin
     fLangSingleton := TdevMultiLangSupport.Create;
-    fInitialed:=True;
   end;
   Result := fLangSingleton;
-end;
-
-function LangOK: boolean;
-begin
-  Result := Assigned(fLangSingleton) or not fInitialed;
 end;
 
 constructor TdevMultiLangSupport.Create;
