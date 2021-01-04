@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "No.Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.3-beta3"
+!define DEVCPP_VERSION "6.3-beta4"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -537,6 +537,7 @@ Section "Uninstall"
 
   Delete "$INSTDIR\Packman.map"
   Delete "$INSTDIR\Packman.exe"
+  Delete "$INSTDIR\PackMaker.exe"
   Delete "$INSTDIR\NEWS.txt"
   Delete "$INSTDIR\devcpp.map"
   Delete "$INSTDIR\devcpp.exe"
