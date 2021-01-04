@@ -1930,6 +1930,9 @@ object MainForm: TMainForm
     object OpenShellHere1: TMenuItem
       Action = actOpenConsole
     end
+    object OpenWindowsTerminalHere2: TMenuItem
+      Action = actOpenWindowsTerminal
+    end
     object N16: TMenuItem
       Caption = '-'
     end
@@ -3067,6 +3070,13 @@ object MainForm: TMainForm
       ImageIndex = 64
       OnExecute = actBrowserSortByTypeExecute
     end
+    object actOpenWindowsTerminal: TAction
+      Category = 'File'
+      Caption = 'Open WindowsTerminal Here'
+      ImageIndex = 42
+      OnExecute = actOpenWindowsTerminalExecute
+      OnUpdate = actOpenWindowsTerminalUpdate
+    end
     object actOpenConsole: TAction
       Category = 'File'
       Caption = 'Open Shell Here'
@@ -3438,6 +3448,9 @@ object MainForm: TMainForm
     end
     object MenuItem29: TMenuItem
       Action = actOpenConsole
+    end
+    object OpenWindowsTerminalHere1: TMenuItem
+      Action = actOpenWindowsTerminal
     end
     object N22: TMenuItem
       Caption = '-'

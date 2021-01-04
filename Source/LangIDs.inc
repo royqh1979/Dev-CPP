@@ -260,6 +260,7 @@ const
   ID_POP_PRJOPENFOLDER                  = 12023;
   ID_POP_PRJOPENCONSOLE                 = 12024;
   ID_POP_CLEAR_ALL_FINDS                = 12025;
+  ID_POP_OPEN_WT                         = 12026;
 
   // message control
   ID_SHEET_COMP                         = 13001;

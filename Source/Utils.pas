@@ -58,6 +58,17 @@ type
     Background:TColor;
   end;
 
+  TDevEnvironment = class(TObject)
+  private
+    fHasWindowsTerminal:boolean;
+  public
+    constructor Create;
+    property HasWindowsTerminal: boolean read fHasWindowsTerminal;
+  end;
+
+var
+  devEnvironment: TDevEnvironment;
+
 procedure FilesFromWildcard(Directory: AnsiString; const Mask: AnsiString; Files: TStringList; Subdirs, ShowDirs,
   Multitasking: Boolean);
 
@@ -197,11 +208,13 @@ function CreateDirRecursive(const Dir: string): Boolean;
 procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
 
 procedure ResetCppParser(CppParser:TCppParser);
+
+
 implementation
 
 uses
   devcfg, version, StrUtils, MultiLangSupport, main, editor, ShlObj, ActiveX, codepage,
-  FileCtrl;
+  FileCtrl, SHFolder;
 
 var
   RunAndExecCount : integer=0;
@@ -1727,5 +1740,37 @@ begin
 
   CppParser.ParseHardDefines;
 end;
+
+{ TDevEnvironment}
+constructor TDevEnvironment.Create;
+var
+  LocalAppData: AnsiString;
+  windowsAppFolder: AnsiString;
+  Buffer: array[0..MAX_PATH] of char;
+  wtPath : AnsiString;
+begin
+  LocalAppData := '';
+  fHasWindowsTerminal := False;
+  if SUCCEEDED(SHGetFolderPath(0, CSIDL_LOCAL_APPDATA, 0, 0, Buffer)) then
+    LocalAppData := IncludeTrailingBackslash(AnsiString(Buffer));
+  if LocalAppData <> '' then begin
+    windowsAppFolder := LocalAppData + 'Microsoft\WindowsApps\';
+    wtPath := windowsAppFolder + 'wt.exe';
+  end;
+  if FileExists(wtPath) then
+    fHasWindowsTerminal := True;
+
+end;
+
+initialization
+begin
+  devEnvironment := TDevEnvironment.Create;
+end;
+
+finalization
+begin
+  FreeAndNil(devEnvironment);
+end;
+
 end.
 

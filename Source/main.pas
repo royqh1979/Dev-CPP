@@ -676,6 +676,9 @@ type
     ConvertToAnsi1: TMenuItem;
     LocalSheet: TTabSheet;
     txtLocals: TMemo;
+    actOpenWindowsTerminal: TAction;
+    OpenWindowsTerminalHere1: TMenuItem;
+    OpenWindowsTerminalHere2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -993,6 +996,8 @@ type
     procedure SplitterLeftMoved(Sender: TObject);
     procedure LeftPageControlMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure actOpenWindowsTerminalExecute(Sender: TObject);
+    procedure actOpenWindowsTerminalUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1061,6 +1066,7 @@ type
     procedure StopTabnine;
     procedure ChangeEncoding(encoding:TFileEncodingType);
     procedure UpdateDebugInfo;
+    procedure OpenShell(Sender: TObject;const shellName:string);
   public
     function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
@@ -1883,6 +1889,7 @@ begin
   actOpenFolder.Caption := Lang[ID_POP_OPENCONTAINING];
   actAddToDo.Caption := Lang[ID_POP_ADDTODOITEM];
   actOpenConsole.Caption := Lang[ID_POP_OPEN_CONSOLE];
+  actOpenWindowsTerminal.Caption := Lang[ID_POP_OPEN_WT];
 
   // Class Browser Popup
   actBrowserGotoDeclaration.Caption := Lang[ID_POP_GOTODECL];
@@ -8072,7 +8079,7 @@ begin
   fDebugger.CommandChanged := true;
 end;
 
-procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+procedure TMainForm.OpenShell(Sender: TObject;const shellName:string);
 var
   e: TEditor;
   Folder: AnsiString;
@@ -8115,9 +8122,15 @@ begin
           Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
         Exit;
       end;
-      ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+      ShellExecute(Application.Handle, 'open', pAnsiChar(shellName),  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
     end;
   end;
+end;
+
+
+procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+begin
+  OpenShell(Sender,'cmd.exe');
 end;
 
 procedure TMainForm.WatchViewDblClick(Sender: TObject);
@@ -8920,6 +8933,17 @@ begin
   End;
 end;
 
+
+procedure TMainForm.actOpenWindowsTerminalExecute(Sender: TObject);
+begin
+  OpenShell(sender,'wt.exe');
+end;
+
+procedure TMainForm.actOpenWindowsTerminalUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := devEnvironment.HasWindowsTerminal
+    and (fEditorList.PageCount > 0);
+end;
 
 end.
 
