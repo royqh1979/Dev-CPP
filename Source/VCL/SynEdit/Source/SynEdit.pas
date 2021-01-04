@@ -6865,17 +6865,20 @@ begin
         if not ReadOnly then begin
           SetString(s, PChar(Data), StrLen(Data));
           if SelAvail then begin
+          {
             BeginUndoBlock;
             try
-              fUndoList.AddChange(crDelete, fBlockBegin, fBlockEnd, helper,
+              fUndoList.AddChange(crDelete, fBlockBegin, fBlockEnd, selText,
                 smNormal);
               StartOfBlock := fBlockBegin;
               SetSelTextPrimitive(s);
-              fUndoList.AddChange(crInsert, fBlockBegin, fBlockEnd, helper,
+              fUndoList.AddChange(crInsert, fBlockBegin, fBlockEnd, s,
                 smNormal);
             finally
               EndUndoBlock;
             end;
+          }
+            SetSelTextExternal(s);
             InvalidateGutterLines(-1, -1);
           end else begin
             Temp := LineText;

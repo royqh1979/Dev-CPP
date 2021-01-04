@@ -24,6 +24,7 @@ Version 6.3-beta4 JAN 2021
     - fix: parser error for things like 'typedef enum {} E;'
     - enhancement: open windows terminal in the current file's folder
     - enhancement: custom option for astyle (code reformater)
+    - fix: undo failed when selected text is overrided with text inputed by IME
 
 
 Version 6.3-beta3 DEC 2020
