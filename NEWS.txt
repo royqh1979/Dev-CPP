@@ -25,6 +25,9 @@ Version 6.3-beta4 JAN 2021
     - enhancement: open windows terminal in the current file's folder
     - enhancement: custom option for astyle (code reformater)
     - fix: undo failed when selected text is overrided with text inputed by IME
+    - fix: half chinese character when type and delete chinese characters in the find dialog's input combobox
+    - enhancement: upgrade xege to git master
+    - fix: toggle comment doesn't work
 
 
 Version 6.3-beta3 DEC 2020

@@ -6653,11 +6653,12 @@ begin
           OrigBlockBegin := BlockBegin;
           OrigBlockEnd := BlockEnd;
 
+          BeginIndex := OrigBlockBegin.Line - 1;
           // Ignore the last line the cursor is placed on
-          if (BlockEnd.Char = 1) and (BlockBegin.Line < BlockEnd.Line) then
-            EndIndex := max(0, BlockEnd.Line - 2)
+          if (OrigBlockEnd.Char = 1) and (OrigBlockBegin.Line < OrigBlockEnd.Line) then
+            EndIndex := max(0, OrigBlockEnd.Line - 2)
           else
-            EndIndex := BlockEnd.Line - 1;
+            EndIndex := OrigBlockEnd.Line - 1;
 
           // if everything is commented, then uncomment
           for I := BeginIndex to EndIndex do begin

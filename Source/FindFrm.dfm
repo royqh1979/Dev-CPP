@@ -85,6 +85,7 @@ object FindForm: TFindForm
       Top = 57
       Width = 386
       Height = 24
+      AutoComplete = False
       ItemHeight = 16
       TabOrder = 0
       OnKeyUp = cboFindTextKeyUp
@@ -246,6 +247,7 @@ object FindForm: TFindForm
       Top = 108
       Width = 386
       Height = 24
+      AutoComplete = False
       ItemHeight = 16
       TabOrder = 1
       OnKeyUp = cboReplaceTextKeyUp
