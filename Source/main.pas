@@ -5386,15 +5386,15 @@ procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 var
   p1,p2:integer;
 begin
-  if self.fQuitting then
-    Exit;
-  if not devCodeCompletion.Enabled then
-    Exit;
   if not Assigned(e) then begin
     ClassBrowser.Parser := nil;
     ClassBrowser.CurrentFile:='';
     Exit;
   end;
+  if self.fQuitting then
+    Exit;
+  if not devCodeCompletion.Enabled then
+    Exit;
   if (ClassBrowser.CurrentFile = e.FileName)
     and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;

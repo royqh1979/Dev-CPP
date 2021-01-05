@@ -29,6 +29,7 @@ Version 6.3-beta4 JAN 2021
     - enhancement: upgrade xege to git master
     - fix: toggle comment doesn't work
     - enhancement: don't display things like '12s' as error (C++ 11 User-defined literals support)
+    - fix: error when quit
 
 
 Version 6.3-beta3 DEC 2020
