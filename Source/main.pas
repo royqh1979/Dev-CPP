@@ -7657,6 +7657,7 @@ begin
         OpenFileList(fFilesToOpen);
         fFilesToOpen.Clear;
       end;
+      ShowWindow(Application.Handle,SW_RESTORE);
       Application.BringToFront;
     finally
       fCriticalSection.Release;
