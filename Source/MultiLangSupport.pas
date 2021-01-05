@@ -63,8 +63,9 @@ var
 
 function Lang: TdevMultiLangSupport;
 begin
-  if not Assigned(fLangSingleton) and not Application.Terminated then
+  if not Assigned(fLangSingleton) and not Application.Terminated then begin
     fLangSingleton := TdevMultiLangSupport.Create;
+  end;
   Result := fLangSingleton;
 end;
 

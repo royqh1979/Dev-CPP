@@ -3,7 +3,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
   Top = 84
   BorderStyle = bsDialog
   Caption = 'Formatter Options'
-  ClientHeight = 714
+  ClientHeight = 761
   ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,12 +19,12 @@ object FormatterOptionsForm: TFormatterOptionsForm
   OnCreate = FormCreate
   DesignSize = (
     800
-    714)
+    761)
   PixelsPerInch = 120
   TextHeight = 20
   object lblPoweredBy: TLabel
     Left = 0
-    Top = 680
+    Top = 727
     Width = 428
     Height = 20
     Alignment = taCenter
@@ -34,14 +34,14 @@ object FormatterOptionsForm: TFormatterOptionsForm
   end
   object lblPreview: TLabel
     Left = 11
-    Top = 411
+    Top = 491
     Width = 54
     Height = 20
     Caption = 'Preview:'
   end
   object btnOk: TBitBtn
     Left = 440
-    Top = 671
+    Top = 718
     Width = 113
     Height = 34
     Anchors = [akLeft, akBottom]
@@ -71,7 +71,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
   end
   object btnCancel: TBitBtn
     Left = 560
-    Top = 671
+    Top = 718
     Width = 113
     Height = 34
     Anchors = [akLeft, akBottom]
@@ -101,7 +101,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
   end
   object btnHelp: TBitBtn
     Left = 680
-    Top = 671
+    Top = 718
     Width = 113
     Height = 34
     Anchors = [akLeft, akBottom]
@@ -111,9 +111,9 @@ object FormatterOptionsForm: TFormatterOptionsForm
   end
   object synExample: TSynEdit
     Left = 11
-    Top = 440
+    Top = 520
     Width = 778
-    Height = 225
+    Height = 193
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -18
@@ -142,7 +142,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
     Left = 11
     Top = 11
     Width = 778
-    Height = 390
+    Height = 470
     Caption = 'Options'
     TabOrder = 4
     object lblBracketStyle: TLabel
@@ -168,7 +168,7 @@ object FormatterOptionsForm: TFormatterOptionsForm
     end
     object lblCommand: TLabel
       Left = 21
-      Top = 285
+      Top = 365
       Width = 281
       Height = 20
       Caption = 'Final command (add customizations here):'
@@ -192,6 +192,13 @@ object FormatterOptionsForm: TFormatterOptionsForm
       Width = 108
       Height = 20
       Caption = 'Align Reference:'
+    end
+    object lblCustomOption: TLabel
+      Left = 21
+      Top = 285
+      Width = 103
+      Height = 20
+      Caption = 'Custom Option:'
     end
     object cmbBracketStyle: TComboBox
       Left = 139
@@ -250,9 +257,10 @@ object FormatterOptionsForm: TFormatterOptionsForm
     end
     object memFullCommand: TMemo
       Left = 21
-      Top = 312
+      Top = 392
       Width = 736
       Height = 68
+      ReadOnly = True
       TabOrder = 3
       OnChange = CommandChange
     end
@@ -403,6 +411,14 @@ object FormatterOptionsForm: TFormatterOptionsForm
       Caption = 'Delete Redundant Empty Lines'
       TabOrder = 12
       OnClick = OptionChange
+    end
+    object memoCustomCommand: TMemo
+      Left = 21
+      Top = 312
+      Width = 736
+      Height = 41
+      TabOrder = 13
+      OnChange = OptionChange
     end
   end
 end

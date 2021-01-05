@@ -2112,7 +2112,8 @@ begin
     if Assigned(FoldRange) then begin
 
       // See if we actually clicked on the rectangle...
-      rect.Left := Gutter.RealGutterWidth(CharWidth) - Gutter.RightOffset;
+      //rect.Left := Gutter.RealGutterWidth(CharWidth) - Gutter.RightOffset;
+      rect.Left := fGutterWidth - Gutter.RightOffset;
       rect.Right := rect.Left + Gutter.RightOffset - 4;
       rect.Top := (RowColumn.Row - fTopLine) * LineHeight;
       rect.Bottom := rect.Top + LineHeight;
@@ -3206,6 +3207,11 @@ var
             end;
             // It's at least partially visible. Get the token attributes now.
             attr := fHighlighter.GetTokenAttribute;
+            {
+            if (nTokenPos = 0) and (attr = fHighlighter.WhitespaceAttribute) then begin
+              sToken := StringOfChar('.',nTokenLen);
+            end;
+            }
             if sToken = '[' then begin
               GetBraceColorAttr(fHighlighter.GetBracketLevel,attr);
             end else if sToken = ']' then begin
@@ -6647,11 +6653,12 @@ begin
           OrigBlockBegin := BlockBegin;
           OrigBlockEnd := BlockEnd;
 
+          BeginIndex := OrigBlockBegin.Line - 1;
           // Ignore the last line the cursor is placed on
-          if (BlockEnd.Char = 1) and (BlockBegin.Line < BlockEnd.Line) then
-            EndIndex := max(0, BlockEnd.Line - 2)
+          if (OrigBlockEnd.Char = 1) and (OrigBlockBegin.Line < OrigBlockEnd.Line) then
+            EndIndex := max(0, OrigBlockEnd.Line - 2)
           else
-            EndIndex := BlockEnd.Line - 1;
+            EndIndex := OrigBlockEnd.Line - 1;
 
           // if everything is commented, then uncomment
           for I := BeginIndex to EndIndex do begin
@@ -6859,17 +6866,20 @@ begin
         if not ReadOnly then begin
           SetString(s, PChar(Data), StrLen(Data));
           if SelAvail then begin
+          {
             BeginUndoBlock;
             try
-              fUndoList.AddChange(crDelete, fBlockBegin, fBlockEnd, helper,
+              fUndoList.AddChange(crDelete, fBlockBegin, fBlockEnd, selText,
                 smNormal);
               StartOfBlock := fBlockBegin;
               SetSelTextPrimitive(s);
-              fUndoList.AddChange(crInsert, fBlockBegin, fBlockEnd, helper,
+              fUndoList.AddChange(crInsert, fBlockBegin, fBlockEnd, s,
                 smNormal);
             finally
               EndUndoBlock;
             end;
+          }
+            SetSelTextExternal(s);
             InvalidateGutterLines(-1, -1);
           end else begin
             Temp := LineText;

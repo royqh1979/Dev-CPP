@@ -1,3 +1,38 @@
+Version 6.3-beta4 JAN 2021
+   
+    - fix: devcpp crash when tring to turn off the windows sytem while devcpp is running
+    - enhancement: the parser support complex template parameters in type definitions;
+    - enhancement: the parser support C++ 11 attr in struct/class/union defininitions;
+    - enhancement: the parser support {} object initializer , like A x {new A};    
+    - enhancement: correctly parse and show code suggestion for std::future
+    - enhancement: left click the message panel's active tab will hide it
+    - enhancement: add local variables tab to the debug panel
+    - fix: Click test for the folder icon on the gutter is wrong if the option "use custom font" for gutter is turned on. 
+    - enhancement: left click the left panel's active tab will hide it
+    - enhancement: GDB console won't lose focus after executing commands.
+    - fix: Special toolbar display error under dark themes.
+    - enhancement: Placeholder in user code template.
+    - fix: ctrl+F11 maximization works properly
+    - fix: check syntax for new files
+    - enhancement: don't check syntax if new file is saved to a non c/cpp file
+    - fix: installer : delete 'PackMaker.exe' when uninstall
+    - fix: correctly intercept and process  windows turned off message
+    - fix: auto-save modified files when windows turned off
+    - fix: parser error when 'typedef' is the last symbol
+    - fix: parser error when 'typedef struct' is the last symbol
+    - fix: parser error when 'typedef enum' is the last symbol
+    - fix: parser error for things like 'typedef enum {} E;'
+    - enhancement: open windows terminal in the current file's folder
+    - enhancement: custom option for astyle (code reformater)
+    - fix: undo failed when selected text is overrided with text inputed by IME
+    - fix: half chinese character when type and delete chinese characters in the find dialog's input combobox
+    - enhancement: upgrade xege to git master
+    - fix: toggle comment doesn't work
+    - enhancement: don't display things like '12s' as error (C++ 11 User-defined literals support)
+    - fix: error when quit
+    - fix: when devcpp is minimized and bring to front by open c/cpp file in file browser, the minimize button doesn't work
+
+
 Version 6.3-beta3 DEC 2020
 
     - fix: code suggestion for #include headers in the sub directories which appears in more than two system or project include dirs

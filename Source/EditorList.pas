@@ -50,8 +50,8 @@ type
     function IsFileOpened(const FileName: AnsiString):boolean;
     function GetPreviousEditor(Editor: TEditor): TEditor;
     procedure ForceCloseEditor(Editor: TEditor); // close, no questions asked
-    function CloseEditor(Editor: TEditor; transferFocus:boolean = True): Boolean;
-    function CloseAll: boolean;
+    function CloseEditor(Editor: TEditor; transferFocus:boolean = True; force:boolean = False): Boolean;
+    function CloseAll(force:boolean = False): boolean;
     function CloseAllButThis: boolean;
     function SwapEditor(Editor: TEditor): boolean;
     procedure OnPanelResize(Sender: TObject);
@@ -309,7 +309,7 @@ begin
   end;
 end;
 
-function TEditorList.CloseEditor(Editor: TEditor; transferFocus:boolean): Boolean;
+function TEditorList.CloseEditor(Editor: TEditor; transferFocus:boolean; force:boolean): Boolean;
 var
   projindex: integer;
   PrevEditor: TEditor;
@@ -318,8 +318,10 @@ begin
   if not Assigned(Editor) then
     Exit;
 
-  // Ask user if he wants to save
-  if Editor.Text.Modified and not Editor.Text.IsEmpty then begin
+  if force then
+    editor.save(true)
+  else if Editor.Text.Modified and not Editor.Text.IsEmpty then begin
+    // Ask user if he wants to save
     case MessageDlg(Format(Lang[ID_MSG_ASKSAVECLOSE], [Editor.FileName]), mtConfirmation, mbYesNoCancel, 0) of
       mrYes:
         if not Editor.Save then
@@ -359,7 +361,7 @@ begin
   end;
 end;
 
-function TEditorList.CloseAll: boolean;
+function TEditorList.CloseAll(force:boolean = False): boolean;
 begin
   Result := False;
 
@@ -369,12 +371,12 @@ begin
     // Keep closing the first one to prevent redrawing
     //e:=GetEditor(-1,fLeftPageControl);
     while fLeftPageControl.PageCount > 0 do
-      if not CloseEditor(GetEditor(0, fLeftPageControl),False) then
+      if not CloseEditor(GetEditor(0, fLeftPageControl),False,force) then
         Exit;
 
     // Same for the right page control
     while fRightPageControl.PageCount > 0 do
-      if not CloseEditor(GetEditor(0, fRightPageControl),False) then
+      if not CloseEditor(GetEditor(0, fRightPageControl),False,force) then
         Exit;
   finally
     EndUpdate;
@@ -426,7 +428,10 @@ begin
   Result := False;
 
   // ExpandFileName reduces all the "\..\" in the path
-  FullFileName := ExpandFileName(FileName);
+  if ContainsStr('..\',FileName) or ContainsStr('\..',FileName) then
+    FullFileName := ExpandFileName(FileName)
+  else
+    FullFileName := FileName;
 
   // First, check wether the file is already open
   for I := 0 to fLeftPageControl.PageCount - 1 do begin
@@ -460,7 +465,10 @@ begin
   Result := nil;
 
   // ExpandFileName reduces all the "\..\" in the path
-  FullFileName := ExpandFileName(FileName);
+  if ContainsStr('..\',FileName) or ContainsStr('\..',FileName) then
+    FullFileName := ExpandFileName(FileName)
+  else
+    FullFileName := FileName;
 
   // First, check wether the file is already open
   for I := 0 to fLeftPageControl.PageCount - 1 do begin

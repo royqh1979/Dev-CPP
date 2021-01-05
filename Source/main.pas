@@ -674,6 +674,11 @@ type
     actUTF8: TAction;
     actConvertToAnsi: TAction;
     ConvertToAnsi1: TMenuItem;
+    LocalSheet: TTabSheet;
+    txtLocals: TMemo;
+    actOpenWindowsTerminal: TAction;
+    OpenWindowsTerminalHere1: TMenuItem;
+    OpenWindowsTerminalHere2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -923,6 +928,7 @@ type
       Selected: Boolean);
     procedure actRunTestsExecute(Sender: TObject);
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
+    procedure WMQueryEndSession(var   Msg:TMessage); message   WM_QUERYENDSESSION;  
     procedure actDonateExecute(Sender: TObject);
     procedure actRenameSymbolExecute(Sender: TObject);
     procedure actUseUTF8Execute(Sender: TObject);
@@ -985,8 +991,20 @@ type
     procedure actEncodingTypeExecute(Sender: TObject);
     procedure actConvertToAnsiExecute(Sender: TObject);
     procedure actConvertToAnsiUpdate(Sender: TObject);
+    procedure MessageControlMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure SplitterLeftMoved(Sender: TObject);
+    procedure LeftPageControlMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure actOpenWindowsTerminalExecute(Sender: TObject);
+    procedure actOpenWindowsTerminalUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
+    fPreviousWidth: integer; //stores LeftPageControl width;
+    fPreviousLeftPanelOpened: boolean;
+    fPreviousBottomPanelOpened: boolean;
+    fPreviousLeftPageIndex : integer;
+    fPreviousBottomPageIndex: integer;
     fTools: TToolController; // tool list controller
     fProjectToolWindow: TForm; // floating left tab control
     fReportToolWindow: TForm; // floating bottom tab control
@@ -1010,6 +1028,9 @@ type
     fCheckSyntaxInBack : boolean;
     fCaretList: TDevCaretList;
     fClosing: boolean;
+    fWindowsTurnedOff:boolean;
+    fMessageControlChanged : boolean;
+    fLeftPageControlChanged : boolean;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1044,6 +1065,8 @@ type
     procedure StartTabnine;
     procedure StopTabnine;
     procedure ChangeEncoding(encoding:TFileEncodingType);
+    procedure UpdateDebugInfo;
+    procedure OpenShell(Sender: TObject;const shellName:string);
   public
     function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
@@ -1055,10 +1078,11 @@ type
     procedure UpdateProjectEditorsEncoding;
     procedure UpdateAppTitle;
     procedure OpenCloseMessageSheet(Open: boolean);
+    procedure OpenCloseLeftPageControl(Open: boolean);
     procedure OpenFile(const FileName: AnsiString;Encoding:TFileEncodingType);
     procedure OpenFileList(List: TStringList);
     procedure OpenProject(const s: AnsiString);
-    procedure GotoBreakpoint(const FileName: AnsiString; Line: integer);
+    procedure GotoBreakpoint(const FileName: AnsiString; Line: integer; setFocus:boolean=True);
     procedure RemoveActiveBreakpoints;
     procedure AddFindOutputItem(const line, col:integer; filename, msg:AnsiString;wordlen:integer);
     procedure EditorSaveTimer(sender: TObject);
@@ -1146,7 +1170,7 @@ procedure TPageControl.WMPaint(var Message: TWMPaint);
 var
 //  C: TControlCanvas;
   R: TRect;
-  i,nsel:integer;
+  i:integer;
   DC: HDC;
   PS: TPaintStruct;
   bgColor,fgColor: TColor;
@@ -1335,7 +1359,7 @@ begin
   if Assigned(fProject) then
     CloseProject(False);
 
-  if Assigned(fProject) then begin
+  if Assigned(fProject) and not fWindowsTurnedOff then begin
     Action := caNone;
     Exit;
   end;
@@ -1375,7 +1399,7 @@ begin
   devData.ToolbarUndoX := tbUndo.Left;
   devData.ToolbarUndoY := tbUndo.Top;
   // Save left page control states
-  devData.ProjectWidth := LeftPageControl.Width;
+  devData.ProjectWidth := fPreviousWidth;
   devData.OutputHeight := fPreviousHeight;
   // Remember window placement
   devData.WindowState.GetPlacement(Self.Handle);
@@ -1498,8 +1522,6 @@ begin
   cmbCompilers.Font := mainForm.Font;
   evaluateInput.Color := panelTC.Background;
   evaluateInput.Font := MainForm.Font;
-  evalOutput.Color := panelTC.Background;
-  evalOutput.Font := MainForm.Font;
 
   BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
   ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
@@ -1511,6 +1533,9 @@ begin
   WatchView.Color := BackgroundColor;
   WatchView.Font := MainForm.Font;
   WatchView.Font.Color := ForegroundColor;
+  LocalSheet.Color := BackgroundColor;
+  LocalSheet.Font := MainForm.Font;
+  LocalSheet.Font.Color := ForegroundColor;
   ProjectView.Color := BackgroundColor;
   ProjectView.Font := MainForm.Font;
   ProjectView.Font.Color := ForegroundColor;
@@ -1589,6 +1614,10 @@ begin
   EvalOutput.Color := BackgroundColor;
   EvalOutput.Font := MainForm.Font;
   EvalOutput.Font.Color := ForegroundColor;
+
+  txtLocals.Color := BackgroundColor;
+  txtLocals.Font := MainForm.Font;
+  txtLocals.Font.Color := ForegroundColor;
 end;
 
 procedure TMainForm.ReloadColor;
@@ -1596,6 +1625,7 @@ begin
   LoadColor;
   debugOutput.Repaint;
   WatchView.Repaint;
+  LocalSheet.Repaint;
   ProjectView.Repaint;
   ClassBrowser.Repaint;
   StackTrace.Repaint;
@@ -1605,6 +1635,7 @@ begin
   LogOutput.Repaint;
   FindOutput.Repaint;
   EvalOutput.Repaint;
+  txtLocals.Repaint;
   MainForm.Repaint;
   PageControlPanel.Repaint;
   EditorPageControlLeft.Invalidate;
@@ -1858,6 +1889,7 @@ begin
   actOpenFolder.Caption := Lang[ID_POP_OPENCONTAINING];
   actAddToDo.Caption := Lang[ID_POP_ADDTODOITEM];
   actOpenConsole.Caption := Lang[ID_POP_OPEN_CONSOLE];
+  actOpenWindowsTerminal.Caption := Lang[ID_POP_OPEN_WT];
 
   // Class Browser Popup
   actBrowserGotoDeclaration.Caption := Lang[ID_POP_GOTODECL];
@@ -1901,6 +1933,7 @@ begin
   DebugConsoleSheet.Caption := Lang[ID_DEB_CONSOLE_SHEET];
   CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
   BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
+  LocalSheet.Caption := Lang[ID_DEB_LOCALS];
 
 
   {
@@ -2015,8 +2048,22 @@ begin
   Statusbar.Top := Self.ClientHeight;
 end;
 
+procedure TMainForm.OpenCloseLeftPageControl(Open: boolean);
+begin
+
+  // Switch between open and close
+  if Open then begin
+    LeftPageControl.Width := fPreviousWidth
+  end else begin
+    LeftPageControl.Width := LeftPageControl.Width - LeftProjectSheet.Width; // only show the tab captions
+    LeftPageControl.ActivePageIndex := -1;
+  end;
+  SplitterLeft.Visible := Open;
+end;
+
 procedure TMainForm.MessageControlChange(Sender: TObject);
 begin
+  fMessageControlChanged := True;
   if MessageControl.ActivePage = CloseSheet then begin
     if Assigned(fReportToolWindow) then begin
       fReportToolWindow.Close;
@@ -2082,6 +2129,7 @@ begin
       exit;
   end;
   LeftPageControl.ActivePage := LeftProjectSheet;
+  fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
 
   // Only update class browser once
@@ -2121,7 +2169,7 @@ begin
     e:=EditorList.GetEditor();
     if assigned(e) then begin
       //CppParser.InvalidateFile(e.FileName);
-      self.CheckSyntaxInBack(e);
+      CheckSyntaxInBack(e);
     end;
     UpdateClassBrowserForEditor(e);
   finally
@@ -2169,6 +2217,7 @@ begin
 
   if not Assigned(fProject) then begin
     LeftPageControl.ActivePage := LeftClassSheet;
+    fLeftPageControlChanged := False;
     ClassBrowser.TabVisible := True;
   end;
 end;
@@ -2317,7 +2366,8 @@ begin
   with CompilerOutput.Items.Add do begin
     Caption := _Line;
     SubItems.Add(_Col);
-    SubItems.Add(GetRealPath(_Unit));
+    //SubItems.Add(GetRealPath(_Unit));
+    SubItems.Add(_Unit);
     SubItems.Add(_Message);
   end;
 
@@ -2379,11 +2429,15 @@ begin
     // Or open it if there is anything to show
   end else begin
     if (CompilerOutput.Items.Count > 0) then begin
-      if MessageControl.ActivePage <> CompSheet then
+      if MessageControl.ActivePage <> CompSheet then  begin
         MessageControl.ActivePage := CompSheet;
+        fMessageControlChanged := False;
+      end;
     end else if (ResourceOutput.Items.Count > 0) then begin
-      if MessageControl.ActivePage <> ResSheet then
+      if MessageControl.ActivePage <> ResSheet then begin
         MessageControl.ActivePage := ResSheet;
+        fMessageControlChanged := False;
+      end;
     end;
     OpenCloseMessageSheet(TRUE);
   end;
@@ -2585,6 +2639,7 @@ begin
   NewEditor.Activate;
   UpdateFileEncodingStatusPanel;
   LeftPageControl.ActivePage := LeftClassSheet;
+  fLeftPageControlChanged := False;
   ClassBrowser.TabVisible := True;
 end;
 
@@ -2701,6 +2756,9 @@ begin
     Exit;
   if not devEditor.AutoCheckSyntax then
     Exit;
+  //not c or cpp file
+  if e.Text.Highlighter <> dmMain.Cpp then
+    Exit;
   if fCompiler.Compiling then
     Exit;
   if fCheckSyntaxInBack then
@@ -2798,8 +2856,8 @@ begin
   fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
-    UpdateClassBrowserForEditor(nil);  
-    fEditorList.CloseAll; // PageControlChange triggers other UI updates
+    UpdateClassBrowserForEditor(nil);
+    fEditorList.CloseAll(fWindowsTurnedOff); // PageControlChange triggers other UI updates
   finally
     ClassBrowser.EndUpdate;
   end;
@@ -2824,7 +2882,10 @@ begin
       else
         s := fProject.Name;
 
-      case MessageDlg(Format(Lang[ID_MSG_SAVEPROJECT], [s]), mtConfirmation, mbYesNoCancel, 0) of
+      if fWindowsTurnedOff then
+        fProject.SaveAll
+      else
+        case MessageDlg(Format(Lang[ID_MSG_SAVEPROJECT], [s]), mtConfirmation, mbYesNoCancel, 0) of
         mrYes: begin
             fProject.SaveAll; // do NOT save layout twice
           end;
@@ -2855,6 +2916,7 @@ begin
         if not fQuitting and RefreshEditor then begin
           //reset Class browsing
           LeftPageControl.ActivePage := LeftClassSheet;
+          fLeftPageControlChanged := False;
           e:=EditorList.GetEditor();
           if Assigned(e) and not e.InProject then begin
             UpdateClassBrowserForEditor(e);
@@ -2867,11 +2929,13 @@ begin
     finally
       ClassBrowser.EndUpdate;
     end;
-    // Clear project browser
-    ProjectView.Items.Clear;
+    if not fQuitting then begin
+      // Clear project browser
+      ProjectView.Items.Clear;
 
-    // Clear error browser
-    ClearMessageControl;
+      // Clear error browser
+      ClearMessageControl;
+    end;
 
     if not fQuitting and RefreshEditor then begin
       // Because fProject was assigned during editor closing, force update trigger again
@@ -3085,13 +3149,23 @@ var
 begin
   devData.FullScreen := FullScreenModeItem.Checked;
   if devData.FullScreen then begin
-    self.OpenCloseMessageSheet(False);
-    devData.ProjectWidth:=self.LeftPageControl.Width;
-    self.LeftPageControl.Width := self.LeftPageControl.Constraints.MinWidth;
+    fPreviousLeftPanelOpened := splitterLeft.Visible;
+    fPreviousBottomPanelOpened:= splitterBottom.Visible;
+    fPreviousLeftPageIndex := leftPageControl.ActivePageIndex;
+    fPreviousBottomPageIndex := MessageControl.ActivePageIndex;
+    OpenCloseMessageSheet(False);
+    OpenCloseLeftPageControl(False);
   end else begin
-    //self.OpenCloseMessageSheet(True);
-    self.LeftPageControl.Width := devData.ProjectWidth;
-    self.MessageControl.ActivePage := self.DebugSheet;
+    if fPreviousLeftPanelOpened then begin
+      leftPageControl.ActivePageIndex := fPreviousLeftPageIndex;
+      fLeftPageControlChanged := False;
+      OpenCloseLeftPageControl(true);
+    end;
+    if fPreviousBottomPanelOpened then begin
+      MessageControl.ActivePageIndex := fPreviousBottomPageIndex;
+      fMessageControlChanged := False;
+      OpenCloseMessageSheet(true);
+    end;
   end;
 {
   // Remember focus
@@ -3357,6 +3431,7 @@ begin
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
   LeftPageControl.ActivePage := LeftProjectSheet;
+  fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
   if idx <> -1 then
     with fProject.OpenUnit(idx) do begin
@@ -3611,6 +3686,7 @@ begin
   if devData.ShowProgress and not (fCheckSyntaxInBack) then begin
     OpenCloseMessageSheet(True);
     MessageControl.ActivePage := LogSheet;
+    fMessageControlChanged := False;
   end;
 
   // Set PATH variable (not overriden by SetCurrentDir)
@@ -3704,6 +3780,7 @@ begin
   if devData.ShowProgress then begin
     OpenCloseMessageSheet(True);
     MessageControl.ActivePage := LogSheet;
+    fMessageControlChanged := False;
   end;
 
   // Set PATH variable (not overriden by SetCurrentDir)
@@ -3826,11 +3903,15 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
-  DebugViews.ActivePage := DebugConsoleSheet;
   LeftPageControl.ActivePage := WatchSheet;
-  ClassBrowser.TabVisible:=False;  
+  fLeftPageControlChanged := False;
+  ClassBrowser.TabVisible:=False;
   MessageControl.ActivePage := DebugSheet;
+  fMessageControlChanged := False;
+  DebugViews.ActivePage := LocalSheet;  // we must have this line or devcpp ui will freeze, if the local sheet is not active in the designer
+  DebugViews.ActivePage := DebugConsoleSheet;
   OpenCloseMessageSheet(True);
+
 
   // Reset watch vars
   fDebugger.DeleteWatchVars(false);
@@ -3850,6 +3931,13 @@ begin
   if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
     RaiseLastOSError;
   Result := CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2));
+end;
+
+procedure TMainForm.UpdateDebugInfo;
+begin
+  fDebugger.SendCommand('backtrace', '');
+  fDebugger.SendCommand('info locals', '');
+  fDebugger.SendCommand('info args', '');  
 end;
 
 procedure TMainForm.actDebugExecute(Sender: TObject);
@@ -4032,7 +4120,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('start', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
       ctProject:  begin
         params := '';
@@ -4042,7 +4130,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('start', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
     end;
   end else begin
@@ -4056,7 +4144,7 @@ begin
         if fCompiler.UseInputFile then
           params := params + ' < "' + fCompiler.InputFile + '"';
         fDebugger.SendCommand('run', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
       ctProject: begin
         params := '';
@@ -4066,7 +4154,7 @@ begin
           params := params + ' < "' + fCompiler.InputFile + '"';
 
         fDebugger.SendCommand('run', params);
-        fDebugger.SendCommand('backtrace', '');
+        UpdateDebugInfo;
       end;
     end;
   end;
@@ -4585,7 +4673,7 @@ begin
     WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('next', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -4599,7 +4687,8 @@ begin
     WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('step', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
+
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -4630,7 +4719,7 @@ begin
     fEditorList[i].RemoveBreakpointFocus;
 end;
 
-procedure TMainForm.GotoBreakpoint(const FileName: AnsiString; Line: integer);
+procedure TMainForm.GotoBreakpoint(const FileName: AnsiString; Line: integer; setFocus:boolean);
 var
   e: TEditor;
 begin
@@ -4640,10 +4729,12 @@ begin
   // Then active the current line in the current file
   e := fEditorList.GetEditorFromFileName(StringReplace(FileName, '/', '\', [rfReplaceAll]));
   if Assigned(e) then begin
-    e.SetActiveBreakpointFocus(Line);
-    e.Activate;
+    e.SetActiveBreakpointFocus(Line,setFocus);
+    //e.SetActiveBreakpointFocus(Line);
+    //e.Activate;
   end;
-  Application.BringToFront;
+//  if setFocus then
+    Application.BringToFront;
 end;
 
 procedure TMainForm.actContinueExecute(Sender: TObject);
@@ -4653,7 +4744,7 @@ begin
     RemoveActiveBreakpoints;
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('continue', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -5295,15 +5386,15 @@ procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
 var
   p1,p2:integer;
 begin
-  if self.fQuitting then
-    Exit;
-  if not devCodeCompletion.Enabled then
-    Exit;
   if not Assigned(e) then begin
     ClassBrowser.Parser := nil;
     ClassBrowser.CurrentFile:='';
     Exit;
   end;
+  if self.fQuitting then
+    Exit;
+  if not devCodeCompletion.Enabled then
+    Exit;
   if (ClassBrowser.CurrentFile = e.FileName)
     and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;
@@ -5997,6 +6088,8 @@ begin
     actProjectManagerExecute(nil);
   end;
   LeftPageControl.ActivePageIndex := 0;
+  fLeftPageControlChanged := False;
+  
   ProjectView.SetFocus;
 end;
 
@@ -6066,6 +6159,8 @@ begin
     actProjectManagerExecute(nil);
   end;
   LeftPageControl.ActivePageIndex := 1;
+  fLeftPageControlChanged := False;
+  
   if ClassBrowser.Visible then
     ClassBrowser.SetFocus;
 end;
@@ -6630,9 +6725,12 @@ begin
   Application.HintHidePause:=300000; //5mins before the hint auto disapear
   fQuitting:=False;
   fClosing:=False;
+  fWindowsTurnedOff:=False;
   fFirstShow := true;
   fCheckSyntaxInBack:=False;
   fCaretList:=TDevCaretList.Create;
+  fMessageControlChanged := False;
+  fLeftPageControlChanged := False;
 
   DummyCppParser.Preprocessor := DummyCppPreprocessor;
   DummyCppParser.Tokenizer := DummyCppTokenizer;
@@ -6704,11 +6802,13 @@ begin
   // Set left page control to previous state
   actProjectManager.Checked := devData.ShowLeftPages;
   LeftPageControl.ActivePageIndex := devData.LeftActivePage;
+  fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
+  fPreviousWidth := devData.ProjectWidth;
 
   actShortenCompPaths.Checked := devData.ShortenCompPaths;
 
@@ -6851,6 +6951,8 @@ begin
 
   //Load Colors
   LoadColor;
+
+  self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -6954,7 +7056,7 @@ begin
     WatchView.Items.BeginUpdate();
     fDebugger.InvalidateAllVars;
     fDebugger.SendCommand('finish', '');
-    fDebugger.SendCommand('backtrace', '');
+    UpdateDebugInfo;
     if assigned(CPUForm) then
       CPUForm.UpdateInfo;
     WatchView.Items.EndUpdate();
@@ -6973,7 +7075,7 @@ begin
       fDebugger.InvalidateAllVars;
       fDebugger.SendCommand('tbreak', ' '+IntToStr(e.Text.CaretY));
       fDebugger.SendCommand('continue', '');
-      fDebugger.SendCommand('backtrace', '');
+      UpdateDebugInfo;
       if assigned(CPUForm) then
         CPUForm.UpdateInfo;
       WatchView.Items.EndUpdate();
@@ -7182,9 +7284,9 @@ end;
 
 procedure TMainForm.CompilerOutputDeletion(Sender: TObject; Item: TListItem);
 begin
-  if Application.Terminated then
+  if Application.Terminated or fQuitting then
     Exit; // form is being destroyed
-  if CompilerOutput.Items.Count > 1 then
+  if (CompilerOutput.Items.Count > 1) then
     CompSheet.Caption := Lang[ID_SHEET_COMP] + ' (' + IntToStr(CompilerOutput.Items.Count - 1) + ')'
   else
     CompSheet.Caption := Lang[ID_SHEET_COMP];
@@ -7381,7 +7483,9 @@ end;
 
 procedure TMainForm.LeftPageControlChange(Sender: TObject);
 begin
-  ClassBrowser.TabVisible := LeftPageControl.ActivePage = LeftClassSheet;
+  ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
+  fLeftPageControlChanged := True;
+  OpenCloseLeftPageControl(true);
 end;
 
 procedure TMainForm.actSwapEditorExecute(Sender: TObject);
@@ -7529,6 +7633,13 @@ begin
   end;
 end;
 
+procedure TMainForm.WMQueryEndSession(var   Msg:TMessage);
+begin
+  fWindowsTurnedOff := True;
+  Close;
+  msg.Result:=1;
+end;
+
 procedure TMainForm.WMCopyData(var Message: TMessage);
 var
   MessageData: AnsiString;
@@ -7546,6 +7657,7 @@ begin
         OpenFileList(fFilesToOpen);
         fFilesToOpen.Clear;
       end;
+      ShowWindow(Application.Handle,SW_RESTORE);
       Application.BringToFront;
     finally
       fCriticalSection.Release;
@@ -7597,11 +7709,9 @@ end;
 
 procedure TMainForm.actRenameSymbolExecute(Sender: TObject);
 var
-  Editor,e : TEditor;
+  Editor: TEditor;
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
-  i : integer;
-  M: TMemoryStream;
   oldCursor : TCursor;
 begin
   Editor := fEditorList.GetEditor;
@@ -7964,7 +8074,7 @@ begin
         EvaluateInput.SelLength := 0;
         }
 
-    fDebugger.SendCommand(s, '',true, true);
+    fDebugger.SendCommand(s, '',true, true, dcsConsole);
 
   end;
 
@@ -7972,7 +8082,7 @@ begin
   fDebugger.CommandChanged := true;
 end;
 
-procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+procedure TMainForm.OpenShell(Sender: TObject;const shellName:string);
 var
   e: TEditor;
   Folder: AnsiString;
@@ -8015,9 +8125,15 @@ begin
           Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
         Exit;
       end;
-      ShellExecute(Application.Handle, 'open', 'cmd',  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
+      ShellExecute(Application.Handle, 'open', pAnsiChar(shellName),  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
     end;
   end;
+end;
+
+
+procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+begin
+  OpenShell(Sender,'cmd.exe');
 end;
 
 procedure TMainForm.WatchViewDblClick(Sender: TObject);
@@ -8768,6 +8884,68 @@ begin
   end else begin
     actConvertToAnsi.Enabled := (e.FileEncoding = etUTF8);
   end;
+end;
+
+procedure TMainForm.MessageControlMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  hi: TTCHitTestInfo;
+  tabindex: Integer;
+  oldTabIndex: integer;
+begin
+  If Button = mbLeft Then Begin
+    hi.pt.x := X;
+    hi.pt.y := Y;
+    hi.flags := 0;
+    if not fMessageControlChanged then begin
+      oldTabIndex := MessageControl.ActivePageIndex;
+      tabindex := MessageControl.Perform( TCM_HITTEST, 0, longint(@hi));
+      if (tabindex>=0) and (tabIndex = oldTabIndex) then begin
+        OpenCloseMessageSheet(not SplitterBottom.Visible);
+      end;
+    end;
+    fMessageControlChanged := False;
+  End;
+end;
+
+
+procedure TMainForm.SplitterLeftMoved(Sender: TObject);
+begin
+  fPreviousWidth:= LeftPageControl.Width;
+end;
+
+procedure TMainForm.LeftPageControlMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  hi: TTCHitTestInfo;
+  tabindex: Integer;
+  oldTabIndex: integer;
+begin
+  If Button = mbLeft Then Begin
+    hi.pt.x := X;
+    hi.pt.y := Y;
+    hi.flags := 0;
+    if not fLeftPageControlChanged then begin
+      oldTabIndex := LeftPageControl.ActivePageIndex;
+      tabindex := LeftPageControl.Perform( TCM_HITTEST, 0, longint(@hi));
+      if (tabindex>=0) and (tabIndex = oldTabIndex) then begin
+        OpenCloseLeftPageControl(not SplitterLeft.Visible);
+      end;
+    end;
+    fLeftPageControlChanged := False;
+  End;
+end;
+
+
+procedure TMainForm.actOpenWindowsTerminalExecute(Sender: TObject);
+begin
+  OpenShell(sender,'wt.exe');
+end;
+
+procedure TMainForm.actOpenWindowsTerminalUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := devEnvironment.HasWindowsTerminal
+    and (fEditorList.PageCount > 0);
 end;
 
 end.

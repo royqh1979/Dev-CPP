@@ -61,6 +61,8 @@ type
     cbAlignReference: TComboBox;
     chkDeleteEmptyLines: TCheckBox;
     chkDeleteRedundantEmptyLines: TCheckBox;
+    lblCustomOption: TLabel;
+    memoCustomCommand: TMemo;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -129,6 +131,7 @@ begin
   chkLabels.Caption := Lang[ID_FORMATTER_LABELS];
   chkPreprocessor.Caption := Lang[ID_FORMATTER_PREPROC];
   lblCommand.Caption := Lang[ID_FORMATTER_COMMAND];
+  lblCustomOption.Caption := Lang[ID_FORMATTER_CUSTOM_OPTION];
   lblPreview.Caption := Lang[ID_FORMATTER_PREVIEW];
   lblPointerAlign.Caption := LANG[ID_FORMATTER_ALIGNPOINTER];
   lblAlignReference.Caption := LANG[ID_FORMATTER_ALIGNREFERENCE];
@@ -220,6 +223,7 @@ begin
 
     cbAlignPointer.ItemIndex := PointerAlign;
     cbAlignReference.ItemIndex := ReferenceAlign;
+    memoCustomCommand.Text := CustomCommand;
     chkPadOper.Checked := PadOper;
     chkPadHeader.Checked := PadHeader;
 
@@ -257,6 +261,7 @@ begin
 
     PointerAlign := cbAlignPointer.ItemIndex;
     ReferenceAlign := cbAlignReference.ItemIndex;
+    CustomCommand := memoCustomCommand.Text;
     PadOper := chkPadOper.Checked;
     PadHeader := chkPadHeader.Checked;
 
@@ -361,6 +366,9 @@ begin
     2: Result := Result + ' --align-reference=middle';
     3: Result := Result + ' --align-reference=name';
   end;
+
+  Result := Result + ' ' + Trim(memoCustomCommand.Text);
+
   Result := TrimLeft(Result);
 end;
 

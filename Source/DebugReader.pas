@@ -26,6 +26,12 @@ uses
   Dialogs, editor, ComCtrls, StrUtils, Forms;
 
 type
+
+  TDebugCmdSource = (
+    dcsConsole,
+    dcsOther
+  );
+  
   TAnnotateType = (
     TPrePrompt, TPrompt, TPostPrompt,
     TSource,
@@ -43,7 +49,8 @@ type
     TArgBegin, TArgEnd, TArgValue, TArgNameEnd,
     TFieldBegin, TFieldEnd, TFieldValue, TFieldNameEnd,
     TInfoReg, TInfoAsm,
-    TUnknown, TEOF);
+    TUnknown, TEOF,
+    TLocal, TParam);
 
   PWatchVar = ^TWatchVar;
   TWatchVar = record
@@ -58,6 +65,7 @@ type
     Params: AnsiString;
     UpdateWatch: boolean;
     ShowInConsole: boolean;
+    Source :  TDebugCmdSource;
   end;
 
   PBreakPoint = ^TBreakPoint;
@@ -133,6 +141,8 @@ type
     procedure HandleError;
     procedure HandleDisplay;
     procedure HandleSource;
+    procedure HandleLocals;
+    procedure HandleParams;
 
     // Evaluation tree output handlers
     procedure ProcessWatchOutput(WatchVar: PWatchVar);
@@ -178,7 +188,8 @@ type
     property OnInvalidateAllVars: TInvalidateAllVarsEvent  read fOnInvalidateAllVars write fOnInvalidateAllVars; 
 
     procedure PostCommand(const Command, Params: AnsiString;
-      UpdateWatch: boolean; ShowInConsole: boolean);
+      UpdateWatch: boolean; ShowInConsole: boolean;
+      Source: TDebugCmdSource);
   end;
 
 implementation
@@ -325,7 +336,11 @@ begin
 
 
   if doupdateexecution then begin
-    MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine); // set active line
+    if not assigned(fCurrentCmd) or (fCurrentCmd^.Source <> dcsConsole) then
+      MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine) // set active line
+    else
+      MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine,False); // set active line
+    //MainForm.GotoBreakpoint(fBreakPointFile, fBreakPointLine);
     MainForm.Debugger.RefreshWatchVars; // update variable information
   end;
 
@@ -518,6 +533,16 @@ begin
     IndexBackup := fIndex;
     t := GetNextFilledLine;
     fIndex := IndexBackup;
+
+    //hack to catch local
+    if Assigned(fCurrentCmd) and SameStr(fCurrentCmd^.Cmd,'info locals') then begin
+      result := TLocal;
+    end;
+
+    //hack to catch params
+    if Assigned(fCurrentCmd) and SameStr(fCurrentCmd^.Cmd,'info args') then begin
+      result := TParam;
+    end;
 
     // Hack fix to catch register dump
     if Assigned(fRegisters) then
@@ -909,6 +934,39 @@ begin
   doregistersready := true;
 end;
 
+procedure TDebugReader.HandleLocals;
+var
+  s: AnsiString;
+begin
+  MainForm.txtLocals.Lines.Text:='';
+  // name(spaces)hexvalue(tab)decimalvalue
+  s := GetNextFilledLine;
+
+  repeat
+    s := TrimLeft(s);
+    if SameStr(s,'No locals.') then
+      Exit;
+    MainForm.txtLocals.Lines.Add(s);
+    s := GetNextLine;
+  until SameStr('', s);
+end;
+
+procedure TDebugReader.HandleParams;
+var
+  s: AnsiString;
+begin
+  // name(spaces)hexvalue(tab)decimalvalue
+  s := GetNextFilledLine;
+
+  repeat
+    s := TrimLeft(s);
+    if SameStr(s,'No arguments.') then
+      Exit;
+    MainForm.txtLocals.Lines.Add(s);
+    s := GetNextLine;
+  until SameStr('', s);
+end;
+
 procedure TDebugReader.HandleError;
 var
   s, WatchName: AnsiString;
@@ -1052,6 +1110,10 @@ begin
           HandleDisassembly;
         TInfoReg:
           HandleRegisters;
+        TLocal:
+          HandleLocals;
+        TParam:
+          HandleParams;
         TErrorBegin:
           HandleError;
         TDisplayBegin:
@@ -1111,7 +1173,7 @@ begin
   ClearCmdQueue;
 end;
 procedure TDebugReader.PostCommand(const Command, Params: AnsiString;
-  UpdateWatch: boolean; ShowInConsole: boolean);
+  UpdateWatch: boolean; ShowInConsole: boolean;  Source: TDebugCmdSource);
 var
   PCmd: PGDBCmd;
 begin
@@ -1126,6 +1188,7 @@ begin
     pCmd^.Params := Params;
     pCmd^.UpdateWatch := UpdateWatch;
     pCmd^.ShowInConsole := ShowInConsole;
+    pCmd^.Source := Source;
     fCmdQueue.Push(pCmd);
   if not fCmdRunning then begin
     RunNextCmd;

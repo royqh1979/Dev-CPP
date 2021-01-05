@@ -114,6 +114,7 @@ var
   count :integer;  
 begin
   I := 1; // skip first one
+  hLockFile := INVALID_HANDLE_VALUE;
   hasFileToOpen := False;
   hasDevToOpen := False;
   while (I <= ParamCount) do begin

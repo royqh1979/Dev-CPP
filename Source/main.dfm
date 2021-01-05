@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 628
-  Top = 168
+  Left = 532
+  Top = 177
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -32,6 +32,7 @@ object MainForm: TMainForm
     Height = 353
     MinSize = 45
     ResizeStyle = rsUpdate
+    OnMoved = SplitterLeftMoved
   end
   object SplitterBottom: TSplitter
     Left = 0
@@ -62,6 +63,7 @@ object MainForm: TMainForm
     TabPosition = tpBottom
     OnChange = MessageControlChange
     OnDrawTab = OnDrawTab
+    OnMouseUp = MessageControlMouseUp
     object CompSheet: TTabSheet
       Caption = 'Compiler'
       ImageIndex = 28
@@ -348,6 +350,29 @@ object MainForm: TMainForm
             OnSelectItem = BreakpointsViewSelectItem
           end
         end
+        object LocalSheet: TTabSheet
+          Caption = 'Locals'
+          ImageIndex = 3
+          object txtLocals: TMemo
+            Left = 0
+            Top = 0
+            Width = 713
+            Height = 165
+            Align = alClient
+            BevelInner = bvNone
+            BevelOuter = bvNone
+            BorderStyle = bsNone
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -14
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+            ReadOnly = True
+            ScrollBars = ssBoth
+            TabOrder = 0
+          end
+        end
       end
       object DebugButtonsPanel: TPanel
         Left = 0
@@ -564,6 +589,7 @@ object MainForm: TMainForm
     object CloseSheet: TTabSheet
       Caption = 'Close'
       ImageIndex = 9
+      TabVisible = False
     end
   end
   object ToolbarDock: TControlBar
@@ -597,6 +623,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
+      Transparent = True
       Wrapable = False
       object NewFileBtn: TToolButton
         Left = 0
@@ -637,6 +664,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
+      Transparent = True
       Wrapable = False
       object CompileBtn: TToolButton
         Left = 0
@@ -675,6 +703,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 2
+      Transparent = True
       Wrapable = False
       object AddToProjectBtn: TToolButton
         Left = 0
@@ -716,6 +745,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 3
+      Transparent = True
       Wrapable = False
       object BackBtn: TToolButton
         Left = 0
@@ -757,6 +787,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 4
+      Transparent = True
       Wrapable = False
       object FindBtn: TToolButton
         Left = 0
@@ -803,7 +834,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 5
-      Transparent = False
+      Transparent = True
       Wrapable = False
       object InsertBtn: TToolButton
         Left = 0
@@ -833,6 +864,7 @@ object MainForm: TMainForm
       EdgeOuter = esNone
       Flat = True
       TabOrder = 6
+      Transparent = True
       Wrapable = False
       DesignSize = (
         339
@@ -875,6 +907,7 @@ object MainForm: TMainForm
       Flat = True
       Images = dmMain.MenuImages_NewLook
       TabOrder = 7
+      Transparent = True
       object ToolButton17: TToolButton
         Left = 0
         Top = 0
@@ -935,6 +968,7 @@ object MainForm: TMainForm
       ParentShowHint = False
       ShowHint = True
       TabOrder = 8
+      Transparent = True
       Wrapable = False
       object ToolButton7: TToolButton
         Left = 0
@@ -1040,7 +1074,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftClassSheet
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -1054,6 +1088,7 @@ object MainForm: TMainForm
     TabPosition = tpLeft
     OnChange = LeftPageControlChange
     OnDrawTab = OnDrawTab
+    OnMouseUp = LeftPageControlMouseUp
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
       ImageIndex = -1
@@ -1894,6 +1929,9 @@ object MainForm: TMainForm
     end
     object OpenShellHere1: TMenuItem
       Action = actOpenConsole
+    end
+    object OpenWindowsTerminalHere2: TMenuItem
+      Action = actOpenWindowsTerminal
     end
     object N16: TMenuItem
       Caption = '-'
@@ -3032,6 +3070,13 @@ object MainForm: TMainForm
       ImageIndex = 64
       OnExecute = actBrowserSortByTypeExecute
     end
+    object actOpenWindowsTerminal: TAction
+      Category = 'File'
+      Caption = 'Open WindowsTerminal Here'
+      ImageIndex = 42
+      OnExecute = actOpenWindowsTerminalExecute
+      OnUpdate = actOpenWindowsTerminalUpdate
+    end
     object actOpenConsole: TAction
       Category = 'File'
       Caption = 'Open Shell Here'
@@ -3403,6 +3448,9 @@ object MainForm: TMainForm
     end
     object MenuItem29: TMenuItem
       Action = actOpenConsole
+    end
+    object OpenWindowsTerminalHere1: TMenuItem
+      Action = actOpenWindowsTerminal
     end
     object N22: TMenuItem
       Caption = '-'

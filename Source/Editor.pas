@@ -29,9 +29,18 @@ uses
 
 const
   USER_CODE_IN_INSERT_POS: AnsiString = '%INSERT%';
+  USER_CODE_IN_REPL_POS_BEGIN: AnsiString = '%REPL_BEGIN%';
+  USER_CODE_IN_REPL_POS_END: AnsiString = '%REPL_END%';
   MAX_CARET_COUNT = 100;
 
 type
+
+  PTabStop = ^TTabStop;
+  TTabStop = record
+    x:integer;
+    endX:integer;
+    y:integer;
+  end;
 
   TSyntaxErrorType = (
     setError,
@@ -190,13 +199,16 @@ type
     procedure LinesInserted(FirstLine,Count:integer);
     procedure InitParser;
   public
-    constructor Create(const Filename: AnsiString; Encoding:TFileEncodingType; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
+    constructor Create(const Filename: AnsiString; Encoding:TFileEncodingType;
+      InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl;
+       textEdit: TSynEdit = nil);
     destructor Destroy; override;
-    function Save: boolean;
+    function Save(force:boolean=False): boolean;
     function SaveAs: boolean;
     procedure Activate;
     procedure GotoLine;
     procedure SetCaretPosAndActivate(Line, Col: integer); // needs to activate in order to place cursor properly
+    procedure SetCaretPos(Line, Col: integer); // needs to activate in order to place cursor properly
     procedure ExportToHTML;
     procedure ExportToRTF;
     procedure RTFToClipboard;
@@ -205,7 +217,7 @@ type
     procedure InsertUserCodeIn(Code: AnsiString);
     procedure SetErrorFocus(Col, Line: integer);
     procedure GotoActiveBreakpoint;
-    procedure SetActiveBreakpointFocus(Line: integer);
+    procedure SetActiveBreakpointFocus(Line: integer; setFocus:boolean=True);
     procedure RemoveBreakpointFocus;
     procedure UpdateCaption(const NewCaption: AnsiString='');
     procedure InsertDefaultText;
@@ -345,7 +357,8 @@ end;
 
 { TEditor }
 
-constructor TEditor.Create(const Filename: AnsiString; Encoding:TFileEncodingType; InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl);
+constructor TEditor.Create(const Filename: AnsiString; Encoding:TFileEncodingType;
+  InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl; textEdit: TSynEdit);
 var
   s: AnsiString;
   I: integer;
@@ -367,24 +380,30 @@ begin
   else
     fFileName := Lang[ID_UNTITLED] + IntToStr(dmMain.GetNewFileNumber);
 
+  fTabSheet:=nil;
   // Remember previous tabs
   fPreviousEditors := TList.Create;
-  if Assigned(ParentPageControl.ActivePage) then begin
-    e := TEditor(ParentPageControl.ActivePage.Tag); // copy list of previous editor
-    for I := 0 to e.PreviousEditors.Count - 1 do
-      fPreviousEditors.Add(e.PreviousEditors[i]);
-    fPreviousEditors.Add(Pointer(e)); // make current editor history too
-  end;
+  if Assigned(ParentPageControl) then begin
+    if Assigned(ParentPageControl.ActivePage) then begin
+      e := TEditor(ParentPageControl.ActivePage.Tag); // copy list of previous editor
+      for I := 0 to e.PreviousEditors.Count - 1 do
+        fPreviousEditors.Add(e.PreviousEditors[i]);
+      fPreviousEditors.Add(Pointer(e)); // make current editor history too
+    end;
 
-  // Create a new tab
-  fTabSheet := TTabSheet.Create(ParentPageControl);
-  fTabSheet.Caption := ExtractFileName(fFilename); // UntitlexX or main.cpp
-  fTabSheet.PageControl := ParentPageControl;
-  fTabSheet.Tag := integer(Self); // Define an index for each tab
+    // Create a new tab
+    fTabSheet := TTabSheet.Create(ParentPageControl);
+    fTabSheet.Caption := ExtractFileName(fFilename); // UntitlexX or main.cpp
+    fTabSheet.PageControl := ParentPageControl;
+    fTabSheet.Tag := integer(Self); // Define an index for each tab
+  end;
 
 
   // Create an editor and set static options
-  fText := TSynEdit.Create(fTabSheet);
+  if Assigned(fTabSheet) then
+    fText := TSynEdit.Create(fTabSheet)
+  else
+    fText := TextEdit;
 //  fOldTextWndProc := fText.WndProc();
 
   // Load the file using Lines
@@ -403,7 +422,8 @@ begin
   end;
 
   // Set constant options
-  fText.Parent := fTabSheet;
+  if Assigned(fTabSheet) then
+    fText.Parent := fTabSheet;
   fText.Visible := True;
   fText.Align := alClient;
   fText.PopupMenu := MainForm.EditorPopup;
@@ -482,7 +502,7 @@ begin
   MainForm.CaretList.RemoveEditor(self);
 
 
-  if not InProject then begin
+  if not InProject and assigned(fParser) then begin
     fParser.Tokenizer.Free;
     fParser.Preprocessor.Free;
     fParser.Free;
@@ -541,8 +561,10 @@ begin
     fText.BeginUpdate;
     try
       // Allow the user to start typing right away
-      fTabSheet.PageControl.ActivePage := fTabSheet;
-      fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+      if assigned(fTabSheet) then begin
+        fTabSheet.PageControl.ActivePage := fTabSheet;
+        fTabSheet.PageControl.OnChange(fTabSheet.PageControl); // event is not fired when changing ActivePage
+      end;
     finally
       fText.EndUpdate;
     end;
@@ -805,7 +827,8 @@ begin
       then begin
       Reparse;
     end;
-    if fText.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn then begin
+    if fText.Focused and devEditor.AutoCheckSyntax and devEditor.CheckSyntaxWhenReturn
+      and (fText.Highlighter = dmMain.Cpp) then begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
@@ -1066,10 +1089,10 @@ end;
 
 procedure TEditor.InsertUserCodeIn(Code: AnsiString);
 var
-  I, insertPos, lastPos, lastI: integer;
+  I, insertPos,insertEndPos, lastPos, lastI: integer;
   sl,newSl: TStringList;
   s :AnsiString;
-  p:PPoint;
+  p:PTabStop;
   CursorPos: TBufferCoord;
   spaceCount :integer;
   hasTabs: boolean;
@@ -1106,8 +1129,31 @@ begin
           Delete(s,insertPos,Length(USER_CODE_IN_INSERT_POS));
           dec(insertPos);
           p.x:=insertPos - lastPos;
+          p.endX := p.x;
           p.y:=i-lastI;
           lastPos := insertPos;
+          lastI:=i;
+          fUserCodeInTabStops.Add(p);
+        end;
+        while True do begin
+          insertPos := Pos(USER_CODE_IN_REPL_POS_BEGIN,s);
+          if insertPos = 0 then // no %INSERT% macro in this line now
+            break;
+          System.new(p);
+          Delete(s,insertPos,Length(USER_CODE_IN_REPL_POS_BEGIN));
+          dec(insertPos);
+          p.x:=insertPos - lastPos;
+
+          insertEndPos := insertPos + Pos(USER_CODE_IN_REPL_POS_END,copy(s,insertPos+1,MaxInt));
+          if insertEndPos <= insertPos then begin
+            p.endX := length(s);
+          end else begin
+            Delete(s,insertEndPos,Length(USER_CODE_IN_REPL_POS_END));
+            dec(insertEndPos);
+            p.endX := insertEndPos - lastPos;
+          end;
+          p.y:=i-lastI;
+          lastPos := insertEndPos;
           lastI:=i;
           fUserCodeInTabStops.Add(p);
         end;
@@ -1122,7 +1168,8 @@ begin
       fText.SelText := s;
       Text.CaretXY := CursorPos; //restore cursor pos before insert
       if fUserCodeInTabStops.Count > 0  then begin
-        fTabStopBegin :=0;
+        fTabStopBegin :=Text.CaretX;
+        fTabStopEnd := Text.CaretX;
         PopUserCodeInTabStops;
       end;
       if Code <> '' then
@@ -1208,7 +1255,7 @@ begin
     SetCaretPosAndActivate(fActiveLine, 1);
 end;
 
-procedure TEditor.SetActiveBreakpointFocus(Line: integer);
+procedure TEditor.SetActiveBreakpointFocus(Line: integer; setFocus:boolean);
 begin
   if Line <> fActiveLine then begin
 
@@ -1220,7 +1267,13 @@ begin
 
     // Put the caret at the active breakpoint
     fActiveLine := Line;
-    SetCaretPosAndActivate(fActiveLine, 1);
+
+    if setFocus then
+      SetCaretPosAndActivate(fActiveLine, 1)
+    else
+      SetCaretPos(fActiveLine,1);
+
+    //SetCaretPosAndActivate(fActiveLine, 1);
 
     // Invalidate new active line
     fText.InvalidateGutterLine(fActiveLine);
@@ -1294,6 +1347,16 @@ begin
     end;
   end;
 end;
+
+procedure TEditor.SetCaretPos(Line, Col: integer);
+begin
+  // Open up the closed folds around the focused line until we can see the line we're looking for
+  fText.UncollapseAroundLine(Line);
+
+  // Position the caret, call EnsureCursorPosVisibleEx after setting block
+  fText.SetCaretXYCentered(True,BufferCoord(Col, Line));
+end;
+
 
 procedure TEditor.SetCaretPosAndActivate(Line, Col: integer);
 begin
@@ -2836,7 +2899,8 @@ var
 
     // disable page control hint
     MainForm.CurrentPageHint := '';
-    fTabSheet.PageControl.Hint := '';
+    if assigned(fTabSheet) then
+      fTabSheet.PageControl.Hint := '';
   end;
 begin
   // Leverage Ctrl-Clickability to determine if we can show any information
@@ -3045,6 +3109,13 @@ begin
   if fCompletionBox.Visible then //don't do this when show
     Exit;
   }
+  {
+  if (attr = fText.Highlighter.WhitespaceAttribute) and StartsStr('.',token) then begin
+    FG:=fText.Gutter.Font.Color;
+    BG:=attr.Background;
+    Exit;
+  end;
+  }
   if (attr = fText.Highlighter.IdentifierAttribute) then begin
     //st := fFindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
@@ -3252,7 +3323,7 @@ begin
   end;
 end;
 
-function TEditor.Save: boolean;
+function TEditor.Save(force:boolean = False): boolean;
 begin
   Result := True;
 
@@ -3261,7 +3332,7 @@ begin
   try
 
     // Is this file read-only?
-    if FileExists(fFileName) and (FileGetAttr(fFileName) and faReadOnly <> 0) then begin
+    if (not force) and FileExists(fFileName) and (FileGetAttr(fFileName) and faReadOnly <> 0) then begin
 
       // Yes, ask the user if he wants us to fix that
       if MessageDlg(Format(Lang[ID_MSG_FILEISREADONLY], [fFileName]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
@@ -3282,11 +3353,12 @@ begin
         SaveFile(fFileName);
         fText.Modified := false;
       except
-        MessageDlg(Format(Lang[ID_ERR_SAVEFILE], [fFileName]), mtError, [mbOk], 0);
+        if not force then
+          MessageDlg(Format(Lang[ID_ERR_SAVEFILE], [fFileName]), mtError, [mbOk], 0);
         Result := False;
       end;
 
-      if devCodeCompletion.Enabled then begin
+      if not force and devCodeCompletion.Enabled and assigned(fParser) then begin
         BeginUpdate;
         try
         fParser.ParseFile(fFileName, InProject);
@@ -3357,7 +3429,8 @@ begin
 
   MainForm.FileMonitor.UnMonitor(fFileName);
   // Remove *old* file from statement list
-  fParser.InvalidateFile(FileName);
+  if assigned(fParser) then
+    fParser.InvalidateFile(FileName);
 
   // Try to save to disk
   try
@@ -3372,17 +3445,27 @@ begin
   // Update highlighter
   devEditor.AssignEditor(fText, SaveFileName);
 
+  if fText.Highlighter <> dmMain.Cpp then begin
+    MainForm.CompilerOutput.Items.Clear;
+    fErrorList.Clear;
+  end;
+
+
   // Update project information
   if Assigned(MainForm.Project) and Self.InProject then begin
     UnitIndex := MainForm.Project.Units.IndexOf(FileName); // index of *old* filename
     if UnitIndex <> -1 then
       MainForm.Project.SaveUnitAs(UnitIndex, SaveFileName); // save as new filename
-  end else
-    fTabSheet.Caption := ExtractFileName(SaveFileName);
+  end else begin
+    if assigned(fTabSheet) then
+      fTabSheet.Caption := ExtractFileName(SaveFileName);
+  end;
 
   // Set new file name
   FileName := SaveFileName;
   MainForm.FileMonitor.Monitor(fFileName);
+  if assigned(fParser) then
+    fParser.InvalidateFile(FileName);
 
   // Update window captions
   MainForm.UpdateAppTitle;
@@ -3452,11 +3535,11 @@ end;
 
   procedure  TEditor.ClearUserCodeInTabStops;
   var
-    p:PPoint;
+    p:PTabStop;
     i:integer;
   begin
     for i:=0 to fUserCodeInTabStops.Count-1 do begin
-      p:=PPoint(fUserCodeInTabStops[i]);
+      p:=PTabStop(fUserCodeInTabStops[i]);
       dispose(PPoint(p));
     end;
     fUserCodeInTabStops.Clear;
@@ -3465,29 +3548,37 @@ end;
   procedure TEditor.PopUserCodeInTabStops;
   var
       NewCursorPos: TBufferCoord;
-      p:PPoint;
+      p:PTabStop;
+      tabStopEnd:integer;
   begin
     if fTabStopBegin < 0 then begin
       ClearUserCodeInTabStops;
       Exit;
     end;
     if fUserCodeInTabStops.Count > 0 then begin
-      p:=PPoint(fUserCodeInTabStops[0]);
+      p:=PTabStop(fUserCodeInTabStops[0]);
       // Update the cursor
-      if p^.Y = 0 then
-        NewCursorPos.Char := fText.CaretX - fXOffsetSince + p^.X
-      else begin
+      if p^.Y = 0 then begin
+//        NewCursorPos.Char := fText.CaretX - fXOffsetSince + p^.X;
+//        tabStopEnd := fText.CaretX - fXOffsetSince + p^.endX;
+        NewCursorPos.Char := fTabStopEnd + p^.X;
+        tabStopEnd := fTabStopEnd + p^.endX;
+      end else begin
         NewCursorPos.Char := p^.X+1;
+        tabStopEnd := p^.endX+1;
       end;
       NewCursorPos.Line := fText.CaretY + p^.Y;
       fText.CaretXY := NewCursorPos;
       dispose(p);
       
-      fTabStopBegin:=fText.CaretX;
-      fTabStopEnd:=fText.CaretX;
       fTabStopY:=fText.CaretY;
+      fText.BlockBegin := NewCursorPos;
+      NewCursorPos.Char := tabStopEnd;
+      fText.BlockEnd := NewCursorPos;
+      fTabStopBegin:=fText.CaretX;
+      fTabStopEnd:=tabStopEnd;
       fLineBeforeTabStop:= Copy(fText.LineText,1,fTabStopBegin) ;
-      fLineAfterTabStop := Copy(fText.LineText,fTabStopBegin+1,MaxInt) ;
+      fLineAfterTabStop := Copy(fText.LineText,fTabStopEnd+1,MaxInt) ;
       fXOffsetSince:=0;
       fUserCodeInTabStops.Delete(0);
     end;
@@ -3772,9 +3863,11 @@ begin
   if fInProject then begin
     InitParser;
   end else begin
-    fParser.Tokenizer.Free;
-    fParser.Preprocessor.Free;
-    fParser.Free;
+    if assigned(fParser) then begin
+      fParser.Tokenizer.Free;
+      fParser.Preprocessor.Free;
+      fParser.Free;
+    end;
     fParser := MainForm.Project.CppParser;
     //MainForm.UpdateClassBrowserForEditor(self);
   end;

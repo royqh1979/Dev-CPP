@@ -371,7 +371,8 @@ var
     indent:='';
     for i:=0 to level do
       indent:=indent+'  ';
-    DumpFile.Add(indent+Format('%s,%s,%s,%d,%d,%s,%d,%s,%d',[statement^._Command,statement^._Type,statement^._FullName,integer(statement^._ParentScope)
+    DumpFile.Add(indent+Format('%s, %d, %s, %s, %d, %d, %s, %d, %s, %d',[statement^._Command,
+      ord(statement^._Kind), statement^._Type,statement^._FullName,integer(statement^._ParentScope)
         ,integer(statement^._ClassScope),statement^._FileName,statement^._Line,statement^._DefinitionFileName,statement^._DefinitionLine]));
     children := statement^._Children;
     if not Assigned(children) then begin

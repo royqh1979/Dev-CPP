@@ -944,8 +944,11 @@ begin
     end; // case
     Inc(Run);
   end; // while
-  if (FLine[Run] in ['A'..'Z', 'a'..'z', '_'])
-    or (FLine[Run-1] in ['''']) then
+  {
+  if (FLine[Run] in ['A'..'Z', 'a'..'z', '_']) then
+    fTokenID := tkIdentifier
+  }
+  if (FLine[Run-1] in ['''']) then
     fTokenID := tkUnknown;
 end;
 
