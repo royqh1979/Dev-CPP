@@ -835,9 +835,9 @@ begin
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
     if fText.Modified then begin
-      UpdateCaption('[*] ' + ExtractFileName(fFileName));
+      UpdateCaption;
     end else begin
-      UpdateCaption(ExtractFileName(fFileName));
+      UpdateCaption;
     end;
   end;
 
@@ -1314,7 +1314,7 @@ begin
   caption:=NewCaption;
   if caption = '' then begin
     if fText.Modified then
-      caption := '[*] ' + ExtractFileName(fFileName)
+      caption := ExtractFileName(fFileName) + ' [*]' 
     else
       caption := ExtractFileName(fFileName);
   end;
@@ -1323,6 +1323,7 @@ begin
       fTabSheet.Caption := caption;
     end;
   end;
+  MainForm.UpdateAppTitle;
 end;
 
 procedure TEditor.SetFileName(const value: AnsiString);
