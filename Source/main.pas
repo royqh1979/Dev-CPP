@@ -2759,6 +2759,8 @@ begin
   //not c or cpp file
   if e.Text.Highlighter <> dmMain.Cpp then
     Exit;
+  if not Assigned(devCompilerSets.CompilationSet) then
+    Exit;
   if fCompiler.Compiling then
     Exit;
   if fCheckSyntaxInBack then
