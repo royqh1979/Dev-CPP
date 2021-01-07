@@ -1700,8 +1700,27 @@ var
   end;
 
   procedure HandleBraceCompletion;
+  var
+    s:String;
+    i:integer;
   begin
-    InsertString('}', false);
+    s:=Trim(fText.LineText);
+    i:= fText.CaretY-2;
+    while (s='') and (i>=0) do begin
+      s:=Trim(fText.Lines[i]);
+      dec(i);
+    end;
+    if (
+      StartsStr('struct',s)
+      or StartsStr('class',s)
+      or StartsStr('union',s)
+      or StartsStr('typedef',s)
+      or StartsStr('public',s)
+      or StartsStr('private',s)
+      or endsStr('=',s)) then
+      InsertString('};', false)
+    else
+      InsertString('}', false);
   end;
 
   procedure HandleGlobalIncludeCompletion;
