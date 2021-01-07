@@ -2173,18 +2173,21 @@ begin
   // Now paint everything while the caret is hidden.
   HideCaret;
   try
-    // First paint the gutter area if it was (partly) invalidated.
-    if (rcClip.Left < fGutterWidth) then begin
-      rcDraw := rcClip;
-      rcDraw.Right := fGutterWidth;
-      PaintGutter(rcDraw, nL1, nL2);
-    end;
+
     // Then paint the text area if it was (partly) invalidated.
     if (rcClip.Right > fGutterWidth) then begin
       rcDraw := rcClip;
       rcDraw.Left := Max(rcDraw.Left, fGutterWidth);
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;
+
+    // First paint the gutter area if it was (partly) invalidated.
+    if (rcClip.Left < fGutterWidth) then begin
+      rcDraw := rcClip;
+      rcDraw.Right := fGutterWidth;
+      PaintGutter(rcDraw, nL1, nL2);
+    end;
+
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
     // If there is a custom paint handler call it.
     DoOnPaint;
@@ -3314,6 +3317,8 @@ begin
   end;
   // Do everything else with API calls. This (maybe) realizes the new pen color.
   dc := Canvas.Handle;
+
+
   // If anything of the two pixel space before the text area is visible, then
   // fill it with the component background color.
   if (AClip.Left < fGutterWidth + 2) then begin
@@ -3333,6 +3338,7 @@ begin
     // Adjust the invalid area to not include this area.
     AClip.Left := rcToken.Right;
   end;
+
   // Paint the visible text lines. To make this easier, compute first the
   // necessary information about the selected area: is there any visible
   // selected area, and what are its lines / columns?
@@ -4534,6 +4540,7 @@ begin
   end;
   if Assigned(OnScroll) then
     OnScroll(Self, sbHorizontal);
+  self.Invalidate;
 end;
 
 procedure TCustomSynEdit.WMKillFocus(var Msg: TWMKillFocus);
