@@ -72,8 +72,8 @@ type
     procedure EndProgressForm;
   public
     procedure BuildMakeFile;
-    procedure CheckSyntax;
-    procedure Compile;
+    procedure CheckSyntax(silent:boolean = False);
+    procedure Compile(silent:boolean = False);
     procedure Run;
     procedure Clean;
     procedure RebuildAll;
@@ -669,14 +669,14 @@ begin
   fCppCompileParams := Trim(ParseMacros(fCppCompileParams));
 end;
 
-procedure TCompiler.CheckSyntax;
+procedure TCompiler.CheckSyntax(silent:boolean = False);
 begin
   fCheckSyntax := True;
-  Compile;
+  Compile(silent);
   fCheckSyntax := False;
 end;
 
-procedure TCompiler.Compile;
+procedure TCompiler.Compile(silent:boolean = False);
 resourcestring
   // windres, input, output
   cResourceCmdLine = '%s --input-format=rc -i %s -o %s';
@@ -698,7 +698,8 @@ var
 begin
   if fCompilerSet.BinDir.Count < 1 then begin
     LogError('Compiler.pas TCompiler.Compile:', 'Active compiler set''s bin directory is not set!');
-    MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
+    if not silent then
+      MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
     Exit;
   end;
 

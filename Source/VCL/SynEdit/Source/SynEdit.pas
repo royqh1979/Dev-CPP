@@ -2174,14 +2174,14 @@ begin
   HideCaret;
   try
 
-    // Then paint the text area if it was (partly) invalidated.
+    // First paint paint the text area if it was (partly) invalidated.
     if (rcClip.Right > fGutterWidth) then begin
       rcDraw := rcClip;
       rcDraw.Left := Max(rcDraw.Left, fGutterWidth);
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;
 
-    // First paint the gutter area if it was (partly) invalidated.
+    // Then the gutter area if it was (partly) invalidated. 
     if (rcClip.Left < fGutterWidth) then begin
       rcDraw := rcClip;
       rcDraw.Right := fGutterWidth;
