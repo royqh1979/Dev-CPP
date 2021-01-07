@@ -35,6 +35,7 @@ Version 6.3-beta4 JAN 2021
     - enhancement: show modification sign in the app title.
     - enhancement: add ';' to auto completed '}' if necessary
     - fix: chinese characters display not correct when scroll horizontally 
+    - fix: encoding info not updated when switch editors
 
 
 Version 6.3-beta3 DEC 2020
