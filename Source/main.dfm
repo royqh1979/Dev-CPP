@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 532
-  Top = 177
+  Left = 428
+  Top = 189
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -529,11 +529,12 @@ object MainForm: TMainForm
             Top = 1
             Width = 336
             Height = 24
+            BevelEdges = []
             BevelInner = bvNone
             BevelOuter = bvNone
             Anchors = [akLeft, akTop, akRight]
             Color = clBtnFace
-            Ctl3D = True
+            Ctl3D = False
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -14
@@ -874,12 +875,14 @@ object MainForm: TMainForm
         Top = 0
         Width = 337
         Height = 24
+        AutoComplete = False
+        BevelEdges = []
         BevelInner = bvNone
         BevelOuter = bvNone
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
-        Ctl3D = True
+        Ctl3D = False
         DropDownCount = 16
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText

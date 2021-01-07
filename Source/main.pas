@@ -5936,6 +5936,7 @@ end;
 procedure TMainForm.UpdateAppTitle;
 var
   e: TEditor;
+  str: String;
 begin
   if Assigned(fProject) then begin
     if fDebugger.Executing then begin
@@ -5958,17 +5959,21 @@ begin
   end else begin
     e := fEditorList.GetEditor;
     if Assigned(e) then begin
+      if e.Text.Modified then
+        str := e.FileName + ' [*]'
+      else
+        str := e.FileName;
       if fDebugger.Executing then begin
-        Caption := Format('%s - [Debugging] - %s %s', [e.FileName, DEVCPP, DEVCPP_VERSION]);
+        Caption := Format('%s - [Debugging] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
         Application.Title := Format('%s - [Debugging] - %s', [ExtractFileName(e.FileName), DEVCPP]);
       end else if devExecutor.Running then begin
-        Caption := Format('%s - [Executing] - %s %s', [e.FileName, DEVCPP, DEVCPP_VERSION]);
+        Caption := Format('%s - [Executing] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
         Application.Title := Format('%s - [Executing] - %s', [ExtractFileName(e.FileName), DEVCPP]);
       end else if fCompiler.Compiling then begin
-        Caption := Format('%s - [Compiling] - %s %s', [e.FileName, DEVCPP, DEVCPP_VERSION]);
+        Caption := Format('%s - [Compiling] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
         Application.Title := Format('%s - [Compiling] - %s', [ExtractFileName(e.FileName), DEVCPP]);
       end else begin
-        Caption := Format('%s - %s %s', [e.FileName, DEVCPP, DEVCPP_VERSION]);
+        Caption := Format('%s - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
         Application.Title := Format('%s - %s', [ExtractFileName(e.FileName), DEVCPP]);
       end;
     end else begin

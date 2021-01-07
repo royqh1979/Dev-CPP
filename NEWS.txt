@@ -31,6 +31,9 @@ Version 6.3-beta4 JAN 2021
     - enhancement: don't display things like '12s' as error (C++ 11 User-defined literals support)
     - fix: error when quit
     - fix: when devcpp is minimized and bring to front by open c/cpp file in file browser, the minimize button doesn't work
+    - fix: makefile don't use cpp highlighter, and don't check syntax as a c/cpp file
+    - enhancement: show modification sign in the app title.
+    - enhancement: add ';' to auto completed '}' if necessary
 
 
 Version 6.3-beta3 DEC 2020

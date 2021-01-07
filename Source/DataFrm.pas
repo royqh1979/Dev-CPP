@@ -378,7 +378,7 @@ end;
 
 function TdmMain.GetHighlighter(const FileName: AnsiString): TSynCustomHighlighter;
 var
-  ext: AnsiString;
+  ext,name: AnsiString;
   idx: integer;
   tmp: TStrings;
 begin
@@ -389,6 +389,7 @@ begin
       result := Cpp
     else begin
       ext := ExtractFileExt(FileName);
+      name := ExtractFileName(FileName);
       if CompareText(ext, RC_EXT) = 0 then
         result := Res
       else if (CompareText(ext, '.html')  = 0)
@@ -411,7 +412,7 @@ begin
       else if CompareText(ext, '.xml') = 0 then
         result := XMLSyn
       else if (CompareText(ext, '.sh') = 0)
-        or StartsText('makefile',FileName) then
+        or StartsText('makefile',name) then
         result := UnixShellSyn
       else begin
         tmp := TStringList.Create;
