@@ -94,7 +94,7 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=..\VirtualTreeViewV5.5.3\Source
+SearchPath=
 Packages=
 Conditionals=
 DebugSourceDirs=
@@ -134,6 +134,8 @@ OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
+[Excluded Packages]
+d:\program files (x86)\borland\delphi7\Projects\Bpl\ClassBrowsing.bpl=ClassBrowsing components
 [HistoryLists\hlDebugSourcePath]
 Count=2
 Item0=E:\workspace\contributes\Dev-CPP\Source\VCL\ClassBrowsing\
