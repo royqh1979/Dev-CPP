@@ -137,9 +137,9 @@ SectionEnd
 
 Section "$(SectionMinGWName)" SectionMinGW
   SectionIn 1 3
-  SetOutPath $INSTDIR
+  SetOutPath $INSTDIR\MinGW32
 
-  File /nonfatal /r "${COMPILERFOLDER}"
+  File /nonfatal /r "${COMPILERFOLDER}\*"
 SectionEnd
 
 Section "$(SectionIconsName)" SectionIcons
