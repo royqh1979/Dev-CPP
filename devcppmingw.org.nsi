@@ -1,7 +1,7 @@
 ####################################################################
 # Startup
 
-!define COMPILERNAME "GCC.9.2"
+!define COMPILERNAME "GCC 9.2"
 !define COMPILERFOLDER "MinGW32_GCC92"
 !define DEVCPP_VERSION "6.3-beta4"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"

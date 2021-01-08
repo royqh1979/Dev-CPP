@@ -73,10 +73,10 @@ object EditorOptForm: TEditorOptForm
           Left = 128
           Top = 77
           Width = 129
-          Height = 22
+          Height = 32
           DefaultColorColor = cl3DLight
           Style = [cbStandardColors, cbCustomColor, cbPrettyNames]
-          ItemHeight = 16
+          ItemHeight = 26
           TabOrder = 2
         end
       end
@@ -381,7 +381,7 @@ object EditorOptForm: TEditorOptForm
           247)
         object lblGutterFont: TLabel
           Left = 11
-          Top = 121
+          Top = 113
           Width = 32
           Height = 20
           Anchors = [akLeft, akRight, akBottom]
@@ -389,17 +389,16 @@ object EditorOptForm: TEditorOptForm
         end
         object lblGutterWidth: TLabel
           Left = 480
-          Top = 44
-          Width = 119
-          Height = 19
+          Top = 36
+          Width = 85
+          Height = 20
           Anchors = [akLeft, akRight, akBottom]
-          AutoSize = False
           Caption = 'Gutter Width'
           WordWrap = True
         end
         object lblGutterFontSize: TLabel
           Left = 480
-          Top = 121
+          Top = 113
           Width = 27
           Height = 20
           Anchors = [akLeft, akRight, akBottom]
@@ -512,7 +511,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cboEditorFont: TComboBox
           Left = 16
-          Top = 43
+          Top = 51
           Width = 455
           Height = 66
           AutoComplete = False
@@ -525,7 +524,7 @@ object EditorOptForm: TEditorOptForm
         end
         object edEditorSize: TSpinEdit
           Left = 480
-          Top = 43
+          Top = 51
           Width = 107
           Height = 31
           MaxValue = 999
@@ -714,7 +713,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -736,11 +735,11 @@ object EditorOptForm: TEditorOptForm
       end
       object cpForeground: TColorBox
         Left = 12
-        Top = 269
+        Top = 253
         Width = 146
-        Height = 22
+        Height = 32
         Style = [cbStandardColors, cbCustomColor, cbPrettyNames]
-        ItemHeight = 16
+        ItemHeight = 26
         TabOrder = 6
         OnChange = StyleChange
       end
@@ -748,15 +747,15 @@ object EditorOptForm: TEditorOptForm
         Left = 12
         Top = 328
         Width = 146
-        Height = 22
+        Height = 32
         Style = [cbStandardColors, cbCustomColor, cbPrettyNames]
-        ItemHeight = 16
+        ItemHeight = 26
         TabOrder = 7
         OnChange = StyleChange
       end
       object cbForeground: TCheckBox
         Left = 12
-        Top = 244
+        Top = 220
         Width = 133
         Height = 23
         Caption = 'Foreground:'
@@ -765,7 +764,7 @@ object EditorOptForm: TEditorOptForm
       end
       object cbBackground: TCheckBox
         Left = 12
-        Top = 300
+        Top = 292
         Width = 133
         Height = 23
         Caption = 'Background:'

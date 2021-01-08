@@ -802,6 +802,7 @@ begin
 
   // Update status bar
   MainForm.SetStatusbarLineCol;
+  MainForm.UpdateFileEncodingStatusPanel;
 
   // Update bookmark menu
   for i := 1 to 9 do
@@ -1717,6 +1718,7 @@ var
       or StartsStr('typedef',s)
       or StartsStr('public',s)
       or StartsStr('private',s)
+      or StartsStr('enum',s)
       or endsStr('=',s)) then
       InsertString('};', false)
     else
@@ -1841,7 +1843,7 @@ begin
         'Character')) and not tokenFinished and not (key in ['''','"','(',')']) then
         Exit;
       if (key in ['<','>']) and (Attr<> dmMain.Cpp.DirecAttri) then begin
-        Exit;
+          Exit;
       end;
       if (key = '''') and (Attr = dmMain.Cpp.NumberAttri) then begin
         Exit;

@@ -2173,18 +2173,21 @@ begin
   // Now paint everything while the caret is hidden.
   HideCaret;
   try
-    // First paint the gutter area if it was (partly) invalidated.
-    if (rcClip.Left < fGutterWidth) then begin
-      rcDraw := rcClip;
-      rcDraw.Right := fGutterWidth;
-      PaintGutter(rcDraw, nL1, nL2);
-    end;
-    // Then paint the text area if it was (partly) invalidated.
+
+    // First paint paint the text area if it was (partly) invalidated.
     if (rcClip.Right > fGutterWidth) then begin
       rcDraw := rcClip;
       rcDraw.Left := Max(rcDraw.Left, fGutterWidth);
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;
+
+    // Then the gutter area if it was (partly) invalidated. 
+    if (rcClip.Left < fGutterWidth) then begin
+      rcDraw := rcClip;
+      rcDraw.Right := fGutterWidth;
+      PaintGutter(rcDraw, nL1, nL2);
+    end;
+
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
     // If there is a custom paint handler call it.
     DoOnPaint;
@@ -2889,7 +2892,11 @@ var
       OnPaintHighlightToken(self,cRow,fHighlighter.GetTokenPos,
         token,p_Attri,Style,Foreground,Background);
 
-    
+{$IFDEF SYN_MBCSSUPPORT}
+    if (byteType(Token,tokenlen) = mbLeadByte) and (tokenlen < length(token)) then begin
+      inc(tokenlen);
+    end;
+{$ENDIF}
     // Do we have to paint the old chars first, or can we just append?
     bCanAppend := FALSE;
     bSpacesTest := FALSE;
@@ -3314,6 +3321,22 @@ begin
   end;
   // Do everything else with API calls. This (maybe) realizes the new pen color.
   dc := Canvas.Handle;
+
+  // Paint the visible text lines. To make this easier, compute first the
+  // necessary information about the selected area: is there any visible
+  // selected area, and what are its lines / columns?
+  if (vLastLine >= vFirstLine) then begin
+    ComputeSelectionInfo;
+    fTextDrawer.Style := Font.Style;
+    fTextDrawer.BeginDrawing(dc);
+    try
+      PaintLines;
+    finally
+      fTextDrawer.EndDrawing;
+    end;
+  end;
+
+
   // If anything of the two pixel space before the text area is visible, then
   // fill it with the component background color.
   if (AClip.Left < fGutterWidth + 2) then begin
@@ -3333,19 +3356,7 @@ begin
     // Adjust the invalid area to not include this area.
     AClip.Left := rcToken.Right;
   end;
-  // Paint the visible text lines. To make this easier, compute first the
-  // necessary information about the selected area: is there any visible
-  // selected area, and what are its lines / columns?
-  if (vLastLine >= vFirstLine) then begin
-    ComputeSelectionInfo;
-    fTextDrawer.Style := Font.Style;
-    fTextDrawer.BeginDrawing(dc);
-    try
-      PaintLines;
-    finally
-      fTextDrawer.EndDrawing;
-    end;
-  end;
+    
   // If there is anything visible below the last line, then fill this as well.
   rcToken := AClip;
   rcToken.Top := (aLastRow - TopLine + 1) * fTextHeight;

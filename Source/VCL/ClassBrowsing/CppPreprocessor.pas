@@ -1354,7 +1354,7 @@ var
           newLine:=newLine+ExpandMacros(define^.Value,depth+1)
         else
           newLine:=newLine+word;
-      end else if Assigned(define) and not (define^.IsMultiLine) and (define^.FormatValue<>'') then begin
+      end else if Assigned(define) and not (define^.IsMultiLine) and (define^.Args<>'') then begin
         while (i<= lenLine) and (Line[i] in [' ',#9]) do
           inc(i);
         argStart:=-1;

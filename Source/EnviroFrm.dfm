@@ -86,35 +86,31 @@ object EnviroForm: TEnviroForm
         637
         532)
       object lblMRU: TLabel
-        Left = 416
+        Left = 400
         Top = 19
-        Width = 168
+        Width = 157
         Height = 20
-        AutoSize = False
         Caption = 'Max Files in History List:'
       end
       object lblMsgTabs: TLabel
         Left = 403
         Top = 83
-        Width = 213
+        Width = 131
         Height = 20
-        AutoSize = False
         Caption = 'Editor Tab Location:'
       end
       object lblLang: TLabel
         Left = 403
         Top = 147
-        Width = 213
+        Width = 65
         Height = 20
-        AutoSize = False
         Caption = 'Language'
       end
       object lblTheme: TLabel
         Left = 403
         Top = 211
-        Width = 213
-        Height = 17
-        AutoSize = False
+        Width = 45
+        Height = 20
         Caption = 'Theme'
       end
       object UIfontlabel: TLabel
@@ -138,7 +134,7 @@ object EnviroForm: TEnviroForm
       object cbMinOnRun: TCheckBox
         Left = 21
         Top = 77
-        Width = 354
+        Width = 324
         Height = 23
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Minimize on Run'
@@ -149,7 +145,7 @@ object EnviroForm: TEnviroForm
       object cbDefCpp: TCheckBox
         Left = 21
         Top = 21
-        Width = 354
+        Width = 324
         Height = 23
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Default to C++ on New Project'
@@ -249,7 +245,7 @@ object EnviroForm: TEnviroForm
         end
       end
       object seMRUMax: TSpinEdit
-        Left = 544
+        Left = 400
         Top = 43
         Width = 68
         Height = 31
@@ -361,41 +357,36 @@ object EnviroForm: TEnviroForm
       object lblUserDir: TLabel
         Left = 11
         Top = 91
-        Width = 533
+        Width = 156
         Height = 20
-        AutoSize = False
         Caption = 'User'#39's Default Directory'
       end
       object lblTemplatesDir: TLabel
         Left = 11
         Top = 240
-        Width = 533
+        Width = 133
         Height = 20
-        AutoSize = False
         Caption = 'Templates Directory'
       end
       object lblSplash: TLabel
         Left = 11
         Top = 449
-        Width = 533
+        Width = 137
         Height = 20
-        AutoSize = False
         Caption = 'Splash Screen Image'
       end
       object lblIcoLib: TLabel
         Left = 11
         Top = 309
-        Width = 533
+        Width = 109
         Height = 20
-        AutoSize = False
         Caption = 'Icon Library Path'
       end
       object lblLangPath: TLabel
         Left = 11
         Top = 380
-        Width = 533
+        Width = 97
         Height = 20
-        AutoSize = False
         Caption = 'Language Path'
       end
       object btnDefBrws: TSpeedButton
@@ -576,17 +567,15 @@ object EnviroForm: TEnviroForm
       object lblOptionsDir: TLabel
         Left = 11
         Top = 13
-        Width = 609
-        Height = 42
-        AutoSize = False
+        Width = 400
+        Height = 20
         Caption = 'Current Options directory. Click the button to reset Dev-C++.'
       end
       object lblProjectsDir: TLabel
         Left = 11
         Top = 168
-        Width = 533
+        Width = 117
         Height = 20
-        AutoSize = False
         Caption = 'Projects Directory'
       end
       object btnProjectsDir: TSpeedButton
@@ -795,12 +784,11 @@ object EnviroForm: TEnviroForm
         Caption = 'File Types:'
       end
       object lblAssocDesc: TLabel
-        Left = 0
+        Left = 40
         Top = 469
-        Width = 635
-        Height = 58
+        Width = 557
+        Height = 40
         Alignment = taCenter
-        AutoSize = False
         Caption = 
           'Just check or un-check for which file types Dev-C++ will be regi' +
           'stered as the default application to open them...'

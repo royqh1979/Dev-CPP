@@ -22,14 +22,8 @@ unit ClassBrowser;
 interface
 
 uses
-{$IFDEF WIN32}
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages;
-{$ENDIF}
-{$IFDEF LINUX}
-Classes, SysUtils, QControls, QComCtrls, QForms, QGraphics,
-CppParser;
-{$ENDIF}
+  CppParser, Forms, cbutils, Messages,VirtualTrees;
 
 type
   TMemberSelectEvent = procedure(Sender: TObject; Filename: TFilename; Line: integer) of object;
