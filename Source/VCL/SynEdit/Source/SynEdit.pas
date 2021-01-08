@@ -2892,7 +2892,11 @@ var
       OnPaintHighlightToken(self,cRow,fHighlighter.GetTokenPos,
         token,p_Attri,Style,Foreground,Background);
 
-    
+{$IFDEF SYN_MBCSSUPPORT}
+    if (byteType(Token,tokenlen) = mbLeadByte) and (tokenlen < length(token)) then begin
+      inc(tokenlen);
+    end;
+{$ENDIF}
     // Do we have to paint the old chars first, or can we just append?
     bCanAppend := FALSE;
     bSpacesTest := FALSE;
@@ -4540,7 +4544,7 @@ begin
   end;
   if Assigned(OnScroll) then
     OnScroll(Self, sbHorizontal);
-  self.Invalidate;
+  //self.Invalidate;
 end;
 
 procedure TCustomSynEdit.WMKillFocus(var Msg: TWMKillFocus);
