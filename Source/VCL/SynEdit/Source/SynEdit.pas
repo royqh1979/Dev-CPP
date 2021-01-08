@@ -3322,6 +3322,20 @@ begin
   // Do everything else with API calls. This (maybe) realizes the new pen color.
   dc := Canvas.Handle;
 
+  // Paint the visible text lines. To make this easier, compute first the
+  // necessary information about the selected area: is there any visible
+  // selected area, and what are its lines / columns?
+  if (vLastLine >= vFirstLine) then begin
+    ComputeSelectionInfo;
+    fTextDrawer.Style := Font.Style;
+    fTextDrawer.BeginDrawing(dc);
+    try
+      PaintLines;
+    finally
+      fTextDrawer.EndDrawing;
+    end;
+  end;
+
 
   // If anything of the two pixel space before the text area is visible, then
   // fill it with the component background color.
@@ -3342,20 +3356,7 @@ begin
     // Adjust the invalid area to not include this area.
     AClip.Left := rcToken.Right;
   end;
-
-  // Paint the visible text lines. To make this easier, compute first the
-  // necessary information about the selected area: is there any visible
-  // selected area, and what are its lines / columns?
-  if (vLastLine >= vFirstLine) then begin
-    ComputeSelectionInfo;
-    fTextDrawer.Style := Font.Style;
-    fTextDrawer.BeginDrawing(dc);
-    try
-      PaintLines;
-    finally
-      fTextDrawer.EndDrawing;
-    end;
-  end;
+    
   // If there is anything visible below the last line, then fill this as well.
   rcToken := AClip;
   rcToken.Top := (aLastRow - TopLine + 1) * fTextHeight;
@@ -4544,7 +4545,6 @@ begin
   end;
   if Assigned(OnScroll) then
     OnScroll(Self, sbHorizontal);
-  //self.Invalidate;
 end;
 
 procedure TCustomSynEdit.WMKillFocus(var Msg: TWMKillFocus);
