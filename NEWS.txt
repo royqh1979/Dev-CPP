@@ -36,7 +36,7 @@ Version 6.3-beta4 JAN 2021
     - enhancement: add ';' to auto completed '}' if necessary
     - fix: chinese characters display not correct when scroll horizontally 
     - fix: encoding info in the statusbar not updated when switch editors
-    - enhancement: auto check syntax don't keep show error dialog if the compiler set is not setting correctly
+    - change: auto check syntax don't keep show error dialog if the compiler set is not setting correctly
 
 
 Version 6.3-beta3 DEC 2020

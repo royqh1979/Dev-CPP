@@ -2776,7 +2776,7 @@ begin
       Exit;
     fCompiler.Project := MainForm.fProject;
   end;
-  fCompiler.CheckSyntax;
+  fCompiler.CheckSyntax(True);
 end;
 
 procedure TMainForm.actSaveExecute(Sender: TObject);
