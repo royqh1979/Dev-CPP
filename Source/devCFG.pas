@@ -2166,6 +2166,7 @@ begin
               DeleteSet(i);
           end;
           FindSets;
+          SaveSets;
           if fList.Count<=DefaultSetIndex then begin
             self.fDefaultIndex := fList.Count-1;
           end;
