@@ -38,7 +38,7 @@ type
     { Private declarations }
     fOwner: TCodeCompletion;
     FOldWndProc: TWndMethod;
-    fColors : array[0..12] of TColor;
+    fColors : array[0..14] of TColor;
     procedure lbCompletionWindowProc(var Message: TMessage);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);    protected
@@ -109,18 +109,27 @@ begin
       Canvas.Brush.Color := Colors[BackColor];
     end;
       Canvas.FillRect(Rect);
-      case statement^._Kind of
-        skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
-        skClass: Canvas.Font.Color := Colors[ClassColor];
-        skVariable, skParameter: Canvas.Font.Color := Colors[VarColor];
-        skNamespace: Canvas.Font.Color := Colors[NamespaceColor];
-        skTypedef: Canvas.Font.Color := Colors[TypedefColor];
-        skPreprocessor, skEnum: Canvas.Font.Color := Colors[PreprocessorColor];
-        skEnumType: Canvas.Font.Color := Colors[EnumColor];
-        skKeyword, skUserCodeIn: Canvas.Font.Color := Colors[KeywordColor];
-      else
-        Canvas.Font.Color := Colors[ForeColor];
+    case statement^._Kind of
+      skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
+      skClass: Canvas.Font.Color := Colors[ClassColor];
+      skVariable: begin
+        if not Assigned(statement^._ParentScope) then begin
+          Canvas.Font.Color := Colors[GlobalVarColor];
+        end else if statement^._Scope = ssLocal then begin
+          Canvas.Font.Color := Colors[LocalVarColor];
+        end else
+          Canvas.Font.Color := Colors[VarColor];
       end;
+      skParameter: Canvas.Font.Color := Colors[LocalVarColor];
+      skNamespace: Canvas.Font.Color := Colors[NamespaceColor];
+      skTypedef: Canvas.Font.Color := Colors[TypedefColor];
+      skPreprocessor, skEnum: Canvas.Font.Color := Colors[PreprocessorColor];
+      skEnumType: Canvas.Font.Color := Colors[EnumColor];
+      skKeyword, skUserCodeIn: Canvas.Font.Color := Colors[KeywordColor];
+    else
+      Canvas.Font.Color := Colors[ForeColor];
+    end;
+
     Canvas.TextOut(Offset, Rect.Top, fOwner.Parser.StatementKindStr(statement^._Kind));
     Offset := Offset +
       Canvas.TextWidth(fOwner.Parser.StatementKindStr(statement^._Kind)+' '); // worst case width + spacing

@@ -1551,6 +1551,8 @@ begin
   ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   ClassBrowser.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  ClassBrowser.Colors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
+  ClassBrowser.Colors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1567,6 +1569,9 @@ begin
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  CodeCompletion.Colors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
+  CodeCompletion.Colors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
+  
 
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;

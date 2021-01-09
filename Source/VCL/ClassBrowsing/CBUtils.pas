@@ -40,7 +40,8 @@ const
   SelectedForeColor = 10;
   InheritedColor = 11;
   KeywordColor = 12;
-
+  LocalVarColor = 13;
+  GlobalVarColor = 14;
 type
 
   { TStringList is case insensitive by default}
