@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages,VirtualTrees;
+  CppParser, Forms, cbutils, Messages;
 
 type
   TMemberSelectEvent = procedure(Sender: TObject; Filename: TFilename; Line: integer) of object;
