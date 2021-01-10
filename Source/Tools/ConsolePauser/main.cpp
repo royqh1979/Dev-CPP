@@ -9,6 +9,8 @@ using std::string;
 #define MAX_COMMAND_LENGTH 32768
 #define MAX_ERROR_LENGTH 2048
 
+HANDLE hJob;
+
 LONGLONG GetClockTick() {
 	LARGE_INTEGER dummy;
 	QueryPerformanceCounter(&dummy);
@@ -38,6 +40,7 @@ void PauseExit(int exitcode, bool reInp) {
     if (reInp) {
         CloseHandle(hInp);
     }
+    CloseHandle( hJob );
 	exit(exitcode);
 }
 
@@ -96,16 +99,25 @@ DWORD ExecuteCommand(string& command,bool reInp) {
 	memset(&si,0,sizeof(si));
 	si.cb = sizeof(si);
 	memset(&pi,0,sizeof(pi));
+	
+	DWORD dwCreationFlags = CREATE_BREAKAWAY_FROM_JOB;
 
 	
-	if(!CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, true, 0, NULL, NULL, &si, &pi)) {
+	if(!CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, true, dwCreationFlags, NULL, NULL, &si, &pi)) {
 		printf("\n--------------------------------");
 		printf("\nFailed to execute \"%s\":",command.c_str());
 		printf("\nError %lu: %s\n",GetLastError(),GetErrorMessage().c_str());
 		PauseExit(EXIT_FAILURE,reInp);
 	}
+    WINBOOL bSuccess = AssignProcessToJobObject( hJob, pi.hProcess );
+    if ( bSuccess == FALSE ) {
+        printf( "AssignProcessToJobObject failed: error %d\n", GetLastError() );
+        return 0;
+    }
+
 	WaitForSingleObject(pi.hProcess, INFINITE); // Wait for it to finish
 	
+    
 	DWORD result = 0;
 	GetExitCodeProcess(pi.hProcess, &result);
 	return result;
@@ -124,6 +136,26 @@ int main(int argc, char** argv) {
 	// Make us look like the paused program
 	SetConsoleTitle(argv[2]);
 	
+	SECURITY_ATTRIBUTES sa;
+	sa.nLength = sizeof(sa);
+	sa.lpSecurityDescriptor = NULL;
+	sa.bInheritHandle = FALSE;
+
+	hJob= CreateJobObject( &sa, NULL );
+	
+	if ( hJob == NULL ) {
+		printf( "CreateJobObject failed: error %d\n", GetLastError() );
+		return 0;
+	}
+
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = { 0 };
+    info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    WINBOOL bSuccess = SetInformationJobObject( hJob, JobObjectExtendedLimitInformation, &info, sizeof( info ) );
+    if ( bSuccess == FALSE ) {
+        printf( "SetInformationJobObject failed: error %d\n", GetLastError() );
+        return 0;
+    }
+
 	bool reInp;
 	// Then build the to-run application command
 	string command = GetCommand(argc,argv,reInp);
