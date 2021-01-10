@@ -679,6 +679,8 @@ type
     actOpenWindowsTerminal: TAction;
     OpenWindowsTerminalHere1: TMenuItem;
     OpenWindowsTerminalHere2: TMenuItem;
+    AddToDoitem1: TMenuItem;
+    N17: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1551,6 +1553,8 @@ begin
   ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   ClassBrowser.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  ClassBrowser.Colors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
+  ClassBrowser.Colors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1567,6 +1571,9 @@ begin
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  CodeCompletion.Colors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
+  CodeCompletion.Colors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
+  
 
   CodeCompletion.Colors[SelectedBackColor] := BackgroundColor;
   CodeCompletion.Colors[SelectedForeColor] := ForegroundColor;
@@ -3959,15 +3966,17 @@ begin
         StripEnabled := fProject.GetCompilerOption('-s') <> '0';
 
         // Ask the user if he wants to enable debugging...
-        if (not DebugEnabled or StripEnabled) and (MessageDlg(Lang[ID_MSG_NODEBUGSYMBOLS], mtConfirmation, [mbYes,
-          mbNo], 0) = mrYes) then begin
+        if (not DebugEnabled or StripEnabled) then begin
+          if  (MessageDlg(Lang[ID_MSG_NODEBUGSYMBOLS], mtConfirmation, [mbYes,
+            mbNo], 0) = mrYes) then begin
 
-          // Enable debugging, disable stripping
-          fProject.SetCompilerOption('-g3', '1');
-          fProject.SetCompilerOption('-s', '0');
+            // Enable debugging, disable stripping
+            fProject.SetCompilerOption('-g3', '1');
+            fProject.SetCompilerOption('-s', '0');
 
-          fCompSuccessAction := csaDebug;
-          actRebuildExecute(nil);
+            fCompSuccessAction := csaDebug;
+            actRebuildExecute(nil);
+          end;
           Exit;
         end;
 
@@ -3976,8 +3985,8 @@ begin
           if MessageDlg(Lang[ID_ERR_PROJECTNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
             fCompSuccessAction := csaDebug;
             actCompileExecute(nil);
-            Exit;
           end;
+          Exit;
         end;
 
 
@@ -5940,7 +5949,26 @@ var
   e: TEditor;
   str: String;
 begin
-  if Assigned(fProject) then begin
+  e := fEditorList.GetEditor;
+  if Assigned(e) and not e.InProject then begin
+    if e.Text.Modified then
+      str := e.FileName + ' [*]'
+    else
+      str := e.FileName;
+    if fDebugger.Executing then begin
+      Caption := Format('%s - [Debugging] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Debugging] - %s', [ExtractFileName(e.FileName), DEVCPP]);
+    end else if devExecutor.Running then begin
+      Caption := Format('%s - [Executing] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Executing] - %s', [ExtractFileName(e.FileName), DEVCPP]);
+    end else if fCompiler.Compiling then begin
+      Caption := Format('%s - [Compiling] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Compiling] - %s', [ExtractFileName(e.FileName), DEVCPP]);
+    end else begin
+      Caption := Format('%s - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
+      Application.Title := Format('%s - %s', [ExtractFileName(e.FileName), DEVCPP]);
+    end;
+  end else if Assigned(fProject) then begin
     if fDebugger.Executing then begin
       Caption := Format('%s - [%s] - [Debugging] - %s %s',
         [fProject.Name, ExtractFilename(fProject.Filename), DEVCPP, DEVCPP_VERSION]);
@@ -5959,29 +5987,8 @@ begin
       Application.Title := Format('%s - %s', [fProject.Name, DEVCPP]);
     end;
   end else begin
-    e := fEditorList.GetEditor;
-    if Assigned(e) then begin
-      if e.Text.Modified then
-        str := e.FileName + ' [*]'
-      else
-        str := e.FileName;
-      if fDebugger.Executing then begin
-        Caption := Format('%s - [Debugging] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-        Application.Title := Format('%s - [Debugging] - %s', [ExtractFileName(e.FileName), DEVCPP]);
-      end else if devExecutor.Running then begin
-        Caption := Format('%s - [Executing] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-        Application.Title := Format('%s - [Executing] - %s', [ExtractFileName(e.FileName), DEVCPP]);
-      end else if fCompiler.Compiling then begin
-        Caption := Format('%s - [Compiling] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-        Application.Title := Format('%s - [Compiling] - %s', [ExtractFileName(e.FileName), DEVCPP]);
-      end else begin
-        Caption := Format('%s - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-        Application.Title := Format('%s - %s', [ExtractFileName(e.FileName), DEVCPP]);
-      end;
-    end else begin
-      Caption := Format('%s %s', [DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s', [DEVCPP]);
-    end;
+    Caption := Format('%s %s', [DEVCPP, DEVCPP_VERSION]);
+    Application.Title := Format('%s', [DEVCPP]);
   end;
 end;
 

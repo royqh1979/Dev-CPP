@@ -1712,14 +1712,16 @@ var
       dec(i);
     end;
     if (
-      StartsStr('struct',s)
-      or StartsStr('class',s)
-      or StartsStr('union',s)
-      or StartsStr('typedef',s)
-      or StartsStr('public',s)
-      or StartsStr('private',s)
-      or StartsStr('enum',s)
-      or endsStr('=',s)) then
+      ( (StartsStr('struct',s)
+        or StartsStr('class',s)
+        or StartsStr('union',s)
+        or StartsStr('typedef',s)
+        or StartsStr('public',s)
+        or StartsStr('private',s)
+        or StartsStr('enum',s) )
+      and not ContainsStr(s,';')
+      )
+      or endsStr('=',s) ) then
       InsertString('};', false)
     else
       InsertString('}', false);

@@ -27,9 +27,12 @@ UseCustomMakefile=0
 CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=0
-CompilerSettings=0000000000000000000000000
+CompilerSet=3
+CompilerSettings=000000b000000000000000000
 UnitCount=1
+UsePrecompiledHeader=0
+PrecompiledHeader=
+UseUTF8=0
 
 [VersionInfo]
 Major=1
@@ -60,4 +63,6 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 UseUTF8=1
+DetectEncoding=0
+Encoding=0
 
