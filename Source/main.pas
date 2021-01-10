@@ -3966,15 +3966,17 @@ begin
         StripEnabled := fProject.GetCompilerOption('-s') <> '0';
 
         // Ask the user if he wants to enable debugging...
-        if (not DebugEnabled or StripEnabled) and (MessageDlg(Lang[ID_MSG_NODEBUGSYMBOLS], mtConfirmation, [mbYes,
-          mbNo], 0) = mrYes) then begin
+        if (not DebugEnabled or StripEnabled) then begin
+          if  (MessageDlg(Lang[ID_MSG_NODEBUGSYMBOLS], mtConfirmation, [mbYes,
+            mbNo], 0) = mrYes) then begin
 
-          // Enable debugging, disable stripping
-          fProject.SetCompilerOption('-g3', '1');
-          fProject.SetCompilerOption('-s', '0');
+            // Enable debugging, disable stripping
+            fProject.SetCompilerOption('-g3', '1');
+            fProject.SetCompilerOption('-s', '0');
 
-          fCompSuccessAction := csaDebug;
-          actRebuildExecute(nil);
+            fCompSuccessAction := csaDebug;
+            actRebuildExecute(nil);
+          end;
           Exit;
         end;
 
@@ -3983,8 +3985,8 @@ begin
           if MessageDlg(Lang[ID_ERR_PROJECTNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
             fCompSuccessAction := csaDebug;
             actCompileExecute(nil);
-            Exit;
           end;
+          Exit;
         end;
 
 
