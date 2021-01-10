@@ -679,6 +679,8 @@ type
     actOpenWindowsTerminal: TAction;
     OpenWindowsTerminalHere1: TMenuItem;
     OpenWindowsTerminalHere2: TMenuItem;
+    AddToDoitem1: TMenuItem;
+    N17: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);

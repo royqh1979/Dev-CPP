@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, Menus;
+  Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls;
 
 type
   PToDoRec = ^TToDoRec;
@@ -44,6 +44,8 @@ type
     chkNoDone: TCheckBox;
     cmbFilter: TComboBox;
     lblFilter: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     procedure FormShow(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -73,7 +75,7 @@ type
 
 implementation
 
-uses main, editor, project, StrUtils, MultiLangSupport, devcfg;
+uses main, editor, project, StrUtils, MultiLangSupport, devcfg, utils;
 
 {$R *.dfm}
 
@@ -158,21 +160,20 @@ var
   sl: TStrings;
   I: integer;
   e: TEditor;
+  found: boolean;
+  FileEncoding : TFileEncodingType;
 begin
   sl := TStringList.Create;
   try
-    for I := 0 to MainForm.EditorList.PageCount - 1 do begin
-      e := MainForm.EditorList.Editors[i];
-      if Assigned(e) then begin
-        if e.FileName = Filename then
-          sl.Assign(e.Text.Lines)
-        else if FileExists(Filename) then
-          sl.LoadFromFile(Filename);
-      end;
+    if MainForm.EditorList.IsFileOpened(FileName) then begin
+      e:=MainForm.EditorList.GetEditorFromFileName(FileName);
+      sl.Assign(e.Text.Lines);
+    end else begin
+      sl.LoadFromFile(Filename);
+      FileEncoding := GetFileEncodingType(sl.Text);
+      if FileEncoding = etUTF8 then
+        sl.Text := UTF8ToAnsi(sl.Text);
     end;
-    if sl.Count = 0 then
-      if FileExists(Filename) then
-        sl.LoadFromFile(Filename);
     I := 0;
     while I < sl.Count do begin
       //		if MatchesMask(sl[I], '*/? TODO ([a-z0-9_]*#[1-9]#)*:*') then

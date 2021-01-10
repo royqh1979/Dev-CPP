@@ -2,6 +2,7 @@ Version 6.3-beta5 JAN 2021
 
     - enhancement: Use the same color for global var in completion suggestion windows as in the editor
     - fix: The compiler sets found are not saved , when devcpp starts up and the old compiler set is not valid.
+    - fix: todo item display error
 
 Version 6.3-beta4 JAN 2021
    

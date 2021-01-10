@@ -1614,6 +1614,12 @@ object MainForm: TMainForm
       object GotoBookmarksItem: TMenuItem
         Action = actGoto
       end
+      object N17: TMenuItem
+        Caption = '-'
+      end
+      object AddToDoitem1: TMenuItem
+        Action = actAddToDo
+      end
       object N49: TMenuItem
         Caption = '-'
       end
