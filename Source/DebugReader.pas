@@ -937,18 +937,31 @@ end;
 procedure TDebugReader.HandleLocals;
 var
   s: AnsiString;
+  breakLine: boolean;
+  NextLine: AnsiString;
+  NextAnnotation: TAnnotateType;  
 begin
   MainForm.txtLocals.Lines.Text:='';
   // name(spaces)hexvalue(tab)decimalvalue
   s := GetNextFilledLine;
 
+  breakLine:=False;
   repeat
-    s := TrimLeft(s);
-    if SameStr(s,'No locals.') then
-      Exit;
-    MainForm.txtLocals.Lines.Add(s);
+    if not StartsStr(#26#26,s) then begin
+      s := TrimLeft(s);
+      if SameStr(s,'No locals.') then
+        Exit;
+      if breakLine and (MainForm.txtLocals.Lines.Count>0) then begin
+        MainForm.txtLocals.Lines[MainForm.txtLocals.Lines.Count-1] := MainForm.txtLocals.Lines[MainForm.txtLocals.Lines.Count-1] + s;
+      end else begin
+        MainForm.txtLocals.Lines.Add(s);
+      end;
+      breakLine:=False;
+    end else begin
+      breakLine:=True;
+    end;
     s := GetNextLine;
-  until SameStr('', s);
+  until not breakLine and SameStr('', s);
 end;
 
 procedure TDebugReader.HandleParams;

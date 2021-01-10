@@ -7,6 +7,7 @@ Version 6.3-beta5 JAN 2021
     - change: display the active non-project file's name in the titlebar even when there's project opened.
     - fix: stop debug when the code needs to be compiled and the user choose 'No' in the info dialog.
     - enhancement: Code Template in code suggestion window. (thanks @totomusic)
+    - fix: array display error in the local panel
 
 Version 6.3-beta4 JAN 2021
    
