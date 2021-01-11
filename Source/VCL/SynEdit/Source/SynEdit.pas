@@ -141,6 +141,8 @@ type
   TGutterPaintEvent = procedure(Sender: TObject; aLine: integer;
     X, Y: integer) of object;
 
+  TImeInputEvent = procedure(Sender: TObject; s:String) of object;
+
   TSynEditCaretType = (ctVerticalLine, ctHorizontalLine, ctHalfBlock, ctBlock);
 
   TSynStateFlag = (sfCaretChanged, sfScrollbarChanged, sfLinesChanging,
@@ -355,6 +357,7 @@ type
     fOnCommandProcessed: TProcessCommandEvent;
     fOnDropFiles: TDropFilesEvent;
     fOnGutterClick: TGutterClickEvent;
+    fOnImeInput: TImeInputEvent;
     fOnMouseCursor: TMouseCursorEvent;
     fOnPaint: TPaintEvent;
     fOnPaintHighlightToken : TPaintHighlightTokenEvent;
@@ -845,6 +848,7 @@ type
       write fOnGutterGetText;
     property OnGutterPaint: TGutterPaintEvent read fOnGutterPaint
       write fOnGutterPaint;
+    property OnImeInput: TImeInputEvent read fOnImeInput write fOnImeInput;
     property OnMouseCursor: TMouseCursorEvent read fOnMouseCursor
       write fOnMouseCursor;
     property OnPaint: TPaintEvent read fOnPaint write fOnPaint;
@@ -6873,7 +6877,7 @@ begin
             fOnContextHelp(self, WordAtCursor);
         end;
 {$IFDEF SYN_MBCSSUPPORT}
-      ecImeStr:
+      ecImeStr: begin;
         if not ReadOnly then begin
           SetString(s, PChar(Data), StrLen(Data));
           if SelAvail then begin
@@ -6927,6 +6931,9 @@ begin
                 Exclude(fOptions, eoScrollPastEol);
             end;
           end;
+        end;
+          if assigned(fOnImeInput) then
+            fOnImeInput(self,s);
         end;
 {$ENDIF}
     end;

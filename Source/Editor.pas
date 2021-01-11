@@ -153,6 +153,7 @@ type
     procedure EditorExit(Sender: TObject);
     procedure EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
+    procedure EditorImeInput(Sender: TObject; s:String);
 
     procedure EditorPaintHighlightToken(Sender: TObject; Row: integer;
       column: integer; token: String; attr: TSynHighlighterAttributes;
@@ -441,6 +442,7 @@ begin
   fText.OnEditingAreas:=EditorEditingAreas;
   fText.OnExit := EditorExit;
   fText.OnKeyPress := EditorKeyPress;
+  fText.OnImeInput := EditorImeInput;
   fText.OnKeyDown := EditorKeyDown;
   fText.OnKeyUp := EditorKeyUp;
   fText.OnPaintTransient := EditorPaintTransient;
@@ -1925,6 +1927,36 @@ begin
 
     // Stop code completion timer if the cursor moves
     fCompletionInitialPosition := BufferCoord(fText.CaretX + 1, fText.CaretY);
+  end;
+end;
+
+procedure TEditor.EditorImeInput(Sender:TObject; s:String);
+var
+  lastWord:AnsiString;
+  kind:TStatementKind;
+begin
+  if not IsIdentifier(s) then
+    Exit;
+  if fParser.IsIncludeLine(Text.LineText) then begin
+    ShowHeaderCompletion(False);
+  end else begin
+    lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
+    if lastWord <> '' then begin
+      if (CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1) then begin
+        //last word is a type keyword, this is a var or param define, and dont show suggestion
+        if devEditor.UseTabnine then
+          ShowTabnineCompletion;
+        Exit;
+      end;
+      kind := fParser.FindKindOfStatementOf(fFileName, lastWord, fText.CaretY);
+      if (Kind in [skClass,skTypedef,skEnumType]) then begin
+        //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+        if devEditor.UseTabnine then
+          ShowTabnineCompletion;
+        Exit;
+      end;
+    end;
+    ShowCompletion(False);
   end;
 end;
 

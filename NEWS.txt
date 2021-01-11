@@ -9,6 +9,7 @@ Version 6.3-beta5 JAN 2021
     - enhancement: Code Template in code suggestion window. (thanks @totomusic)
     - fix: array display error in the local panel
     - enhancement: show code snippets option in the editor options dialog's code completion tabpage
+    - enhancement: show code completion window even if the word is inputed by IME
 
 Version 6.3-beta4 JAN 2021
    
