@@ -202,6 +202,7 @@ type
     fShowKeywords: boolean;
     fIgnoreCase:boolean;
     fAppendFunc:boolean;
+    fShowCodeIns: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -223,6 +224,7 @@ type
     property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
     property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
     property AppendFunc: boolean read fAppendFunc write fAppendFunc;
+    property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
   end;
 
   // class-browsing view style
@@ -2762,6 +2764,7 @@ begin
   fRecordUsage := False;
   fIgnoreCase := False;
   fAppendFunc := True;
+  fShowCodeIns := True;
   if GetACP = 936 then begin //Chinese user
     fUseAltSlash := True;
   end else

@@ -2357,6 +2357,7 @@ begin
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
   fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
+  fCompletionBox.ShowCodeIns := devCodeCompletion.ShowCodeIns;
   fCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.SymbolUsage := dmMain.SymbolUsage;

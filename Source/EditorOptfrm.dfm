@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabCBCompletion
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -713,7 +713,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1020,7 +1020,7 @@ object EditorOptForm: TEditorOptForm
           end
           object cbShowCompletionWhileInputing: TCheckBox
             Left = 8
-            Top = 296
+            Top = 304
             Width = 289
             Height = 22
             Caption = 'Code Completion while inputing'
@@ -1069,12 +1069,12 @@ object EditorOptForm: TEditorOptForm
             Top = 235
             Width = 321
             Height = 22
-            Caption = 'Code Completion while inputing'
+            Caption = 'Show Keywords'
             TabOrder = 8
           end
           object chkIgnoreCase: TCheckBox
             Left = 302
-            Top = 267
+            Top = 304
             Width = 321
             Height = 22
             Caption = 'Ignore Case when show code suggestion'
@@ -1082,7 +1082,7 @@ object EditorOptForm: TEditorOptForm
           end
           object chkAppendFunc: TCheckBox
             Left = 8
-            Top = 264
+            Top = 267
             Width = 289
             Height = 22
             Caption = 'Append () to Function'
@@ -1109,6 +1109,14 @@ object EditorOptForm: TEditorOptForm
             MinValue = 0
             TabOrder = 12
             Value = 1000
+          end
+          object chkShowCodeIns: TCheckBox
+            Left = 302
+            Top = 267
+            Width = 321
+            Height = 22
+            Caption = 'Show Code Snippets'
+            TabOrder = 13
           end
         end
         object tabSymbolCompletion: TTabSheet

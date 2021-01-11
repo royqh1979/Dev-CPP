@@ -387,11 +387,12 @@ Ver=1
 26035=Show frequently used symbols first
 26036=Clear Symbol Usage Data
 26037=Use diffrent colors for embedding parentheses
-26038=Show Keyword in Code Completion
+26038=Show Keyword in Completion
 26039=Ignore Case in Code Completion
 26040=Append () to Function
 26041=Code Suggestion Window width:
 26042=Code Suggestion Window height:
+26043=Show Snippets in Completion
 
 
 27001=Show hidden line characters

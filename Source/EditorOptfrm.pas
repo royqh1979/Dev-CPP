@@ -174,6 +174,7 @@ type
     txtCodeSuggestionWidth: TSpinEdit;
     lbCodeSuggestionHeight: TLabel;
     txtCodeSuggestionHeight: TSpinEdit;
+    chkShowCodeIns: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -443,6 +444,7 @@ begin
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
   chkShowKeywords.Checked := devCodeCompletion.ShowKeywords;
+  chkShowCodeIns.Checked := devCodeCompletion.ShowCodeIns;
   chkIgnoreCase.Checked := devCodeCompletion.IgnoreCase;
   chkAppendFunc.Checked := devCodeCompletion.AppendFunc;
   btnClearUsageData.Enabled := devCodeCompletion.RecordUsage;
@@ -580,6 +582,7 @@ begin
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
   chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE];
   chkShowKeywords.Caption := Lang[ID_EOPT_SHOW_KEYWORDS];
+  chkShowCodeIns.Caption := Lang[ID_EOPT_SHOW_CODEINS];
   chkIgnoreCase.Caption := Lang[ID_EOPT_IGNORE_CASE];
   chkAppendFunc.Caption := Lang[ID_EOPT_APPEND_FUNC];
   btnClearUsageData.Caption := Lang[ID_EOPT_CODECOMPLETE_CLEAR_USAGE];
@@ -923,6 +926,7 @@ begin
     UseAltSlash := cbUseAltSlash.Checked;
     RecordUsage := chkRecordUsage.Checked;
     ShowKeywords := chkShowKeywords.Checked;
+    ShowCodeIns := chkShowCodeIns.Checked;
     IgnoreCase := chkIgnoreCase.Checked;
     AppendFunc := chkAppendFunc.Checked;
     ShowCompletionWhileInput := cbShowCompletionWhileInputing.Checked;
@@ -1486,6 +1490,7 @@ begin
     cbShowCompletionWhileInputing.Enabled:=Checked;
     chkRecordUsage.Enabled := Checked;
     chkShowKeywords.Enabled := Checked;
+    chkShowCodeIns.Enabled := Checked;
     chkIgnoreCase.Enabled := Checked;
     chkAppendFunc.Enabled := Checked;
     txtCodeSuggestionMaxCount.Enabled:=Checked;
