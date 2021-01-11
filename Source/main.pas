@@ -4093,6 +4093,7 @@ begin
     ctNone: Exit;
   end;
 
+
   // Add library folders
   with devCompilerSets.CompilationSet do begin
     for I := 0 to LibDir.Count - 1 do
