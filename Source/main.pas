@@ -480,7 +480,6 @@ type
     Globals1: TMenuItem;
     FunctionParameters1: TMenuItem;
     DebugOutputPopup: TPopupMenu;
-    MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
@@ -681,6 +680,11 @@ type
     OpenWindowsTerminalHere2: TMenuItem;
     AddToDoitem1: TMenuItem;
     N17: TMenuItem;
+    LocalPopup: TPopupMenu;
+    MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem41: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -4378,7 +4382,10 @@ begin
         if EvaluateInput.Focused then begin
           Clipboard.AsText := EvaluateInput.SelText;
           EvaluateInput.SelText := '';
-        end ;
+        end else if txtLocals.Focused then begin
+          Clipboard.AsText := txtLocals.SelText;
+          txtLocals.SelText := '';
+        end;
       end;
   end;
 end;
@@ -4399,6 +4406,8 @@ begin
           Clipboard.AsText := EvaluateInput.SelText
         else if EvalOutput.Focused then
           EvalOutput.CopyToClipboard
+        else if txtLocals.Focused then
+          Clipboard.AsText := txtLocals.SelText
         else if DebugOutput.Focused then
           DebugOutput.CopyToClipboard;
       end;
@@ -4433,6 +4442,8 @@ begin
           Clipboard.AsText := EvaluateInput.Text
         else if EvalOutput.Focused then
           Clipboard.AsText := EvalOutput.Text
+        else if txtLocals.Focused then
+          Clipboard.AsText := txtLocals.Text
         else if DebugOutput.Focused then
           Clipboard.AsText := DebugOutput.Text
       end;
@@ -4468,6 +4479,8 @@ begin
           EvaluateInput.SelectAll
         else if EvalOutput.Focused then
           EvalOutput.SelectAll
+        else if txtLocals.Focused then
+          txtLocals.SelectAll
         else if DebugOutput.Focused then
           DebugOutput.SelectAll;
       end;

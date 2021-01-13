@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 428
-  Top = 189
+  Left = 332
+  Top = 223
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -243,8 +243,9 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = DebugConsoleSheet
+        ActivePage = LocalSheet
         Align = alClient
+        PopupMenu = LocalPopup
         TabOrder = 0
         OnDrawTab = OnDrawTab
         object DebugConsoleSheet: TTabSheet
@@ -3358,9 +3359,6 @@ object MainForm: TMainForm
   object DebugOutputPopup: TPopupMenu
     Left = 443
     Top = 291
-    object MenuItem3: TMenuItem
-      Action = actMsgCut
-    end
     object MenuItem4: TMenuItem
       Action = actMsgCopy
     end
@@ -3573,5 +3571,21 @@ object MainForm: TMainForm
     FontSize = 0
     Left = 130
     Top = 355
+  end
+  object LocalPopup: TPopupMenu
+    Left = 547
+    Top = 331
+    object MenuItem24: TMenuItem
+      Action = actMsgCopy
+    end
+    object MenuItem25: TMenuItem
+      Action = actMsgCopyAll
+    end
+    object MenuItem27: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem41: TMenuItem
+      Action = actMsgSelAll
+    end
   end
 end
