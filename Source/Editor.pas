@@ -1116,12 +1116,10 @@ begin
       sl.Text:=Code;
       lastI:=0;
       spaceCount := Length(Text.GetLeftSpacing(
-        Text.LeftSpacesEx(fText.LineText,devEditor.UseTabs),
-        devEditor.UseTabs));
+        Text.LeftSpacesEx(fText.LineText,True), True));
       for i:=0 to sl.Count -1 do begin
         lastPos := 0;
-        if devEditor.UseTabs then
-          s:= sl[i];
+        s:= sl[i];
         if i>0 then
           lastPos := -spaceCount; 
         while True do begin
