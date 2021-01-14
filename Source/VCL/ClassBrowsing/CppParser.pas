@@ -2815,7 +2815,7 @@ begin
     fOnUpdate(Self);
   finally
     fCriticalSection.Release;
-  end;    
+  end;
 end;
 
 procedure TCppParser.ParseFileList;
@@ -2824,9 +2824,12 @@ var
 begin
   fCriticalSection.Acquire;
   try
-  if fParsing or fLocked then
-    Exit;
-  fParsing:=True;
+    if fParsing or fLocked then
+      Exit;
+    fParsing:=True;
+  finally
+    fCriticalSection.Release;
+  end;
   try
     if not fEnabled then
       Exit;
@@ -2870,9 +2873,6 @@ begin
   finally
     fParsing:=False;
   end;
-  finally
-    fCriticalSection.Release;
-  end;  
 end;
 
 {
@@ -3101,9 +3101,12 @@ var
 begin
   fCriticalSection.Acquire;
   try
-  if fParsing or fLocked then
-    Exit;
-  fParsing:=True;
+    if fParsing or fLocked then
+      Exit;
+    fParsing:=True;
+  finally
+    fCriticalSection.Release;
+  end;
   try
     if UpdateView and Assigned(fOnBusy) then
       fOnBusy(Self);
@@ -3178,9 +3181,7 @@ begin
         fOnUpdate(Self);
     fParsing:=False;
   end;
-  finally
-    fCriticalSection.Release;
-  end;  
+
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
