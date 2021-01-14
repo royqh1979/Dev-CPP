@@ -12,6 +12,7 @@ Version 6.3-beta5 JAN 2021
     - enhancement: show code completion window even if the word is inputed by IME
     - enhancement: popup menu for the Local Panel
     - fix: some character in utf8 encoding files will cause gcc compile error
+    - enhancement: dragging mouse on the editor's gutter won't toggle breakpoint and fold codes.
 
 Version 6.3-beta4 JAN 2021
    
