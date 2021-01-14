@@ -2094,11 +2094,7 @@ begin
     if GetFileTyp(s) = utPrj then
       OpenProject(s)
     else begin
-      if devEditor.UseUTF8ByDefault then begin
-        OpenFile(s, etAuto);
-      end else begin
-        OpenFile(s, etAnsi);
-      end;
+      OpenFile(s, etAuto);
     end;
   end else
     MessageDlg(Format(Lang[ID_ERR_RENAMEDDELETED], [s]), mtInformation, [mbOK], 0);
@@ -2255,10 +2251,7 @@ begin
     try
       for I := 0 to List.Count - 1 do  begin
         // open all files
-        if devEditor.UseUTF8ByDefault then
-          OpenFile(List[I], etAuto)
-        else
-          OpenFile(List[I], etAnsi) ;
+        OpenFile(List[I], etAuto)
       end;
     finally
       fEditorList.EndUpdate;
@@ -2642,10 +2635,7 @@ begin
     end;
   end;
 
-  if devEditor.UseUTF8ByDefault then
-    NewEditor := fEditorList.NewEditor('',etAuto, False, True)
-  else
-    NewEditor := fEditorList.NewEditor('',etAnsi, False, True);
+  NewEditor := fEditorList.NewEditor('',etAuto, False, True) ;
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
   UpdateFileEncodingStatusPanel;
@@ -4369,10 +4359,7 @@ begin
   fCompiler.BuildMakeFile;
 
   // Show the results
-  if devEditor.UseUTF8ByDefault then
-    OpenFile(fCompiler.MakeFile, etAuto)
-  else
-    OpenFile(fCompiler.MakeFile, etAnsi) ;
+  OpenFile(fCompiler.MakeFile, etAuto)
 end;
 
 procedure TMainForm.actMsgCutExecute(Sender: TObject);
@@ -5877,10 +5864,7 @@ begin
           if n > 0 then
             Delete(filename, n, maxint);
           try
-            if devEditor.UseUTF8ByDefault then
-              OpenFile(filename, etAuto)
-            else
-              OpenFile(filename, etAnsi);
+            OpenFile(filename, etAuto)
           except
           end;
         end;

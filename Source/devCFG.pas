@@ -2589,7 +2589,7 @@ begin
   fGlobalIncludeCompletion := True;
   fDeleteSymbolPairs := True;
 
-  fUseUTF8ByDefault := True;
+  fUseUTF8ByDefault := False;
 
   fUseTabnine:= False;
   fSyntax.Clear;

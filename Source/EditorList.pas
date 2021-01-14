@@ -503,10 +503,7 @@ begin
 
   // Else, just open from disk
   if FileExists(FullFileName) then begin
-    if devEditor.UseUTF8ByDefault then
-      Result := NewEditor(FullFileName, etAuto, False, False)
-    else
-      Result := NewEditor(FullFileName, etAnsi, False, False)
+    Result := NewEditor(FullFileName, etAuto, False, False)
   end;
 end;
 

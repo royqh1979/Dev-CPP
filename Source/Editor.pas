@@ -742,7 +742,7 @@ begin
     try
       for I := 0 to pred(aFiles.Count) do begin
         sl.LoadFromFile(aFiles[I]);
-        if devEditor.UseUTF8ByDefault then
+        if GetFileEncodingType(sl.Text) = etUTF8 then
           fText.SelText := UTF8ToAnsi(sl.Text)
         else
           fText.SelText := sl.Text;

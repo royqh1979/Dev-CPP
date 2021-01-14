@@ -720,9 +720,9 @@ begin
         GetIncludesParams;
 
         if not fCheckSyntax and UseUTF8 then begin
-          fCompileParams := fCompileParams + ' -finput-charset=utf-8 --exec-charset='
+          fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
-          fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 --exec-charset='
+          fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
         end;
 
