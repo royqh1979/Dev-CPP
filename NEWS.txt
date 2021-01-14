@@ -11,7 +11,7 @@ Version 6.3-beta5 JAN 2021
     - enhancement: show code snippets option in the editor options dialog's code completion tabpage
     - enhancement: show code completion window even if the word is inputed by IME
     - enhancement: popup menu for the Local Panel
-    - change: use gbk as the default encoding ( because gcc 10 can't correctly convert some utf8 characters
+    - change: turn off " use utf8 as the default encoding" in the editor options dialog by default ( because gcc 10 can't correctly convert some utf8 characters)
 
 Version 6.3-beta4 JAN 2021
    
