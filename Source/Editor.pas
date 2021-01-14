@@ -153,6 +153,7 @@ type
     procedure EditorExit(Sender: TObject);
     procedure EditorGutterClick(Sender: TObject; Button: TMouseButton; x, y, Line: integer; mark: TSynEditMark);
     procedure EditorSpecialLineColors(Sender: TObject; Line: integer; var Special: boolean; var FG, BG: TColor);
+    procedure EditorImeInput(Sender: TObject; s:String);
 
     procedure EditorPaintHighlightToken(Sender: TObject; Row: integer;
       column: integer; token: String; attr: TSynHighlighterAttributes;
@@ -441,6 +442,7 @@ begin
   fText.OnEditingAreas:=EditorEditingAreas;
   fText.OnExit := EditorExit;
   fText.OnKeyPress := EditorKeyPress;
+  fText.OnImeInput := EditorImeInput;
   fText.OnKeyDown := EditorKeyDown;
   fText.OnKeyUp := EditorKeyUp;
   fText.OnPaintTransient := EditorPaintTransient;
@@ -740,7 +742,7 @@ begin
     try
       for I := 0 to pred(aFiles.Count) do begin
         sl.LoadFromFile(aFiles[I]);
-        if devEditor.UseUTF8ByDefault then
+        if GetFileEncodingType(sl.Text) = etUTF8 then
           fText.SelText := UTF8ToAnsi(sl.Text)
         else
           fText.SelText := sl.Text;
@@ -1114,12 +1116,10 @@ begin
       sl.Text:=Code;
       lastI:=0;
       spaceCount := Length(Text.GetLeftSpacing(
-        Text.LeftSpacesEx(fText.LineText,devEditor.UseTabs),
-        devEditor.UseTabs));
+        Text.LeftSpacesEx(fText.LineText,True), True));
       for i:=0 to sl.Count -1 do begin
         lastPos := 0;
-        if devEditor.UseTabs then
-          s:= sl[i];
+        s:= sl[i];
         if i>0 then
           lastPos := -spaceCount; 
         while True do begin
@@ -1928,6 +1928,36 @@ begin
   end;
 end;
 
+procedure TEditor.EditorImeInput(Sender:TObject; s:String);
+var
+  lastWord:AnsiString;
+  kind:TStatementKind;
+begin
+  if not IsIdentifier(s) then
+    Exit;
+  if fParser.IsIncludeLine(Text.LineText) then begin
+    ShowHeaderCompletion(False);
+  end else begin
+    lastWord:=GetPreviousWordAtPositionForSuggestion(Text.CaretXY);
+    if lastWord <> '' then begin
+      if (CbUtils.CppTypeKeywords.ValueOf(lastWord) <> -1) then begin
+        //last word is a type keyword, this is a var or param define, and dont show suggestion
+        if devEditor.UseTabnine then
+          ShowTabnineCompletion;
+        Exit;
+      end;
+      kind := fParser.FindKindOfStatementOf(fFileName, lastWord, fText.CaretY);
+      if (Kind in [skClass,skTypedef,skEnumType]) then begin
+        //last word is a typedef/class/struct, this is a var or param define, and dont show suggestion
+        if devEditor.UseTabnine then
+          ShowTabnineCompletion;
+        Exit;
+      end;
+    end;
+    ShowCompletion(False);
+  end;
+end;
+
 procedure TEditor.EditorKeyPress(Sender: TObject; var Key: Char);
 var
   lastWord:AnsiString;
@@ -2357,6 +2387,7 @@ begin
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
   fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
+  fCompletionBox.ShowCodeIns := devCodeCompletion.ShowCodeIns;
   fCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;
   fCompletionBox.CodeInsList := dmMain.CodeInserts.ItemList;
   fCompletionBox.SymbolUsage := dmMain.SymbolUsage;

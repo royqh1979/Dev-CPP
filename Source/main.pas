@@ -480,7 +480,6 @@ type
     Globals1: TMenuItem;
     FunctionParameters1: TMenuItem;
     DebugOutputPopup: TPopupMenu;
-    MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
@@ -681,6 +680,11 @@ type
     OpenWindowsTerminalHere2: TMenuItem;
     AddToDoitem1: TMenuItem;
     N17: TMenuItem;
+    LocalPopup: TPopupMenu;
+    MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem41: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -2090,11 +2094,7 @@ begin
     if GetFileTyp(s) = utPrj then
       OpenProject(s)
     else begin
-      if devEditor.UseUTF8ByDefault then begin
-        OpenFile(s, etAuto);
-      end else begin
-        OpenFile(s, etAnsi);
-      end;
+      OpenFile(s, etAuto);
     end;
   end else
     MessageDlg(Format(Lang[ID_ERR_RENAMEDDELETED], [s]), mtInformation, [mbOK], 0);
@@ -2251,10 +2251,7 @@ begin
     try
       for I := 0 to List.Count - 1 do  begin
         // open all files
-        if devEditor.UseUTF8ByDefault then
-          OpenFile(List[I], etAuto)
-        else
-          OpenFile(List[I], etAnsi) ;
+        OpenFile(List[I], etAuto)
       end;
     finally
       fEditorList.EndUpdate;
@@ -2638,10 +2635,7 @@ begin
     end;
   end;
 
-  if devEditor.UseUTF8ByDefault then
-    NewEditor := fEditorList.NewEditor('',etAuto, False, True)
-  else
-    NewEditor := fEditorList.NewEditor('',etAnsi, False, True);
+  NewEditor := fEditorList.NewEditor('',etAuto, False, True) ;
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
   UpdateFileEncodingStatusPanel;
@@ -4093,6 +4087,7 @@ begin
     ctNone: Exit;
   end;
 
+
   // Add library folders
   with devCompilerSets.CompilationSet do begin
     for I := 0 to LibDir.Count - 1 do
@@ -4364,10 +4359,7 @@ begin
   fCompiler.BuildMakeFile;
 
   // Show the results
-  if devEditor.UseUTF8ByDefault then
-    OpenFile(fCompiler.MakeFile, etAuto)
-  else
-    OpenFile(fCompiler.MakeFile, etAnsi) ;
+  OpenFile(fCompiler.MakeFile, etAuto)
 end;
 
 procedure TMainForm.actMsgCutExecute(Sender: TObject);
@@ -4377,7 +4369,10 @@ begin
         if EvaluateInput.Focused then begin
           Clipboard.AsText := EvaluateInput.SelText;
           EvaluateInput.SelText := '';
-        end ;
+        end else if txtLocals.Focused then begin
+          Clipboard.AsText := txtLocals.SelText;
+          txtLocals.SelText := '';
+        end;
       end;
   end;
 end;
@@ -4398,6 +4393,8 @@ begin
           Clipboard.AsText := EvaluateInput.SelText
         else if EvalOutput.Focused then
           EvalOutput.CopyToClipboard
+        else if txtLocals.Focused then
+          Clipboard.AsText := txtLocals.SelText
         else if DebugOutput.Focused then
           DebugOutput.CopyToClipboard;
       end;
@@ -4432,6 +4429,8 @@ begin
           Clipboard.AsText := EvaluateInput.Text
         else if EvalOutput.Focused then
           Clipboard.AsText := EvalOutput.Text
+        else if txtLocals.Focused then
+          Clipboard.AsText := txtLocals.Text
         else if DebugOutput.Focused then
           Clipboard.AsText := DebugOutput.Text
       end;
@@ -4467,6 +4466,8 @@ begin
           EvaluateInput.SelectAll
         else if EvalOutput.Focused then
           EvalOutput.SelectAll
+        else if txtLocals.Focused then
+          txtLocals.SelectAll
         else if DebugOutput.Focused then
           DebugOutput.SelectAll;
       end;
@@ -5863,10 +5864,7 @@ begin
           if n > 0 then
             Delete(filename, n, maxint);
           try
-            if devEditor.UseUTF8ByDefault then
-              OpenFile(filename, etAuto)
-            else
-              OpenFile(filename, etAnsi);
+            OpenFile(filename, etAuto)
           except
           end;
         end;

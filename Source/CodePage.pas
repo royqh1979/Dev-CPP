@@ -40,7 +40,7 @@ const
             (CodePage: 874;         Name: 'windows-874';  Language:''),       //ANSI/OEM Thai (ISO 8859-11); Thai (Windows)
             (CodePage: 875;         Name: 'cp875';  Language:''),             //IBM EBCDIC Greek Modern
             (CodePage: 932;         Name: 'shift_jis';  Language:''),         //ANSI/OEM Japanese; Japanese (Shift-JIS)
-            (CodePage: 936;         Name: 'gb2312';  Language:'Chinese'),                //ANSI/OEM Simplified Chinese (PRC, Singapore); Chinese Simplified (GB2312)
+            (CodePage: 936;         Name: 'gbk';  Language:'Chinese'),                //ANSI/OEM Simplified Chinese (PRC, Singapore); Chinese Simplified (GB2312)
             (CodePage: 949;         Name: 'ks_c_5601-1987';  Language:''),    //ANSI/OEM Korean (Unified Hangul Code)
             (CodePage: 950;         Name: 'big5';  Language:'Chinese_TC'),                  //ANSI/OEM Traditional Chinese (Taiwan; Hong Kong SAR, PRC); Chinese Traditional (Big5)
             (CodePage: 1026;        Name: 'IBM1026';  Language:''),               //IBM EBCDIC Turkish (Latin 5)

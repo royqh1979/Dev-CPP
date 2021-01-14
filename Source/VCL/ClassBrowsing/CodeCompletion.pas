@@ -59,6 +59,7 @@ type
     fSymbolUsage:THashedStringList;
     fRecordUsage: boolean;
     fShowKeywords: boolean;
+    fShowCodeIns: boolean;
     fIgnoreCase:boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
@@ -86,6 +87,7 @@ type
     property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
   published
     property ShowCount: integer read fShowCount write fShowCount;
+    property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
     property Parser: TCppParser read fParser write fParser;
     property Position: TPoint read fPos write SetPosition;
     property Color: TColor read fColor write fColor;
@@ -145,7 +147,8 @@ begin
   fColor := clWindow;
   fEnabled := True;
   fOnlyGlobals := False;
-  fShowCount := 1000; 
+  fShowCount := 1000;
+  fShowCodeIns:=True;
 
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
@@ -259,16 +262,18 @@ begin
   I := fParser.FindLastOperator(Phrase);
   if (I = 0) then begin
 
-    //add templates
-    for i:=0 to fCodeInsList.Count-1 do begin
-      codeIn:=PCodeIns(fCodeInsList[i]);
-      new(codeInStatement);
-      codeInStatement^._Command := codeIn.Prefix;
-      codeInStatement^._Value := codeIn.Code;
-      codeInStatement^._Kind := skUserCodeIn;
-      codeInStatement^._FullName := codeIn.Prefix;
-      fCodeInsStatements.Add(pointer(codeInStatement));
-      fFullCompletionStatementList.Add(pointer(codeInStatement));
+    if fShowCodeIns then begin
+      //add templates
+      for i:=0 to fCodeInsList.Count-1 do begin
+        codeIn:=PCodeIns(fCodeInsList[i]);
+        new(codeInStatement);
+        codeInStatement^._Command := codeIn.Prefix;
+        codeInStatement^._Value := codeIn.Code;
+        codeInStatement^._Kind := skUserCodeIn;
+        codeInStatement^._FullName := codeIn.Prefix;
+        fCodeInsStatements.Add(pointer(codeInStatement));
+        fFullCompletionStatementList.Add(pointer(codeInStatement));
+      end;
     end;
 
     if fShowKeywords then begin

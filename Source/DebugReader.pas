@@ -143,6 +143,7 @@ type
     procedure HandleSource;
     procedure HandleLocals;
     procedure HandleParams;
+    procedure HandleLocalOutput;
 
     // Evaluation tree output handlers
     procedure ProcessWatchOutput(WatchVar: PWatchVar);
@@ -934,37 +935,46 @@ begin
   doregistersready := true;
 end;
 
-procedure TDebugReader.HandleLocals;
+procedure TDebugReader.HandleLocalOutput;
 var
   s: AnsiString;
+  breakLine: boolean;
+  NextLine: AnsiString;
+  NextAnnotation: TAnnotateType;
 begin
-  MainForm.txtLocals.Lines.Text:='';
   // name(spaces)hexvalue(tab)decimalvalue
   s := GetNextFilledLine;
 
+  breakLine:=False;
   repeat
-    s := TrimLeft(s);
-    if SameStr(s,'No locals.') then
-      Exit;
-    MainForm.txtLocals.Lines.Add(s);
+    if not StartsStr(#26#26,s) then begin
+      s := TrimLeft(s);
+      if SameStr(s,'No locals.') then
+        Exit;
+      if SameStr(s,'No arguments.') then
+        Exit;
+      if breakLine and (MainForm.txtLocals.Lines.Count>0) then begin
+        MainForm.txtLocals.Lines[MainForm.txtLocals.Lines.Count-1] := MainForm.txtLocals.Lines[MainForm.txtLocals.Lines.Count-1] + s;
+      end else begin
+        MainForm.txtLocals.Lines.Add(s);
+      end;
+      breakLine:=False;
+    end else begin
+      breakLine:=True;
+    end;
     s := GetNextLine;
-  until SameStr('', s);
+  until not breakLine and SameStr('', s);
+end;
+
+procedure TDebugReader.HandleLocals;
+begin
+  MainForm.txtLocals.Lines.Text:='';
+  HandleLocalOutput;
 end;
 
 procedure TDebugReader.HandleParams;
-var
-  s: AnsiString;
 begin
-  // name(spaces)hexvalue(tab)decimalvalue
-  s := GetNextFilledLine;
-
-  repeat
-    s := TrimLeft(s);
-    if SameStr(s,'No arguments.') then
-      Exit;
-    MainForm.txtLocals.Lines.Add(s);
-    s := GetNextLine;
-  until SameStr('', s);
+  HandleLocalOutput;
 end;
 
 procedure TDebugReader.HandleError;

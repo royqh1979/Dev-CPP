@@ -141,6 +141,8 @@ type
   TGutterPaintEvent = procedure(Sender: TObject; aLine: integer;
     X, Y: integer) of object;
 
+  TImeInputEvent = procedure(Sender: TObject; s:String) of object;
+
   TSynEditCaretType = (ctVerticalLine, ctHorizontalLine, ctHalfBlock, ctBlock);
 
   TSynStateFlag = (sfCaretChanged, sfScrollbarChanged, sfLinesChanging,
@@ -286,6 +288,7 @@ type
     fCharWidth: Integer;
     fFontDummy: TFont;
     fFontSmoothing: TSynFontSmoothMethod;
+    fMouseMoved: boolean;
 {$IFDEF SYN_MBCSSUPPORT}
     fImeCount: Integer;
     fMBCSStepAside: Boolean;
@@ -355,6 +358,7 @@ type
     fOnCommandProcessed: TProcessCommandEvent;
     fOnDropFiles: TDropFilesEvent;
     fOnGutterClick: TGutterClickEvent;
+    fOnImeInput: TImeInputEvent;
     fOnMouseCursor: TMouseCursorEvent;
     fOnPaint: TPaintEvent;
     fOnPaintHighlightToken : TPaintHighlightTokenEvent;
@@ -845,6 +849,7 @@ type
       write fOnGutterGetText;
     property OnGutterPaint: TGutterPaintEvent read fOnGutterPaint
       write fOnGutterPaint;
+    property OnImeInput: TImeInputEvent read fOnImeInput write fOnImeInput;
     property OnMouseCursor: TMouseCursorEvent read fOnMouseCursor
       write fOnMouseCursor;
     property OnPaint: TPaintEvent read fOnPaint write fOnPaint;
@@ -1194,6 +1199,7 @@ begin
   fLines := TSynEditStringList.Create;
   fOrigLines := fLines;
   fPlugins := TList.Create;
+  fMouseMoved := False;
   with fLines do begin
     OnChange := LinesChanged;
     OnChanging := LinesChanging;
@@ -1921,16 +1927,18 @@ var
   bStartDrag: Boolean;
   TmpBegin, TmpEnd: TBufferCoord;
 begin
+  bWasSel := False;
+  bStartDrag := False;
+  fMouseMoved := False;
+{
   if (X < fGutterWidth + 2) then begin
     DoOnGutterClick(Button, X, Y);
     Exit; // do NOT wait for MouseUp
   end;
-
+}
   TmpBegin := FBlockBegin;
   TmpEnd := FBlockEnd;
 
-  bWasSel := False;
-  bStartDrag := False;
   if Button = mbLeft then begin
     if SelAvail then begin
       //remember selection state, as it will be cleared later
@@ -2007,6 +2015,7 @@ var
   P: TDisplayCoord;
 begin
   inherited MouseMove(Shift, x, y);
+  fMouseMoved := True;
   if MouseCapture and (sfWaitForDragging in fStateFlags) then begin
     if (Abs(fMouseDownX - X) >= GetSystemMetrics(SM_CXDRAG))
       or (Abs(fMouseDownY - Y) >= GetSystemMetrics(SM_CYDRAG)) then begin
@@ -2077,6 +2086,10 @@ procedure TCustomSynEdit.MouseUp(Button: TMouseButton; Shift: TShiftState;
 begin
   inherited MouseUp(Button, Shift, X, Y);
   fKbdHandler.ExecuteMouseUp(Self, Button, Shift, X, Y);
+
+  if not fMouseMoved and (X < fGutterWidth + 2) then begin
+    DoOnGutterClick(Button, X, Y);
+  end;
 
   fScrollTimer.Enabled := False;
   if (Button = mbRight) and (Shift = [ssRight]) and Assigned(PopupMenu) then
@@ -6873,7 +6886,7 @@ begin
             fOnContextHelp(self, WordAtCursor);
         end;
 {$IFDEF SYN_MBCSSUPPORT}
-      ecImeStr:
+      ecImeStr: begin;
         if not ReadOnly then begin
           SetString(s, PChar(Data), StrLen(Data));
           if SelAvail then begin
@@ -6927,6 +6940,9 @@ begin
                 Exclude(fOptions, eoScrollPastEol);
             end;
           end;
+        end;
+          if assigned(fOnImeInput) then
+            fOnImeInput(self,s);
         end;
 {$ENDIF}
     end;

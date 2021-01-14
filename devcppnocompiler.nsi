@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "No.Compiler"
 !define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.3-beta4"
+!define DEVCPP_VERSION "6.3-beta5"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -135,6 +135,8 @@ Section "$(SectionMainName)" SectionMain
   File /nonfatal /r "AStyle\*"
   SetOutPath $INSTDIR\ResEd
   File /nonfatal /r "ResEd\*"
+  SetOutPath $INSTDIR\Contributes
+  File /nonfatal /r "contributes\*"
 SectionEnd
 
 Section "$(SectionIconsName)" SectionIcons
@@ -555,6 +557,7 @@ Section "Uninstall"
   RMDir /r "$INSTDIR\Templates"
   RMDir /r "$INSTDIR\Astyle"
   RMDir /r "$INSTDIR\ResEd"
+  RMDir /r "$INSTDIR\Contributes"
   RMDir /r "$INSTDIR\MinGW32"
   RMDir /r "$INSTDIR\MinGW64"
 

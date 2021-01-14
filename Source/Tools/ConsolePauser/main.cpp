@@ -23,6 +23,25 @@ LONGLONG GetClockFrequency() {
 	return dummy.QuadPart;
 }
 
+
+string GetErrorMessage() {
+	string result(MAX_ERROR_LENGTH,0);
+
+	FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),&result[0],result.size(),NULL);
+
+	// Clear newlines at end of string
+	for(int i = result.length()-1;i >= 0;i--) {
+		if(isspace(result[i])) {
+			result[i] = 0;
+		} else {
+			break;
+		}
+	}
+	return result;
+}
+
 void PauseExit(int exitcode, bool reInp) {
     HANDLE hInp=NULL;
     if (reInp) {
@@ -36,30 +55,37 @@ void PauseExit(int exitcode, bool reInp) {
             //si.hStdInput = hInp;
         SetStdHandle(STD_INPUT_HANDLE,hInp);
     }
-	system("pause");
+	//system("pause");
+	
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	memset(&si,0,sizeof(si));
+	si.cb = sizeof(si);
+	memset(&pi,0,sizeof(pi));
+
+	DWORD dwCreationFlags = CREATE_BREAKAWAY_FROM_JOB;
+
+
+	if(!CreateProcess(NULL, (LPSTR)"cmd /c \"pause\"", NULL, NULL, true, dwCreationFlags, NULL, NULL, &si, &pi)) {
+		printf("\n--------------------------------");
+		printf("\nFailed to execute 'pause' ");
+		printf("\nError %lu: %s\n",GetLastError(),GetErrorMessage().c_str());
+		system("pause");
+		exit(exitcode);
+	}
+    WINBOOL bSuccess = AssignProcessToJobObject( hJob, pi.hProcess );
+    if ( bSuccess == FALSE ) {
+        printf( "AssignProcessToJobObject failed: error %d\n", GetLastError() );
+        system("pause");
+        exit(exitcode);
+    }
+
+	WaitForSingleObject(pi.hProcess, INFINITE); // Wait for it to finish
     if (reInp) {
         CloseHandle(hInp);
     }
     CloseHandle( hJob );
 	exit(exitcode);
-}
-
-string GetErrorMessage() {
-	string result(MAX_ERROR_LENGTH,0);
-	
-	FormatMessage(
-		FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),&result[0],result.size(),NULL);
-	
-	// Clear newlines at end of string
-	for(int i = result.length()-1;i >= 0;i--) {
-		if(isspace(result[i])) {
-			result[i] = 0;
-		} else {
-			break;
-		}
-	}
-	return result;
 }
 
 string GetCommand(int argc,char** argv,bool &reInp) {
