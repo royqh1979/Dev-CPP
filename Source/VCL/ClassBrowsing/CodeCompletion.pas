@@ -651,7 +651,7 @@ begin
   GetCompletionFor(FileName,Phrase);
   CodeComplForm.lbCompletion.Font.Size := FontSize;
   CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
-  CodeComplForm.Update;
+  CodeComplForm.Invalidate;
   Screen.Cursor := crDefault;
   fPreparing:=False;
 end;

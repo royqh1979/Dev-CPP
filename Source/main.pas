@@ -1121,7 +1121,8 @@ uses
   NewTemplateFrm, FunctionSearchFrm, NewFunctionFrm, NewVarFrm, NewClassFrm,
   ProfileAnalysisFrm, FilePropertiesFrm, AddToDoFrm, ViewToDoFrm,
   ImportMSVCFrm, ImportCBFrm, CPUFrm, FileAssocs, TipOfTheDayFrm,
-  WindowListFrm, RemoveUnitFrm, ParamsFrm, ProcessListFrm, SynEditHighlighter;
+  WindowListFrm, RemoveUnitFrm, ParamsFrm, ProcessListFrm, SynEditHighlighter,
+  devParser;
 
 {$R *.dfm}
 { TTabsheet }
@@ -5426,7 +5427,7 @@ begin
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') then begin
-        GetCppParser.ParseFile(e.FileName,e.InProject);
+        ParseFile(GetCppParser,e.FileName,e.InProject);
       end;
     end else begin
       ClassBrowser.CurrentFile := '';

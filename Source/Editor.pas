@@ -268,7 +268,8 @@ uses
   main, project, MultiLangSupport, devcfg,
   DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm,
   CodeCompletionForm, SynEditMiscClasses,
-  devCaretList,cppPreprocessor, cppTokenizer;
+  devCaretList,cppPreprocessor, cppTokenizer,
+  devParser;
 
 { TDebugGutter }
 
@@ -3416,7 +3417,7 @@ begin
       if not force and devCodeCompletion.Enabled and assigned(fParser) then begin
         BeginUpdate;
         try
-        fParser.ParseFile(fFileName, InProject);
+          ParseFile(fParser, fFileName, InProject);
         finally
           EndUpdate;
         end;
@@ -3783,17 +3784,11 @@ procedure TEditor.Reparse;
 var
   M: TMemoryStream;
 begin
-  BeginUpdate;
-  M := TMemoryStream.Create;
-  try
-    fText.Lines.SaveToStream(M);
-    // Reparse whole file (not function bodies) if it has been modified
-    // use stream, don't read from disk (not saved yet)
-    fParser.ParseFile(fFileName, InProject, False, False, M);
-  finally
-    M.Free;
-    EndUpdate;
-  end;
+//  BeginUpdate;
+  // Reparse whole file (not function bodies) if it has been modified
+  // use stream, don't read from disk (not saved yet)
+  ParseFile(fParser,fFileName, InProject, False, False, fText.Lines);
+//  EndUpdate;
 end;
 
 
