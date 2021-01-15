@@ -650,8 +650,8 @@ begin
   fParser.GetFileIncludes(Filename, fIncludedFiles);
   GetCompletionFor(FileName,Phrase);
   CodeComplForm.lbCompletion.Font.Size := FontSize;
-  CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
-  CodeComplForm.Invalidate;
+  //CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
+  CodeComplForm.Update;
   Screen.Cursor := crDefault;
   fPreparing:=False;
 end;
