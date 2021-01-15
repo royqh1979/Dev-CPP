@@ -266,7 +266,7 @@ begin
   fFileName := nFileName;
   finiFile := TMemIniFile.Create(fFileName);
   fOptions := TProjOptions.Create;
-  fParser := TCppParser.Create(MainForm.PageControlPanel);
+  fParser := TCppParser.Create(MainForm.PageControlPanel, MainForm.Handle);
   fParser.Preprocessor := TCppPreprocessor.Create(MainForm.PageControlPanel);
   fParser.Tokenizer := TCppTokenizer.Create(MainForm.PageControlPanel);
   ResetCppParser(fParser);

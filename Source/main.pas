@@ -660,10 +660,6 @@ type
     FindOutput: TFindOutput;
     FindPopup: TPopupMenu;
     mnuClearAllFindItems: TMenuItem;
-    DummyCppParser: TCppParser;
-    DummyCppPreprocessor: TCppPreprocessor;
-    DummyCppTokenizer: TCppTokenizer;
-    HeaderCompletion: THeaderCompletion;
     N41: TMenuItem;
     AutoDetect1: TMenuItem;
     UTF81: TMenuItem;
@@ -685,6 +681,7 @@ type
     MenuItem25: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem41: TMenuItem;
+    HeaderCompletion: THeaderCompletion;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -780,7 +777,8 @@ type
     procedure actToolsMenuExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
-    procedure CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
+//    procedure CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
+    procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
     procedure CodeCompletionResize(Sender: TObject);
     procedure actSwapHeaderSourceExecute(Sender: TObject);
     procedure actSyntaxCheckExecute(Sender: TObject);
@@ -831,8 +829,8 @@ type
     procedure actExecParamsExecute(Sender: TObject);
     procedure DevCppDDEServerExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure actShowTipsExecute(Sender: TObject);
-    procedure CppParserStartParsing(Sender: TObject);
-    procedure CppParserEndParsing(Sender: TObject; Total: Integer);
+    procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
+    procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
     procedure actAbortCompilationUpdate(Sender: TObject);
     procedure actAbortCompilationExecute(Sender: TObject);
     procedure ProjectViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1037,6 +1035,7 @@ type
     fWindowsTurnedOff:boolean;
     fMessageControlChanged : boolean;
     fLeftPageControlChanged : boolean;
+    fDummyCppParser: TCppParser;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1384,6 +1383,13 @@ begin
     Action := caNone;
     Exit;
   end;
+
+  {
+  MainForm will auto destroy these objects, because their owner is the mainform
+  fDummyCppParser.Tokenizer.Free;
+  fDummyCppParser.Preprocessor.Free;
+  fDummyCppParser.Free;
+  }
 
   // Remember toolbar placement
   devData.LeftActivePage := LeftPageControl.ActivePageIndex;
@@ -4946,7 +4952,7 @@ begin
   if Assigned(fProject) and parse then begin
     ResetCppParser(fProject.CppParser);
     SetCppParserProject(fProject);
-    Project.CppParser.ParseFileList;
+    ParseFileList(Project.CppParser);
   end else begin
     SetCppParserProject(fProject);
   end;
@@ -5881,7 +5887,7 @@ begin
     ShowModal;
 end;
 
-procedure TMainForm.CppParserStartParsing(Sender: TObject);
+procedure TMainForm.CppParserStartParsing(var message:TMessage);
 var
   e: TEditor;
 begin
@@ -5904,10 +5910,15 @@ begin
   fParseStartTime := GetTickCount;
 end;
 
-procedure TMainForm.CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
+procedure TMainForm.CppParserTotalProgress(var message:TMessage);
 var
   ShowStep: Integer;
+  pMsg: PCppParserProgressMessage;
+  Total,Current:Integer;
 begin
+  pMsg:= PCppParserProgressMessage(message.WParam);
+  Total := pMsg.Total;
+  Current := pMsg.Current;
   // Mention every 5% progress
   ShowStep := Total div 20;
 
@@ -5917,16 +5928,19 @@ begin
 
   // Only show if needed (it's a very slow operation)
   if (Current mod ShowStep = 0) or (Current = 1) then begin
-    SetStatusBarMessage(Format(Lang[ID_PARSINGFILECOUNT], [Current, Total, Filename]));
+    SetStatusBarMessage(Format(Lang[ID_PARSINGFILECOUNT], [Current, Total, pMsg.Filename]));
     //Application.ProcessMessages;
   end;
 end;
 
-procedure TMainForm.CppParserEndParsing(Sender: TObject; Total: Integer);
+procedure TMainForm.CppParserEndParsing(var message:TMessage);
 var
   ParseTimeFloat, ParsingFrequency: Extended;
+  total:integer;
 begin
   Screen.Cursor := crDefault;
+
+  total := message.wParam;
 
   //CppParser will call class browser to redraw, don't do it twice
 
@@ -6745,8 +6759,9 @@ begin
   fMessageControlChanged := False;
   fLeftPageControlChanged := False;
 
-  DummyCppParser.Preprocessor := DummyCppPreprocessor;
-  DummyCppParser.Tokenizer := DummyCppTokenizer;
+  fDummyCppParser := TCppParser.Create(self,MainForm.Handle);
+  fDummyCppParser.Preprocessor := TCppPreprocessor(self);
+  fDummyCppParser.Tokenizer := TCppTokenizer.Create(self);;
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
 
@@ -8722,7 +8737,7 @@ function TMainForm.GetCppParser:TCppParser;
 var
   e:TEditor;
 begin
-  Result := DummyCppParser;
+  Result := fDummyCppParser;
   case GetCompileTarget of
     ctProject: begin
       if not Assigned(fProject) then

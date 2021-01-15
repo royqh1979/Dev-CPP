@@ -3899,7 +3899,7 @@ end;
 
 procedure TEditor.InitParser;
 begin
-  fParser := TCppParser.Create(fText);
+  fParser := TCppParser.Create(fText,MainForm.Handle);
   fParser.Preprocessor := TCppPreprocessor.Create(fText);
   fParser.Tokenizer := TCppTokenizer.Create(fText);
   ResetCppParser(fParser);

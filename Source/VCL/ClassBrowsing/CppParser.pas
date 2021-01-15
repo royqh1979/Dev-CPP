@@ -23,10 +23,17 @@ interface
 
 uses
   Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
-  cbutils, IntList,SyncObjs, iniFiles;
+  cbutils, IntList,SyncObjs, iniFiles,Controls;
 
 
 type
+
+  PCppParserProgressMessage = ^TCppParserProgressMessage;
+  TCppParserProgressMessage = Record
+    Total:integer;
+    Current:integer;
+    FileName:String;
+  end;
   TCppParser = class(TComponent)
   private
     fUniqId : integer;
@@ -35,6 +42,7 @@ type
     fIsHeader: boolean;
     fIsSystemHeader: boolean;
     fCurrentFile: AnsiString;
+    fHandle : HWND;
     { stack list , each element is a list of one/many scopes(like intypedef struct  s1,s2;}
     { It's used for store scope nesting infos }
     fCurrentScope: TList;  //TList<PStatement>
@@ -63,10 +71,6 @@ type
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
     fParseLocalHeaders: boolean;
     fParseGlobalHeaders: boolean;
-    fOnBusy: TNotifyEvent;
-    fOnUpdate: TNotifyEvent;
-    fOnTotalProgress: TProgressEvent;
-    fOnStartParsing: TNotifyEvent;
     fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
     //fMacroDefines : TList;
@@ -166,6 +170,11 @@ type
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function GetRemainder(const Phrase: AnsiString): AnsiString;
     function getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
+    procedure OnProgress(FileName:String;Total,Current:integer);
+    procedure OnBusy;
+    procedure OnUpdate;
+    procedure OnStartParsing;
+    procedure OnEndParsing(total:integer);
   public
     procedure ParseHardDefines;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
@@ -189,7 +198,8 @@ type
     }
     function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
     function IsIncludeLine(const Line: AnsiString): boolean;
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override; 
+    constructor Create(AOwner: TComponent; wnd:HWND); overload;
     destructor Destroy; override;
     procedure ParseFileList;
     procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
@@ -231,17 +241,12 @@ type
   published
     property Parsing: boolean read GetParsing;
     property Enabled: boolean read fEnabled write fEnabled;
-    property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
-    property OnBusy: TNotifyEvent read fOnBusy write fOnBusy;
-    property OnTotalProgress: TProgressEvent read fOnTotalProgress write fOnTotalProgress;
     property Tokenizer: TCppTokenizer read fTokenizer write SetTokenizer;
     property Preprocessor: TCppPreprocessor read fPreprocessor write SetPreprocessor;
     property Statements: TStatementList read fStatementList write fStatementList;
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property ScannedFiles: TStringList read fScannedFiles;
-    property OnStartParsing: TNotifyEvent read fOnStartParsing write fOnStartParsing;
-    property OnEndParsing: TProgressEndEvent read fOnEndParsing write fOnEndParsing;
     property FilesToScan: TStringList read fFilesToScan;
   end;
 
@@ -256,10 +261,15 @@ procedure Register;
 begin
   RegisterComponents('Dev-C++', [TCppParser]);
 end;
-
 constructor TCppParser.Create(AOwner: TComponent);
 begin
+  Create(AOwner, TWinControl(AOwner).Handle);
+end;
+
+constructor TCppParser.Create(AOwner: TComponent; wnd:HWND);
+begin
   inherited Create(AOwner);
+  fHandle := wnd;
   fUniqId := 0;
   fParsing:=False;
   fStatementList := TStatementList.Create; // owns the objects
@@ -1531,6 +1541,16 @@ begin
   Inc(fIndex);
 end;
 
+procedure TCppParser.OnProgress(FileName:String;Total,Current:integer);
+var
+  msg: TCppParserProgressMessage;
+begin
+  msg.FileName := FileName;
+  msg.Total := total;
+  msg.Current := Current;
+  SendMessage(fHandle, WM_PARSER_PROGRESS,integer(@msg),0);
+end;
+
 procedure TCppParser.HandlePreprocessor;
 var
   DelimPos, Line: Integer;
@@ -1552,8 +1572,7 @@ begin
       if Line = 1 then begin
         Inc(fFilesScannedCount);
         Inc(fFilesToScanCount);
-        if Assigned(fOnTotalProgress) then
-          fOnTotalProgress(Self, fCurrentFile, fFilesToScanCount, fFilesScannedCount);
+        OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
       end;
     end;
   end else if StartsStr('#define ', fTokenizer[fIndex]^.Text) then begin
@@ -2646,6 +2665,27 @@ begin
   Result := fIndex < fTokenizer.Tokens.Count;
 end;
 
+procedure TCppParser.OnStartParsing;
+begin
+  SendMessage(fHandle,WM_PARSER_BEGIN_PARSE,0,0);
+end;
+
+procedure TCppParser.OnEndParsing(total:integer);
+begin
+  SendMessage(fHandle,WM_PARSER_END_PARSE,total,0);
+end;
+
+procedure TCppParser.OnBusy;
+begin
+  SendMessage(fHandle,WM_PARSER_BUSY,0,0);
+end;
+
+procedure TCppParser.OnUpdate;
+begin
+  SendMessage(fHandle,WM_PARSER_UPDATE,0,0);
+end;
+
+
 procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream =
   nil);
 begin
@@ -2658,13 +2698,12 @@ begin
     Exit;
 
   // Start a timer here
-  if (not ManualUpdate) and Assigned(fOnStartParsing) then
-    fOnStartParsing(Self);
+  if (not ManualUpdate) then begin
+    OnStartParsing;
+  end;
 
-{
-  if not ManualUpdate and Assigned(fOnBusy) then
-      fOnBusy(Self);
-}
+  if not ManualUpdate then
+    OnBusy;
   // Preprocess the file...
   try
     // Let the preprocessor augment the include records
@@ -2678,8 +2717,9 @@ begin
     else
       fPreprocessor.PreprocessFile(FileName); // load contents from disk
   except
-    if (not ManualUpdate) and Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, -1);
+    if (not ManualUpdate) then begin
+      OnEndParsing(-1);
+    end;
     fPreprocessor.Reset; // remove buffers from memory
     Exit;
   end;
@@ -2705,8 +2745,8 @@ begin
       Exit;
     end;
   except
-    if (not ManualUpdate) and Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, -1);
+    if (not ManualUpdate) then
+      OnEndParsing(-1);
     fPreprocessor.Reset;
     fTokenizer.Reset;
     Exit;
@@ -2735,15 +2775,13 @@ begin
     //fCurrentClassScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
-    if (not ManualUpdate) and Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, 1);
+    if (not ManualUpdate) then begin
+      OnEndParsing(1);
+    end;
   end;
 
-  {
   if not ManualUpdate then
-    if Assigned(fOnUpdate) then
-      fOnUpdate(Self);
-  }
+    OnUpdate;
 end;
 
 procedure TCppParser.Reset;
@@ -2753,8 +2791,7 @@ var
 begin
   fCriticalSection.Acquire;
   try
-  if Assigned(fOnBusy) then
-    fOnBusy(Self);
+    OnBusy;
   if Assigned(fPreprocessor) then
     fPreprocessor.Clear;
   fUniqId:=0;
@@ -2811,8 +2848,7 @@ begin
 
   fProjectFiles.Clear;
 
-  if Assigned(fOnUpdate) then
-    fOnUpdate(Self);
+  OnUpdate;
   finally
     fCriticalSection.Release;
   end;
@@ -2833,10 +2869,8 @@ begin
   try
     if not fEnabled then
       Exit;
-    if Assigned(fOnBusy) then
-      fOnBusy(Self);
-    if Assigned(fOnStartParsing) then
-      fOnStartParsing(Self);
+    OnBusy;
+    OnStartParsing;
     try
       // Support stopping of parsing when files closes unexpectedly
       fFilesScannedCount := 0;
@@ -2846,8 +2880,7 @@ begin
         if not IsCFile(fFilesToScan[i]) then
           continue;
         Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-        if Assigned(fOnTotalProgress) then
-          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
+        OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
         if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
           InternalParse(fFilesToScan[i], True);
         end;
@@ -2857,19 +2890,16 @@ begin
         if IsCFile(fFilesToScan[i]) then
           continue;
         Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-        if Assigned(fOnTotalProgress) then
-          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
+        OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
         if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
           InternalParse(fFilesToScan[i], True);
         end;
       end;
       fFilesToScan.Clear;
     finally
-      if Assigned(fOnEndParsing) then
-        fOnEndParsing(Self, fFilesScannedCount);
+      OnEndParsing(fFilesScannedCount);
     end;
-    if Assigned(fOnUpdate) then
-      fOnUpdate(Self);
+    OnUpdate;
   finally
     fParsing:=False;
   end;
@@ -3108,8 +3138,9 @@ begin
     fCriticalSection.Release;
   end;
   try
-    if UpdateView and Assigned(fOnBusy) then
-      fOnBusy(Self);
+    if UpdateView then begin
+      OnBusy;
+    end;
 
     if not fEnabled then
       Exit;
@@ -3152,8 +3183,7 @@ begin
     end;
 
     // Parse from disk or stream
-    if Assigned(fOnStartParsing) then
-      fOnStartParsing(Self);
+    OnStartParsing;
     try
       fFilesToScanCount := 0;
       fFilesScannedCount := 0;
@@ -3173,12 +3203,12 @@ begin
       fRemovedStatements.Clear;
       fFilesToScan.Clear;
     finally
-      if Assigned(fOnEndParsing) then
-        fOnEndParsing(Self, 1);
+      OnEndParsing(1);
     end;
   finally
-    if UpdateView and Assigned(fOnUpdate) then
-        fOnUpdate(Self);
+    if UpdateView  then begin
+        OnUpdate;
+    end;
     fParsing:=False;
   end;
 

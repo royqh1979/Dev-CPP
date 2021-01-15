@@ -3543,35 +3543,6 @@ object MainForm: TMainForm
       OnClick = mnuClearAllFindItemsClick
     end
   end
-  object DummyCppParser: TCppParser
-    Enabled = False
-    ParseLocalHeaders = False
-    ParseGlobalHeaders = False
-    Left = 77
-    Top = 304
-  end
-  object DummyCppPreprocessor: TCppPreprocessor
-    Left = 130
-    Top = 299
-  end
-  object DummyCppTokenizer: TCppTokenizer
-    Left = 66
-    Top = 363
-  end
-  object HeaderCompletion: THeaderCompletion
-    ShowCount = 1000
-    Color = clWindow
-    Width = 320
-    Height = 240
-    Enabled = True
-    MinWidth = 0
-    MinHeight = 0
-    MaxWidth = 0
-    MaxHeight = 0
-    FontSize = 0
-    Left = 130
-    Top = 355
-  end
   object LocalPopup: TPopupMenu
     Left = 547
     Top = 331
@@ -3587,5 +3558,19 @@ object MainForm: TMainForm
     object MenuItem41: TMenuItem
       Action = actMsgSelAll
     end
+  end
+  object HeaderCompletion: THeaderCompletion
+    ShowCount = 1000
+    Color = clWindow
+    Width = 320
+    Height = 240
+    Enabled = True
+    MinWidth = 0
+    MinHeight = 0
+    MaxWidth = 0
+    MaxHeight = 0
+    FontSize = 0
+    Left = 114
+    Top = 316
   end
 end

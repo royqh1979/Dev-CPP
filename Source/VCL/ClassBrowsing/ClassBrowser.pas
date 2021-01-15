@@ -512,10 +512,12 @@ begin
 
   fParser := Value;
   Clear;
+  {
   if Assigned(fParser) then begin
     fParser.OnUpdate := OnParserUpdate;
     fParser.OnBusy := OnParserBusy;
   end;
+  }
   UpdateView;
 end;
 

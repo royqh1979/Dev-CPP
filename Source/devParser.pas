@@ -37,6 +37,12 @@ type
     procedure Execute; override;
   end;
 
+  TCppParseFileListThread = class(TThread)
+  public
+    Parser: TCppParser;
+    procedure Execute; override;
+  end;
+
 procedure ParseFile(Parser: TCppParser;
     FileName: AnsiString; 
     InProject: boolean; 
@@ -44,17 +50,26 @@ procedure ParseFile(Parser: TCppParser;
     UpdateView: boolean = True;
     fileContent:TStrings = nil);
 
-
+procedure ParseFileList(Parser: TCppParser);
 
 implementation
 
 uses sysutils;
 
+procedure ParseFileList(Parser: TCppParser);
+var
+   parserThread: TCppParseFileListThread;
+begin
+  parserThread:=TCppParseFileListThread.Create(True);
+  parserThread.FreeOnTerminate := True;
+  parserThread.Resume;
+end;
+
 procedure ParseFile(Parser: TCppParser;
     FileName: AnsiString; 
     InProject: boolean; 
-    OnlyIfNotParsed: boolean = False; 
-    UpdateView: boolean = True; 
+    OnlyIfNotParsed: boolean = False;
+    UpdateView: boolean = True;
     fileContent:TStrings = nil);
 var
    parserThread: TCppParserThread;
@@ -64,7 +79,7 @@ begin
   parserThread.Parser := Parser;
   parserThread.FileName := FileName;
   parserThread.InProject := InProject;
-  parserThread.OnlyIfNotParsed:= OnlyIfNotParsed; 
+  parserThread.OnlyIfNotParsed:= OnlyIfNotParsed;
   parserThread.UpdateView:=UpdateView;
   parserThread.fileContent:=fileContent;
   parserThread.Resume;
@@ -87,6 +102,14 @@ begin
     end else begin
       Parser.ParseFile(FileName,InProject,OnlyIfNotParsed, UpdateView,nil);
     end;
+  end;
+end;
+
+procedure TCppParseFileListThread.Execute;
+begin
+  inherited;
+  if assigned(Parser) and not (Parser.Parsing) then begin
+    Parser.ParseFileList;
   end;
 end;
 
