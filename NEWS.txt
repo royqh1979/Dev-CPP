@@ -1,3 +1,7 @@
+Version 6.4-alpha1 JAN 2021
+
+    - enhancement: The Parser works in a background thread.
+
 Version 6.3 JAN 2021
 
     - enhancement: Use the same color for global var in completion suggestion windows as in the editor

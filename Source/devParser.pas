@@ -43,6 +43,13 @@ type
     procedure Execute; override;
   end;
 
+  {
+  TCppParserFreeThread = class(TThread)
+  public
+    Parser: TCppParser;
+    procedure Execute; override;
+  end;
+  }
 procedure ParseFile(Parser: TCppParser;
     FileName: AnsiString; 
     InProject: boolean; 
@@ -51,6 +58,10 @@ procedure ParseFile(Parser: TCppParser;
     fileContent:TStrings = nil);
 
 procedure ParseFileList(Parser: TCppParser);
+
+{
+procedure FreeParser(Parser: TCppParser);
+}
 
 implementation
 
@@ -61,10 +72,22 @@ var
    parserThread: TCppParseFileListThread;
 begin
   parserThread:=TCppParseFileListThread.Create(True);
+  parserThread.Parser := Parser;
   parserThread.FreeOnTerminate := True;
   parserThread.Resume;
 end;
 
+{
+procedure FreeParser(Parser: TCppParser);
+var
+   parserThread: TCppParserFreeThread;
+begin
+  parserThread:=TCppParserFreeThread.Create(True);
+  parserThread.Parser := Parser;
+  parserThread.FreeOnTerminate := True;
+  parserThread.Resume;
+end;
+ }
 procedure ParseFile(Parser: TCppParser;
     FileName: AnsiString; 
     InProject: boolean; 
@@ -113,5 +136,12 @@ begin
   end;
 end;
 
+{
+procedure TCppParserFreeThread.Execute;
+begin
+  inherited;
+  Parser.Free;
+end;
+}
 end.
 

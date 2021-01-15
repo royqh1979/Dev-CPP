@@ -27,10 +27,10 @@ uses
   Windows, Messages, SysUtils, Classes, Contnrs,Graphics, Controls, Forms, Dialogs,
   Menus, StdCtrls, ComCtrls, ToolWin, ExtCtrls, Buttons, utils, SynEditPrint,
   Project, editor, DateUtils, compiler, ActnList, ToolFrm, AppEvnts,
-  debugger, ClassBrowser, CodeCompletion, CppParser, CppTokenizer, SyncObjs,
+  debugger, ClassBrowser, CodeCompletion, CppParser, SyncObjs,
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
-  CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
+  CBUtils, StatementList, FormatterOptionsFrm,
   RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput,
   HeaderCompletion;
 
@@ -1384,12 +1384,7 @@ begin
     Exit;
   end;
 
-  {
-  MainForm will auto destroy these objects, because their owner is the mainform
-  fDummyCppParser.Tokenizer.Free;
-  fDummyCppParser.Preprocessor.Free;
   fDummyCppParser.Free;
-  }
 
   // Remember toolbar placement
   devData.LeftActivePage := LeftPageControl.ActivePageIndex;
@@ -5931,6 +5926,7 @@ begin
     SetStatusBarMessage(Format(Lang[ID_PARSINGFILECOUNT], [Current, Total, pMsg.Filename]));
     //Application.ProcessMessages;
   end;
+  Dispose(PCppParserProgressMessage(pMsg));
 end;
 
 procedure TMainForm.CppParserEndParsing(var message:TMessage);
@@ -6759,9 +6755,7 @@ begin
   fMessageControlChanged := False;
   fLeftPageControlChanged := False;
 
-  fDummyCppParser := TCppParser.Create(self,MainForm.Handle);
-  fDummyCppParser.Preprocessor := TCppPreprocessor(self);
-  fDummyCppParser.Tokenizer := TCppTokenizer.Create(self);;
+  fDummyCppParser := TCppParser.Create(nil,MainForm.Handle);
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
 

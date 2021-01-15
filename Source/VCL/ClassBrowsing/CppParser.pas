@@ -23,7 +23,7 @@ interface
 
 uses
   Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
-  cbutils, IntList,SyncObjs, iniFiles,Controls;
+  cbutils, IntList,SyncObjs, iniFiles,Controls, Forms;
 
 
 type
@@ -198,8 +198,7 @@ type
     }
     function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
     function IsIncludeLine(const Line: AnsiString): boolean;
-    constructor Create(AOwner: TComponent); overload; override; 
-    constructor Create(AOwner: TComponent; wnd:HWND); overload;
+    constructor Create(AOwner: TComponent; wnd:HWND); 
     destructor Destroy; override;
     procedure ParseFileList;
     procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
@@ -241,8 +240,8 @@ type
   published
     property Parsing: boolean read GetParsing;
     property Enabled: boolean read fEnabled write fEnabled;
-    property Tokenizer: TCppTokenizer read fTokenizer write SetTokenizer;
-    property Preprocessor: TCppPreprocessor read fPreprocessor write SetPreprocessor;
+    property Tokenizer: TCppTokenizer read fTokenizer;
+    property Preprocessor: TCppPreprocessor read fPreprocessor;
     property Statements: TStatementList read fStatementList write fStatementList;
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
@@ -261,14 +260,13 @@ procedure Register;
 begin
   RegisterComponents('Dev-C++', [TCppParser]);
 end;
-constructor TCppParser.Create(AOwner: TComponent);
-begin
-  Create(AOwner, TWinControl(AOwner).Handle);
-end;
+
 
 constructor TCppParser.Create(AOwner: TComponent; wnd:HWND);
 begin
   inherited Create(AOwner);
+  fPreprocessor := TCppPreprocessor.Create(AOwner);
+  fTokenizer := TCppTokenizer.Create(AOwner);
   fHandle := wnd;
   fUniqId := 0;
   fParsing:=False;
@@ -308,6 +306,18 @@ var
   i: Integer;
   namespaceList: TList;
 begin
+  while True do begin
+    fCriticalSection.Acquire;
+    try
+      if not fParsing then begin
+        fParsing:=True;
+        break;
+      end;
+      Sleep(10);
+    finally
+      fCriticalSection.Release;
+    end;
+  end;
   //FreeAndNil(fMacroDefines);
   FreeAndNil(fCurrentScope);
   FreeAndNil(fCurrentClassScope);
@@ -343,6 +353,8 @@ begin
   FreeAndNil(fIncludePaths);
   FreeAndNil(fProjectIncludePaths);
   FreeAndNil(fCriticalSection);
+  FreeAndNil(fPreprocessor);
+  FreeAndNil(fTokenizer);
   inherited Destroy;
 end;
 
@@ -1543,12 +1555,13 @@ end;
 
 procedure TCppParser.OnProgress(FileName:String;Total,Current:integer);
 var
-  msg: TCppParserProgressMessage;
+  msg: PCppParserProgressMessage;
 begin
-  msg.FileName := FileName;
-  msg.Total := total;
-  msg.Current := Current;
-  SendMessage(fHandle, WM_PARSER_PROGRESS,integer(@msg),0);
+  new(msg);
+  msg^.FileName := FileName;
+  msg^.Total := total;
+  msg^.Current := Current;
+  PostMessage(fHandle, WM_PARSER_PROGRESS,integer(msg),0);
 end;
 
 procedure TCppParser.HandlePreprocessor;
@@ -2667,22 +2680,22 @@ end;
 
 procedure TCppParser.OnStartParsing;
 begin
-  SendMessage(fHandle,WM_PARSER_BEGIN_PARSE,0,0);
+  PostMessage(fHandle,WM_PARSER_BEGIN_PARSE,0,0);
 end;
 
 procedure TCppParser.OnEndParsing(total:integer);
 begin
-  SendMessage(fHandle,WM_PARSER_END_PARSE,total,0);
+  PostMessage(fHandle,WM_PARSER_END_PARSE,total,0);
 end;
 
 procedure TCppParser.OnBusy;
 begin
-  SendMessage(fHandle,WM_PARSER_BUSY,0,0);
+  PostMessage(fHandle,WM_PARSER_BUSY,0,0);
 end;
 
 procedure TCppParser.OnUpdate;
 begin
-  SendMessage(fHandle,WM_PARSER_UPDATE,0,0);
+  PostMessage(fHandle,WM_PARSER_UPDATE,0,0);
 end;
 
 
@@ -3120,7 +3133,7 @@ begin
   Result := cbutils.IsSystemHeaderFile(FileName, fProjectIncludePaths);
   finally
     fCriticalSection.Release;
-  end;  
+  end;
 end;
 
 procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:

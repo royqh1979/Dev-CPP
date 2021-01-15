@@ -165,7 +165,7 @@ implementation
 
 uses
   main, MultiLangSupport, devcfg, ProjectOptionsFrm, DataFrm,
-  RemoveUnitFrm, SynEdit, EditorList, CppPreprocessor, CppTokenizer;
+  RemoveUnitFrm, SynEdit, EditorList, devParser;
 
 { TProjUnit }
 
@@ -267,8 +267,6 @@ begin
   finiFile := TMemIniFile.Create(fFileName);
   fOptions := TProjOptions.Create;
   fParser := TCppParser.Create(MainForm.PageControlPanel, MainForm.Handle);
-  fParser.Preprocessor := TCppPreprocessor.Create(MainForm.PageControlPanel);
-  fParser.Tokenizer := TCppTokenizer.Create(MainForm.PageControlPanel);
   ResetCppParser(fParser);
   if nName = DEV_INTERNAL_OPEN then begin
     Open; 
@@ -286,8 +284,7 @@ begin
   fFolderNodes.Free;
   fIniFile.Free;
   fUnits.Free;
-  fParser.Tokenizer.Free;
-  fParser.Preprocessor.Free;
+  //FreeParser(fParser);
   fParser.Free;
   if Assigned(fNode) and (not fNode.Deleting) then
     fNode.Free;
