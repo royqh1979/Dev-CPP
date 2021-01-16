@@ -826,7 +826,8 @@ end;
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
   if (not (scOpenFile in Changes)) and
-    ((fText.Lines.Count <> fLineCount)
+    (
+      (fText.Lines.Count <> fLineCount)
      )then begin
     fLineCount := fText.Lines.Count;
     if devCodeCompletion.Enabled

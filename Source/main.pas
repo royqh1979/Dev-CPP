@@ -2068,7 +2068,7 @@ begin
   if Open then begin
     LeftPageControl.Width := fPreviousWidth
   end else begin
-    LeftPageControl.Width := LeftPageControl.Width - LeftProjectSheet.Width; // only show the tab captions
+    LeftPageControl.Width := LeftPageControl.Width - LeftClassSheet.Width; // only show the tab captions
     LeftPageControl.ActivePageIndex := -1;
   end;
   SplitterLeft.Visible := Open;
@@ -2137,6 +2137,7 @@ begin
     else
       exit;
   end;
+  LeftProjectSheet.TabVisible := True;
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
@@ -2940,6 +2941,8 @@ begin
 
       // Clear error browser
       ClearMessageControl;
+
+      leftProjectSheet.TabVisible := False;
     end;
 
     if not fQuitting and RefreshEditor then begin
@@ -3435,6 +3438,7 @@ begin
       FolderNode := fProject.Node;
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
+  LeftProjectSheet.TabVisible := True;
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
@@ -6959,7 +6963,7 @@ begin
   // We need this variable during the whole startup process
   devData.First := FALSE;
 
-  LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftProjectSheet.Width;
+  LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftClassSheet.Width;
   MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
   //windows xp hack
   if Win32MajorVersion < 6 then begin

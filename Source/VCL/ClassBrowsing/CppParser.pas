@@ -313,10 +313,11 @@ begin
         fParsing:=True;
         break;
       end;
-      Sleep(10);
     finally
       fCriticalSection.Release;
     end;
+    Sleep(50);
+    Application.ProcessMessages;
   end;
   //FreeAndNil(fMacroDefines);
   FreeAndNil(fCurrentScope);
