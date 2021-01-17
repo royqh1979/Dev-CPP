@@ -228,7 +228,7 @@ type
     function FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
-    procedure Freeze;  // Freeze/Lock (stop reparse while searching)
+    function Freeze:boolean;  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze; // UnFree/UnLock (reparse while searching)
     function GetParsing: boolean;
 
@@ -309,8 +309,9 @@ begin
   while True do begin
     fCriticalSection.Acquire;
     try
-      if not fParsing then begin
+      if not fParsing and not fLocked then begin
         fParsing:=True;
+        fLocked:=True;
         break;
       end;
     finally
@@ -2711,13 +2712,6 @@ begin
   if (fTokenizer = nil) or (fPreprocessor = nil) then
     Exit;
 
-  // Start a timer here
-  if (not ManualUpdate) then begin
-    OnStartParsing;
-  end;
-
-  if not ManualUpdate then
-    OnBusy;
   // Preprocess the file...
   try
     // Let the preprocessor augment the include records
@@ -2731,9 +2725,6 @@ begin
     else
       fPreprocessor.PreprocessFile(FileName); // load contents from disk
   except
-    if (not ManualUpdate) then begin
-      OnEndParsing(-1);
-    end;
     fPreprocessor.Reset; // remove buffers from memory
     Exit;
   end;
@@ -2745,7 +2736,7 @@ begin
   finally
     Free;
   end;
-  }  
+  }
 
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
@@ -2759,8 +2750,6 @@ begin
       Exit;
     end;
   except
-    if (not ManualUpdate) then
-      OnEndParsing(-1);
     fPreprocessor.Reset;
     fTokenizer.Reset;
     Exit;
@@ -2789,13 +2778,8 @@ begin
     //fCurrentClassScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
-    if (not ManualUpdate) then begin
-      OnEndParsing(1);
-    end;
   end;
 
-  if not ManualUpdate then
-    OnUpdate;
 end;
 
 procedure TCppParser.Reset;
@@ -2872,50 +2856,47 @@ procedure TCppParser.ParseFileList;
 var
   I: integer;
 begin
+  if not fEnabled then
+    Exit;
   fCriticalSection.Acquire;
   try
     if fParsing or fLocked then
       Exit;
     fParsing:=True;
+    OnBusy;
+    OnStartParsing;
   finally
     fCriticalSection.Release;
   end;
   try
-    if not fEnabled then
-      Exit;
-    OnBusy;
-    OnStartParsing;
-    try
-      // Support stopping of parsing when files closes unexpectedly
-      fFilesScannedCount := 0;
-      fFilesToScanCount := fFilesToScan.Count;
-      //we only parse CFile in the first parse
-      for i:=0 to fFilesToScan.Count-1 do begin
-        if not IsCFile(fFilesToScan[i]) then
-          continue;
-        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-        OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
-        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
-          InternalParse(fFilesToScan[i], True);
-        end;
+    // Support stopping of parsing when files closes unexpectedly
+    fFilesScannedCount := 0;
+    fFilesToScanCount := fFilesToScan.Count;
+    //we only parse CFile in the first parse
+    for i:=0 to fFilesToScan.Count-1 do begin
+      if not IsCFile(fFilesToScan[i]) then
+        continue;
+      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+      OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
+      if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
+        InternalParse(fFilesToScan[i], True);
       end;
-      // parse other files in the second parse
-      for i:=0 to fFilesToScan.Count-1 do begin
-        if IsCFile(fFilesToScan[i]) then
-          continue;
-        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-        OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
-        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
-          InternalParse(fFilesToScan[i], True);
-        end;
-      end;
-      fFilesToScan.Clear;
-    finally
-      OnEndParsing(fFilesScannedCount);
     end;
-    OnUpdate;
+    // parse other files in the second parse
+    for i:=0 to fFilesToScan.Count-1 do begin
+      if IsCFile(fFilesToScan[i]) then
+        continue;
+      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+      OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
+      if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
+        InternalParse(fFilesToScan[i], True);
+      end;
+    end;
+    fFilesToScan.Clear;
   finally
     fParsing:=False;
+    OnEndParsing(fFilesScannedCount);
+    OnUpdate;
   end;
 end;
 
@@ -3143,34 +3124,28 @@ var
   FName: AnsiString;
   I: integer;
 begin
+  if not fEnabled then
+    Exit;
   fCriticalSection.Acquire;
   try
     if fParsing or fLocked then
       Exit;
     fParsing:=True;
+    if UpdateView then begin
+      OnBusy;
+    end;
+    OnStartParsing;
   finally
     fCriticalSection.Release;
   end;
   try
-    if UpdateView then begin
-      OnBusy;
-    end;
-
-    if not fEnabled then
-      Exit;
     FName := FileName;
 
     if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then begin
       Exit;
     end;
 
-    // Always invalidate file pairs. If we don't, reparsing the header
-    // screws up the information inside the source file
-    {
-    GetSourcePair(FName, CFile, HFile);
-    InvalidateFile(CFile);
-    InvalidateFile(HFile);
-    }
+
     InternalInvalidateFile(FileName);
 
     if InProject then begin
@@ -3197,33 +3172,23 @@ begin
     end;
 
     // Parse from disk or stream
-    OnStartParsing;
-    try
-      fFilesToScanCount := 0;
-      fFilesScannedCount := 0;
-      if not Assigned(Stream) then begin
-        {
-        if CFile = '' then
-          InternalParse(HFile, True) // headers should be parsed via include
-        else
-          InternalParse(CFile, True); // headers should be parsed via include
-        }
-        InternalParse(FileName);
-      end else
-        InternalParse(FileName, True, Stream); // or from stream
-      for i:=0 to fRemovedStatements.Count-1 do begin
-        dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
-      end;
-      fRemovedStatements.Clear;
-      fFilesToScan.Clear;
-    finally
-      OnEndParsing(1);
+    fFilesToScanCount := 0;
+    fFilesScannedCount := 0;
+    if not Assigned(Stream) then begin
+      InternalParse(FileName);
+    end else
+      InternalParse(FileName, True, Stream); // or from stream
+    for i:=0 to fRemovedStatements.Count-1 do begin
+      dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
     end;
+    fRemovedStatements.Clear;
+    fFilesToScan.Clear;
   finally
+    fParsing:=False;
+    OnEndParsing(1);
     if UpdateView  then begin
         OnUpdate;
     end;
-    fParsing:=False;
   end;
 
 end;
@@ -4602,11 +4567,16 @@ begin
     inherit^._Static);
 end;
 
-procedure TCppParser.Freeze;
+function TCppParser.Freeze:boolean;
 begin
   fCriticalSection.Acquire;
   try
-  fLocked := True;
+    if fLocked or fParsing then begin
+      Result:=False;
+      exit;
+    end;
+    fLocked := True;
+    Result:=True;
   finally
     fCriticalSection.Release;
   end;
@@ -4616,7 +4586,7 @@ procedure TCppParser.UnFreeze;
 begin
   fCriticalSection.Acquire;
   try
-  fLocked := False;
+    fLocked := False;
   finally
     fCriticalSection.Release;
   end;  

@@ -360,15 +360,20 @@ begin
   if fUpdateCount <> 0 then
     Exit;
 
-  if (not Assigned(fParser)) or (not fParser.Enabled) then begin
+  if not Assigned(fParser) then
     Exit;
-  end;
+  if not fParser.Enabled then
+    Exit;
   if not Visible or not TabVisible then
     Exit;
 
   // We are busy...
   Items.BeginUpdate;
   Clear;
+  while not fParser.Freeze do begin
+    sleep(50);
+    Application.ProcessMessages;
+  end;
   fUpdating:=True;
   try
     if fCurrentFile <> '' then begin
@@ -386,7 +391,8 @@ begin
         ReSelect;
     end;
   finally
-    fUpdating:=False;  
+    fParser.Unfreeze;
+    fUpdating:=False;
     Items.EndUpdate; // calls repaint when needed
   end;
   if Assigned(fOnUpdated) then

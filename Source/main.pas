@@ -2862,8 +2862,8 @@ begin
   fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
-    UpdateClassBrowserForEditor(nil);
     fEditorList.CloseAll(fWindowsTurnedOff); // PageControlChange triggers other UI updates
+    UpdateClassBrowserForEditor(nil);
   finally
     ClassBrowser.EndUpdate;
   end;
