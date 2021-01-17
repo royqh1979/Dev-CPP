@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages;
+  CppParser, Forms, cbutils, Messages, SyncObjs;
 
 type
   TMemberSelectEvent = procedure(Sender: TObject; Filename: TFilename; Line: integer) of object;
@@ -50,6 +50,7 @@ type
     fStaticFuncImg: integer;
     fTypeImg: integer;
     fNamespaceImg: integer;
+    fCriticalSection: TCriticalSection;
   published
     property Globals: integer read fGlobalsImg write fGlobalsImg;
     property Classes: integer read fClassesImg write fClassesImg;
@@ -91,6 +92,7 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
+    fCriticalSection: TCriticalSection;
     fColors : array[0..14] of TColor;    
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
@@ -188,6 +190,7 @@ begin
   fSortByType:=True ;
   fOnUpdated:=nil;
   fUpdating:=False;
+  fCriticalSection := TCriticalSection.Create;
 end;
 
 destructor TClassBrowser.Destroy;
@@ -195,6 +198,7 @@ begin
   FreeAndNil(fImagesRecord);
   FreeAndNil(fControlCanvas);
   fIncludedFiles.Free;
+  fCriticalSection.Free;
   inherited Destroy;
 end;
 
@@ -366,16 +370,28 @@ begin
     Exit;
   if not Visible or not TabVisible then
     Exit;
-
-  // We are busy...
-  Items.BeginUpdate;
-  Clear;
-  while not fParser.Freeze do begin
+  {
+  while True do begin
+    fCriticalSection.Acquire;
+    try
+      if not fUpdating then begin
+        fUpdating:=True;
+        break;
+      end;
+    finally
+      fCriticalSection.Release;
+    end;
     sleep(50);
     Application.ProcessMessages;
   end;
+  }
   fUpdating:=True;
   try
+    // We are busy...
+    Items.BeginUpdate;
+    Items.Clear;
+    if not fParser.Freeze then
+      Exit;
     if fCurrentFile <> '' then begin
       // Update file includes, reset cache
       fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
