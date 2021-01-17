@@ -71,7 +71,6 @@ type
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
     fParseLocalHeaders: boolean;
     fParseGlobalHeaders: boolean;
-    fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
     //fMacroDefines : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
@@ -157,8 +156,6 @@ type
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
     function GetIncompleteClass(const Command:AnsiString; parentScope:PStatement): PStatement;
-    procedure SetTokenizer(tokenizer: TCppTokenizer);
-    procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function GetFullStatementName(command:String; parent:PStatement):string;
     {procedure ResetDefines;}
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
@@ -2769,9 +2766,9 @@ begin
     until not HandleStatement;
     //fTokenizer.DumpTokens('f:\tokens.txt');
     //Statements.DumpTo('f:\stats.txt');
-    Statements.DumpWithScope('f:\\statements.txt');
+    //Statements.DumpWithScope('f:\\statements.txt');
     //fPreprocessor.DumpDefinesTo('f:\defines.txt');
-    fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
+    //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
   finally
     //fSkipList:=-1; // remove data from memory, but reuse structures
     //fCurrentScope.Clear;
@@ -4590,17 +4587,6 @@ begin
   finally
     fCriticalSection.Release;
   end;  
-end;
-
-
-procedure TCppParser.SetTokenizer(tokenizer: TCppTokenizer);
-begin
-  fTokenizer := tokenizer;
-end;
-
-procedure TCppParser.SetPreprocessor(preprocessor: TCppPreprocessor);
-begin
-  fPreprocessor := preprocessor;
 end;
 
 procedure TCppParser.getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);

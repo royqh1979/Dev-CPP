@@ -1101,7 +1101,6 @@ var
   p:PTabStop;
   CursorPos: TBufferCoord;
   spaceCount :integer;
-  hasTabs: boolean;
 begin
   ClearUserCodeInTabStops;
   fXOffsetSince := 0;
@@ -2538,9 +2537,6 @@ var
   WordBegin, WordEnd, ParamBegin, ParamEnd, len,line,i: integer;
   s: AnsiString;
   HighlightPos,pDummy:TBufferCoord;
-  Token:string;
-  tokenType,start:integer;
-  Attr:TSynHighlighterAttributes;
 begin
   result := '';
   if (p.Line >= 1) and (p.Line <= editor.Lines.Count) then begin
@@ -2893,7 +2889,6 @@ procedure TEditor.EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Int
 var
   s: AnsiString;
   p: TBufferCoord;
-  st: PStatement;
   Reason: THandPointReason;
   IsIncludeLine: boolean;
   pError : pSyntaxError;
@@ -3788,8 +3783,6 @@ begin
 end;
 
 procedure TEditor.Reparse;
-var
-  M: TMemoryStream;
 begin
 //  BeginUpdate;
   // Reparse whole file (not function bodies) if it has been modified
@@ -3929,9 +3922,6 @@ begin
 end;
 
 procedure TEditor.SetEncodingOption(encoding:TFileEncodingType);
-var
-  OldTopLine : integer;
-  OldCaretXY : TBufferCoord;
 begin
   if fEncodingOption = encoding then
     exit;

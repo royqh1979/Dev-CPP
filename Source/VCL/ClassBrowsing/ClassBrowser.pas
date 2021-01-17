@@ -50,7 +50,6 @@ type
     fStaticFuncImg: integer;
     fTypeImg: integer;
     fNamespaceImg: integer;
-    fCriticalSection: TCriticalSection;
   published
     property Globals: integer read fGlobalsImg write fGlobalsImg;
     property Classes: integer read fClassesImg write fClassesImg;
@@ -101,8 +100,10 @@ type
       DefaultDraw: Boolean);
     procedure OnNodeChange(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    {
     procedure OnParserUpdate(Sender: TObject);
     procedure OnParserBusy(Sender: TObject);
+    }
     procedure SetNodeImages(Node: TTreeNode; Statement: PStatement);
     procedure SetCurrentFile(const Value: AnsiString);
     procedure SetShowInheritedMembers(Value: boolean);
@@ -372,9 +373,9 @@ begin
     Exit;
   fUpdating:=True;
   try
-    // We are busy...
     Items.BeginUpdate;
     Items.Clear;
+    // We are busy...
     if not fParser.Freeze then
       Exit;
     if fCurrentFile <> '' then begin
@@ -392,9 +393,9 @@ begin
         ReSelect;
     end;
   finally
-    fParser.Unfreeze;
     fUpdating:=False;
     Items.EndUpdate; // calls repaint when needed
+    fParser.Unfreeze;
   end;
   if Assigned(fOnUpdated) then
     fOnUpdated(Self);
@@ -450,6 +451,7 @@ begin
   end;
 end;
 
+{
 procedure TClassBrowser.OnParserBusy(Sender: TObject);
 begin
   Items.Clear;
@@ -460,6 +462,7 @@ procedure TClassBrowser.OnParserUpdate(Sender: TObject);
 begin
   EndUpdate;
 end;
+}
 
 function CustomSortTypeProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
 begin
