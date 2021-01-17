@@ -1253,7 +1253,7 @@ begin
 
   fCurrentIncludes.DirectIncludeFiles.Add(FileName);
   // And open a new entry
-  OpenInclude(FileName);
+  OpenInclude(ExpandFileName(FileName));
 end;
 
 function TCppPreprocessor.RemoveGCCAttributes(const Line: AnsiString): AnsiString; //we only expand non-parameter macros here

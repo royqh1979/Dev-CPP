@@ -370,21 +370,6 @@ begin
     Exit;
   if not Visible or not TabVisible then
     Exit;
-  {
-  while True do begin
-    fCriticalSection.Acquire;
-    try
-      if not fUpdating then begin
-        fUpdating:=True;
-        break;
-      end;
-    finally
-      fCriticalSection.Release;
-    end;
-    sleep(50);
-    Application.ProcessMessages;
-  end;
-  }
   fUpdating:=True;
   try
     // We are busy...

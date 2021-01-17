@@ -5431,7 +5431,8 @@ begin
     ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
-      if (e.FileName <> '') then begin
+      if (e.FileName <> '') and
+        ( (not e.New)  or e.Text.Modified) then begin
         ParseFile(GetCppParser,e.FileName,e.InProject);
       end;
     end else begin

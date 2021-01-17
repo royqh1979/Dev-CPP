@@ -825,11 +825,8 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  if (not (scOpenFile in Changes)) and
-    (
-      (fText.Lines.Count <> fLineCount)
-     )then begin
-    fLineCount := fText.Lines.Count;
+  if (not (scOpenFile in Changes)) and  (fText.Lines.Count <> fLineCount)
+    and (fText.Lines.Count <> 0) and (fLineCount>0) then begin
     if devCodeCompletion.Enabled
       and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
       then begin
@@ -840,6 +837,7 @@ begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
+  fLineCount := fText.Lines.Count;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
     if fText.Modified then begin
