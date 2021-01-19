@@ -2,6 +2,7 @@ Version 6.4-alpha1 JAN 2021
 
     - enhancement: The Parser works in a background thread.
     - fix: Won't show code suggestion when include a header using path including '.' or '..';
+    - fix: chinese translations 
 
 Version 6.3 JAN 2021
 

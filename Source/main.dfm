@@ -3230,6 +3230,7 @@ object MainForm: TMainForm
   end
   object CodeCompletion: TCodeCompletion
     ShowCount = 1000
+    ShowCodeIns = True
     Color = clWhite
     Width = 320
     Height = 240
