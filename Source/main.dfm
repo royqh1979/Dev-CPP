@@ -1078,7 +1078,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftClassSheet
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -1096,7 +1096,6 @@ object MainForm: TMainForm
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
       ImageIndex = -1
-      TabVisible = False
       object ProjectView: TTreeView
         Left = 0
         Top = 0

@@ -665,6 +665,7 @@ begin
     Folder := GetFolderPath(ParentNode);
     Node := MakeNewFileNode(ExtractFileName(FileName), False, ParentNode);
     Node.Data := pointer(result);
+    parentNode.Expand(True);
     Compile := True;
     CompileCpp := Self.Options.useGPP;
     Link := True;

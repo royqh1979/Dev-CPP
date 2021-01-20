@@ -3955,6 +3955,34 @@ var
   filepath: AnsiString;
   DebugEnabled, StripEnabled: boolean;
   params: string;
+
+  function hasBreakPoint:boolean;
+  var
+    i:integer;
+    e:TEditor;
+    e1:TEditor;
+  begin
+    Result := False;
+    e := editorList.GetEditor;
+    if not assigned(e) then
+      Exit;
+    if not e.InProject then begin
+      for i:=0 to fDebugger.BreakPointList.Count -1 do begin
+        if e=PBreakPoint(fDebugger.BreakPointList[i])^.editor then begin
+          Result:=True;
+          exit;
+        end;
+      end;
+    end else begin
+      for i:=0 to fDebugger.BreakPointList.Count -1 do begin
+        e1:=PBreakPoint(fDebugger.BreakPointList[i])^.editor;
+        if assigned(e1) and e1.InProject then begin
+          Result:=True;
+          exit;
+        end;
+      end;
+    end;
+  end;
 begin
   if fCompiler.Compiling then
     Exit;
@@ -4119,7 +4147,7 @@ begin
   fDebugger.SendCommand('set', 'new-console on');
   fDebugger.SendCommand('set', 'confirm off');
   fDebugger.SendCommand('cd', ExcludeTrailingPathDelimiter(ExtractFileDir(filepath))); // restore working directory
-  if fDebugger.BreakPointList.Count=0 then begin
+  if not hasBreakPoint then begin
     case GetCompileTarget of
       ctNone:
         Exit;
@@ -6831,6 +6859,7 @@ begin
   fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
+  LeftProjectSheet.TabVisible := False;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
