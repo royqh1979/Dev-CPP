@@ -5,6 +5,7 @@ Version 6.4-alpha1 JAN 2021
     - fix: chinese translations 
     - enhancement: auto expand nodes in the left project panel when a new project is created;
     - enhancement: hide the left project panel when no project is opened
+    - fix: debugger don't stop at the first statement of main(), if the current debugging file doesn't has breakpoints but other files have breakpoints; 
 
 Version 6.3 JAN 2021
 
