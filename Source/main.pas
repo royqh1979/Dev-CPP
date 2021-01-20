@@ -2683,11 +2683,10 @@ begin
           Exit;
         end;
       end;
+      leftProjectSheet.TabVisible := True;
 
       if cbDefault.Checked then
         devData.DefCpp := rbCpp.Checked;
-
-
 
       s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
 

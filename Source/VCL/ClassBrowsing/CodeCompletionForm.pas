@@ -97,10 +97,12 @@ var
   Offset: integer;
   statement: PStatement;
 begin
+  if not fOwner.FreezeParser then
+    Exit;
+  try
   Offset := 4;
 
   with lbCompletion do begin
-    statement := PStatement(Items.Objects[Index]);
 
     // Draw statement kind string, like 'Preprocessor'
     if odSelected in State then begin
@@ -109,6 +111,9 @@ begin
       Canvas.Brush.Color := Colors[BackColor];
     end;
       Canvas.FillRect(Rect);
+
+    statement := PStatement(Items.Objects[Index]);
+
     case statement^._Kind of
       skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
       skClass: Canvas.Font.Color := Colors[ClassColor];
@@ -155,6 +160,9 @@ begin
       Canvas.Font.Style := [];
       Canvas.TextOut(Offset, Rect.Top, statement^._Args);
     end;
+  end;
+  finally
+    fOwner.UnfreezeParser;
   end;
 end;
 
