@@ -36,6 +36,9 @@ type
   end;
   TCppParser = class(TComponent)
   private
+    fParserId: integer;
+    fSerialCount: integer;
+    fSerialId: string;
     fUniqId : integer;
     fEnabled: boolean;
     fIndex: integer;
@@ -172,6 +175,7 @@ type
     procedure OnUpdate;
     procedure OnStartParsing;
     procedure OnEndParsing(total:integer);
+    procedure UpdateSerialId;
   public
     procedure ParseHardDefines;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
@@ -234,6 +238,8 @@ type
     
     property IncludePaths: TStringList read fIncludePaths;
     property ProjectIncludePaths: TStringList read fProjectIncludePaths;
+    property ParserId: integer read fParserId;
+    property SerialId: string read fSerialId;
   published
     property Parsing: boolean read GetParsing;
     property Enabled: boolean read fEnabled write fEnabled;
@@ -253,6 +259,10 @@ implementation
 uses
   DateUtils;
 
+var
+  parserCount : integer = 0;
+  parserCountCS: TCriticalSection;
+
 procedure Register;
 begin
   RegisterComponents('Dev-C++', [TCppParser]);
@@ -265,6 +275,12 @@ begin
   fPreprocessor := TCppPreprocessor.Create(AOwner);
   fTokenizer := TCppTokenizer.Create(AOwner);
   fHandle := wnd;
+  parserCountCS.Acquire;
+  inc(parserCount);
+  fParserId := parserCount;
+  parserCountCS.Release;
+  fSerialCount := 0;
+  UpdateSerialId;
   fUniqId := 0;
   fParsing:=False;
   fStatementList := TStatementList.Create; // owns the objects
@@ -355,6 +371,11 @@ begin
   FreeAndNil(fPreprocessor);
   FreeAndNil(fTokenizer);
   inherited Destroy;
+end;
+
+procedure TCppParser.UpdateSerialId;
+begin
+  fSerialId := Format('%d-%d',[fParserId, fSerialCount]);
 end;
 
 function TCppParser.StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
@@ -2859,6 +2880,7 @@ begin
   try
     if fParsing or fLocked then
       Exit;
+    UpdateSerialId;
     fParsing:=True;
     OnBusy;
     OnStartParsing;
@@ -3127,6 +3149,7 @@ begin
   try
     if fParsing or fLocked then
       Exit;
+    UpdateSerialId;
     fParsing:=True;
     if UpdateView then begin
       OnBusy;
@@ -3196,6 +3219,7 @@ begin
   try
   if fParsing or fLocked then
     Exit;
+  UpdateSerialId;
   fParsing:=True;
   try
     InternalInvalidateFile(FileName);
@@ -4626,6 +4650,16 @@ begin
     namespace := '';
     member := Phrase;
   end;
+end;
+
+initialization
+begin
+  parserCountCS := TCriticalSection.Create;
+end;
+
+finalization
+begin
+  parserCountCS.Free;
 end;
 
 end.
