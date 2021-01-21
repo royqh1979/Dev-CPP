@@ -94,7 +94,6 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
-    fDoOnSelecting:boolean;
     fColors : array[0..14] of TColor;    
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
@@ -175,7 +174,6 @@ begin
   OnMouseDown := OnNodeChanging;
   DragMode := dmAutomatic;
   fImagesRecord := TImagesRecord.Create;
-  fDoOnSelecting:=False;
   fCurrentFile := '';
   fParserFreezed:=False;
   ShowHint := True;
@@ -379,9 +377,6 @@ begin
     Exit;
   if not Visible or not TabVisible then
     Exit;
-  if fDoOnSelecting then begin // We clicked on a item, don't reload the contents
-    Exit;
-  end;
   fUpdating:=True;
   try
     Items.BeginUpdate;
@@ -469,7 +464,6 @@ begin
       with PStatement(Node.Data)^ do begin
         fLastSelection := _Type + ':' + _Command + ':' + _Args;
         if Assigned(fOnSelect) then
-          fDoOnSelecting := True;
           if Button = mbLeft then begin// need definition
             //we navigate to the same file first
             if SameText(_DefinitionFileName,fCurrentFile) then begin
@@ -481,7 +475,6 @@ begin
             end;
           end else if Button = mbMiddle then // need declaration
             fOnSelect(Self, _FileName, _Line);
-          fDoOnSelecting:=False;
         end;
       finally
         fParser.UnFreeze;
@@ -679,7 +672,7 @@ begin
   bInherited := fShowInheritedMembers and st^._Inherited;
   if Stage = cdPrePaint then begin
     Sender.Canvas.Font.Style := [fsBold];
-    if  Node.Selected then begin
+    if  Node.Selected and self.Focused then begin
         Sender.Canvas.Brush.Color:=fColors[SelectedBackColor];
 //        Sender.Canvas.Font.Color := fColors[SelectedForeColor];
     end else begin
@@ -725,7 +718,7 @@ begin
       DrawRect := Node.DisplayRect(true);
       DrawPoint := Point(DrawRect.Right, DrawRect.Top);
       color:=fControlCanvas.Brush.Color;
-      if  Node.Selected then begin
+      if  Node.Selected and self.Focused then begin
         fControlCanvas.Brush.Color:=fColors[SelectedBackColor];
       end else begin
         fControlCanvas.Brush.Color:=fColors[BackColor];
@@ -733,7 +726,7 @@ begin
       // Draw function arguments to the right of the already drawn text
       if st^._Args <> '' then begin
         fControlCanvas.Font.Assign(self.Font);
-        if  Node.Selected then begin
+        if  Node.Selected and self.Focused then begin
           fControlCanvas.Font.Color := fColors[SelectedForeColor];
         end else begin
           if bInherited then
@@ -755,7 +748,7 @@ begin
 
       // Then draw node type to the right of the arguments
       if TypeText <> '' then begin
-        if  Node.Selected then
+        if  Node.Selected and self.Focused then
           fControlCanvas.Font.Color := fColors[SelectedForeColor]
         else
         fControlCanvas.Font.Color := fColors[ClassColor];

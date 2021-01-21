@@ -7989,7 +7989,7 @@ begin
   BreakpointsView.Clear;
   for I := 0 to fDebugger.BreakPointList.Count - 1 do begin
       item := BreakpointsView.Items.Add;
-      filename := StringReplace(PBreakPoint(fDebugger.BreakPointList[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
+      filename := PBreakPoint(fDebugger.BreakPointList[i])^.editor.FileName;
 
       item.Caption := filename;
       item.SubItems.Add(IntToStr(PBreakPoint(fDebugger.BreakPointList[I])^.line));

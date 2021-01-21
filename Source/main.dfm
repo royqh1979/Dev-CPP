@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 380
-  Top = 223
+  Left = 543
+  Top = 216
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -243,7 +243,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = LocalSheet
+        ActivePage = BreakpointsSheet
         Align = alClient
         PopupMenu = LocalPopup
         TabOrder = 0
@@ -1078,7 +1078,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftProjectSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

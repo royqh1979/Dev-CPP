@@ -559,8 +559,10 @@ begin
   // Don't waste time refocusing
   if fText.Focused then
     Exit;
+  {
   MainForm.ClassBrowser.BeginUpdate;
   try
+  }
     MainForm.UpdateClassBrowserForEditor(self);
     fText.BeginUpdate;
     try
@@ -572,9 +574,11 @@ begin
     finally
       fText.EndUpdate;
     end;
+  {
   finally
     MainForm.ClassBrowser.EndUpdate;
   end;
+  }
 
   //don't need to reparse here, in EditorEnter event handler we will do it
   MainForm.UpdateFileEncodingStatusPanel;
