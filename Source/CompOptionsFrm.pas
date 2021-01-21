@@ -725,7 +725,6 @@ end;
 procedure TCompOptForm.btnRemoveAutoLinkClick(Sender: TObject);
 var
   I: integer;
-  sl: TStringList;
 begin
   if (lvAutoLinks.Row >= lvAutoLinks.FixedRows) then begin
     if (lvAutoLinks.RowCount > 2) then begin // remove completely
@@ -770,7 +769,6 @@ procedure TCompOptForm.LoadAutoLinks;
 var
   autolink: PAutoLink;
   I: integer;
-  sl: TStringList;
   canselect: boolean;
 begin
   lvAutoLinks.FixedRows := 0;

@@ -939,8 +939,6 @@ procedure TDebugReader.HandleLocalOutput;
 var
   s: AnsiString;
   breakLine: boolean;
-  NextLine: AnsiString;
-  NextAnnotation: TAnnotateType;
 begin
   // name(spaces)hexvalue(tab)decimalvalue
   s := GetNextFilledLine;

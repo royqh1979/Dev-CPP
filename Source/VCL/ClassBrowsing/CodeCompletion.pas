@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, Forms, SysUtils, Controls, Graphics, CppParser,
-  cbutils, StatementList, iniFiles;
+  cbutils, StatementList, iniFiles, SyncObjs;
 
 type
   TCodeCompletion = class(TComponent)
@@ -61,6 +61,9 @@ type
     fShowKeywords: boolean;
     fShowCodeIns: boolean;
     fIgnoreCase:boolean;
+    fCriticalSection: TCriticalSection;
+    fParserSerialId: String;
+    fParserFreezed: boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -70,6 +73,7 @@ type
     procedure AddChildren(ScopeStatement:PStatement);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);
+    procedure SetParser(parser:TCppParser);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -77,6 +81,8 @@ type
     function Search(const Phrase, Filename: AnsiString; AutoHideOnSingleResult:boolean):boolean;
     procedure Hide;
     procedure Show;
+    function FreezeParser:boolean;
+    procedure UnfreezeParser;
     function SelectedStatement: PStatement;
     property CurrentStatement: PStatement read fCurrentStatement write fCurrentStatement;
     property CodeInsList: TList read fCodeInsList write fCodeInsList;
@@ -88,7 +94,7 @@ type
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
-    property Parser: TCppParser read fParser write fParser;
+    property Parser: TCppParser read fParser write setParser;
     property Position: TPoint read fPos write SetPosition;
     property Color: TColor read fColor write fColor;
     property Width: integer read fWidth write fWidth;
@@ -127,10 +133,12 @@ begin
   fShowKeywords:=True;
 
   fCodeInsStatements:=TList.Create;
+  fParserFreezed:=False;
 
   fIncludedFiles := TStringList.Create;
   fIncludedFiles.Sorted := True;
   fIncludedFiles.Duplicates := dupIgnore;
+  fCriticalSection := TCriticalSection.Create;
 
   fUsings:=TDevStringList.Create;
   fUsings.Sorted := True;
@@ -170,6 +178,7 @@ begin
     dispose(PStatement(fCodeInsStatements[i]));
   end;
   FreeAndNil(fCodeInsStatements);
+  fCriticalSection.Free;
   inherited Destroy;
 end;
 
@@ -224,6 +233,13 @@ var
   codeIn:PCodeIns;
   codeInStatement:PStatement;
 begin
+  if not assigned(fParser) then
+    Exit;
+  if not fParser.Enabled then
+    Exit;
+  if not fParser.Freeze then
+    Exit;
+  try
   // Reset filter cache
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
@@ -444,6 +460,11 @@ begin
       end;
     end;
   end;
+  finally
+    fParser.UnFreeze;
+    fParserSerialId:=fParser.SerialId;
+    fParserFreezed:=True;
+  end;
 end;
 
 // Return 1 to show Item2 above Item1, otherwise -1
@@ -535,87 +556,94 @@ var
   TopCount,SecondCount,ThirdCount:integer;
   usageCount:integer;
 begin
-  fCompletionStatementList.Clear;
-  
-    {
-  tmpList:=TList.Create;
+  fCriticalSection.Acquire;
   try
-  }
-  tmpList:=fCompletionStatementList;
-    if Member <> '' then begin // filter, case sensitive
-      tmpList.Capacity := fFullCompletionStatementList.Count;
-      for I := 0 to fFullCompletionStatementList.Count - 1 do
-        if ignoreCase and StartsText(Member, PStatement(fFullCompletionStatementList[I])^._Command) then begin
-          tmpList.Add(fFullCompletionStatementList[I]);
-        end else if StartsStr(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
-          tmpList.Add(fFullCompletionStatementList[I]);
-    end else
-      tmpList.Assign(fFullCompletionStatementList);
-    if RecordUsage then begin
-      TopCount:=0; SecondCount:=0; ThirdCount:=0;
-      for I:=0 to tmpList.Count -1 do begin
-        if PStatement(tmpList[I])^._UsageCount = 0 then begin
-          idx:=SymbolUsage.IndexOf(PStatement(tmpList[I])^._FullName);
-          if idx<0 then
-            continue;
-          usageCount := integer(SymbolUsage.Objects[idx]);
-          PStatement(tmpList[I])^._UsageCount := usageCount;
-        end else
-          usageCount := PStatement(tmpList[I])^._UsageCount;
-        if usageCount>TopCount then begin
-          ThirdCount := SecondCount;
-          SecondCount := TopCount;
-          TopCount:=usageCount;
-        end else if usageCount>SecondCount then begin
-          ThirdCount := SecondCount;
-          SecondCount :=usageCount;
-        end else if usageCount>ThirdCount then begin
-          ThirdCount := usageCount;
-        end;
-      end;
-      for I:=0 to tmpList.Count -1 do begin
-        if PStatement(tmpList[I])^._UsageCount = 0 then begin
-          PStatement(tmpList[I])^._FreqTop :=0;
-        end else if PStatement(tmpList[I])^._UsageCount = TopCount then begin
-          PStatement(tmpList[I])^._FreqTop :=30;
-        end else if PStatement(tmpList[I])^._UsageCount = SecondCount then begin
-          PStatement(tmpList[I])^._FreqTop :=20;
-        end else if PStatement(tmpList[I])^._UsageCount = ThirdCount then begin
-          PStatement(tmpList[I])^._FreqTop :=10;
-        end;
-      end;
-      tmpList.sort(@ListSortWithUsage);
-    end else begin
-      tmpList.sort(@ListSort);
-    end;
-{
-    //don't need to do this because we have done it when fill fFullCompletionStatementList
-    // filter duplicates
-    lastCmd := '';
-    for I:=0 to tmpList.Count -1 do begin
-      if lastCmd <> PStatement(tmpList[I])^._Command then
-         fCompletionStatementList.Add(tmpList[I]);
-      lastCmd:=PStatement(tmpList[I])^._Command;
-    end;
+    fCompletionStatementList.Clear;
 
-    }
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze then
+      Exit;
+    try
+      if not SameStr(fParser.SerialId, fParserSerialId) then
+        Exit;
+      fParserFreezed:=True;  
 
+      tmpList:=fCompletionStatementList;
+      if Member <> '' then begin // filter, case sensitive
+        tmpList.Capacity := fFullCompletionStatementList.Count;
+        for I := 0 to fFullCompletionStatementList.Count - 1 do
+          if ignoreCase and StartsText(Member, PStatement(fFullCompletionStatementList[I])^._Command) then begin
+            tmpList.Add(fFullCompletionStatementList[I]);
+          end else if StartsStr(Member, PStatement(fFullCompletionStatementList[I])^._Command) then
+            tmpList.Add(fFullCompletionStatementList[I]);
+      end else
+        tmpList.Assign(fFullCompletionStatementList);
+      if RecordUsage then begin
+        TopCount:=0; SecondCount:=0; ThirdCount:=0;
+        for I:=0 to tmpList.Count -1 do begin
+          if PStatement(tmpList[I])^._UsageCount = 0 then begin
+            idx:=SymbolUsage.IndexOf(PStatement(tmpList[I])^._FullName);
+            if idx<0 then
+              continue;
+            usageCount := integer(SymbolUsage.Objects[idx]);
+            PStatement(tmpList[I])^._UsageCount := usageCount;
+          end else
+            usageCount := PStatement(tmpList[I])^._UsageCount;
+          if usageCount>TopCount then begin
+            ThirdCount := SecondCount;
+            SecondCount := TopCount;
+            TopCount:=usageCount;
+          end else if usageCount>SecondCount then begin
+            ThirdCount := SecondCount;
+            SecondCount :=usageCount;
+          end else if usageCount>ThirdCount then begin
+            ThirdCount := usageCount;
+          end;
+        end;
+        for I:=0 to tmpList.Count -1 do begin
+          if PStatement(tmpList[I])^._UsageCount = 0 then begin
+            PStatement(tmpList[I])^._FreqTop :=0;
+          end else if PStatement(tmpList[I])^._UsageCount = TopCount then begin
+            PStatement(tmpList[I])^._FreqTop :=30;
+          end else if PStatement(tmpList[I])^._UsageCount = SecondCount then begin
+            PStatement(tmpList[I])^._FreqTop :=20;
+          end else if PStatement(tmpList[I])^._UsageCount = ThirdCount then begin
+            PStatement(tmpList[I])^._FreqTop :=10;
+          end;
+        end;
+        tmpList.sort(@ListSortWithUsage);
+      end;
+    finally
+      fParser.UnFreeze;
+      fParserFreezed:=False;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 
 procedure TCodeCompletion.Show;
 begin
-  fPreparing:=True;
-  // Clear data, do not free pointed memory: data is owned by CppParser
-  fAddedStatements.Clear;
-  fCompletionStatementList.Clear;
-  fFullCompletionStatementList.Clear;
-  CodeComplForm.lbCompletion.Items.BeginUpdate;
-  CodeComplForm.lbCompletion.Items.Clear;
-  CodeComplForm.lbCompletion.Items.EndUpdate;
-  fIncludedFiles.Clear; // is recreated anyway on reshow, so save some memory when hiding
-  CodeComplForm.Show;
-  CodeComplForm.lbCompletion.SetFocus;
+  fCriticalSection.Acquire;
+  try
+    fPreparing:=True;
+    // Clear data, do not free pointed memory: data is owned by CppParser
+    fAddedStatements.Clear;
+    fCompletionStatementList.Clear;
+    fFullCompletionStatementList.Clear;
+    CodeComplForm.lbCompletion.Items.BeginUpdate;
+    CodeComplForm.lbCompletion.Items.Clear;
+    CodeComplForm.lbCompletion.Items.EndUpdate;
+    fIncludedFiles.Clear; // is recreated anyway on reshow, so save some memory when hiding
+    CodeComplForm.Show;
+    CodeComplForm.lbCompletion.SetFocus;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TCodeCompletion.Hide;
@@ -644,16 +672,22 @@ end;
 
 procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
 begin
-  fPreparing:=True;
-  fPhrase := Phrase;
-  Screen.Cursor := crHourglass;
-  fParser.GetFileIncludes(Filename, fIncludedFiles);
-  GetCompletionFor(FileName,Phrase);
-  CodeComplForm.lbCompletion.Font.Size := FontSize;
-  CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
-  CodeComplForm.Update;
-  Screen.Cursor := crDefault;
-  fPreparing:=False;
+  fCriticalSection.Acquire;
+  try
+      fParserFreezed:=True;
+      fPreparing:=True;
+      fPhrase := Phrase;
+      Screen.Cursor := crHourglass;
+      fParser.GetFileIncludes(Filename, fIncludedFiles);
+      GetCompletionFor(FileName,Phrase);
+      CodeComplForm.lbCompletion.Font.Size := FontSize;
+      CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
+      CodeComplForm.Update;
+      Screen.Cursor := crDefault;
+      fPreparing:=False;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 function TCodeCompletion.Search(const Phrase, Filename: AnsiString;AutoHideOnSingleResult:boolean):boolean;
@@ -661,64 +695,69 @@ var
   I: integer;
   symbol: ansistring;
 begin
-  Result:=False;
+  fCriticalSection.Acquire;
+  try
+    Result:=False;
 
-  fPhrase := Phrase;
-  if Phrase = '' then begin
-    Hide;
-    Exit;
-  end;
-
-  if fEnabled then begin
-    Screen.Cursor := crHourglass;
-
-
-    // Sort here by member
-    I := fParser.FindLastOperator(Phrase);
-    while (I > 0) and (I <= Length(Phrase)) and (Phrase[i] in ['.', ':', '-', '>']) do
-      Inc(I);
-
-    symbol := Copy(Phrase, I, MaxInt);
-    // filter fFullCompletionStatementList to fCompletionStatementList
-    FilterList(symbol);
-
-
-    if fCompletionStatementList.Count > 0 then begin
-      CodeComplForm.lbCompletion.Items.BeginUpdate;
-      try
-        CodeComplForm.lbCompletion.Items.Clear;
-
-        // Only slow one hundred statements...
-        for I := 0 to min(fShowCount, fCompletionStatementList.Count - 1) do begin
-          CodeComplForm.lbCompletion.Items.AddObject('', fCompletionStatementList[I]);
-        end;
-      finally
-        CodeComplForm.lbCompletion.Items.EndUpdate;
-        Screen.Cursor := crDefault;
-      end;
-
-      // if only one suggestion, and is exactly the symbol to search, hide the frame (the search is over)
-      if (fCompletionStatementList.Count =1) and
-        SameStr(symbol, PStatement(fCompletionStatementList[0])^._Command) then begin
-        Result:=True;
-        Exit;
-      end;
-
-      // if only one suggestion and auto hide , don't show the frame
-      if (fCompletionStatementList.Count =1) and AutoHideOnSingleResult then begin
-        Result:=True;
-        Exit;
-      end;
-
-      //CodeComplForm.Show;
-      if CodeComplForm.lbCompletion.Items.Count > 0 then
-        CodeComplForm.lbCompletion.ItemIndex := 0;
-    end else begin
-      CodeComplForm.lbCompletion.Items.Clear;
+    fPhrase := Phrase;
+    if Phrase = '' then begin
       Hide;
+      Exit;
     end;
 
-    Screen.Cursor := crDefault;
+    if fEnabled then begin
+      Screen.Cursor := crHourglass;
+
+
+      // Sort here by member
+      I := fParser.FindLastOperator(Phrase);
+      while (I > 0) and (I <= Length(Phrase)) and (Phrase[i] in ['.', ':', '-', '>']) do
+        Inc(I);
+
+      symbol := Copy(Phrase, I, MaxInt);
+      // filter fFullCompletionStatementList to fCompletionStatementList
+      FilterList(symbol);
+
+
+      if fCompletionStatementList.Count > 0 then begin
+        CodeComplForm.lbCompletion.Items.BeginUpdate;
+        try
+          CodeComplForm.lbCompletion.Items.Clear;
+
+        // Only slow one hundred statements...
+          for I := 0 to min(fShowCount, fCompletionStatementList.Count - 1) do begin
+            CodeComplForm.lbCompletion.Items.AddObject('', fCompletionStatementList[I]);
+          end;
+        finally
+          CodeComplForm.lbCompletion.Items.EndUpdate;
+          Screen.Cursor := crDefault;
+        end;
+
+        // if only one suggestion, and is exactly the symbol to search, hide the frame (the search is over)
+        if (fCompletionStatementList.Count =1) and
+          SameStr(symbol, PStatement(fCompletionStatementList[0])^._Command) then begin
+          Result:=True;
+          Exit;
+        end;
+
+        // if only one suggestion and auto hide , don't show the frame
+        if (fCompletionStatementList.Count =1) and AutoHideOnSingleResult then begin
+          Result:=True;
+          Exit;
+        end;
+
+        //CodeComplForm.Show;
+        if CodeComplForm.lbCompletion.Items.Count > 0 then
+          CodeComplForm.lbCompletion.ItemIndex := 0;
+      end else begin
+        CodeComplForm.lbCompletion.Items.Clear;
+        Hide;
+      end;
+
+      Screen.Cursor := crDefault;
+    end;
+  finally
+    fCriticalSection.Release;
   end;
 end;
 
@@ -786,6 +825,39 @@ end;
 procedure TCodeCompletion.SetColor(i:integer; const Color:TColor);
 begin
   CodeComplForm.Colors[i] := Color;
+end;
+
+procedure TCodeCompletion.SetParser(parser:TCppParser);
+begin
+  if parser = fParser then
+    Exit;
+  fCriticalSection.Acquire;
+  try
+    fParser:=Parser;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+function TCodeCompletion.FreezeParser:boolean;
+begin
+  Result := False;
+  if not assigned(fParser) then
+    Exit;
+  if not fParser.enabled then
+    Exit;
+  if not fParser.Freeze then
+    Exit;
+  if not SameStr(fParserSerialId, fParser.SerialId) then begin
+    fParser.Unfreeze;
+    Exit;
+  end;
+  Result:=True;
+end;
+
+procedure TCodeCompletion.UnfreezeParser;
+begin
+  fParser.Unfreeze;
 end;
 
 end.

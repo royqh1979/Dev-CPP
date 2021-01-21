@@ -199,12 +199,13 @@ type
     procedure LinesDeleted(FirstLine,Count:integer);
     procedure LinesInserted(FirstLine,Count:integer);
     procedure InitParser;
+    function GetParsing:boolean;
   public
     constructor Create(const Filename: AnsiString; Encoding:TFileEncodingType;
       InProject, NewFile: boolean; ParentPageControl: ComCtrls.TPageControl;
        textEdit: TSynEdit = nil);
     destructor Destroy; override;
-    function Save(force:boolean=False): boolean;
+    function Save(force:boolean = False; Reparse: boolean=True): boolean;
     function SaveAs: boolean;
     procedure Activate;
     procedure GotoLine;
@@ -250,6 +251,7 @@ type
     property New: boolean read fNew write fNew;
     property Text: TSynEdit read fText write fText;
 //    property TabSheet: TTabSheet read fTabSheet write fTabSheet;
+    property Parsing: boolean read GetParsing;
     property TabSheet: TTabSheet read fTabSheet;
     property FunctionTip: TCodeToolTip read fFunctionTip;
     property CompletionBox: TCodeCompletion read fCompletionBox;
@@ -268,7 +270,8 @@ uses
   main, project, MultiLangSupport, devcfg,
   DataFrm, GotoLineFrm, Macros, debugreader, IncrementalFrm,
   CodeCompletionForm, SynEditMiscClasses,
-  devCaretList,cppPreprocessor, cppTokenizer;
+  devCaretList,
+  devParser;
 
 { TDebugGutter }
 
@@ -505,8 +508,7 @@ begin
 
 
   if not InProject and assigned(fParser) then begin
-    fParser.Tokenizer.Free;
-    fParser.Preprocessor.Free;
+    //FreeParser(fParser);
     fParser.Free;
   end;
   // Delete breakpoints in this editor
@@ -557,8 +559,10 @@ begin
   // Don't waste time refocusing
   if fText.Focused then
     Exit;
+  {
   MainForm.ClassBrowser.BeginUpdate;
   try
+  }
     MainForm.UpdateClassBrowserForEditor(self);
     fText.BeginUpdate;
     try
@@ -570,9 +574,11 @@ begin
     finally
       fText.EndUpdate;
     end;
+  {
   finally
     MainForm.ClassBrowser.EndUpdate;
   end;
+  }
 
   //don't need to reparse here, in EditorEnter event handler we will do it
   MainForm.UpdateFileEncodingStatusPanel;
@@ -823,8 +829,8 @@ end;
 
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  if (not (scOpenFile in Changes)) and (fText.Lines.Count <> fLineCount) then begin
-    fLineCount := fText.Lines.Count;
+  if (not (scOpenFile in Changes)) and  (fText.Lines.Count <> fLineCount)
+    and (fText.Lines.Count <> 0) and (fLineCount>0) then begin
     if devCodeCompletion.Enabled
       and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
       then begin
@@ -835,6 +841,7 @@ begin
       mainForm.CheckSyntaxInBack(self);
     end;
   end;
+  fLineCount := fText.Lines.Count;
   // scModified is only fired when the modified state changes
   if scModified in Changes then begin
     if fText.Modified then begin
@@ -1098,7 +1105,6 @@ var
   p:PTabStop;
   CursorPos: TBufferCoord;
   spaceCount :integer;
-  hasTabs: boolean;
 begin
   ClearUserCodeInTabStops;
   fXOffsetSince := 0;
@@ -2224,6 +2230,11 @@ begin
   ShowCompletion(False);
 end;
 
+function TEditor.GetParsing: boolean;
+begin
+  Result := Assigned(fParser) and fParser.Parsing;
+end;
+
 procedure TEditor.InitCompletion;
 begin
   fTabnine := MainForm.Tabnine;
@@ -2530,9 +2541,6 @@ var
   WordBegin, WordEnd, ParamBegin, ParamEnd, len,line,i: integer;
   s: AnsiString;
   HighlightPos,pDummy:TBufferCoord;
-  Token:string;
-  tokenType,start:integer;
-  Attr:TSynHighlighterAttributes;
 begin
   result := '';
   if (p.Line >= 1) and (p.Line <= editor.Lines.Count) then begin
@@ -2885,7 +2893,6 @@ procedure TEditor.EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Int
 var
   s: AnsiString;
   p: TBufferCoord;
-  st: PStatement;
   Reason: THandPointReason;
   IsIncludeLine: boolean;
   pError : pSyntaxError;
@@ -3378,7 +3385,7 @@ begin
   end;
 end;
 
-function TEditor.Save(force:boolean = False): boolean;
+function TEditor.Save(force:boolean;reparse:boolean):boolean;
 begin
   Result := True;
 
@@ -3413,10 +3420,10 @@ begin
         Result := False;
       end;
 
-      if not force and devCodeCompletion.Enabled and assigned(fParser) then begin
+      if reparse and devCodeCompletion.Enabled and assigned(fParser) then begin
         BeginUpdate;
         try
-        fParser.ParseFile(fFileName, InProject);
+          ParseFile(fParser, fFileName, InProject);
         finally
           EndUpdate;
         end;
@@ -3780,20 +3787,12 @@ begin
 end;
 
 procedure TEditor.Reparse;
-var
-  M: TMemoryStream;
 begin
-  BeginUpdate;
-  M := TMemoryStream.Create;
-  try
-    fText.Lines.SaveToStream(M);
-    // Reparse whole file (not function bodies) if it has been modified
-    // use stream, don't read from disk (not saved yet)
-    fParser.ParseFile(fFileName, InProject, False, False, M);
-  finally
-    M.Free;
-    EndUpdate;
-  end;
+//  BeginUpdate;
+  // Reparse whole file (not function bodies) if it has been modified
+  // use stream, don't read from disk (not saved yet)
+  ParseFile(fParser,fFileName, InProject, False, False, fText.Lines);
+//  EndUpdate;
 end;
 
 
@@ -3904,9 +3903,7 @@ end;
 
 procedure TEditor.InitParser;
 begin
-  fParser := TCppParser.Create(fText);
-  fParser.Preprocessor := TCppPreprocessor.Create(fText);
-  fParser.Tokenizer := TCppTokenizer.Create(fText);
+  fParser := TCppParser.Create(fText,MainForm.Handle);
   ResetCppParser(fParser);
   fParser.Enabled := (fText.Highlighter = dmMain.Cpp);
 end;
@@ -3919,8 +3916,7 @@ begin
     InitParser;
   end else begin
     if assigned(fParser) then begin
-      fParser.Tokenizer.Free;
-      fParser.Preprocessor.Free;
+      //FreeParser(fParser);
       fParser.Free;
     end;
     fParser := MainForm.Project.CppParser;
@@ -3930,9 +3926,6 @@ begin
 end;
 
 procedure TEditor.SetEncodingOption(encoding:TFileEncodingType);
-var
-  OldTopLine : integer;
-  OldCaretXY : TBufferCoord;
 begin
   if fEncodingOption = encoding then
     exit;

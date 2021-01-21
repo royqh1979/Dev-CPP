@@ -27,10 +27,10 @@ uses
   Windows, Messages, SysUtils, Classes, Contnrs,Graphics, Controls, Forms, Dialogs,
   Menus, StdCtrls, ComCtrls, ToolWin, ExtCtrls, Buttons, utils, SynEditPrint,
   Project, editor, DateUtils, compiler, ActnList, ToolFrm, AppEvnts,
-  debugger, ClassBrowser, CodeCompletion, CppParser, CppTokenizer, SyncObjs,
+  debugger, ClassBrowser, CodeCompletion, CppParser, SyncObjs,
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
-  CppPreprocessor, CBUtils, StatementList, FormatterOptionsFrm,
+  CBUtils, StatementList, FormatterOptionsFrm,
   RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput,
   HeaderCompletion;
 
@@ -660,10 +660,6 @@ type
     FindOutput: TFindOutput;
     FindPopup: TPopupMenu;
     mnuClearAllFindItems: TMenuItem;
-    DummyCppParser: TCppParser;
-    DummyCppPreprocessor: TCppPreprocessor;
-    DummyCppTokenizer: TCppTokenizer;
-    HeaderCompletion: THeaderCompletion;
     N41: TMenuItem;
     AutoDetect1: TMenuItem;
     UTF81: TMenuItem;
@@ -685,6 +681,7 @@ type
     MenuItem25: TMenuItem;
     MenuItem27: TMenuItem;
     MenuItem41: TMenuItem;
+    HeaderCompletion: THeaderCompletion;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -780,7 +777,8 @@ type
     procedure actToolsMenuExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
-    procedure CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
+//    procedure CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
+    procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
     procedure CodeCompletionResize(Sender: TObject);
     procedure actSwapHeaderSourceExecute(Sender: TObject);
     procedure actSyntaxCheckExecute(Sender: TObject);
@@ -831,8 +829,8 @@ type
     procedure actExecParamsExecute(Sender: TObject);
     procedure DevCppDDEServerExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure actShowTipsExecute(Sender: TObject);
-    procedure CppParserStartParsing(Sender: TObject);
-    procedure CppParserEndParsing(Sender: TObject; Total: Integer);
+    procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
+    procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
     procedure actAbortCompilationUpdate(Sender: TObject);
     procedure actAbortCompilationExecute(Sender: TObject);
     procedure ProjectViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1037,6 +1035,7 @@ type
     fWindowsTurnedOff:boolean;
     fMessageControlChanged : boolean;
     fLeftPageControlChanged : boolean;
+    fDummyCppParser: TCppParser;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1121,7 +1120,8 @@ uses
   NewTemplateFrm, FunctionSearchFrm, NewFunctionFrm, NewVarFrm, NewClassFrm,
   ProfileAnalysisFrm, FilePropertiesFrm, AddToDoFrm, ViewToDoFrm,
   ImportMSVCFrm, ImportCBFrm, CPUFrm, FileAssocs, TipOfTheDayFrm,
-  WindowListFrm, RemoveUnitFrm, ParamsFrm, ProcessListFrm, SynEditHighlighter;
+  WindowListFrm, RemoveUnitFrm, ParamsFrm, ProcessListFrm, SynEditHighlighter,
+  devParser;
 
 {$R *.dfm}
 { TTabsheet }
@@ -1383,6 +1383,8 @@ begin
     Action := caNone;
     Exit;
   end;
+
+  fDummyCppParser.Free;
 
   // Remember toolbar placement
   devData.LeftActivePage := LeftPageControl.ActivePageIndex;
@@ -2066,7 +2068,7 @@ begin
   if Open then begin
     LeftPageControl.Width := fPreviousWidth
   end else begin
-    LeftPageControl.Width := LeftPageControl.Width - LeftProjectSheet.Width; // only show the tab captions
+    LeftPageControl.Width := LeftPageControl.Width - LeftClassSheet.Width; // only show the tab captions
     LeftPageControl.ActivePageIndex := -1;
   end;
   SplitterLeft.Visible := Open;
@@ -2135,6 +2137,7 @@ begin
     else
       exit;
   end;
+  LeftProjectSheet.TabVisible := True;
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
@@ -2680,11 +2683,10 @@ begin
           Exit;
         end;
       end;
+      leftProjectSheet.TabVisible := True;
 
       if cbDefault.Checked then
         devData.DefCpp := rbCpp.Checked;
-
-
 
       s := IncludeTrailingPathDelimiter(edProjectLocation.Text)+edProjectName.Text+DEV_EXT;
 
@@ -2859,8 +2861,8 @@ begin
   fClosing:=True;
   ClassBrowser.BeginUpdate;
   try
-    UpdateClassBrowserForEditor(nil);
     fEditorList.CloseAll(fWindowsTurnedOff); // PageControlChange triggers other UI updates
+    UpdateClassBrowserForEditor(nil);
   finally
     ClassBrowser.EndUpdate;
   end;
@@ -2938,6 +2940,8 @@ begin
 
       // Clear error browser
       ClearMessageControl;
+
+      leftProjectSheet.TabVisible := False;
     end;
 
     if not fQuitting and RefreshEditor then begin
@@ -3433,6 +3437,7 @@ begin
       FolderNode := fProject.Node;
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
+  LeftProjectSheet.TabVisible := True;
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
@@ -3950,6 +3955,34 @@ var
   filepath: AnsiString;
   DebugEnabled, StripEnabled: boolean;
   params: string;
+
+  function hasBreakPoint:boolean;
+  var
+    i:integer;
+    e:TEditor;
+    e1:TEditor;
+  begin
+    Result := False;
+    e := editorList.GetEditor;
+    if not assigned(e) then
+      Exit;
+    if not e.InProject then begin
+      for i:=0 to fDebugger.BreakPointList.Count -1 do begin
+        if e=PBreakPoint(fDebugger.BreakPointList[i])^.editor then begin
+          Result:=True;
+          exit;
+        end;
+      end;
+    end else begin
+      for i:=0 to fDebugger.BreakPointList.Count -1 do begin
+        e1:=PBreakPoint(fDebugger.BreakPointList[i])^.editor;
+        if assigned(e1) and e1.InProject then begin
+          Result:=True;
+          exit;
+        end;
+      end;
+    end;
+  end;
 begin
   if fCompiler.Compiling then
     Exit;
@@ -4114,7 +4147,7 @@ begin
   fDebugger.SendCommand('set', 'new-console on');
   fDebugger.SendCommand('set', 'confirm off');
   fDebugger.SendCommand('cd', ExcludeTrailingPathDelimiter(ExtractFileDir(filepath))); // restore working directory
-  if fDebugger.BreakPointList.Count=0 then begin
+  if not hasBreakPoint then begin
     case GetCompileTarget of
       ctNone:
         Exit;
@@ -4945,7 +4978,7 @@ begin
   if Assigned(fProject) and parse then begin
     ResetCppParser(fProject.CppParser);
     SetCppParserProject(fProject);
-    Project.CppParser.ParseFileList;
+    ParseFileList(Project.CppParser);
   end else begin
     SetCppParserProject(fProject);
   end;
@@ -5425,8 +5458,9 @@ begin
     ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
-      if (e.FileName <> '') then begin
-        GetCppParser.ParseFile(e.FileName,e.InProject);
+      if (e.FileName <> '') and
+        ( (not e.New)  or e.Text.Modified) then begin
+        ParseFile(GetCppParser,e.FileName,e.InProject);
       end;
     end else begin
       ClassBrowser.CurrentFile := '';
@@ -5880,7 +5914,7 @@ begin
     ShowModal;
 end;
 
-procedure TMainForm.CppParserStartParsing(Sender: TObject);
+procedure TMainForm.CppParserStartParsing(var message:TMessage);
 var
   e: TEditor;
 begin
@@ -5903,10 +5937,15 @@ begin
   fParseStartTime := GetTickCount;
 end;
 
-procedure TMainForm.CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
+procedure TMainForm.CppParserTotalProgress(var message:TMessage);
 var
   ShowStep: Integer;
+  pMsg: PCppParserProgressMessage;
+  Total,Current:Integer;
 begin
+  pMsg:= PCppParserProgressMessage(message.WParam);
+  Total := pMsg.Total;
+  Current := pMsg.Current;
   // Mention every 5% progress
   ShowStep := Total div 20;
 
@@ -5916,16 +5955,20 @@ begin
 
   // Only show if needed (it's a very slow operation)
   if (Current mod ShowStep = 0) or (Current = 1) then begin
-    SetStatusBarMessage(Format(Lang[ID_PARSINGFILECOUNT], [Current, Total, Filename]));
+    SetStatusBarMessage(Format(Lang[ID_PARSINGFILECOUNT], [Current, Total, pMsg.Filename]));
     //Application.ProcessMessages;
   end;
+  Dispose(PCppParserProgressMessage(pMsg));
 end;
 
-procedure TMainForm.CppParserEndParsing(Sender: TObject; Total: Integer);
+procedure TMainForm.CppParserEndParsing(var message:TMessage);
 var
   ParseTimeFloat, ParsingFrequency: Extended;
+  total:integer;
 begin
   Screen.Cursor := crDefault;
+
+  total := message.wParam;
 
   //CppParser will call class browser to redraw, don't do it twice
 
@@ -6744,8 +6787,7 @@ begin
   fMessageControlChanged := False;
   fLeftPageControlChanged := False;
 
-  DummyCppParser.Preprocessor := DummyCppPreprocessor;
-  DummyCppParser.Tokenizer := DummyCppTokenizer;
+  fDummyCppParser := TCppParser.Create(nil,MainForm.Handle);
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
 
@@ -6817,6 +6859,7 @@ begin
   fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
+  LeftProjectSheet.TabVisible := False;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
@@ -6949,7 +6992,7 @@ begin
   // We need this variable during the whole startup process
   devData.First := FALSE;
 
-  LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftProjectSheet.Width;
+  LeftPageControl.Constraints.MinWidth := LeftPageControl.Width - LeftClassSheet.Width;
   MessageControl.Constraints.MinHeight := MessageControl.Height - CompSheet.Height;
   //windows xp hack
   if Win32MajorVersion < 6 then begin
@@ -7946,7 +7989,7 @@ begin
   BreakpointsView.Clear;
   for I := 0 to fDebugger.BreakPointList.Count - 1 do begin
       item := BreakpointsView.Items.Add;
-      filename := StringReplace(PBreakPoint(fDebugger.BreakPointList[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
+      filename := PBreakPoint(fDebugger.BreakPointList[i])^.editor.FileName;
 
       item.Caption := filename;
       item.SubItems.Add(IntToStr(PBreakPoint(fDebugger.BreakPointList[I])^.line));
@@ -8721,7 +8764,7 @@ function TMainForm.GetCppParser:TCppParser;
 var
   e:TEditor;
 begin
-  Result := DummyCppParser;
+  Result := fDummyCppParser;
   case GetCompileTarget of
     ctProject: begin
       if not Assigned(fProject) then

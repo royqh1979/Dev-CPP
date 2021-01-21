@@ -1,4 +1,16 @@
-Version 6.3-beta5 JAN 2021
+Version 6.4-alpha1 JAN 2021
+
+    - enhancement: The Parser works in a background thread.
+    - fix: Won't show code suggestion when include a header using path including '.' or '..';
+    - fix: chinese translations 
+    - enhancement: auto expand nodes in the left project panel when a new project is created;
+    - enhancement: hide the left project panel when no project is opened
+    - fix: debugger don't stop at the first statement of main(), if the current debugging file doesn't has breakpoints but other files have breakpoints; 
+    - fix: can't make projects including source files in subfolders
+    - enhancement: don't reload the classbrowser each time click on it
+    - fix: filenames in the breakpoint view is not the same with the editors
+
+Version 6.3 JAN 2021
 
     - enhancement: Use the same color for global var in completion suggestion windows as in the editor
     - fix: The compiler sets found are not saved , when devcpp starts up and the old compiler set is not valid.
@@ -71,7 +83,7 @@ Version 6.3-beta3 DEC 2020
     - fix: correct type abbreviation in code suggestion window for enum types
     - fix: show header file suggestion for #include<> / #include""
     - fix: can't show code suggestion for symbols like (char*)malloc(...)
-    - fix: hight selected keywords
+    - fix: highlight selected keywords
     - change: redesign encoding ui and logic
     - enhancement: convert UTF-8 encoding file to ansi (system default encoding) encoding
     - fix: Turn on the option "Trim trailing spaces" in the editor option dialog will cause error when editing multiline comment

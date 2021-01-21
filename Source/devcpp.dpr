@@ -94,7 +94,8 @@ uses
   CodeInsList in 'CodeInsList.pas',
   TabnineForm in 'TabnineForm.pas' {TabnineForm},
   Tabnine in 'Tabnine.pas',
-  AutoLinkList in 'AutoLinkList.pas';
+  AutoLinkList in 'AutoLinkList.pas',
+  devParser in 'devParser.pas';
 
 {$R *.res}
 
@@ -228,7 +229,7 @@ begin
     Application.Initialize;
     Application.Title := 'Dev-C++';
     Application.CreateForm(TMainForm, MainForm);
-    Application.CreateForm(TRenameForm, RenameForm);
+  Application.CreateForm(TRenameForm, RenameForm);
   finally
     if hLockFile<>INVALID_HANDLE_VALUE then
       CloseHandle(hLockFile);

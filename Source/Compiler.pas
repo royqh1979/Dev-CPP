@@ -425,9 +425,11 @@ begin
           objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(objFileName))) + objStr;
         end;
       end else begin
+        {
         if shortFileName <> ExtractFileName(FileName) then begin
           objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(shortFileName))) + objStr;
         end;
+        }
         ObjFileName := GenMakePath1(ChangeFileExt(ShortFileName, OBJ_EXT));
       end;
 

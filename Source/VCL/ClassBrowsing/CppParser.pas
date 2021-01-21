@@ -23,18 +23,29 @@ interface
 
 uses
   Dialogs, Windows, Classes, SysUtils, StrUtils, ComCtrls, StatementList, CppTokenizer, CppPreprocessor,
-  cbutils, IntList,SyncObjs, iniFiles;
+  cbutils, IntList,SyncObjs, iniFiles,Controls, Forms;
 
 
 type
+
+  PCppParserProgressMessage = ^TCppParserProgressMessage;
+  TCppParserProgressMessage = Record
+    Total:integer;
+    Current:integer;
+    FileName:String;
+  end;
   TCppParser = class(TComponent)
   private
+    fParserId: integer;
+    fSerialCount: integer;
+    fSerialId: string;
     fUniqId : integer;
     fEnabled: boolean;
     fIndex: integer;
     fIsHeader: boolean;
     fIsSystemHeader: boolean;
     fCurrentFile: AnsiString;
+    fHandle : HWND;
     { stack list , each element is a list of one/many scopes(like intypedef struct  s1,s2;}
     { It's used for store scope nesting infos }
     fCurrentScope: TList;  //TList<PStatement>
@@ -63,11 +74,6 @@ type
     fFilesToScanCount: Integer; // count of files and files included in files that have to be scanned
     fParseLocalHeaders: boolean;
     fParseGlobalHeaders: boolean;
-    fOnBusy: TNotifyEvent;
-    fOnUpdate: TNotifyEvent;
-    fOnTotalProgress: TProgressEvent;
-    fOnStartParsing: TNotifyEvent;
-    fOnEndParsing: TProgressEndEvent;
     fIsProjectFile: boolean;
     //fMacroDefines : TList;
     fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
@@ -153,8 +159,6 @@ type
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
     function GetIncompleteClass(const Command:AnsiString; parentScope:PStatement): PStatement;
-    procedure SetTokenizer(tokenizer: TCppTokenizer);
-    procedure SetPreprocessor(preprocessor: TCppPreprocessor);
     function GetFullStatementName(command:String; parent:PStatement):string;
     {procedure ResetDefines;}
     function FindMemberOfStatement(const Phrase: AnsiString; ScopeStatement: PStatement):PStatement;
@@ -166,6 +170,12 @@ type
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function GetRemainder(const Phrase: AnsiString): AnsiString;
     function getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
+    procedure OnProgress(FileName:String;Total,Current:integer);
+    procedure OnBusy;
+    procedure OnUpdate;
+    procedure OnStartParsing;
+    procedure OnEndParsing(total:integer);
+    procedure UpdateSerialId;
   public
     procedure ParseHardDefines;
     function FindFileIncludes(const Filename: AnsiString; DeleteIt: boolean = False): PFileIncludes;
@@ -189,7 +199,7 @@ type
     }
     function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
     function IsIncludeLine(const Line: AnsiString): boolean;
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; wnd:HWND); 
     destructor Destroy; override;
     procedure ParseFileList;
     procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
@@ -219,7 +229,7 @@ type
     function FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
-    procedure Freeze;  // Freeze/Lock (stop reparse while searching)
+    function Freeze:boolean;  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze; // UnFree/UnLock (reparse while searching)
     function GetParsing: boolean;
 
@@ -228,20 +238,17 @@ type
     
     property IncludePaths: TStringList read fIncludePaths;
     property ProjectIncludePaths: TStringList read fProjectIncludePaths;
+    property ParserId: integer read fParserId;
+    property SerialId: string read fSerialId;
   published
     property Parsing: boolean read GetParsing;
     property Enabled: boolean read fEnabled write fEnabled;
-    property OnUpdate: TNotifyEvent read fOnUpdate write fOnUpdate;
-    property OnBusy: TNotifyEvent read fOnBusy write fOnBusy;
-    property OnTotalProgress: TProgressEvent read fOnTotalProgress write fOnTotalProgress;
-    property Tokenizer: TCppTokenizer read fTokenizer write SetTokenizer;
-    property Preprocessor: TCppPreprocessor read fPreprocessor write SetPreprocessor;
+    property Tokenizer: TCppTokenizer read fTokenizer;
+    property Preprocessor: TCppPreprocessor read fPreprocessor;
     property Statements: TStatementList read fStatementList write fStatementList;
     property ParseLocalHeaders: boolean read fParseLocalHeaders write fParseLocalHeaders;
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property ScannedFiles: TStringList read fScannedFiles;
-    property OnStartParsing: TNotifyEvent read fOnStartParsing write fOnStartParsing;
-    property OnEndParsing: TProgressEndEvent read fOnEndParsing write fOnEndParsing;
     property FilesToScan: TStringList read fFilesToScan;
   end;
 
@@ -252,14 +259,28 @@ implementation
 uses
   DateUtils;
 
+var
+  parserCount : integer = 0;
+  parserCountCS: TCriticalSection;
+
 procedure Register;
 begin
   RegisterComponents('Dev-C++', [TCppParser]);
 end;
 
-constructor TCppParser.Create(AOwner: TComponent);
+
+constructor TCppParser.Create(AOwner: TComponent; wnd:HWND);
 begin
   inherited Create(AOwner);
+  fPreprocessor := TCppPreprocessor.Create(AOwner);
+  fTokenizer := TCppTokenizer.Create(AOwner);
+  fHandle := wnd;
+  parserCountCS.Acquire;
+  inc(parserCount);
+  fParserId := parserCount;
+  parserCountCS.Release;
+  fSerialCount := 0;
+  UpdateSerialId;
   fUniqId := 0;
   fParsing:=False;
   fStatementList := TStatementList.Create; // owns the objects
@@ -298,6 +319,20 @@ var
   i: Integer;
   namespaceList: TList;
 begin
+  while True do begin
+    fCriticalSection.Acquire;
+    try
+      if not fParsing and not fLocked then begin
+        fParsing:=True;
+        fLocked:=True;
+        break;
+      end;
+    finally
+      fCriticalSection.Release;
+    end;
+    Sleep(50);
+    Application.ProcessMessages;
+  end;
   //FreeAndNil(fMacroDefines);
   FreeAndNil(fCurrentScope);
   FreeAndNil(fCurrentClassScope);
@@ -333,7 +368,14 @@ begin
   FreeAndNil(fIncludePaths);
   FreeAndNil(fProjectIncludePaths);
   FreeAndNil(fCriticalSection);
+  FreeAndNil(fPreprocessor);
+  FreeAndNil(fTokenizer);
   inherited Destroy;
+end;
+
+procedure TCppParser.UpdateSerialId;
+begin
+  fSerialId := Format('%d-%d',[fParserId, fSerialCount]);
 end;
 
 function TCppParser.StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
@@ -1531,6 +1573,17 @@ begin
   Inc(fIndex);
 end;
 
+procedure TCppParser.OnProgress(FileName:String;Total,Current:integer);
+var
+  msg: PCppParserProgressMessage;
+begin
+  new(msg);
+  msg^.FileName := FileName;
+  msg^.Total := total;
+  msg^.Current := Current;
+  PostMessage(fHandle, WM_PARSER_PROGRESS,integer(msg),0);
+end;
+
 procedure TCppParser.HandlePreprocessor;
 var
   DelimPos, Line: Integer;
@@ -1552,8 +1605,7 @@ begin
       if Line = 1 then begin
         Inc(fFilesScannedCount);
         Inc(fFilesToScanCount);
-        if Assigned(fOnTotalProgress) then
-          fOnTotalProgress(Self, fCurrentFile, fFilesToScanCount, fFilesScannedCount);
+        OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
       end;
     end;
   end else if StartsStr('#define ', fTokenizer[fIndex]^.Text) then begin
@@ -2646,6 +2698,27 @@ begin
   Result := fIndex < fTokenizer.Tokens.Count;
 end;
 
+procedure TCppParser.OnStartParsing;
+begin
+  PostMessage(fHandle,WM_PARSER_BEGIN_PARSE,0,0);
+end;
+
+procedure TCppParser.OnEndParsing(total:integer);
+begin
+  PostMessage(fHandle,WM_PARSER_END_PARSE,total,0);
+end;
+
+procedure TCppParser.OnBusy;
+begin
+  PostMessage(fHandle,WM_PARSER_BUSY,0,0);
+end;
+
+procedure TCppParser.OnUpdate;
+begin
+  PostMessage(fHandle,WM_PARSER_UPDATE,0,0);
+end;
+
+
 procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream =
   nil);
 begin
@@ -2657,14 +2730,6 @@ begin
   if (fTokenizer = nil) or (fPreprocessor = nil) then
     Exit;
 
-  // Start a timer here
-  if (not ManualUpdate) and Assigned(fOnStartParsing) then
-    fOnStartParsing(Self);
-
-{
-  if not ManualUpdate and Assigned(fOnBusy) then
-      fOnBusy(Self);
-}
   // Preprocess the file...
   try
     // Let the preprocessor augment the include records
@@ -2678,8 +2743,6 @@ begin
     else
       fPreprocessor.PreprocessFile(FileName); // load contents from disk
   except
-    if (not ManualUpdate) and Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, -1);
     fPreprocessor.Reset; // remove buffers from memory
     Exit;
   end;
@@ -2691,7 +2754,7 @@ begin
   finally
     Free;
   end;
-  }  
+  }
 
 
   //fPreprocessor.DumpIncludesListTo('f:\\includes.txt');
@@ -2705,8 +2768,6 @@ begin
       Exit;
     end;
   except
-    if (not ManualUpdate) and Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, -1);
     fPreprocessor.Reset;
     fTokenizer.Reset;
     Exit;
@@ -2735,15 +2796,8 @@ begin
     //fCurrentClassScope.Clear;
     fPreprocessor.Reset;
     fTokenizer.Reset;
-    if (not ManualUpdate) and Assigned(fOnEndParsing) then
-      fOnEndParsing(Self, 1);
   end;
 
-  {
-  if not ManualUpdate then
-    if Assigned(fOnUpdate) then
-      fOnUpdate(Self);
-  }
 end;
 
 procedure TCppParser.Reset;
@@ -2753,8 +2807,7 @@ var
 begin
   fCriticalSection.Acquire;
   try
-  if Assigned(fOnBusy) then
-    fOnBusy(Self);
+    OnBusy;
   if Assigned(fPreprocessor) then
     fPreprocessor.Clear;
   fUniqId:=0;
@@ -2811,68 +2864,59 @@ begin
 
   fProjectFiles.Clear;
 
-  if Assigned(fOnUpdate) then
-    fOnUpdate(Self);
+  OnUpdate;
   finally
     fCriticalSection.Release;
-  end;    
+  end;
 end;
 
 procedure TCppParser.ParseFileList;
 var
   I: integer;
 begin
+  if not fEnabled then
+    Exit;
   fCriticalSection.Acquire;
   try
-  if fParsing or fLocked then
-    Exit;
-  fParsing:=True;
-  try
-    if not fEnabled then
+    if fParsing or fLocked then
       Exit;
-    if Assigned(fOnBusy) then
-      fOnBusy(Self);
-    if Assigned(fOnStartParsing) then
-      fOnStartParsing(Self);
-    try
-      // Support stopping of parsing when files closes unexpectedly
-      fFilesScannedCount := 0;
-      fFilesToScanCount := fFilesToScan.Count;
-      //we only parse CFile in the first parse
-      for i:=0 to fFilesToScan.Count-1 do begin
-        if not IsCFile(fFilesToScan[i]) then
-          continue;
-        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-        if Assigned(fOnTotalProgress) then
-          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
-        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
-          InternalParse(fFilesToScan[i], True);
-        end;
-      end;
-      // parse other files in the second parse
-      for i:=0 to fFilesToScan.Count-1 do begin
-        if IsCFile(fFilesToScan[i]) then
-          continue;
-        Inc(fFilesScannedCount); // progress is mentioned before scanning begins
-        if Assigned(fOnTotalProgress) then
-          fOnTotalProgress(Self, fFilesToScan[i], fFilesToScanCount, fFilesScannedCount);
-        if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
-          InternalParse(fFilesToScan[i], True);
-        end;
-      end;
-      fFilesToScan.Clear;
-    finally
-      if Assigned(fOnEndParsing) then
-        fOnEndParsing(Self, fFilesScannedCount);
-    end;
-    if Assigned(fOnUpdate) then
-      fOnUpdate(Self);
-  finally
-    fParsing:=False;
-  end;
+    UpdateSerialId;
+    fParsing:=True;
+    OnBusy;
+    OnStartParsing;
   finally
     fCriticalSection.Release;
-  end;  
+  end;
+  try
+    // Support stopping of parsing when files closes unexpectedly
+    fFilesScannedCount := 0;
+    fFilesToScanCount := fFilesToScan.Count;
+    //we only parse CFile in the first parse
+    for i:=0 to fFilesToScan.Count-1 do begin
+      if not IsCFile(fFilesToScan[i]) then
+        continue;
+      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+      OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
+      if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
+        InternalParse(fFilesToScan[i], True);
+      end;
+    end;
+    // parse other files in the second parse
+    for i:=0 to fFilesToScan.Count-1 do begin
+      if IsCFile(fFilesToScan[i]) then
+        continue;
+      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+      OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
+      if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
+        InternalParse(fFilesToScan[i], True);
+      end;
+    end;
+    fFilesToScan.Clear;
+  finally
+    fParsing:=False;
+    OnEndParsing(fFilesScannedCount);
+    OnUpdate;
+  end;
 end;
 
 {
@@ -3090,7 +3134,7 @@ begin
   Result := cbutils.IsSystemHeaderFile(FileName, fProjectIncludePaths);
   finally
     fCriticalSection.Release;
-  end;  
+  end;
 end;
 
 procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
@@ -3099,30 +3143,29 @@ var
   FName: AnsiString;
   I: integer;
 begin
+  if not fEnabled then
+    Exit;
   fCriticalSection.Acquire;
   try
-  if fParsing or fLocked then
-    Exit;
-  fParsing:=True;
-  try
-    if UpdateView and Assigned(fOnBusy) then
-      fOnBusy(Self);
-
-    if not fEnabled then
+    if fParsing or fLocked then
       Exit;
+    UpdateSerialId;
+    fParsing:=True;
+    if UpdateView then begin
+      OnBusy;
+    end;
+    OnStartParsing;
+  finally
+    fCriticalSection.Release;
+  end;
+  try
     FName := FileName;
 
     if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then begin
       Exit;
     end;
 
-    // Always invalidate file pairs. If we don't, reparsing the header
-    // screws up the information inside the source file
-    {
-    GetSourcePair(FName, CFile, HFile);
-    InvalidateFile(CFile);
-    InvalidateFile(HFile);
-    }
+
     InternalInvalidateFile(FileName);
 
     if InProject then begin
@@ -3149,38 +3192,25 @@ begin
     end;
 
     // Parse from disk or stream
-    if Assigned(fOnStartParsing) then
-      fOnStartParsing(Self);
-    try
-      fFilesToScanCount := 0;
-      fFilesScannedCount := 0;
-      if not Assigned(Stream) then begin
-        {
-        if CFile = '' then
-          InternalParse(HFile, True) // headers should be parsed via include
-        else
-          InternalParse(CFile, True); // headers should be parsed via include
-        }
-        InternalParse(FileName);
-      end else
-        InternalParse(FileName, True, Stream); // or from stream
-      for i:=0 to fRemovedStatements.Count-1 do begin
-        dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
-      end;
-      fRemovedStatements.Clear;
-      fFilesToScan.Clear;
-    finally
-      if Assigned(fOnEndParsing) then
-        fOnEndParsing(Self, 1);
+    fFilesToScanCount := 0;
+    fFilesScannedCount := 0;
+    if not Assigned(Stream) then begin
+      InternalParse(FileName);
+    end else
+      InternalParse(FileName, True, Stream); // or from stream
+    for i:=0 to fRemovedStatements.Count-1 do begin
+      dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
     end;
+    fRemovedStatements.Clear;
+    fFilesToScan.Clear;
   finally
-    if UpdateView and Assigned(fOnUpdate) then
-        fOnUpdate(Self);
     fParsing:=False;
+    OnEndParsing(1);
+    if UpdateView  then begin
+        OnUpdate;
+    end;
   end;
-  finally
-    fCriticalSection.Release;
-  end;  
+
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
@@ -3189,6 +3219,7 @@ begin
   try
   if fParsing or fLocked then
     Exit;
+  UpdateSerialId;
   fParsing:=True;
   try
     InternalInvalidateFile(FileName);
@@ -4557,11 +4588,16 @@ begin
     inherit^._Static);
 end;
 
-procedure TCppParser.Freeze;
+function TCppParser.Freeze:boolean;
 begin
   fCriticalSection.Acquire;
   try
-  fLocked := True;
+    if fLocked or fParsing then begin
+      Result:=False;
+      exit;
+    end;
+    fLocked := True;
+    Result:=True;
   finally
     fCriticalSection.Release;
   end;
@@ -4571,21 +4607,10 @@ procedure TCppParser.UnFreeze;
 begin
   fCriticalSection.Acquire;
   try
-  fLocked := False;
+    fLocked := False;
   finally
     fCriticalSection.Release;
   end;  
-end;
-
-
-procedure TCppParser.SetTokenizer(tokenizer: TCppTokenizer);
-begin
-  fTokenizer := tokenizer;
-end;
-
-procedure TCppParser.SetPreprocessor(preprocessor: TCppPreprocessor);
-begin
-  fPreprocessor := preprocessor;
 end;
 
 procedure TCppParser.getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
@@ -4625,6 +4650,16 @@ begin
     namespace := '';
     member := Phrase;
   end;
+end;
+
+initialization
+begin
+  parserCountCS := TCriticalSection.Create;
+end;
+
+finalization
+begin
+  parserCountCS.Free;
 end;
 
 end.

@@ -22,7 +22,7 @@ unit CBUtils;
 interface
 
 uses
-  SysUtils, StrUtils, Classes, IniFiles, intList;
+  SysUtils, StrUtils, Classes, IniFiles, intList, messages;
 
 const
   HeaderExts: array[0..6] of AnsiString = ('.h', '.hpp', '.rh', '.hh', '.hxx', '.inl', '');
@@ -42,6 +42,14 @@ const
   KeywordColor = 12;
   LocalVarColor = 13;
   GlobalVarColor = 14;
+
+  WM_PARSER_PROGRESS = WM_USER+101;
+  WM_PARSER_UPDATE = WM_USER+102;
+  WM_PARSER_BUSY = WM_USER+103;
+  WM_PARSER_BEGIN_PARSE = WM_USER+104;
+  WM_PARSER_END_PARSE = WM_USER+105;
+
+
 type
 
   { TStringList is case insensitive by default}

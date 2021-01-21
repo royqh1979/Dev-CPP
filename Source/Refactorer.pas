@@ -225,7 +225,8 @@ begin
   if Lines.Count<1 then
     Exit;
 
-  Editor.CppParser.Freeze;
+  if not Editor.CppParser.Freeze then
+    Exit;
   try
     // get full phrase (such as s.name instead of name)
     phrase := GetWordAtPosition(Editor.Text,oldCaretXY,pBeginPos,pEndPos,wpInformation);

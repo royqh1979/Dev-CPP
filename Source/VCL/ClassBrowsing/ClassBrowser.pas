@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages;
+  CppParser, Forms, cbutils, Messages, SyncObjs;
 
 type
   TMemberSelectEvent = procedure(Sender: TObject; Filename: TFilename; Line: integer) of object;
@@ -76,6 +76,9 @@ type
   TClassBrowser = class(TCustomTreeView)
   private
     fParser: TCppParser;
+    fCriticalSection: TCriticalSection;
+    fParserSerialId: string;
+    fParserFreezed: boolean;
     fOnSelect: TMemberSelectEvent;
     fImagesRecord: TImagesRecord;
     fCurrentFile: AnsiString;
@@ -99,8 +102,10 @@ type
       DefaultDraw: Boolean);
     procedure OnNodeChange(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    {
     procedure OnParserUpdate(Sender: TObject);
     procedure OnParserBusy(Sender: TObject);
+    }
     procedure SetNodeImages(Node: TTreeNode; Statement: PStatement);
     procedure SetCurrentFile(const Value: AnsiString);
     procedure SetShowInheritedMembers(Value: boolean);
@@ -108,7 +113,7 @@ type
     procedure SetSortByType(Value: boolean);
     procedure SetTabVisible(Value: boolean);
     procedure ReSelect;
-    procedure Sort;
+    procedure Sort(lock:boolean=False);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);        
   public
@@ -141,6 +146,7 @@ type
     property TabVisible: boolean read fTabVisible write SetTabVisible;
     property SortAlphabetically: boolean read fSortAlphabetically write SetSortAlphabetically;
     property SortByType: boolean read fSortByType write SetSortByType;
+    property ParserSerialId: string read fParserSerialId;
   end;
 
 const
@@ -169,6 +175,7 @@ begin
   DragMode := dmAutomatic;
   fImagesRecord := TImagesRecord.Create;
   fCurrentFile := '';
+  fParserFreezed:=False;
   ShowHint := True;
   HideSelection := False;
   RightClickSelect := True;
@@ -188,6 +195,7 @@ begin
   fSortByType:=True ;
   fOnUpdated:=nil;
   fUpdating:=False;
+  fCriticalSection := TCriticalSection.Create;
 end;
 
 destructor TClassBrowser.Destroy;
@@ -195,6 +203,7 @@ begin
   FreeAndNil(fImagesRecord);
   FreeAndNil(fControlCanvas);
   fIncludedFiles.Free;
+  fCriticalSection.Free;
   inherited Destroy;
 end;
 
@@ -357,40 +366,54 @@ end;
 
 procedure TClassBrowser.UpdateView;
 begin
+  fCriticalSection.Acquire;
+  try
   if fUpdateCount <> 0 then
     Exit;
 
-  if (not Assigned(fParser)) or (not fParser.Enabled) then begin
+  if not Assigned(fParser) then
     Exit;
-  end;
+  if not fParser.Enabled then
+    Exit;
   if not Visible or not TabVisible then
     Exit;
-
-  // We are busy...
-  Items.BeginUpdate;
-  Clear;
   fUpdating:=True;
   try
-    if fCurrentFile <> '' then begin
-      // Update file includes, reset cache
-      fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
-      fIsIncludedCacheFileName := '';
-      fIsIncludedCacheResult := false;
+    Items.BeginUpdate;
+    Items.Clear;
+    // We are busy...
+    if not fParser.Freeze then
+      Exit;
+    fParserFreezed:=True;
+    try
+      if fCurrentFile <> '' then begin
+        // Update file includes, reset cache
+        fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
+        fIsIncludedCacheFileName := '';
+        fIsIncludedCacheResult := false;
 
-      // Add everything recursively
-      AddMembers(nil, nil);
-      Sort;
+        // Add everything recursively
+        AddMembers(nil, nil);
+        Sort;
 
       // Remember selection
-      if fLastSelection <> '' then
-        ReSelect;
+        if fLastSelection <> '' then
+          ReSelect;
+      end;
+    finally
+      fParser.Unfreeze;
+      fParserSerialId := fParser.SerialId;
+      fParserFreezed:=False;
     end;
   finally
-    fUpdating:=False;  
+    fUpdating:=False;
     Items.EndUpdate; // calls repaint when needed
   end;
   if Assigned(fOnUpdated) then
     fOnUpdated(Self);
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TClassBrowser.OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -410,39 +433,59 @@ var
 begin
   inherited;
 
-  // Check if we hit the node
-  if htOnItem in GetHitTestInfoAt(X, Y) then
-    Node := GetNodeAt(X, Y)
-  else
-    Node := nil;
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not (fParser.Enabled) then
+      Exit;
+    if not fParser.Freeze then
+      Exit;
+    try
+      fParserFreezed:=True;
+      if not samestr(fParser.SerialId, fParserSerialId) then
+        Exit;
+      // Check if we hit the node
+      if htOnItem in GetHitTestInfoAt(X, Y) then
+        Node := GetNodeAt(X, Y)
+      else
+        Node := nil;
 
-  // Dit we click on anything?
-  if not Assigned(Node) then begin
-    fLastSelection := '';
-    Exit;
-  end else if not Assigned(Node.Data) then begin
-    fLastSelection := '';
-    Exit;
-  end;
+      // Dit we click on anything?
+      if not Assigned(Node) then begin
+        fLastSelection := '';
+        Exit;
+      end else if not Assigned(Node.Data) then begin
+        fLastSelection := '';
+        Exit;
+      end;
 
-  // Send to listener
-  with PStatement(Node.Data)^ do begin
-    fLastSelection := _Type + ':' + _Command + ':' + _Args;
-    if Assigned(fOnSelect) then
-      if Button = mbLeft then begin// need definition
-        //we navigate to the same file first
-        if SameText(_DefinitionFileName,fCurrentFile) then begin
-          fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
-        end else if SameText(_FileName,fCurrentFile) then begin
-          fOnSelect(Self, _FileName, _Line)
-        end else begin
-          fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+      // Send to listener
+      with PStatement(Node.Data)^ do begin
+        fLastSelection := _Type + ':' + _Command + ':' + _Args;
+        if Assigned(fOnSelect) then
+          if Button = mbLeft then begin// need definition
+            //we navigate to the same file first
+            if SameText(_DefinitionFileName,fCurrentFile) then begin
+              fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+            end else if SameText(_FileName,fCurrentFile) then begin
+              fOnSelect(Self, _FileName, _Line)
+            end else begin
+              fOnSelect(Self, _DefinitionFileName, _DefinitionLine)
+            end;
+          end else if Button = mbMiddle then // need declaration
+            fOnSelect(Self, _FileName, _Line);
         end;
-      end else if Button = mbMiddle then // need declaration
-        fOnSelect(Self, _FileName, _Line);
+      finally
+        fParser.UnFreeze;
+        fParserFreezed:=False;
+      end;
+  finally
+    fCriticalSection.Release;
   end;
 end;
 
+{
 procedure TClassBrowser.OnParserBusy(Sender: TObject);
 begin
   Items.Clear;
@@ -453,6 +496,7 @@ procedure TClassBrowser.OnParserUpdate(Sender: TObject);
 begin
   EndUpdate;
 end;
+}
 
 function CustomSortTypeProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
 begin
@@ -472,29 +516,45 @@ begin
   Result := StrIComp(PAnsiChar(Node1.Text), PAnsiChar(Node2.Text));
 end;
 
-procedure TClassBrowser.Sort;
+procedure TClassBrowser.Sort(lock:boolean);
 begin
-{
-  if sortByType and sortAlphabetically then
-    CustomSort(@CustomSortTypeAlphaProc, 0)
-  else
-    CustomSort(@CustomSortTypeProc, 0)
-  else
-    CustomSort(@CustomSortAlphaProc, 0);
-}
-  Items.BeginUpdate;
+  fCriticalSection.Acquire;
   try
-    if sortAlphabetically then
-      CustomSort(@CustomSortAlphaProc, 0);
-    if sortByType then
-      CustomSort(@CustomSortTypeProc, 0);
+    if not assigned(Parser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if lock then begin
+      if not fParser.Freeze then
+        Exit;
+      if fParser.SerialId <> fParserSerialId then begin
+        fParser.UnFreeze;
+        Exit;
+      end;
+      fParserFreezed:=True;
+    end;
+    Items.BeginUpdate;
+    try
+      if sortAlphabetically then
+        CustomSort(@CustomSortAlphaProc, 0);
+      if sortByType then
+        CustomSort(@CustomSortTypeProc, 0);
+    finally
+      Items.EndUpdate;
+      if lock then begin
+        fParser.UnFreeze;
+        fParserFreezed:=False;
+      end;
+    end;
   finally
-    Items.EndUpdate;
+    fCriticalSection.Release;
   end;
 end;
 
 procedure TClassBrowser.Clear;
 begin
+  fCriticalSection.Acquire;
+  try
   Items.BeginUpdate;
   fUpdating:=True;
   try
@@ -503,6 +563,9 @@ begin
     fUpdating:=False;
     Items.EndUpdate;
   end;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TClassBrowser.SetParser(Value: TCppParser);
@@ -510,21 +573,32 @@ begin
   if Value = fParser then
     Exit;
 
-  fParser := Value;
-  Clear;
+  fCriticalSection.Acquire;
+  try
+    fParser := Value;
+  {
   if Assigned(fParser) then begin
     fParser.OnUpdate := OnParserUpdate;
     fParser.OnBusy := OnParserBusy;
   end;
-  UpdateView;
+  }
+    UpdateView;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TClassBrowser.SetCurrentFile(const Value: AnsiString);
 begin
+  fCriticalSection.Acquire;
+  try
   if Value = fCurrentFile then
     Exit;
   fCurrentFile := Value;
   UpdateView;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TClassBrowser.SetShowInheritedMembers(Value: boolean);
@@ -540,7 +614,7 @@ begin
   if Value = fSortAlphabetically then
     Exit;
   fSortAlphabetically := Value;
-  Sort;
+  Sort(True);
 end;
 
 procedure TClassBrowser.SetSortByType(Value: boolean);
@@ -548,7 +622,7 @@ begin
   if Value = fSortByType then
     Exit;
   fSortByType := Value;
-  Sort;
+  Sort(True);
 end;
 
 
@@ -570,17 +644,35 @@ var
   TypeText: AnsiString;
   color : TColor;
 begin
+  fCriticalSection.Acquire;
+  try
   if fUpdating then begin
     PaintImages:=False;
     DefaultDraw:=False;
     Exit;
   end;
 
-  bInherited := fShowInheritedMembers and st^._Inherited;
+  if not fParserFreezed then begin
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze then
+      Exit;
+    if not SameStr(fParserSerialId, fParser.SerialId) then begin
+      fParser.UnFreeze;
+      Exit;
+    end;
+  end;
 
+  try
+  st := PStatement(Node.Data);
+  if not Assigned(st) then
+    Exit;
+  bInherited := fShowInheritedMembers and st^._Inherited;
   if Stage = cdPrePaint then begin
-      Sender.Canvas.Font.Style := [fsBold];
-    if  Node.Selected then begin
+    Sender.Canvas.Font.Style := [fsBold];
+    if  Node.Selected and self.Focused then begin
         Sender.Canvas.Brush.Color:=fColors[SelectedBackColor];
 //        Sender.Canvas.Font.Color := fColors[SelectedForeColor];
     end else begin
@@ -588,9 +680,6 @@ begin
       if bInherited then
         Sender.Canvas.Font.Color := fColors[InheritedColor]
       else begin
-        st := Node.Data;
-        if not Assigned(st) then
-          Exit;
         case st^._Kind of
           skVariable,skParameter:begin
             Sender.Canvas.Font.Color := fColors[VarColor];
@@ -629,7 +718,7 @@ begin
       DrawRect := Node.DisplayRect(true);
       DrawPoint := Point(DrawRect.Right, DrawRect.Top);
       color:=fControlCanvas.Brush.Color;
-      if  Node.Selected then begin
+      if  Node.Selected and self.Focused then begin
         fControlCanvas.Brush.Color:=fColors[SelectedBackColor];
       end else begin
         fControlCanvas.Brush.Color:=fColors[BackColor];
@@ -637,7 +726,7 @@ begin
       // Draw function arguments to the right of the already drawn text
       if st^._Args <> '' then begin
         fControlCanvas.Font.Assign(self.Font);
-        if  Node.Selected then begin
+        if  Node.Selected and self.Focused then begin
           fControlCanvas.Font.Color := fColors[SelectedForeColor];
         end else begin
           if bInherited then
@@ -659,7 +748,7 @@ begin
 
       // Then draw node type to the right of the arguments
       if TypeText <> '' then begin
-        if  Node.Selected then
+        if  Node.Selected and self.Focused then
           fControlCanvas.Font.Color := fColors[SelectedForeColor]
         else
         fControlCanvas.Font.Color := fColors[ClassColor];
@@ -669,6 +758,13 @@ begin
     except // stick head into sand method. sometimes during painting, the PStatement is invalid
            // this is caused by repainting while the CppParser is busy.
     end;
+  end;
+  finally
+    if not fParserFreezed then
+      fParser.UnFreeze;
+  end;
+  finally
+    fCriticalSection.Release;
   end;
 end;
 

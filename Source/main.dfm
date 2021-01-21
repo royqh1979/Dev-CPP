@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 332
-  Top = 223
+  Left = 543
+  Top = 216
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -243,7 +243,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = LocalSheet
+        ActivePage = BreakpointsSheet
         Align = alClient
         PopupMenu = LocalPopup
         TabOrder = 0
@@ -1078,7 +1078,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 353
-    ActivePage = LeftProjectSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -3229,6 +3229,7 @@ object MainForm: TMainForm
   end
   object CodeCompletion: TCodeCompletion
     ShowCount = 1000
+    ShowCodeIns = True
     Color = clWhite
     Width = 320
     Height = 240
@@ -3543,35 +3544,6 @@ object MainForm: TMainForm
       OnClick = mnuClearAllFindItemsClick
     end
   end
-  object DummyCppParser: TCppParser
-    Enabled = False
-    ParseLocalHeaders = False
-    ParseGlobalHeaders = False
-    Left = 77
-    Top = 304
-  end
-  object DummyCppPreprocessor: TCppPreprocessor
-    Left = 130
-    Top = 299
-  end
-  object DummyCppTokenizer: TCppTokenizer
-    Left = 66
-    Top = 363
-  end
-  object HeaderCompletion: THeaderCompletion
-    ShowCount = 1000
-    Color = clWindow
-    Width = 320
-    Height = 240
-    Enabled = True
-    MinWidth = 0
-    MinHeight = 0
-    MaxWidth = 0
-    MaxHeight = 0
-    FontSize = 0
-    Left = 130
-    Top = 355
-  end
   object LocalPopup: TPopupMenu
     Left = 547
     Top = 331
@@ -3587,5 +3559,19 @@ object MainForm: TMainForm
     object MenuItem41: TMenuItem
       Action = actMsgSelAll
     end
+  end
+  object HeaderCompletion: THeaderCompletion
+    ShowCount = 1000
+    Color = clWindow
+    Width = 320
+    Height = 240
+    Enabled = True
+    MinWidth = 0
+    MinHeight = 0
+    MaxWidth = 0
+    MaxHeight = 0
+    FontSize = 0
+    Left = 114
+    Top = 316
   end
 end

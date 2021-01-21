@@ -319,12 +319,12 @@ begin
     Exit;
 
   if force then
-    editor.save(true)
+    editor.save(true,false)
   else if Editor.Text.Modified and not Editor.Text.IsEmpty then begin
     // Ask user if he wants to save
     case MessageDlg(Format(Lang[ID_MSG_ASKSAVECLOSE], [Editor.FileName]), mtConfirmation, mbYesNoCancel, 0) of
       mrYes:
-        if not Editor.Save then
+        if not Editor.Save(false, false) then
           Exit;
       mrCancel:
         Exit; // stop closing
@@ -340,6 +340,11 @@ begin
   try
     // We're allowed to close...
     Result := True;
+    {
+    while Editor.Parsing do
+      Sleep(100);
+    }
+
     if Editor.InProject and Assigned(MainForm.Project) then begin
       projindex := MainForm.Project.Units.IndexOf(Editor);
       if projindex <> -1 then
@@ -351,6 +356,7 @@ begin
       // Force layout update when creating, destroying or moving editors
       UpdateLayout;
     end;
+
 
     // Show new editor after forcing a layout update
     if Assigned(PrevEditor) then begin

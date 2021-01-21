@@ -2227,7 +2227,7 @@ var
   BaseSet: TdevCompilerSet;
   BaseName: AnsiString;
   option: PCompilerOption;
-  index, I: integer;
+  index: integer;
 
   procedure SetReleaseOptions(targetSet:TdevCompilerSet);
   begin

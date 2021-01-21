@@ -1708,9 +1708,9 @@ var
 begin
   // Configure parser
   CppParser.Reset;
-  CppParser.OnStartParsing := MainForm.CppParserStartParsing;
-  CppParser.OnEndParsing := MainForm.CppParserEndParsing;
-  CppParser.OnTotalProgress := MainForm.CppParserTotalProgress;
+  //CppParser.OnStartParsing := MainForm.CppParserStartParsing;
+  //CppParser.OnEndParsing := MainForm.CppParserEndParsing;
+  //CppParser.OnTotalProgress := MainForm.CppParserTotalProgress;
   CppParser.Enabled := devCodeCompletion.Enabled;
   CppParser.ParseLocalHeaders := devCodeCompletion.ParseLocalHeaders;
   CppParser.ParseGlobalHeaders := devCodeCompletion.ParseGlobalHeaders;

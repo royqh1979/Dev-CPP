@@ -165,7 +165,7 @@ implementation
 
 uses
   main, MultiLangSupport, devcfg, ProjectOptionsFrm, DataFrm,
-  RemoveUnitFrm, SynEdit, EditorList, CppPreprocessor, CppTokenizer;
+  RemoveUnitFrm, SynEdit, EditorList, devParser;
 
 { TProjUnit }
 
@@ -266,9 +266,7 @@ begin
   fFileName := nFileName;
   finiFile := TMemIniFile.Create(fFileName);
   fOptions := TProjOptions.Create;
-  fParser := TCppParser.Create(MainForm.PageControlPanel);
-  fParser.Preprocessor := TCppPreprocessor.Create(MainForm.PageControlPanel);
-  fParser.Tokenizer := TCppTokenizer.Create(MainForm.PageControlPanel);
+  fParser := TCppParser.Create(MainForm.PageControlPanel, MainForm.Handle);
   ResetCppParser(fParser);
   if nName = DEV_INTERNAL_OPEN then begin
     Open; 
@@ -286,8 +284,7 @@ begin
   fFolderNodes.Free;
   fIniFile.Free;
   fUnits.Free;
-  fParser.Tokenizer.Free;
-  fParser.Preprocessor.Free;
+  //FreeParser(fParser);
   fParser.Free;
   if Assigned(fNode) and (not fNode.Deleting) then
     fNode.Free;
@@ -668,6 +665,7 @@ begin
     Folder := GetFolderPath(ParentNode);
     Node := MakeNewFileNode(ExtractFileName(FileName), False, ParentNode);
     Node.Data := pointer(result);
+    parentNode.Expand(True);
     Compile := True;
     CompileCpp := Self.Options.useGPP;
     Link := True;
