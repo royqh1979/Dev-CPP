@@ -6,6 +6,8 @@ Version 6.4-alpha1 JAN 2021
     - enhancement: auto expand nodes in the left project panel when a new project is created;
     - enhancement: hide the left project panel when no project is opened
     - fix: debugger don't stop at the first statement of main(), if the current debugging file doesn't has breakpoints but other files have breakpoints; 
+    - fix: can't make projects including source files in subfolders
+    - enhancement: don't reload the classbrowser each time click on it
 
 Version 6.3 JAN 2021
 

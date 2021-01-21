@@ -94,6 +94,7 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
+    fDoOnSelecting:boolean;
     fColors : array[0..14] of TColor;    
     procedure SetParser(Value: TCppParser);
     procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
@@ -174,6 +175,7 @@ begin
   OnMouseDown := OnNodeChanging;
   DragMode := dmAutomatic;
   fImagesRecord := TImagesRecord.Create;
+  fDoOnSelecting:=False;
   fCurrentFile := '';
   fParserFreezed:=False;
   ShowHint := True;
@@ -377,6 +379,9 @@ begin
     Exit;
   if not Visible or not TabVisible then
     Exit;
+  if fDoOnSelecting then begin // We clicked on a item, don't reload the contents
+    Exit;
+  end;
   fUpdating:=True;
   try
     Items.BeginUpdate;
@@ -385,26 +390,29 @@ begin
     if not fParser.Freeze then
       Exit;
     fParserFreezed:=True;
-    if fCurrentFile <> '' then begin
-      // Update file includes, reset cache
-      fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
-      fIsIncludedCacheFileName := '';
-      fIsIncludedCacheResult := false;
+    try
+      if fCurrentFile <> '' then begin
+        // Update file includes, reset cache
+        fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
+        fIsIncludedCacheFileName := '';
+        fIsIncludedCacheResult := false;
 
-      // Add everything recursively
-      AddMembers(nil, nil);
-      Sort;
+        // Add everything recursively
+        AddMembers(nil, nil);
+        Sort;
 
       // Remember selection
-      if fLastSelection <> '' then
-        ReSelect;
+        if fLastSelection <> '' then
+          ReSelect;
+      end;
+    finally
+      fParser.Unfreeze;
+      fParserSerialId := fParser.SerialId;
+      fParserFreezed:=False;
     end;
   finally
     fUpdating:=False;
     Items.EndUpdate; // calls repaint when needed
-    fParser.Unfreeze;
-    fParserSerialId := fParser.SerialId;
-    fParserFreezed:=False;
   end;
   if Assigned(fOnUpdated) then
     fOnUpdated(Self);
@@ -461,6 +469,7 @@ begin
       with PStatement(Node.Data)^ do begin
         fLastSelection := _Type + ':' + _Command + ':' + _Args;
         if Assigned(fOnSelect) then
+          fDoOnSelecting := True;
           if Button = mbLeft then begin// need definition
             //we navigate to the same file first
             if SameText(_DefinitionFileName,fCurrentFile) then begin
@@ -472,6 +481,7 @@ begin
             end;
           end else if Button = mbMiddle then // need declaration
             fOnSelect(Self, _FileName, _Line);
+          fDoOnSelecting:=False;
         end;
       finally
         fParser.UnFreeze;
