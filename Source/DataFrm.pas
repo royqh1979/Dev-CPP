@@ -109,7 +109,7 @@ type
     procedure LoadDataMod;
     function GetNewProjectNumber: integer;
     function GetNewFileNumber: integer;
-    procedure InitHighlighterFirstTime(index: integer);
+    procedure InitHighlighterFirstTime(const name:string);
     procedure UpdateHighlighter;
     function GetHighlighter(const FileName: AnsiString): TSynCustomHighlighter;
   end;
@@ -151,47 +151,60 @@ begin
   fAutoLinks.Free;
 end;
 
-procedure TdmMain.InitHighlighterFirstTime(index: integer);
-  procedure AddSpecial(AttrName: AnsiString; Offset: integer);
+procedure TdmMain.InitHighlighterFirstTime(const name: string);
+var
+  idx,a: integer;
+  fINI: TIniFile;
+  Attr: TSynHighlighterAttributes;
+  tc: TThemeColor;
+  Filename:String;
+  
+  procedure AddSpecial(AttrName: AnsiString);
   var
     a: integer;
+    colorStr:String;
   begin
+    colorStr:=fINI.ReadString('Editor.Custom',AttrName,
+          devEditor.Syntax.Values[AttrName]);
     a := devEditor.Syntax.IndexofName(AttrName);
     if a = -1 then
-      devEditor.Syntax.Append(format('%s=%s', [AttrName, LoadStr(offset)]))
+      devEditor.Syntax.Append(format('%s=%s', [AttrName, colorStr]))
     else
-      devEditor.Syntax.Values[AttrName] := LoadStr(offset);
+      devEditor.Syntax.Values[AttrName] := colorStr;
   end;
-var
-  i, a, offset: integer;
-  Attr: TSynHighlighterAttributes;
+
 begin
-  offset := index * 1000;
-  if Assigned(cpp) then begin
-    for i := 0 to pred(cpp.AttrCount) do begin
-      attr := TSynHighlighterAttributes.Create(cpp.Attribute[i].Name);
+  Filename:=devDirs.Exec + 'Contributes\syntax\'+name+SYNTAX_EXT;
+  fINI := TIniFile.Create(FileName);
+  try
+    for idx := 0 to pred(Cpp.AttrCount) do begin
+      Attr := TSynHighlighterAttributes.Create(Cpp.Attribute[idx].Name);
       try
-        StrtoAttr(Attr, LoadStr(i + offset + 1));
-        cpp.Attribute[i].Assign(Attr);
-        a := devEditor.Syntax.IndexOfName(cpp.Attribute[i].Name);
+        StrToAttr(Attr, fINI.ReadString('Editor.Custom', Cpp.Attribute[idx].Name,
+          devEditor.Syntax.Values[Cpp.Attribute[idx].Name]));
+        Cpp.Attribute[idx].Assign(Attr);
+        a := devEditor.Syntax.IndexOfName(cpp.Attribute[idx].Name);
         if a = -1 then
-          devEditor.Syntax.Append(format('%s=%s', [cpp.Attribute[i].Name, AttrtoStr(Attr)]))
+          devEditor.Syntax.Append(format('%s=%s', [cpp.Attribute[idx].Name, AttrtoStr(Attr)]))
         else
-          devEditor.Syntax.Values[cpp.Attribute[i].Name] := AttrtoStr(Attr);
+          devEditor.Syntax.Values[cpp.Attribute[idx].Name] := AttrtoStr(Attr);
       finally
         Attr.Free;
       end;
     end;
+
+    AddSpecial(cBP);
+    AddSpecial(cErr);
+    AddSpecial(cABP);
+    AddSpecial(cGut);
+    AddSpecial(cSel);
+    AddSpecial(cFld);
+    AddSpecial(cAL);
+    AddSpecial(cWN);
+    AddSpecial(cPNL);
+  finally
+    fINI.Free;
   end;
-  AddSpecial(cBP, offset + 20); // breakpoint
-  AddSpecial(cErr, offset + 21); // error line
-  AddSpecial(cABP, offset + 22); // active breakpoint
-  AddSpecial(cGut, offset + 23); // gutter
-  AddSpecial(cSel, offset + 24); // selected text
-  AddSpecial(cFld, offset + 25); // fold bar lines
-  AddSpecial(cAL, offset + 26); // active Line
-  AddSpecial(cWN, offset + 27); // warning Line
-  AddSpecial(cPNL, offset + 28); // warning Line
 end;
 
 procedure TdmMain.UpdateHighlighter;

@@ -235,7 +235,9 @@ type
     procedure SaveCodeIns;
     procedure ClearCodeIns;
     procedure UpdateCIButtons;
-    procedure LoadSyntax(const Value: AnsiString);
+    procedure LoadSyntax(const Name: AnsiString);
+    procedure LoadPredefinedSyntax(const Name: AnsiString);
+    procedure LoadSyntaxFromFile(const FileName: AnsiString);
     procedure FillSyntaxSets;
     procedure UpdateDemoEditColor;
   public
@@ -273,20 +275,7 @@ var
   I: integer;
 begin
   LoadText;
-  cboQuickColor.Items.Add('Classic');
-  cboQuickColor.Items.Add('Classic Plus');
-  cboQuickColor.Items.Add('Twilight');
-  cboQuickColor.Items.Add('Ocean');
-  cboQuickColor.Items.Add('Visual Studio');
-  cboQuickColor.Items.Add('Borland');
-  cboQuickColor.Items.Add('Matrix');
-  cboQuickColor.Items.Add('Obsidian');
-  cboQuickColor.Items.Add('GSS Hacker');
-  cboQuickColor.Items.Add('Obvilion');
-  cboQuickColor.Items.Add('PlasticCodeWrap');
-  cboQuickColor.Items.Add('VS Code');
-  fPredefinedColorThemeCount := cboQuickColor.Items.Count;
-
+  
   with devEditor do begin
 
     // Make editors look similar to main ones
@@ -1289,28 +1278,7 @@ begin
     // custom style; load from disk
     LoadSyntax(cboQuickColor.Items[cboQuickColor.ItemIndex]);
   end else begin
-
-    offset := cboQuickColor.ItemIndex * 1000;
-    for i := 0 to pred(cpp.AttrCount) do begin
-      attr := TSynHighlighterAttributes.Create(cpp.Attribute[i].Name);
-      try
-        StrtoAttr(Attr, LoadStr(i + offset + 1));
-        cpp.Attribute[i].Assign(Attr);
-      finally
-        Attr.Free;
-      end;
-    end;
-
-    StrToThemeColor(fBPColor, LoadStr(offset + 20)); // breakpoints
-    StrToThemeColor(fErrColor, LoadStr(offset + 21)); // error line
-    StrToThemeColor(fABPColor, LoadStr(offset + 22)); // active breakpoint
-    StrToThemeColor(fgutColor, LoadStr(offset + 23)); // gutter
-    StrToThemeColor(fSelColor, LoadStr(offset + 24)); // selected text
-    StrToThemeColor(fFoldColor, LoadStr(offset + 25)); // folding bar lines
-    StrToThemeColor(fALColor, LoadStr(offset + 26)); // folding bar lines
-    StrToThemeColor(fWNColor, LoadStr(offset + 27)); // folding bar lines
-    StrToThemeColor(fPNLColor, LoadStr(offset + 28)); // folding bar lines
-    UpdateDemoEditColor;
+    LoadPredefinedSyntax(cboQuickColor.Items[cboQuickColor.ItemIndex]);
   end;
 
   SetGutter;
@@ -1544,20 +1512,33 @@ begin
   cboQuickColor.ItemIndex := cboQuickColor.Items.IndexOf(S);
 end;
 
-procedure TEditorOptForm.LoadSyntax(const Value: AnsiString);
+procedure TEditorOptForm.LoadSyntax(const Name: AnsiString);
+begin
+  LoadSyntaxFromFile(devDirs.Config + Name + SYNTAX_EXT);
+end;
+
+procedure TEditorOptForm.LoadPredefinedSyntax(const Name: AnsiString);
+begin
+  LoadSyntaxFromFile(devDirs.Exec + 'Contributes\syntax\'+Name+SYNTAX_EXT);
+end;
+
+
+procedure TEditorOptForm.LoadSyntaxFromFile(const FileName: AnsiString);
 var
   idx: integer;
   fINI: TIniFile;
   Attr: TSynHighlighterAttributes;
   tc: TThemeColor;
+  attrStr: String;
 begin
-  fINI := TIniFile.Create(devDirs.Config + Value + SYNTAX_EXT);
+  fINI := TIniFile.Create(FileName);
   try
     for idx := 0 to pred(Cpp.AttrCount) do begin
       Attr := TSynHighlighterAttributes.Create(Cpp.Attribute[idx].Name);
       try
-        StrToAttr(Attr, fINI.ReadString('Editor.Custom', Cpp.Attribute[idx].Name,
-          devEditor.Syntax.Values[Cpp.Attribute[idx].Name]));
+        attrStr:= fINI.ReadString('Editor.Custom', Cpp.Attribute[idx].Name,
+          devEditor.Syntax.Values[Cpp.Attribute[idx].Name]);
+        StrToAttr(Attr, attrStr);
         Cpp.Attribute[idx].Assign(Attr);
       finally
         Attr.Free;
@@ -1599,6 +1580,11 @@ procedure TEditorOptForm.FillSyntaxSets;
 var
   SR: TSearchRec;
 begin
+  if FindFirst(devDirs.Exec + 'Contributes\syntax\' + '*' + SYNTAX_EXT, faAnyFile, SR) = 0 then
+    repeat
+      cboQuickColor.Items.Add(StringReplace(SR.Name, SYNTAX_EXT, '', [rfIgnoreCase]));
+    until FindNext(SR) <> 0;
+  fPredefinedColorThemeCount := cboQuickColor.Items.Count;
   if FindFirst(devDirs.Config + '*' + SYNTAX_EXT, faAnyFile, SR) = 0 then
     repeat
       cboQuickColor.Items.Add(StringReplace(SR.Name, SYNTAX_EXT, '', [rfIgnoreCase]));
