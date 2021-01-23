@@ -3446,30 +3446,36 @@ function TCppParser.SplitPhrase(const Phrase: AnsiString; var Clazz: AnsiString;
             var Member: AnsiString; var Operator: AnsiString): AnsiString;
 var
   I, FirstOpStart,FirstOpEnd,SecondOp: integer;
+  bracketLevel:integer;
 begin
   Clazz:='';
   Member:='';
   Operator:='';
   Result:='';
+  bracketLevel:=0;
 // Obtain stuff before first operator
   FirstOpStart := Length(Phrase) + 1;
   FirstOpEnd := Length(Phrase) + 1;
   for I := 1 to Length(Phrase) - 1 do begin
-    if (phrase[i] = '-') and (Phrase[i + 1] = '>') then begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>') and (bracketLevel=0) then begin
       FirstOpStart := I;
       FirstOpEnd := I+2;
       Operator := '->';
       break;
-    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') then begin
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') and (bracketLevel=0) then begin
       FirstOpStart := I;
       FirstOpEnd := I+2;
       Operator := '::';
       break;
-    end else if (Phrase[i] = '.') then begin
+    end else if (Phrase[i] = '.') and (bracketLevel=0) then begin
       FirstOpStart := I;
       FirstOpEnd := I+1;
       Operator := '.';
       break;
+    end else if (Phrase[i] = '[') then begin
+      inc(bracketLevel);
+    end else if (Phrase[i] = ']') then begin
+      dec(bracketLevel);
     end;
   end;
 
@@ -3485,16 +3491,21 @@ begin
 
 // ... and before second op, if there is one
   SecondOp := 0;
+  bracketLevel:=0;
   for I := firstopEnd to Length(Phrase) - 1 do begin
-    if (phrase[i] = '-') and (Phrase[i + 1] = '>') then begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>')  and (bracketLevel=0) then begin
       SecondOp := I;
       break;
-    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') then begin
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':')  and (bracketLevel=0) then begin
       SecondOp := I;
       break;
-    end else if (Phrase[i] = '.') then begin
+    end else if (Phrase[i] = '.')  and (bracketLevel=0) then begin
       SecondOp := I;
       break;
+    end else if (Phrase[i] = '[') then begin
+      inc(bracketLevel);
+    end else if (Phrase[i] = ']') then begin
+      dec(bracketLevel);
     end;
   end;
 
