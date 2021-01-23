@@ -19,7 +19,6 @@
 
 program devcpp;
 {$R 'icons.res' 'icons.rc'}
-{$R 'DefaultFiles.res' 'DefaultFiles.rc'}
 {%File 'LangIDs.inc'}
 {$R 'manifest.res' 'manifest.rc'}
 {%File 'FastMM4Options.inc'}
