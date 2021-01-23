@@ -165,10 +165,14 @@ type
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
     procedure InternalInvalidateFile(const FileName: AnsiString);
+    {
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function GetRemainder(const Phrase: AnsiString): AnsiString;
+    }
+    function SplitPhrase(const Phrase: AnsiString; var Clazz: AnsiString;
+                var Member: AnsiString; var Operator: AnsiString):AnsiString;
     function getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
     procedure OnProgress(FileName:String;Total,Current:integer);
     procedure OnBusy;
@@ -3438,6 +3442,69 @@ begin
   end;  
 end;
 
+function TCppParser.SplitPhrase(const Phrase: AnsiString; var Clazz: AnsiString;
+            var Member: AnsiString; var Operator: AnsiString): AnsiString;
+var
+  I, FirstOpStart,FirstOpEnd,SecondOp: integer;
+begin
+  Clazz:='';
+  Member:='';
+  Operator:='';
+  Result:='';
+// Obtain stuff before first operator
+  FirstOpStart := Length(Phrase) + 1;
+  FirstOpEnd := Length(Phrase) + 1;
+  for I := 1 to Length(Phrase) - 1 do begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>') then begin
+      FirstOpStart := I;
+      FirstOpEnd := I+2;
+      Operator := '->';
+      break;
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') then begin
+      FirstOpStart := I;
+      FirstOpEnd := I+2;
+      Operator := '::';
+      break;
+    end else if (Phrase[i] = '.') then begin
+      FirstOpStart := I;
+      FirstOpEnd := I+1;
+      Operator := '.';
+      break;
+    end;
+  end;
+
+  Clazz := Copy(Phrase, 1, FirstOpStart - 1);
+
+  if FirstOpStart = 0 then begin
+    Result := '';
+    Member :='';
+    Exit;
+  end;
+
+  Result := Copy(Phrase, FirstOpEnd, MaxInt);
+
+// ... and before second op, if there is one
+  SecondOp := 0;
+  for I := firstopEnd to Length(Phrase) - 1 do begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>') then begin
+      SecondOp := I;
+      break;
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') then begin
+      SecondOp := I;
+      break;
+    end else if (Phrase[i] = '.') then begin
+      SecondOp := I;
+      break;
+    end;
+  end;
+
+  if SecondOp = 0 then
+    Member := Copy(Phrase, FirstOpEnd, MaxInt)
+  else
+    Member := Copy(Phrase, FirstOpEnd, SecondOp - FirstOpEnd);
+end;
+
+{
 function TCppParser.GetClass(const Phrase: AnsiString): AnsiString;
 var
   I, FirstOp: integer;
@@ -3552,7 +3619,7 @@ begin
     end;
   end;
 end;
-
+}
 function TCppParser.FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
 var
   i:integer;
@@ -4104,10 +4171,13 @@ begin
       Exit;
     end;
 
+    remainder := SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     statement:=nil;
     for i:=0 to namespaceList.Count-1 do begin
       currentNamespace:=PStatement(namespaceList[i]);
@@ -4123,10 +4193,13 @@ begin
   end else if (Length(Phrase)>2) and (Phrase[1]=':') and (Phrase[2]=':') then begin
     //global
     remainder:=Copy(Phrase,3,MAXINT);
+    remainder:=SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     statement:=findMemberOfStatement(NextScopeWord,nil);
     if not assigned(statement) then
       Exit;
@@ -4137,10 +4210,13 @@ begin
       CurrentClassType:=CurrentClassType^._ParentScope;
     end;
     }
+    remainder := SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     if assigned(CurrentClass) and (CurrentClass^._Kind = skNamespace)  then begin
       idx:=FastIndexOf(fNamespaces,CurrentClass^._Command);
       if idx>=0 then begin
@@ -4203,10 +4279,13 @@ begin
         Statement := TypeStatement;
     end else
       lastScopeStatement:= statement;
+    remainder := SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     MemberStatement := FindMemberOfStatement(NextScopeWord,statement);
     if not Assigned(MemberStatement) then begin;
       Exit;
