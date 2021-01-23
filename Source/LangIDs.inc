@@ -795,6 +795,7 @@ const
   ID_COPT_DELCOMPHINT                   = 47013;
   ID_COPT_RENAMECOMPHINT                = 47014;
   ID_COPT_ADDFOLDERCOMPHINT             = 47015;
+  ID_COPT_ENABLE_AUTO_LINKS             = 47016;
   
   // Help Menu Editor Form
   ID_HE                                 = 48001;

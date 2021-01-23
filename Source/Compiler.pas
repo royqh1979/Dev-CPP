@@ -1341,7 +1341,7 @@ begin
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
 
-  if (fTarget = ctFile) then begin
+  if (fTarget = ctFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
     if Assigned(e) then begin
       autolinkIndexes := TStringHash.Create;

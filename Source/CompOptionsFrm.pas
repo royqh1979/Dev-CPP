@@ -85,6 +85,7 @@ type
     btnAddAutoLink: TButton;
     btnRemoveAutoLink: TButton;
     AutoLinks: TMemo;
+    chkEnableAutoLinks: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -118,6 +119,7 @@ type
     procedure AutoLinksChange(Sender: TObject);
     procedure lvAutoLinksSetEditText(Sender: TObject; ACol, ARow: Integer;
       const Value: String);
+    procedure chkEnableAutoLinksClick(Sender: TObject);
   private
     fOldIndex: integer;
     fBinDirCopy: TStringList;
@@ -161,6 +163,8 @@ begin
   // Save list of sets only
   devCompilerSets.SaveSetList;
   saveAutoLinks;
+
+  devCompiler.EnableAutoLinks := chkEnableAutoLinks.Checked;
 end;
 
 procedure TCompOptForm.LoadSet(Index: integer);
@@ -403,7 +407,7 @@ begin
   // Load the current set
   cmbCompilerSetCompChange(nil);
 
-
+  chkEnableAutoLinks.Checked := devCompiler.EnableAutoLinks;
   LoadAutoLinks;
   UpdateALButtons;
 end;
@@ -464,6 +468,7 @@ begin
   lvAutoLinks.Cols[1][0] := Lang[ID_EOPT_ALPARAMS];
   btnAddAutoLink.Caption := Lang[ID_BTN_ADD];
   btnRemoveAutoLink.Caption := Lang[ID_BTN_REMOVE];
+  chkEnableAutoLinks.Caption := Lang[ID_COPT_ENABLE_AUTO_LINKS];
 end;
 
 procedure TCompOptForm.UpdateALButtons;
@@ -823,6 +828,14 @@ begin
     AutoLinks.Text := StrToCodeIns(Value); // store code in first column object
     AutoLinks.OnChange:=oldOnChange;    
   end;
+end;
+
+procedure TCompOptForm.chkEnableAutoLinksClick(Sender: TObject);
+begin
+  btnAddAutoLink.Enabled := chkEnableAutoLinks.Checked;
+  btnRemoveAutoLink.Enabled := chkEnableAutoLinks.Checked;
+  AutoLinks.Enabled := chkEnableAutoLinks.Checked;
+  lvAutoLinks.Enabled := chkEnableAutoLinks.Checked;
 end;
 
 end.
