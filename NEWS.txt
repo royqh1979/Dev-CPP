@@ -9,6 +9,7 @@ Version 6.4-alpha1 JAN 2021
     - fix: can't make projects including source files in subfolders
     - enhancement: don't reload the classbrowser each time click on it
     - fix: filenames in the breakpoint view is not the same with the editors
+    - enhancement: change the way to load predefined color themes.
 
 Version 6.3 JAN 2021
 

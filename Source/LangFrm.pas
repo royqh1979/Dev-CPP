@@ -181,6 +181,7 @@ end;
 procedure TLangForm.FormShow(Sender: TObject);
 var
   FontIndex: Integer;
+  SR: TSearchRec;
 begin
   // Set interface font
   Font.Name := devData.InterfaceFont;
@@ -194,8 +195,13 @@ begin
   cmbIcons.ItemIndex := 0; // new look
 
   // Editor colors
-  cmbColors.ItemIndex := 11; // Vs Code
-  dmMain.InitHighlighterFirstTime(cmbColors.ItemIndex);
+  cmbColors.Items.Clear;
+  if FindFirst(devDirs.Exec + 'Contributes\syntax\' + '*' + SYNTAX_EXT, faAnyFile, SR) = 0 then
+    repeat
+      cmbColors.Items.Add(StringReplace(SR.Name, SYNTAX_EXT, '', [rfIgnoreCase]));
+    until FindNext(SR) <> 0;
+  cmbColors.ItemIndex := cmbColors.Items.IndexOf('VS Code');
+  dmMain.InitHighlighterFirstTime(cmbColors.Items.Strings[cmbColors.ItemIndex]);
   devEditor.AssignEditor(synExample, 'main.cpp');
 
   // Font options
@@ -214,7 +220,7 @@ end;
 
 procedure TLangForm.ColorChange(Sender: TObject);
 begin
-  dmMain.InitHighlighterFirstTime(cmbColors.ItemIndex);
+  dmMain.InitHighlighterFirstTime(cmbColors.Items.Strings[cmbColors.ItemIndex]);
 
   // Pick a proper current line color (choice is up for debate...)
   {
