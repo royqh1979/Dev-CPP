@@ -2,6 +2,7 @@ Version 6.4-alpha2 JAN 2021
 
     - enhancement: Add "enable auto links" option in the compiler option dialog
     - fix: can't correctly parse symbols like 'blocks[four_blocks[j].i][four_blocks[j].j].color_id';
+    - fix: leftpanel tab display not correct, when the project panel is hidden.
 
 Version 6.4-alpha1 JAN 2021
 

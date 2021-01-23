@@ -87,6 +87,7 @@ uses
 
 {$R *.dfm}
 
+
 procedure TLangForm.LoadText;
 begin
   grpThemes.Caption := Lang[ID_LANGFORM_SELECTTHEME];

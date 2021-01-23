@@ -1176,7 +1176,7 @@ procedure TPageControl.WMPaint(var Message: TWMPaint);
 var
 //  C: TControlCanvas;
   R: TRect;
-  i:integer;
+  i,iTab:integer;
   DC: HDC;
   PS: TPaintStruct;
   bgColor,fgColor: TColor;
@@ -1204,17 +1204,20 @@ begin
     R.Right:=Width;
     self.Canvas.FillRect(R);
 
-
-    for i:=0 to self.Tabs.Count-1 do begin
-      if i = self.TabIndex then begin
-        R:=self.TabRect(i);
+    iTab:=0;
+    for i:=0 to self.PageCount-1 do begin
+      if not self.Pages[i].TabVisible then
+        continue;
+      if iTab = self.TabIndex then begin
+        R:=self.TabRect(iTab);
         dec(R.left,2);
         dec(R.top,2);
         self.OnDrawTab(self,i,R,true);
       end else begin
-        R:=self.TabRect(i);
+        R:=self.TabRect(iTab);
         self.OnDrawTab(self,i,R,false);
       end;
+      inc(iTab);
     end;
   finally
     if Message.DC = 0 then EndPaint(Handle, PS);
@@ -8447,26 +8450,27 @@ begin
           - TTabControl(Control).Images.Width
         ) div 2) + 1;
         y  := Rect.bottom - ((Rect.Bottom - Rect.Top
-           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
            - TTabControl(Control).Images.Height
            ) div 2) - TTabControl(Control).Images.Height;
         TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
       end else begin
         y  := Rect.Bottom - ((Rect.Bottom - Rect.Top
-           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
            ) div 2) - 1;
       end;
       x  := Rect.Left + ((Rect.Right - Rect.Left
-        - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])
+        - Control.Canvas.TextHeight (TPageControl(Control).Pages[TabIndex].Caption)
         ) div 2) + 1;
-      AngleTextOut(Control.Canvas,TTabControl(Control).Tabs[TabIndex],x,y,90);
+
+      AngleTextOut(Control.Canvas,TPageControl(Control).Pages[TabIndex].Caption,x,y,90);
     end;
     tpTop,tpBottom: begin
       if Assigned(TPageControl(Control).Images)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
         x  := Rect.Left + ((Rect.Right - Rect.Left
-          - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])
+          - Control.Canvas.TextWidth (TPageControl(Control).Pages[TabIndex].Caption)
           - TTabControl(Control).Images.Width
           ) div 2) + 1;
         y  := Rect.Top + ((Rect.Bottom - Rect.Top
@@ -8474,10 +8478,10 @@ begin
         TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
         inc(x,TTabControl(Control).Images.Width);
       end else begin
-        x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+        x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
       end;
-      y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
-      Control.Canvas.TextOut(x,y,TTabControl(Control).Tabs[TabIndex]);
+      y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
+      Control.Canvas.TextOut(x,y,TPageControl(Control).Pages[TabIndex].Caption);
     end;
   end;
 end;
