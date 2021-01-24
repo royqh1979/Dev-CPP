@@ -1,6 +1,6 @@
 object CompOptForm: TCompOptForm
-  Left = 468
-  Top = 172
+  Left = 618
+  Top = 174
   BorderStyle = bsDialog
   Caption = 'Compiler options'
   ClientHeight = 724
