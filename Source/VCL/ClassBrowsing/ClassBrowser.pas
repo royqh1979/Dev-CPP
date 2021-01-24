@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages, SyncObjs;
+  CppParser, Forms, cbutils, Messages, SyncObjs, VirtualTrees;
 
 type
   TMemberSelectEvent = procedure(Sender: TObject; Filename: TFilename; Line: integer) of object;
@@ -73,7 +73,7 @@ type
     property NamespaceImg: integer read fNamespaceImg write fNamespaceImg;
   end;
 
-  TClassBrowser = class(TCustomTreeView)
+  TClassBrowser = class(TVirtualStringTree)
   private
     fParser: TCppParser;
     fCriticalSection: TCriticalSection;
@@ -94,9 +94,10 @@ type
     fSortByType: boolean;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
-    fColors : array[0..14] of TColor;    
+    fColors : array[0..14] of TColor;
+    fRootStatements : TList;
     procedure SetParser(Value: TCppParser);
-    procedure AddMembers(Node: TTreeNode; ParentStatement: PStatement);
+    procedure AddMembers(ParementStatement:PStatement);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages,
       DefaultDraw: Boolean);
@@ -115,7 +116,9 @@ type
     procedure ReSelect;
     procedure Sort(lock:boolean=False);
     function GetColor(i:integer):TColor;
-    procedure SetColor(i:integer; const Color:TColor);        
+    procedure SetColor(i:integer; const Color:TColor);
+    procedure OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+    var InitialStates: TVirtualNodeInitStates);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -129,15 +132,15 @@ type
     property Align;
     property Font;
     property Images;
-    property ReadOnly;
+    //property ReadOnly;
     property Indent;
     property TabOrder;
     property PopupMenu;
     property BorderStyle;
-    property MultiSelect;
-    property MultiSelectStyle;
-    property RowSelect;
-    property ShowLines;
+    //property MultiSelect;
+    //property MultiSelectStyle;
+    //property RowSelect;
+    //property ShowLines;
     property OnSelect: TMemberSelectEvent read fOnSelect write fOnSelect;
     property Parser: TCppParser read fParser write SetParser;
     property ItemImages: TImagesRecord read fImagesRecord write fImagesRecord;
@@ -160,6 +163,14 @@ procedure Register;
 
 implementation
 
+type
+  PNodeData = ^TNodeData;
+  TNodeData = record
+    Level:integer;
+    ImageIndex:integer
+    statement:PStatement;
+  end;
+
 procedure Register;
 begin
   RegisterComponents('Dev-C++', [TClassBrowser]);
@@ -177,24 +188,27 @@ begin
   fCurrentFile := '';
   fParserFreezed:=False;
   ShowHint := True;
-  HideSelection := False;
-  RightClickSelect := True;
+  NodeDataSize := sizeof(TNodeData);
+  fRootStatements := TList.Create;
+  //HideSelection := False;
+  //RightClickSelect := True;
   fShowInheritedMembers := False;
   fControlCanvas := TControlCanvas.Create;
   fControlCanvas.Control := Self;
   //fControlCanvas.Font.Assign(Self.Font);
-  OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
+  //OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
   fIncludedFiles := TStringList.Create;
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
   fUpdateCount := 0;
   fTabVisible := false;
-  RowSelect := true;
-  ShowLines := False;
+  //RowSelect := true;
+  //ShowLines := False;
   fSortAlphabetically:= True;
   fSortByType:=True ;
   fOnUpdated:=nil;
   fUpdating:=False;
+  self.OnInitNode := OnCBInitNode;
   fCriticalSection := TCriticalSection.Create;
 end;
 
@@ -204,6 +218,7 @@ begin
   FreeAndNil(fControlCanvas);
   fIncludedFiles.Free;
   fCriticalSection.Free;
+  FreeAndNil(fRootStatements);
   inherited Destroy;
 end;
 
@@ -293,16 +308,20 @@ begin
   Node.StateIndex := Node.ImageIndex;
 end;
 
-procedure TClassBrowser.AddMembers(Node: TTreeNode; ParentStatement: PStatement);
+procedure TClassBrowser.AddMembers(ParementStatement:PStatement);
 var
   Statement: PStatement;
   NewNode: TTreeNode;
   Children: TList;
   i:integer;
   P:PFileIncludes;
+var
+  Data: PNodeData2;
 
   procedure AddStatement(Statement: PStatement);
   begin
+    fRootStatements.Add(statement);
+    {
     if (node=nil) and Assigned(statement^._ParentScope) then begin
       NewNode := Items.AddChildObject(Node, Statement^._FullName, Statement);
     end else begin
@@ -311,26 +330,34 @@ var
     SetNodeImages(NewNode, Statement);
     if Statement^._Kind in [skClass,skNamespace] then
       AddMembers(NewNode, Statement);
+    }
   end;
+
 begin
+  {
   if Assigned(ParentStatement) then begin
     Children := fParser.Statements.GetChildrenStatements(ParentStatement);
   end else begin
-    p:=fParser.FindFileIncludes(fCurrentFile);
-    if not Assigned(p) then
-      Exit;
-    Children := p^.Statements;
+  }
+  p:=fParser.FindFileIncludes(fCurrentFile);
+  if not Assigned(p) then
+    Exit;
+  Children := p^.Statements;
+  {
   end;
+  self.RootNodeCount := children.Count;
+  }
 
 //  fParser.Statements.DumpWithScope('f:\browser.txt');
   if Assigned(Children) then begin
+
     for i:=0 to Children.Count-1 do begin
       Statement := Children[i];
       if not Assigned(Statement) then
-        Continue; 
+        Continue;
       with Statement^ do begin
         // Do not print statements marked invisible for the class browser
-        
+
         if _Kind = skBlock then
           Continue;
 
@@ -427,6 +454,15 @@ begin
   Selected := Node;
 end;
 
+procedure TClassBrowser.OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+    var InitialStates: TVirtualNodeInitStates);
+var
+  level:integer
+begin
+  level := sender.GetNodeLevel(node);
+  if level = 0 then
+    
+end;
 procedure TClassBrowser.OnNodeChange(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Node: TTreeNode;
