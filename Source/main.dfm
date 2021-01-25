@@ -2049,6 +2049,13 @@ object MainForm: TMainForm
       OnExecute = ViewCPUItemClick
       OnUpdate = actUpdateDebuggerRunningCPU
     end
+    object actStatementsTypeProject: TAction
+      Category = 'ClassBrowser'
+      AutoCheck = True
+      Caption = 'Show Members in the Project'
+      OnExecute = actStatementsTypeProjectExecute
+      OnUpdate = actStatementsTypeFileUpdate
+    end
     object actMsgCompilerCopy: TAction
       Category = 'Messages'
       Caption = 'Copy'
@@ -2649,6 +2656,13 @@ object MainForm: TMainForm
       Caption = 'Goto declaration'
       OnExecute = actBrowserGotoDeclarationExecute
       OnUpdate = actBrowserGotoDeclarationUpdate
+    end
+    object actStatementsTypeFile: TAction
+      Category = 'ClassBrowser'
+      AutoCheck = True
+      Caption = 'Show Members in the File'
+      OnExecute = actStatementsTypeFileExecute
+      OnUpdate = actStatementsTypeFileUpdate
     end
     object actBrowserGotoDefinition: TAction
       Category = 'ClassBrowser'
@@ -3275,6 +3289,17 @@ object MainForm: TMainForm
     end
     object mnuBrowserNewVariable: TMenuItem
       Action = actBrowserNewVar
+    end
+    object N45: TMenuItem
+      Caption = '-'
+    end
+    object ShowMembersintheFile1: TMenuItem
+      Action = actStatementsTypeFile
+      AutoCheck = True
+    end
+    object ShowMembersintheProject1: TMenuItem
+      Action = actStatementsTypeProject
+      AutoCheck = True
     end
   end
   object DebugPopup: TPopupMenu

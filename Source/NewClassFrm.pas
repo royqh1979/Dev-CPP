@@ -95,21 +95,15 @@ begin
   // public is used most of the time?
   cmbScope.ItemIndex := cmbScope.Items.IndexOf('public');
 
-  // Check if the statement the user selected is a class...
-  {
-  if Assigned(MainForm.ClassBrowser.Selected) and
-    Assigned(MainForm.ClassBrowser.Selected.Data) and
-    (PStatement(MainForm.ClassBrowser.Selected.Data)^._Kind = skClass) then begin
-
+  if MainForm.ClassBrowser.SelectedCommand <> '' then begin
     // If we are spawned from the class browser, set inheritcance to selected class
-    cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._Command);
+    cmbClass.ItemIndex := cmbClass.Items.IndexOf(MainForm.ClassBrowser.SelectedCommand);
     if cmbClass.ItemIndex <> -1 then
       chkInherit.Checked := True;
   end else begin
     cmbClass.Text := '';
     chkInherit.Checked := False;
   end;
-  }
   txtName.SetFocus;
 end;
 

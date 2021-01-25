@@ -212,6 +212,12 @@ type
     Scopes: TIntList; // List<Int,PStatement> int is start line of the statement scope
   end;
 
+  
+  TClassBrowserStatementsType = (
+    cbstFile,
+    cbstProject,
+    cbstAll
+  );
 const
   ScopeTypeKinds : TStatementKindSet = [skClass,skNamespace,skFunction,skConstructor,skDestructor];
 var
