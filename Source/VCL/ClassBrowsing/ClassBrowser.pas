@@ -114,7 +114,7 @@ type
     procedure SetSortByType(Value: boolean);
     procedure SetTabVisible(Value: boolean);
     procedure ReSelect;
-    procedure Sort(lock:boolean=False);
+    procedure DoSort(lock:boolean=False);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);
     procedure OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -126,6 +126,10 @@ type
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure OnCBDrawText(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; const Text: UnicodeString; const CellRect: TRect; var DefaultDraw: Boolean);
+    procedure OnCompareByType(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
+    var Result: Integer);
+    procedure OnCompareByAlpha(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
+    var Result: Integer);
     function GetSelectedFile: String;
     function GetSelectedLine: integer;
     function GetSelectedDefFile: String;
@@ -651,25 +655,35 @@ begin
 end;
 }
 
-function CustomSortTypeProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
+procedure TClassBrowser.OnCompareByType(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
+    var Result: Integer);
+var
+  Data1,Data2:PNodeData;
 begin
-  if PStatement(Node1.Data)^._Static and (not PStatement(Node2.Data)^._Static) then
+  Data1:=Sender.GetNodeData(Node1);
+  Data2:=Sender.GetNodeData(Node2);
+  if Data1^.statement^._Static and (not Data2^.statement^._Static) then
     Result:=-1
-  else if (not PStatement(Node1.Data)^._Static) and PStatement(Node2.Data)^._Static then
+  else if (not Data1^.statement^._Static) and Data2^.statement^._Static then
     Result:=1
   else
-    if Ord(PStatement(Node1.Data)^._ClassScope) <> Ord(PStatement(Node2.Data)^._ClassScope) then
-      Result := Ord(PStatement(Node1.Data)^._ClassScope) - Ord(PStatement(Node2.Data)^._ClassScope)
+    if Ord(Data1^.statement^._ClassScope) <> Ord(Data2^.statement^._ClassScope) then
+      Result := Ord(Data1^.statement^._ClassScope) - Ord(Data2^.statement^._ClassScope)
     else
-      Result := Ord(PStatement(Node1.Data)^._Kind) - Ord(PStatement(Node2.Data)^._Kind);
+      Result := Ord(Data1^.statement^._Kind) - Ord(Data2^.statement^._Kind);
 end;
 
-function CustomSortAlphaProc(Node1, Node2: TTreeNode; Data: Integer): Integer; stdcall;
+procedure TClassBrowser.OnCompareByAlpha(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
+    var Result: Integer);
+var
+  Data1,Data2:PNodeData;
 begin
-  Result := StrIComp(PAnsiChar(Node1.Text), PAnsiChar(Node2.Text));
+  Data1:=Sender.GetNodeData(Node1);
+  Data2:=Sender.GetNodeData(Node2);
+  Result := StrIComp(PAnsiChar(Data1.Text), PAnsiChar(Data2.Text));
 end;
 
-procedure TClassBrowser.Sort(lock:boolean);
+procedure TClassBrowser.DoSort(lock:boolean);
 begin
   fCriticalSection.Acquire;
   try
@@ -683,12 +697,14 @@ begin
     end;
     //Items.BeginUpdate;
     try
-      {
-      if sortAlphabetically then
-        CustomSort(@CustomSortAlphaProc, 0);
-      if sortByType then
-        CustomSort(@CustomSortTypeProc, 0);
-      }
+      if sortAlphabetically then begin
+        self.OnCompareNodes := OnCompareByAlpha;
+        self.Sort(self.RootNode,0,sdAscending,False);
+      end;
+      if sortByType then begin
+        self.OnCompareNodes := OnCompareByType;
+        self.Sort(self.RootNode,0,sdAscending,False);
+      end;
     finally
       //Items.EndUpdate;
       if lock then begin
@@ -764,7 +780,7 @@ begin
   if Value = fSortAlphabetically then
     Exit;
   fSortAlphabetically := Value;
-  Sort(True);
+  DoSort(True);
 end;
 
 procedure TClassBrowser.SetSortByType(Value: boolean);
@@ -772,7 +788,7 @@ begin
   if Value = fSortByType then
     Exit;
   fSortByType := Value;
-  Sort(True);
+  DoSort(True);
 end;
 
 
