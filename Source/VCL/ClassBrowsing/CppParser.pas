@@ -76,7 +76,7 @@ type
     fParseGlobalHeaders: boolean;
     fIsProjectFile: boolean;
     //fMacroDefines : TList;
-    fLocked: boolean; // lock(don't reparse) when we need to find statements in a batch
+    fLockCount: integer; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
     fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
     fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements>
@@ -165,10 +165,14 @@ type
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
     procedure InternalInvalidateFile(const FileName: AnsiString);
+    {
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
     function GetOperator(const Phrase: AnsiString): AnsiString;
     function GetRemainder(const Phrase: AnsiString): AnsiString;
+    }
+    function SplitPhrase(const Phrase: AnsiString; var Clazz: AnsiString;
+                var Member: AnsiString; var Operator: AnsiString):AnsiString;
     function getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
     procedure OnProgress(FileName:String;Total,Current:integer);
     procedure OnBusy;
@@ -229,7 +233,8 @@ type
     function FindFirstTemplateParamOf(const FileName: AnsiString;const aPhrase: AnsiString; currentClass: PStatement): String;
     function FindLastOperator(const Phrase: AnsiString): integer;
     function FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
-    function Freeze:boolean;  // Freeze/Lock (stop reparse while searching)
+    function Freeze:boolean; overload;  // Freeze/Lock (stop reparse while searching)
+    function Freeze(serialId:String):boolean; overload;  // Freeze/Lock (stop reparse while searching)
     procedure UnFreeze; // UnFree/UnLock (reparse while searching)
     function GetParsing: boolean;
 
@@ -303,7 +308,7 @@ begin
   fSkipList:= TList.Create;
   fParseLocalHeaders := False;
   fParseGlobalHeaders := False;
-  fLocked := False;
+  fLockCount := 0;
   fNamespaces := TDevStringList.Create;
   fNamespaces.Sorted := True;
   fBlockBeginSkips := TIntList.Create;
@@ -322,9 +327,8 @@ begin
   while True do begin
     fCriticalSection.Acquire;
     try
-      if not fParsing and not fLocked then begin
+      if not fParsing and (fLockCount = 0) then begin
         fParsing:=True;
-        fLocked:=True;
         break;
       end;
     finally
@@ -2805,68 +2809,78 @@ var
   I: integer;
   namespaceList:TList;
 begin
-  fCriticalSection.Acquire;
+  while True do begin
+    fCriticalSection.Acquire;
+    try
+      if not fParsing and (fLockCount = 0) then begin
+        fParsing:=True;
+        break;
+      end;
+    finally
+      fCriticalSection.Release;
+    end;
+    Sleep(50);
+    Application.ProcessMessages;
+  end;
   try
     OnBusy;
-  if Assigned(fPreprocessor) then
-    fPreprocessor.Clear;
-  fUniqId:=0;
-  fParsing:=False;
-  fSkipList.Clear;
-  fBlockBeginSkips.Clear;
-  fBlockEndSkips.Clear;
-  fInlineNamespaceEndSkips.Clear;
-  fLocked:=False;
-  fParseLocalHeaders := False;
-  fParseGlobalHeaders := False;
+    if Assigned(fPreprocessor) then
+      fPreprocessor.Clear;
+    fUniqId:=0;
+    fSkipList.Clear;
+    fBlockBeginSkips.Clear;
+    fBlockEndSkips.Clear;
+    fInlineNamespaceEndSkips.Clear;
+    fParseLocalHeaders := False;
+    fParseGlobalHeaders := False;
 
-  //remove all macrodefines;
-  //fMacroDefines.Clear;
-  fCurrentScope.Clear;
-  fCurrentClassScope.Clear;
-  fProjectFiles.Clear;
-  fFilesToScan.Clear;
-  if Assigned(fTokenizer) then
-    fTokenizer.Reset;
+    //remove all macrodefines;
+    //fMacroDefines.Clear;
+    fCurrentScope.Clear;
+    fCurrentClassScope.Clear;
+    fProjectFiles.Clear;
+    fFilesToScan.Clear;
+    if Assigned(fTokenizer) then
+      fTokenizer.Reset;
 
-  // Remove all statements
-  fStatementList.Clear;
+    // Remove all statements
+    fStatementList.Clear;
 
-  // We haven't scanned anything anymore
-  fScannedFiles.Clear;
+    // We haven't scanned anything anymore
+    fScannedFiles.Clear;
 
-  // We don't include anything anymore
-  for I := fIncludesList.Count - 1 downto 0 do begin
-    PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.DirectIncludeFiles.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
-    PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
-    Dispose(PFileIncludes(fIncludesList.Objects[i]));
-  end;
-  fIncludesList.Clear;
+    // We don't include anything anymore
+    for I := fIncludesList.Count - 1 downto 0 do begin
+      PFileIncludes(fIncludesList.Objects[i])^.IncludeFiles.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.DirectIncludeFiles.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.Usings.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
+      Dispose(PFileIncludes(fIncludesList.Objects[i]));
+    end;
+    fIncludesList.Clear;
 
-  for i:=0 to fNamespaces.Count-1 do begin
-    namespaceList := TList(fNamespaces.Objects[i]);
-    namespaceList.Free;
-  end;
-  fNamespaces.Clear;
+    for i:=0 to fNamespaces.Count-1 do begin
+      namespaceList := TList(fNamespaces.Objects[i]);
+      namespaceList.Free;
+    end;
+    fNamespaces.Clear;
 
-  for i:=0 to fRemovedStatements.Count-1 do begin
-    dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
-  end;
-  fRemovedStatements.Clear;
+    for i:=0 to fRemovedStatements.Count-1 do begin
+      dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
+    end;
+    fRemovedStatements.Clear;
 
-  fProjectIncludePaths.Clear;
-  fIncludePaths.Clear;
+    fProjectIncludePaths.Clear;
+    fIncludePaths.Clear;
 
-  fProjectFiles.Clear;
+    fProjectFiles.Clear;
 
-  OnUpdate;
   finally
-    fCriticalSection.Release;
+    fParsing:=False;
+    OnUpdate;
   end;
 end;
 
@@ -2878,7 +2892,7 @@ begin
     Exit;
   fCriticalSection.Acquire;
   try
-    if fParsing or fLocked then
+    if fParsing or (fLockCount>0) then
       Exit;
     UpdateSerialId;
     fParsing:=True;
@@ -2960,7 +2974,7 @@ end;
 
 function TCppParser.GetParsing:boolean;
 begin
-  Result:= fParsing or fLocked;
+  Result:= fParsing;
 end;
 
 procedure TCppParser.AddFileToScan(Value: AnsiString; InProject: boolean);
@@ -3147,7 +3161,7 @@ begin
     Exit;
   fCriticalSection.Acquire;
   try
-    if fParsing or fLocked then
+    if fParsing or (fLockCount>0) then
       Exit;
     UpdateSerialId;
     fParsing:=True;
@@ -3217,7 +3231,7 @@ procedure TCppParser.InvalidateFile(const FileName: AnsiString);
 begin
   fCriticalSection.Acquire;
   try
-  if fParsing or fLocked then
+  if fParsing or (fLockCount>0) then
     Exit;
   UpdateSerialId;
   fParsing:=True;
@@ -3438,6 +3452,80 @@ begin
   end;  
 end;
 
+function TCppParser.SplitPhrase(const Phrase: AnsiString; var Clazz: AnsiString;
+            var Member: AnsiString; var Operator: AnsiString): AnsiString;
+var
+  I, FirstOpStart,FirstOpEnd,SecondOp: integer;
+  bracketLevel:integer;
+begin
+  Clazz:='';
+  Member:='';
+  Operator:='';
+  Result:='';
+  bracketLevel:=0;
+// Obtain stuff before first operator
+  FirstOpStart := Length(Phrase) + 1;
+  FirstOpEnd := Length(Phrase) + 1;
+  for I := 1 to Length(Phrase) - 1 do begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>') and (bracketLevel=0) then begin
+      FirstOpStart := I;
+      FirstOpEnd := I+2;
+      Operator := '->';
+      break;
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':') and (bracketLevel=0) then begin
+      FirstOpStart := I;
+      FirstOpEnd := I+2;
+      Operator := '::';
+      break;
+    end else if (Phrase[i] = '.') and (bracketLevel=0) then begin
+      FirstOpStart := I;
+      FirstOpEnd := I+1;
+      Operator := '.';
+      break;
+    end else if (Phrase[i] = '[') then begin
+      inc(bracketLevel);
+    end else if (Phrase[i] = ']') then begin
+      dec(bracketLevel);
+    end;
+  end;
+
+  Clazz := Copy(Phrase, 1, FirstOpStart - 1);
+
+  if FirstOpStart = 0 then begin
+    Result := '';
+    Member :='';
+    Exit;
+  end;
+
+  Result := Copy(Phrase, FirstOpEnd, MaxInt);
+
+// ... and before second op, if there is one
+  SecondOp := 0;
+  bracketLevel:=0;
+  for I := firstopEnd to Length(Phrase) - 1 do begin
+    if (phrase[i] = '-') and (Phrase[i + 1] = '>')  and (bracketLevel=0) then begin
+      SecondOp := I;
+      break;
+    end else if (Phrase[i] = ':') and (Phrase[i + 1] = ':')  and (bracketLevel=0) then begin
+      SecondOp := I;
+      break;
+    end else if (Phrase[i] = '.')  and (bracketLevel=0) then begin
+      SecondOp := I;
+      break;
+    end else if (Phrase[i] = '[') then begin
+      inc(bracketLevel);
+    end else if (Phrase[i] = ']') then begin
+      dec(bracketLevel);
+    end;
+  end;
+
+  if SecondOp = 0 then
+    Member := Copy(Phrase, FirstOpEnd, MaxInt)
+  else
+    Member := Copy(Phrase, FirstOpEnd, SecondOp - FirstOpEnd);
+end;
+
+{
 function TCppParser.GetClass(const Phrase: AnsiString): AnsiString;
 var
   I, FirstOp: integer;
@@ -3552,7 +3640,7 @@ begin
     end;
   end;
 end;
-
+}
 function TCppParser.FindNamespace(const name:AnsiString):TList; // return a list of PSTATEMENTS (of the namespace)
 var
   i:integer;
@@ -4104,10 +4192,13 @@ begin
       Exit;
     end;
 
+    remainder := SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     statement:=nil;
     for i:=0 to namespaceList.Count-1 do begin
       currentNamespace:=PStatement(namespaceList[i]);
@@ -4123,10 +4214,13 @@ begin
   end else if (Length(Phrase)>2) and (Phrase[1]=':') and (Phrase[2]=':') then begin
     //global
     remainder:=Copy(Phrase,3,MAXINT);
+    remainder:=SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     statement:=findMemberOfStatement(NextScopeWord,nil);
     if not assigned(statement) then
       Exit;
@@ -4137,10 +4231,13 @@ begin
       CurrentClassType:=CurrentClassType^._ParentScope;
     end;
     }
+    remainder := SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     if assigned(CurrentClass) and (CurrentClass^._Kind = skNamespace)  then begin
       idx:=FastIndexOf(fNamespaces,CurrentClass^._Command);
       if idx>=0 then begin
@@ -4203,10 +4300,13 @@ begin
         Statement := TypeStatement;
     end else
       lastScopeStatement:= statement;
+    remainder := SplitPhrase(remainder,NextScopeWord,OperatorToken,MemberName);
+    {
     NextScopeWord := GetClass(remainder);
     OperatorToken := GetOperator(remainder);
     MemberName := GetMember(remainder);
     remainder := GetRemainder(remainder);
+    }
     MemberStatement := FindMemberOfStatement(NextScopeWord,statement);
     if not Assigned(MemberStatement) then begin;
       Exit;
@@ -4592,11 +4692,28 @@ function TCppParser.Freeze:boolean;
 begin
   fCriticalSection.Acquire;
   try
-    if fLocked or fParsing then begin
+    if fParsing then begin
       Result:=False;
       exit;
     end;
-    fLocked := True;
+    inc(fLockCount);
+    Result:=True;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+function TCppParser.Freeze(serialID:String):boolean;
+begin
+  Result:=False;
+  fCriticalSection.Acquire;
+  try
+    if fParsing then begin
+      exit;
+    end;
+    if not samestr(fSerialId, serialId) then
+      Exit;
+    inc(fLockCount);
     Result:=True;
   finally
     fCriticalSection.Release;
@@ -4607,7 +4724,7 @@ procedure TCppParser.UnFreeze;
 begin
   fCriticalSection.Acquire;
   try
-    fLocked := False;
+    dec(fLockCount);
   finally
     fCriticalSection.Release;
   end;  

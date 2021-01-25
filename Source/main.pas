@@ -32,7 +32,7 @@ uses
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CBUtils, StatementList, FormatterOptionsFrm,
   RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput,
-  HeaderCompletion;
+  HeaderCompletion, VirtualTrees;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -1053,9 +1053,9 @@ type
     procedure LoadColor;
     procedure ReloadColor;
     procedure OpenUnit;
-    function PrepareForRun(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
-    function PrepareForCompile(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
-    function PrepareForClean(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
+    function PrepareForRun(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+    function PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+    function PrepareForClean(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
     procedure LoadTheme;
     procedure CheckForDLLProfiling;
     procedure ProjectWindowClose(Sender: TObject; var Action: TCloseAction);
@@ -1176,7 +1176,7 @@ procedure TPageControl.WMPaint(var Message: TWMPaint);
 var
 //  C: TControlCanvas;
   R: TRect;
-  i:integer;
+  i,iTab:integer;
   DC: HDC;
   PS: TPaintStruct;
   bgColor,fgColor: TColor;
@@ -1204,17 +1204,20 @@ begin
     R.Right:=Width;
     self.Canvas.FillRect(R);
 
-
-    for i:=0 to self.Tabs.Count-1 do begin
-      if i = self.TabIndex then begin
-        R:=self.TabRect(i);
+    iTab:=0;
+    for i:=0 to self.PageCount-1 do begin
+      if not self.Pages[i].TabVisible then
+        continue;
+      if iTab = self.TabIndex then begin
+        R:=self.TabRect(iTab);
         dec(R.left,2);
         dec(R.top,2);
         self.OnDrawTab(self,i,R,true);
       end else begin
-        R:=self.TabRect(i);
+        R:=self.TabRect(iTab);
         self.OnDrawTab(self,i,R,false);
       end;
+      inc(iTab);
     end;
   finally
     if Message.DC = 0 then EndPaint(Handle, PS);
@@ -1547,20 +1550,22 @@ begin
   ProjectView.Color := BackgroundColor;
   ProjectView.Font := MainForm.Font;
   ProjectView.Font.Color := ForegroundColor;
-  ClassBrowser.Colors[ForeColor]:=ForegroundColor;
-  ClassBrowser.Colors[BackColor]:=BackgroundColor;
-  ClassBrowser.Colors[SelectedBackColor]:= selectedTC.Background;
-  ClassBrowser.Colors[SelectedForeColor]:=selectedTC.Foreground;
-  ClassBrowser.Colors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
-  ClassBrowser.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
-  ClassBrowser.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
-  ClassBrowser.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
-  ClassBrowser.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
-  ClassBrowser.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
-  ClassBrowser.Colors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
-  ClassBrowser.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
-  ClassBrowser.Colors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
-  ClassBrowser.Colors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
+  ClassBrowser.Font := MainForm.Font;
+  ClassBrowser.Font.Color := ForegroundColor;
+  ClassBrowser.TreeColors[ForeColor]:=ForegroundColor;
+  ClassBrowser.TreeColors[BackColor]:=BackgroundColor;
+  ClassBrowser.TreeColors[SelectedBackColor]:= selectedTC.Background;
+  ClassBrowser.TreeColors[SelectedForeColor]:=selectedTC.Foreground;
+  ClassBrowser.TreeColors[FunctionColor] := dmMain.Cpp.FunctionAttri.Foreground;
+  ClassBrowser.TreeColors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
+  ClassBrowser.TreeColors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
+  ClassBrowser.TreeColors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
+  ClassBrowser.TreeColors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+  ClassBrowser.TreeColors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
+  ClassBrowser.TreeColors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
+  ClassBrowser.TreeColors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
+  ClassBrowser.TreeColors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
+  ClassBrowser.TreeColors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -2143,7 +2148,7 @@ begin
   ClassBrowser.TabVisible:=False;
 
   // Only update class browser once
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
   try
     fProject := TProject.Create(s, DEV_INTERNAL_OPEN);
 
@@ -2183,7 +2188,7 @@ begin
     end;
     UpdateClassBrowserForEditor(e);
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
   UpdateFileEncodingStatusPanel;
 end;
@@ -2248,7 +2253,7 @@ begin
   end;
 
   // Didn't find a project? Open the whole list
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
   try
     fEditorList.BeginUpdate;
     try
@@ -2260,7 +2265,7 @@ begin
       fEditorList.EndUpdate;
     end;
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
 end;
 
@@ -2770,7 +2775,7 @@ begin
     Exit;
 
   fCheckSyntaxInBack:=True;
-  if not PrepareForCompile(ctStdin) then begin
+  if not PrepareForCompile(cttStdin) then begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;
@@ -2844,13 +2849,13 @@ var
 begin
   fClosing:=True;
   e := fEditorList.GetEditor;
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
   try
     UpdateClassBrowserForEditor(nil);
     if Assigned(e) then
       fEditorList.CloseEditor(e);
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
 
   fClosing:=False;
@@ -2859,12 +2864,12 @@ end;
 procedure TMainForm.actCloseAllExecute(Sender: TObject);
 begin
   fClosing:=True;
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
   try
     fEditorList.CloseAll(fWindowsTurnedOff); // PageControlChange triggers other UI updates
     UpdateClassBrowserForEditor(nil);
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
   fClosing:=False;
 end;
@@ -2906,7 +2911,7 @@ begin
     end else
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
-    ClassBrowser.BeginUpdate;
+    ClassBrowser.BeginTreeUpdate;
     ClassBrowser.CurrentFile := '';
     ClassBrowser.Parser:=nil; // set parser to nil will do the clear
     try
@@ -2932,7 +2937,7 @@ begin
         fEditorList.EndUpdate;
       end;
     finally
-      ClassBrowser.EndUpdate;
+      ClassBrowser.EndTreeUpdate;
     end;
     if not fQuitting then begin
       // Clear project browser
@@ -3638,22 +3643,22 @@ begin
   if Assigned(e) then begin
     // Treat makefiles as InProject files too
     if Assigned(fProject) and (e.InProject or (fProject.MakeFileName = e.FileName)) then begin
-      Result := ctProject;
+      Result := cttProject;
     end else begin
-      Result := ctFile;
+      Result := cttFile;
     end;
 
     // No editors have been opened. Check if a project is open
   end else if Assigned(fProject) then begin
-    Result := ctProject;
+    Result := cttProject;
 
     // No project, no editor...
   end else begin
-    Result := ctNone;
+    Result := cttNone;
   end;
 end;
 
-function TMainForm.PrepareForRun(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
+function TMainForm.PrepareForRun(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
 begin
   Result := False;
 
@@ -3662,19 +3667,19 @@ begin
   fCompiler.SourceFile := '';
   fCompiler.SourceText := '';
   fCompiler.CompilerSet := devCompilerSets.CompilationSet;
-  if ForcedCompileTarget <> ctInvalid then
+  if ForcedCompileTarget <> cttInvalid then
     fCompiler.Target := ForcedCompileTarget
   else
     fCompiler.Target := GetCompileTarget;
   case fCompiler.Target of
-    ctInvalid:
+    cttInvalid:
       Exit;
-    ctNone:
+    cttNone:
       Exit;
-    ctFile: begin
+    cttFile: begin
         fCompiler.SourceFile := fEditorList.GetEditor.FileName;
       end;
-    ctProject: begin
+    cttProject: begin
         fCompiler.Project := fProject;
       end;
   end;
@@ -3682,7 +3687,7 @@ begin
   Result := True;
 end;
 
-function TMainForm.PrepareForCompile(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
+function TMainForm.PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
 var
   i: Integer;
   e: TEditor;
@@ -3716,19 +3721,19 @@ begin
   fCompiler.SourceFile := '';
   fCompiler.SourceText := '';  
   fCompiler.CompilerSet := devCompilerSets.CompilationSet;
-  if ForcedCompileTarget <> ctInvalid then
+  if ForcedCompileTarget <> cttInvalid then
     fCompiler.Target := ForcedCompileTarget
   else
     fCompiler.Target := GetCompileTarget;
   case fCompiler.Target of
-    ctInvalid: begin
+    cttInvalid: begin
         Exit;
       end;
-    ctNone: begin
+    cttNone: begin
         LogEntryProc(Lang[ID_LOG_NOTHINGABORT]);
         Exit;
       end;
-    ctFile: begin
+    cttFile: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not Assigned(e) then
           Exit;
@@ -3737,7 +3742,7 @@ begin
         fCompiler.UseUTF8 := (e.FileEncoding = etUTF8);
         fCompiler.SourceFile := e.FileName;
       end;
-    ctStdin: begin
+    cttStdin: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not Assigned(e) then
           Exit;
@@ -3747,7 +3752,7 @@ begin
         fCompiler.SourceFile := e.FileName;
         fCompiler.sourceText := e.Text.Lines.Text;
       end;
-    ctProject: begin
+    cttProject: begin
         fCompiler.Project := fProject;
 
         // Save all files that are in a project
@@ -3776,7 +3781,7 @@ begin
   Result := True;
 end;
 
-function TMainForm.PrepareForClean(ForcedCompileTarget: TTarget = ctInvalid): Boolean;
+function TMainForm.PrepareForClean(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
 var
   e: TEditor;
 begin
@@ -3805,23 +3810,23 @@ begin
   fCompiler.Project := nil;
   fCompiler.SourceFile := '';
   fCompiler.CompilerSet := devCompilerSets.CompilationSet;
-  if ForcedCompileTarget <> ctInvalid then
+  if ForcedCompileTarget <> cttInvalid then
     fCompiler.Target := ForcedCompileTarget
   else
     fCompiler.Target := GetCompileTarget;
   case fCompiler.Target of
-    ctInvalid: begin
+    cttInvalid: begin
         Exit;
       end;
-    ctNone: begin
+    cttNone: begin
         LogEntryProc(Lang[ID_LOG_NOTHINGABORT]);
         Exit;
       end;
-    ctFile: begin
+    cttFile: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         fCompiler.SourceFile := e.FileName;
       end;
-    ctProject: begin
+    cttProject: begin
         fCompiler.Project := fProject;
       end;
   end;
@@ -3987,7 +3992,7 @@ begin
   if fCompiler.Compiling then
     Exit;
   case GetCompileTarget of
-    ctProject: begin
+    cttProject: begin
         // Check if we enabled proper options
         DebugEnabled := fProject.GetCompilerOption('-g3') <> '0';
         StripEnabled := fProject.GetCompilerOption('-s') <> '0';
@@ -4058,7 +4063,7 @@ begin
         end;
 
       end;
-    ctFile: begin
+    cttFile: begin
         // Check if we enabled proper options
         with devCompilerSets.CompilationSet do begin
           DebugEnabled := GetOption('-g3') <> '0';
@@ -4117,7 +4122,7 @@ begin
           fDebugger.SendCommand('file', '"' + StringReplace(filepath, '\', '/', [rfReplaceAll]) + '"');
         end;
       end;
-    ctNone: Exit;
+    cttNone: Exit;
   end;
 
 
@@ -4149,9 +4154,9 @@ begin
   fDebugger.SendCommand('cd', ExcludeTrailingPathDelimiter(ExtractFileDir(filepath))); // restore working directory
   if not hasBreakPoint then begin
     case GetCompileTarget of
-      ctNone:
+      cttNone:
         Exit;
-      ctFile:
+      cttFile:
       begin
         params := '';
         if fCompiler.UseRunParams then
@@ -4161,7 +4166,7 @@ begin
         fDebugger.SendCommand('start', params);
         UpdateDebugInfo;
       end;
-      ctProject:  begin
+      cttProject:  begin
         params := '';
         if fCompiler.UseRunParams then
           params := params + ' ' + fProject.Options.CmdLineArgs;
@@ -4174,9 +4179,9 @@ begin
     end;
   end else begin
     case GetCompileTarget of
-      ctNone:
+      cttNone:
         Exit;
-      ctFile: begin
+      cttFile: begin
         params := '';
         if fCompiler.UseRunParams then
           params := params + ' ' + fCompiler.RunParams;
@@ -4185,7 +4190,7 @@ begin
         fDebugger.SendCommand('run', params);
         UpdateDebugInfo;
       end;
-      ctProject: begin
+      cttProject: begin
         params := '';
         if fCompiler.UseRunParams then
           params := params + ' ' + fProject.Options.CmdLineArgs;
@@ -4249,7 +4254,7 @@ var
   e:TEditor;
 begin
   case GetCompileTarget of
-    ctFile: begin
+    cttFile: begin
         e:=EditorList.GetEditor();
         if not Assigned(e) then
           Exit;
@@ -4258,7 +4263,7 @@ begin
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
-    ctProject: begin
+    cttProject: begin
         TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling)
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
@@ -4276,7 +4281,7 @@ end;
 
 procedure TMainForm.actUpdateMakeFile(Sender: TObject);
 begin
-  TCustomAction(Sender).Enabled := assigned(fProject) and (not fCompiler.Compiling) and (GetCompileTarget <> ctNone) and
+  TCustomAction(Sender).Enabled := assigned(fProject) and (not fCompiler.Compiling) and (GetCompileTarget <> cttNone) and
     Assigned(devCompilerSets.CompilationSet);
 end;
 
@@ -4386,7 +4391,7 @@ procedure TMainForm.actProjectMakeFileExecute(Sender: TObject);
 begin
   // Fake a project compilation step
   ClearCompileMessages;
-  fCompiler.Target := ctProject;
+  fCompiler.Target := cttProject;
   fCompiler.Project := fProject;
   fCompiler.CompilerSet := devCompilerSets.CompilationSet;
   fCompiler.BuildMakeFile;
@@ -4941,14 +4946,14 @@ begin
   HeaderCompletion.Height := devCodeCompletion.Height;
 
   // Only attempt to redraw once
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
   try
     ClassBrowser.ShowInheritedMembers := devClassBrowsing.ShowInheritedMembers;
     ClassBrowser.SortByType := devClassBrowsing.SortByType;
     ClassBrowser.SortAlphabetically := devClassBrowsing.SortAlphabetically;
     ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
 
   // Configure class browser actions
@@ -5333,12 +5338,12 @@ end;
 
 procedure TMainForm.actBrowserGotoDeclarationUpdate(Sender: TObject);
 begin
-  TAction(Sender).Enabled := Assigned(ClassBrowser.Selected);
+  //TAction(Sender).Enabled := Assigned(ClassBrowser.Selected);
 end;
 
 procedure TMainForm.actBrowserGotoDefinitionUpdate(Sender: TObject);
 begin
-  TAction(Sender).Enabled := Assigned(ClassBrowser.Selected);
+  //TAction(Sender).Enabled := Assigned(ClassBrowser.Selected);
 end;
 
 procedure TMainForm.actBrowserNewClassUpdate(Sender: TObject);
@@ -5348,32 +5353,34 @@ end;
 
 procedure TMainForm.actBrowserNewMemberUpdate(Sender: TObject);
 begin
+{
   if Assigned(ClassBrowser.Selected) and Assigned(ClassBrowser.Selected.Data) then
     TCustomAction(Sender).Enabled := (PStatement(ClassBrowser.Selected.Data)^._Kind = skClass)
   else
     TCustomAction(Sender).Enabled := False;
+  }
 end;
 
 procedure TMainForm.actBrowserNewVarUpdate(Sender: TObject);
 begin
+  {
   if Assigned(ClassBrowser.Selected) and Assigned(ClassBrowser.Selected.Data) then
     TCustomAction(Sender).Enabled := (PStatement(ClassBrowser.Selected.Data)^._Kind = skClass)
   else
     TCustomAction(Sender).Enabled := False;
+  }
 end;
 
 procedure TMainForm.actBrowserGotoDeclarationExecute(Sender: TObject);
 var
   Editor: TEditor;
-  Node: TTreeNode;
   FileName: AnsiString;
   Line: integer;
-  Statement: PStatement;
 begin
-  Node := ClassBrowser.Selected;
-  Statement := PStatement(Node.Data);
-  FileName := Statement^._FileName;
-  Line := Statement^._Line;
+  FileName := ClassBrowser.SelectedFile;
+  Line := ClassBrowser.SelectedLine;
+  if FileName = '' then
+    Exit;
   Editor := fEditorList.GetEditorFromFileName(FileName);
   if Assigned(Editor) then begin
     Editor.SetCaretPosAndActivate(Line, 1);
@@ -5383,15 +5390,13 @@ end;
 procedure TMainForm.actBrowserGotoDefinitionExecute(Sender: TObject);
 var
   Editor: TEditor;
-  Node: TTreeNode;
   FileName: AnsiString;
   Line: integer;
-  Statement: PStatement;
 begin
-  Node := ClassBrowser.Selected;
-  Statement := PStatement(Node.Data);
-  FileName := Statement^._DefinitionFileName;
-  Line := Statement^._DefinitionLine;
+  FileName := ClassBrowser.SelectedDefFile;
+  Line := ClassBrowser.SelectedDefLine;
+  if FileName = '' then
+    Exit;
   Editor := fEditorList.GetEditorFromFileName(FileName);
   if Assigned(Editor) then begin
     Editor.SetCaretPosAndActivate(Line, 1);
@@ -5402,11 +5407,6 @@ procedure TMainForm.actBrowserNewClassExecute(Sender: TObject);
 begin
   with TNewClassForm.Create(Self) do
     ShowModal;
-    {
-  finally
-    Close;
-  end;
-    }
 end;
 
 procedure TMainForm.actBrowserNewMemberExecute(Sender: TObject);
@@ -5444,7 +5444,9 @@ begin
     and (ClassBrowser.Parser = e.CppParser) then begin
     Exit;
 
-  end else if not assigned(fProject) then begin
+  end;
+  {
+   else if not assigned(fProject) then begin
     UpdateClassBrowsing;
   end else begin
     p1:=fProject.Units.IndexOf(ClassBrowser.CurrentFile);
@@ -5452,9 +5454,10 @@ begin
     if (p1<0) or (p2<0) then
       UpdateClassBrowsing;
   end;
-  ClassBrowser.BeginUpdate;
+  }
+  ClassBrowser.BeginTreeUpdate;
   try
-    // ClassBrowser.Clear; //set parser will do the clear
+    // ClassBrowser.ClearTree; //set parser will do the clear
     ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
       ClassBrowser.CurrentFile := e.FileName;
@@ -5466,7 +5469,7 @@ begin
       ClassBrowser.CurrentFile := '';
     end;
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
 end;
 
@@ -5477,7 +5480,7 @@ var
   e: TEditor;
 begin
   case GetCompileTarget of
-    ctProject: begin
+    cttProject: begin
         // Check if we enabled proper options
         ProfilingEnabled := fProject.GetCompilerOption('-pg') <> '0';
         StripEnabled := fProject.GetCompilerOption('-s') <> '0';
@@ -5506,7 +5509,7 @@ begin
           RunEndProc;
         end;
      end;
-    ctFile: begin
+    cttFile: begin
         // Check if we enabled proper options
         with devCompilerSets.CompilationSet do begin
           ProfilingEnabled := GetOption('-pg') <> '0';
@@ -5567,18 +5570,18 @@ begin
         fRunEndAction := reaProfile;
         RunEndProc;
       end;
-    ctNone: Exit;
+    cttNone: Exit;
    end;
 
 end;
 
 procedure TMainForm.actCloseAllButThisExecute(Sender: TObject);
 begin
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
   try
     fEditorList.CloseAllButThis;
   finally
-    ClassBrowser.EndUpdate;
+    ClassBrowser.EndTreeUpdate;
   end;
 end;
 
@@ -5848,13 +5851,13 @@ procedure TMainForm.actExecParamsExecute(Sender: TObject);
 begin
   with TParamsForm.Create(self) do try
     case GetCompileTarget of
-      ctNone, ctFile: begin
+      cttNone, cttFile: begin
         ParamEdit.Text := fCompiler.RunParams;
         cbUseParams.Checked := fCompiler.UseRunParams;
         cbUseInputFile.Checked := fCompiler.UseInputFile;
         txtInputFile.Text := fCompiler.InputFile;
         end;
-      ctProject: begin
+      cttProject: begin
           HostEdit.Text := fProject.Options.HostApplication;
           ParamEdit.Text := fProject.Options.CmdLineArgs;
         end;
@@ -5867,9 +5870,9 @@ begin
       fCompiler.UseInputFile := cbUseInputFile.Checked;
       fCompiler.InputFile := txtInputFile.Text;
       case GetCompileTarget of
-        ctNone, ctFile:
+        cttNone, cttFile:
           fCompiler.RunParams := ParamEdit.Text;
-        ctProject: begin
+        cttProject: begin
             if (HostEdit.Enabled) then
               fProject.Options.HostApplication := HostEdit.Text;
             fProject.Options.CmdLineArgs := ParamEdit.Text;
@@ -5932,7 +5935,7 @@ begin
     e.FunctionTip.ReleaseHandle;
     e.CompletionBox.Hide;
   end;
-  ClassBrowser.BeginUpdate;
+  ClassBrowser.BeginTreeUpdate;
 
   fParseStartTime := GetTickCount;
 end;
@@ -5982,7 +5985,7 @@ begin
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGINCOUNT], [Total, ParseTimeFloat, ParsingFrequency]))
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
-  ClassBrowser.EndUpdate;
+  ClassBrowser.EndTreeUpdate;
 end;
 
 procedure TMainForm.UpdateAppTitle;
@@ -6537,15 +6540,15 @@ var
 begin
   path := '';
   case GetCompileTarget of
-    ctProject: begin
+    cttProject: begin
         path := ExtractFilePath(fProject.Executable) + GPROF_CHECKFILE;
       end;
-    ctFile: begin
+    cttFile: begin
         e := fEditorList.GetEditor;
         if Assigned(e) then
           path := ExtractFilePath(ChangeFileExt(e.FileName, EXE_EXT)) + GPROF_CHECKFILE;
       end;
-    ctNone: Exit;
+    cttNone: Exit;
   end;
 
   if path <> '' then begin
@@ -7529,7 +7532,7 @@ begin
   e:=EditorList.GetEditor();
   if not assigned(e) then
     Exit;
-  if not PrepareForCompile(ctFile) then
+  if not PrepareForCompile(cttFile) then
     Exit;
   if e.InProject then
     fCompiler.Project := MainForm.fProject;
@@ -7772,7 +7775,7 @@ begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
     Editor.BeginUpdate;
-    ClassBrowser.BeginUpdate;
+    ClassBrowser.BeginTreeUpdate;
     oldCursor := Editor.Text.Cursor;
     Editor.Text.Cursor := crHourglass;
     try
@@ -7826,7 +7829,7 @@ begin
     end;
     finally
       Editor.EndUpdate;
-      ClassBrowser.EndUpdate;
+      ClassBrowser.EndTreeUpdate;
       Editor.Text.Cursor := oldCursor;
     end;
   end;
@@ -8447,26 +8450,27 @@ begin
           - TTabControl(Control).Images.Width
         ) div 2) + 1;
         y  := Rect.bottom - ((Rect.Bottom - Rect.Top
-           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
            - TTabControl(Control).Images.Height
            ) div 2) - TTabControl(Control).Images.Height;
         TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
       end else begin
         y  := Rect.Bottom - ((Rect.Bottom - Rect.Top
-           - Control.Canvas.TextWidth(TTabControl(Control).Tabs[TabIndex])
+           - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
            ) div 2) - 1;
       end;
       x  := Rect.Left + ((Rect.Right - Rect.Left
-        - Control.Canvas.TextHeight (TTabControl(Control).Tabs[TabIndex])
+        - Control.Canvas.TextHeight (TPageControl(Control).Pages[TabIndex].Caption)
         ) div 2) + 1;
-      AngleTextOut(Control.Canvas,TTabControl(Control).Tabs[TabIndex],x,y,90);
+
+      AngleTextOut(Control.Canvas,TPageControl(Control).Pages[TabIndex].Caption,x,y,90);
     end;
     tpTop,tpBottom: begin
       if Assigned(TPageControl(Control).Images)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
         x  := Rect.Left + ((Rect.Right - Rect.Left
-          - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])
+          - Control.Canvas.TextWidth (TPageControl(Control).Pages[TabIndex].Caption)
           - TTabControl(Control).Images.Width
           ) div 2) + 1;
         y  := Rect.Top + ((Rect.Bottom - Rect.Top
@@ -8474,10 +8478,10 @@ begin
         TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
         inc(x,TTabControl(Control).Images.Width);
       end else begin
-        x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth (TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
+        x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
       end;
-      y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TTabControl(Control).Tabs[TabIndex])) div 2) + 1;
-      Control.Canvas.TextOut(x,y,TTabControl(Control).Tabs[TabIndex]);
+      y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
+      Control.Canvas.TextOut(x,y,TPageControl(Control).Pages[TabIndex].Caption);
     end;
   end;
 end;
@@ -8766,12 +8770,12 @@ var
 begin
   Result := fDummyCppParser;
   case GetCompileTarget of
-    ctProject: begin
+    cttProject: begin
       if not Assigned(fProject) then
         Exit;
       Result := fProject.CppParser;
     end;
-    ctFile: begin
+    cttFile: begin
       e:=EditorList.GetEditor();
       if not Assigned(e) then
         Exit;
@@ -8785,7 +8789,7 @@ var
   e:TEditor;
 begin
   case GetCompileTarget of
-    ctFile: begin
+    cttFile: begin
         e:=EditorList.GetEditor();
         if not Assigned(e) then
           Exit;
@@ -8794,7 +8798,7 @@ begin
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);
       end;
-    ctProject: begin
+    cttProject: begin
         TCustomAction(Sender).Enabled := (not fCompiler.Compiling)
           and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
           and (not devExecutor.Running);

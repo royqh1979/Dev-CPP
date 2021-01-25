@@ -70,7 +70,8 @@ MinGW64.old
 devpaks
 AStyle
 devpaks
-Packages
+/Packages
 ResEd
 PackMaker.exe
 MinGW64
+/MinGW64.bak

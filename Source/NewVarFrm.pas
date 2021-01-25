@@ -93,7 +93,9 @@ begin
   chkReadFuncClick(nil);
   chkWriteFuncClick(nil);
 
+  {
   cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._Command);
+  }
 
   txtType.SetFocus;
 end;

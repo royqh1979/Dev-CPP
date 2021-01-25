@@ -560,7 +560,7 @@ begin
   if fText.Focused then
     Exit;
   {
-  MainForm.ClassBrowser.BeginUpdate;
+  MainForm.ClassBrowser.BeginTreeUpdate;
   try
   }
     MainForm.UpdateClassBrowserForEditor(self);
@@ -576,7 +576,7 @@ begin
     end;
   {
   finally
-    MainForm.ClassBrowser.EndUpdate;
+    MainForm.ClassBrowser.EndTreeUpdate;
   end;
   }
 

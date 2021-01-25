@@ -1,6 +1,6 @@
 object CompOptForm: TCompOptForm
-  Left = 468
-  Top = 172
+  Left = 618
+  Top = 174
   BorderStyle = bsDialog
   Caption = 'Compiler options'
   ClientHeight = 724
@@ -577,7 +577,7 @@ object CompOptForm: TCompOptForm
               Left = 5
               Top = 413
               Width = 575
-              Height = 23
+              Height = 28
               Anchors = [akLeft, akRight, akBottom]
               TabOrder = 1
               OnChange = edEntryChange
@@ -950,9 +950,12 @@ object CompOptForm: TCompOptForm
     object tabAutoLink: TTabSheet
       Caption = 'Auto Links'
       ImageIndex = 1
+      DesignSize = (
+        637
+        631)
       object lvAutoLinks: TStringGrid
         Left = 11
-        Top = 51
+        Top = 67
         Width = 492
         Height = 182
         ColCount = 2
@@ -999,6 +1002,16 @@ object CompOptForm: TCompOptForm
           'AutoLinks')
         TabOrder = 3
         OnChange = AutoLinksChange
+      end
+      object chkEnableAutoLinks: TCheckBox
+        Left = 13
+        Top = 16
+        Width = 595
+        Height = 23
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable Auto Links'
+        TabOrder = 4
+        OnClick = chkEnableAutoLinksClick
       end
     end
   end

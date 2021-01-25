@@ -134,18 +134,10 @@ OriginalFilename=devcpp.exe
 ProductName=Dev-C++
 ProductVersion=6
 Comments=Under the GNU General Public License
-[HistoryLists\hlDebugSourcePath]
-Count=1
-Item0=C:\Program Files (x86)\Dev-Cpp\Source\VCL\SynEdit\Source\;C:\Program Files (x86)\Dev-Cpp\Source\VCL\ClassBrowsing\
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=1
-Item0=VCL\ClassBrowsing;VCL\devFileMonitor;VCL\devShortcuts;VCL\CompOptionsList;VCL\SynEdit\Source
-[HistoryLists\hlUnitOutputDirectory]
-Count=1
-Item0=Units
-[HistoryLists\hlOutputDirectorry]
-Count=1
-Item0=..
+Count=2
+Item0=..\VirtualTreeView\Source
+Item1=..\..\Common

@@ -26,11 +26,12 @@ package ClassBrowsing;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'ClassBrowsing components'}
-{$IMPLICITBUILD OFF}
+{$IMPLICITBUILD ON}
 
 requires
   rtl,
-  vcl;
+  vcl,
+  VirtualTreesR;
 
 contains
   StatementList in 'StatementList.pas',

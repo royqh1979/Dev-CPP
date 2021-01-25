@@ -144,7 +144,18 @@ type
     property AddtoLink: boolean read fLinkAdd write fLinkAdd;
     property CompOpts: AnsiString read fCompOpt write fCompOpt;
     property LinkOpts: AnsiString read fLinkOpt write fLinkOpt;
+  end;
 
+  //Compiler Settings
+  TdevCompiler = class(TPersistent)
+    private
+      fEnableAutoLinks: boolean;
+    public
+      constructor Create;
+      procedure SettoDefaults;
+      procedure SaveSettings;
+      procedure LoadSettings;
+      property EnableAutoLinks: boolean read fEnableAutoLinks write fEnableAutoLinks;
   end;
 
   // compiler-set configuration
@@ -810,6 +821,7 @@ var
   devFormatter: TdevFormatter = nil;
   devRefactorer: TdevRefactorer = nil;
   devDebugger: TdevDebugger = nil;
+  devCompiler: TDevCompiler = nil;
 
 implementation
 
@@ -884,6 +896,9 @@ begin
   if not Assigned(devDebugger) then
     devDebugger := TdevDebugger.Create;
 
+  if not Assigned(devCompiler) then
+    devCompiler :=  TdevCompiler.Create;
+
 end;
 
 procedure SaveOptions;
@@ -898,6 +913,7 @@ begin
   devFormatter.SaveSettings;
   devRefactorer.SaveSettings;
   devDebugger.SaveSettings;
+  devCompiler.SaveSettings;
 end;
 
 procedure DestroyOptions;
@@ -912,6 +928,7 @@ begin
   FreeAndNil(devFormatter);
   FreeAndNil(devRefactorer);
   FreeAndNil(devDebugger);
+  FreeAndNil(devCompiler);
 end;
 
 procedure RemoveOptionsDir(const Directory: AnsiString);
@@ -1887,11 +1904,11 @@ begin
   Result := -1;
   if Assigned(MainForm) then begin
     case MainForm.GetCompileTarget of
-      ctNone:
+      cttNone:
         Result := fDefaultIndex;
-      ctFile:
+      cttFile:
         Result := fDefaultIndex;
-      ctProject:
+      cttProject:
         Result := MainForm.Project.Options.CompilerSet;
     end;
   end else
@@ -2844,6 +2861,31 @@ end;
 procedure TdevRefactorer.SettoDefaults;
 begin
 end;
+
+{ TdevCompiler }
+
+constructor TdevCompiler.Create;
+begin
+  inherited Create;
+  SettoDefaults;
+  LoadSettings;
+end;
+
+procedure TdevCompiler.LoadSettings;
+begin
+  devData.ReadObject('Compiler', Self);
+end;
+
+procedure TdevCompiler.SaveSettings;
+begin
+  devData.WriteObject('Compiler', Self);
+end;
+
+procedure TdevCompiler.SettoDefaults;
+begin
+  fEnableAutoLinks := True;
+end;
+
 
 { TdevFormatter }
 
