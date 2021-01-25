@@ -231,6 +231,10 @@ begin
     TVirtualTreeOptions(TreeOptions).PaintOptions - [toShowTreeLines];
   TVirtualTreeOptions(TreeOptions).SelectionOptions :=
     TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect];
+
+  TVirtualTreeOptions(TreeOptions).AutoOptions :=
+    TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort];
+
   self.OnInitNode := OnCBInitNode;
   self.OnGetText := OnCBGetText;
   self.OnFreeNode := OnCBFreeNode;
@@ -451,7 +455,7 @@ begin
 
         // Add everything recursively
         AddMembers;
-        //Sort;
+        DoSort;
 
       // Remember selection
         if fLastSelection <> '' then
@@ -699,11 +703,11 @@ begin
     try
       if sortAlphabetically then begin
         self.OnCompareNodes := OnCompareByAlpha;
-        self.Sort(self.RootNode,0,sdAscending,False);
+        self.SortTree(0,sdAscending,True);
       end;
       if sortByType then begin
         self.OnCompareNodes := OnCompareByType;
-        self.Sort(self.RootNode,0,sdAscending,False);
+        self.SortTree(0,sdAscending,True);
       end;
     finally
       //Items.EndUpdate;
@@ -780,7 +784,7 @@ begin
   if Value = fSortAlphabetically then
     Exit;
   fSortAlphabetically := Value;
-  DoSort(True);
+  UpdateView;
 end;
 
 procedure TClassBrowser.SetSortByType(Value: boolean);
@@ -788,7 +792,7 @@ begin
   if Value = fSortByType then
     Exit;
   fSortByType := Value;
-  DoSort(True);
+  UpdateView;
 end;
 
 
