@@ -117,7 +117,7 @@ type
     procedure SetStatementsType(Value: TClassBrowserStatementsType);
     procedure SetTabVisible(Value: boolean);
     procedure ReSelect;
-    procedure DoSort(lock:boolean=False);
+    //procedure DoSort(lock:boolean=False);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);
     procedure OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -129,10 +129,12 @@ type
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure OnCBDrawText(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; const Text: UnicodeString; const CellRect: TRect; var DefaultDraw: Boolean);
+    {
     procedure OnCompareByType(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
     procedure OnCompareByAlpha(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
+    }
     function GetSelectedFile: String;
     function GetSelectedLine: integer;
     function GetSelectedDefFile: String;
@@ -201,6 +203,32 @@ type
 procedure Register;
 begin
   RegisterComponents('Dev-C++', [TClassBrowser]);
+end;
+
+
+function CompareByType(stat1:PStatement; stat2:PStatement):integer;
+begin
+  if stat1^._Static and (not stat2^._Static) then
+    Result:=-1
+  else if (not stat1^._Static) and stat2^._Static then
+    Result:=1
+  else
+    if Ord(stat1^._ClassScope) <> Ord(stat2^._ClassScope) then
+      Result := Ord(stat1^._ClassScope) - Ord(stat2^._ClassScope)
+    else
+      Result := Ord(stat1^._Kind) - Ord(stat2^._Kind);
+end;
+
+function CompareByAlpha(stat1:PStatement; stat2:PStatement):integer;
+begin
+  Result := StrIComp(PAnsiChar(stat1^._Command), PAnsiChar(stat2^._Command));
+end;
+
+function CompareByAlphaAndType(stat1:PStatement; stat2:PStatement):integer;
+begin
+  Result:=CompareByType(stat1,stat2);
+  if Result = 0 then
+    Result := CompareByAlpha(stat1,stat2);
 end;
 
 { TClassBrowser }
@@ -415,6 +443,13 @@ begin
       filtered.Add(Statement);
     end;
   end;
+  if sortAlphabetically and sortByType then begin
+    filtered.Sort(@CompareByAlphaAndType);
+  end else if sortAlphabetically then begin
+    filtered.Sort(@CompareByAlpha);
+  end else if sortByType then begin
+    filtered.Sort(@CompareByType);
+  end;
 end;
 
 procedure TClassBrowser.AddMembers;
@@ -479,7 +514,7 @@ begin
 
         // Add everything recursively
         AddMembers;
-        DoSort;
+        //DoSort;
 
       // Remember selection
         if fLastSelection <> '' then
@@ -606,7 +641,7 @@ begin
   try
     if fUpdating then
       Exit;
-    GetHitTestInfoAt(X, Y, false, hitInfo);
+    GetHitTestInfoAt(X, Y, true, hitInfo);
     Node := hitInfo.HitNode;
     if not Assigned(node) then begin
       self.ClearSelection;
@@ -637,7 +672,7 @@ begin
     try
       if not samestr(fParser.SerialId, fParserSerialId) then
         Exit;
-      GetHitTestInfoAt(X, Y, false, hitInfo);
+      GetHitTestInfoAt(X, Y, true, hitInfo);
       Node := hitInfo.HitNode;
 
       // Dit we click on anything?
@@ -688,6 +723,7 @@ begin
 end;
 }
 
+{
 procedure TClassBrowser.OnCompareByType(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
 var
@@ -715,7 +751,9 @@ begin
   Data2:=Sender.GetNodeData(Node2);
   Result := StrIComp(PAnsiChar(Data1.Text), PAnsiChar(Data2.Text));
 end;
+}
 
+{
 procedure TClassBrowser.DoSort(lock:boolean);
 begin
   fCriticalSection.Acquire;
@@ -748,7 +786,7 @@ begin
     fCriticalSection.Release;
   end;
 end;
-
+}
 procedure TClassBrowser.ClearTree;
 begin
   fCriticalSection.Acquire;
