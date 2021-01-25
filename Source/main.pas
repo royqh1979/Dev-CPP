@@ -682,6 +682,11 @@ type
     MenuItem27: TMenuItem;
     MenuItem41: TMenuItem;
     HeaderCompletion: THeaderCompletion;
+    actStatementsTypeFile: TAction;
+    actStatementsTypeProject: TAction;
+    N45: TMenuItem;
+    ShowMembersintheFile1: TMenuItem;
+    ShowMembersintheProject1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1002,6 +1007,9 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure actOpenWindowsTerminalExecute(Sender: TObject);
     procedure actOpenWindowsTerminalUpdate(Sender: TObject);
+    procedure actStatementsTypeFileUpdate(Sender: TObject);
+    procedure actStatementsTypeFileExecute(Sender: TObject);
+    procedure actStatementsTypeProjectExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1072,6 +1080,7 @@ type
     procedure ChangeEncoding(encoding:TFileEncodingType);
     procedure UpdateDebugInfo;
     procedure OpenShell(Sender: TObject;const shellName:string);
+    procedure UpdateStatementsType;
   public
     function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
@@ -1921,6 +1930,8 @@ begin
   actBrowserShowInherited.Caption := Lang[ID_POP_SHOWINHERITED];
   actBrowserSortAlphabetically.Caption := Lang[ID_POP_SORT_ALPHABETICALLY];
   actBrowserSortByType.Caption := Lang[ID_POP_SORT_BY_TYPE];
+  actStatementsTypeFile.Caption := Lang[ID_POP_SHOW_MEMBERS_IN_FILE];
+  actStatementsTypeProject.Caption := Lang[ID_POP_SHOW_MEMBERS_IN_PROJECT];
 
   //FindOutput Popup
   mnuClearAllFindItems.Caption := Lang[ID_POP_CLEAR_ALL_FINDS];
@@ -5338,12 +5349,12 @@ end;
 
 procedure TMainForm.actBrowserGotoDeclarationUpdate(Sender: TObject);
 begin
-  //TAction(Sender).Enabled := Assigned(ClassBrowser.Selected);
+  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind <> skUnknown)
 end;
 
 procedure TMainForm.actBrowserGotoDefinitionUpdate(Sender: TObject);
 begin
-  //TAction(Sender).Enabled := Assigned(ClassBrowser.Selected);
+  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind = <> skUnknown)
 end;
 
 procedure TMainForm.actBrowserNewClassUpdate(Sender: TObject);
@@ -5353,22 +5364,12 @@ end;
 
 procedure TMainForm.actBrowserNewMemberUpdate(Sender: TObject);
 begin
-{
-  if Assigned(ClassBrowser.Selected) and Assigned(ClassBrowser.Selected.Data) then
-    TCustomAction(Sender).Enabled := (PStatement(ClassBrowser.Selected.Data)^._Kind = skClass)
-  else
-    TCustomAction(Sender).Enabled := False;
-  }
+  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind = skClass)
 end;
 
 procedure TMainForm.actBrowserNewVarUpdate(Sender: TObject);
 begin
-  {
-  if Assigned(ClassBrowser.Selected) and Assigned(ClassBrowser.Selected.Data) then
-    TCustomAction(Sender).Enabled := (PStatement(ClassBrowser.Selected.Data)^._Kind = skClass)
-  else
-    TCustomAction(Sender).Enabled := False;
-  }
+  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind = skClass)
 end;
 
 procedure TMainForm.actBrowserGotoDeclarationExecute(Sender: TObject);
@@ -5460,6 +5461,10 @@ begin
     // ClassBrowser.ClearTree; //set parser will do the clear
     ClassBrowser.Parser := GetCppParser;
     if Assigned(e) then begin
+      if e.InProject then begin
+        ClassBrowser.StatementsType := devClassBrowsing.StatementsType;
+      end else
+        ClassBrowser.StatementsType := cbstFile;
       ClassBrowser.CurrentFile := e.FileName;
       if (e.FileName <> '') and
         ( (not e.New)  or e.Text.Modified) then begin
@@ -6985,6 +6990,7 @@ begin
 
   ClassBrowser.OnUpdated := OnClassBrowserUpdated;
   UpdateClassBrowsing;
+  UpdateStatementsType;
 
   // Showing for the first time? Maximize
   if devData.First then
@@ -9005,6 +9011,41 @@ procedure TMainForm.actOpenWindowsTerminalUpdate(Sender: TObject);
 begin
   TCustomAction(Sender).Enabled := devEnvironment.HasWindowsTerminal
     and (fEditorList.PageCount > 0);
+end;
+
+procedure TMainForm.actStatementsTypeFileUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor;
+  if assigned(e) then begin
+    TCustomAction(Sender).Enabled := e.InProject;
+  end else
+    TCustomAction(Sender).Enabled := False;
+end;
+
+procedure TMainForm.UpdateStatementsType;
+var
+  e:TEditor;
+begin
+  e:=EditorList.GetEditor;
+  if assigned(e) and e.InProject then begin
+    ClassBrowser.StatementsType := devClassBrowsing.StatementsType;
+  end;
+  actStatementsTypeFile.Checked := (devClassBrowsing.StatementsType = cbstFile);
+  actStatementsTypeProject.Checked := (devClassBrowsing.StatementsType = cbstProject);
+end;
+
+procedure TMainForm.actStatementsTypeFileExecute(Sender: TObject);
+begin
+  devClassBrowsing.StatementsType := cbstFile;
+  UpdateStatementsType;
+end;
+
+procedure TMainForm.actStatementsTypeProjectExecute(Sender: TObject);
+begin
+  devClassBrowsing.StatementsType := cbstProject;
+  UpdateStatementsType;
 end;
 
 end.

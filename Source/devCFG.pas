@@ -23,7 +23,7 @@ interface
 
 uses
   Dialogs, Windows, Classes, Graphics, SynEdit, editor, CFGData, IniFiles, ProjectTypes, Math, ShellAPI, ShlObj,
-  ComCtrls, SynEditTextBuffer;
+  ComCtrls, SynEditTextBuffer, CBUtils;
 
 const
   BoolValYesNo: array[boolean] of AnsiString = ('No', 'Yes');
@@ -244,6 +244,7 @@ type
     fShowInheritedMembers: boolean;
     fSortByType: boolean;
     fSortAlphabetically: boolean;
+    fStatementsType: TClassBrowserStatementsType;
   public
     constructor Create;
     procedure SettoDefaults;
@@ -253,6 +254,7 @@ type
     property ShowInheritedMembers: boolean read fShowInheritedMembers write fShowInheritedMembers;
     property SortByType : boolean read fSortByType write fSortByType;
     property SortAlphabetically: boolean read fSortAlphabetically write fSortAlphabetically;
+    property StatementsType: TClassBrowserStatementsType read fStatementsType write fStatementsType;
   end;
 
   //Options for Debugger
@@ -2813,6 +2815,7 @@ begin
   fShowInheritedMembers := False;
   fSortByType := False;
   fSortAlphabetically := False;
+  fStatementsType := cbstFile;
 end;
 
 { TDevDebugger }

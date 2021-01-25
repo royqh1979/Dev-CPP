@@ -26,6 +26,7 @@ uses
   CppParser, Forms, cbutils, Messages, SyncObjs, VirtualTrees;
 
 type
+
   TMemberSelectEvent = procedure(Sender: TObject; Filename: TFilename; Line: integer) of object;
 
   TImagesRecord = class(TPersistent)
@@ -91,6 +92,7 @@ type
     fLastSelection: AnsiString;
     fSortAlphabetically: boolean;
     fSortByType: boolean;
+    fStatementsType: TClassBrowserStatementsType;
     fOnUpdated: TNotifyEvent;
     fUpdating: boolean;
     fColors : array[0..14] of TColor;
@@ -112,6 +114,7 @@ type
     procedure SetShowInheritedMembers(Value: boolean);
     procedure SetSortAlphabetically(Value: boolean);
     procedure SetSortByType(Value: boolean);
+    procedure SetStatementsType(Value: TClassBrowserStatementsType);
     procedure SetTabVisible(Value: boolean);
     procedure ReSelect;
     procedure DoSort(lock:boolean=False);
@@ -134,6 +137,7 @@ type
     function GetSelectedLine: integer;
     function GetSelectedDefFile: String;
     function GetSelectedDefLine: integer;
+    function GetSelectedKind: TStatementKind;
     function GetSelected: PVirtualNode;
   public
     constructor Create(AOwner: TComponent); override;
@@ -148,6 +152,7 @@ type
     property SelectedFile : String read GetSelectedFile;
     property SelectedDefLine : integer read GetSelectedDefLine;
     property SelectedDefFile : String read GetSelectedDefFile;
+    property SelectedKind : TStatementKind read GetSelectedKind;
     property Colors;
   published
     property Align;
@@ -167,6 +172,7 @@ type
     property SortAlphabetically: boolean read fSortAlphabetically write SetSortAlphabetically;
     property SortByType: boolean read fSortByType write SetSortByType;
     property ParserSerialId: string read fParserSerialId;
+    property StatementsType: TClassBrowserStatementsType read fStatementsType write SetStatementsType;
   end;
 
 const
@@ -225,6 +231,7 @@ begin
   //ShowLines := False;
   fSortAlphabetically:= True;
   fSortByType:=True ;
+  fStatementsType := cbstFile;
   fOnUpdated:=nil;
   fUpdating:=False;
   TVirtualTreeOptions(TreeOptions).PaintOptions :=
@@ -378,6 +385,14 @@ begin
       if _Scope = ssLocal then
         Continue;
 
+      if (fStatementsType = cbstProject) then begin
+        if not Statement^._InProject then
+          Continue;
+        if Statement^._Static and not SameText(Statement^._FileName,fCurrentFile)
+          and not SameText(Statement^._FileName,fCurrentFile) then
+          Continue;
+      end;
+
       if Statement^._ParentScope <> ParentStatement then begin
         if Assigned(ParentStatement) then
           Continue;
@@ -402,9 +417,8 @@ end;
 
 procedure TClassBrowser.AddMembers;
 var
-  Statement, ParentStatement: PStatement;
+  ParentStatement: PStatement;
   Children: TList;
-  i:integer;
   P:PFileIncludes;
   {
   procedure AddStatement(Statement: PStatement);
@@ -420,19 +434,14 @@ var
   end;
   }
 begin
-  {
-  if Assigned(ParentStatement) then begin
-    Children := fParser.Statements.GetChildrenStatements(ParentStatement);
-  end else begin
-  }
   ParentStatement := nil;
-  p:=fParser.FindFileIncludes(fCurrentFile);
-  if not Assigned(p) then
-    Exit;
-  Children := p^.Statements;
-  {
-  end;
-  }
+  if fStatementsType = cbstFile then begin
+    p:=fParser.FindFileIncludes(fCurrentFile);
+    if not Assigned(p) then
+      Exit;
+    Children := p^.Statements;
+  end else
+    Children := fParser.Statements.GetChildrenStatements(nil);
 
 //  fParser.Statements.DumpWithScope('f:\browser.txt');
   filterChildren(nil,Children,fRootStatements);
@@ -593,9 +602,14 @@ begin
   inherited;
   fCriticalSection.Acquire;
   try
+    if fUpdating then
+      Exit;
     GetHitTestInfoAt(X, Y, false, hitInfo);
     Node := hitInfo.HitNode;
-    self.SelectNodes(node,node,False);
+    if not Assigned(node) then begin
+      self.ClearSelection;
+    end else
+      self.SelectNodes(node,node,False);
     self.Invalidate;
   finally
     fCriticalSection.Release;
@@ -744,7 +758,6 @@ begin
     fRootStatements.Clear;
   finally
     fUpdating:=False;
-    //Items.EndUpdate;
   end;
   finally
     fCriticalSection.Release;
@@ -759,13 +772,8 @@ begin
   fCriticalSection.Acquire;
   try
     fParser := Value;
-  {
-  if Assigned(fParser) then begin
-    fParser.OnUpdate := OnParserUpdate;
-    fParser.OnBusy := OnParserBusy;
-  end;
-  }
-    UpdateView;
+    BeginTreeUpdate;
+    EndTreeUpdate;
   finally
     fCriticalSection.Release;
   end;
@@ -778,7 +786,8 @@ begin
   if Value = fCurrentFile then
     Exit;
   fCurrentFile := Value;
-  UpdateView;
+  BeginTreeUpdate;
+  EndTreeUpdate;
   finally
     fCriticalSection.Release;
   end;
@@ -786,35 +795,74 @@ end;
 
 procedure TClassBrowser.SetShowInheritedMembers(Value: boolean);
 begin
-  if Value = fShowInheritedMembers then
-    Exit;
-  fShowInheritedMembers := Value;
-  UpdateView;
+  fCriticalSection.Acquire;
+  try
+    if Value = fShowInheritedMembers then
+      Exit;
+    fShowInheritedMembers := Value;
+    BeginTreeUpdate;
+    EndTreeUpdate;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TClassBrowser.SetSortAlphabetically(Value: boolean);
 begin
-  if Value = fSortAlphabetically then
-    Exit;
-  fSortAlphabetically := Value;
-  UpdateView;
+  fCriticalSection.Acquire;
+  try
+    if Value = fSortAlphabetically then
+      Exit;
+    fSortAlphabetically := Value;
+    BeginTreeUpdate;
+    EndTreeUpdate;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 procedure TClassBrowser.SetSortByType(Value: boolean);
 begin
-  if Value = fSortByType then
-    Exit;
-  fSortByType := Value;
-  UpdateView;
+  fCriticalSection.Acquire;
+  try
+    if Value = fSortByType then
+      Exit;
+    fSortByType := Value;
+    BeginTreeUpdate;
+    EndTreeUpdate;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+procedure TClassBrowser.SetStatementsType(Value: TClassBrowserStatementsType);
+begin  
+  fCriticalSection.Acquire;
+  try
+    if Value = fStatementsType then
+      Exit;
+    fStatementsType := Value;
+    BeginTreeUpdate;
+    EndTreeUpdate;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 
 procedure TClassBrowser.SetTabVisible(Value: boolean);
 begin
-  if Value = fTabVisible then
-    Exit;
-  fTabVisible := Value;
-  UpdateView;
+
+  fCriticalSection.Acquire;
+  try
+    if Value = fTabVisible then
+      Exit;
+    fTabVisible := Value;
+    BeginTreeUpdate;
+    EndTreeUpdate;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
 
 
@@ -823,7 +871,6 @@ procedure TClassBrowser.OnCBDrawText(Sender: TBaseVirtualTree; TargetCanvas: TCa
 var
   st: PStatement;
   bInherited: boolean;
-  color : TColor;
   Data:PNodeData;
 begin
   fCriticalSection.Acquire;
@@ -1018,9 +1065,6 @@ begin
 end;
 
 procedure TClassBrowser.ReSelect;
-var
-  I: Integer;
-  Statement: PStatement;
 begin
   {
   for I := 0 to Items.Count - 1 do begin
@@ -1187,5 +1231,35 @@ begin
     fCriticalSection.Release;
   end;
 end;
+
+function TClassBrowser.GetSelectedKind:TStatementKind;
+var
+  node:PVirtualNode;
+  data:PNodeData;
+begin
+  Result := skUnknown;
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+    try
+      node := GetSelected;
+      if assigned(node) then begin
+        data:=GetNodeData(node);
+        if assigned(data) and assigned(data^.statement) then
+          Result := data^.statement^._Kind;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
 end.
 
