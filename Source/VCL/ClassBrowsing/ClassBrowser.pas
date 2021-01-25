@@ -244,6 +244,19 @@ end;
 
 destructor TClassBrowser.Destroy;
 begin
+  while True do begin
+    fCriticalSection.Acquire;
+    try
+      if not fUpdating then begin
+        fUpdating:=True;
+        break;
+      end;
+    finally
+      fCriticalSection.Release;
+    end;
+    Sleep(50);
+    Application.ProcessMessages;
+  end;
   FreeAndNil(fImagesRecord);
   FreeAndNil(fControlCanvas);
   fIncludedFiles.Free;

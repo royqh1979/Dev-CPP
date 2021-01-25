@@ -4,6 +4,8 @@ Version 6.4-alpha2 JAN 2021
     - fix: can't correctly parse symbols like 'blocks[four_blocks[j].i][four_blocks[j].j].color_id';
     - fix: leftpanel tab display not correct, when the project panel is hidden.
     - enhancement: greatly improved the speed of class browser loading. (For large files such as GL/glew.h, the loading time changed from >20s to <0.2s);
+    - fix: Contents in the class browser not correctly sorted
+    - fix: crashes when exit devcpp
 
 Version 6.4-alpha1 JAN 2021
 
