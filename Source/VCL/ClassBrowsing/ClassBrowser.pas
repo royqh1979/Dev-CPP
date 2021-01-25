@@ -138,6 +138,7 @@ type
     function GetSelectedDefFile: String;
     function GetSelectedDefLine: integer;
     function GetSelectedKind: TStatementKind;
+    function GetSelectedCommand: String;
     function GetSelected: PVirtualNode;
   public
     constructor Create(AOwner: TComponent); override;
@@ -152,6 +153,7 @@ type
     property SelectedFile : String read GetSelectedFile;
     property SelectedDefLine : integer read GetSelectedDefLine;
     property SelectedDefFile : String read GetSelectedDefFile;
+    property SelectedCommand : String read GetSelectedCommand;
     property SelectedKind : TStatementKind read GetSelectedKind;
     property Colors;
   published
@@ -1223,6 +1225,35 @@ begin
         data:=GetNodeData(node);
         if assigned(data) and assigned(data^.statement) then
           Result := data^.statement^._DefinitionFileName;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+function TClassBrowser.GetSelectedCommand:String;
+var
+  node:PVirtualNode;
+  data:PNodeData;
+begin
+  Result := '';
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+    try
+      node := GetSelected;
+      if assigned(node) then begin
+        data:=GetNodeData(node);
+        if assigned(data) and assigned(data^.statement) then
+          Result := data^.statement^._Command;
       end;
     finally
       fParser.UnFreeze;
