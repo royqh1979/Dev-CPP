@@ -62,7 +62,7 @@ object NewFunctionForm: TNewFunctionForm
     Left = 108
     Top = 10
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 0
     OnChange = txtTypeChange
   end
@@ -70,7 +70,7 @@ object NewFunctionForm: TNewFunctionForm
     Left = 108
     Top = 39
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 1
     OnChange = txtTypeChange
   end
@@ -78,7 +78,7 @@ object NewFunctionForm: TNewFunctionForm
     Left = 108
     Top = 69
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 2
   end
   object btnCreate: TButton

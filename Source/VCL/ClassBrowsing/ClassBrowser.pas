@@ -73,12 +73,11 @@ type
     property NamespaceImg: integer read fNamespaceImg write fNamespaceImg;
   end;
 
-  TClassBrowser = class(TVirtualStringTree)
+  TClassBrowser = class(TCustomVirtualStringTree)
   private
     fParser: TCppParser;
     fCriticalSection: TCriticalSection;
     fParserSerialId: string;
-    fParserFreezed: boolean;
     fOnSelect: TMemberSelectEvent;
     fImagesRecord: TImagesRecord;
     fCurrentFile: AnsiString;
@@ -97,7 +96,8 @@ type
     fColors : array[0..14] of TColor;
     fRootStatements : TList;
     procedure SetParser(Value: TCppParser);
-    procedure AddMembers(ParementStatement:PStatement);
+    procedure AddMembers;
+    procedure FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages,
       DefaultDraw: Boolean);
@@ -107,7 +107,7 @@ type
     procedure OnParserUpdate(Sender: TObject);
     procedure OnParserBusy(Sender: TObject);
     }
-    procedure SetNodeImages(Node: TTreeNode; Statement: PStatement);
+    function CalcImageIndex(Statement: PStatement):integer;
     procedure SetCurrentFile(const Value: AnsiString);
     procedure SetShowInheritedMembers(Value: boolean);
     procedure SetSortAlphabetically(Value: boolean);
@@ -119,28 +119,41 @@ type
     procedure SetColor(i:integer; const Color:TColor);
     procedure OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
     var InitialStates: TVirtualNodeInitStates);
+    procedure OnCBFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);    
+    procedure OnCBGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+      var CellText: UnicodeString);
+    procedure OnCBGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure OnCBDrawText(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
+      Column: TColumnIndex; const Text: UnicodeString; const CellRect: TRect; var DefaultDraw: Boolean);
+    function GetSelectedFile: String;
+    function GetSelectedLine: integer;
+    function GetSelectedDefFile: String;
+    function GetSelectedDefLine: integer;
+    function GetSelected: PVirtualNode;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure UpdateView;
-    procedure Clear;
-    procedure BeginUpdate;
-    procedure EndUpdate;
+    procedure ClearTree;
+    procedure BeginTreeUpdate;
+    procedure EndTreeUpdate;
     property OnUpdated: TNotifyEvent read fOnUpdated write fOnUpdated;
-    property Colors[Index: Integer]: TColor read GetColor write SetColor;
+    property TreeColors[Index: Integer]: TColor read GetColor write SetColor;
+    property SelectedLine : integer read GetSelectedLine;
+    property SelectedFile : String read GetSelectedFile;
+    property SelectedDefLine : integer read GetSelectedDefLine;
+    property SelectedDefFile : String read GetSelectedDefFile;
+    property Colors;
   published
     property Align;
     property Font;
     property Images;
-    //property ReadOnly;
     property Indent;
     property TabOrder;
     property PopupMenu;
     property BorderStyle;
-    //property MultiSelect;
-    //property MultiSelectStyle;
-    //property RowSelect;
-    //property ShowLines;
+    property Header;
     property OnSelect: TMemberSelectEvent read fOnSelect write fOnSelect;
     property Parser: TCppParser read fParser write SetParser;
     property ItemImages: TImagesRecord read fImagesRecord write fImagesRecord;
@@ -167,8 +180,10 @@ type
   PNodeData = ^TNodeData;
   TNodeData = record
     Level:integer;
-    ImageIndex:integer
+    Text: String;
+    ImageIndex:integer;
     statement:PStatement;
+    ChildrenStatements: TList;
   end;
 
 procedure Register;
@@ -181,12 +196,12 @@ end;
 constructor TClassBrowser.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fCriticalSection := TCriticalSection.Create;
   OnMouseUp := OnNodeChange;
   OnMouseDown := OnNodeChanging;
-  DragMode := dmAutomatic;
+  DragMode := dmManual;
   fImagesRecord := TImagesRecord.Create;
   fCurrentFile := '';
-  fParserFreezed:=False;
   ShowHint := True;
   NodeDataSize := sizeof(TNodeData);
   fRootStatements := TList.Create;
@@ -208,8 +223,15 @@ begin
   fSortByType:=True ;
   fOnUpdated:=nil;
   fUpdating:=False;
+  TVirtualTreeOptions(TreeOptions).PaintOptions :=
+    TVirtualTreeOptions(TreeOptions).PaintOptions - [toShowTreeLines];
+  TVirtualTreeOptions(TreeOptions).SelectionOptions :=
+    TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect];
   self.OnInitNode := OnCBInitNode;
-  fCriticalSection := TCriticalSection.Create;
+  self.OnGetText := OnCBGetText;
+  self.OnFreeNode := OnCBFreeNode;
+  self.OnGetImageIndex := OnCBGetImageIndex;
+  self.OnDrawText := OnCBDrawText;
 end;
 
 destructor TClassBrowser.Destroy;
@@ -222,106 +244,150 @@ begin
   inherited Destroy;
 end;
 
-procedure TClassBrowser.BeginUpdate;
+procedure TClassBrowser.BeginTreeUpdate;
 begin
   Inc(fUpdateCount);
 end;
 
-procedure TClassBrowser.EndUpdate;
+procedure TClassBrowser.EndTreeUpdate;
 begin
   Dec(fUpdateCount);
   if fUpdateCount = 0 then
     UpdateView;
 end;
 
-procedure TClassBrowser.SetNodeImages(Node: TTreeNode; Statement: PStatement);
+function TClassBrowser.CalcImageIndex(Statement: PStatement):integer;
 var
   bInherited: boolean;
 begin
+  Result := -1;
   bInherited := statement^._Inherited;
-
   case Statement^._Kind of
     skNamespace: begin
-        Node.ImageIndex := fImagesRecord.NamespaceImg;
+        Result := fImagesRecord.NamespaceImg;
       end;
     skClass: begin
-        Node.ImageIndex := fImagesRecord.Classes;
+        Result := fImagesRecord.Classes;
       end;
     skPreprocessor: begin
-        Node.ImageIndex := fImagesRecord.DefineImg;
+        Result := fImagesRecord.DefineImg;
       end;
     skEnum: begin
         case Statement^._ClassScope of
-        scsPrivate: Node.ImageIndex := fImagesRecord.VariablePrivate;
+        scsPrivate: Result := fImagesRecord.VariablePrivate;
         scsProtected: if not bInherited then
-            Node.ImageIndex := fImagesRecord.VariableProtected
+            Result := fImagesRecord.VariableProtected
           else
-            Node.ImageIndex := fImagesRecord.InheritedVariableProtected;
+            Result := fImagesRecord.InheritedVariableProtected;
         scsPublic: if not bInherited then
-            Node.ImageIndex := fImagesRecord.VariablePublic
+            Result := fImagesRecord.VariablePublic
           else
-            Node.ImageIndex := fImagesRecord.InheritedVariablePublic;
-        scsNone: Node.ImageIndex := fImagesRecord.EnumImg;
+            Result := fImagesRecord.InheritedVariablePublic;
+        scsNone: Result := fImagesRecord.EnumImg;
       end;
     end;
     skTypedef: begin
-        Node.ImageIndex := fImagesRecord.TypeImg;
+        Result := fImagesRecord.TypeImg;
       end;
     skVariable,skParameter: case Statement^._ClassScope of
-        scsPrivate: Node.ImageIndex := fImagesRecord.VariablePrivate;
+        scsPrivate: Result := fImagesRecord.VariablePrivate;
         scsProtected: if not bInherited then
-            Node.ImageIndex := fImagesRecord.VariableProtected
+            Result := fImagesRecord.VariableProtected
           else
-            Node.ImageIndex := fImagesRecord.InheritedVariableProtected;
+            Result := fImagesRecord.InheritedVariableProtected;
         scsPublic: if not bInherited then
-            Node.ImageIndex := fImagesRecord.VariablePublic
+            Result := fImagesRecord.VariablePublic
           else
-            Node.ImageIndex := fImagesRecord.InheritedVariablePublic;
+            Result := fImagesRecord.InheritedVariablePublic;
         scsNone: begin
           if Statement^._Static then
-            Node.ImageIndex := fImagesRecord.StaticVarImg
+            Result := fImagesRecord.StaticVarImg
           else
-            Node.ImageIndex := fImagesRecord.GlobalVarImg;
+            Result := fImagesRecord.GlobalVarImg;
         end;
       end;
     skFunction, skConstructor, skDestructor: case Statement^._ClassScope of
 
-        scsPrivate: Node.ImageIndex := fImagesRecord.MethodPrivate;
+        scsPrivate: Result := fImagesRecord.MethodPrivate;
         scsProtected: if not bInherited then
-            Node.ImageIndex := fImagesRecord.MethodProtected
+            Result := fImagesRecord.MethodProtected
           else
-            Node.ImageIndex := fImagesRecord.InheritedMethodProtected;
+            Result := fImagesRecord.InheritedMethodProtected;
         scsPublic: if not bInherited then
-            Node.ImageIndex := fImagesRecord.MethodPublic
+            Result := fImagesRecord.MethodPublic
           else
-            Node.ImageIndex := fImagesRecord.InheritedMethodPublic;
+            Result := fImagesRecord.InheritedMethodPublic;
         scsNone: begin
           if Statement^._Static then
-            Node.ImageIndex := fImagesRecord.StaticFuncImg
+            Result := fImagesRecord.StaticFuncImg
           else
-            Node.ImageIndex := fImagesRecord.GlobalFuncImg;
+            Result := fImagesRecord.GlobalFuncImg;
         end;
       end;
   end;
-
+  {
   Node.SelectedIndex := Node.ImageIndex;
   Node.StateIndex := Node.ImageIndex;
+  }
 end;
 
-procedure TClassBrowser.AddMembers(ParementStatement:PStatement);
+procedure TClassBrowser.FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
 var
   Statement: PStatement;
-  NewNode: TTreeNode;
+  i:integer;
+begin
+  if not assigned(children) then
+    Exit;
+  for i:=0 to Children.Count-1 do begin
+    Statement := Children[i];
+    if not Assigned(Statement) then
+      Continue;
+    with Statement^ do begin
+      // Do not print statements marked invisible for the class browser
+
+      if _Kind = skBlock then
+        Continue;
+
+      if _Inherited and not fShowInheritedMembers then // don't show inherited members
+        Continue;
+
+      if Statement = ParentStatement then // prevent infinite recursion
+        Continue;
+
+      if _Scope = ssLocal then
+        Continue;
+
+      if Statement^._ParentScope <> ParentStatement then begin
+        if Assigned(ParentStatement) then
+          Continue;
+        //we are adding an orphan statement, just add it
+
+        //should not happend, just in case of error
+        if not Assigned(Statement^._ParentScope) then
+          Continue;
+
+        if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
+          or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
+            Continue;
+      end;
+          {
+        if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
+          AddStatement(Statement)
+        }
+      filtered.Add(Statement);
+    end;
+  end;
+end;
+
+procedure TClassBrowser.AddMembers;
+var
+  Statement, ParentStatement: PStatement;
   Children: TList;
   i:integer;
   P:PFileIncludes;
-var
-  Data: PNodeData2;
-
+  {
   procedure AddStatement(Statement: PStatement);
   begin
-    fRootStatements.Add(statement);
-    {
     if (node=nil) and Assigned(statement^._ParentScope) then begin
       NewNode := Items.AddChildObject(Node, Statement^._FullName, Statement);
     end else begin
@@ -330,65 +396,26 @@ var
     SetNodeImages(NewNode, Statement);
     if Statement^._Kind in [skClass,skNamespace] then
       AddMembers(NewNode, Statement);
-    }
   end;
-
+  }
 begin
   {
   if Assigned(ParentStatement) then begin
     Children := fParser.Statements.GetChildrenStatements(ParentStatement);
   end else begin
   }
+  ParentStatement := nil;
   p:=fParser.FindFileIncludes(fCurrentFile);
   if not Assigned(p) then
     Exit;
   Children := p^.Statements;
   {
   end;
-  self.RootNodeCount := children.Count;
   }
 
 //  fParser.Statements.DumpWithScope('f:\browser.txt');
-  if Assigned(Children) then begin
-
-    for i:=0 to Children.Count-1 do begin
-      Statement := Children[i];
-      if not Assigned(Statement) then
-        Continue;
-      with Statement^ do begin
-        // Do not print statements marked invisible for the class browser
-
-        if _Kind = skBlock then
-          Continue;
-
-        if _Inherited and not fShowInheritedMembers then // don't show inherited members
-          Continue;
-
-        if Statement = ParentStatement then // prevent infinite recursion
-          Continue;
-
-        if Statement^._ParentScope <> ParentStatement then begin
-          if Assigned(ParentStatement) then
-            Continue;
-          //we are adding an orphan statement, just add it
-
-          //should not happend, just in case of error
-          if not Assigned(Statement^._ParentScope) then
-            Continue;
-
-          if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
-            or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
-              Continue;
-        end;
-
-        {
-        if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
-          AddStatement(Statement)
-        }
-        AddStatement(Statement)
-      end;
-    end;
-  end;
+  filterChildren(nil,Children,fRootStatements);
+  self.RootNodeCount := fRootStatements.Count;
 end;
 
 procedure TClassBrowser.UpdateView;
@@ -402,17 +429,16 @@ begin
     Exit;
   if not fParser.Enabled then
     Exit;
-  if not Visible or not TabVisible then
-    Exit;
   fUpdating:=True;
   try
-    Items.BeginUpdate;
-    Items.Clear;
+    ClearTree;
+    if not Visible or not TabVisible then
+      Exit;
     // We are busy...
     if not fParser.Freeze then
       Exit;
-    fParserFreezed:=True;
     try
+      fParserSerialId := fParser.SerialId;
       if fCurrentFile <> '' then begin
         // Update file includes, reset cache
         fParser.GetFileIncludes(fCurrentFile, fIncludedFiles);
@@ -420,8 +446,8 @@ begin
         fIsIncludedCacheResult := false;
 
         // Add everything recursively
-        AddMembers(nil, nil);
-        Sort;
+        AddMembers;
+        //Sort;
 
       // Remember selection
         if fLastSelection <> '' then
@@ -429,12 +455,9 @@ begin
       end;
     finally
       fParser.Unfreeze;
-      fParserSerialId := fParser.SerialId;
-      fParserFreezed:=False;
     end;
   finally
     fUpdating:=False;
-    Items.EndUpdate; // calls repaint when needed
   end;
   if Assigned(fOnUpdated) then
     fOnUpdated(Self);
@@ -443,29 +466,126 @@ begin
   end;
 end;
 
-procedure TClassBrowser.OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  Node: TTreeNode;
-begin
-  if htOnItem in GetHitTestInfoAt(X, Y) then
-    Node := GetNodeAt(X, Y)
-  else
-    Node := nil;
-  Selected := Node;
-end;
-
 procedure TClassBrowser.OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
     var InitialStates: TVirtualNodeInitStates);
 var
-  level:integer
+  level :integer;
+  data,parentData :PNodeData;
+  children,filteredList : TList;
+  parentStatement : PStatement;
 begin
-  level := sender.GetNodeLevel(node);
-  if level = 0 then
-    
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+
+    try
+      parentStatement:= nil;
+      level := sender.GetNodeLevel(node);
+      data := sender.GetNodeData(node);
+      data^.Level := level;
+      data^.ImageIndex := 0;
+      data^.Statement := nil;
+      data^.Text := '';
+      if level = 0 then begin
+        data^.Statement := fRootStatements[node.Index];
+      end else begin
+        parentData := sender.GetNodeData(ParentNode);
+        if assigned(parentData) then
+          parentStatement := parentData^.statement;
+        if assigned(parentData) and assigned(parentData^.ChildrenStatements) then
+          data^.Statement := parentData^.ChildrenStatements[node.Index];
+      end;
+      data^.ChildrenStatements:=nil;
+      if assigned(data^.statement) then begin
+        data^.ImageIndex := CalcImageIndex(data^.statement);
+        if (data^.statement^._ParentScope <> parentStatement) then
+          data^.Text := data^.statement^._FullName + data^.statement^._Args
+        else
+          data^.Text := data^.statement^._Command + data^.statement^._Args;
+        Children := fParser.Statements.GetChildrenStatements(data^.Statement);
+        if assigned(children) then begin
+          filteredList:=TList.Create;
+          filterChildren(data^.Statement,Children, filteredList);
+          if filteredList.Count > 0 then begin
+            data^.ChildrenStatements := filteredList;
+            self.ChildCount[node] := data^.ChildrenStatements.Count;
+          end else
+            filteredList.Free;
+        end;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
 end;
+
+procedure TClassBrowser.OnCBFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  data:PNodeData;
+begin
+  data := sender.GetNodeData(node);
+  if assigned(data^.ChildrenStatements) then begin
+    data^.ChildrenStatements.Free;
+  end;
+end;
+
+procedure TClassBrowser.OnCBGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  data :PNodeData;
+begin
+  fCriticalSection.Acquire;
+  try
+    data := sender.GetNodeData(node);
+    ImageIndex := data^.ImageIndex;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+procedure TClassBrowser.OnCBGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: UnicodeString);
+var
+  data :PNodeData;
+begin
+  fCriticalSection.Acquire;
+  try
+    data := sender.GetNodeData(node);
+    CellText := data^.Text;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+procedure TClassBrowser.OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Node: PVirtualNode;
+  hitInfo:THitInfo;
+begin
+  inherited;
+  fCriticalSection.Acquire;
+  try
+    GetHitTestInfoAt(X, Y, false, hitInfo);
+    Node := hitInfo.HitNode;
+    self.SelectNodes(node,node,False);
+    self.Invalidate;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
 procedure TClassBrowser.OnNodeChange(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  Node: TTreeNode;
+  Node: PVirtualNode;
+  hitInfo:THitInfo;
+  Data:PNodeData;
 begin
   inherited;
 
@@ -478,26 +598,24 @@ begin
     if not fParser.Freeze then
       Exit;
     try
-      fParserFreezed:=True;
       if not samestr(fParser.SerialId, fParserSerialId) then
         Exit;
-      // Check if we hit the node
-      if htOnItem in GetHitTestInfoAt(X, Y) then
-        Node := GetNodeAt(X, Y)
-      else
-        Node := nil;
+      GetHitTestInfoAt(X, Y, false, hitInfo);
+      Node := hitInfo.HitNode;
 
       // Dit we click on anything?
       if not Assigned(Node) then begin
         fLastSelection := '';
         Exit;
-      end else if not Assigned(Node.Data) then begin
+      end;
+      Data := GetNodeData(Node);
+      if not Assigned(Data) or not Assigned(Data^.statement) then begin
         fLastSelection := '';
         Exit;
       end;
 
       // Send to listener
-      with PStatement(Node.Data)^ do begin
+      with Data^.statement^ do begin
         fLastSelection := _Type + ':' + _Command + ':' + _Args;
         if Assigned(fOnSelect) then
           if Button = mbLeft then begin// need definition
@@ -514,7 +632,6 @@ begin
         end;
       finally
         fParser.UnFreeze;
-        fParserFreezed:=False;
       end;
   finally
     fCriticalSection.Release;
@@ -561,25 +678,21 @@ begin
     if not fParser.Enabled then
       Exit;
     if lock then begin
-      if not fParser.Freeze then
+      if not fParser.Freeze(fParserSerialId) then
         Exit;
-      if fParser.SerialId <> fParserSerialId then begin
-        fParser.UnFreeze;
-        Exit;
-      end;
-      fParserFreezed:=True;
     end;
-    Items.BeginUpdate;
+    //Items.BeginUpdate;
     try
+      {
       if sortAlphabetically then
         CustomSort(@CustomSortAlphaProc, 0);
       if sortByType then
         CustomSort(@CustomSortTypeProc, 0);
+      }
     finally
-      Items.EndUpdate;
+      //Items.EndUpdate;
       if lock then begin
         fParser.UnFreeze;
-        fParserFreezed:=False;
       end;
     end;
   finally
@@ -587,17 +700,18 @@ begin
   end;
 end;
 
-procedure TClassBrowser.Clear;
+procedure TClassBrowser.ClearTree;
 begin
   fCriticalSection.Acquire;
   try
-  Items.BeginUpdate;
+  //Items.BeginUpdate;
   fUpdating:=True;
   try
-    Items.Clear;
+    self.Clear;
+    fRootStatements.Clear;
   finally
     fUpdating:=False;
-    Items.EndUpdate;
+    //Items.EndUpdate;
   end;
   finally
     fCriticalSection.Release;
@@ -670,6 +784,79 @@ begin
   UpdateView;
 end;
 
+
+procedure TClassBrowser.OnCBDrawText(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
+  Column: TColumnIndex; const Text: UnicodeString; const CellRect: TRect; var DefaultDraw: Boolean);
+var
+  st: PStatement;
+  bInherited: boolean;
+  color : TColor;
+  Data:PNodeData;
+begin
+  fCriticalSection.Acquire;
+  try
+    if fUpdating then begin
+      Exit;
+    end;
+
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+
+    try
+      data:=GetNodeData(Node);
+      if not assigned(data) or not assigned(data^.statement) then
+        Exit;
+      st := data^.statement;
+      bInherited := fShowInheritedMembers and st^._Inherited;
+      TargetCanvas.Font.Style := [fsBold];
+      if  Selected[node] and self.Focused then begin
+        TargetCanvas.Brush.Color:=fColors[SelectedBackColor];
+//        TargetCanvas.Font.Color := fColors[SelectedForeColor];
+      end else begin
+        TargetCanvas.Brush.Color:=fColors[BackColor];
+        if bInherited then
+          TargetCanvas.Font.Color := fColors[InheritedColor]
+        else begin
+          case st^._Kind of
+            skVariable,skParameter:begin
+              TargetCanvas.Font.Color := fColors[VarColor];
+            end;
+            skClass:begin
+              TargetCanvas.Font.Color := fColors[ClassColor];
+            end;
+            skNamespace:begin
+              TargetCanvas.Font.Color := fColors[NamespaceColor];
+            end;
+            skFunction,skConstructor,skDestructor:begin
+              TargetCanvas.Font.Color := fColors[FunctionColor];
+            end;
+            skTypedef:begin
+              TargetCanvas.Font.Color := fColors[TypedefColor];
+            end;
+            skPreprocessor,skEnum:begin
+              TargetCanvas.Font.Color := fColors[PreprocessorColor];
+            end;
+            skEnumType:begin
+              TargetCanvas.Font.Color := fColors[EnumColor];
+            end;
+            else begin
+              TargetCanvas.Font.Color := fColors[ForeColor];
+            end;
+          end;
+        end;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
 procedure TClassBrowser.AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
   TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
@@ -688,18 +875,12 @@ begin
     Exit;
   end;
 
-  if not fParserFreezed then begin
-    if not assigned(fParser) then
-      Exit;
-    if not fParser.Enabled then
-      Exit;
-    if not fParser.Freeze then
-      Exit;
-    if not SameStr(fParserSerialId, fParser.SerialId) then begin
-      fParser.UnFreeze;
-      Exit;
-    end;
-  end;
+  if not assigned(fParser) then
+    Exit;
+  if not fParser.Enabled then
+    Exit;
+  if not fParser.Freeze(fParserSerialId) then
+    Exit;
 
   try
   st := PStatement(Node.Data);
@@ -796,8 +977,7 @@ begin
     end;
   end;
   finally
-    if not fParserFreezed then
-      fParser.UnFreeze;
+    fParser.UnFreeze;
   end;
   finally
     fCriticalSection.Release;
@@ -809,6 +989,7 @@ var
   I: Integer;
   Statement: PStatement;
 begin
+  {
   for I := 0 to Items.Count - 1 do begin
     Statement := PStatement(Items[I].Data);
     with Statement^ do
@@ -817,6 +998,7 @@ begin
         Break;
       end;
   end;
+  }
 end;
 
 function TClassBrowser.GetColor(i:integer):TColor;
@@ -829,8 +1011,148 @@ begin
   fColors[i] := Color;
   if i=BackColor then begin
     self.Color := Color;
+    self.Colors.UnfocusedSelectionColor := Color;
+    self.Colors.UnfocusedSelectionBorderColor := Color;
+  end;
+  if i=SelectedForeColor then begin
+    self.Colors.SelectionTextColor := Color;
+  end;
+  if i=ForeColor then begin
+    self.Font.Color := Color;
+  end;
+  if i=SelectedBackColor then begin
+    self.Colors.FocusedSelectionColor := Color;
+    self.Colors.FocusedSelectionBorderColor:= Color;
+  end;
+
+end;
+
+function TClassBrowser.GetSelected:PVirtualNode;
+var
+  nodes:TVTVirtualNodeEnumeration;
+  enumerator: TVTVirtualNodeEnumerator; 
+begin
+  Result := nil;
+  nodes := self.SelectedNodes(False);
+  enumerator := nodes.GetEnumerator;
+  if enumerator.MoveNext then
+    Result := enumerator.Current;
+end;
+
+function TClassBrowser.GetSelectedLine:integer;
+var
+  node:PVirtualNode;
+  data:PNodeData;
+begin
+  Result := 0;
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+    try
+      node := GetSelected;
+      if assigned(node) then begin
+        data:=GetNodeData(node);
+        if assigned(data) and assigned(data^.statement) then
+          Result := data^.statement^._Line;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
   end;
 end;
 
+function TClassBrowser.GetSelectedFile:String;
+var
+  node:PVirtualNode;
+  data:PNodeData;
+begin
+  Result := '';
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+    try
+      node := GetSelected;
+      if assigned(node) then begin
+        data:=GetNodeData(node);
+        if assigned(data) and assigned(data^.statement) then
+          Result := data^.statement^._FileName;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+function TClassBrowser.GetSelectedDefLine:integer;
+var
+  node:PVirtualNode;
+  data:PNodeData;
+begin
+  Result := 0;
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+    try
+      node := GetSelected;
+      if assigned(node) then begin
+        data:=GetNodeData(node);
+        if assigned(data) and assigned(data^.statement) then
+          Result := data^.statement^._DefinitionLine;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
+
+function TClassBrowser.GetSelectedDefFile:String;
+var
+  node:PVirtualNode;
+  data:PNodeData;
+begin
+  Result := '';
+  fCriticalSection.Acquire;
+  try
+    if not assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
+    if not fParser.Freeze(fParserSerialId) then
+      Exit;
+    try
+      node := GetSelected;
+      if assigned(node) then begin
+        data:=GetNodeData(node);
+        if assigned(data) and assigned(data^.statement) then
+          Result := data^.statement^._DefinitionFileName;
+      end;
+    finally
+      fParser.UnFreeze;
+    end;
+  finally
+    fCriticalSection.Release;
+  end;
+end;
 end.
 

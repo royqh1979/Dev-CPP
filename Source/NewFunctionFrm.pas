@@ -87,7 +87,9 @@ begin
     sl.Free;
   end;
 
+  {
   cmbClass.ItemIndex := cmbClass.Items.IndexOf(PStatement(MainForm.ClassBrowser.Selected.Data)^._Command);
+  }
 
   txtType.SetFocus;
 end;

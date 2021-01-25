@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 592
-  Top = 254
+  Left = 444
+  Top = 177
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1147,14 +1147,17 @@ object MainForm: TMainForm
           Height = 314
           Align = alClient
           Images = dmMain.ClassImages
-          ReadOnly = True
           Indent = 19
           TabOrder = 0
           PopupMenu = BrowserPopup
           BorderStyle = bsNone
-          MultiSelectStyle = []
-          RowSelect = True
-          ShowLines = False
+          Header.AutoSizeIndex = 0
+          Header.Font.Charset = DEFAULT_CHARSET
+          Header.Font.Color = clWindowText
+          Header.Font.Height = -13
+          Header.Font.Name = 'MS Sans Serif'
+          Header.Font.Style = []
+          Header.MainColumn = -1
           OnSelect = ClassBrowserSelect
           ItemImages.Globals = 0
           ItemImages.Classes = 1
@@ -1180,6 +1183,7 @@ object MainForm: TMainForm
           TabVisible = False
           SortAlphabetically = True
           SortByType = True
+          Columns = <>
         end
       end
       object ToolBar8: TToolBar

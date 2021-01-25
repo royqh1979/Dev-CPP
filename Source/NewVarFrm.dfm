@@ -56,7 +56,7 @@ object NewVarForm: TNewVarForm
     Left = 108
     Top = 10
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 0
     OnChange = txtTypeChange
   end
@@ -64,7 +64,7 @@ object NewVarForm: TNewVarForm
     Left = 108
     Top = 39
     Width = 429
-    Height = 21
+    Height = 24
     TabOrder = 1
     OnChange = txtTypeChange
   end
@@ -132,7 +132,7 @@ object NewVarForm: TNewVarForm
       Left = 103
       Top = 20
       Width = 410
-      Height = 21
+      Height = 24
       TabOrder = 1
       OnChange = txtTypeChange
       OnKeyUp = txtReadFuncKeyUp
@@ -165,7 +165,7 @@ object NewVarForm: TNewVarForm
       Left = 103
       Top = 20
       Width = 410
-      Height = 21
+      Height = 24
       TabOrder = 1
       OnChange = txtTypeChange
       OnKeyUp = txtWriteFuncKeyUp

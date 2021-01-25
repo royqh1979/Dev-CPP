@@ -33,7 +33,7 @@ type
   TCompSuccessEvent = procedure of object;
   TRunEndEvent = procedure of object;
 
-  TTarget = (ctInvalid, ctNone, ctFile, ctProject, ctStdIn);
+  TTarget = (cttInvalid, cttNone, cttFile, cttProject, cttStdIn);
 
   TGCCMessageType = (gmtError,gmtWarning,gmtInfo,gmtNote,gmtNone);
 
@@ -658,7 +658,7 @@ begin
   end;
 
   // Add custom commands at the end so the advanced user can control everything
-  if Assigned(fProject) and (fTarget = ctProject) then begin
+  if Assigned(fProject) and (fTarget = cttProject) then begin
     if Length(fProject.Options.CompilerCmd) > 0 then
       fCompileParams := fCompileParams + ' ' + Trim(StringReplace(fProject.Options.CompilerCmd, '_@@_', ' ',
         [rfReplaceAll]));
@@ -707,7 +707,7 @@ begin
 
   redirectStdin := False;
   case Target of
-    ctFile,ctStdin: begin
+    cttFile,cttStdin: begin
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_COMPILINGFILE]);
@@ -745,7 +745,7 @@ begin
           utcSrc: begin
               compilerName := fCompilerSet.gccName;
               if fCheckSyntax then begin
-                if Target = ctFile then
+                if Target = cttFile then
                   cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile, fCompileParams, fIncludesParams, fLibrariesParams])
                 else begin
                   cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c',fCompileParams, fIncludesParams]);
@@ -766,7 +766,7 @@ begin
           utCppSrc: begin
               compilerName := fCompilerSet.gppName;
               if fCheckSyntax then begin
-                if Target = ctFile then
+                if Target = cttFile then
                   cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
                     fCppCompileParams, fCppIncludesParams,
                     fLibrariesParams])
@@ -790,7 +790,7 @@ begin
           utcHead, utcppHead: begin // any header files
               compilerName := fCompilerSet.gppName;
               if fCheckSyntax then begin
-                if target = ctFile then
+                if target = cttFile then
                   cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
                     fCppCompileParams, fCppIncludesParams,
                     fLibrariesParams])
@@ -812,7 +812,7 @@ begin
         else begin
             compilerName := fCompilerSet.gppName;
             if fCheckSyntax then begin
-              if Target = ctFile then
+              if Target = cttFile then
                 cmdline := Format(cSyntaxCmdLine, [compilerName, fSourceFile,
                   fCppCompileParams, fCppIncludesParams,
                   fLibrariesParams])
@@ -840,7 +840,7 @@ begin
         // Execute it
         LaunchThread(cmdline, ExtractFilePath(fSourceFile), redirectStdin);
       end;
-    ctProject: begin
+    cttProject: begin
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_PROJECTCOMPILE]);
@@ -880,9 +880,9 @@ var
   Parameters: AnsiString;
 begin
   case fTarget of
-    ctNone:
+    cttNone:
       Exit;
-    ctFile: begin
+    cttFile: begin
         // Determine file to execute
         case GetFileTyp(fSourceFile) of
           utcSrc, utcppSrc: begin
@@ -926,7 +926,7 @@ begin
           MainForm.UpdateAppTitle;
         end;
       end;
-    ctProject: begin
+    cttProject: begin
         if fProject.Options.typ = dptStat then
           MessageDlg(Lang[ID_ERR_NOTEXECUTABLE], mtError, [mbOK], 0)
         else if not FileExists(fProject.Executable) then begin
@@ -978,7 +978,7 @@ var
   FileName: AnsiString;
 begin
   case fTarget of
-    ctFile: begin
+    cttFile: begin
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_CLEANINGFILE]);
@@ -1008,7 +1008,7 @@ begin
         end else
           DoLogEntry(Lang[ID_LOG_NOCLEANFILE]);
       end;
-    ctProject: begin
+    cttProject: begin
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_CLEANINGPROJECT]);
@@ -1049,10 +1049,10 @@ var
   cmdLine: AnsiString;
 begin
   case Target of
-    ctFile: begin
+    cttFile: begin
         Compile;
       end;
-    ctProject: begin
+    cttProject: begin
         InitProgressForm;
 
         DoLogEntry(Lang[ID_LOG_REBUILDINGPROJECT]);
@@ -1341,7 +1341,7 @@ begin
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
 
-  if (fTarget = ctFile) and devCompiler.EnableAutoLinks then begin
+  if (fTarget = cttFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
     if Assigned(e) then begin
       autolinkIndexes := TStringHash.Create;
@@ -1360,7 +1360,7 @@ begin
   end;
 
   // Add libs added via project
-  if (fTarget = ctProject) and assigned(fProject) then begin
+  if (fTarget = cttProject) and assigned(fProject) then begin
     for i := 0 to pred(fProject.Options.Libs.Count) do
       fLibrariesParams := format(cAppendStr, [fLibrariesParams, fProject.Options.Libs[i]]);
 
@@ -1407,7 +1407,7 @@ begin
   fIncludesParams := FormatList(fCompilerSet.CDir, cAppendStr);
   fCppIncludesParams := FormatList(fCompilerSet.CppDir, cAppendStr);
 
- if ((fTarget = ctProject) or fCheckSyntax) and assigned(fProject) then
+ if ((fTarget = cttProject) or fCheckSyntax) and assigned(fProject) then
     for i := 0 to pred(fProject.Options.Includes.Count) do
       if DirectoryExists(fProject.Options.Includes[i]) then begin
         fIncludesParams := format(cAppendStr, [fIncludesParams, fProject.Options.Includes[i]]);

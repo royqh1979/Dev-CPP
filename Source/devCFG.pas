@@ -1904,11 +1904,11 @@ begin
   Result := -1;
   if Assigned(MainForm) then begin
     case MainForm.GetCompileTarget of
-      ctNone:
+      cttNone:
         Result := fDefaultIndex;
-      ctFile:
+      cttFile:
         Result := fDefaultIndex;
-      ctProject:
+      cttProject:
         Result := MainForm.Project.Options.CompilerSet;
     end;
   end else
