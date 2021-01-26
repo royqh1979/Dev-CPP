@@ -5,6 +5,9 @@ Version 6.4-alpha2 JAN 2021
     - fix: leftpanel tab display not correct, when the project panel is hidden.
     - enhancement: greatly improved the speed of class browser loading. (For large files such as GL/glew.h, the loading time changed from >20s to <0.2s);
     - enhancement: Add options to switch between show all members in the project and in the current file
+    - fix: wrong text color of the evaluation input and result controls
+    - fix: prevent copy/paste/cut/indent/toggle comment when input focus is not in the editor
+    - fix: can't copy/paste in the evaluation input control
 
 Version 6.4-alpha1 JAN 2021
 

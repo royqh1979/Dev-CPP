@@ -1010,6 +1010,7 @@ type
     procedure actStatementsTypeFileUpdate(Sender: TObject);
     procedure actStatementsTypeFileExecute(Sender: TObject);
     procedure actStatementsTypeProjectExecute(Sender: TObject);
+    procedure actIndentUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1533,6 +1534,8 @@ var
   tc:TThemeColor;
 begin
   strToThemeColor(panelTC, devEditor.Syntax.Values[cPNL]);
+  BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;  
   MainForm.Color := panelTC.Background;
   MainForm.Font.Color := panelTC.Foreground;
   LeftPageControl.OwnerDraw:=True;
@@ -1542,9 +1545,9 @@ begin
   cmbCompilers.Font := mainForm.Font;
   evaluateInput.Color := panelTC.Background;
   evaluateInput.Font := MainForm.Font;
+  evaluateInput.Font.Color := ForegroundColor;
 
-  BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
-  ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
+
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
   debugOutput.Color := BackgroundColor;
   debugOutput.Font := MainForm.Font;
@@ -1645,6 +1648,10 @@ begin
   txtLocals.Color := BackgroundColor;
   txtLocals.Font := MainForm.Font;
   txtLocals.Font.Color := ForegroundColor;
+
+  chkShortenPaths.Color := BackgroundColor;
+  chkShortenPaths.Font := MainForm.Font;
+  chkShortenPaths.Font.Color := ForegroundColor;
 end;
 
 procedure TMainForm.ReloadColor;
@@ -1667,6 +1674,7 @@ begin
   PageControlPanel.Repaint;
   EditorPageControlLeft.Invalidate;
   EditorPageControlRight.Invalidate;
+  chkShortenPaths.Invalidate;
 end;
 
 procedure TMainForm.LoadText;
@@ -3093,7 +3101,7 @@ var
   oldbottomline: integer;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then begin
+  if Assigned(e) and e.Text.Focused then begin
     oldbottomline := e.Text.TopLine + e.Text.LinesInWindow;
     e.Text.CutToClipboard;
     if (e.Text.TopLine + e.Text.LinesInWindow) <> oldbottomline then
@@ -3106,7 +3114,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.Text.CopyToClipboard;
 end;
 
@@ -3116,7 +3124,7 @@ var
   oldbottomline: integer;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then begin
+  if Assigned(e) and e.Text.Focused then begin
     oldbottomline := e.Text.TopLine + e.Text.LinesInWindow;
     e.Text.PasteFromClipboard;
     if (e.Text.TopLine + e.Text.LinesInWindow) <> oldbottomline then
@@ -3129,7 +3137,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if assigned(e) then
+  if assigned(e) and e.Text.Focused then
     e.Text.SelectAll;
 end;
 
@@ -4301,7 +4309,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty;
+  TCustomAction(Sender).Enabled := Assigned(e) and e.Text.Focused and not e.Text.IsEmpty;
 end;
 
 procedure TMainForm.actUpdateDebuggerRunning(Sender: TObject);
@@ -4852,7 +4860,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  TAction(Sender).Enabled := Assigned(e) and e.Text.SelAvail;
+  TAction(Sender).Enabled := Assigned(e) and e.Text.Focused and e.Text.SelAvail;
 end;
 
 procedure TMainForm.actPasteUpdate(Sender: TObject);
@@ -4860,7 +4868,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  actPaste.Enabled := Assigned(e) and e.Text.CanPaste;
+  actPaste.Enabled := Assigned(e) and e.Text.Focused and e.Text.CanPaste;
 end;
 
 procedure TMainForm.actSaveUpdate(Sender: TObject);
@@ -5275,7 +5283,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.Text.CommandProcessor(ecToggleComment, #0, nil);
 end;
 
@@ -5284,7 +5292,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.IndentSelection;
 end;
 
@@ -5293,7 +5301,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.UnindentSelection;
 end;
 
@@ -5354,7 +5362,7 @@ end;
 
 procedure TMainForm.actBrowserGotoDefinitionUpdate(Sender: TObject);
 begin
-  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind = <> skUnknown)
+  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind <> skUnknown)
 end;
 
 procedure TMainForm.actBrowserNewClassUpdate(Sender: TObject);
@@ -7055,11 +7063,12 @@ end;
 procedure TMainForm.OnInputEvalReady(const evalvalue: AnsiString);
 begin
   EvalOutput.Text := evalvalue;
-  EvalOutput.Font.Color := clWindowText;
   fDebugger.OnEvalReady := nil;
 end;
 
 procedure TMainForm.EvaluateInputKeyPress(Sender: TObject; var Key: Char);
+var
+  panelTC:TThemeColor;
 begin
   if fDebugger.Executing and (not fDebugger.Reader.CommandRunning) then begin
     if Key = Chr(VK_RETURN) then begin
@@ -7072,9 +7081,6 @@ begin
 
         fDebugger.OnEvalReady := OnInputEvalReady;
         fDebugger.SendCommand('print', EvaluateInput.Text,False);
-
-        // Tell the user we're updating...
-        EvalOutput.Font.Color := clGrayText;
 
         // Add to history
         if EvaluateInput.Items.IndexOf(EvaluateInput.Text) = -1 then
@@ -8498,7 +8504,7 @@ var
   e:TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.RTFToClipboard;
 end;
 
@@ -9046,6 +9052,14 @@ procedure TMainForm.actStatementsTypeProjectExecute(Sender: TObject);
 begin
   devClassBrowsing.StatementsType := cbstProject;
   UpdateStatementsType;
+end;
+
+procedure TMainForm.actIndentUpdate(Sender: TObject);
+var
+  e: TEditor;
+begin
+  e := fEditorList.GetEditor;
+  TCustomAction(Sender).Enabled:= Assigned(e) and e.Text.Focused;
 end;
 
 end.
