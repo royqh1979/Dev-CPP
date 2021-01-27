@@ -553,6 +553,7 @@ object MainForm: TMainForm
             ItemHeight = 16
             ParentCtl3D = False
             ParentFont = False
+            PopupMenu = DebugOutputPopup
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
@@ -571,6 +572,7 @@ object MainForm: TMainForm
             Font.Name = 'MS Sans Serif'
             Font.Style = []
             ParentFont = False
+            PopupMenu = DebugOutputPopup
             ReadOnly = True
             ScrollBars = ssBoth
             TabOrder = 1
