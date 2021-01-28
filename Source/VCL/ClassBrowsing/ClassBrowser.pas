@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages, SyncObjs, VirtualTrees;
+  CppParser, Forms, cbutils, Messages, SyncObjs, VirtualTrees, iniFiles;
 
 type
 
@@ -97,6 +97,7 @@ type
     fUpdating: boolean;
     fColors : array[0..14] of TColor;
     fRootStatements : TList;
+    fDummyStatements: THashedStringList;
     procedure SetParser(Value: TCppParser);
     procedure AddMembers;
     procedure FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
@@ -135,6 +136,7 @@ type
     procedure OnCompareByAlpha(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
     }
+    procedure ClearDummyStatements;
     function GetSelectedFile: String;
     function GetSelectedLine: integer;
     function GetSelectedDefFile: String;
@@ -264,6 +266,7 @@ begin
   fStatementsType := cbstFile;
   fOnUpdated:=nil;
   fUpdating:=False;
+  fDummyStatements := THashedStringList.Create;
   TVirtualTreeOptions(TreeOptions).PaintOptions :=
     TVirtualTreeOptions(TreeOptions).PaintOptions - [toShowTreeLines];
   TVirtualTreeOptions(TreeOptions).SelectionOptions :=
@@ -294,6 +297,8 @@ begin
     Sleep(50);
     Application.ProcessMessages;
   end;
+  ClearDummyStatements;
+  FreeAndNil(fDummyStatements);
   FreeAndNil(fImagesRecord);
   FreeAndNil(fControlCanvas);
   fIncludedFiles.Free;
@@ -391,8 +396,8 @@ end;
 
 procedure TClassBrowser.FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
 var
-  Statement: PStatement;
-  i:integer;
+  Statement,DummyParent: PStatement;
+  i,idx:integer;
 begin
   if not assigned(children) then
     Exit;
@@ -423,23 +428,61 @@ begin
           Continue;
       end;
 
-      if Statement^._ParentScope <> ParentStatement then begin
-        if Assigned(ParentStatement) then
+      // we only test and handle orphan statements in the top level (parentstatment is nil)
+      if (Statement^._ParentScope <> ParentStatement)
+        and (not Assigned(ParentStatement)) then begin
+
+        // we only handle orphan statements when type is cbstFile
+        if fStatementsType <> cbstFile then
           Continue;
-        //we are adding an orphan statement, just add it
 
         //should not happend, just in case of error
         if not Assigned(Statement^._ParentScope) then
           Continue;
 
-        if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
-          or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
-            Continue;
+        // Processing the orphan statement
+        while assigned(Statement) do begin
+          //the statement's parent is in this file, so it's not a real orphan
+          if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
+            or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
+              break;
+
+          idx := fDummyStatements.IndexOf(Statement^._ParentScope^._FullName);
+          if idx <> -1 then begin
+            PStatement(fDummyStatements.Objects[idx])^._Children.Add(Statement);
+            break;
+          end;
+          new(DummyParent);
+          DummyParent^._ParentScope := Statement^._ParentScope^._ParentScope;
+          DummyParent^._Command := Statement^._ParentScope^._Command;
+          DummyParent^._Args := Statement^._ParentScope^._Args;
+          DummyParent^._NoNameArgs := Statement^._ParentScope^._NoNameArgs;
+          DummyParent^._FullName := Statement^._ParentScope^._FullName;
+          DummyParent^._Kind := Statement^._ParentScope^._Kind;
+          DummyParent^._Type := Statement^._ParentScope^._Type;
+          DummyParent^._Value := Statement^._ParentScope^._Value;
+          DummyParent^._Scope := Statement^._ParentScope^._Scope;
+          DummyParent^._ClassScope := Statement^._ParentScope^._ClassScope;
+          DummyParent^._InProject := Statement^._ParentScope^._InProject;
+          DummyParent^._InSystemHeader := Statement^._ParentScope^._InSystemHeader;
+          DummyParent^._Static := Statement^._ParentScope^._Static;
+          DummyParent^._Inherited := Statement^._ParentScope^._Inherited;
+          DummyParent^._FileName := fCurrentFile;
+          DummyParent^._Line := 0;
+          DummyParent^._DefinitionFileName := fCurrentFile;
+          DummyParent^._DefinitionLine := 0;
+          DummyParent^._Children := TList.Create;
+          DummyParent^._Children.Add(Statement);
+          fDummyStatements.AddObject(DummyParent^._FullName,TObject(DummyParent));
+        //we are adding an orphan statement, just add it
+          statement := DummyParent;
+          if not Assigned(statement^._ParentScope) then begin
+            filtered.Add(Statement);
+            break;
+          end;
+        end;
+        Continue;
       end;
-          {
-        if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
-          AddStatement(Statement)
-        }
       filtered.Add(Statement);
     end;
   end;
@@ -570,11 +613,11 @@ begin
       data^.ChildrenStatements:=nil;
       if assigned(data^.statement) then begin
         data^.ImageIndex := CalcImageIndex(data^.statement);
-        if (data^.statement^._ParentScope <> parentStatement) then
+        if (level=0) and (data^.statement^._ParentScope <> parentStatement) then
           data^.Text := data^.statement^._FullName + data^.statement^._Args
         else
           data^.Text := data^.statement^._Command + data^.statement^._Args;
-        Children := fParser.Statements.GetChildrenStatements(data^.Statement);
+        Children := data^.Statement^._Children;
         if assigned(children) then begin
           filteredList:=TList.Create;
           filterChildren(data^.Statement,Children, filteredList);
@@ -645,8 +688,11 @@ begin
     Node := hitInfo.HitNode;
     if not Assigned(node) then begin
       self.ClearSelection;
-    end else
-      self.SelectNodes(node,node,False);
+    end else begin
+      if not (hiOnItemButton in HitInfo.HitPositions)
+        or not (vsHasChildren in HitInfo.HitNode.States) then
+        self.SelectNodes(node,node,False);
+    end;
     self.Invalidate;
   finally
     fCriticalSection.Release;
@@ -675,11 +721,19 @@ begin
       GetHitTestInfoAt(X, Y, true, hitInfo);
       Node := hitInfo.HitNode;
 
-      // Dit we click on anything?
+      // Did we click on anything?
       if not Assigned(Node) then begin
         fLastSelection := '';
         Exit;
       end;
+
+      // Click on the expand lable
+      if (hiOnItemButton in HitInfo.HitPositions)
+        and (vsHasChildren in HitInfo.HitNode.States) then begin
+        fLastSelection := '';
+        Exit;
+      end;
+
       Data := GetNodeData(Node);
       if not Assigned(Data) or not Assigned(Data^.statement) then begin
         fLastSelection := '';
@@ -787,6 +841,16 @@ begin
   end;
 end;
 }
+procedure TClassBrowser.ClearDummyStatements;
+var
+  i:integer;
+begin
+  for i:=0 to fDummyStatements.Count-1 do begin
+    PStatement(fDummyStatements.Objects[i])^._Children.Free;
+    dispose(PStatement(fDummyStatements.Objects[i]))
+  end;
+  fDummyStatements.Clear;
+end;
 procedure TClassBrowser.ClearTree;
 begin
   fCriticalSection.Acquire;
@@ -796,6 +860,7 @@ begin
   try
     self.Clear;
     fRootStatements.Clear;
+    ClearDummyStatements;
   finally
     fUpdating:=False;
   end;

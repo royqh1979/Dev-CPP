@@ -783,7 +783,6 @@ type
     procedure actDeleteExecute(Sender: TObject);
     procedure ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
 //    procedure CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
-    procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
     procedure CodeCompletionResize(Sender: TObject);
     procedure actSwapHeaderSourceExecute(Sender: TObject);
     procedure actSyntaxCheckExecute(Sender: TObject);
@@ -834,8 +833,6 @@ type
     procedure actExecParamsExecute(Sender: TObject);
     procedure DevCppDDEServerExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure actShowTipsExecute(Sender: TObject);
-    procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
-    procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
     procedure actAbortCompilationUpdate(Sender: TObject);
     procedure actAbortCompilationExecute(Sender: TObject);
     procedure ProjectViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1074,7 +1071,6 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
-    procedure OnClassBrowserUpdated(sender:TObject);
     procedure CloseProject(RefreshEditor:boolean);
     procedure StartTabnine;
     procedure StopTabnine;
@@ -1082,6 +1078,9 @@ type
     procedure UpdateDebugInfo;
     procedure OpenShell(Sender: TObject;const shellName:string);
     procedure UpdateStatementsType;
+    procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
+    procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
+    procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
   public
     function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
@@ -5981,6 +5980,7 @@ procedure TMainForm.CppParserEndParsing(var message:TMessage);
 var
   ParseTimeFloat, ParsingFrequency: Extended;
   total:integer;
+  e:TEditor;
 begin
   Screen.Cursor := crDefault;
 
@@ -5999,6 +5999,10 @@ begin
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
   ClassBrowser.EndTreeUpdate;
+  e:=EditorList.GetEditor;
+  if assigned(e) then begin
+    e.Text.Invalidate;
+  end;
 end;
 
 procedure TMainForm.UpdateAppTitle;
@@ -6404,10 +6408,6 @@ begin
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW);
   end
-end;
-
-procedure TMainForm.OnClassBrowserUpdated(sender:TObject);
-begin
 end;
 
 procedure TMainForm.CompilerOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -6996,7 +6996,6 @@ begin
     end;
   end;
 
-  ClassBrowser.OnUpdated := OnClassBrowserUpdated;
   UpdateClassBrowsing;
   UpdateStatementsType;
 

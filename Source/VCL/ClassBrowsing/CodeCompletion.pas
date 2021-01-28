@@ -250,7 +250,7 @@ begin
       for i:=0 to CppDirectiveList.Count-1 do begin
         new(codeInStatement);
         codeInStatement^._Command := CppDirectiveList[i];
-        codeInStatement^._Kind := skKeyword;
+        codeInStatement^._Kind := skPreprocessor;
         codeInStatement^._FullName := CppDirectiveList[i];
         fCodeInsStatements.Add(pointer(codeInStatement));
         fFullCompletionStatementList.Add(pointer(codeInStatement));
