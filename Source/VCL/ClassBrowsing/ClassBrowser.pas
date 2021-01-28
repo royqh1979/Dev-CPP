@@ -273,7 +273,7 @@ begin
     TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect];
 
   TVirtualTreeOptions(TreeOptions).AutoOptions :=
-    TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort];
+    TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort, toAutoScrollOnExpand];
 
   self.OnInitNode := OnCBInitNode;
   self.OnGetText := OnCBGetText;
@@ -396,8 +396,32 @@ end;
 
 procedure TClassBrowser.FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
 var
-  Statement,DummyParent: PStatement;
-  i,idx:integer;
+  Statement,DummyParent,Dummy: PStatement;
+  i,j,idx:integer;
+  function CreateDummy(templateStatement:PStatement):PStatement;
+  begin
+    Result := new(PStatement);
+    Result^._ParentScope := templateStatement^._ParentScope;
+    Result^._Command := templateStatement^._Command;
+    Result^._Args := templateStatement^._Args;
+    Result^._NoNameArgs := templateStatement^._NoNameArgs;
+    Result^._FullName := templateStatement^._FullName;
+    Result^._Kind := templateStatement^._Kind;
+    Result^._Type := templateStatement^._Type;
+    Result^._Value := templateStatement^._Value;
+    Result^._Scope := templateStatement^._Scope;
+    Result^._ClassScope := templateStatement^._ClassScope;
+    Result^._InProject := templateStatement^._InProject;
+    Result^._InSystemHeader := templateStatement^._InSystemHeader;
+    Result^._Static := templateStatement^._Static;
+    Result^._Inherited := templateStatement^._Inherited;
+    Result^._FileName := fCurrentFile;
+    Result^._Line := 0;
+    Result^._DefinitionFileName := fCurrentFile;
+    Result^._DefinitionLine := 0;
+    Result^._Children := TList.Create;
+    fDummyStatements.AddObject(Result^._FullName,TObject(Result));
+  end;
 begin
   if not assigned(children) then
     Exit;
@@ -452,28 +476,8 @@ begin
             PStatement(fDummyStatements.Objects[idx])^._Children.Add(Statement);
             break;
           end;
-          new(DummyParent);
-          DummyParent^._ParentScope := Statement^._ParentScope^._ParentScope;
-          DummyParent^._Command := Statement^._ParentScope^._Command;
-          DummyParent^._Args := Statement^._ParentScope^._Args;
-          DummyParent^._NoNameArgs := Statement^._ParentScope^._NoNameArgs;
-          DummyParent^._FullName := Statement^._ParentScope^._FullName;
-          DummyParent^._Kind := Statement^._ParentScope^._Kind;
-          DummyParent^._Type := Statement^._ParentScope^._Type;
-          DummyParent^._Value := Statement^._ParentScope^._Value;
-          DummyParent^._Scope := Statement^._ParentScope^._Scope;
-          DummyParent^._ClassScope := Statement^._ParentScope^._ClassScope;
-          DummyParent^._InProject := Statement^._ParentScope^._InProject;
-          DummyParent^._InSystemHeader := Statement^._ParentScope^._InSystemHeader;
-          DummyParent^._Static := Statement^._ParentScope^._Static;
-          DummyParent^._Inherited := Statement^._ParentScope^._Inherited;
-          DummyParent^._FileName := fCurrentFile;
-          DummyParent^._Line := 0;
-          DummyParent^._DefinitionFileName := fCurrentFile;
-          DummyParent^._DefinitionLine := 0;
-          DummyParent^._Children := TList.Create;
+          DummyParent := CreateDummy(Statement^._ParentScope);
           DummyParent^._Children.Add(Statement);
-          fDummyStatements.AddObject(DummyParent^._FullName,TObject(DummyParent));
         //we are adding an orphan statement, just add it
           statement := DummyParent;
           if not Assigned(statement^._ParentScope) then begin
@@ -483,7 +487,22 @@ begin
         end;
         Continue;
       end;
-      filtered.Add(Statement);
+      if (Statement^._Kind = skNamespace) then begin
+        idx := fDummyStatements.IndexOf(Statement^._FullName);
+        if idx <> -1 then begin
+          if assigned(statement^._Children) then begin
+            for j:=0 to statement^._Children.Count-1 do begin
+              PStatement(fDummyStatements.Objects[idx])^._Children.Add(statement^._Children[j]);
+            end;
+          end;
+          continue;
+        end;
+        Dummy := CreateDummy(Statement);
+        if assigned(statement^._Children) then
+          Dummy._Children.Assign(statement^._Children);
+        filtered.Add(Dummy);
+      end else
+        filtered.Add(Statement);
     end;
   end;
   if sortAlphabetically and sortByType then begin

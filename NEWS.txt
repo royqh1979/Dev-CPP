@@ -11,6 +11,7 @@ Version 6.4-alpha2 JAN 2021
     - enhancement: refresh editor when parsing finished
     - enhancement: better organize infos in the classbrowser for class members definitions in the cpp files
     - fix: expand a node in the class browser will jump to its declaration
+    - fix: don't auto scroll the expanded node to the top
 
 Version 6.4-alpha1 JAN 2021
 
