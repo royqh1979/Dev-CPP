@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StatementList, Controls, ComCtrls, Graphics,
-  CppParser, Forms, cbutils, Messages, SyncObjs, VirtualTrees;
+  CppParser, Forms, cbutils, Messages, SyncObjs, VirtualTrees, iniFiles;
 
 type
 
@@ -97,12 +97,15 @@ type
     fUpdating: boolean;
     fColors : array[0..14] of TColor;
     fRootStatements : TList;
+    fDummyStatements: THashedStringList;
     procedure SetParser(Value: TCppParser);
     procedure AddMembers;
     procedure FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
+    {
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages,
       DefaultDraw: Boolean);
+    }
     procedure OnNodeChange(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     {
@@ -117,7 +120,7 @@ type
     procedure SetStatementsType(Value: TClassBrowserStatementsType);
     procedure SetTabVisible(Value: boolean);
     procedure ReSelect;
-    procedure DoSort(lock:boolean=False);
+    //procedure DoSort(lock:boolean=False);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);
     procedure OnCBInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -129,10 +132,13 @@ type
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure OnCBDrawText(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; const Text: UnicodeString; const CellRect: TRect; var DefaultDraw: Boolean);
+    {
     procedure OnCompareByType(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
     procedure OnCompareByAlpha(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
+    }
+    procedure ClearDummyStatements;
     function GetSelectedFile: String;
     function GetSelectedLine: integer;
     function GetSelectedDefFile: String;
@@ -203,6 +209,32 @@ begin
   RegisterComponents('Dev-C++', [TClassBrowser]);
 end;
 
+
+function CompareByType(stat1:PStatement; stat2:PStatement):integer;
+begin
+  if stat1^._Static and (not stat2^._Static) then
+    Result:=-1
+  else if (not stat1^._Static) and stat2^._Static then
+    Result:=1
+  else
+    if Ord(stat1^._ClassScope) <> Ord(stat2^._ClassScope) then
+      Result := Ord(stat1^._ClassScope) - Ord(stat2^._ClassScope)
+    else
+      Result := Ord(stat1^._Kind) - Ord(stat2^._Kind);
+end;
+
+function CompareByAlpha(stat1:PStatement; stat2:PStatement):integer;
+begin
+  Result := StrIComp(PAnsiChar(stat1^._Command), PAnsiChar(stat2^._Command));
+end;
+
+function CompareByAlphaAndType(stat1:PStatement; stat2:PStatement):integer;
+begin
+  Result:=CompareByType(stat1,stat2);
+  if Result = 0 then
+    Result := CompareByAlpha(stat1,stat2);
+end;
+
 { TClassBrowser }
 
 constructor TClassBrowser.Create(AOwner: TComponent);
@@ -223,7 +255,6 @@ begin
   fControlCanvas := TControlCanvas.Create;
   fControlCanvas.Control := Self;
   //fControlCanvas.Font.Assign(Self.Font);
-  //OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
   fIncludedFiles := TStringList.Create;
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
@@ -236,14 +267,13 @@ begin
   fStatementsType := cbstFile;
   fOnUpdated:=nil;
   fUpdating:=False;
+  fDummyStatements := THashedStringList.Create;
   TVirtualTreeOptions(TreeOptions).PaintOptions :=
     TVirtualTreeOptions(TreeOptions).PaintOptions - [toShowTreeLines];
   TVirtualTreeOptions(TreeOptions).SelectionOptions :=
     TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect];
-
   TVirtualTreeOptions(TreeOptions).AutoOptions :=
-    TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort];
-
+    TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort, toAutoScrollOnExpand];
   self.OnInitNode := OnCBInitNode;
   self.OnGetText := OnCBGetText;
   self.OnFreeNode := OnCBFreeNode;
@@ -266,6 +296,8 @@ begin
     Sleep(50);
     Application.ProcessMessages;
   end;
+  ClearDummyStatements;
+  FreeAndNil(fDummyStatements);
   FreeAndNil(fImagesRecord);
   FreeAndNil(fControlCanvas);
   fIncludedFiles.Free;
@@ -363,8 +395,32 @@ end;
 
 procedure TClassBrowser.FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
 var
-  Statement: PStatement;
-  i:integer;
+  Statement,DummyParent,Dummy: PStatement;
+  i,j,idx:integer;
+  function CreateDummy(templateStatement:PStatement):PStatement;
+  begin
+    Result := new(PStatement);
+    Result^._ParentScope := templateStatement^._ParentScope;
+    Result^._Command := templateStatement^._Command;
+    Result^._Args := templateStatement^._Args;
+    Result^._NoNameArgs := templateStatement^._NoNameArgs;
+    Result^._FullName := templateStatement^._FullName;
+    Result^._Kind := templateStatement^._Kind;
+    Result^._Type := templateStatement^._Type;
+    Result^._Value := templateStatement^._Value;
+    Result^._Scope := templateStatement^._Scope;
+    Result^._ClassScope := templateStatement^._ClassScope;
+    Result^._InProject := templateStatement^._InProject;
+    Result^._InSystemHeader := templateStatement^._InSystemHeader;
+    Result^._Static := templateStatement^._Static;
+    Result^._Inherited := templateStatement^._Inherited;
+    Result^._FileName := fCurrentFile;
+    Result^._Line := 0;
+    Result^._DefinitionFileName := fCurrentFile;
+    Result^._DefinitionLine := 0;
+    Result^._Children := TList.Create;
+    fDummyStatements.AddObject(Result^._FullName,TObject(Result));
+  end;
 begin
   if not assigned(children) then
     Exit;
@@ -395,25 +451,65 @@ begin
           Continue;
       end;
 
-      if Statement^._ParentScope <> ParentStatement then begin
-        if Assigned(ParentStatement) then
+      // we only test and handle orphan statements in the top level (parentstatment is nil)
+      if (Statement^._ParentScope <> ParentStatement)
+        and (not Assigned(ParentStatement)) then begin
+
+        // we only handle orphan statements when type is cbstFile
+        if fStatementsType <> cbstFile then
           Continue;
-        //we are adding an orphan statement, just add it
 
         //should not happend, just in case of error
         if not Assigned(Statement^._ParentScope) then
           Continue;
 
-        if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
-          or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
-            Continue;
+        // Processing the orphan statement
+        while assigned(Statement) do begin
+          //the statement's parent is in this file, so it's not a real orphan
+          if SameText(Statement^._ParentScope^._FileName,fCurrentFile)
+            or SameText(Statement^._ParentScope^._DefinitionFileName,fCurrentFile) then
+              break;
+
+          idx := fDummyStatements.IndexOf(Statement^._ParentScope^._FullName);
+          if idx <> -1 then begin
+            PStatement(fDummyStatements.Objects[idx])^._Children.Add(Statement);
+            break;
+          end;
+          DummyParent := CreateDummy(Statement^._ParentScope);
+          DummyParent^._Children.Add(Statement);
+        //we are adding an orphan statement, just add it
+          statement := DummyParent;
+          if not Assigned(statement^._ParentScope) then begin
+            filtered.Add(Statement);
+            break;
+          end;
+        end;
+        Continue;
       end;
-          {
-        if SameText(_FileName,CurrentFile) or SameText(_DefinitionFileName,CurrentFile) then
-          AddStatement(Statement)
-        }
-      filtered.Add(Statement);
+      if (Statement^._Kind = skNamespace) then begin
+        idx := fDummyStatements.IndexOf(Statement^._FullName);
+        if idx <> -1 then begin
+          if assigned(statement^._Children) then begin
+            for j:=0 to statement^._Children.Count-1 do begin
+              PStatement(fDummyStatements.Objects[idx])^._Children.Add(statement^._Children[j]);
+            end;
+          end;
+          continue;
+        end;
+        Dummy := CreateDummy(Statement);
+        if assigned(statement^._Children) then
+          Dummy._Children.Assign(statement^._Children);
+        filtered.Add(Dummy);
+      end else
+        filtered.Add(Statement);
     end;
+  end;
+  if sortAlphabetically and sortByType then begin
+    filtered.Sort(@CompareByAlphaAndType);
+  end else if sortAlphabetically then begin
+    filtered.Sort(@CompareByAlpha);
+  end else if sortByType then begin
+    filtered.Sort(@CompareByType);
   end;
 end;
 
@@ -479,7 +575,7 @@ begin
 
         // Add everything recursively
         AddMembers;
-        DoSort;
+        //DoSort;
 
       // Remember selection
         if fLastSelection <> '' then
@@ -535,11 +631,11 @@ begin
       data^.ChildrenStatements:=nil;
       if assigned(data^.statement) then begin
         data^.ImageIndex := CalcImageIndex(data^.statement);
-        if (data^.statement^._ParentScope <> parentStatement) then
+        if (level=0) and (data^.statement^._ParentScope <> parentStatement) then
           data^.Text := data^.statement^._FullName + data^.statement^._Args
         else
           data^.Text := data^.statement^._Command + data^.statement^._Args;
-        Children := fParser.Statements.GetChildrenStatements(data^.Statement);
+        Children := data^.Statement^._Children;
         if assigned(children) then begin
           filteredList:=TList.Create;
           filterChildren(data^.Statement,Children, filteredList);
@@ -606,12 +702,15 @@ begin
   try
     if fUpdating then
       Exit;
-    GetHitTestInfoAt(X, Y, false, hitInfo);
+    GetHitTestInfoAt(X, Y, true, hitInfo);
     Node := hitInfo.HitNode;
     if not Assigned(node) then begin
       self.ClearSelection;
-    end else
-      self.SelectNodes(node,node,False);
+    end else begin
+      if not (hiOnItemButton in HitInfo.HitPositions)
+        or not (vsHasChildren in HitInfo.HitNode.States) then
+        self.SelectNodes(node,node,False);
+    end;
     self.Invalidate;
   finally
     fCriticalSection.Release;
@@ -637,14 +736,22 @@ begin
     try
       if not samestr(fParser.SerialId, fParserSerialId) then
         Exit;
-      GetHitTestInfoAt(X, Y, false, hitInfo);
+      GetHitTestInfoAt(X, Y, true, hitInfo);
       Node := hitInfo.HitNode;
 
-      // Dit we click on anything?
+      // Did we click on anything?
       if not Assigned(Node) then begin
         fLastSelection := '';
         Exit;
       end;
+
+      // Click on the expand lable
+      if (hiOnItemButton in HitInfo.HitPositions)
+        and (vsHasChildren in HitInfo.HitNode.States) then begin
+        fLastSelection := '';
+        Exit;
+      end;
+
       Data := GetNodeData(Node);
       if not Assigned(Data) or not Assigned(Data^.statement) then begin
         fLastSelection := '';
@@ -688,6 +795,7 @@ begin
 end;
 }
 
+{
 procedure TClassBrowser.OnCompareByType(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
     var Result: Integer);
 var
@@ -715,7 +823,9 @@ begin
   Data2:=Sender.GetNodeData(Node2);
   Result := StrIComp(PAnsiChar(Data1.Text), PAnsiChar(Data2.Text));
 end;
+}
 
+{
 procedure TClassBrowser.DoSort(lock:boolean);
 begin
   fCriticalSection.Acquire;
@@ -748,7 +858,17 @@ begin
     fCriticalSection.Release;
   end;
 end;
-
+}
+procedure TClassBrowser.ClearDummyStatements;
+var
+  i:integer;
+begin
+  for i:=0 to fDummyStatements.Count-1 do begin
+    PStatement(fDummyStatements.Objects[i])^._Children.Free;
+    dispose(PStatement(fDummyStatements.Objects[i]))
+  end;
+  fDummyStatements.Clear;
+end;
 procedure TClassBrowser.ClearTree;
 begin
   fCriticalSection.Acquire;
@@ -758,6 +878,7 @@ begin
   try
     self.Clear;
     fRootStatements.Clear;
+    ClearDummyStatements;
   finally
     fUpdating:=False;
   end;
@@ -939,6 +1060,7 @@ begin
   end;
 end;
 
+{
 procedure TClassBrowser.AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
   TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
@@ -1065,7 +1187,7 @@ begin
     fCriticalSection.Release;
   end;
 end;
-
+}
 procedure TClassBrowser.ReSelect;
 begin
   {

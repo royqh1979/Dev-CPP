@@ -783,7 +783,6 @@ type
     procedure actDeleteExecute(Sender: TObject);
     procedure ClassBrowserSelect(Sender: TObject; Filename: TFileName; Line: Integer);
 //    procedure CppParserTotalProgress(Sender: TObject; const FileName: string; Total, Current: Integer);
-    procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
     procedure CodeCompletionResize(Sender: TObject);
     procedure actSwapHeaderSourceExecute(Sender: TObject);
     procedure actSyntaxCheckExecute(Sender: TObject);
@@ -834,8 +833,6 @@ type
     procedure actExecParamsExecute(Sender: TObject);
     procedure DevCppDDEServerExecuteMacro(Sender: TObject; Msg: TStrings);
     procedure actShowTipsExecute(Sender: TObject);
-    procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
-    procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
     procedure actAbortCompilationUpdate(Sender: TObject);
     procedure actAbortCompilationExecute(Sender: TObject);
     procedure ProjectViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1010,6 +1007,7 @@ type
     procedure actStatementsTypeFileUpdate(Sender: TObject);
     procedure actStatementsTypeFileExecute(Sender: TObject);
     procedure actStatementsTypeProjectExecute(Sender: TObject);
+    procedure actIndentUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1073,7 +1071,6 @@ type
     procedure ClearMessageControl;
     procedure UpdateClassBrowsing;
     function ParseParameters(const Parameters: WideString): Integer;
-    procedure OnClassBrowserUpdated(sender:TObject);
     procedure CloseProject(RefreshEditor:boolean);
     procedure StartTabnine;
     procedure StopTabnine;
@@ -1081,6 +1078,9 @@ type
     procedure UpdateDebugInfo;
     procedure OpenShell(Sender: TObject;const shellName:string);
     procedure UpdateStatementsType;
+    procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
+    procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
+    procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
   public
     function GetCppParser:TCppParser;
     procedure CheckSyntaxInBack(e:TEditor);
@@ -1533,6 +1533,8 @@ var
   tc:TThemeColor;
 begin
   strToThemeColor(panelTC, devEditor.Syntax.Values[cPNL]);
+  BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
+  ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;  
   MainForm.Color := panelTC.Background;
   MainForm.Font.Color := panelTC.Foreground;
   LeftPageControl.OwnerDraw:=True;
@@ -1542,9 +1544,9 @@ begin
   cmbCompilers.Font := mainForm.Font;
   evaluateInput.Color := panelTC.Background;
   evaluateInput.Font := MainForm.Font;
+  evaluateInput.Font.Color := ForegroundColor;
 
-  BackgroundColor := dmMain.Cpp.WhitespaceAttribute.Background;
-  ForegroundColor := dmMain.Cpp.IdentifierAttri.Foreground;
+
   strToThemeColor(selectedTC, devEditor.Syntax.Values[cSel]);
   debugOutput.Color := BackgroundColor;
   debugOutput.Font := MainForm.Font;
@@ -1645,6 +1647,10 @@ begin
   txtLocals.Color := BackgroundColor;
   txtLocals.Font := MainForm.Font;
   txtLocals.Font.Color := ForegroundColor;
+
+  chkShortenPaths.Color := BackgroundColor;
+  chkShortenPaths.Font := MainForm.Font;
+  chkShortenPaths.Font.Color := ForegroundColor;
 end;
 
 procedure TMainForm.ReloadColor;
@@ -1667,6 +1673,7 @@ begin
   PageControlPanel.Repaint;
   EditorPageControlLeft.Invalidate;
   EditorPageControlRight.Invalidate;
+  chkShortenPaths.Invalidate;
 end;
 
 procedure TMainForm.LoadText;
@@ -3093,7 +3100,7 @@ var
   oldbottomline: integer;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then begin
+  if Assigned(e) and e.Text.Focused then begin
     oldbottomline := e.Text.TopLine + e.Text.LinesInWindow;
     e.Text.CutToClipboard;
     if (e.Text.TopLine + e.Text.LinesInWindow) <> oldbottomline then
@@ -3106,7 +3113,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.Text.CopyToClipboard;
 end;
 
@@ -3116,7 +3123,7 @@ var
   oldbottomline: integer;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then begin
+  if Assigned(e) and e.Text.Focused then begin
     oldbottomline := e.Text.TopLine + e.Text.LinesInWindow;
     e.Text.PasteFromClipboard;
     if (e.Text.TopLine + e.Text.LinesInWindow) <> oldbottomline then
@@ -3129,7 +3136,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if assigned(e) then
+  if assigned(e) and e.Text.Focused then
     e.Text.SelectAll;
 end;
 
@@ -4301,7 +4308,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  TCustomAction(Sender).Enabled := Assigned(e) and not e.Text.IsEmpty;
+  TCustomAction(Sender).Enabled := Assigned(e) and e.Text.Focused and not e.Text.IsEmpty;
 end;
 
 procedure TMainForm.actUpdateDebuggerRunning(Sender: TObject);
@@ -4852,7 +4859,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  TAction(Sender).Enabled := Assigned(e) and e.Text.SelAvail;
+  TAction(Sender).Enabled := Assigned(e) and e.Text.Focused and e.Text.SelAvail;
 end;
 
 procedure TMainForm.actPasteUpdate(Sender: TObject);
@@ -4860,7 +4867,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  actPaste.Enabled := Assigned(e) and e.Text.CanPaste;
+  actPaste.Enabled := Assigned(e) and e.Text.Focused and e.Text.CanPaste;
 end;
 
 procedure TMainForm.actSaveUpdate(Sender: TObject);
@@ -5275,7 +5282,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.Text.CommandProcessor(ecToggleComment, #0, nil);
 end;
 
@@ -5284,7 +5291,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.IndentSelection;
 end;
 
@@ -5293,7 +5300,7 @@ var
   e: TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.UnindentSelection;
 end;
 
@@ -5354,7 +5361,7 @@ end;
 
 procedure TMainForm.actBrowserGotoDefinitionUpdate(Sender: TObject);
 begin
-  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind = <> skUnknown)
+  TCustomAction(Sender).Enabled := (ClassBrowser.SelectedKind <> skUnknown)
 end;
 
 procedure TMainForm.actBrowserNewClassUpdate(Sender: TObject);
@@ -5429,8 +5436,6 @@ begin
 end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
-var
-  p1,p2:integer;
 begin
   if not Assigned(e) then begin
     ClassBrowser.Parser := nil;
@@ -5973,6 +5978,7 @@ procedure TMainForm.CppParserEndParsing(var message:TMessage);
 var
   ParseTimeFloat, ParsingFrequency: Extended;
   total:integer;
+  e:TEditor;
 begin
   Screen.Cursor := crDefault;
 
@@ -5991,6 +5997,10 @@ begin
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
   ClassBrowser.EndTreeUpdate;
+  e:=EditorList.GetEditor;
+  if assigned(e) then begin
+    e.Text.Invalidate;
+  end;
 end;
 
 procedure TMainForm.UpdateAppTitle;
@@ -6396,10 +6406,6 @@ begin
       PAnsiChar(ExtractFilePath(fProject.Units[idx2].FileName)),
       SW_SHOW);
   end
-end;
-
-procedure TMainForm.OnClassBrowserUpdated(sender:TObject);
-begin
 end;
 
 procedure TMainForm.CompilerOutputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -6988,7 +6994,6 @@ begin
     end;
   end;
 
-  ClassBrowser.OnUpdated := OnClassBrowserUpdated;
   UpdateClassBrowsing;
   UpdateStatementsType;
 
@@ -7055,7 +7060,6 @@ end;
 procedure TMainForm.OnInputEvalReady(const evalvalue: AnsiString);
 begin
   EvalOutput.Text := evalvalue;
-  EvalOutput.Font.Color := clWindowText;
   fDebugger.OnEvalReady := nil;
 end;
 
@@ -7072,9 +7076,6 @@ begin
 
         fDebugger.OnEvalReady := OnInputEvalReady;
         fDebugger.SendCommand('print', EvaluateInput.Text,False);
-
-        // Tell the user we're updating...
-        EvalOutput.Font.Color := clGrayText;
 
         // Add to history
         if EvaluateInput.Items.IndexOf(EvaluateInput.Text) = -1 then
@@ -8498,7 +8499,7 @@ var
   e:TEditor;
 begin
   e := fEditorList.GetEditor;
-  if Assigned(e) then
+  if Assigned(e) and e.Text.Focused then
     e.RTFToClipboard;
 end;
 
@@ -9046,6 +9047,14 @@ procedure TMainForm.actStatementsTypeProjectExecute(Sender: TObject);
 begin
   devClassBrowsing.StatementsType := cbstProject;
   UpdateStatementsType;
+end;
+
+procedure TMainForm.actIndentUpdate(Sender: TObject);
+var
+  e: TEditor;
+begin
+  e := fEditorList.GetEditor;
+  TCustomAction(Sender).Enabled:= Assigned(e) and e.Text.Focused;
 end;
 
 end.

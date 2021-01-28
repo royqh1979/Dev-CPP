@@ -2828,7 +2828,7 @@ begin
   if Statement^._Kind = skUserCodeIn then begin // it's a user code template
     InsertUserCodeIn(Statement^._Value);
   end else begin
-    if (Statement^._Kind = skKeyword) and
+    if (Statement^._Kind in [skKeyword,skPreprocessor]) and
       (length(Statement^._Command)>0) and
       (Statement^._Command[1] in ['#','@']) then begin
       fText.SelText := Copy(Statement^._Command,2,MAXINT);

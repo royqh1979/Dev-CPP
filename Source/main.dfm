@@ -197,7 +197,16 @@ object MainForm: TMainForm
           Height = 21
           Action = actShortenCompPaths
           Anchors = [akLeft, akTop, akRight]
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -15
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
           TabOrder = 1
+          Visible = False
         end
       end
       object CompResGroupBox: TPanel
@@ -243,7 +252,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 721
         Height = 196
-        ActivePage = BreakpointsSheet
+        ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
         TabOrder = 0
@@ -544,6 +553,7 @@ object MainForm: TMainForm
             ItemHeight = 16
             ParentCtl3D = False
             ParentFont = False
+            PopupMenu = DebugOutputPopup
             TabOrder = 0
             OnKeyPress = EvaluateInputKeyPress
           end
@@ -562,6 +572,7 @@ object MainForm: TMainForm
             Font.Name = 'MS Sans Serif'
             Font.Style = []
             ParentFont = False
+            PopupMenu = DebugOutputPopup
             ReadOnly = True
             ScrollBars = ssBoth
             TabOrder = 1
@@ -2633,7 +2644,7 @@ object MainForm: TMainForm
       ImageIndex = 60
       ShortCut = 9
       OnExecute = actIndentExecute
-      OnUpdate = actUpdateIndent
+      OnUpdate = actIndentUpdate
     end
     object actUnindent: TAction
       Category = 'Edit'
@@ -2641,7 +2652,7 @@ object MainForm: TMainForm
       ImageIndex = 61
       ShortCut = 8201
       OnExecute = actUnindentExecute
-      OnUpdate = actUpdateIndent
+      OnUpdate = actIndentUpdate
     end
     object actGotoFunction: TAction
       Category = 'Search'
