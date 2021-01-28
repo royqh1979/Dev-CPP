@@ -271,10 +271,8 @@ begin
     TVirtualTreeOptions(TreeOptions).PaintOptions - [toShowTreeLines];
   TVirtualTreeOptions(TreeOptions).SelectionOptions :=
     TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect];
-
   TVirtualTreeOptions(TreeOptions).AutoOptions :=
     TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort, toAutoScrollOnExpand];
-
   self.OnInitNode := OnCBInitNode;
   self.OnGetText := OnCBGetText;
   self.OnFreeNode := OnCBFreeNode;

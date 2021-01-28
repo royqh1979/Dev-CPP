@@ -1,3 +1,10 @@
+Version 6.4-beta1 JAN 2021
+    - enhancement: refresh editor when parsing finished
+    - enhancement: better organize infos in the classbrowser for class members definitions in the cpp files
+    - fix: expand a node in the class browser will jump to its declaration
+    - fix: don't auto scroll the expanded node to the top
+    - enhancement: All same name namespaces only display once in the classbrowser
+
 Version 6.4-alpha2 JAN 2021
 
     - enhancement: Add "enable auto links" option in the compiler option dialog
@@ -8,10 +15,6 @@ Version 6.4-alpha2 JAN 2021
     - fix: wrong text color of the evaluation input and result controls
     - fix: prevent copy/paste/cut/indent/toggle comment when input focus is not in the editor
     - fix: can't copy/paste in the evaluation input control
-    - enhancement: refresh editor when parsing finished
-    - enhancement: better organize infos in the classbrowser for class members definitions in the cpp files
-    - fix: expand a node in the class browser will jump to its declaration
-    - fix: don't auto scroll the expanded node to the top
 
 Version 6.4-alpha1 JAN 2021
 
