@@ -1,9 +1,18 @@
+Version 6.4-beta2 FEB 2021
+
+    - fix: local variables not show up when editing in the definition of a function which declaration is not in the same file
+
 Version 6.4-beta1 JAN 2021
+
+    - fix: wrong text color of the evaluation input and result controls
+    - fix: prevent copy/paste/cut/indent/toggle comment when input focus is not in the editor
+    - fix: can't copy/paste in the evaluation input control
     - enhancement: refresh editor when parsing finished
     - enhancement: better organize infos in the classbrowser for class members definitions in the cpp files
     - fix: expand a node in the class browser will jump to its declaration
     - fix: don't auto scroll the expanded node to the top
     - enhancement: All same name namespaces only display once in the classbrowser
+
 
 Version 6.4-alpha2 JAN 2021
 
@@ -12,9 +21,6 @@ Version 6.4-alpha2 JAN 2021
     - fix: leftpanel tab display not correct, when the project panel is hidden.
     - enhancement: greatly improved the speed of class browser loading. (For large files such as GL/glew.h, the loading time changed from >20s to <0.2s);
     - enhancement: Add options to switch between show all members in the project and in the current file
-    - fix: wrong text color of the evaluation input and result controls
-    - fix: prevent copy/paste/cut/indent/toggle comment when input focus is not in the editor
-    - fix: can't copy/paste in the evaluation input control
 
 Version 6.4-alpha1 JAN 2021
 

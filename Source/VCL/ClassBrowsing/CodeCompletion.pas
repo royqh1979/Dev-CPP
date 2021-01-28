@@ -188,7 +188,8 @@ var
   Children : TList;
   i:integer;
 begin
-  if assigned(ScopeStatement) and not IsIncluded(ScopeStatement^._FileName) then
+  if assigned(ScopeStatement) and not IsIncluded(ScopeStatement^._FileName)
+    and not IsIncluded(ScopeStatement^._DefinitionFileName) then
     Exit ;
   Children := fParser.Statements.GetChildrenStatements(ScopeStatement);
   if not Assigned(Children) then
