@@ -5436,8 +5436,6 @@ begin
 end;
 
 procedure TMainForm.UpdateClassBrowserForEditor(e:TEditor);
-var
-  p1,p2:integer;
 begin
   if not Assigned(e) then begin
     ClassBrowser.Parser := nil;
@@ -7066,8 +7064,6 @@ begin
 end;
 
 procedure TMainForm.EvaluateInputKeyPress(Sender: TObject; var Key: Char);
-var
-  panelTC:TThemeColor;
 begin
   if fDebugger.Executing and (not fDebugger.Reader.CommandRunning) then begin
     if Key = Chr(VK_RETURN) then begin

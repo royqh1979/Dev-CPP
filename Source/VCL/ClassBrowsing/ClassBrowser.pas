@@ -101,9 +101,11 @@ type
     procedure SetParser(Value: TCppParser);
     procedure AddMembers;
     procedure FilterChildren(parentStatement:PStatement; children:TList; var filtered:TList);
+    {
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages,
       DefaultDraw: Boolean);
+    }
     procedure OnNodeChange(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure OnNodeChanging(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     {
@@ -253,7 +255,6 @@ begin
   fControlCanvas := TControlCanvas.Create;
   fControlCanvas.Control := Self;
   //fControlCanvas.Font.Assign(Self.Font);
-  //OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
   fIncludedFiles := TStringList.Create;
   fIsIncludedCacheFileName := '';
   fIsIncludedCacheResult := false;
@@ -1059,6 +1060,7 @@ begin
   end;
 end;
 
+{
 procedure TClassBrowser.AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage:
   TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
@@ -1185,7 +1187,7 @@ begin
     fCriticalSection.Release;
   end;
 end;
-
+}
 procedure TClassBrowser.ReSelect;
 begin
   {
