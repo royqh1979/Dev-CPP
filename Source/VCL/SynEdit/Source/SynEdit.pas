@@ -387,6 +387,7 @@ type
     fChainUndoAdded: TNotifyEvent;
     fChainRedoAdded: TNotifyEvent;
     fPainterLock:integer;
+    fUndoing: boolean;
 
     procedure ReScanForFoldRanges;
     procedure ReScan;
@@ -1200,6 +1201,7 @@ begin
   fOrigLines := fLines;
   fPlugins := TList.Create;
   fMouseMoved := False;
+  fUndoing:=False;
   with fLines do begin
     OnChange := LinesChanged;
     OnChanging := LinesChanging;
@@ -4040,7 +4042,11 @@ var
             CaretX - 1 - Length(sLeftSide));
       end;
       sRightSide := Copy(LineText, CaretX, MaxInt);
-      SpaceCount := LeftSpacesEx(sLeftSide, true);
+      if fUndoing then begin
+        SpaceCount := 0
+      end else begin
+        SpaceCount := LeftSpacesEx(sLeftSide, true);
+      end;
       // step1: insert the first line of Value into current line
       Start := PChar(Value);
       P := GetEOL(Start);
@@ -5208,6 +5214,7 @@ var
   ChangeScrollPastEol: boolean;
   BeginX: integer;
 begin
+  fUndoing:=True;
   ChangeScrollPastEol := not (eoScrollPastEol in Options);
   Item := fUndoList.PopItem;
   if Assigned(Item) then try
@@ -5315,6 +5322,7 @@ begin
         end;
     end;
   finally
+    fUndoing:=False;
     if ChangeScrollPastEol then
       Exclude(fOptions, eoScrollPastEol);
     Item.Free;
