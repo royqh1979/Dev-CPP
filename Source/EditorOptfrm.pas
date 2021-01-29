@@ -240,6 +240,9 @@ type
     procedure LoadSyntaxFromFile(const FileName: AnsiString);
     procedure FillSyntaxSets;
     procedure UpdateDemoEditColor;
+    procedure CppEditPaintHighlightToken(Sender: TObject; Row: integer;
+      column: integer; token: String; attr: TSynHighlighterAttributes;
+      var style:TFontStyles; var FG,BG:TColor);
   public
     AccessedTabs: TEditorOptFormHistory;
   end;
@@ -252,11 +255,11 @@ uses
 
 {$R *.dfm}
 const
-  cBreakLine = 7;
-  cABreakLine = 9;
-  cErrorLine = 11;
-  cSelection = 15;
-  cActiveLine = 1;
+  cBreakLine = 9;
+  cABreakLine = 11;
+  cErrorLine = 13;
+  cSelection = 17;
+  cActiveLine = 4;
 
 procedure TEditorOptForm.UpdateDemoEditColor;
 begin
@@ -415,6 +418,7 @@ begin
     ElementListClick(nil);
   end;
 
+  CppEdit.OnPaintHighlightToken := CppEditPaintHighlightToken;
   // Snippets, Inserts
   LoadCodeIns;
   UpdateCIButtons;
@@ -1173,6 +1177,66 @@ begin
   cppEdit.Repaint;
 end;
 
+procedure TEditorOptForm.CppEditPaintHighlightToken(Sender: TObject; Row: integer;
+  column: integer; token: String; attr: TSynHighlighterAttributes;
+  var style:TFontStyles; var FG,BG:TColor);
+var
+  tc:TThemeColor;
+  kind: TStatementKind;
+  p: TBufferCoord;
+  s:String;
+  pBeginPos,pEndPos : TbufferCoord;
+begin
+  if token='' then
+    Exit;
+  //selection
+  if CppEdit.SelAvail then begin
+    if (
+      (attr = CppEdit.Highlighter.IdentifierAttribute)
+      or (attr = CppEdit.Highlighter.KeywordAttribute)
+      or (attr = Cpp.DirecAttri)
+      )
+      and SameStr(token, CppEdit.SelText) then begin
+      tc := self.fSelColor;
+      FG := tc.Foreground;
+      BG := tc.Background;
+      exit;
+    end;
+  end;
+
+  if SameStr(token,'int') then
+    fg := Cpp.KeyAttri.Foreground
+  else if SameStr(token,'x') then
+    fg := Cpp.GlobalVarAttri.Foreground
+  else if SameStr(token,'main') then
+    fg := Cpp.FunctionAttri.Foreground
+  else if SameStr(token,'argc') then
+    fg := Cpp.LocalVarAttri.Foreground
+  else if SameStr(token,'argv') then
+    fg := Cpp.LocalVarAttri.Foreground
+  else if SameStr(token,'char') then
+    fg := Cpp.KeyAttri.Foreground
+  else if SameStr(token,'numbers') then
+    fg := Cpp.LocalVarAttri.Foreground
+  else if SameStr(token,'float') then
+    fg := Cpp.KeyAttri.Foreground
+  else if SameStr(token,'average') then
+    fg := Cpp.LocalVarAttri.Foreground
+  else if SameStr(token,'total') then
+    fg := Cpp.LocalVarAttri.Foreground
+  else if SameStr(token,'i') then
+    fg := Cpp.LocalVarAttri.Foreground
+  else if SameStr(token,'for') then
+    fg := Cpp.KeyAttri.Foreground
+  else if SameStr(token,'cout') then
+    fg := Cpp.VariableAttri.Foreground
+  else if SameStr(token,'getch') then
+    fg := Cpp.FunctionAttri.Foreground;
+
+  if fg = clNone then //old color theme, use the default color
+    fg := attr.Foreground;
+end;
+
 procedure TEditorOptForm.cppEditStatusChange(Sender: TObject;
   Changes: TSynStatusChanges);
 var
@@ -1180,8 +1244,45 @@ var
   attr: TSynHighlighterAttributes;
 begin
   if assigned(cppEdit.Highlighter) and
-    (Changes * [scAll, scCaretX, scCaretY] <> []) then
-    case cppEdit.CaretY of
+    (Changes * [scAll, scCaretX, scCaretY] <> []) then begin
+    if not cppEdit.GetHighlighterAttriAtRowCol(cppEdit.CaretXY, Token, Attr) then
+      Attr := cppEdit.Highlighter.WhiteSpaceAttribute;
+    if assigned(Attr) then begin
+      if Attr = cpp.IdentifierAttri then begin
+        if SameStr(token,'int') then
+          Attr := Cpp.KeyAttri
+        else if SameStr(token,'x') then
+          Attr := Cpp.GlobalVarAttri
+        else if SameStr(token,'main') then
+          Attr := Cpp.FunctionAttri
+        else if SameStr(token,'argc') then
+          Attr := Cpp.LocalVarAttri
+        else if SameStr(token,'argv') then
+          Attr := Cpp.LocalVarAttri
+        else if SameStr(token,'char') then
+          Attr := Cpp.KeyAttri
+        else if SameStr(token,'numbers') then
+          Attr := Cpp.LocalVarAttri
+        else if SameStr(token,'float') then
+          Attr := Cpp.KeyAttri
+        else if SameStr(token,'average') then
+          Attr := Cpp.LocalVarAttri
+        else if SameStr(token,'total') then
+          Attr := Cpp.LocalVarAttri
+        else if SameStr(token,'i') then
+          Attr := Cpp.LocalVarAttri
+        else if SameStr(token,'for') then
+          Attr := Cpp.KeyAttri
+        else if SameStr(token,'cout') then
+          Attr := Cpp.VariableAttri
+        else if SameStr(token,'getch') then
+          Attr := Cpp.FunctionAttri
+      end;
+      ElementList.ItemIndex := ElementList.Items.Indexof(Attr.Name);
+      ElementListClick(Self);
+    end;
+    if Attr = cppEdit.Highlighter.WhiteSpaceAttribute then begin
+      case cppEdit.CaretY of
       cSelection: begin
           ElementList.ItemIndex := ElementList.Items.Indexof(cSel);
           ElementListClick(Self);
@@ -1202,15 +1303,9 @@ begin
           ElementList.ItemIndex := ElementList.Items.Indexof(cErr);
           ElementListClick(Self);
         end;
-    else begin
-        if not cppEdit.GetHighlighterAttriAtRowCol(cppEdit.CaretXY, Token, Attr) then
-          Attr := cppEdit.Highlighter.WhiteSpaceAttribute;
-        if assigned(Attr) then begin
-          ElementList.ItemIndex := ElementList.Items.Indexof(Attr.Name);
-          ElementListClick(Self);
-        end;
       end;
     end;
+  end;
 end;
 
 procedure TEditorOptForm.CppEditSpecialLineColors(Sender: TObject;

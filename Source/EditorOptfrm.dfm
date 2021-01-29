@@ -4,7 +4,7 @@ object EditorOptForm: TEditorOptForm
   BorderStyle = bsDialog
   Caption = 'Editor Options'
   ClientHeight = 645
-  ClientWidth = 645
+  ClientWidth = 654
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,7 +16,7 @@ object EditorOptForm: TEditorOptForm
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    645
+    654
     645)
   PixelsPerInch = 120
   TextHeight = 20
@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabGeneral
+    ActivePage = tabSyntax
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -613,13 +613,15 @@ object EditorOptForm: TEditorOptForm
           '#include <iostream>'
           '#include <conio.h>'
           ''
+          'int x=10;'
+          ''
           'int main(int argc, char **argv)'
           '{'
           #9'int numbers[20];'
           #9'float average, total; //breakpoint'
           #9'for (int i = 0; i <= 19; i++)'
           #9'{ // active breakpoint'
-          #9#9'numbers[i] = i;'
+          #9#9'numbers[i] = i+x;'
           #9#9'Total += i; // error line'
           #9'}'
           #9'average = total / 20; // comment'
@@ -713,7 +715,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1332,7 +1334,7 @@ object EditorOptForm: TEditorOptForm
     end
   end
   object btnOk: TBitBtn
-    Left = 280
+    Left = 289
     Top = 602
     Width = 113
     Height = 34
@@ -1361,7 +1363,7 @@ object EditorOptForm: TEditorOptForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 400
+    Left = 409
     Top = 602
     Width = 113
     Height = 34
@@ -1371,7 +1373,7 @@ object EditorOptForm: TEditorOptForm
     Kind = bkCancel
   end
   object btnHelp: TBitBtn
-    Left = 520
+    Left = 529
     Top = 602
     Width = 113
     Height = 34

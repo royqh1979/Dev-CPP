@@ -2,6 +2,7 @@ Version 6.4-beta2 FEB 2021
 
     - fix: local variables not show up when editing in the definition of a function which declaration is not in the same file
     - fix: delete a linebreak and undo, the result is not correct
+    - enhancement: better hightlight support in the demo of the editor options dialog's color tab
 
 Version 6.4-beta1 JAN 2021
 
