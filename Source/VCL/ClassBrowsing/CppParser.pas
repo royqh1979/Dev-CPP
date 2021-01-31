@@ -404,6 +404,7 @@ begin
     skTypedef: Result := 'T';
     skEnum: Result := 'E';
     skEnumType: Result := 'T';
+    skAlias: Result := 'U';
     skUnknown: Result := 'U';
     skNamespace: Result := 'N';
     skUserCodeIn: Result := '';
@@ -1655,9 +1656,10 @@ var
   scopeStatement: PStatement;
   usingName,fullname: AnsiString;
   usingList : TStringList;
-  i: integer;
+  i,startLine: integer;
   fileInfo:PFileIncludes;
 begin
+  startLine := fIndex;
   if fCurrentFile='' then begin
     //skip to ;
     while (fIndex < fTokenizer.Tokens.Count) and (fTokenizer[fIndex].Text<>';') do
@@ -1667,8 +1669,32 @@ begin
 
   Inc(fIndex); //skip 'using'
 
-  //todo: handle using std:vector;
+  //handle things like 'using std::vector;'
   if (fIndex+2>=fTokenizer.Tokens.Count) or not (fTokenizer[fIndex].Text = 'namespace') then begin
+    i:=LastPos('::',fTokenizer[fIndex].Text);
+    if (i>0) then begin
+      fullName := fTokenizer[fIndex].Text;
+      usingName := Copy(fullName,i+2,MaxInt);
+      AddStatement(
+        GetCurrentScope,
+        fCurrentFile,
+        'using '+FullName, //hint text
+        FullName, // name of the alias (type)
+        usingName, // command
+        '', // args
+        '', // values
+      //fTokenizer[fIndex]^.Line,
+        startLine,
+        skAlias,
+        GetScope,
+        fClassScope,
+        True,
+        nil,
+        False);
+    end;
+    //skip to ; and skip it
+    while (fIndex<fTokenizer.Tokens.Count) and (fTokenizer[fIndex].Text<>';') do
+      inc(fIndex);
     Exit;
   end;
   Inc(fIndex);  // skip namespace
@@ -4264,6 +4290,12 @@ begin
     TypeStatement := FindTypeDefinitionOf(FileName,statement^._Type, CurrentClassType);
     if Assigned(TypeStatement) then
       Statement := TypeStatement;
+  end;
+
+  if (statement._Kind in [skAlias]) then begin
+    Statement := FindStatementOf(FileName, statement^._Type,CurrentClass, CurrentClassType, force);
+    if not assigned(statement) then
+      Exit;
   end;
 
   if (statement._Kind = skConstructor) then begin // we need the class, not the construtor

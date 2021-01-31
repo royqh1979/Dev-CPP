@@ -1571,7 +1571,7 @@ begin
   ClassBrowser.TreeColors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
   ClassBrowser.TreeColors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   ClassBrowser.TreeColors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
-  ClassBrowser.TreeColors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+  ClassBrowser.TreeColors[TypedefColor] := dmMain.Cpp.ClassAttri.Foreground;
   ClassBrowser.TreeColors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   ClassBrowser.TreeColors[EnumColor] := dmMain.Cpp.IdentifierAttribute.Foreground;
   ClassBrowser.TreeColors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
@@ -1589,7 +1589,7 @@ begin
   CodeCompletion.Colors[ClassColor] := dmMain.Cpp.ClassAttri.Foreground;
   CodeCompletion.Colors[VarColor] := dmMain.Cpp.VariableAttri.Foreground;
   CodeCompletion.Colors[NamespaceColor] := dmMain.Cpp.StringAttribute.Foreground;
-  CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.SymbolAttribute.Foreground;
+  CodeCompletion.Colors[TypedefColor] := dmMain.Cpp.ClassAttri.Foreground;
   CodeCompletion.Colors[PreprocessorColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[EnumColor] := dmMain.Cpp.DirecAttri.Foreground;
   CodeCompletion.Colors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;

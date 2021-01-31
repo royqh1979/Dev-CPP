@@ -114,6 +114,13 @@ begin
 
     statement := PStatement(Items.Objects[Index]);
 
+    while Assigned(statement) and (statement^._Kind = skAlias) do begin
+      statement := fOwner.Parser.FindStatementOf(
+        statement^._FileName, statement^._Type, statement^._Line);
+    end;
+    if not assigned(statement) then
+      statement := PStatement(Items.Objects[Index]);
+
     case statement^._Kind of
       skFunction, skConstructor, skDestructor: Canvas.Font.Color := Colors[FunctionColor];
       skClass: Canvas.Font.Color := Colors[ClassColor];
@@ -127,7 +134,7 @@ begin
       end;
       skParameter: Canvas.Font.Color := Colors[LocalVarColor];
       skNamespace: Canvas.Font.Color := Colors[NamespaceColor];
-      skTypedef: Canvas.Font.Color := Colors[TypedefColor];
+      skTypedef, skAlias: Canvas.Font.Color := Colors[TypedefColor];
       skPreprocessor, skEnum: Canvas.Font.Color := Colors[PreprocessorColor];
       skEnumType: Canvas.Font.Color := Colors[EnumColor];
       skKeyword, skUserCodeIn: Canvas.Font.Color := Colors[KeywordColor];

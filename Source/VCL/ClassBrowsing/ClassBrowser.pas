@@ -1016,6 +1016,12 @@ begin
       st := data^.statement;
       bInherited := fShowInheritedMembers and st^._Inherited;
       TargetCanvas.Font.Style := [fsBold];
+      while Assigned(st) and (st^._Kind = skAlias) do begin
+        st := fParser.FindStatementOf(
+          st^._FileName, st^._Type, st^._Line);
+      end;
+      if not assigned(st) then
+        st := data^.statement;
       if  Selected[node] and self.Focused then begin
         TargetCanvas.Brush.Color:=fColors[SelectedBackColor];
 //        TargetCanvas.Font.Color := fColors[SelectedForeColor];
