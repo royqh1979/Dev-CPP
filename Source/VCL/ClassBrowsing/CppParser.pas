@@ -4292,7 +4292,7 @@ begin
       Statement := TypeStatement;
   end;
 
-  if (statement._Kind in [skAlias]) then begin
+  if (statement._Kind in [skAlias]) and not SameStr(Phrase,statement^._Type)  then begin
     Statement := FindStatementOf(FileName, statement^._Type,CurrentClass, CurrentClassType, force);
     if not assigned(statement) then
       Exit;

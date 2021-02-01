@@ -4,6 +4,8 @@ Version 6.4-beta2 FEB 2021
     - fix: delete a linebreak and undo, the result is not correct
     - enhancement: better hightlight support in the demo of the editor options dialog's color tab
     - enhancement: add support to things like 'using std::vector;'
+    - upgrade integrated EGE to version 21.01
+    - upgrade libturtle: drawing using EGE commands won't be cleared by frame refresh
 
 Version 6.4-beta1 JAN 2021
 
