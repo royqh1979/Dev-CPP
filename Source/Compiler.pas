@@ -721,11 +721,20 @@ begin
         GetLibrariesParams;
         GetIncludesParams;
 
-        if not fCheckSyntax and UseUTF8 then begin
+        if not fCheckSyntax and  UseUTF8 then begin
           fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
           fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
+        end else if fCheckSyntax then begin
+          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName();
+          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName();
+        {
+          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+            +GetSystemCharsetName();
+          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+            +GetSystemCharsetName();
+        }
         end;
 
         // Determine command line to execute

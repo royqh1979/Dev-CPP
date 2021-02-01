@@ -5,7 +5,8 @@ Version 6.4-beta2 FEB 2021
     - enhancement: better hightlight support in the demo of the editor options dialog's color tab
     - enhancement: add support to things like 'using std::vector;'
     - upgrade integrated EGE to version 21.01
-    - upgrade libturtle: drawing using EGE commands won't be cleared by frame refresh
+    - upgrade libturtle: add setBackgroundColor() setBackgroundImage() and fill() functions
+    - fix: chinese wchar string literals like L"×Ö·û´® 2" is wrongly marked as error by gcc syntax check.
 
 Version 6.4-beta1 JAN 2021
 
