@@ -230,7 +230,6 @@ procedure TCompiler.WriteMakeDefines(var F: TextFile);
 var
   Objects, ObjResFile, LinkObjects, ObjFile, RelativeName, OutputFileDir, LibOutputFile: AnsiString;
   I: integer;
-  fLibrariesParams:String;
 begin
   // Get list of object files
   Objects := '';
