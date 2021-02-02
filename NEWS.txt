@@ -7,6 +7,7 @@ Version 6.4-beta2 FEB 2021
     - upgrade integrated EGE to version 21.01
     - upgrade libturtle: add setBackgroundColor() setBackgroundImage() and fill() functions
     - fix: chinese wchar string literals like L"×Ö·û´® 2" is wrongly marked as error by gcc syntax check.
+    - fix: autolinks sometimes not work when the file is not saved before compiling. 
 
 Version 6.4-beta1 JAN 2021
 

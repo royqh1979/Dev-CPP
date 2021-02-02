@@ -3755,7 +3755,7 @@ begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not Assigned(e) then
           Exit;
-        if not e.Save then
+        if not e.Save(False,False) then
           Exit;
         fCompiler.UseUTF8 := (e.FileEncoding = etUTF8);
         fCompiler.SourceFile := e.FileName;

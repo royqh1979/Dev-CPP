@@ -230,6 +230,7 @@ procedure TCompiler.WriteMakeDefines(var F: TextFile);
 var
   Objects, ObjResFile, LinkObjects, ObjFile, RelativeName, OutputFileDir, LibOutputFile: AnsiString;
   I: integer;
+  fLibrariesParams:String;
 begin
   // Get list of object files
   Objects := '';
@@ -726,7 +727,7 @@ begin
             +GetSystemCharsetName();
           fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
-        end else if fCheckSyntax then begin
+        end else begin
           fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName();
           fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName();
         {
@@ -1315,6 +1316,8 @@ var
   fullPath : String;
   autolinkIndexes : TStringHash;
   parsedFiles: TStringHash;
+  logger:TStringList;
+  waitCount: integer;
 
   procedure ParseFileInclude(_FileName:String);
   var
@@ -1350,9 +1353,18 @@ begin
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
 
+  //Add auto links
   if (fTarget = cttFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
     if Assigned(e) then begin
+      waitCount := 0;
+      //wait parsing ends, at most 0.5 second
+      while (e.CppParser.Parsing) do begin
+        if waitCount> 5 then
+          break;
+        inc(waitCount);
+        Sleep(100);
+      end;
       autolinkIndexes := TStringHash.Create;
       parsedFiles := TStringHash.Create;
       try
@@ -1360,7 +1372,7 @@ begin
           fullPath := e.CppParser.GetHeaderFileName(e.FileName,'"'+dmMain.AutoLinks[i]^.header+'"');
           autolinkIndexes.Add(fullPath,i);
         end;
-          ParseFileInclude(e.FileName);
+        ParseFileInclude(e.FileName);
       finally
         parsedFiles.Free;
         autolinkIndexes.Free;
