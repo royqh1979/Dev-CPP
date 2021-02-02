@@ -1097,24 +1097,37 @@ begin
 end;
 
 procedure TCompiler.LaunchThread(const s, dir: AnsiString; redirectStdin: boolean);
+var
+  waitCount:integer;
 begin
+{
   if Assigned(fDevRun) then
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0)
   else begin
-    fAbortThread := False;
-    fDevRun := TDevRun.Create(true);
-    fDevRun.Command := s;
-    fDevRun.Directory := dir;
-    fDevRun.OnTerminate := OnCompilationTerminated;
-    fDevRun.OnLineOutput := OnLineOutput;
-    fDevRun.OnCheckAbort := ThreadCheckAbort;
-    fDevRun.InputText := SourceText;
-    fDevRun.FreeOnTerminate := True;
-    fDevRun.RedirectStdin:= redirectStdin;
-    fDevRun.Resume;
-
-    MainForm.UpdateAppTitle;
+}
+  // wait check syntax ends, at most 2 seconds
+  waitCount := 0;
+  while Assigned(fDevRun) do begin
+    if waitCount > 20 then begin
+      MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
+      Exit;
+    end;
+    inc(waitCount);
+    Sleep(100);
   end;
+  fAbortThread := False;
+  fDevRun := TDevRun.Create(true);
+  fDevRun.Command := s;
+  fDevRun.Directory := dir;
+  fDevRun.OnTerminate := OnCompilationTerminated;
+  fDevRun.OnLineOutput := OnLineOutput;
+  fDevRun.OnCheckAbort := ThreadCheckAbort;
+  fDevRun.InputText := SourceText;
+  fDevRun.FreeOnTerminate := True;
+  fDevRun.RedirectStdin:= redirectStdin;
+  fDevRun.Resume;
+
+  MainForm.UpdateAppTitle;
 end;
 
 procedure TCompiler.ThreadCheckAbort(var AbortThread: boolean);
