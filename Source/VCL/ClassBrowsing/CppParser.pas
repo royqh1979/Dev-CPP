@@ -4609,8 +4609,9 @@ begin
   if FileName = '' then
     Exit;
   List.Clear;
-  if fParsing then
+  if fParsing then begin
     Exit;
+  end;
 
   P := FindFileIncludes(FileName);
   if Assigned(P) then begin

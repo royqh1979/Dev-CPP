@@ -30,9 +30,8 @@ uses
   debugger, ClassBrowser, CodeCompletion, CppParser, SyncObjs,
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
-  CBUtils, StatementList, FormatterOptionsFrm,
-  RenameFrm, Refactorer, devConsole, Tabnine,devCaretList, devFindOutput,
-  HeaderCompletion, VirtualTrees;
+  CBUtils, StatementList, FormatterOptionsFrm, RenameFrm, Refactorer, devConsole,
+  Tabnine,devCaretList, devFindOutput, HeaderCompletion, VirtualTrees;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -3677,6 +3676,8 @@ begin
 end;
 
 function TMainForm.PrepareForRun(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+var
+  e: TEditor;
 begin
   Result := False;
 
@@ -3695,6 +3696,12 @@ begin
     cttNone:
       Exit;
     cttFile: begin
+        e := fEditorList.GetEditor; // always succeeds if ctFile is returned
+        if not Assigned(e) then
+          Exit;
+        if e.Text.Modified then
+          if not e.Save(False,False) then
+            Exit;
         fCompiler.SourceFile := fEditorList.GetEditor.FileName;
       end;
     cttProject: begin
@@ -3755,8 +3762,9 @@ begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
         if not Assigned(e) then
           Exit;
-        if not e.Save(False,False) then
-          Exit;
+        if e.Text.Modified then
+          if not e.Save(False,False) then
+            Exit;
         fCompiler.UseUTF8 := (e.FileEncoding = etUTF8);
         fCompiler.SourceFile := e.FileName;
       end;
@@ -3885,7 +3893,6 @@ begin
   end;
   if not PrepareForCompile then
     Exit;
-
   fCompSuccessAction := csaRun;
   fCompiler.Compile;
 end;
@@ -3948,21 +3955,7 @@ begin
   fDebugger.DeleteWatchVars(false);
 end;
 
-function CompareFileModifyTime(FileName1:AnsiString; FileName2:AnsiString):TValueRelationShip;
-var
-  fad1,fad2: TWin32FileAttributeData;
-  ft1,ft2: TSystemTime;
-begin
-  if not GetFileAttributesEx(PChar(FileName1), GetFileExInfoStandard, @fad1) then
-    RaiseLastOSError;
-  if not GetFileAttributesEx(PChar(FileName2), GetFileExInfoStandard, @fad2) then
-    RaiseLastOSError;
-  if not FileTimeToSystemTime(fad1.ftLastWriteTime, ft1) then
-    RaiseLastOSError;
-  if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
-    RaiseLastOSError;
-  Result := CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2));
-end;
+
 
 procedure TMainForm.UpdateDebugInfo;
 begin
@@ -3978,6 +3971,7 @@ var
   filepath: AnsiString;
   DebugEnabled, StripEnabled: boolean;
   params: string;
+  t: TValueRelationShip;
 
   function hasBreakPoint:boolean;
   var
@@ -4110,7 +4104,7 @@ begin
         if Assigned(e) then begin
           // Did we save?
           if e.Text.Modified then begin // if file is modified
-            if not e.Save then // save it first
+            if not e.Save(false,false) then // save it first
               Exit;
           end;
 

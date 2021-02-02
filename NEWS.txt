@@ -8,6 +8,8 @@ Version 6.4-beta2 FEB 2021
     - upgrade libturtle: add setBackgroundColor() setBackgroundImage() and fill() functions
     - fix: chinese wchar string literals like L"×Ö·û´® 2" is wrongly marked as error by gcc syntax check.
     - fix: autolinks sometimes not work when the file is not saved before compiling. 
+    - fix: The executable file is deleted after syntax check.
+    - enhancement: check if the file needs to be recompiled before execute the Run command
 
 Version 6.4-beta1 JAN 2021
 

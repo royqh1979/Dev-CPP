@@ -761,11 +761,11 @@ begin
                   cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c',fCompileParams, fIncludesParams]);
                   redirectStdin := True;
                 end;
-              end else
+              end else begin
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
                   fIncludesParams, fLibrariesParams]);
-
-              DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+                DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+              end;
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGCSRC]);
               DoLogEntry('--------');
@@ -785,12 +785,13 @@ begin
                     fCppCompileParams, fCppIncludesParams]);
                   redirectStdin := True;
                 end;
-              end else
+              end else begin
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
 
-              DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
-
+                DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+              end;
+              
               DoLogEntry(Lang[ID_LOG_PROCESSINGCPPSRC]);
               DoLogEntry('--------');
               DoLogEntry(Format(Lang[ID_LOG_GPPNAME],
@@ -908,11 +909,17 @@ begin
           if MainForm.actCompRun.Enabled then begin // suggest a compile
             if MessageDlg(Lang[ID_ERR_SRCNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
               MainForm.actCompRunExecute(nil);
+              Exit;
             end;
           end else
             MessageDlg(Lang[ID_ERR_SRCNOTCOMPILED], mtWarning, [mbOK], 0);
         end else begin
-
+          if CompareFileModifyTime(fSourceFile,FileToRun)>=0 then begin
+            if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+              MainForm.actCompRunExecute(nil);
+                Exit;
+            end;
+          end;
           // Pause programs if they contain a console
           if devData.ConsolePause and ProgramHasConsole(FileToRun) then begin
             if fUseRunParams then
@@ -1105,15 +1112,16 @@ begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0)
   else begin
 }
-  // wait check syntax ends, at most 2 seconds
+  // wait check syntax ends, at most 10 seconds
   waitCount := 0;
   while Assigned(fDevRun) do begin
-    if waitCount > 20 then begin
+    if (not fDevRun.RedirectStdin) or (waitCount > 100) then begin
       MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
       Exit;
     end;
     inc(waitCount);
     Sleep(100);
+    Application.ProcessMessages;
   end;
   fAbortThread := False;
   fDevRun := TDevRun.Create(true);
@@ -1371,12 +1379,14 @@ begin
     e:=MainForm.EditorList.GetEditor();
     if Assigned(e) then begin
       waitCount := 0;
-      //wait parsing ends, at most 0.5 second
+      //wait parsing ends, at most 1 second
       while (e.CppParser.Parsing) do begin
-        if waitCount> 5 then
+        if waitCount> 10 then begin
           break;
+        end;
         inc(waitCount);
         Sleep(100);
+        Application.ProcessMessages;
       end;
       autolinkIndexes := TStringHash.Create;
       parsedFiles := TStringHash.Create;
@@ -1454,7 +1464,7 @@ end;
 
 function TCompiler.GetCompiling: Boolean;
 begin
-  Result := fDevRun <> nil;
+  Result := Assigned(fDevRun);
 end;
 
 procedure TCompiler.InitProgressForm;
