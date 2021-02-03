@@ -91,6 +91,7 @@ type
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
     rsMultiLineString, rsMultiLineDirective, rsCppComment,
     rsStringEscapeSeq, rsMultiLineStringEscapeSeq, rsRestoreString,
+    rsRestoreMultiLineString,
     rsRawString);
 
   TProcTableProc = procedure of object;
@@ -1151,11 +1152,10 @@ end;
 procedure TSynCppSyn.StringEscapeSeqProc;
 begin
   fTokenID := tkStringEscapeSeq;
-  fRange := rsStringEscapeSeq;
 
   inc(Run);
   case fLine[Run] of
-    '''','"','?','a','b','f','n','r','t','v': begin
+    '''','"','?','a','b','f','n','r','t','v','\': begin
         inc(Run);
       end;
     '0'..'9': begin
@@ -1192,7 +1192,10 @@ begin
         inc(Run,9);
       end;
   end;
-  fRange:=rsRestoreString;
+  if fRange = rsMultilineStringEscapeSeq then
+    fRange:=rsRestoreMultilineString
+  else
+    fRange:=rsRestoreString;
 end;
 
 procedure TSynCppSyn.StringProc;
@@ -1214,7 +1217,7 @@ begin
           end;
       end;
     end else if fLine[Run+1]= '\' then begin
-      if fLine[Run+2] in ['''','"','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
+      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
         fRange := rsStringEscapeSeq;
         inc(Run);
         Exit;
@@ -1232,6 +1235,8 @@ end;
 procedure TSynCppSyn.StringEndProc;
 begin
   fTokenID := tkString;
+  if (fRange=rsRestoreMultilineString) then
+    dec(Run);
 
   case FLine[Run] of
     #0:
@@ -1270,6 +1275,13 @@ begin
           end;
         end;
       #34: Break;
+    end;
+    if (FLine[Run]<>'\') and (fLine[Run+1]='\') then begin
+      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
+        fRange := rsMultilineStringEscapeSeq;
+        inc(Run);
+        Exit;
+      end;
     end;
     inc(Run);
   until fLine[Run] in [#0, #10, #13, #34];
@@ -1321,9 +1333,9 @@ begin
     rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
     rsCppComment: AnsiCppProc;
     rsMultiLineDirective: DirectiveEndProc;
-    rsMultilineString: StringEndProc;
+    rsMultilineString, rsRestoreMultilineString: StringEndProc;
     rsRestoreString : StringProc;
-    rsStringEscapeSeq : StringEscapeSeqProc;
+    rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
   else
     begin
       fRange := rsUnknown;
