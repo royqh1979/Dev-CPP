@@ -2517,6 +2517,10 @@ begin
   if ( fSyntax.IndexOf(SYNS_AttrLocalVariable) = -1) then
       fSyntax.Append(format('%s=%s', [SYNS_AttrLocalVariable,
         fSyntax.Values[SYNS_AttrVariable]]));
+  if ( fSyntax.IndexOf(SYNS_AttrStringEscapeSequences) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrStringEscapeSequences,
+        fSyntax.Values[SYNS_AttrNumber]]));
+
 
   offset:=1000;
   AddSpecial(cBP, offset + 20); // breakpoint

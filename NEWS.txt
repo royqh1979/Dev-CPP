@@ -10,6 +10,8 @@ Version 6.4-beta2 FEB 2021
     - fix: autolinks sometimes not work when the file is not saved before compiling. 
     - fix: The executable file is deleted after syntax check.
     - enhancement: check if the file needs to be recompiled before execute the Run command
+    - enhancement: use different color to display escape sequences in the string
+    - fix: diplay error when string is not correctly ends
 
 Version 6.4-beta1 JAN 2021
 
