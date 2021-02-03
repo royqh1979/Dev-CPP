@@ -2397,6 +2397,7 @@ begin
   fCompletionBox.Position := fText.ClientToScreen(P);
 
   fCompletionBox.RecordUsage := devCodeCompletion.RecordUsage;
+  fCompletionBox.SortByScope := devCodeCompletion.SortByScope;
   fCompletionBox.ShowKeywords := devCodeCompletion.ShowKeywords;
   fCompletionBox.ShowCodeIns := devCodeCompletion.ShowCodeIns;
   fCompletionBox.IgnoreCase := devCodeCompletion.IgnoreCase;

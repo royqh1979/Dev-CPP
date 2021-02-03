@@ -64,6 +64,7 @@ type
     fCriticalSection: TCriticalSection;
     fParserSerialId: String;
     fParserFreezed: boolean;
+    fSortByScope: boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -91,6 +92,7 @@ type
     property Colors[Index: Integer]: TColor read GetColor write SetColor;
     property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
     property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
+    property SortByScope: boolean read fSortByScope write fSortByScope;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
@@ -491,18 +493,43 @@ begin
     Result := -1;
   end else if (not (Statement1^._Kind = skKeyword)) and (Statement2^._Kind = skKeyword) then begin
     Result := 1;
+  end else
+    Result := CompareText(Statement1^._Command, Statement2^._Command);
+end;
+
+function ListSortByScope(Item1, Item2: Pointer): Integer;
+var
+  Statement1, Statement2: PStatement;
+  ret: integer;
+begin
+  Statement1 := PStatement(Item1);
+  Statement2 := PStatement(Item2);
+
+
+  // Show user template first
+  if (Statement1^._Kind = skUserCodeIn) then begin
+    if not (Statement2^._Kind = skUserCodeIn) then begin
+      Result := -1;
+    end else begin
+      Result := CompareText(Statement1^._Command, Statement2^._Command);
+    end;
+  end else if (Statement2^._Kind = skUserCodeIn) then begin
+    Result := 1;
+  // show keywords first
+  end else if (Statement1^._Kind = skKeyword) and (not (Statement2^._Kind = skKeyword)) then begin
+    Result := -1;
+  end else if (not (Statement1^._Kind = skKeyword)) and (Statement2^._Kind = skKeyword) then begin
+    Result := 1;
   // Show stuff from local headers first
   end else if (Statement1^._InSystemHeader) and (not Statement2^._InSystemHeader) then begin
     Result := 1;
   end else if (not Statement1^._InSystemHeader) and (Statement2^._InSystemHeader) then begin
-    Result := -1;
-
+    Result := -1; 
     // Show local statements first
   end else if (Statement1^._Scope in [ssGlobal]) and not (Statement2^._Scope in [ssGlobal]) then begin
     Result := 1;
   end else if not (Statement1^._Scope in [ssGlobal]) and (Statement2^._Scope in [ssGlobal]) then begin
     Result := -1;
-
     // otherwise, sort by name
   end else
     Result := CompareText(Statement1^._Command, Statement2^._Command);
@@ -616,6 +643,10 @@ begin
           end;
         end;
         tmpList.sort(@ListSortWithUsage);
+      end else if fSortByScope then begin
+        tmpList.sort(@ListSortByScope);
+      end else begin
+        tmpList.sort(@ListSort);
       end;
     finally
       fParser.UnFreeze;

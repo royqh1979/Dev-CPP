@@ -1,6 +1,18 @@
 Version 6.4-beta2 FEB 2021
 
     - fix: local variables not show up when editing in the definition of a function which declaration is not in the same file
+    - fix: delete a linebreak and undo, the result is not correct
+    - enhancement: better hightlight support in the demo of the editor options dialog's color tab
+    - enhancement: add support to things like 'using std::vector;'
+    - upgrade integrated EGE to version 21.01
+    - upgrade libturtle: add setBackgroundColor() setBackgroundImage() and fill() functions
+    - fix: chinese wchar string literals like L"×Ö·û´® 2" is wrongly marked as error by gcc syntax check.
+    - fix: autolinks sometimes not work when the file is not saved before compiling. 
+    - fix: The executable file is deleted after syntax check.
+    - enhancement: check if the file needs to be recompiled before execute the Run command
+    - enhancement: use different color to display escape sequences in the string
+    - fix: diplay error when string is not correctly ends
+    - enhancement: add "sort by scope" option in the editor options dialog's code completion tab
 
 Version 6.4-beta1 JAN 2021
 

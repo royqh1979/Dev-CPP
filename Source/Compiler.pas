@@ -721,11 +721,20 @@ begin
         GetLibrariesParams;
         GetIncludesParams;
 
-        if not fCheckSyntax and UseUTF8 then begin
+        if not fCheckSyntax and  UseUTF8 then begin
           fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
           fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
             +GetSystemCharsetName();
+        end else begin
+          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName();
+          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName();
+        {
+          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+            +GetSystemCharsetName();
+          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+            +GetSystemCharsetName();
+        }
         end;
 
         // Determine command line to execute
@@ -751,11 +760,11 @@ begin
                   cmdline := Format(cStdinSyntaxCmdLine, [compilerName, 'c',fCompileParams, fIncludesParams]);
                   redirectStdin := True;
                 end;
-              end else
+              end else begin
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT), fCompileParams,
                   fIncludesParams, fLibrariesParams]);
-
-              DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+                DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+              end;
 
               DoLogEntry(Lang[ID_LOG_PROCESSINGCSRC]);
               DoLogEntry('--------');
@@ -775,12 +784,13 @@ begin
                     fCppCompileParams, fCppIncludesParams]);
                   redirectStdin := True;
                 end;
-              end else
+              end else begin
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
 
-              DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
-
+                DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
+              end;
+              
               DoLogEntry(Lang[ID_LOG_PROCESSINGCPPSRC]);
               DoLogEntry('--------');
               DoLogEntry(Format(Lang[ID_LOG_GPPNAME],
@@ -898,11 +908,17 @@ begin
           if MainForm.actCompRun.Enabled then begin // suggest a compile
             if MessageDlg(Lang[ID_ERR_SRCNOTCOMPILEDSUGGEST], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
               MainForm.actCompRunExecute(nil);
+              Exit;
             end;
           end else
             MessageDlg(Lang[ID_ERR_SRCNOTCOMPILED], mtWarning, [mbOK], 0);
         end else begin
-
+          if CompareFileModifyTime(fSourceFile,FileToRun)>=0 then begin
+            if MessageDlg(Lang[ID_MSG_SOURCEMORERECENT], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+              MainForm.actCompRunExecute(nil);
+                Exit;
+            end;
+          end;
           // Pause programs if they contain a console
           if devData.ConsolePause and ProgramHasConsole(FileToRun) then begin
             if fUseRunParams then
@@ -1087,24 +1103,38 @@ begin
 end;
 
 procedure TCompiler.LaunchThread(const s, dir: AnsiString; redirectStdin: boolean);
+var
+  waitCount:integer;
 begin
+{
   if Assigned(fDevRun) then
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0)
   else begin
-    fAbortThread := False;
-    fDevRun := TDevRun.Create(true);
-    fDevRun.Command := s;
-    fDevRun.Directory := dir;
-    fDevRun.OnTerminate := OnCompilationTerminated;
-    fDevRun.OnLineOutput := OnLineOutput;
-    fDevRun.OnCheckAbort := ThreadCheckAbort;
-    fDevRun.InputText := SourceText;
-    fDevRun.FreeOnTerminate := True;
-    fDevRun.RedirectStdin:= redirectStdin;
-    fDevRun.Resume;
-
-    MainForm.UpdateAppTitle;
+}
+  // wait check syntax ends, at most 10 seconds
+  waitCount := 0;
+  while Assigned(fDevRun) do begin
+    if (not fDevRun.RedirectStdin) or (waitCount > 100) then begin
+      MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
+      Exit;
+    end;
+    inc(waitCount);
+    Sleep(100);
+    Application.ProcessMessages;
   end;
+  fAbortThread := False;
+  fDevRun := TDevRun.Create(true);
+  fDevRun.Command := s;
+  fDevRun.Directory := dir;
+  fDevRun.OnTerminate := OnCompilationTerminated;
+  fDevRun.OnLineOutput := OnLineOutput;
+  fDevRun.OnCheckAbort := ThreadCheckAbort;
+  fDevRun.InputText := SourceText;
+  fDevRun.FreeOnTerminate := True;
+  fDevRun.RedirectStdin:= redirectStdin;
+  fDevRun.Resume;
+
+  MainForm.UpdateAppTitle;
 end;
 
 procedure TCompiler.ThreadCheckAbort(var AbortThread: boolean);
@@ -1306,6 +1336,8 @@ var
   fullPath : String;
   autolinkIndexes : TStringHash;
   parsedFiles: TStringHash;
+  logger:TStringList;
+  waitCount: integer;
 
   procedure ParseFileInclude(_FileName:String);
   var
@@ -1341,9 +1373,20 @@ begin
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
 
+  //Add auto links
   if (fTarget = cttFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
     if Assigned(e) then begin
+      waitCount := 0;
+      //wait parsing ends, at most 1 second
+      while (e.CppParser.Parsing) do begin
+        if waitCount> 10 then begin
+          break;
+        end;
+        inc(waitCount);
+        Sleep(100);
+        Application.ProcessMessages;
+      end;
       autolinkIndexes := TStringHash.Create;
       parsedFiles := TStringHash.Create;
       try
@@ -1351,7 +1394,7 @@ begin
           fullPath := e.CppParser.GetHeaderFileName(e.FileName,'"'+dmMain.AutoLinks[i]^.header+'"');
           autolinkIndexes.Add(fullPath,i);
         end;
-          ParseFileInclude(e.FileName);
+        ParseFileInclude(e.FileName);
       finally
         parsedFiles.Free;
         autolinkIndexes.Free;
@@ -1420,7 +1463,7 @@ end;
 
 function TCompiler.GetCompiling: Boolean;
 begin
-  Result := fDevRun <> nil;
+  Result := Assigned(fDevRun);
 end;
 
 procedure TCompiler.InitProgressForm;

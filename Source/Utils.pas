@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, Sysutils, Dateutils, Forms, ShellAPI, Dialogs, SynEdit, SynEditHighlighter,
-  Menus, Registry, Controls, ComCtrls, Messages, Graphics, CppParser;
+  Menus, Registry, Controls, ComCtrls, Messages, Graphics, CppParser, Types;
 
 type
   { File ID types }
@@ -208,6 +208,8 @@ function CreateDirRecursive(const Dir: string): Boolean;
 procedure AngleTextOut(PCanvas: TCanvas; const sText: String; x, y,angle:integer);
 
 procedure ResetCppParser(CppParser:TCppParser);
+
+function CompareFileModifyTime(FileName1:AnsiString; FileName2:AnsiString):TValueRelationShip;
 
 
 implementation
@@ -1760,6 +1762,22 @@ begin
   if FileExists(wtPath) then
     fHasWindowsTerminal := True;
 
+end;
+
+function CompareFileModifyTime(FileName1:AnsiString; FileName2:AnsiString):TValueRelationShip;
+var
+  fad1,fad2: TWin32FileAttributeData;
+  ft1,ft2: TSystemTime;
+begin
+  if not GetFileAttributesEx(PChar(FileName1), GetFileExInfoStandard, @fad1) then
+    RaiseLastOSError;
+  if not GetFileAttributesEx(PChar(FileName2), GetFileExInfoStandard, @fad2) then
+    RaiseLastOSError;
+  if not FileTimeToSystemTime(fad1.ftLastWriteTime, ft1) then
+    RaiseLastOSError;
+  if not FileTimeToSystemTime(fad2.ftLastWriteTime, ft2) then
+    RaiseLastOSError;
+  Result := CompareDateTime(SystemTimeToDateTime(ft1),SystemTimeToDateTime(ft2));
 end;
 
 initialization

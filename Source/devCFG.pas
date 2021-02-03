@@ -210,6 +210,7 @@ type
     fShowCompletionWhileInput: boolean;
     fMaxCount: integer;
     fRecordUsage: boolean;
+    fSortByScope: boolean;
     fShowKeywords: boolean;
     fIgnoreCase:boolean;
     fAppendFunc:boolean;
@@ -236,6 +237,7 @@ type
     property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
     property AppendFunc: boolean read fAppendFunc write fAppendFunc;
     property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
+    property SortByScope: boolean read fSortByScope write fSortByScope;
   end;
 
   // class-browsing view style
@@ -2517,6 +2519,10 @@ begin
   if ( fSyntax.IndexOf(SYNS_AttrLocalVariable) = -1) then
       fSyntax.Append(format('%s=%s', [SYNS_AttrLocalVariable,
         fSyntax.Values[SYNS_AttrVariable]]));
+  if ( fSyntax.IndexOf(SYNS_AttrStringEscapeSequences) = -1) then
+      fSyntax.Append(format('%s=%s', [SYNS_AttrStringEscapeSequences,
+        fSyntax.Values[SYNS_AttrNumber]]));
+
 
   offset:=1000;
   AddSpecial(cBP, offset + 20); // breakpoint
@@ -2784,6 +2790,7 @@ begin
   fIgnoreCase := False;
   fAppendFunc := True;
   fShowCodeIns := True;
+  fSortByScope := True;
   if GetACP = 936 then begin //Chinese user
     fUseAltSlash := True;
   end else

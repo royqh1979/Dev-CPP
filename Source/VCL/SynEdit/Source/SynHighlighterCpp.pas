@@ -60,7 +60,7 @@ uses
 
 type
   TtkTokenKind = (tkAsm, tkComment, tkDirective, tkIdentifier, tkKey, tkNull,
-    tkNumber, tkSpace, tkString, tkSymbol, tkUnknown,
+    tkNumber, tkSpace, tkString, tkStringEscapeSeq, tkSymbol, tkUnknown,
     tkChar, tkFloat, tkHex, tkOctal,tkRawString);
 
   TxtkTokenKind = (
@@ -90,6 +90,8 @@ type
   TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
     rsMultiLineString, rsMultiLineDirective, rsCppComment,
+    rsStringEscapeSeq, rsMultiLineStringEscapeSeq, rsRestoreString,
+    rsRestoreMultiLineString,
     rsRawString);
 
   TProcTableProc = procedure of object;
@@ -126,6 +128,7 @@ type
     fOctalAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
+    fStringEscapeSeqAttri: TSynHighlighterAttributes;
     fCharAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fVariableAttri: TSynHighlighterAttributes;
@@ -175,6 +178,7 @@ type
     procedure MakeMethodTables;
     procedure StringEndProc;
     procedure RawStringProc;
+    procedure StringEscapeSeqProc;
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetExtTokenID: TxtkTokenKind;
@@ -236,6 +240,8 @@ type
       write fSpaceAttri;
     property StringAttri: TSynHighlighterAttributes read fStringAttri
       write fStringAttri;
+    property StringEscapeSeqAttri: TSynHighlighterAttributes read fStringEscapeSeqAttri
+      write fStringEscapeSeqAttri;
     property CharAttri: TSynHighlighterAttributes read fCharAttri
       write fCharAttri;
     property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
@@ -393,6 +399,8 @@ begin
   AddAttribute(fSpaceAttri);
   fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
   AddAttribute(fStringAttri);
+  fStringEscapeSeqAttri := TSynHighlighterAttributes.Create(SYNS_AttrStringEscapeSequences);
+  AddAttribute(fStringEscapeSeqAttri);
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
   AddAttribute(fSymbolAttri);
   fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable);
@@ -1141,8 +1149,59 @@ begin
   end;
 end;
 
+procedure TSynCppSyn.StringEscapeSeqProc;
+begin
+  fTokenID := tkStringEscapeSeq;
+
+  inc(Run);
+  case fLine[Run] of
+    '''','"','?','a','b','f','n','r','t','v','\': begin
+        inc(Run);
+      end;
+    '0'..'9': begin
+        if not (fLine[Run] in ['0'..'7'] )
+          or not (fLine[Run+1] in ['0'..'7'] )
+          or not (fLine[Run+2] in ['0'..'7']) then
+          fTokenID := tkUnknown;
+        inc(Run,3);
+      end;
+    'x': begin
+        if not (fLine[Run+1] in ['0'..'9','a'..'f','A'..'F'] )
+          or not (fLine[Run+2] in ['0'..'9','a'..'f','A'..'F']) then
+          fTokenID := tkUnknown;
+        inc(Run,3);
+      end;
+    'u': begin
+        if not (fLine[Run+1] in ['0'..'9','a'..'f','A'..'F'] )
+          or not (fLine[Run+2] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+3] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+4] in ['0'..'9','a'..'f','A'..'F']) then
+          fTokenID := tkUnknown;
+        inc(Run,5);
+      end;
+    'U': begin
+        if not (fLine[Run+1] in ['0'..'9','a'..'f','A'..'F'] )
+          or not (fLine[Run+2] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+3] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+4] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+5] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+6] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+7] in ['0'..'9','a'..'f','A'..'F'])
+          or not (fLine[Run+8] in ['0'..'9']) then
+          fTokenID := tkUnknown;
+        inc(Run,9);
+      end;
+  end;
+  if fRange = rsMultilineStringEscapeSeq then
+    fRange:=rsRestoreMultilineString
+  else
+    fRange:=rsRestoreString;
+end;
+
 procedure TSynCppSyn.StringProc;
 begin
+  if (fRange=rsRestoreString) then
+    dec(Run);
   fTokenID := tkString;
   fRange := rsString;
   repeat
@@ -1157,18 +1216,27 @@ begin
             Exit;
           end;
       end;
+    end else if fLine[Run+1]= '\' then begin
+      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
+        fRange := rsStringEscapeSeq;
+        inc(Run);
+        Exit;
+      end;
     end;
     inc(Run);
-  until fLine[Run] in [#0, #10, #13, #34];
+  until (fLine[Run] in [#0, #10, #13, #34]);
   if FLine[Run] = #34 then begin
     inc(Run);
-    fRange := rsUnknown;
   end;
+  fRange := rsUnknown;
+  {end;}
 end;
 
 procedure TSynCppSyn.StringEndProc;
 begin
   fTokenID := tkString;
+  if (fRange=rsRestoreMultilineString) then
+    dec(Run);
 
   case FLine[Run] of
     #0:
@@ -1207,6 +1275,13 @@ begin
           end;
         end;
       #34: Break;
+    end;
+    if (FLine[Run]<>'\') and (fLine[Run+1]='\') then begin
+      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
+        fRange := rsMultilineStringEscapeSeq;
+        inc(Run);
+        Exit;
+      end;
     end;
     inc(Run);
   until fLine[Run] in [#0, #10, #13, #34];
@@ -1258,7 +1333,9 @@ begin
     rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
     rsCppComment: AnsiCppProc;
     rsMultiLineDirective: DirectiveEndProc;
-    rsMultilineString: StringEndProc;
+    rsMultilineString, rsRestoreMultilineString: StringEndProc;
+    rsRestoreString : StringProc;
+    rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
   else
     begin
       fRange := rsUnknown;
@@ -1268,7 +1345,7 @@ begin
       end else if (fLine[Run] in ['L','u','U'])  and (fLine[Run+1]='"') then begin
         inc(Run,1);
         StringProc;
-      end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+1]='"') then begin
+      end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+2]='"') then begin
         inc(Run,2);
         StringProc;
       end else
@@ -1367,6 +1444,7 @@ begin
     tkOctal: Result := fOctalAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
+    tkStringEscapeSeq: Result := fStringEscapeSeqAttri;
     tkRawString: Result := fStringAttri;    
     tkChar: Result := fCharAttri;
     tkSymbol: Result := fSymbolAttri;

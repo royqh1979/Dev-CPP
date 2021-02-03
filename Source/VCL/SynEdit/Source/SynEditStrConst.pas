@@ -150,6 +150,7 @@ resourcestring
   SYNS_AttrSQLPlus              =  'SQL*Plus Command';
   SYNS_AttrSquareBracket        =  'Square Bracket';
   SYNS_AttrString               =  'String';
+  SYNS_AttrStringEscapeSequences =  'Escape sequences';
   SYNS_AttrSymbol               =  'Symbol';
   SYNS_AttrSyntaxError          =  'Syntax Error';
   SYNS_AttrSystem               =  'System Functions and Variables';

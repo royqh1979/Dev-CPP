@@ -99,6 +99,7 @@ type
 
 
   TStatementKind = (
+    skUnknown,
     skPreprocessor,
     skEnumType,
     skEnum,
@@ -116,7 +117,7 @@ type
     skKeyword, // keywords
     skGlobalVariable,
     skLocalVariable,
-    skUnknown
+    skAlias
     );
   TStatementKindSet = set of TStatementKind;
 
