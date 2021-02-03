@@ -12,6 +12,7 @@ Version 6.4-beta2 FEB 2021
     - enhancement: check if the file needs to be recompiled before execute the Run command
     - enhancement: use different color to display escape sequences in the string
     - fix: diplay error when string is not correctly ends
+    - enhancement: add "sort by scope" option in the editor options dialog's code completion tab
 
 Version 6.4-beta1 JAN 2021
 

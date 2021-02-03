@@ -175,6 +175,7 @@ type
     lbCodeSuggestionHeight: TLabel;
     txtCodeSuggestionHeight: TSpinEdit;
     chkShowCodeIns: TCheckBox;
+    chkSortByScope: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -436,6 +437,7 @@ begin
   cbUseAltSlash.Checked := devCodeCompletion.UseAltSlash;
   cbShowCompletionWhileInputing.Checked := devCodeCompletion.ShowCompletionWhileInput;
   chkRecordUsage.Checked := devCodeCompletion.RecordUsage;
+  chkSortByScope.Checked := devCodeCompletion.SortByScope;
   chkShowKeywords.Checked := devCodeCompletion.ShowKeywords;
   chkShowCodeIns.Checked := devCodeCompletion.ShowCodeIns;
   chkIgnoreCase.Checked := devCodeCompletion.IgnoreCase;
@@ -574,6 +576,7 @@ begin
   lbCodeSuggestionHeight.Caption := Lang[ID_EOPT_CODECOMPLETE_HEIGHT];
   cbShowCompletionWhileInputing.Caption := Lang[ID_EOPT_CODECOMPLETE_WHILE_INPUT];
   chkRecordUsage.Caption := Lang[ID_EOPT_CODECOMPLETE_RECORD_USAGE];
+  chkSortByScope.Caption := Lang[ID_EOPT_CODECOMPLETE_SORT_BY_SCOPE];
   chkShowKeywords.Caption := Lang[ID_EOPT_SHOW_KEYWORDS];
   chkShowCodeIns.Caption := Lang[ID_EOPT_SHOW_CODEINS];
   chkIgnoreCase.Caption := Lang[ID_EOPT_IGNORE_CASE];
@@ -918,6 +921,7 @@ begin
     ParseGlobalHeaders := chkCBParseGlobalH.Checked;
     UseAltSlash := cbUseAltSlash.Checked;
     RecordUsage := chkRecordUsage.Checked;
+    SortByScope := chkSortByScope.Checked;
     ShowKeywords := chkShowKeywords.Checked;
     ShowCodeIns := chkShowCodeIns.Checked;
     IgnoreCase := chkIgnoreCase.Checked;
@@ -1552,6 +1556,7 @@ begin
     cbUseAltSlash.Enabled := Checked;
     cbShowCompletionWhileInputing.Enabled:=Checked;
     chkRecordUsage.Enabled := Checked;
+    chkSortByScope.Enabled := Checked;
     chkShowKeywords.Enabled := Checked;
     chkShowCodeIns.Enabled := Checked;
     chkIgnoreCase.Enabled := Checked;

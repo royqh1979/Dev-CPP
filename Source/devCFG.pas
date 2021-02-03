@@ -210,6 +210,7 @@ type
     fShowCompletionWhileInput: boolean;
     fMaxCount: integer;
     fRecordUsage: boolean;
+    fSortByScope: boolean;
     fShowKeywords: boolean;
     fIgnoreCase:boolean;
     fAppendFunc:boolean;
@@ -236,6 +237,7 @@ type
     property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
     property AppendFunc: boolean read fAppendFunc write fAppendFunc;
     property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
+    property SortByScope: boolean read fSortByScope write fSortByScope;
   end;
 
   // class-browsing view style
@@ -2788,6 +2790,7 @@ begin
   fIgnoreCase := False;
   fAppendFunc := True;
   fShowCodeIns := True;
+  fSortByScope := True;
   if GetACP = 936 then begin //Chinese user
     fUseAltSlash := True;
   end else

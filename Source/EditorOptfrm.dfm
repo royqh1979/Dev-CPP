@@ -25,7 +25,7 @@ object EditorOptForm: TEditorOptForm
     Top = 0
     Width = 647
     Height = 593
-    ActivePage = tabSyntax
+    ActivePage = tabGeneral
     TabOrder = 0
     OnChange = PagesMainChange
     object tabGeneral: TTabSheet
@@ -954,21 +954,21 @@ object EditorOptForm: TEditorOptForm
           end
           object lbCodeSuggestionShowCount: TLabel
             Left = 8
-            Top = 336
+            Top = 368
             Width = 292
             Height = 20
             Caption = 'Max number of items in suggestion window:'
           end
           object lbCodeSuggestionWidth: TLabel
             Left = 328
-            Top = 336
+            Top = 368
             Width = 219
             Height = 20
             Caption = 'Code Suggestion Window Width:'
           end
           object lbCodeSuggestionHeight: TLabel
             Left = 328
-            Top = 416
+            Top = 440
             Width = 224
             Height = 20
             Caption = 'Code Suggestion Window Height:'
@@ -1030,7 +1030,7 @@ object EditorOptForm: TEditorOptForm
           end
           object txtCodeSuggestionMaxCount: TSpinEdit
             Left = 8
-            Top = 368
+            Top = 400
             Width = 233
             Height = 31
             Increment = 10
@@ -1050,8 +1050,8 @@ object EditorOptForm: TEditorOptForm
           end
           object chkRecordUsage: TCheckBox
             Left = 11
-            Top = 411
-            Width = 222
+            Top = 440
+            Width = 302
             Height = 22
             Caption = 'Save Symbol Usage Data'
             TabOrder = 6
@@ -1059,7 +1059,7 @@ object EditorOptForm: TEditorOptForm
           end
           object btnClearUsageData: TButton
             Left = 32
-            Top = 440
+            Top = 480
             Width = 241
             Height = 33
             Caption = 'Clear Symbol Usage Data'
@@ -1092,7 +1092,7 @@ object EditorOptForm: TEditorOptForm
           end
           object txtCodeSuggestionWidth: TSpinEdit
             Left = 328
-            Top = 368
+            Top = 400
             Width = 233
             Height = 31
             Increment = 10
@@ -1103,7 +1103,7 @@ object EditorOptForm: TEditorOptForm
           end
           object txtCodeSuggestionHeight: TSpinEdit
             Left = 328
-            Top = 444
+            Top = 480
             Width = 233
             Height = 31
             Increment = 10
@@ -1119,6 +1119,14 @@ object EditorOptForm: TEditorOptForm
             Height = 22
             Caption = 'Show Code Snippets'
             TabOrder = 13
+          end
+          object chkSortByScope: TCheckBox
+            Left = 8
+            Top = 336
+            Width = 289
+            Height = 22
+            Caption = 'Sort By Scope'
+            TabOrder = 14
           end
         end
         object tabSymbolCompletion: TTabSheet
