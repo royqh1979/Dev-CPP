@@ -1846,9 +1846,11 @@ begin
     // Check if that line is highlighted as  comment
     if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished,Attr) then begin
       if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
-        Exit;
-      if ((Attr = fText.Highlighter.StringAttribute) or SameStr(Attr.Name,
-        'Character')) and not tokenFinished and not (key in ['''','"','(',')']) then
+        Exit;                                                                  
+      if ((Attr = fText.Highlighter.StringAttribute)
+        or SameStr(Attr.Name,'Character') or (Attr = dmMain.Cpp.StringEscapeSeqAttri) )
+         and not tokenFinished
+        and not (key in ['''','"','(',')']) then
         Exit;
       if (key in ['<','>']) and (Attr<> dmMain.Cpp.DirecAttri) then begin
           Exit;
@@ -2060,16 +2062,49 @@ var
   i:integer;
 
   procedure UndoSymbolCompletion;
+  var
+    Attr: TSynHighlighterAttributes;
+    Token: AnsiString;
+    tokenFinished: boolean;
+    HighlightPos : TBufferCoord;
   begin
     if devEditor.DeleteSymbolPairs then begin
+      HighlightPos := BufferCoord(fText.CaretX, fText.CaretY);
+
+      // Check if that line is highlighted as  comment
+      if not fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished,Attr) then
+        Exit;
+      if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
+        Exit;
+      if SameStr(Attr.Name,'Character') and not (DeletedChar = '''') then
+        Exit;
+      if (Attr = dmMain.Cpp.StringEscapeSeqAttri) then
+        Exit;
+      if (Attr = fText.Highlighter.StringAttribute) then begin
+        if not (DeletedChar in ['"','(']) then
+          Exit; 
+        if (DeletedChar = '"') and not SameStr(Token,'""') then
+          Exit;
+        if (DeletedChar = '(') and not StartsStr('R"',Token) then
+          Exit;
+      end;
+      if (DeletedChar = '''') and (Attr = dmMain.Cpp.NumberAttri) then begin
+        Exit;
+      end;
+      if (DeletedChar = '<') and
+          ((Attr<> dmMain.Cpp.DirecAttri) or not StartsStr('#include',fText.LineText)) then begin
+          Exit;
+      end;
       if (devEditor.ArrayComplete and (DeletedChar = '[') and (NextChar = ']')) or
         (devEditor.ParentheseComplete and (DeletedChar = '(') and (NextChar = ')')) or
+        (devEditor.GlobalIncludeCompletion and (DeletedChar = '<') and (NextChar = '>')) or
         (devEditor.BraceComplete and (DeletedChar = '{') and (NextChar = '}')) or
         (devEditor.SingleQuoteComplete and (DeletedChar = '''') and (NextChar = '''')) or
         (devEditor.DoubleQuoteComplete and (DeletedChar = '"') and (NextChar = '"')) then begin
         fText.LineText := Copy(S, 1, fText.CaretX - 1) + Copy(S, fText.CaretX + 1, MaxInt);
       end;
     end;
+
   end;
 
   begin

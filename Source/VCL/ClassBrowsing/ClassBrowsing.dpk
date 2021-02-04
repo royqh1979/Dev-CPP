@@ -1,9 +1,7 @@
 package ClassBrowsing;
 
 {$R *.res}
-{$R 'CppParser.dcr'}
 {$R 'CppTokenizer.dcr'}
-{$R 'CodeCompletion.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}

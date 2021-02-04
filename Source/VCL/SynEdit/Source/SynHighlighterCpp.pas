@@ -1145,8 +1145,8 @@ begin
   until (fLine[Run] in [#0, #10, #13]) or ((not fRawStringNoEscaping) and (fLine[Run] = '"'));
   if (FLine[Run] = #34) then begin
     inc(Run);
-    fRange := rsUnknown;
   end;
+  fRange := rsUnknown;  
 end;
 
 procedure TSynCppSyn.StringEscapeSeqProc;
@@ -1405,12 +1405,15 @@ function TSynCppSyn.GetTokenFinished: boolean;
 begin
   case fTokenId of
     tkComment:
+      Result := (fRange = rsUnknown);
+      {
       Result := not (fRange  in [rsAnsiC, rsAnsiCAsm,
         rsAnsiCAsmBlock, rsDirectiveComment,rsCppComment]);
+      }
     tkString:
-      Result := (fRange <> rsMultiLineString);
+      Result := (fRange = rsUnknown);
     tkRawString:
-      Result := True;
+      Result := (fRange = rsUnknown);
   else
     Result := False;
   end;
