@@ -26,4 +26,5 @@ Active breakpoints=clWhite,clBlue
 Folding lines=clNone,clBtnFace
 Active Line=clNone,$00FFFFCC
 Warnings=$000073AA,clNone
-Panel=clBlue,clAqua
+Panel=clBlack,clBtnFace
+Escape sequences=clBlue, clNone, 0, 0, 0

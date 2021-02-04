@@ -27,3 +27,4 @@ Folding lines=clRed,clBtnFace
 Active Line=clNone,$00202020
 Warnings=$0000AAFF,clNone
 Panel=clLime,clBlack
+Escape sequences=clBlue, clNone, 0, 0, 0
