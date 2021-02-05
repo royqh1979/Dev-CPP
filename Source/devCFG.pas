@@ -2614,7 +2614,9 @@ begin
   fGlobalIncludeCompletion := True;
   fDeleteSymbolPairs := True;
 
-  fUseUTF8ByDefault := True;
+  // gcc will use system's default encoding to generate __FILE__ content
+  // which will cause error if the file is utf8 and file path contains non-ascii characters 
+  fUseUTF8ByDefault := False;
 
   fUseTabnine:= False;
   fSyntax.Clear;

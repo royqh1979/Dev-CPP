@@ -14,6 +14,7 @@ Version 6.4-beta2 FEB 2021
     - fix: diplay error when string is not correctly ends
     - enhancement: add "sort by scope" option in the editor options dialog's code completion tab
     - fix: Delete symbols pairs shouldn't be invoked when editing the comments or strings.
+    - change: disable the "Use UTF-8 by default" option by default (because gcc will use system's ansi encoding to encode __FILE__ )
 
 Version 6.4-beta1 JAN 2021
 
