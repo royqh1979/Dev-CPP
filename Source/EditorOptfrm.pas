@@ -176,6 +176,8 @@ type
     txtCodeSuggestionHeight: TSpinEdit;
     chkShowCodeIns: TCheckBox;
     chkSortByScope: TCheckBox;
+    tabMisc: TTabSheet;
+    chkLoadLastOpens: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -338,6 +340,9 @@ begin
     cbGutterFnt.Checked := Gutterfnt;
     cboGutterFont.ItemIndex := cboGutterFont.Items.IndexOf(Gutterfont.Name);
     edGutterSize.Value := GutterFont.Size;
+
+    //misc
+    chkLoadLastOpens.Checked := LoadLastOpens;
 
     // Colors
     FillSyntaxSets; // Load color themes
@@ -738,6 +743,10 @@ begin
   tbCompletionDelayChange(nil);
   MinutesDelayChange(nil);
   NameOptionsClick(nil);
+
+  //misc tab
+  tabMisc.Caption := LANG[ID_EOPT_MISC];
+  chkLoadLastOpens.Caption := LANG[ID_EOPT_LOAD_LAST_OPENS];
 end;
 
 procedure TEditorOptForm.btnOkClick(Sender: TObject);
@@ -816,6 +825,9 @@ begin
 
     AutoCheckSyntax := chkAutoCheckSyntaxInBack.Checked;
     CheckSyntaxWhenReturn := chkCheckSyntaxReturn.Checked;
+
+    //misc
+    LoadLastOpens := chkLoadLastOpens.Checked;
 
 
     // Default source

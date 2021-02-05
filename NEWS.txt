@@ -15,6 +15,8 @@ Version 6.4-beta2 FEB 2021
     - enhancement: add "sort by scope" option in the editor options dialog's code completion tab
     - fix: Delete symbols pairs shouldn't be invoked when editing the comments or strings.
     - change: disable the "Use UTF-8 by default" option by default (because gcc will use system's ansi encoding to encode __FILE__ )
+    - enhancement: add "auto load last closed files when start" option in the editor option dialog's misc tab, turned on by default
+    - enhancement: auto load last closed files when start
 
 Version 6.4-beta1 JAN 2021
 
@@ -26,6 +28,7 @@ Version 6.4-beta1 JAN 2021
     - fix: expand a node in the class browser will jump to its declaration
     - fix: don't auto scroll the expanded node to the top
     - enhancement: All same name namespaces only display once in the classbrowser
+    - enhancement: auto open files opened when devcpp exited last time
 
 
 Version 6.4-alpha2 JAN 2021

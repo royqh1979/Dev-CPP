@@ -1,6 +1,6 @@
 object EditorOptForm: TEditorOptForm
-  Left = 259
-  Top = 169
+  Left = 638
+  Top = 85
   BorderStyle = bsDialog
   Caption = 'Editor Options'
   ClientHeight = 645
@@ -88,7 +88,7 @@ object EditorOptForm: TEditorOptForm
         Caption = '  Editor Options  '
         TabOrder = 0
         object cbFunctionHint: TCheckBox
-          Left = 321
+          Left = 323
           Top = 221
           Width = 278
           Height = 23
@@ -128,7 +128,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 5
         end
         object cbEHomeKey: TCheckBox
-          Left = 321
+          Left = 323
           Top = 35
           Width = 278
           Height = 22
@@ -144,7 +144,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 1
         end
         object cbParserHints: TCheckBox
-          Left = 321
+          Left = 323
           Top = 195
           Width = 278
           Height = 22
@@ -152,7 +152,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 14
         end
         object cbHalfPage: TCheckBox
-          Left = 321
+          Left = 323
           Top = 141
           Width = 278
           Height = 23
@@ -176,7 +176,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 3
         end
         object cbPastEOL: TCheckBox
-          Left = 321
+          Left = 323
           Top = 88
           Width = 278
           Height = 23
@@ -184,7 +184,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 10
         end
         object cbPastEOF: TCheckBox
-          Left = 321
+          Left = 323
           Top = 61
           Width = 278
           Height = 23
@@ -192,7 +192,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 9
         end
         object cbScrollHint: TCheckBox
-          Left = 321
+          Left = 323
           Top = 168
           Width = 278
           Height = 23
@@ -200,7 +200,7 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 13
         end
         object cbSmartScroll: TCheckBox
-          Left = 321
+          Left = 323
           Top = 115
           Width = 278
           Height = 22
@@ -1338,6 +1338,18 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 2
           OnClick = NameOptionsClick
         end
+      end
+    end
+    object tabMisc: TTabSheet
+      Caption = 'Misc'
+      ImageIndex = 7
+      object chkLoadLastOpens: TCheckBox
+        Left = 11
+        Top = 13
+        Width = 606
+        Height = 23
+        Caption = 'Auto load files which are open when devcpp exited last time'
+        TabOrder = 0
       end
     end
   end

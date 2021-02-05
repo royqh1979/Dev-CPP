@@ -1057,6 +1057,8 @@ type
     procedure LoadText;
     procedure LoadColor;
     procedure ReloadColor;
+    procedure SaveLastOpens;
+    procedure LoadLastOpens;
     procedure OpenUnit;
     function PrepareForRun(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
     function PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
@@ -1371,6 +1373,8 @@ begin
   if fClosing then
     Exit;
   fQuitting:=True;
+
+  SaveLastOpens;  
   //CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
@@ -1520,6 +1524,89 @@ begin
   finally
     msg.Result := 0;
     DragFinish(THandle(msg.WParam));
+  end;
+end;
+
+procedure TMainForm.LoadLastOpens;
+var
+  lastOpenIni: TIniFile;
+  editor: TEditor;
+  i:integer;
+  count:integer;
+  fileName :String;
+  onLeft: boolean;
+  page: ComCtrls.TPageControl;
+  pos : TBufferCoord;
+  focusedEditor : TEditor;
+begin
+  lastOpenIni := TIniFile.Create(devDirs.Config + DEV_LASTOPENS_FILE);
+  try
+    focusedEditor := nil;
+    count := lastOpenIni.ReadInteger('LastOpens','Count',0);
+    for i:=0 to Count-1 do begin
+      filename := lastOpenIni.ReadString('Editor_'+IntToStr(i),'FileName','');
+      if (not FileExists(fileName)) then
+        continue;
+      onLeft := lastOpenIni.ReadBool('Editor_'+IntToStr(i),'OnLeft',True);
+      if onLeft then
+        page := EditorList.LeftPageControl
+      else
+        page := EditorList.RightPageControl;
+      editor:=EditorList.NewEditor(fileName,etAuto,False,False,page);
+      if not assigned(editor) then
+        Continue;
+      pos.Char := lastOpenIni.ReadInteger('Editor_' + IntToStr(I), 'CursorCol', 0);
+      pos.Line := lastOpenIni.ReadInteger('Editor_' + IntToStr(I), 'CursorRow', 0);
+      editor.Text.CaretXY := pos;
+      Editor.Text.TopLine := lastOpenIni.ReadInteger('Editor_' + IntToStr(I), 'TopLine', 0);
+      Editor.Text.LeftChar := lastOpenIni.ReadInteger('Editor_' + IntToStr(I), 'LeftChar', 0);
+      if lastOpenIni.ReadBool('Editor_'+IntToStr(i),'Focused',False) then begin
+        focusedEditor := Editor;
+      end;
+    end;
+    filename := lastOpenIni.ReadString('LastOpens','Project','');
+    if FileExists(filename) then begin
+      OpenProject(filename);
+    end else begin
+      UpdateFileEncodingStatusPanel;
+    end;
+    if assigned(focusedEditor) then begin
+      focusedEditor.Activate;
+    end;
+  finally
+    lastOpenIni.Free;
+  end;
+end;
+
+procedure TMainForm.SaveLastOpens;
+var
+  lastOpenIni: TIniFile;
+  editor: TEditor;
+  i:integer;
+begin
+  DeleteFile(devDirs.Config + DEV_LASTOPENS_FILE);
+  lastOpenIni := TIniFile.Create(devDirs.Config + DEV_LASTOPENS_FILE);
+  try
+    lastOpenIni.WriteInteger('LastOpens','Count',EditorList.PageCount);
+    if assigned(fProject) then begin
+      lastOpenIni.WriteString('LastOpens','Project',fProject.FileName);
+    end else begin
+      lastOpenIni.WriteString('LastOpens','Project','');
+    end;
+    for i:=0 to EditorList.PageCount-1 do begin
+      editor := EditorList.GetEditor(i);
+      if not assigned(editor) then
+        continue;
+      lastOpenIni.WriteString('Editor_'+IntToStr(i),'FileName',editor.FileName);
+      lastOpenIni.WriteBool('Editor_'+IntToStr(i),'OnLeft',editor.PageControl = EditorList.LeftPageControl);
+      lastOpenIni.WriteBool('Editor_'+IntToStr(i),'Focused',editor.Text.Focused);
+      lastOpenIni.WriteInteger('Editor_' + IntToStr(I), 'CursorCol', Editor.Text.CaretX);
+      lastOpenIni.WriteInteger('Editor_' + IntToStr(I), 'CursorRow', Editor.Text.CaretY);
+      lastOpenIni.WriteInteger('Editor_' + IntToStr(I), 'TopLine', Editor.Text.TopLine);
+      lastOpenIni.WriteInteger('Editor_' + IntToStr(I), 'LeftChar', Editor.Text.LeftChar);
+    end;
+  finally
+    lastOpenIni.Free;
   end;
 end;
 
@@ -7016,6 +7103,8 @@ begin
   LoadColor;
 
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
+
+  LoadLastOpens;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);

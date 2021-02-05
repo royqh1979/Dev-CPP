@@ -546,6 +546,10 @@ const
   ID_EOPT_ALHEADER                      = 27080;
   ID_EOPT_ALPARAMS                      = 27081;
 
+  //misc tab
+  ID_EOPT_LOAD_LAST_OPENS               = 27082;
+  ID_EOPT_MISC                          = 27083;
+
   // new project
   ID_NP_PRJNAME                         = 28001;
   ID_NP_DEFAULTC                        = 28002;
