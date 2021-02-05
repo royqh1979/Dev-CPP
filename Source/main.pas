@@ -1563,6 +1563,7 @@ begin
       if lastOpenIni.ReadBool('Editor_'+IntToStr(i),'Focused',False) then begin
         focusedEditor := Editor;
       end;
+      dmMain.RemoveFromHistory(FileName);
     end;
     filename := lastOpenIni.ReadString('LastOpens','Project','');
     if FileExists(filename) then begin
@@ -7104,7 +7105,8 @@ begin
 
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 
-  LoadLastOpens;
+  if devEditor.LoadLastOpens then
+    LoadLastOpens;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
