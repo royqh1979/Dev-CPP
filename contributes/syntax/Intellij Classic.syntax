@@ -27,3 +27,4 @@ Folding lines=clBlack,clBtnFace
 Active Line=clNone,$00FFFFCC
 Warnings=$0000699B,clNone
 Panel=clBlack,clBtnFace
+Escape sequences=$00EB5017, clNone, 0, 0, 0

@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Red Panda Dev-C++';
-  DEVCPP_VERSION = '6.4-beta2';
+  DEVCPP_VERSION = '6.4-beta2.1';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
@@ -42,6 +42,7 @@ const
   DEV_SHORTCUTS_FILE = 'shortcuts.ini';
   DEV_CLASSFOLDERS_FILE = 'classfolders.ini';
   DEV_CODEINS_FILE = 'codeinsertion.ini';
+  DEV_LASTOPENS_FILE = 'lastopens.ini';
   DEV_WEBMIRRORS_FILE = 'webmirrors.ini';
   DEV_ERROR_LOG_FILE = 'devcpp-errors.log';
   DEV_TOOLS_FILE = 'tools.ini';

@@ -27,3 +27,4 @@ Folding lines=clBlue,clBtnFace
 Active Line=clNone,$00FFFFCC
 Warnings=$0000AAFF,clNone
 Panel=clBlue,clAqua
+Escape sequences=clBlue, clNone, 0, 0, 0

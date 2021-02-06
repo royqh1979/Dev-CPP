@@ -34,7 +34,7 @@ type
     Current:integer;
     FileName:String;
   end;
-  TCppParser = class(TComponent)
+  TCppParser = class
   private
     fParserId: integer;
     fSerialCount: integer;
@@ -203,7 +203,7 @@ type
     }
     function GetHeaderFileName(const RelativeTo, Line: AnsiString): AnsiString; // both
     function IsIncludeLine(const Line: AnsiString): boolean;
-    constructor Create(AOwner: TComponent; wnd:HWND); 
+    constructor Create(wnd:HWND); 
     destructor Destroy; override;
     procedure ParseFileList;
     procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
@@ -245,7 +245,6 @@ type
     property ProjectIncludePaths: TStringList read fProjectIncludePaths;
     property ParserId: integer read fParserId;
     property SerialId: string read fSerialId;
-  published
     property Parsing: boolean read GetParsing;
     property Enabled: boolean read fEnabled write fEnabled;
     property Tokenizer: TCppTokenizer read fTokenizer;
@@ -270,15 +269,14 @@ var
 
 procedure Register;
 begin
-  RegisterComponents('Dev-C++', [TCppParser]);
+  //RegisterComponents('Dev-C++', [TCppParser]);
 end;
 
 
-constructor TCppParser.Create(AOwner: TComponent; wnd:HWND);
+constructor TCppParser.Create(wnd:HWND);
 begin
-  inherited Create(AOwner);
-  fPreprocessor := TCppPreprocessor.Create(AOwner);
-  fTokenizer := TCppTokenizer.Create(AOwner);
+  fPreprocessor := TCppPreprocessor.Create;
+  fTokenizer := TCppTokenizer.Create;
   fHandle := wnd;
   parserCountCS.Acquire;
   inc(parserCount);

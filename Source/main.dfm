@@ -1194,6 +1194,7 @@ object MainForm: TMainForm
           TabVisible = False
           SortAlphabetically = True
           SortByType = True
+          StatementsType = cbstFile
           Columns = <>
         end
       end

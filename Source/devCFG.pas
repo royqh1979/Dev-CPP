@@ -476,6 +476,9 @@ type
     fUseTabnine: boolean;
 
     fShowRainbowBacket : boolean;
+
+    //Misc
+    fLoadLastOpens: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -556,7 +559,10 @@ type
 
     property AutoCheckSyntax:boolean read fAutoCheckSyntax write fAutoCheckSyntax;
     property CheckSyntaxWhenReturn: boolean read fCheckSyntaxWhenReturn write fCheckSyntaxWhenReturn;
-    property UseCpp: boolean read fUseCpp write fUseCpp; 
+    property UseCpp: boolean read fUseCpp write fUseCpp;
+
+    //misc
+    property LoadLastOpens: boolean read fLoadLastOpens write fLoadLastOpens;
   end;
 
   TWindowState = class(TPersistent)
@@ -2614,7 +2620,9 @@ begin
   fGlobalIncludeCompletion := True;
   fDeleteSymbolPairs := True;
 
-  fUseUTF8ByDefault := True;
+  // gcc will use system's default encoding to generate __FILE__ content
+  // which will cause error if the file is utf8 and file path contains non-ascii characters 
+  fUseUTF8ByDefault := False;
 
   fUseTabnine:= False;
   fSyntax.Clear;
@@ -2626,6 +2634,8 @@ begin
 
   fUseCpp := True;
 
+  //misc
+  fLoadLastOpens := True;
 end;
 
 procedure TdevEditor.AssignEditor(editor: TSynEdit; const FileName: AnsiString);
