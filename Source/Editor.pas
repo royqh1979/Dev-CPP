@@ -502,7 +502,8 @@ end;
 
 destructor TEditor.Destroy;
 begin
-  //fText.BeginUpdate;
+  //prevent redraw of the synedit ui
+  fText.BeginUpdate;
   // Deactivate the file change monitor
   MainForm.FileMonitor.UnMonitor(fFileName);
   MainForm.CaretList.RemoveEditor(self);
@@ -3936,7 +3937,7 @@ end;
 
 procedure TEditor.InitParser;
 begin
-  fParser := TCppParser.Create(GetPageControl,MainForm.Handle);
+  fParser := TCppParser.Create(MainForm.Handle);
   ResetCppParser(fParser);
   fParser.Enabled := (fText.Highlighter = dmMain.Cpp);
 end;

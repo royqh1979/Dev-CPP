@@ -344,6 +344,10 @@ begin
     while Editor.Parsing do
       Sleep(100);
     }
+    // Show new editor after forcing a layout update
+    if Assigned(PrevEditor) then begin
+      PrevEditor.Activate;
+    end;    
 
     if Editor.InProject and Assigned(MainForm.Project) then begin
       projindex := MainForm.Project.Units.IndexOf(Editor);
@@ -355,12 +359,6 @@ begin
 
       // Force layout update when creating, destroying or moving editors
       UpdateLayout;
-    end;
-
-
-    // Show new editor after forcing a layout update
-    if Assigned(PrevEditor) then begin
-      PrevEditor.Activate;
     end;
   finally
     EndUpdate; // redraw once

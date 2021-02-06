@@ -6885,7 +6885,7 @@ begin
   fMessageControlChanged := False;
   fLeftPageControlChanged := False;
 
-  fDummyCppParser := TCppParser.Create(nil,MainForm.Handle);
+  fDummyCppParser := TCppParser.Create(MainForm.Handle);
   // Backup PATH variable
   devDirs.OriginalPath := GetEnvironmentVariable('PATH');
 
