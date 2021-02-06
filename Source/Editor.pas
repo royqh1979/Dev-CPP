@@ -502,34 +502,31 @@ end;
 
 destructor TEditor.Destroy;
 begin
+  //fText.BeginUpdate;
   // Deactivate the file change monitor
   MainForm.FileMonitor.UnMonitor(fFileName);
   MainForm.CaretList.RemoveEditor(self);
 
-
-  if not InProject and assigned(fParser) then begin
-    //FreeParser(fParser);
-    fParser.Free;
-  end;
   // Delete breakpoints in this editor
   MainForm.Debugger.DeleteBreakPointsOf(self);
 
-  ClearSyntaxErrors;
-  FreeAndNil(fErrorList);
-
-  ClearUserCodeInTabStops;
-  FreeAndNil(fUserCodeInTabStops);
-
   // Destroy code completion stuff
   DestroyCompletion;
-  
+
   // Free everything
   FreeAndNil(fFunctionTip);
   FreeAndNil(fText);
   FreeAndNil(fTabSheet);
   FreeAndNil(fPreviousEditors);
 
-
+  ClearSyntaxErrors;
+  FreeAndNil(fErrorList);
+  ClearUserCodeInTabStops;
+  FreeAndNil(fUserCodeInTabStops);
+  if not InProject and assigned(fParser) then begin
+    //FreeParser(fParser);
+    FreeAndNil(fParser);
+  end;
   // Move into TObject.Destroy...
   inherited;
 end;
@@ -3214,7 +3211,7 @@ begin
     Exit;
   end;
   }
-  if (attr = fText.Highlighter.IdentifierAttribute) then begin
+  if assigned(fParser) and (attr = fText.Highlighter.IdentifierAttribute) then begin
     //st := fFindStatementOf(fFileName, token, line);
     p:=fText.DisplayToBufferPos(DisplayCoord(column+1,Row));
     s:= GetWordAtPosition(fText,p, pBeginPos,pEndPos, wpInformation);
@@ -3939,7 +3936,7 @@ end;
 
 procedure TEditor.InitParser;
 begin
-  fParser := TCppParser.Create(fText,MainForm.Handle);
+  fParser := TCppParser.Create(GetPageControl,MainForm.Handle);
   ResetCppParser(fParser);
   fParser.Enabled := (fText.Highlighter = dmMain.Cpp);
 end;
@@ -3952,8 +3949,7 @@ begin
     InitParser;
   end else begin
     if assigned(fParser) then begin
-      //FreeParser(fParser);
-      fParser.Free;
+      FreeAndNil(fParser);
     end;
     fParser := MainForm.Project.CppParser;
     //MainForm.UpdateClassBrowserForEditor(self);

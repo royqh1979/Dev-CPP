@@ -43,7 +43,7 @@ type
     FileIncludes: PFileIncludes; // includes of this file
   end;
 
-  TCppPreprocessor = class(TComponent)
+  TCppPreprocessor = class
   private
     fIndex: integer; // points to current file buffer. do not free
     fFileName: AnsiString; // idem
@@ -92,7 +92,7 @@ type
     function GetFileIncludesEntry(const FileName: AnsiString): PFileIncludes;
     procedure AddDefinesInFile(const FileName:AnsiString);
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create; 
     destructor Destroy; override;
     procedure Clear;
     procedure AddDefineByParts(const Name, Args, Value: AnsiString; HardCoded: boolean);
@@ -123,12 +123,12 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents('Dev-C++', [TCppPreprocessor]);
+  //RegisterComponents('Dev-C++', [TCppPreprocessor]);
 end;
 
-constructor TCppPreprocessor.Create(AOwner: TComponent);
+constructor TCppPreprocessor.Create;
 begin
-  inherited Create(AOwner);
+  inherited Create;
   fIncludes := TList.Create;
   fHardDefines := TDevStringList.Create;
   fDefines := TStringList.Create;

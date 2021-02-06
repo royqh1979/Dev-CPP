@@ -46,7 +46,7 @@ type
     Line: integer;
   end;
 
-  TCppTokenizer = class(TComponent)
+  TCppTokenizer = class
   private
     pStart: PAnsiChar;
     pCurrent: PAnsiChar;
@@ -90,7 +90,7 @@ type
     // no manual buffer madness including Schlemiel algorithms anymore
     procedure CatString(var Dest: AnsiString; Source: PAnsiChar; Count: integer);
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create; 
     destructor Destroy; override;
     procedure Reset;
     procedure TokenizeBuffer(StartAt: PAnsiChar);
@@ -110,12 +110,12 @@ uses
 
 procedure Register;
 begin
-  RegisterComponents('Dev-C++', [TCppTokenizer]);
+  //RegisterComponents('Dev-C++', [TCppTokenizer]);
 end;
 
-constructor TCppTokenizer.Create(AOwner: TComponent);
+constructor TCppTokenizer.Create;
 begin
-  inherited Create(AOwner);
+  inherited Create;
   fTokenList := TList.Create;
 end;
 

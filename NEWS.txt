@@ -1,3 +1,8 @@
+Version 6.4-beta2.1 FEB 2021
+
+    - fix: can't close project files which are opened before the project. ( and can't close auto opened project files when start, because they are opened before the project)
+    - fix: random crash when close an editor
+
 Version 6.4-beta2 FEB 2021
 
     - fix: local variables not show up when editing in the definition of a function which declaration is not in the same file

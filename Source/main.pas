@@ -2282,6 +2282,8 @@ begin
     for i:=0 to fProject.Units.Count-1 do begin
       if EditorList.IsFileOpened(fProject.Units[i].FileName) then begin
         e:=EditorList.GetEditorFromFileName(fProject.Units[i].FileName);
+        fProject.Units[i].Editor := e;
+        fProject.Units[i].Encoding := e.EncodingOption;
         e.InProject := True;
       end;
     end;

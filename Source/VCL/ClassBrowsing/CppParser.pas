@@ -277,8 +277,8 @@ end;
 constructor TCppParser.Create(AOwner: TComponent; wnd:HWND);
 begin
   inherited Create(AOwner);
-  fPreprocessor := TCppPreprocessor.Create(AOwner);
-  fTokenizer := TCppTokenizer.Create(AOwner);
+  fPreprocessor := TCppPreprocessor.Create;
+  fTokenizer := TCppTokenizer.Create;
   fHandle := wnd;
   parserCountCS.Acquire;
   inc(parserCount);
