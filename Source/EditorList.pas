@@ -356,7 +356,6 @@ begin
     end else begin
       dmMain.AddtoHistory(Editor.FileName);
       FreeAndNil(Editor);
-
       // Force layout update when creating, destroying or moving editors
       UpdateLayout;
     end;

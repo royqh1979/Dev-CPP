@@ -1,3 +1,11 @@
+Version 6.4-beta3 FEB 2021
+
+    - fix: random crash when close project
+    - change: if devcpp is started by open file in the explorer, don't auto open last closed files.
+    - change: if an instance of devcpp is already started and running, don't auto open last closed files.
+    - enhancement: show filenames instead of full path in the File menu's open history
+    - fix: enclosing '>' or '"' may dispear when auto complete #include header name
+
 Version 6.4-beta2.1 FEB 2021
 
     - fix: can't close project files which are opened before the project. ( and can't close auto opened project files when start, because they are opened before the project)
