@@ -68,6 +68,18 @@ type
     procedure CreateWnd; override;
   end;
 
+  TMenuItemHint = class(THintWindow)
+  private
+    activeMenuItem : TMenuItem;
+    showTimer : TTimer;
+    hideTimer : TTimer;
+    procedure HideTime(Sender : TObject) ;
+    procedure ShowTime(Sender : TObject) ;
+  public
+    constructor Create(AOwner : TComponent) ; override;
+    procedure DoActivateHint(menuItem : TMenuItem) ;
+    destructor Destroy; override;
+  end;
 
   TMainForm = class(TForm)
     MainMenu: TMainMenu;
@@ -933,7 +945,8 @@ type
       Selected: Boolean);
     procedure actRunTestsExecute(Sender: TObject);
     procedure WMCopyData(var Message: TMessage); message WM_COPYDATA;
-    procedure WMQueryEndSession(var   Msg:TMessage); message   WM_QUERYENDSESSION;  
+    procedure WMQueryEndSession(var   Msg:TMessage); message   WM_QUERYENDSESSION;
+    procedure WMMenuSelect(var Msg: TWMMenuSelect) ; message WM_MENUSELECT;
     procedure actDonateExecute(Sender: TObject);
     procedure actRenameSymbolExecute(Sender: TObject);
     procedure actUseUTF8Execute(Sender: TObject);
@@ -1041,6 +1054,7 @@ type
     fMessageControlChanged : boolean;
     fLeftPageControlChanged : boolean;
     fDummyCppParser: TCppParser;
+    fMenuItemHint : TMenuItemHint;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1134,6 +1148,94 @@ uses
   devParser;
 
 {$R *.dfm}
+
+{ TMenuItemHint }
+{ from https://capecodgunny.blogspot.com/2014/12/how-to-display-menu-item-hints-in.html }
+procedure TMenuItemHint.HideTime(Sender: TObject);
+begin
+  //hide (destroy) hint window
+  self.ReleaseHandle;
+  hideTimer.OnTimer := nil;
+end;
+
+procedure TMenuItemHint.ShowTime(Sender: TObject);
+  procedure Split(Delim: Char; Str: string; Lst: TStrings) ;
+  begin
+    Lst.Clear;
+    Lst.Delimiter     := Delim;
+    Lst.DelimitedText := Str;
+  end;
+var
+  r : TRect;
+  wdth : integer;
+  list : TStringList;
+  s,str  : string;
+  j,h,w : integer;
+
+begin
+  if activeMenuItem <> nil then begin
+    str := activeMenuItem.Hint;
+    str := StringReplace(str,#13#10,'|',[rfReplaceAll]);
+    str := StringReplace(str,#13,'|',[rfReplaceAll]);
+    str := StringReplace(str,#10,'|',[rfReplaceAll]);
+    while AnsiPos('||',str) > 0 do begin
+      str := StringReplace(str,'||','|',[]);
+    end;
+
+    list := TStringList.Create;
+    split('|',str,list);
+    s := '';
+    h := Canvas.TextHeight(str) * (list.Count);
+    w := 0;
+    for j := 0 to list.Count -1 do begin
+      if j > 0 then s := s + #13#10;
+      s := s + list[j];
+      wdth := Canvas.TextWidth(list[j]);
+      if wdth > w then w := wdth;
+    end;
+    list.Free;
+
+    //position and resize
+    r.Left := Mouse.CursorPos.X;
+    r.Top := Mouse.CursorPos.Y + 20;
+    r.Right := r.Left + w + 8;
+    r.Bottom := r.Top + h + 2;//6;
+    ActivateHint(r,s);
+  end;
+
+  showTimer.OnTimer := nil;
+end; (*ShowTime*)
+
+
+constructor TMenuItemHint.Create(AOwner : TComponent);
+begin
+  inherited;
+  showTimer := TTimer.Create(self) ;
+  showTimer.Interval := Application.HintPause;
+
+  hideTimer := TTimer.Create(self) ;
+  hideTimer.Interval := Application.HintHidePause;
+end;
+
+procedure TMenuItemHint.DoActivateHint(menuItem : TMenuItem) ;
+begin
+  //force remove of the "old" hint window
+  hideTime(self) ;
+
+  if (menuItem = nil) or (menuItem.Hint = '') or assigned(menuItem.Action) then begin
+    activeMenuItem := nil;
+    Exit;
+  end;
+
+  activeMenuItem := menuItem;
+  showTimer.OnTimer := ShowTime;
+  hideTimer.OnTimer := HideTime;
+end;
+
+destructor TMenuItemHint.Destroy;
+begin
+  inherited;
+end;
 { TTabsheet }
 
 procedure TTabsheet.WMEraseBkGnd(var msg: TWMEraseBkGnd);
@@ -3019,8 +3121,6 @@ begin
       fProject.SaveLayout; // always save layout, but not when SaveAll has been called
 
     ClassBrowser.BeginTreeUpdate;
-    ClassBrowser.CurrentFile := '';
-    ClassBrowser.Parser:=nil; // set parser to nil will do the clear
     try
       // Remember it
       dmMain.AddtoHistory(fProject.FileName);
@@ -3029,6 +3129,8 @@ begin
       fEditorList.BeginUpdate;
       try
         FreeandNil(fProject);
+        ClassBrowser.CurrentFile := '';
+        ClassBrowser.Parser:=nil; // set parser to nil will do the clear
 
         if not fQuitting and RefreshEditor then begin
           //reset Class browsing
@@ -6876,6 +6978,7 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   Application.HintHidePause:=300000; //5mins before the hint auto disapear
+  fMenuItemHint := TMenuItemHint.Create(self);
   fQuitting:=False;
   fClosing:=False;
   fWindowsTurnedOff:=False;
@@ -7107,8 +7210,6 @@ begin
 
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 
-  if devEditor.LoadLastOpens then
-    LoadLastOpens;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -7190,10 +7291,15 @@ begin
   // This includes open file commands send to us via WMCopyData
   FileCount := ParseParameters(GetCommandLine);
 
+
   // Open them according to OpenFileList rules
   OpenFileList(fFilesToOpen);
-  if FileCount = 0 then
+  if FileCount = 0 then begin
+    if devEditor.LoadLastOpens then
+      LoadLastOpens;
+    DeleteFile(devDirs.Config + DEV_LASTOPENS_FILE);
     UpdateAppTitle;
+  end;
   fFilesToOpen.Clear;
 
   // do not show tips if Dev-C++ is launched with a file and only slow
@@ -7791,6 +7897,25 @@ begin
   Close;
   msg.Result:=1;
 end;
+
+procedure TMainForm.WMMenuSelect(var Msg: TWMMenuSelect) ;
+var
+  menuItem : TMenuItem;
+  hSubMenu : HMENU;
+begin
+  inherited; // from TCustomForm (so that Application.Hint is assigned)
+  menuItem := nil;
+  if (Msg.MenuFlag <> $FFFF) or (Msg.IDItem <> 0) then begin
+  {
+    if Msg.MenuFlag and MF_POPUP = MF_POPUP then begin
+      hSubMenu := GetSubMenu(Msg.Menu, Msg.IDItem) ;
+      menuItem := Self.Menu.FindItem(hSubMenu, fkHandle) ;
+    end else begin
+  }
+      menuItem := Self.MainMenu.FindItem(Msg.IDItem, fkCommand) ;
+  end;
+  fMenuItemHint.DoActivateHint(menuItem) ;
+end; (*WMMenuSelect*)
 
 procedure TMainForm.WMCopyData(var Message: TMessage);
 var

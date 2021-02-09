@@ -698,7 +698,8 @@ begin
 
       // Add item to main menu
       Item := TMenuItem.Create(fMRUMenuParent);
-      Item.Caption := Format('&%1x %s', [AllCount, PMRUItem(fMRU[I])^.filename]);
+      Item.Caption := Format('&%1x %s', [AllCount, ExtractFileName(PMRUItem(fMRU[I])^.filename)]);
+      Item.Hint := PMRUItem(fMRU[I])^.filename;
       Item.OnClick := fMRUClick;
       Item.Tag := I;
       fMRUMenuParent.Insert(fMRUMenuStartIndex + AllCount, Item);
@@ -722,7 +723,9 @@ begin
 
         // Add item to main menu
         Item := TMenuItem.Create(fMRUMenuParent);
-        Item.Caption := Format('&%1x %s', [AllCount, PMRUItem(fMRU[I])^.filename]);
+        //Item.Caption := Format('&%1x %s', [AllCount, PMRUItem(fMRU[I])^.filename]);
+        Item.Caption := Format('&%1x %s', [AllCount, ExtractFileName(PMRUItem(fMRU[I])^.filename)]);
+        Item.Hint := PMRUItem(fMRU[I])^.filename;
         Item.OnClick := fMRUClick;
         Item.Tag := I;
         fMRUMenuParent.Insert(fMRUMenuStartIndex + AllCount + 1, Item); // add AFTER middle separator

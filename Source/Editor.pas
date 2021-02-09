@@ -2802,7 +2802,7 @@ begin
       dec(posBegin);
 
   while (posEnd < Length(sLine)) and
-    ((sLine[posBegin] in fText.IdentChars) or (sLine[posBegin]='.')) do
+    ((sLine[posEnd] in fText.IdentChars) or (sLine[posEnd]='.')) do
       inc(posEnd);
 
 
