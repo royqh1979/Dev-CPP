@@ -5,6 +5,7 @@ Version 6.4-beta3 FEB 2021
     - change: if an instance of devcpp is already started and running, don't auto open last closed files.
     - enhancement: show filenames instead of full path in the File menu's open history
     - fix: enclosing '>' or '"' may dispear when auto complete #include header name
+    - fix: chinese characters in the  compiled exe file error, when the file's encoding is gbk
 
 Version 6.4-beta2.1 FEB 2021
 

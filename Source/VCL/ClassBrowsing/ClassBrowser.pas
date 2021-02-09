@@ -553,13 +553,13 @@ begin
   if fUpdateCount <> 0 then
     Exit;
 
-  if not Assigned(fParser) then
-    Exit;
-  if not fParser.Enabled then
-    Exit;
   fUpdating:=True;
   try
     ClearTree;
+    if not Assigned(fParser) then
+      Exit;
+    if not fParser.Enabled then
+      Exit;
     if not Visible or not TabVisible then
       Exit;
     // We are busy...
