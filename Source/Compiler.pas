@@ -728,13 +728,11 @@ begin
             +GetSystemCharsetName();
         end else begin
         {
-          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName();
-          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName();
-          }
           fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
             +GetSystemCharsetName();
           fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
             +GetSystemCharsetName();
+          }
         end;
 
         // Determine command line to execute
