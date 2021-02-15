@@ -347,6 +347,7 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatementsIndex.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
@@ -661,7 +662,7 @@ var
   //NewKind: TStatementKind;
   NewType, NewCommand,NoNameArgs: AnsiString;
   node: PStatementNode;
-  fileIncludes1:PFileIncludes;
+  fileIncludes1, fileIncludes2:PFileIncludes;
   idx,idx2:integer;
   key:String;
   removedStatement: PRemovedStatement;
@@ -730,7 +731,8 @@ var
     if Assigned(fileIncludes) and (Result^._Kind <>skBlock) then begin
       idx:=fileIncludes^.Statements.Add(Result);
       fileIncludes^.StatementsIndex.Add(IntToStr(integer(Result)),idx);
-      fileIncludes^.DeclaredStatements.Add(Result);
+      idx:=fileIncludes^.DeclaredStatements.Add(Result);
+      fileIncludes^.DeclaredStatementsIndex.Add(IntToStr(integer(Result)),idx);
     end;
   end;
 
@@ -829,27 +831,36 @@ begin
     if assigned(oldStatement) then begin
       Result:= oldStatement;
       if IsDefinition then begin
-        if not SameText(oldStatement^._FileName, FileName) then begin
-          fileIncludes1:=FindFileIncludes(FileName);
-          if Assigned(fileIncludes1) then begin
-            idx:=fileIncludes1^.Statements.Add(oldStatement);
-            fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
+        fileIncludes2:=FindFileIncludes(oldStatement^._DefinitionFileName);
+        if not oldStatement^._HasDefinition or not assigned(fileIncludes2)
+          or (fileIncludes2^.DeclaredStatementsIndex.ValueOf(IntToStr(integer(oldStatement))) < 0 ) then begin
+          if not SameText(oldStatement^._FileName, FileName) then begin
+            fileIncludes1:=FindFileIncludes(FileName);
+            if Assigned(fileIncludes1) then begin
+              idx:=fileIncludes1^.Statements.Add(oldStatement);
+              fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
+            end;
           end;
+          oldStatement^._DefinitionLine := Line;
+          oldStatement^._DefinitionFileName := FileName;
+          Exit;
         end;
-        oldStatement^._DefinitionLine := Line;
-        oldStatement^._DefinitionFileName := FileName;
       end else begin
-        if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
-          fileIncludes1:=FindFileIncludes(FileName);
-          if Assigned(fileIncludes1) then begin
-            idx:=fileIncludes1^.Statements.Add(oldStatement);
-            fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
+        fileIncludes2:=FindFileIncludes(oldStatement^._FileName);
+        if not assigned(fileIncludes2)
+          or (fileIncludes2^.DeclaredStatementsIndex.ValueOf(IntToStr(integer(oldStatement))) < 0 ) then begin
+          if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
+            fileIncludes1:=FindFileIncludes(FileName);
+            if Assigned(fileIncludes1) then begin
+              idx:=fileIncludes1^.Statements.Add(oldStatement);
+              fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
+            end;
           end;
+          oldStatement^._Line:=Line;
+          oldStatement^._FileName:=FileName;
+          Exit;
         end;
-        oldStatement^._Line:=Line;
-        oldStatement^._FileName:=FileName;
       end;
-      Exit;
     end;
   end;
   Result := AddToList;
@@ -979,7 +990,8 @@ begin
     end else begin
       idx:=fileIncludes.Statements.Add(CurrentScope);
       fileIncludes^.StatementsIndex.Add(IntToStr(integer(CurrentScope)), idx);
-      fileIncludes.DeclaredStatements.Add(CurrentScope);
+      idx:=fileIncludes.DeclaredStatements.Add(CurrentScope);
+      fileIncludes^.DeclaredStatementsIndex.Add(IntToStr(integer(CurrentScope)), idx);
     end;
   end;
   fCurrentScope.Delete(fCurrentScope.Count - 1);
@@ -2881,6 +2893,7 @@ begin
       PFileIncludes(fIncludesList.Objects[i])^.Statements.Free;
       PFileIncludes(fIncludesList.Objects[i])^.StatementsIndex.Free;
       PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatementsIndex.Free;
       PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
       Dispose(PFileIncludes(fIncludesList.Objects[i]));
     end;
@@ -3255,18 +3268,18 @@ procedure TCppParser.InvalidateFile(const FileName: AnsiString);
 begin
   fCriticalSection.Acquire;
   try
-  if fParsing or (fLockCount>0) then
-    Exit;
-  UpdateSerialId;
-  fParsing:=True;
-  try
-    InternalInvalidateFile(FileName);
-  finally
-    fParsing:=False;
-  end;
+    if fParsing or (fLockCount>0) then
+      Exit;
+    UpdateSerialId;
+    fParsing:=True;
+    try
+      InternalInvalidateFile(FileName);
+    finally
+      fParsing:=False;
+    end;
   finally
     fCriticalSection.Release;
-  end;  
+  end;
 end;
 
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
@@ -3339,6 +3352,7 @@ begin
       fStatementList.DeleteStatement(Statement);
     end;
     PFileIncludes(P)^.DeclaredStatements.Free;
+    PFileIncludes(P)^.DeclaredStatementsIndex.Free;
     PFileIncludes(P)^.Statements.Free;
     PFileIncludes(P)^.StatementsIndex.Free;
     PFileIncludes(P)^.Scopes.Free;

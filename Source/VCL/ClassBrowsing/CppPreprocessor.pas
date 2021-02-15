@@ -308,6 +308,7 @@ begin
     fCurrentIncludes^.Statements:=TList.Create;
     fCurrentIncludes^.StatementsIndex:=TDevStringHash.Create;
     fCurrentIncludes^.DeclaredStatements:=TList.Create;
+    fCurrentIncludes^.DeclaredStatementsIndex:=TDevStringHash.Create;
     fCurrentIncludes^.Scopes := TIntList.Create;
     fCurrentIncludes^.Scopes.Sorted := True;    
     fIncludesList.AddObject(FileName,TObject(fCurrentIncludes));
@@ -1508,8 +1509,8 @@ begin
         Add(#9+'**'+Format('%s , %s',[s^._Command, s^._FullName] ));
       end;
     end;
-    SaveToFile(FileName);
   finally
+    SaveToFile(FileName);
     Free;
   end;
 end;

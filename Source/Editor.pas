@@ -828,7 +828,7 @@ end;
 procedure TEditor.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
   if (not (scOpenFile in Changes)) and  (fText.Lines.Count <> fLineCount)
-    and (fText.Lines.Count <> 0) and (fLineCount>0) then begin
+    and (fText.Lines.Count <> 0) and ((fLineCount>0) or (fText.Lines.Count>1)) then begin
     if devCodeCompletion.Enabled
       and SameStr(mainForm.ClassBrowser.CurrentFile,FileName) // Don't reparse twice
       then begin
