@@ -270,7 +270,7 @@ uses
 
 var
   Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
+  // mHashTable: array[#0..#255] of Integer;
   CppKeywords : TStringHash;
 
 procedure MakeIdentTable;
@@ -280,9 +280,10 @@ begin
   for I := #0 to #255 do
   begin
     Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
+      '_', '0'..'9', 'a'..'z', 'A'..'Z', #128 .. #255 : Identifiers[I] := True;
     else Identifiers[I] := False;
     end;
+    {
     Case I in['_', 'a'..'z', 'A'..'Z'] of
       True:
         begin
@@ -291,6 +292,7 @@ begin
         end;
     else mHashTable[I] := 0;
     end;
+    }
   end;
 end;
 
@@ -303,7 +305,7 @@ var
 begin
   fToIdent := MayBe; { things like 'int a;' }
   ToHash := fToIdent;
-  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
+  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z', #128..#255] do
   begin
     inc(ToHash);
   end;
@@ -333,7 +335,7 @@ begin
       '=': fProcTable[I] := EqualProc;
       '>': fProcTable[I] := GreaterProc;
       '?': fProcTable[I] := QuestionProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
+      'A'..'Z', 'a'..'z', '_', #128..#255 : fProcTable[I] := IdentProc;
       #10: fProcTable[I] := LFProc;
       '<': fProcTable[I] := LowerProc;
       '-': fProcTable[I] := MinusProc;

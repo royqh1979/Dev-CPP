@@ -8744,7 +8744,7 @@ var
 begin
   pCaret := fCaretList.GotoAndGetPrevious;
   if assigned(pCaret) then begin
-    e:=TEditor(pCaret.editor);
+    e:= TEditor(pCaret.editor);
     p.Line := pCaret.line;
     p.Char := pCaret.char;
     e.Text.CaretXY := p;
