@@ -3938,6 +3938,7 @@ end;
 procedure TEditor.InitParser;
 begin
   fParser := TCppParser.Create(MainForm.Handle);
+  fParser.OnGetFileStream := MainForm.EditorList.GetStreamFromOpenedEditor;
   ResetCppParser(fParser);
   fParser.Enabled := (fText.Highlighter = dmMain.Cpp);
 end;

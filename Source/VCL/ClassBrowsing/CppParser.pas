@@ -27,6 +27,8 @@ uses
 
 
 type
+  TGetFileStreamEvent = procedure(Sender: TObject; const FileName: String; var Stream: TMemoryStream)
+    of object;
 
   PCppParserProgressMessage = ^TCppParserProgressMessage;
   TCppParserProgressMessage = Record
@@ -81,6 +83,7 @@ type
     fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
     //fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements>
     fCriticalSection: TCriticalSection;
+    fOnGetFileStream : TGetFileStreamEvent;
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -255,6 +258,7 @@ type
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property ScannedFiles: TStringList read fScannedFiles;
     property FilesToScan: TStringList read fFilesToScan;
+    property OnGetFileStream: TGetFileStreamEvent read fOnGetFileStream write fOnGetFileStream;
   end;
 
 procedure Register;
@@ -3174,6 +3178,7 @@ var
   FName: AnsiString;
   I: integer;
   files:TStringList;
+  tempStream: TMemoryStream;
 begin
   if not fEnabled then
     Exit;
@@ -3238,8 +3243,16 @@ begin
       if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
         if SameText(files[i],filename) and assigned(Stream) then
           InternalParse(files[i], True,stream)
-        else
-          InternalParse(files[i]);
+        else begin
+          tempStream := nil;
+          if assigned(OnGetFileStream) then
+            OnGetFileStream(self,files[i],tempStream);
+          if assigned(tempStream) then begin
+            InternalParse(files[i], True, tempStream);
+            tempStream.Free;
+          end else
+            InternalParse(files[i]);
+        end;
       end;
     end;
     //we only parse CFile in the second parse
@@ -3251,8 +3264,16 @@ begin
       if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
         if SameText(files[i],filename) and assigned(Stream) then
           InternalParse(files[i], True,stream)
-        else
-          InternalParse(files[i]);
+        else begin
+          tempStream := nil;
+          if assigned(OnGetFileStream) then
+            OnGetFileStream(self,files[i],tempStream);
+          if assigned(tempStream) then begin
+            InternalParse(files[i], True, tempStream);
+            tempStream.Free;
+          end else
+            InternalParse(files[i]);
+        end;
       end;
     end;
     {

@@ -62,6 +62,7 @@ type
     procedure UpdateLayout; // reconfigures layout
     procedure GetVisibleEditors(var Left: TEditor; var Right: TEditor);
     procedure SetPreferences(TabPosition: TTabPosition; MultiLine: boolean);
+    procedure GetStreamFromOpenedEditor(Sender: TObject; const FileName: String; var Stream: TMemoryStream);
     property LeftPageControl: ComCtrls.TPageControl read fLeftPageControl write fLeftPageControl;
     property RightPageControl: ComCtrls.TPageControl read fRightPageControl write fRightPageControl;
     property Splitter: TSplitter read fSplitter write fSplitter;
@@ -698,6 +699,18 @@ begin
     fLayout := lstNone;
     ShowLayout(lstBoth);
   end;
+end;
+
+procedure TEditorList.GetStreamFromOpenedEditor(Sender: TObject; const FileName: String; var Stream: TMemoryStream);
+var
+  editor: TEditor;
+begin
+  if IsFileOpened(FileName) then begin
+    editor := self.GetEditorFromFileName(FileName);
+    Stream := TMemoryStream.Create;
+    editor.Text.Lines.SaveToStream(Stream);
+  end else
+    Stream := nil;
 end;
 
 end.
