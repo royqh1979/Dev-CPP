@@ -267,6 +267,7 @@ begin
   finiFile := TMemIniFile.Create(fFileName);
   fOptions := TProjOptions.Create;
   fParser := TCppParser.Create(MainForm.Handle);
+  fParser.OnGetFileStream := MainForm.EditorList.GetStreamFromOpenedEditor;
   ResetCppParser(fParser);
   if nName = DEV_INTERNAL_OPEN then begin
     Open; 
