@@ -310,7 +310,16 @@ begin
     fCurrentIncludes^.DeclaredStatements:=TList.Create;
     fCurrentIncludes^.DeclaredStatementsIndex:=TDevStringHash.Create;
     fCurrentIncludes^.Scopes := TIntList.Create;
-    fCurrentIncludes^.Scopes.Sorted := True;    
+    fCurrentIncludes^.Scopes.Sorted := True;
+    fCurrentIncludes^.DependingFiles:=THashedStringList.Create;
+    fCurrentIncludes^.DependingFiles.CaseSensitive:=False;
+    fCurrentIncludes^.DependingFiles.Sorted := True;
+    fCurrentIncludes^.DependingFiles.Duplicates := dupIgnore;
+
+    fCurrentIncludes^.DependedFiles:=THashedStringList.Create;
+    fCurrentIncludes^.DependedFiles.CaseSensitive := False;
+    fCurrentIncludes^.DependedFiles.Sorted := True;
+    fCurrentIncludes^.DependedFiles.Duplicates := dupIgnore;
     fIncludesList.AddObject(FileName,TObject(fCurrentIncludes));
   end;
 
@@ -1498,6 +1507,9 @@ begin
       Add(fIncludesList[i]+' : ');
       for t:=0 to FileIncludes^.IncludeFiles.Count-1 do begin
         Add(#9+'--'+FileIncludes^.IncludeFiles[t]);
+      end;
+      for t:=0 to FileIncludes^.DependedFiles.Count-1 do begin
+        Add(#9+'^^'+FileIncludes^.DependedFiles[t]);
       end;
       for t:=0 to FileIncludes^.Usings.Count-1 do begin
         Add(#9+'++'+FileIncludes^.Usings[t]);

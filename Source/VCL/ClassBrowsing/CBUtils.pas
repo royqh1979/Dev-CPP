@@ -212,6 +212,8 @@ type
     DeclaredStatements: TList; // List<PStatement> statement declared in this file
     DeclaredStatementsIndex: TDevStringHash;
     Scopes: TIntList; // List<Int,PStatement> int is start line of the statement scope
+    DependingFiles: THashedStringList; // The files i depeneds on
+    DependedFiles: THashedStringList; // the files depends on me
   end;
 
   

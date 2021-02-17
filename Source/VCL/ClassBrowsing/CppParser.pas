@@ -79,7 +79,7 @@ type
     fLockCount: integer; // lock(don't reparse) when we need to find statements in a batch
     fParsing: boolean;
     fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
-    fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements>
+    //fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements>
     fCriticalSection: TCriticalSection;
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
@@ -165,6 +165,7 @@ type
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
     procedure InternalInvalidateFile(const FileName: AnsiString);
+    procedure calculateFilesToBeReparsed(const FileName:AnsiString; files:TStringList);
     {
     function GetClass(const Phrase: AnsiString): AnsiString;
     function GetMember(const Phrase: AnsiString): AnsiString;
@@ -312,8 +313,10 @@ begin
   fBlockBeginSkips := TIntList.Create;
   fBlockEndSkips := TIntList.Create;
   fInlineNamespaceEndSkips := TIntList.Create;
+  {
   fRemovedStatements := THashedStringList.Create;
   fRemovedStatements.CaseSensitive:=True;
+  }
   fCriticalSection:= TCriticalSection.Create;
 end;
 
@@ -349,6 +352,8 @@ begin
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
     PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatementsIndex.Free;
     PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DependingFiles.Free;
+    PFileIncludes(fIncludesList.Objects[i])^.DependedFiles.Free;
     Dispose(PFileIncludes(fIncludesList.Objects[i]));
   end;
   FreeAndNil(fIncludesList);
@@ -358,7 +363,7 @@ begin
     namespaceList.Free;
   end;
   FreeAndNil(fNamespaces);
-  FreeAndNil(fRemovedStatements);
+  //FreeAndNil(fRemovedStatements);
 
   FreeAndNil(fSkipList);
   FreeAndNil(fBlockBeginSkips);
@@ -828,59 +833,30 @@ begin
     NoNameArgs := RemoveArgNames(Args);
     //find
     oldStatement := FindStatementInScope(command,NoNameArgs,kind,parent);
-    if assigned(oldStatement) then begin
+    if assigned(oldStatement) and isDefinition and not oldStatement^._HasDefinition then begin
+      oldStatement^._HasDefinition := True;
       Result:= oldStatement;
-      if IsDefinition then begin
-        fileIncludes2:=FindFileIncludes(oldStatement^._DefinitionFileName);
-        if not oldStatement^._HasDefinition or not assigned(fileIncludes2)
-          or (fileIncludes2^.DeclaredStatementsIndex.ValueOf(IntToStr(integer(oldStatement))) < 0 ) then begin
-          if not SameText(oldStatement^._FileName, FileName) then begin
-            fileIncludes1:=FindFileIncludes(FileName);
-            if Assigned(fileIncludes1) then begin
-              idx:=fileIncludes1^.Statements.Add(oldStatement);
-              fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
-            end;
+      if not SameText(oldStatement^._FileName, FileName) then begin
+        fileIncludes1:=FindFileIncludes(FileName);
+        if Assigned(fileIncludes1) then begin
+          idx:=fileIncludes1^.Statements.Add(oldStatement);
+          fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
+          fileIncludes1^.DependingFiles.Add(oldStatement^._FileName);
+          fileIncludes1^.DependedFiles.Add(oldStatement^._FileName);
+          fileIncludes2:=FindFileIncludes(oldStatement^._FileName);
+          if assigned(fileIncludes2) then begin
+            fileIncludes2^.DependingFiles.Add(FileName);
+            fileIncludes2^.DependedFiles.Add(FileName);
           end;
-          oldStatement^._DefinitionLine := Line;
-          oldStatement^._DefinitionFileName := FileName;
-          Exit;
         end;
-      end else begin
-        fileIncludes2:=FindFileIncludes(oldStatement^._FileName);
-        if not assigned(fileIncludes2)
-          or (fileIncludes2^.DeclaredStatementsIndex.ValueOf(IntToStr(integer(oldStatement))) < 0 ) then begin
-          if not SameText(oldStatement^._DefinitionFileName, FileName) then begin
-            fileIncludes1:=FindFileIncludes(FileName);
-            if Assigned(fileIncludes1) then begin
-              idx:=fileIncludes1^.Statements.Add(oldStatement);
-              fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
-            end;
-          end;
-          oldStatement^._Line:=Line;
-          oldStatement^._FileName:=FileName;
-          Exit;
-        end;
+        oldStatement^._DefinitionLine := Line;
+        oldStatement^._DefinitionFileName := FileName;
+        Exit;
       end;
     end;
   end;
   Result := AddToList;
 
-  if kind in [skConstructor, skFunction,skDestructor] then begin
-    key:=GetStatementKey(Result^._FullName,Result^._Type,Result^._NoNameArgs);
-    idx := fRemovedStatements.IndexOf(key);
-    if idx>=0 then begin
-      removedStatement := PRemovedStatement(fRemovedStatements.Objects[idx]);
-      Result^._DefinitionLine := removedStatement^._DefinitionLine;
-      Result^._DefinitionFileName := removedStatement^._DefinitionFileName;
-      fileIncludes1:=FindFileIncludes(Result^._DefinitionFileName);
-      if Assigned(fileIncludes1) then begin
-        idx2:=fileIncludes1^.Statements.Add(Result);
-        fileIncludes1^.StatementsIndex.Add(IntToStr(integer(Result)),idx2);
-      end;
-      dispose(PRemovedStatement(removedStatement));
-      fRemovedStatements.Delete(idx);
-    end;
-  end;
 end;
 
 {
@@ -2895,6 +2871,8 @@ begin
       PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatements.Free;
       PFileIncludes(fIncludesList.Objects[i])^.DeclaredStatementsIndex.Free;
       PFileIncludes(fIncludesList.Objects[i])^.Scopes.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.DependingFiles.Free;
+      PFileIncludes(fIncludesList.Objects[i])^.DependedFiles.Free;
       Dispose(PFileIncludes(fIncludesList.Objects[i]));
     end;
     fIncludesList.Clear;
@@ -2905,10 +2883,12 @@ begin
     end;
     fNamespaces.Clear;
 
+    {
     for i:=0 to fRemovedStatements.Count-1 do begin
       dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
     end;
     fRemovedStatements.Clear;
+    }
 
     fProjectIncludePaths.Clear;
     fIncludePaths.Clear;
@@ -2942,9 +2922,9 @@ begin
     // Support stopping of parsing when files closes unexpectedly
     fFilesScannedCount := 0;
     fFilesToScanCount := fFilesToScan.Count;
-    //we only parse CFile in the first parse
+    // parse header files in the first parse
     for i:=0 to fFilesToScan.Count-1 do begin
-      if not IsCFile(fFilesToScan[i]) then
+      if IsCFile(fFilesToScan[i]) then
         continue;
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
@@ -2952,9 +2932,9 @@ begin
         InternalParse(fFilesToScan[i], True);
       end;
     end;
-    // parse other files in the second parse
+    //we only parse CFile in the second parse
     for i:=0 to fFilesToScan.Count-1 do begin
-      if IsCFile(fFilesToScan[i]) then
+      if not IsCFile(fFilesToScan[i]) then
         continue;
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
@@ -3193,6 +3173,7 @@ procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; O
 var
   FName: AnsiString;
   I: integer;
+  files:TStringList;
 begin
   if not fEnabled then
     Exit;
@@ -3209,15 +3190,17 @@ begin
   finally
     fCriticalSection.Release;
   end;
+  files := TStringList.Create;
   try
     FName := FileName;
-
     if OnlyIfNotParsed and (FastIndexOf(fScannedFiles, FName) <> -1) then begin
       Exit;
     end;
 
-
-    InternalInvalidateFile(FileName);
+    calculateFilesToBeReparsed(FileName,files);
+    for i:=0 to files.Count-1 do begin
+      InternalInvalidateFile(files[i]);
+    end;
 
     if InProject then begin
       fProjectFiles.Add(FileName);
@@ -3243,20 +3226,52 @@ begin
     end;
 
     // Parse from disk or stream
-    fFilesToScanCount := 0;
+    fFilesToScanCount := files.Count;
     fFilesScannedCount := 0;
+
+// parse header files in the first parse
+    for i:=0 to files.Count-1 do begin
+      if IsCFile(files[i]) then
+        continue;
+      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+      OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
+      if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
+        if SameText(files[i],filename) and assigned(Stream) then
+          InternalParse(files[i], True,stream)
+        else
+          InternalParse(files[i]);
+      end;
+    end;
+    //we only parse CFile in the second parse
+    for i:=0 to files.Count-1 do begin
+      if not IsCFile(files[i]) then
+        continue;
+      Inc(fFilesScannedCount); // progress is mentioned before scanning begins
+      OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
+      if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
+        if SameText(files[i],filename) and assigned(Stream) then
+          InternalParse(files[i], True,stream)
+        else
+          InternalParse(files[i]);
+      end;
+    end;
+    {
     if not Assigned(Stream) then begin
       InternalParse(FileName);
     end else
       InternalParse(FileName, True, Stream); // or from stream
+    }
+    {
     for i:=0 to fRemovedStatements.Count-1 do begin
       dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
     end;
     fRemovedStatements.Clear;
+    }
     fFilesToScan.Clear;
   finally
+    files.Free;
     fParsing:=False;
-    OnEndParsing(1);
+    OnEndParsing(fFilesScannedCount );
     if UpdateView  then begin
         OnUpdate;
     end;
@@ -3265,6 +3280,9 @@ begin
 end;
 
 procedure TCppParser.InvalidateFile(const FileName: AnsiString);
+var
+  i:integer;
+  files : TStringList;
 begin
   fCriticalSection.Acquire;
   try
@@ -3272,9 +3290,14 @@ begin
       Exit;
     UpdateSerialId;
     fParsing:=True;
+    files:=TStringList.Create;
     try
-      InternalInvalidateFile(FileName);
+      calculateFilesToBeReparsed(FileName,files);
+      for i:=0 to files.Count-1 do begin
+        InternalInvalidateFile(files[i]);
+      end;
     finally
+      files.Free;
       fParsing:=False;
     end;
   finally
@@ -3282,14 +3305,52 @@ begin
   end;
 end;
 
+procedure TCppParser.calculateFilesToBeReparsed(const FileName:AnsiString; files:TStringList);
+var
+  P:PFileIncludes;
+  queue : TStringList;
+  processed : TStringHash;
+  name : String;
+  i : integer;
+begin
+  if Filename = '' then
+    Exit;
+  P := FindFileIncludes(FileName);
+  if not assigned(P) then begin
+    exit;
+  end;
+  queue := TStringList.Create;
+  processed := TStringHash.Create;
+  queue.Add(FileName);
+  try
+    while ( queue.Count>0 ) do begin
+      name := queue[queue.Count-1];
+      queue.Delete(queue.Count-1);
+      files.Add(name);
+      processed.Add(name,1);
+      P := FindFileIncludes(name);
+      if not assigned(P) then begin
+        continue;
+      end;
+      for i:=0 to P^.DependedFiles.Count-1 do begin
+        if processed.ValueOf(P^.DependedFiles[i])<0 then
+          queue.Add(P^.DependedFiles[i]);
+      end;
+    end;
+  finally
+    queue.Free;
+    processed.Free;
+  end;
+end;
+
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
 var
   I,j,idx: integer;
   P,fileIncludes: PFileIncludes;
-//  Node, NextNode: PStatementNode;
+  //  Node, NextNode: PStatementNode;
   Statement: PStatement;
   namespaceList:TList;
-  removedStatement: PRemovedStatement;
+  //removedStatement: PRemovedStatement;
   key:string;
 begin
   if Filename = '' then
@@ -3328,27 +3389,19 @@ begin
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
       Statement:= P^.DeclaredStatements[i];
       fileIncludes := nil;
+      {
       if not SameText(Statement^._FileName,FileName) then begin
         fileIncludes := FindFileIncludes(Statement^._FileName);
       end else if not SameText(Statement^._DefinitionFileName,FileName) then begin
         fileIncludes := FindFileIncludes(Statement^._DefinitionFileName);
-        new(removedStatement);
-        removedStatement^._Type := Statement^._Type;
-        removedStatement^._Command := Statement^._Command;
-        removedStatement^._DefinitionLine := Statement^._DefinitionLine;
-        removedStatement^._DefinitionFileName := Statement^._DefinitionFileName;
-        removedStatement^._FullName := Statement^._FullName;
-        removedStatement^._NoNameArgs := Statement^._NoNameArgs;
-        key:=getStatementKey(removedStatement^._FullName,
-          removedStatement^._Type,
-          removedStatement^._NoNameArgs);
-        fRemovedStatements.AddObject(key,TObject(removedStatement));
       end;
       if Assigned(fileIncludes) then begin
         idx:=fileIncludes.StatementsIndex.ValueOf(IntToStr(integer(statement)));
         if idx>=0 then
-          fileIncludes.Statements[idx]:=nil;
+            fileIncludes.Statements[idx]:=nil;
+        end;
       end;
+      }
       fStatementList.DeleteStatement(Statement);
     end;
     PFileIncludes(P)^.DeclaredStatements.Free;
@@ -3356,11 +3409,14 @@ begin
     PFileIncludes(P)^.Statements.Free;
     PFileIncludes(P)^.StatementsIndex.Free;
     PFileIncludes(P)^.Scopes.Free;
+    PFileIncludes(P)^.DependingFiles.Free;
+    PFileIncludes(P)^.DependedFiles.Free;
     Dispose(PFileIncludes(P));
   end;
-
-  //Statements.DumpTo('f:\\after.txt');
 end;
+
+    //Statements.DumpTo('f:\\after.txt');
+
 
 
 function TCppParser.SuggestMemberInsertionLine(ParentStatement: PStatement; Scope: TStatementClassScope; var
@@ -4672,6 +4728,7 @@ var
   i:integer;
   Statement:PStatement;
   m_acc:TStatementClassScope;
+  fileIncludes1,fileIncludes2 : PFileIncludes;
 begin
 {
   if not Assigned(base) then
@@ -4679,6 +4736,14 @@ begin
   if not Assigned(derived) then
     Exit;
     }
+
+  fileIncludes1:=FindFileIncludes(derived^._FileName);
+  fileIncludes2:=FindFileIncludes(base^._FileName);
+  if Assigned(fileIncludes1) and assigned(fileIncludes2) then begin
+    //derived class depeneds on base class
+    fileIncludes1^.DependingFiles.Add(base^._FileName);
+    fileIncludes2^.DependedFiles.Add(derived^._FileName);
+  end;
   //differentiate class and struct
   if access = scsNone then
     if isStruct then
