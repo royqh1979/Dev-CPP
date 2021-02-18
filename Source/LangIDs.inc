@@ -57,6 +57,7 @@ const
   ID_ITEM_EXPORTRTF                     = 2013;
   ID_ITEM_EXPORTPROJECT                 = 2014;
   ID_ITEM_EXPORTTEX                     = 2015;
+  ID_ITEM_SET_CURRENT_FOLDER            = 2016;
 
   ID_SUB_IMPORT                         = 3001;
 
@@ -272,6 +273,8 @@ const
   ID_SHEET_FIND                         = 13004;
   ID_SHEET_CLOSE                        = 13005;
   ID_SHEET_DEBUG                        = 13006;
+
+  ID_SHEET_FILES                        = 13007;
 
   // pop menu
   ID_SHEET_POP_CLEAR                    = 14001;

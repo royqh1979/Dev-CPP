@@ -671,6 +671,10 @@ var
 begin
   fCriticalSection.Acquire;
   try
+    if Kind = ikOverlay then begin
+      ImageIndex:=0;
+      Exit;
+    end;
     data := sender.GetNodeData(node);
     ImageIndex := data^.ImageIndex;
   finally

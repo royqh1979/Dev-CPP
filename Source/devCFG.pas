@@ -697,6 +697,7 @@ type
     fPortable: boolean; //is a portable program (not installed by the setup)
 
     fFileBrowserFolder : String;
+    fFileBrowserOnlyShowDevFiles : boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -816,6 +817,7 @@ type
     property RegExp: boolean read fRegExp write fRegExp;
 
     property FileBrowserFolder: String read fFileBrowserFolder write fFileBrowserFolder;
+    property FileBrowserOnlyShowDevFiles: boolean read fFileBrowserOnlyShowDevFiles write fFileBrowserOnlyShowDevFiles;
   end;
 
 function devData: TdevData;

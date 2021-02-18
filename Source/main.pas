@@ -703,6 +703,12 @@ type
     fileBrowser: TDevFileBrowser;
     actSetCurrentFolder: TAction;
     OpenFolder1: TMenuItem;
+    ToolBar10: TToolBar;
+    ToolButton27: TToolButton;
+    Panel5: TPanel;
+    ToolButton28: TToolButton;
+    ToolButton29: TToolButton;
+    actOnlyShowDevFiles: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1027,6 +1033,7 @@ type
     procedure actIndentUpdate(Sender: TObject);
     procedure actSetCurrentFolderExecute(Sender: TObject);
     procedure fileBrowserDblClick(Sender: TObject);
+    procedure actOnlyShowDevFilesExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1532,6 +1539,7 @@ begin
   devData.ToolbarUndoY := tbUndo.Top;
 
   devData.FileBrowserFolder := fileBrowser.CurrentFolder;
+  devData.FileBrowserOnlyShowDevFiles := fileBrowser.OnlyShowDevFiles;
   // Save left page control states
   devData.ProjectWidth := fPreviousWidth;
   devData.OutputHeight := fPreviousHeight;
@@ -1920,6 +1928,8 @@ begin
   actCloseAll.Caption := Lang[ID_ITEM_CLOSEALL];
   actFileProperties.Caption := Lang[ID_ITEM_PROPERTIES];
 
+  actSetCurrentFolder.Caption := Lang[ID_ITEM_SET_CURRENT_FOLDER];
+
   // Import submenu
   ImportItem.Caption := Lang[ID_SUB_IMPORT];
   actImportMSVC.Caption := Lang[ID_MSVC_MENUITEM];
@@ -2172,6 +2182,8 @@ begin
   CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
   BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
   LocalSheet.Caption := Lang[ID_DEB_LOCALS];
+
+  FilesSheet.Caption := Lang[ID_SHEET_FILES];
 
 
   {
@@ -7067,13 +7079,6 @@ begin
   // Accept file drags
   DragAcceptFiles(Self.Handle, true);
 
-  // Set left page control to previous state
-  actProjectManager.Checked := devData.ShowLeftPages;
-  LeftPageControl.ActivePageIndex := devData.LeftActivePage;
-  fLeftPageControlChanged := False;  
-  actProjectManagerExecute(nil);
-  LeftPageControl.Width := devData.ProjectWidth;
-  LeftProjectSheet.TabVisible := False;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
@@ -7221,9 +7226,20 @@ begin
   //Load Colors
   LoadColor;
 
+  // Set left page control to previous state
+  actProjectManager.Checked := devData.ShowLeftPages;
+  LeftPageControl.ActivePageIndex := devData.LeftActivePage;
+  fLeftPageControlChanged := False;  
+  actProjectManagerExecute(nil);
+  LeftPageControl.Width := devData.ProjectWidth;
+  LeftProjectSheet.TabVisible := False;
+  
+
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 
   fileBrowser.CurrentFolder := devData.FileBrowserFolder;
+  fileBrowser.OnlyShowDevFiles := devData.FileBrowserOnlyShowDevFiles;
+  actOnlyShowDevFiles.Checked := devData.FileBrowserOnlyShowDevFiles;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -9288,7 +9304,7 @@ var
   folder : String;
 begin
   folder:=fileBrowser.CurrentFolder;
-  if NewSelectDirectory('Current Folder','',folder) then
+  if NewSelectDirectory('','',folder) then
     fileBrowser.CurrentFolder := folder;
   LeftPageControl.ActivePage := self.FilesSheet;
   fLeftPageControlChanged := False;
@@ -9297,9 +9313,18 @@ end;
 
 procedure TMainForm.fileBrowserDblClick(Sender: TObject);
 begin
-  if (fileBrowser.SelectedFile <> '') and (FileExists(fileBrowser.SelectedFile)) then
-    self.OpenFile(fileBrowser.SelectedFile, etAuto);
+  if (fileBrowser.SelectedFile <> '') and (FileExists(fileBrowser.SelectedFile)) then begin
+    if GetFileTyp(fileBrowser.SelectedFile) = utPrj then
+      OpenProject(fileBrowser.SelectedFile)
+    else
+      OpenFile(fileBrowser.SelectedFile, etAuto);
+  end;
   fileBrowser.ClearSelection;
+end;
+
+procedure TMainForm.actOnlyShowDevFilesExecute(Sender: TObject);
+begin
+  fileBrowser.OnlyShowDevFiles := actOnlyShowDevFiles.Checked;
 end;
 
 end.

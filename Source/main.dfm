@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 408
-  Top = 138
+  Left = 1327
+  Top = 387
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1278,7 +1278,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 179
         Height = 31
-        ButtonHeight = 30
+        ButtonHeight = 31
         ButtonWidth = 30
         Caption = 'ToolBar9'
         EdgeInner = esNone
@@ -1301,23 +1301,64 @@ object MainForm: TMainForm
     object FilesSheet: TTabSheet
       Caption = 'Files'
       ImageIndex = -1
-      object fileBrowser: TDevFileBrowser
+      object ToolBar10: TToolBar
         Left = 0
         Top = 0
         Width = 179
-        Height = 505
-        Align = alClient
-        Images = dmMain.FileBrowserImages_NewLook
+        Height = 31
+        ButtonHeight = 30
+        ButtonWidth = 30
+        Caption = 'ToolBar9'
+        EdgeInner = esNone
+        EdgeOuter = esNone
+        Flat = True
+        Images = dmMain.MenuImages_NewLook
         TabOrder = 0
-        Header.AutoSizeIndex = 0
-        Header.Font.Charset = DEFAULT_CHARSET
-        Header.Font.Color = clWindowText
-        Header.Font.Height = -13
-        Header.Font.Name = 'MS Sans Serif'
-        Header.Font.Style = []
-        Header.MainColumn = -1
-        OnDblClick = fileBrowserDblClick
-        Columns = <>
+        object ToolButton27: TToolButton
+          Left = 0
+          Top = 0
+          Action = actSetCurrentFolder
+        end
+        object ToolButton28: TToolButton
+          Left = 30
+          Top = 0
+          Width = 8
+          Caption = 'ToolButton28'
+          ImageIndex = 69
+          Style = tbsSeparator
+        end
+        object ToolButton29: TToolButton
+          Left = 38
+          Top = 0
+          Action = actOnlyShowDevFiles
+        end
+      end
+      object Panel5: TPanel
+        Left = 0
+        Top = 31
+        Width = 179
+        Height = 474
+        Align = alClient
+        Caption = 'Panel5'
+        TabOrder = 1
+        object fileBrowser: TDevFileBrowser
+          Left = 1
+          Top = 1
+          Width = 177
+          Height = 472
+          Align = alClient
+          Images = dmMain.FileBrowserImages_NewLook
+          TabOrder = 0
+          Header.AutoSizeIndex = 0
+          Header.Font.Charset = DEFAULT_CHARSET
+          Header.Font.Color = clWindowText
+          Header.Font.Height = -13
+          Header.Font.Name = 'MS Sans Serif'
+          Header.Font.Style = []
+          Header.MainColumn = -1
+          OnDblClick = fileBrowserDblClick
+          Columns = <>
+        end
       end
     end
   end
@@ -3250,7 +3291,15 @@ object MainForm: TMainForm
     object actSetCurrentFolder: TAction
       Category = 'File'
       Caption = 'Open Folder...'
+      ImageIndex = 68
       OnExecute = actSetCurrentFolderExecute
+    end
+    object actOnlyShowDevFiles: TAction
+      Category = 'File'
+      AutoCheck = True
+      Caption = 'actOnlyShowDevFiles'
+      ImageIndex = 45
+      OnExecute = actOnlyShowDevFilesExecute
     end
   end
   object MessagePopup: TPopupMenu

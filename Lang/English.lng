@@ -39,6 +39,7 @@ Ver=1
 2013=to &RTF...
 2014=&Project to HTML...
 2015=to &Tex...
+2016=Open &Folder...
 
 
 3001=&Import
@@ -230,6 +231,7 @@ Ver=1
 13004=Find Results
 13005=Close
 13006=Debug
+13007=Files
 
 
 14001=C&lear

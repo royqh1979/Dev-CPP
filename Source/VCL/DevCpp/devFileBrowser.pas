@@ -30,8 +30,10 @@ type
   TDevFileBrowser = class(TCustomVirtualStringTree)
   private
     fCurrentFolder : AnsiString;
+    fOnlyShowDevFiles: boolean;
     procedure AddChildren(Parent:PVirtualNode; Path:String);
     procedure SetCurrentFolder(const folder:String);
+    procedure SetOnlyShowDevFiles(const Value: boolean);
     procedure InitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
     procedure InitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -49,6 +51,7 @@ type
     destructor Destroy; override;
     procedure Refresh;
     property SelectedFile : String read GetSelectedFile;
+    property OnlyShowDevFiles: boolean read fOnlyShowDevFiles write SetOnlyShowDevFiles;
   published
     property Align;
     property Font;
@@ -100,6 +103,7 @@ begin
   NodeDataSize := sizeof(TNodeData);
   //OnAdvancedCustomDrawItem := AdvancedCustomDrawItem;
 
+  fOnlyShowDevFiles := False;
   fCurrentFolder := '';
   //RowSelect := true;
   //ShowLines := False;
@@ -163,12 +167,18 @@ procedure TDevFileBrowser.AddChildren(Parent:PVirtualNode; Path:String);
     files.CaseSensitive := False;
     files.Sorted := True;
     for i:=0 to files.Count-1 do begin
+      ext := ExtractFileExt(files[i]);
+      if fOnlyShowDevFiles and not( SameText(ext,'.c') or SameText(ext,'.h')
+        or SameText(ext,'.cpp') or SameText(ext,'.hpp')
+        or SameText(ext,'.cc') or SameText(ext,'.dev') ) then
+        Continue;
       Node := AddChild(Parent);
       Data := GetNodeData(Node);
       Data^.Name := files[i];
       Data^.FullPath := IncludeTrailingPathDelimiter(Path) + files[i];
-      ext := ExtractFileExt(Data^.Name);
-      if (CompareStr(ext,'.c')=0) or (CompareStr(ext,'.h')=0) then
+      if SameText(ext,'.dev') then
+        Data^.ImageIndex := 4
+      else if (CompareStr(ext,'.c')=0) or (CompareStr(ext,'.h')=0) then
         Data^.ImageIndex := 2
       else if SameText(ext,'.C') or SameText(ext,'.H')
         or SameText(ext,'.cpp') or SameText(ext,'.hpp')
@@ -216,6 +226,10 @@ procedure TDevFileBrowser.GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtual
 var
   data :PNodeData;
 begin
+  if Kind = ikOverlay then begin
+    ImageIndex := 0;
+    Exit;
+  end;
   data := sender.GetNodeData(node);
   ImageIndex := data^.ImageIndex;
 end;
@@ -229,13 +243,19 @@ begin
   CellText := data^.Name;
 end;
 
-
-
 procedure TDevFileBrowser.SetCurrentFolder(const folder: AnsiString);
 begin
   if SameText(folder, fCurrentFolder) then
     Exit;
   fCurrentFolder := folder;
+  self.Refresh;
+end;
+
+procedure TDevFileBrowser.SetOnlyShowDevFiles(const Value: boolean);
+begin
+  if fOnlyShowDevFiles = Value then
+    Exit;
+  fOnlyShowDevFiles := Value;
   self.Refresh;
 end;
 
