@@ -3336,10 +3336,6 @@ var
 begin
   if Filename = '' then
     Exit;
-  P := FindFileIncludes(FileName);
-  if not assigned(P) then begin
-    exit;
-  end;
   queue := TStringList.Create;
   processed := TStringHash.Create;
   queue.Add(FileName);

@@ -1,11 +1,11 @@
 object MainForm: TMainForm
-  Left = 471
-  Top = 127
+  Left = 83
+  Top = 0
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++ 2020'
-  ClientHeight = 671
+  ClientHeight = 606
   ClientWidth = 1187
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,14 +29,14 @@ object MainForm: TMainForm
     Left = 209
     Top = 64
     Width = 4
-    Height = 353
+    Height = 288
     MinSize = 45
     ResizeStyle = rsUpdate
     OnMoved = SplitterLeftMoved
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 417
+    Top = 352
     Width = 1187
     Height = 4
     Cursor = crVSplit
@@ -46,7 +46,7 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 421
+    Top = 356
     Width = 1187
     Height = 225
     ActivePage = DebugSheet
@@ -999,7 +999,7 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 646
+    Top = 581
     Width = 1187
     Height = 25
     Panels = <
@@ -1029,7 +1029,7 @@ object MainForm: TMainForm
     Left = 213
     Top = 64
     Width = 974
-    Height = 353
+    Height = 288
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
@@ -1038,7 +1038,7 @@ object MainForm: TMainForm
       Left = 974
       Top = 0
       Width = 0
-      Height = 353
+      Height = 288
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1047,7 +1047,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 974
-      Height = 353
+      Height = 288
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1067,7 +1067,7 @@ object MainForm: TMainForm
       Left = 974
       Top = 0
       Width = 0
-      Height = 353
+      Height = 288
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1088,7 +1088,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 64
     Width = 209
-    Height = 353
+    Height = 288
     ActivePage = LeftClassSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
@@ -1111,7 +1111,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 179
-        Height = 345
+        Height = 280
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelOuter = bvNone
@@ -1146,7 +1146,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 31
         Width = 179
-        Height = 314
+        Height = 249
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel3'
@@ -1155,7 +1155,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 314
+          Height = 249
           Align = alClient
           Images = dmMain.ClassImages
           Indent = 19
@@ -1246,7 +1246,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 31
         Width = 179
-        Height = 314
+        Height = 249
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel4'
@@ -1255,7 +1255,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 314
+          Height = 249
           Align = alClient
           BevelInner = bvNone
           BevelOuter = bvNone
