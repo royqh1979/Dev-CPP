@@ -31,7 +31,8 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CBUtils, StatementList, FormatterOptionsFrm, RenameFrm, Refactorer, devConsole,
-  Tabnine,devCaretList, devFindOutput, HeaderCompletion, VirtualTrees;
+  Tabnine,devCaretList, devFindOutput, HeaderCompletion, VirtualTrees,
+  devFileBrowser;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -698,6 +699,10 @@ type
     N45: TMenuItem;
     ShowMembersintheFile1: TMenuItem;
     ShowMembersintheProject1: TMenuItem;
+    FilesSheet: TTabSheet;
+    fileBrowser: TDevFileBrowser;
+    actSetCurrentFolder: TAction;
+    OpenFolder1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1020,6 +1025,8 @@ type
     procedure actStatementsTypeFileExecute(Sender: TObject);
     procedure actStatementsTypeProjectExecute(Sender: TObject);
     procedure actIndentUpdate(Sender: TObject);
+    procedure actSetCurrentFolderExecute(Sender: TObject);
+    procedure fileBrowserDblClick(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1523,6 +1530,8 @@ begin
   devData.ToolbarDebugY := tbDebug.Top;
   devData.ToolbarUndoX := tbUndo.Left;
   devData.ToolbarUndoY := tbUndo.Top;
+
+  devData.FileBrowserFolder := fileBrowser.CurrentFolder;
   // Save left page control states
   devData.ProjectWidth := fPreviousWidth;
   devData.OutputHeight := fPreviousHeight;
@@ -1766,6 +1775,9 @@ begin
   ClassBrowser.TreeColors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
   ClassBrowser.TreeColors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
   ClassBrowser.TreeColors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
+  fileBrowser.Font := MainForm.Font;
+  fileBrowser.Font.Color := ForegroundColor;
+  fileBrowser.Color := panelTC.Background;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1850,6 +1862,7 @@ begin
   LocalSheet.Repaint;
   ProjectView.Repaint;
   ClassBrowser.Repaint;
+  fileBrowser.Repaint;
   StackTrace.Repaint;
   BreakpointsView.Repaint;
   CompilerOutput.Repaint;
@@ -2439,7 +2452,7 @@ begin
   CheckSyntaxInBack(e);
   UpdateFileEncodingStatusPanel;
 
-  if not Assigned(fProject) then begin
+  if not Assigned(fProject) and (LeftPageControl.ActivePage <> self.FilesSheet ) then begin
     LeftPageControl.ActivePage := LeftClassSheet;
     fLeftPageControlChanged := False;
     ClassBrowser.TabVisible := True;
@@ -7210,6 +7223,7 @@ begin
 
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 
+  fileBrowser.CurrentFolder := devData.FileBrowserFolder;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -9267,6 +9281,25 @@ var
 begin
   e := fEditorList.GetEditor;
   TCustomAction(Sender).Enabled:= Assigned(e) and e.Text.Focused;
+end;
+
+procedure TMainForm.actSetCurrentFolderExecute(Sender: TObject);
+var
+  folder : String;
+begin
+  folder:=fileBrowser.CurrentFolder;
+  if NewSelectDirectory('Current Folder','',folder) then
+    fileBrowser.CurrentFolder := folder;
+  LeftPageControl.ActivePage := self.FilesSheet;
+  fLeftPageControlChanged := False;
+  ClassBrowser.TabVisible:=False;
+end;
+
+procedure TMainForm.fileBrowserDblClick(Sender: TObject);
+begin
+  if (fileBrowser.SelectedFile <> '') and (FileExists(fileBrowser.SelectedFile)) then
+    self.OpenFile(fileBrowser.SelectedFile, etAuto);
+  fileBrowser.ClearSelection;
 end;
 
 end.

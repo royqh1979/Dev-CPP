@@ -1,7 +1,6 @@
 package DevCpp;
 
 {$R *.res}
-{$R 'devFileMonitor\devFileMonitor.dcr'}
 {$R 'devShortcuts\devShortcuts.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -32,7 +31,9 @@ requires
   vclx,
   designide,
   rtl,
-  visualclx;
+  visualclx,
+  VirtualTreesR,
+  ClassBrowsing;
 
 contains
   CompOptionsList in 'CompOptionsList\CompOptionsList.pas',
@@ -46,7 +47,8 @@ contains
   devFindOutput in 'devFindOutput.pas',
   devReg in 'devReg.pas',
   devTabs in 'devTabs.pas',
-  ColorPickerButton in 'ColorPickerButton.pas';
+  ColorPickerButton in 'ColorPickerButton.pas',
+  devFileBrowser in 'devFileBrowser.pas';
 
 end.
 

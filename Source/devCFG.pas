@@ -695,6 +695,8 @@ type
     fRegExp: boolean; //use regular expression
 
     fPortable: boolean; //is a portable program (not installed by the setup)
+
+    fFileBrowserFolder : String;
   public
     constructor Create;
     destructor Destroy; override;
@@ -812,6 +814,8 @@ type
     property SearchWhere: integer read fSearchWhere write fSearchWhere;
     property DirBackward: boolean read fDirBackward write fDirBackward;
     property RegExp: boolean read fRegExp write fRegExp;
+
+    property FileBrowserFolder: String read fFileBrowserFolder write fFileBrowserFolder;
   end;
 
 function devData: TdevData;
