@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, Controls, ComCtrls, Graphics,
-  Forms, Messages, SyncObjs, VirtualTrees, StrUtils;
+  Forms, Messages, SyncObjs, VirtualTrees, StrUtils,devFileMonitor;
 
 type
 
@@ -31,9 +31,11 @@ type
   private
     fCurrentFolder : AnsiString;
     fOnlyShowDevFiles: boolean;
+    fMonitor: TDevFileMonitor;
     procedure AddChildren(Parent:PVirtualNode; Path:String);
     procedure SetCurrentFolder(const folder:String);
     procedure SetOnlyShowDevFiles(const Value: boolean);
+    procedure SetMonitor(const value: TDevFileMonitor);
     procedure InitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
     procedure InitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -50,8 +52,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Refresh;
+    procedure LocateFile(const FileName:String);
+    property Colors;
     property SelectedFile : String read GetSelectedFile;
     property OnlyShowDevFiles: boolean read fOnlyShowDevFiles write SetOnlyShowDevFiles;
+    property Monitor: TDevFileMonitor read fMonitor write SetMonitor;
   published
     property Align;
     property Font;
@@ -125,6 +130,8 @@ end;
 
 destructor TDevFileBrowser.Destroy;
 begin
+  if assigned(fMonitor) and (fCurrentFolder <> '') then
+    fMonitor.unmonitor(fCurrentFolder);
   inherited Destroy;
 end;
 
@@ -247,7 +254,11 @@ procedure TDevFileBrowser.SetCurrentFolder(const folder: AnsiString);
 begin
   if SameText(folder, fCurrentFolder) then
     Exit;
+  if assigned(fMonitor) and (fCurrentFolder <> '') then
+    fMonitor.unmonitor(fCurrentFolder);
   fCurrentFolder := folder;
+  if assigned(fMonitor) and (fCurrentFolder <> '') then
+    fMonitor.monitor(fCurrentFolder);  
   self.Refresh;
 end;
 
@@ -257,6 +268,15 @@ begin
     Exit;
   fOnlyShowDevFiles := Value;
   self.Refresh;
+end;
+
+procedure TDevFileBrowser.SetMonitor(const value:TDevFileMonitor);
+begin
+  if fMonitor = Value then
+    Exit;
+  fMonitor := Value;
+  if assigned(fMonitor) and (fCurrentFolder <> '') then
+    fMonitor.monitor(fCurrentFolder);
 end;
 
 procedure TDevFileBrowser.DrawText(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
@@ -288,6 +308,29 @@ begin
     if assigned(data) then
       Result := data^.FullPath;
   end;
+end;
+
+procedure TDevFileBrowser.LocateFile(const FileName:String);
+var
+  node:PVirtualNode;
+  enumerator: TVTVirtualNodeEnumerator;
+  data: PNodeData;
+begin
+  if fCurrentFolder = '' then
+    Exit;
+  node := nil;
+  enumerator := Nodes().GetEnumerator;
+  while enumerator.MoveNext do begin
+    node := enumerator.Current;
+    data := self.GetNodeData(node);
+    if assigned(data) and SameText(FileName,data.FullPath) then begin
+      ScrollIntoView(Node,True);
+      SelectNodes(node,node,False);
+      SetFocus;
+      Exit;
+    end;
+  end;
+
 end;
 
 end.

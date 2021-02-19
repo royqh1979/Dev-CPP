@@ -367,6 +367,7 @@ var
   s: AnsiString;
   I: integer;
   e: TEditor;
+  num:integer;
 begin
   fEncodingOption := Encoding;
   fUpdateLock := 0;
@@ -398,6 +399,11 @@ begin
     // Create a new tab
     fTabSheet := TTabSheet.Create(ParentPageControl);
     fTabSheet.Caption := ExtractFileName(fFilename); // UntitlexX or main.cpp
+    if assigned(ParentPageControl) then
+      num := 30 div ParentPageControl.Canvas.TextWidth(' ')
+    else
+      num := 0;
+    fTabSheet.Caption :=fTabSheet.Caption + StringOfChar(' ',num+1); 
     fTabSheet.PageControl := ParentPageControl;
     fTabSheet.Tag := integer(Self); // Define an index for each tab
   end;

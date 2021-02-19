@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 1327
-  Top = 387
+  Left = 1002
+  Top = 187
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1319,8 +1319,13 @@ object MainForm: TMainForm
           Top = 0
           Action = actSetCurrentFolder
         end
-        object ToolButton28: TToolButton
+        object ToolButton30: TToolButton
           Left = 30
+          Top = 0
+          Action = actLocateFile
+        end
+        object ToolButton28: TToolButton
+          Left = 60
           Top = 0
           Width = 8
           Caption = 'ToolButton28'
@@ -1328,7 +1333,7 @@ object MainForm: TMainForm
           Style = tbsSeparator
         end
         object ToolButton29: TToolButton
-          Left = 38
+          Left = 68
           Top = 0
           Action = actOnlyShowDevFiles
         end
@@ -3297,9 +3302,15 @@ object MainForm: TMainForm
     object actOnlyShowDevFiles: TAction
       Category = 'File'
       AutoCheck = True
-      Caption = 'actOnlyShowDevFiles'
-      ImageIndex = 45
+      Caption = 'Only Show devcpp files'
+      ImageIndex = 78
       OnExecute = actOnlyShowDevFilesExecute
+    end
+    object actLocateFile: TAction
+      Category = 'File'
+      Caption = 'Locate File in the folder'
+      ImageIndex = 79
+      OnExecute = actLocateFileExecute
     end
   end
   object MessagePopup: TPopupMenu

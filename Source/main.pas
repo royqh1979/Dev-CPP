@@ -709,6 +709,8 @@ type
     ToolButton28: TToolButton;
     ToolButton29: TToolButton;
     actOnlyShowDevFiles: TAction;
+    actLocateFile: TAction;
+    ToolButton30: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1034,6 +1036,7 @@ type
     procedure actSetCurrentFolderExecute(Sender: TObject);
     procedure fileBrowserDblClick(Sender: TObject);
     procedure actOnlyShowDevFilesExecute(Sender: TObject);
+    procedure actLocateFileExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1785,7 +1788,13 @@ begin
   ClassBrowser.TreeColors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
   fileBrowser.Font := MainForm.Font;
   fileBrowser.Font.Color := ForegroundColor;
-  fileBrowser.Color := panelTC.Background;
+  fileBrowser.Color := BackgroundColor;
+  fileBrowser.Colors.SelectionTextColor := selectedTC.Foreground;
+  fileBrowser.Colors.SelectionRectangleBlendColor := selectedTC.Background;
+  fileBrowser.Colors.SelectionRectangleBorderColor := selectedTC.Background;
+  //fileBrowser.Colors.UnfocusedColor := selectedTC.Background;
+  //fileBrowser.Colors.UnfocusedSelectionColor := selectedTC.Background;
+  //fileBrowser.Colors.UnfocusedSelectionBorderColor := selectedTC.Background;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1929,6 +1938,8 @@ begin
   actFileProperties.Caption := Lang[ID_ITEM_PROPERTIES];
 
   actSetCurrentFolder.Caption := Lang[ID_ITEM_SET_CURRENT_FOLDER];
+  actOnlyShowDevFiles.Caption := Lang[ID_ITEM_ONLY_SHOW_DEV_FILES];
+  actLocateFile.Caption := Lang[ID_ITEM_LOCATE_FILE];
 
   // Import submenu
   ImportItem.Caption := Lang[ID_SUB_IMPORT];
@@ -5446,6 +5457,8 @@ var
   PageIndex: integer;
   SenderPageControl: TPageControl;
   e: TEditor;
+  rect,closeRect:TRect;
+  size: integer;
 begin
   SenderPageControl := TPageControl(Sender);
   if Button = mbRight then begin // select new tab even with right mouse button
@@ -5461,8 +5474,29 @@ begin
       if Assigned(e) then
         fEditorList.CloseEditor(e);
     end;
-  end else // see if it's a drag operation
+  end else begin// see if it's a drag operation
+    PageIndex := SenderPageControl.IndexOfTabAt(X, Y);
+    if PageIndex <> -1 then begin
+      rect := SenderPageControl.TabRect(PageIndex);
+      closeRect.Bottom := Rect.Bottom;
+      closeRect.Top := Rect.Top;
+      size := Rect.Bottom - Rect.Top - 4;
+      if (size>20) then
+        size := 20;
+      closeRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - size) div 2;
+      closeRect.Bottom := closeRect.Top + size;
+      closeRect.Right := Rect.Right - 5;
+      closeRect.Left := closeRect.Right - size;
+      if (X>=closeRect.Left) and (X<=closeRect.Right)
+        and (Y>=closeRect.Top) and (Y<=closeRect.Bottom) then begin
+        e := fEditorList.GetEditor(PageIndex, SenderPageControl);
+        if Assigned(e) then
+          fEditorList.CloseEditor(e);
+        Exit;
+      end;
+    end;
     SenderPageControl.Pages[SenderPageControl.ActivePageIndex].BeginDrag(False);
+  end;
 end;
 
 procedure TMainForm.actNewTemplateUpdate(Sender: TObject);
@@ -5856,6 +5890,11 @@ begin
   // Deactivate monitoring for this file. One message is enough
   FileMonitor.BeginUpdate;
   try
+    if SameText(fileBrowser.CurrentFolder,FileName) then begin
+      Sleep(1000);
+      fileBrowser.Refresh;
+      exit;
+    end;
     case ChangeType of
       mctChanged: begin
           Application.Restore;
@@ -7240,6 +7279,8 @@ begin
   fileBrowser.CurrentFolder := devData.FileBrowserFolder;
   fileBrowser.OnlyShowDevFiles := devData.FileBrowserOnlyShowDevFiles;
   actOnlyShowDevFiles.Checked := devData.FileBrowserOnlyShowDevFiles;
+
+  fileBrowser.Monitor := FileMonitor;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -8633,11 +8674,14 @@ procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
 var
   y    : Integer;
   x    : Integer;
-  aRect: TRect;
+  aRect, closeRect: TRect;
+  size: integer;
   bgColor,fgColor,abgColor,afgColor: TColor;
   ptc: TThemeColor;
   tabs:integer;
   tabRect: TRect;
+  oldColor : TColor;
+  oldSize : integer;
 begin
   strToThemeColor(ptc, devEditor.Syntax.Values[cPNL]);
   bgColor := ptc.Background;
@@ -8732,6 +8776,34 @@ begin
       y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
       Control.Canvas.TextOut(x,y,TPageControl(Control).Pages[TabIndex].Caption);
     end;
+  end;
+
+  //hack for editor close button
+  if (Control = EditorPageControlLeft) or (Control = EditorPageControlRight) then begin
+    closeRect.Bottom := Rect.Bottom;
+    closeRect.Top := Rect.Top;
+    size := Rect.Bottom - Rect.Top - 4;
+    if (size>20) then
+      size := 20;
+    closeRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - size) div 2;
+    closeRect.Bottom := closeRect.Top + size;
+    closeRect.Right := Rect.Right - 5;
+    closeRect.Left := closeRect.Right - size;
+    oldColor := Control.Canvas.Brush.Color;
+    Control.Canvas.Brush.Color := clRed;
+    Control.Canvas.Ellipse(closeRect);
+    Control.Canvas.Brush.Color := oldColor;
+    oldColor := Control.Canvas.Pen.Color;
+    oldSize := Control.Canvas.Pen.Width;
+    Control.Canvas.Pen.Color := clYellow;
+    Control.Canvas.Pen.Width := 2;
+    inflateRect(closeRect,-5,-5);
+    Control.Canvas.MoveTo(closeRect.Left,closeRect.Top);
+    Control.Canvas.LineTo(closeRect.Right,closeRect.Bottom);
+    Control.Canvas.MoveTo(closeRect.Left,closeRect.Bottom);
+    Control.Canvas.LineTo(closeRect.Right,closeRect.Top);
+    Control.Canvas.Pen.Color := oldColor;
+    Control.Canvas.Pen.Width := oldSize;
   end;
 end;
 
@@ -9325,6 +9397,18 @@ end;
 procedure TMainForm.actOnlyShowDevFilesExecute(Sender: TObject);
 begin
   fileBrowser.OnlyShowDevFiles := actOnlyShowDevFiles.Checked;
+end;
+
+procedure TMainForm.actLocateFileExecute(Sender: TObject);
+var
+  editor:TEditor;
+begin
+  editor := EditorList.GetEditor();
+  if not assigned(editor) then
+    Exit;   
+  if not StartsText(fileBrowser.CurrentFolder, editor.FileName) then
+    Exit;
+  fileBrowser.LocateFile(editor.FileName);
 end;
 
 end.

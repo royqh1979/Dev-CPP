@@ -5,6 +5,7 @@ Version 6.4-beta4 FEB 2021
     - fix: error when reparsing a project file
     - enhancement: Add file browser panel
     - enhancement: Add scrollbar in the compiler options dialog's autolinks tab
+    - enhancement: add close button to editors
 
 Version 6.4-beta3 FEB 2021
 

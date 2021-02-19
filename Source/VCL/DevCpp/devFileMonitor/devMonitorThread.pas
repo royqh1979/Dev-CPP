@@ -103,11 +103,21 @@ begin
     if FindFirst(fFileNames[I], faAnyFile, SearchRec) = 0 then begin
 
       // Can we create a change notifier for it?
-      ChangeID := FindFirstChangeNotification(
-        PAnsiChar(ExtractFilePath(fFileNames[I])),
-        False,
-        FILE_NOTIFY_CHANGE_LAST_WRITE or FILE_NOTIFY_CHANGE_FILE_NAME // change contents or change filename
-        );
+      if (SearchRec.Attr and faDirectory)<>0 then begin
+        // is a directory
+        ChangeID := FindFirstChangeNotification(
+          PAnsiChar(ExtractFilePath(fFileNames[I])),
+          True,
+          FILE_NOTIFY_CHANGE_FILE_NAME or FILE_NOTIFY_CHANGE_DIR_NAME
+          );
+      end else begin
+        // is a file
+        ChangeID := FindFirstChangeNotification(
+          PAnsiChar(ExtractFilePath(fFileNames[I])),
+          False,
+          FILE_NOTIFY_CHANGE_LAST_WRITE or FILE_NOTIFY_CHANGE_FILE_NAME // change contents or change filename
+          );
+      end;
       if ChangeID <> INVALID_HANDLE_VALUE then begin
 
         // Add to separate HANDLE array to pass to WaitForMultipleObjects
@@ -170,6 +180,9 @@ begin
     WaitObjectIndex := WaitResult - WAIT_OBJECT_0;
     FileStruct := PdevMonitorFile(fFileProperties[WaitObjectIndex]);
     if FindFirst(FileStruct^.FileName, faAnyFile, SearchRec) = 0 then begin
+      FindClose(SearchRec);
+      // Keep monitoring
+      FindNextChangeNotification(THandle(fMonitors[WaitObjectIndex]));
 
       // Timstamp has changed. File has changed.
       if FileStruct^.TimeStamp <> SearchRec.Time then begin
@@ -178,10 +191,6 @@ begin
         fFilename := FileStruct^.FileName;
         Notify;
       end;
-      FindClose(SearchRec);
-
-      // Keep monitoring
-      FindNextChangeNotification(THandle(fMonitors[WaitObjectIndex]));
 
       // File has been deleted. Rebuild array :(
     end else begin

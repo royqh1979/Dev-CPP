@@ -58,6 +58,8 @@ const
   ID_ITEM_EXPORTPROJECT                 = 2014;
   ID_ITEM_EXPORTTEX                     = 2015;
   ID_ITEM_SET_CURRENT_FOLDER            = 2016;
+  ID_ITEM_ONLY_SHOW_DEV_FILES           = 2017;
+  ID_ITEM_LOCATE_FILE                   = 2018;
 
   ID_SUB_IMPORT                         = 3001;
 
