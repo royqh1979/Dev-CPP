@@ -1,3 +1,8 @@
+Version 6.4-beta4.1 FEB 2021
+
+    - fix: the display of title bar is not correct when file is edited
+    - fix: infinite loop when includes "iostream" and input "v"
+
 Version 6.4-beta4 FEB 2021
 
     - fix: the contents not get parsed when create a new file and paste into it.  

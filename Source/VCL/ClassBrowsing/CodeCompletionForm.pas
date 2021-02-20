@@ -96,6 +96,7 @@ procedure TCodeComplForm.lbCompletionDrawItem(Control: TWinControl; Index: Integ
 var
   Offset: integer;
   statement: PStatement;
+  level : integer;
 begin
   if not fOwner.FreezeParser then
     Exit;
@@ -114,9 +115,14 @@ begin
 
     statement := PStatement(Items.Objects[Index]);
 
+    level := 0;
     while Assigned(statement) and (statement^._Kind = skAlias) do begin
       statement := fOwner.Parser.FindStatementOf(
         statement^._FileName, statement^._Type, statement^._Line);
+      inc(level);
+      //break infinite loop
+      if level > 10 then
+        break;
     end;
     if not assigned(statement) then
       statement := PStatement(Items.Objects[Index]);

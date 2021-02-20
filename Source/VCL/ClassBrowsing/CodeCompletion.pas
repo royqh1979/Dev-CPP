@@ -63,7 +63,6 @@ type
     fIgnoreCase:boolean;
     fCriticalSection: TCriticalSection;
     fParserSerialId: String;
-    fParserFreezed: boolean;
     fSortByScope: boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString);
     procedure FilterList(const Member: AnsiString);
@@ -135,7 +134,6 @@ begin
   fShowKeywords:=True;
 
   fCodeInsStatements:=TList.Create;
-  fParserFreezed:=False;
 
   fIncludedFiles := TStringList.Create;
   fIncludedFiles.Sorted := True;
@@ -471,7 +469,6 @@ begin
   finally
     fParser.UnFreeze;
     fParserSerialId:=fParser.SerialId;
-    fParserFreezed:=True;
   end;
 end;
 
@@ -602,7 +599,6 @@ begin
     try
       if not SameStr(fParser.SerialId, fParserSerialId) then
         Exit;
-      fParserFreezed:=True;  
 
       tmpList:=fCompletionStatementList;
       if Member <> '' then begin // filter, case sensitive
@@ -655,7 +651,6 @@ begin
       end;
     finally
       fParser.UnFreeze;
-      fParserFreezed:=False;
     end;
   finally
     fCriticalSection.Release;
@@ -711,7 +706,6 @@ procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
 begin
   fCriticalSection.Acquire;
   try
-      fParserFreezed:=True;
       fPreparing:=True;
       fPhrase := Phrase;
       Screen.Cursor := crHourglass;
@@ -719,7 +713,7 @@ begin
       GetCompletionFor(FileName,Phrase);
       CodeComplForm.lbCompletion.Font.Size := FontSize;
       CodeComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
-      CodeComplForm.Update;
+      //CodeComplForm.Update;
       Screen.Cursor := crDefault;
       fPreparing:=False;
   finally

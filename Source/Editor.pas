@@ -1321,6 +1321,7 @@ end;
 procedure TEditor.UpdateCaption(const NewCaption: AnsiString);
 var
   caption:String;
+  num : integer;
 begin
   caption:=NewCaption;
   if caption = '' then begin
@@ -1329,6 +1330,11 @@ begin
     else
       caption := ExtractFileName(fFileName);
   end;
+  if assigned(fTabSheet.PageControl) then
+    num := 30 div fTabSheet.PageControl.Canvas.TextWidth(' ')
+  else
+    num := 0;
+  caption := caption + StringOfChar(' ',num+1);
   if Assigned(fTabSheet) then begin
     if caption <> fTabSheet.Caption then begin
       fTabSheet.Caption := caption;
