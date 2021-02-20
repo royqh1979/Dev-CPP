@@ -7310,6 +7310,8 @@ var
   newhint: AnsiString;
   e: TEditor;
   SenderPageControl: TPageControl;
+  rect,closeRect:TRect;
+  size:integer;
 begin
   SenderPageControl := TPageControl(Sender);
   PageIndex := SenderPageControl.IndexOfTabAt(X, Y);
@@ -7317,6 +7319,20 @@ begin
     e := fEditorList.GetEditor(PageIndex, SenderPageControl);
     if Assigned(e) then
       newhint := e.FileName;
+    rect := SenderPageControl.TabRect(PageIndex);
+    closeRect.Bottom := Rect.Bottom;
+    closeRect.Top := Rect.Top;
+    size := Rect.Bottom - Rect.Top - 4;
+    if (size>20) then
+      size := 20;
+    closeRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - size) div 2;
+    closeRect.Bottom := closeRect.Top + size;
+    closeRect.Right := Rect.Right - 5;
+    closeRect.Left := closeRect.Right - size;
+    if (X>=closeRect.Left) and (X<=closeRect.Right)
+      and (Y>=closeRect.Top) and (Y<=closeRect.Bottom) then begin
+      newhint := Lang[ID_ITEM_CLOSEEDITORWINDOW];
+    end;
   end else
     newhint := '';
 
@@ -8810,13 +8826,15 @@ begin
     closeRect.Bottom := closeRect.Top + size;
     closeRect.Right := Rect.Right - 5;
     closeRect.Left := closeRect.Right - size;
+    {
     oldColor := Control.Canvas.Brush.Color;
     Control.Canvas.Brush.Color := clRed;
-    Control.Canvas.Ellipse(closeRect);
+    Control.Canvas.RoundRect(closeRect.Left,CloseRect.Top,closeRect.Right,CloseRect.Bottom,6,6);
     Control.Canvas.Brush.Color := oldColor;
+    }
     oldColor := Control.Canvas.Pen.Color;
     oldSize := Control.Canvas.Pen.Width;
-    Control.Canvas.Pen.Color := clYellow;
+    Control.Canvas.Pen.Color := Control.Canvas.Font.Color;
     Control.Canvas.Pen.Width := 2;
     inflateRect(closeRect,-5,-5);
     Control.Canvas.MoveTo(closeRect.Left-1,closeRect.Top);
