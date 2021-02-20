@@ -60,6 +60,7 @@ type
     JSSyn: TSynJScriptSyn;
     CssSyn: TSynCssSyn;
     GenSyn: TSynGeneralSyn;
+    FileBrowserImages_NewLook: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private

@@ -27,6 +27,8 @@ uses
 
 
 type
+  TGetFileStreamEvent = procedure(Sender: TObject; const FileName: String; var Stream: TMemoryStream)
+    of object;
 
   PCppParserProgressMessage = ^TCppParserProgressMessage;
   TCppParserProgressMessage = Record
@@ -81,6 +83,7 @@ type
     fNamespaces :TDevStringList;  //TStringList<String,List<Statement>> namespace and the statements in its scope
     //fRemovedStatements: THashedStringList; //THashedStringList<String,PRemovedStatements>
     fCriticalSection: TCriticalSection;
+    fOnGetFileStream : TGetFileStreamEvent;
     function AddInheritedStatement(derived:PStatement; inherit:PStatement; access:TStatementClassScope):PStatement;
 
     function AddChildStatement(// support for multiple parents (only typedef struct/union use multiple parents)
@@ -255,6 +258,7 @@ type
     property ParseGlobalHeaders: boolean read fParseGlobalHeaders write fParseGlobalHeaders;
     property ScannedFiles: TStringList read fScannedFiles;
     property FilesToScan: TStringList read fFilesToScan;
+    property OnGetFileStream: TGetFileStreamEvent read fOnGetFileStream write fOnGetFileStream;
   end;
 
 procedure Register;
@@ -842,10 +846,10 @@ begin
           idx:=fileIncludes1^.Statements.Add(oldStatement);
           fileIncludes1^.StatementsIndex.Add(IntToStr(integer(oldStatement)),idx);
           fileIncludes1^.DependingFiles.Add(oldStatement^._FileName);
-          fileIncludes1^.DependedFiles.Add(oldStatement^._FileName);
+//          fileIncludes1^.DependedFiles.Add(oldStatement^._FileName);
           fileIncludes2:=FindFileIncludes(oldStatement^._FileName);
           if assigned(fileIncludes2) then begin
-            fileIncludes2^.DependingFiles.Add(FileName);
+//            fileIncludes2^.DependingFiles.Add(FileName);
             fileIncludes2^.DependedFiles.Add(FileName);
           end;
         end;
@@ -3174,6 +3178,7 @@ var
   FName: AnsiString;
   I: integer;
   files:TStringList;
+  tempStream: TMemoryStream;
 begin
   if not fEnabled then
     Exit;
@@ -3238,8 +3243,16 @@ begin
       if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
         if SameText(files[i],filename) and assigned(Stream) then
           InternalParse(files[i], True,stream)
-        else
-          InternalParse(files[i]);
+        else begin
+          tempStream := nil;
+          if assigned(OnGetFileStream) then
+            OnGetFileStream(self,files[i],tempStream);
+          if assigned(tempStream) then begin
+            InternalParse(files[i], True, tempStream);
+            tempStream.Free;
+          end else
+            InternalParse(files[i]);
+        end;
       end;
     end;
     //we only parse CFile in the second parse
@@ -3251,8 +3264,16 @@ begin
       if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
         if SameText(files[i],filename) and assigned(Stream) then
           InternalParse(files[i], True,stream)
-        else
-          InternalParse(files[i]);
+        else begin
+          tempStream := nil;
+          if assigned(OnGetFileStream) then
+            OnGetFileStream(self,files[i],tempStream);
+          if assigned(tempStream) then begin
+            InternalParse(files[i], True, tempStream);
+            tempStream.Free;
+          end else
+            InternalParse(files[i]);
+        end;
       end;
     end;
     {
@@ -3315,10 +3336,6 @@ var
 begin
   if Filename = '' then
     Exit;
-  P := FindFileIncludes(FileName);
-  if not assigned(P) then begin
-    exit;
-  end;
   queue := TStringList.Create;
   processed := TStringHash.Create;
   queue.Add(FileName);
@@ -3388,22 +3405,18 @@ begin
     P^.Usings.Free;
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
       Statement:= P^.DeclaredStatements[i];
-      fileIncludes := nil;
-      {
-      if not SameText(Statement^._FileName,FileName) then begin
-        fileIncludes := FindFileIncludes(Statement^._FileName);
-      end else if not SameText(Statement^._DefinitionFileName,FileName) then begin
-        fileIncludes := FindFileIncludes(Statement^._DefinitionFileName);
-      end;
-      if Assigned(fileIncludes) then begin
-        idx:=fileIncludes.StatementsIndex.ValueOf(IntToStr(integer(statement)));
-        if idx>=0 then
-            fileIncludes.Statements[idx]:=nil;
-        end;
-      end;
-      }
       fStatementList.DeleteStatement(Statement);
     end;
+    for i:=0 to P^.Statements.Count-1 do begin
+      Statement:= P^.Statements[i];
+      if (Statement^._Kind in [skFunction,skConstructor,skDestructor])
+        and not SameText(FileName, Statement^._FileName) then begin
+        Statement^._HasDefinition := False;
+        Statement^._DefinitionFileName := Statement^._FileName;
+        Statement^._DefinitionLine := Statement^._Line;
+      end;
+    end;
+
     PFileIncludes(P)^.DeclaredStatements.Free;
     PFileIncludes(P)^.DeclaredStatementsIndex.Free;
     PFileIncludes(P)^.Statements.Free;
@@ -4570,7 +4583,8 @@ begin
           end;
           AddStatement(
             FunctionStatement,
-            FunctionStatement^._FileName,
+            //FunctionStatement^._FileName,
+            fCurrentFile,
             '', // do not override hint
             Copy(S, 1, SpacePos - 1), // 'int*'
             Copy(S, SpacePos + 1, MaxInt), // a

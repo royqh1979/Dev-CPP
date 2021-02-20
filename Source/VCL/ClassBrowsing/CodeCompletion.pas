@@ -206,7 +206,10 @@ begin
         fFullCompletionStatementList.Add(ChildStatement);
       end else if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
         and (fAddedStatements.ValueOf(ChildStatement^._Command) <0)
-        and IsIncluded(ChildStatement^._FileName) then begin //we have to check for file include for symbols in the global scope
+        and (
+          IsIncluded(ChildStatement^._FileName)
+          or IsIncluded(ChildStatement^._DefinitionFileName)
+        )then begin //we have to check for file include for symbols in the global scope
         fAddedStatements.Add(ChildStatement^._Command,1);
         fFullCompletionStatementList.Add(ChildStatement);
       end;
@@ -401,7 +404,8 @@ begin
           if not Assigned(ClassTypeStatement) then
             Exit;
         end;
-        if not IsIncluded(ClassTypeStatement^._FileName) then
+        if not IsIncluded(ClassTypeStatement^._FileName) and
+          not IsIncluded(ClassTypeStatement^._DefinitionFileName) then
           Exit;
         if (ClassTypeStatement = ScopeTypeStatement) or (statement^._Command = 'this') then begin
           //we can use all members
@@ -425,7 +429,8 @@ begin
         ClassTypeStatement:=statement;
         if not Assigned(ClassTypeStatement) then
           Exit;
-        if not IsIncluded(ClassTypeStatement^._FileName) then
+        if not IsIncluded(ClassTypeStatement^._FileName)
+          and IsIncluded(ClassTypeStatement^._DefinitionFileName) then
           Exit;
         if (ClassTypeStatement = ScopeTypeStatement) then begin
           //we can use all static members

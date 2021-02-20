@@ -970,7 +970,6 @@ object CompOptForm: TCompOptForm
         Font.Style = []
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goAlwaysShowEditor]
         ParentFont = False
-        ScrollBars = ssVertical
         TabOrder = 0
         OnSelectCell = lvAutoLinksSelectCell
         OnSetEditText = lvAutoLinksSetEditText

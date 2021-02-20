@@ -31,7 +31,8 @@ uses
   StrUtils, SynEditTypes, devFileMonitor, devMonitorTypes, DdeMan, EditorList,
   devShortcuts, debugreader, ExceptionFrm, CommCtrl, devcfg, SynEditTextBuffer,
   CBUtils, StatementList, FormatterOptionsFrm, RenameFrm, Refactorer, devConsole,
-  Tabnine,devCaretList, devFindOutput, HeaderCompletion, VirtualTrees;
+  Tabnine,devCaretList, devFindOutput, HeaderCompletion, VirtualTrees,
+  devFileBrowser;
 
 type
   TRunEndAction = (reaNone, reaProfile);
@@ -698,6 +699,18 @@ type
     N45: TMenuItem;
     ShowMembersintheFile1: TMenuItem;
     ShowMembersintheProject1: TMenuItem;
+    FilesSheet: TTabSheet;
+    fileBrowser: TDevFileBrowser;
+    actSetCurrentFolder: TAction;
+    OpenFolder1: TMenuItem;
+    ToolBar10: TToolBar;
+    ToolButton27: TToolButton;
+    Panel5: TPanel;
+    ToolButton28: TToolButton;
+    ToolButton29: TToolButton;
+    actOnlyShowDevFiles: TAction;
+    actLocateFile: TAction;
+    ToolButton30: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -831,6 +844,7 @@ type
 //    procedure actCompileRunUpdate(Sender: TObject);
     procedure actDebugExecuteUpdate(Sender: TObject);
     procedure FileMonitorNotifyChange(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: string);
+    procedure FileMonitorTimer(Sender: TObject);
     procedure actFilePropertiesExecute(Sender: TObject);
     procedure actViewToDoListExecute(Sender: TObject);
     procedure actAddToDoExecute(Sender: TObject);
@@ -1020,6 +1034,10 @@ type
     procedure actStatementsTypeFileExecute(Sender: TObject);
     procedure actStatementsTypeProjectExecute(Sender: TObject);
     procedure actIndentUpdate(Sender: TObject);
+    procedure actSetCurrentFolderExecute(Sender: TObject);
+    procedure fileBrowserDblClick(Sender: TObject);
+    procedure actOnlyShowDevFilesExecute(Sender: TObject);
+    procedure actLocateFileExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1055,6 +1073,7 @@ type
     fLeftPageControlChanged : boolean;
     fDummyCppParser: TCppParser;
     fMenuItemHint : TMenuItemHint;
+    fMonitorTimer : TTimer;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1523,6 +1542,16 @@ begin
   devData.ToolbarDebugY := tbDebug.Top;
   devData.ToolbarUndoX := tbUndo.Left;
   devData.ToolbarUndoY := tbUndo.Top;
+
+  if StartsText( IncludeTrailingPathDelimiter(devDirs.Exec),
+    IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder) ) then begin
+    devData.FileBrowserFolder := '*'+Copy(
+      IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder),
+      Length(IncludeTrailingPathDelimiter(devDirs.Exec))+1,
+      MaxInt);
+  end else
+    devData.FileBrowserFolder := fileBrowser.CurrentFolder;
+  devData.FileBrowserOnlyShowDevFiles := fileBrowser.OnlyShowDevFiles;
   // Save left page control states
   devData.ProjectWidth := fPreviousWidth;
   devData.OutputHeight := fPreviousHeight;
@@ -1766,6 +1795,15 @@ begin
   ClassBrowser.TreeColors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
   ClassBrowser.TreeColors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
   ClassBrowser.TreeColors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
+  fileBrowser.Font := MainForm.Font;
+  fileBrowser.Font.Color := ForegroundColor;
+  fileBrowser.Color := BackgroundColor;
+  fileBrowser.Colors.SelectionTextColor := selectedTC.Foreground;
+  fileBrowser.Colors.SelectionRectangleBlendColor := selectedTC.Background;
+  fileBrowser.Colors.SelectionRectangleBorderColor := selectedTC.Background;
+  //fileBrowser.Colors.UnfocusedColor := selectedTC.Background;
+  //fileBrowser.Colors.UnfocusedSelectionColor := selectedTC.Background;
+  //fileBrowser.Colors.UnfocusedSelectionBorderColor := selectedTC.Background;
 
   //Set CompletionBox Color
   strToThemeColor(tc, devEditor.Syntax.Values[cPNL]);
@@ -1850,6 +1888,7 @@ begin
   LocalSheet.Repaint;
   ProjectView.Repaint;
   ClassBrowser.Repaint;
+  fileBrowser.Repaint;
   StackTrace.Repaint;
   BreakpointsView.Repaint;
   CompilerOutput.Repaint;
@@ -1906,6 +1945,10 @@ begin
   actCloseProject.Caption := Lang[ID_ITEM_CLOSEPROJECT];
   actCloseAll.Caption := Lang[ID_ITEM_CLOSEALL];
   actFileProperties.Caption := Lang[ID_ITEM_PROPERTIES];
+
+  actSetCurrentFolder.Caption := Lang[ID_ITEM_SET_CURRENT_FOLDER];
+  actOnlyShowDevFiles.Caption := Lang[ID_ITEM_ONLY_SHOW_DEV_FILES];
+  actLocateFile.Caption := Lang[ID_ITEM_LOCATE_FILE];
 
   // Import submenu
   ImportItem.Caption := Lang[ID_SUB_IMPORT];
@@ -2159,6 +2202,8 @@ begin
   CallStackSheet.Caption := Lang[ID_DEB_CALLSTACK];
   BreakPointsSheet.Caption := Lang[ID_DEB_BREAK_POINTS];
   LocalSheet.Caption := Lang[ID_DEB_LOCALS];
+
+  FilesSheet.Caption := Lang[ID_SHEET_FILES];
 
 
   {
@@ -2439,7 +2484,7 @@ begin
   CheckSyntaxInBack(e);
   UpdateFileEncodingStatusPanel;
 
-  if not Assigned(fProject) then begin
+  if not Assigned(fProject) and (LeftPageControl.ActivePage <> self.FilesSheet ) then begin
     LeftPageControl.ActivePage := LeftClassSheet;
     fLeftPageControlChanged := False;
     ClassBrowser.TabVisible := True;
@@ -5421,6 +5466,8 @@ var
   PageIndex: integer;
   SenderPageControl: TPageControl;
   e: TEditor;
+  rect,closeRect:TRect;
+  size: integer;
 begin
   SenderPageControl := TPageControl(Sender);
   if Button = mbRight then begin // select new tab even with right mouse button
@@ -5436,8 +5483,29 @@ begin
       if Assigned(e) then
         fEditorList.CloseEditor(e);
     end;
-  end else // see if it's a drag operation
+  end else begin// see if it's a drag operation
+    PageIndex := SenderPageControl.IndexOfTabAt(X, Y);
+    if PageIndex <> -1 then begin
+      rect := SenderPageControl.TabRect(PageIndex);
+      closeRect.Bottom := Rect.Bottom;
+      closeRect.Top := Rect.Top;
+      size := Rect.Bottom - Rect.Top - 4;
+      if (size>20) then
+        size := 20;
+      closeRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - size) div 2;
+      closeRect.Bottom := closeRect.Top + size;
+      closeRect.Right := Rect.Right - 5;
+      closeRect.Left := closeRect.Right - size;
+      if (X>=closeRect.Left) and (X<=closeRect.Right)
+        and (Y>=closeRect.Top) and (Y<=closeRect.Bottom) then begin
+        e := fEditorList.GetEditor(PageIndex, SenderPageControl);
+        if Assigned(e) then
+          fEditorList.CloseEditor(e);
+        Exit;
+      end;
+    end;
     SenderPageControl.Pages[SenderPageControl.ActivePageIndex].BeginDrag(False);
+  end;
 end;
 
 procedure TMainForm.actNewTemplateUpdate(Sender: TObject);
@@ -5823,6 +5891,13 @@ begin
   Statusbar.Panels[1].Text := s;
 end;
 
+procedure TMainForm.FileMonitorTimer(Sender: TObject);
+begin
+  fMonitorTimer.OnTimer := nil;
+  fileBrowser.Refresh;
+end;
+
+
 procedure TMainForm.FileMonitorNotifyChange(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: string);
 var
   e: TEditor;
@@ -5832,6 +5907,11 @@ begin
   FileMonitor.BeginUpdate;
   try
     case ChangeType of
+      mctDirectory: begin
+        fMonitorTimer.OnTimer := FileMonitorTimer;
+        fMonitorTimer.Interval := 1000;
+        exit;
+      end;
       mctChanged: begin
           Application.Restore;
           if MessageDlg(Format(Lang[ID_ERR_FILECHANGED], [Filename]), mtConfirmation, [mbYes, mbNo], 0) = mrYes then
@@ -6987,6 +7067,8 @@ begin
   fCaretList:=TDevCaretList.Create;
   fMessageControlChanged := False;
   fLeftPageControlChanged := False;
+  fMonitorTimer := TTimer.Create(Self);
+
 
   fDummyCppParser := TCppParser.Create(MainForm.Handle);
   // Backup PATH variable
@@ -7054,13 +7136,6 @@ begin
   // Accept file drags
   DragAcceptFiles(Self.Handle, true);
 
-  // Set left page control to previous state
-  actProjectManager.Checked := devData.ShowLeftPages;
-  LeftPageControl.ActivePageIndex := devData.LeftActivePage;
-  fLeftPageControlChanged := False;  
-  actProjectManagerExecute(nil);
-  LeftPageControl.Width := devData.ProjectWidth;
-  LeftProjectSheet.TabVisible := False;
 
   // Set bottom page control to previous state
   fPreviousHeight := devData.OutputHeight;
@@ -7208,8 +7283,25 @@ begin
   //Load Colors
   LoadColor;
 
+  // Set left page control to previous state
+  actProjectManager.Checked := devData.ShowLeftPages;
+  LeftPageControl.ActivePageIndex := devData.LeftActivePage;
+  fLeftPageControlChanged := False;  
+  actProjectManagerExecute(nil);
+  LeftPageControl.Width := devData.ProjectWidth;
+  LeftProjectSheet.TabVisible := False;
+  
+
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 
+  if StartsStr('*',devData.FileBrowserFolder) then begin
+    fileBrowser.CurrentFolder := IncludeTrailingPathDelimiter(devDirs.Exec) + Copy(devData.FileBrowserFolder,2,MaxInt);
+  end else
+    fileBrowser.CurrentFolder := devData.FileBrowserFolder;
+  fileBrowser.OnlyShowDevFiles := devData.FileBrowserOnlyShowDevFiles;
+  actOnlyShowDevFiles.Checked := devData.FileBrowserOnlyShowDevFiles;
+
+  fileBrowser.Monitor := FileMonitor;
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -7218,6 +7310,8 @@ var
   newhint: AnsiString;
   e: TEditor;
   SenderPageControl: TPageControl;
+  rect,closeRect:TRect;
+  size:integer;
 begin
   SenderPageControl := TPageControl(Sender);
   PageIndex := SenderPageControl.IndexOfTabAt(X, Y);
@@ -7225,6 +7319,20 @@ begin
     e := fEditorList.GetEditor(PageIndex, SenderPageControl);
     if Assigned(e) then
       newhint := e.FileName;
+    rect := SenderPageControl.TabRect(PageIndex);
+    closeRect.Bottom := Rect.Bottom;
+    closeRect.Top := Rect.Top;
+    size := Rect.Bottom - Rect.Top - 4;
+    if (size>20) then
+      size := 20;
+    closeRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - size) div 2;
+    closeRect.Bottom := closeRect.Top + size;
+    closeRect.Right := Rect.Right - 5;
+    closeRect.Left := closeRect.Right - size;
+    if (X>=closeRect.Left) and (X<=closeRect.Right)
+      and (Y>=closeRect.Top) and (Y<=closeRect.Bottom) then begin
+      newhint := Lang[ID_ITEM_CLOSEEDITORWINDOW];
+    end;
   end else
     newhint := '';
 
@@ -8603,11 +8711,14 @@ procedure TMainForm.OnDrawTab(Control: TCustomTabControl;
 var
   y    : Integer;
   x    : Integer;
-  aRect: TRect;
+  aRect, closeRect: TRect;
+  size: integer;
   bgColor,fgColor,abgColor,afgColor: TColor;
   ptc: TThemeColor;
   tabs:integer;
   tabRect: TRect;
+  oldColor : TColor;
+  oldSize : integer;
 begin
   strToThemeColor(ptc, devEditor.Syntax.Values[cPNL]);
   bgColor := ptc.Background;
@@ -8702,6 +8813,36 @@ begin
       y  := Rect.Top + ((Rect.Bottom - Rect.Top - Control.Canvas.TextHeight(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
       Control.Canvas.TextOut(x,y,TPageControl(Control).Pages[TabIndex].Caption);
     end;
+  end;
+
+  //hack for editor close button
+  if (Control = EditorPageControlLeft) or (Control = EditorPageControlRight) then begin
+    closeRect.Bottom := Rect.Bottom;
+    closeRect.Top := Rect.Top;
+    size := Rect.Bottom - Rect.Top - 4;
+    if (size>20) then
+      size := 20;
+    closeRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - size) div 2;
+    closeRect.Bottom := closeRect.Top + size;
+    closeRect.Right := Rect.Right - 5;
+    closeRect.Left := closeRect.Right - size;
+    {
+    oldColor := Control.Canvas.Brush.Color;
+    Control.Canvas.Brush.Color := clRed;
+    Control.Canvas.RoundRect(closeRect.Left,CloseRect.Top,closeRect.Right,CloseRect.Bottom,6,6);
+    Control.Canvas.Brush.Color := oldColor;
+    }
+    oldColor := Control.Canvas.Pen.Color;
+    oldSize := Control.Canvas.Pen.Width;
+    Control.Canvas.Pen.Color := Control.Canvas.Font.Color;
+    Control.Canvas.Pen.Width := 2;
+    inflateRect(closeRect,-5,-5);
+    Control.Canvas.MoveTo(closeRect.Left-1,closeRect.Top);
+    Control.Canvas.LineTo(closeRect.Right,closeRect.Bottom);
+    Control.Canvas.MoveTo(closeRect.Left-1,closeRect.Bottom);
+    Control.Canvas.LineTo(closeRect.Right,closeRect.Top);
+    Control.Canvas.Pen.Color := oldColor;
+    Control.Canvas.Pen.Width := oldSize;
   end;
 end;
 
@@ -9267,6 +9408,49 @@ var
 begin
   e := fEditorList.GetEditor;
   TCustomAction(Sender).Enabled:= Assigned(e) and e.Text.Focused;
+end;
+
+procedure TMainForm.actSetCurrentFolderExecute(Sender: TObject);
+var
+  folder : String;
+begin
+  folder:=fileBrowser.CurrentFolder;
+  if NewSelectDirectory('',fileBrowser.CurrentFolder,folder) then
+    fileBrowser.CurrentFolder := folder;
+  LeftPageControl.ActivePage := self.FilesSheet;
+  fLeftPageControlChanged := False;
+  ClassBrowser.TabVisible:=False;
+end;
+
+procedure TMainForm.fileBrowserDblClick(Sender: TObject);
+begin
+  if (fileBrowser.SelectedFile <> '') and (FileExists(fileBrowser.SelectedFile)) then begin
+    if GetFileTyp(fileBrowser.SelectedFile) = utPrj then
+      OpenProject(fileBrowser.SelectedFile)
+    else
+      OpenFile(fileBrowser.SelectedFile, etAuto);
+  end;
+  fileBrowser.ClearSelection;
+end;
+
+procedure TMainForm.actOnlyShowDevFilesExecute(Sender: TObject);
+begin
+  fileBrowser.OnlyShowDevFiles := actOnlyShowDevFiles.Checked;
+end;
+
+procedure TMainForm.actLocateFileExecute(Sender: TObject);
+var
+  editor:TEditor;
+begin
+  editor := EditorList.GetEditor();
+  if not assigned(editor) then
+    Exit;   
+  if not StartsText(fileBrowser.CurrentFolder, editor.FileName) then
+    Exit;
+  if fileBrowser.CurrentFolder <> '' then
+    fileBrowser.LocateFile(editor.FileName)
+  else
+    fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
 end;
 
 end.

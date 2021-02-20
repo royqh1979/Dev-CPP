@@ -94,7 +94,7 @@ OutputDir=..
 UnitOutputDir=Units
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=VCL\ClassBrowsing;VCL\DevCpp;VCL\DevCpp\devFileMonitor;VCL\DevCpp\devShortcuts;VCL\DevCpp\CompOptionsList;VCL\SynEdit\Source;VCL\VirtualTreeViewV5.5.3\Source
+SearchPath=VCL\ClassBrowsing;VCL\DevCpp;VCL\DevCpp\devFileMonitor;VCL\DevCpp\devShortcuts;VCL\DevCpp\CompOptionsList;VCL\SynEdit\Source;VCL\VirtualTreeView\Source
 Packages=vcl;rtl;vclactnband;vclx;vcldb;dbrtl;dbexpress;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;dsnap;VclSmp;dbxcds;soaprtl;vclshlctrls
 Conditionals=
 DebugSourceDirs=E:\workspace\contributes\Dev-CPP\Source\VCL\ClassBrowsing\;E:\workspace\contributes\Dev-CPP\Source\VCL\VirtualTreeView\Source\
@@ -134,3 +134,10 @@ OriginalFilename=devcpp.exe
 ProductName=Dev-C++
 ProductVersion=6
 Comments=Under the GNU General Public License
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=2
+Item0=..\VirtualTreeView\Source
+Item1=..\..\Common
