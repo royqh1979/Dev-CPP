@@ -252,6 +252,8 @@ end;
 
 procedure TDevFileBrowser.SetCurrentFolder(const folder: AnsiString);
 begin
+  if not DirectoryExists(folder) then
+    Exit;                      
   if SameText(folder, fCurrentFolder) then
     Exit;
   if assigned(fMonitor) and (fCurrentFolder <> '') then

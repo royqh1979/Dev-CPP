@@ -94,7 +94,7 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=..\VirtualTreeView\Source
+SearchPath=..\VirtualTreeView\Source;.\devFileMonitor
 Packages=vcl;rtl;vclx;vclshlctrls;vcldb;VclSmp;dbrtl;bdertl;SynEdit_D7
 Conditionals=
 DebugSourceDirs=
@@ -138,6 +138,7 @@ Comments=
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=2
-Item0=..\VirtualTreeView\Source
-Item1=..\..\Common
+Count=3
+Item0=..\VirtualTreeView\Source;.\devFileMonitor
+Item1=..\VirtualTreeView\Source
+Item2=..\..\Common

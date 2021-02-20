@@ -1344,16 +1344,18 @@ object MainForm: TMainForm
         Width = 179
         Height = 474
         Align = alClient
+        BevelOuter = bvNone
         Caption = 'Panel5'
         TabOrder = 1
         object fileBrowser: TDevFileBrowser
-          Left = 1
-          Top = 1
-          Width = 177
-          Height = 472
+          Left = 0
+          Top = 0
+          Width = 179
+          Height = 474
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
           TabOrder = 0
+          BorderStyle = bsNone
           Header.AutoSizeIndex = 0
           Header.Font.Charset = DEFAULT_CHARSET
           Header.Font.Color = clWindowText

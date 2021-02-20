@@ -1541,7 +1541,14 @@ begin
   devData.ToolbarUndoX := tbUndo.Left;
   devData.ToolbarUndoY := tbUndo.Top;
 
-  devData.FileBrowserFolder := fileBrowser.CurrentFolder;
+  if StartsText( IncludeTrailingPathDelimiter(devDirs.Exec),
+    IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder) ) then begin
+    devData.FileBrowserFolder := '*'+Copy(
+      IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder),
+      Length(IncludeTrailingPathDelimiter(devDirs.Exec)),
+      MaxInt);
+  end else
+    devData.FileBrowserFolder := fileBrowser.CurrentFolder;
   devData.FileBrowserOnlyShowDevFiles := fileBrowser.OnlyShowDevFiles;
   // Save left page control states
   devData.ProjectWidth := fPreviousWidth;
@@ -7276,7 +7283,10 @@ begin
 
   self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
 
-  fileBrowser.CurrentFolder := devData.FileBrowserFolder;
+  if StartsStr('*',devData.FileBrowserFolder) then begin
+    fileBrowser.CurrentFolder := IncludeTrailingPathDelimiter(devDirs.Exec) + Copy(devData.FileBrowserFolder,2,MaxInt);
+  end else
+    fileBrowser.CurrentFolder := devData.FileBrowserFolder;
   fileBrowser.OnlyShowDevFiles := devData.FileBrowserOnlyShowDevFiles;
   actOnlyShowDevFiles.Checked := devData.FileBrowserOnlyShowDevFiles;
 
