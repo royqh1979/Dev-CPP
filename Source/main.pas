@@ -9447,7 +9447,10 @@ begin
     Exit;   
   if not StartsText(fileBrowser.CurrentFolder, editor.FileName) then
     Exit;
-  fileBrowser.LocateFile(editor.FileName);
+  if fileBrowser.CurrentFolder <> '' then
+    fileBrowser.LocateFile(editor.FileName)
+  else
+    fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
 end;
 
 end.
