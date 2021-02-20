@@ -251,14 +251,17 @@ begin
 end;
 
 procedure TDevFileBrowser.SetCurrentFolder(const folder: AnsiString);
+var
+  folderName : String;
 begin
-  if not DirectoryExists(folder) then
-    Exit;                      
-  if SameText(folder, fCurrentFolder) then
+  folderName := ExcludeTrailingPathDelimiter(ExpandFileName(folder));
+  if not DirectoryExists(folderName) then
+    Exit;
+  if SameText(folderName, fCurrentFolder) then
     Exit;
   if assigned(fMonitor) and (fCurrentFolder <> '') then
     fMonitor.unmonitor(fCurrentFolder);
-  fCurrentFolder := folder;
+  fCurrentFolder := folderName;
   if assigned(fMonitor) and (fCurrentFolder <> '') then
     fMonitor.monitor(fCurrentFolder);  
   self.Refresh;

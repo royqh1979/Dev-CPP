@@ -106,7 +106,7 @@ begin
       if (SearchRec.Attr and faDirectory)<>0 then begin
         // is a directory
         ChangeID := FindFirstChangeNotification(
-          PAnsiChar(ExtractFilePath(fFileNames[I])),
+          PAnsiChar(fFileNames[I]),
           True,
           FILE_NOTIFY_CHANGE_FILE_NAME or FILE_NOTIFY_CHANGE_DIR_NAME
           );
@@ -128,6 +128,7 @@ begin
         Item := new(PdevMonitorFile);
         Item^.FileName := fFileNames[i];
         Item^.TimeStamp := SearchRec.Time;
+        Item^.IsDirectory := (SearchRec.Attr and faDirectory)<>0;
         fFileProperties.Add(Item);
 
         // Free OS memory
@@ -179,7 +180,12 @@ begin
     // Check timestamp of signaled file...
     WaitObjectIndex := WaitResult - WAIT_OBJECT_0;
     FileStruct := PdevMonitorFile(fFileProperties[WaitObjectIndex]);
-    if FindFirst(FileStruct^.FileName, faAnyFile, SearchRec) = 0 then begin
+    if FileStruct^.IsDirectory then begin
+      FindNextChangeNotification(THandle(fMonitors[WaitObjectIndex]));
+        fChangeType := mctDirectory;
+        fFilename := FileStruct^.FileName;
+      Notify;    
+    end else if FindFirst(FileStruct^.FileName, faAnyFile, SearchRec) = 0 then begin
       FindClose(SearchRec);
       // Keep monitoring
       FindNextChangeNotification(THandle(fMonitors[WaitObjectIndex]));

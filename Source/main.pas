@@ -844,6 +844,7 @@ type
 //    procedure actCompileRunUpdate(Sender: TObject);
     procedure actDebugExecuteUpdate(Sender: TObject);
     procedure FileMonitorNotifyChange(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: string);
+    procedure FileMonitorTimer(Sender: TObject);
     procedure actFilePropertiesExecute(Sender: TObject);
     procedure actViewToDoListExecute(Sender: TObject);
     procedure actAddToDoExecute(Sender: TObject);
@@ -1072,6 +1073,7 @@ type
     fLeftPageControlChanged : boolean;
     fDummyCppParser: TCppParser;
     fMenuItemHint : TMenuItemHint;
+    fMonitorTimer : TTimer;
     function ParseToolParams(s: AnsiString): AnsiString;
     procedure BuildBookMarkMenus;
     procedure SetHints;
@@ -1545,7 +1547,7 @@ begin
     IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder) ) then begin
     devData.FileBrowserFolder := '*'+Copy(
       IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder),
-      Length(IncludeTrailingPathDelimiter(devDirs.Exec)),
+      Length(IncludeTrailingPathDelimiter(devDirs.Exec))+1,
       MaxInt);
   end else
     devData.FileBrowserFolder := fileBrowser.CurrentFolder;
@@ -5889,6 +5891,13 @@ begin
   Statusbar.Panels[1].Text := s;
 end;
 
+procedure TMainForm.FileMonitorTimer(Sender: TObject);
+begin
+  fMonitorTimer.OnTimer := nil;
+  fileBrowser.Refresh;
+end;
+
+
 procedure TMainForm.FileMonitorNotifyChange(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: string);
 var
   e: TEditor;
@@ -5897,12 +5906,12 @@ begin
   // Deactivate monitoring for this file. One message is enough
   FileMonitor.BeginUpdate;
   try
-    if SameText(fileBrowser.CurrentFolder,FileName) then begin
-      Sleep(1000);
-      fileBrowser.Refresh;
-      exit;
-    end;
     case ChangeType of
+      mctDirectory: begin
+        fMonitorTimer.OnTimer := FileMonitorTimer;
+        fMonitorTimer.Interval := 1000;
+        exit;
+      end;
       mctChanged: begin
           Application.Restore;
           if MessageDlg(Format(Lang[ID_ERR_FILECHANGED], [Filename]), mtConfirmation, [mbYes, mbNo], 0) = mrYes then
@@ -7058,6 +7067,8 @@ begin
   fCaretList:=TDevCaretList.Create;
   fMessageControlChanged := False;
   fLeftPageControlChanged := False;
+  fMonitorTimer := TTimer.Create(Self);
+
 
   fDummyCppParser := TCppParser.Create(MainForm.Handle);
   // Backup PATH variable
@@ -9386,7 +9397,7 @@ var
   folder : String;
 begin
   folder:=fileBrowser.CurrentFolder;
-  if NewSelectDirectory('','',folder) then
+  if NewSelectDirectory('',fileBrowser.CurrentFolder,folder) then
     fileBrowser.CurrentFolder := folder;
   LeftPageControl.ActivePage := self.FilesSheet;
   fLeftPageControlChanged := False;

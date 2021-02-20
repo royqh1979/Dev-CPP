@@ -30,13 +30,14 @@ Classes;
 {$ENDIF}
 
 type
-  TdevMonitorChangeType = (mctChanged, mctDeleted);
+  TdevMonitorChangeType = (mctChanged, mctDeleted, mctDirectory);
   TdevMonitorChange = procedure(Sender: TObject; ChangeType: TdevMonitorChangeType; Filename: AnsiString) of object;
 
   PdevMonitorFile = ^TdevMonitorFile;
   TdevMonitorFile = record
     FileName: AnsiString;
     TimeStamp: integer;
+    isDirectory: Boolean;
   end;
 
 implementation
