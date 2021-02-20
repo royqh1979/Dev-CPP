@@ -8808,9 +8808,9 @@ begin
     Control.Canvas.Pen.Color := clYellow;
     Control.Canvas.Pen.Width := 2;
     inflateRect(closeRect,-5,-5);
-    Control.Canvas.MoveTo(closeRect.Left,closeRect.Top);
+    Control.Canvas.MoveTo(closeRect.Left-1,closeRect.Top);
     Control.Canvas.LineTo(closeRect.Right,closeRect.Bottom);
-    Control.Canvas.MoveTo(closeRect.Left,closeRect.Bottom);
+    Control.Canvas.MoveTo(closeRect.Left-1,closeRect.Bottom);
     Control.Canvas.LineTo(closeRect.Right,closeRect.Top);
     Control.Canvas.Pen.Color := oldColor;
     Control.Canvas.Pen.Width := oldSize;
