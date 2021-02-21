@@ -3,6 +3,7 @@ Version 6.4-beta5 FEB 2021
     - fix: classbrowser not work when class browser is opened by default when devcpp starts
     - fix: finish reparse before rename a symbol
     - change: don't auto save after rename a symbol
+    - fix: crash when remembered editor posistions >= 500
 
 Version 6.4-beta4.1 FEB 2021
 

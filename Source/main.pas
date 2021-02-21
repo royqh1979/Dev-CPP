@@ -9436,7 +9436,7 @@ var
   folder : String;
 begin
   folder:=fileBrowser.CurrentFolder;
-  if NewSelectDirectory('',fileBrowser.CurrentFolder,folder) then
+  if NewSelectDirectory('','',folder) then
     fileBrowser.CurrentFolder := folder;
   LeftPageControl.ActivePage := self.FilesSheet;
   fLeftPageControlChanged := False;
