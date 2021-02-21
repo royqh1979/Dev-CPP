@@ -33,7 +33,6 @@ type
     InProject: boolean; 
     OnlyIfNotParsed: boolean; 
     UpdateView: boolean; 
-    fileContent: TStrings;
     procedure Execute; override;
   end;
 
@@ -54,8 +53,7 @@ procedure ParseFile(Parser: TCppParser;
     FileName: AnsiString; 
     InProject: boolean; 
     OnlyIfNotParsed: boolean = False; 
-    UpdateView: boolean = True;
-    fileContent:TStrings = nil);
+    UpdateView: boolean = True);
 
 procedure ParseFileList(Parser: TCppParser);
 
@@ -92,8 +90,7 @@ procedure ParseFile(Parser: TCppParser;
     FileName: AnsiString; 
     InProject: boolean; 
     OnlyIfNotParsed: boolean = False;
-    UpdateView: boolean = True;
-    fileContent:TStrings = nil);
+    UpdateView: boolean = True);
 var
    parserThread: TCppParserThread;
 begin
@@ -104,27 +101,14 @@ begin
   parserThread.InProject := InProject;
   parserThread.OnlyIfNotParsed:= OnlyIfNotParsed;
   parserThread.UpdateView:=UpdateView;
-  parserThread.fileContent:=fileContent;
   parserThread.Resume;
 end;
 
 procedure TCppParserThread.Execute;
-var
-  M: TMemoryStream;
 begin
   inherited;
   if assigned(Parser) and not (Parser.Parsing) then begin
-    if fileContent <> nil then begin
-      M := TMemoryStream.Create;
-      try
-        fileContent.SaveToStream(M);
-        Parser.ParseFile(FileName, InProject, OnlyIfNotParsed, UpdateView, M);
-      finally
-        M.Free;
-      end;
-    end else begin
-      Parser.ParseFile(FileName,InProject,OnlyIfNotParsed, UpdateView,nil);
-    end;
+    Parser.ParseFile(FileName,InProject,OnlyIfNotParsed, UpdateView);
   end;
 end;
 

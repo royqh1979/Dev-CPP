@@ -1,3 +1,9 @@
+Version 6.4-beta5 FEB 2021
+
+    - fix: classbrowser not work when class browser is opened by default when devcpp starts
+    - fix: finish reparse before rename a symbol
+    - change: don't auto save after rename a symbol
+
 Version 6.4-beta4.1 FEB 2021
 
     - fix: the display of title bar is not correct when file is edited

@@ -1138,7 +1138,7 @@ type
     procedure SetStatusbarLineCol;
     procedure SetStatusbarMessage(const msg: AnsiString);
     procedure OnBacktraceReady;
-    procedure SetCppParserProject(Project:TProject);
+    procedure SetCppParserProject(Parser:TCppParser; Project:TProject);
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
     property Project: TProject read fProject write fProject;
@@ -2397,8 +2397,7 @@ begin
   LeftProjectSheet.TabVisible := True;
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
-  ClassBrowser.TabVisible:=False;
-
+  ClassBrowser.TabVisible:= False;
   // Only update class browser once
   ClassBrowser.BeginTreeUpdate;
   try
@@ -3780,7 +3779,7 @@ procedure TMainForm.actProjectOptionsExecute(Sender: TObject);
 begin
   if Assigned(fProject) then begin
     if fProject.ShowOptions = mrOk then begin
-      SetCppParserProject(fProject);
+      SetCppParserProject(fProject.CppParser,fProject);
       UpdateAppTitle;
       if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
         CompileClean;
@@ -5211,19 +5210,19 @@ begin
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
 end;
 
-procedure TMainForm.SetCppParserProject(Project:TProject);
+procedure TMainForm.SetCppParserProject(Parser:TCppParser; Project:TProject);
 var
   i:integer;
 begin
   if not Assigned(Project) then begin
     Exit;
   end;
-  Project.CppParser.ClearProjectFiles;
-  Project.CppParser.ClearProjectIncludePaths;
+  Parser.ClearProjectFiles;
+  Parser.ClearProjectIncludePaths;
   for I := 0 to Project.Units.Count - 1 do
-    Project.CppParser.AddFileToScan(Project.Units[I].FileName, True);
+    Parser.AddFileToScan(Project.Units[I].FileName, True);
   for I := 0 to Project.Options.Includes.Count - 1 do
-    Project.CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
+    Parser.AddProjectIncludePath(Project.Options.Includes[I]);
 end;
 
 procedure TMainForm.ScanActiveProject(parse:boolean);
@@ -5231,10 +5230,10 @@ begin
   //UpdateClassBrowsing;
   if Assigned(fProject) and parse then begin
     ResetCppParser(fProject.CppParser);
-    SetCppParserProject(fProject);
+    SetCppParserProject(fProject.CppParser,fProject);
     ParseFileList(Project.CppParser);
   end else begin
-    SetCppParserProject(fProject);
+    SetCppParserProject(fProject.CppParser,fProject);
   end;
 end;
 
@@ -6245,10 +6244,12 @@ var
   ParseTimeFloat, ParsingFrequency: Extended;
   total:integer;
   e:TEditor;
+  updateView:integer;
 begin
   Screen.Cursor := crDefault;
 
   total := message.wParam;
+  updateView := message.LParam;
 
   //CppParser will call class browser to redraw, don't do it twice
 
@@ -6262,10 +6263,15 @@ begin
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGINCOUNT], [Total, ParseTimeFloat, ParsingFrequency]))
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
-  ClassBrowser.EndTreeUpdate;
-  e:=EditorList.GetEditor;
-  if assigned(e) then begin
-    e.Text.Invalidate;
+
+  if updateView <> 0 then begin
+    ClassBrowser.EndTreeUpdate;
+    e:=EditorList.GetEditor;
+    if assigned(e) then begin
+      e.Text.Invalidate;
+    end;
+  end else begin
+    ClassBrowser.EndTreeUpdate(False);
   end;
 end;
 
@@ -7286,6 +7292,7 @@ begin
   // Set left page control to previous state
   actProjectManager.Checked := devData.ShowLeftPages;
   LeftPageControl.ActivePageIndex := devData.LeftActivePage;
+  ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
   fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
@@ -8098,6 +8105,7 @@ var
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
   oldCursor : TCursor;
+  parser:TCppParser;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -8135,22 +8143,35 @@ begin
         Exit;
         
       OldCaretXY := Editor.Text.CaretXY;
-      with TRefactorer.Create(devRefactorer,GetCppParser) do try
-        if assigned(fProject) then begin
-          self.actSaveAllExecute(self);
-          ScanActiveProject(true);
+      if assigned(fProject) and editor.InProject then begin
+        parser := TCppParser.Create(self.Handle);
+        parser.OnGetFileStream := EditorList.GetStreamFromOpenedEditor;
+        ResetCppParser(parser);
+        parser.Enabled := True;
+      end else begin
+        parser := editor.CppParser;
+      end;
+      with TRefactorer.Create(devRefactorer,parser) do try
+        if assigned(fProject) and editor.InProject then begin
+          //here we must reparse the project in sync, or rename may fail
+          SetCppParserProject(parser, fProject);
+          parser.ParseFileList(false);
         end else begin
-          Editor.Reparse;
+          //here we must reparse the file in sync, or rename may fail
+          parser.ParseFile(editor.FileName, editor.InProject, false, false);
         end;
         RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
+        if parser <> editor.CppParser then
+          parser.Free;
       end;
 
       //Editor.Save;
-      if assigned(fProject) then begin
+      if assigned(fProject) and editor.InProject then begin
         ScanActiveProject(true);
-      end;
+      end else
+        editor.reparse;
     finally
       Free;
     end;

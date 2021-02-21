@@ -3837,7 +3837,7 @@ begin
 //  BeginUpdate;
   // Reparse whole file (not function bodies) if it has been modified
   // use stream, don't read from disk (not saved yet)
-  ParseFile(fParser,fFileName, InProject, False, False, fText.Lines);
+  ParseFile(fParser,fFileName, InProject, False, True);
 //  EndUpdate;
 end;
 

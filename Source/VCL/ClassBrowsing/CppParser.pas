@@ -157,7 +157,7 @@ type
     procedure HandleForBlock;
     procedure HandleCatchBlock;
     function HandleStatement: boolean;
-    procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream = nil);
+    procedure InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False);
 //    function FindMacroDefine(const Command: AnsiString): PStatement;
     function expandMacroType(const name:AnsiString): AnsiString;
     procedure InheritClassStatement(derived: PStatement; isStruct:boolean; base: PStatement; access:TStatementClassScope);
@@ -180,9 +180,8 @@ type
     function getStatementKey(const _Name,_Type,_NoNameArgs:AnsiString):AnsiString;
     procedure OnProgress(FileName:String;Total,Current:integer);
     procedure OnBusy;
-    procedure OnUpdate;
     procedure OnStartParsing;
-    procedure OnEndParsing(total:integer);
+    procedure OnEndParsing(total:integer;updateView:integer);
     procedure UpdateSerialId;
   public
     procedure ParseHardDefines;
@@ -209,9 +208,9 @@ type
     function IsIncludeLine(const Line: AnsiString): boolean;
     constructor Create(wnd:HWND); 
     destructor Destroy; override;
-    procedure ParseFileList;
+    procedure ParseFileList(UpdateView:boolean = True);
     procedure ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
-      boolean = True; Stream: TMemoryStream = nil);
+      boolean = True);
     function StatementKindStr(Value: TStatementKind): AnsiString;
     function StatementClassScopeStr(Value: TStatementClassScope): AnsiString;
     procedure Reset;
@@ -706,7 +705,10 @@ var
       _DefinitionLine := Line;
       _FileName := FileName;
       _DefinitionFileName := FileName;
-      _InProject := fIsProjectFile;
+      if FileName <> '' then
+        _InProject := fIsProjectFile
+      else
+        _InProject := False;
       _InSystemHeader := fIsSystemHeader;
       _Children := nil;
       _ChildrenIndex := nil;
@@ -2723,9 +2725,9 @@ begin
   PostMessage(fHandle,WM_PARSER_BEGIN_PARSE,0,0);
 end;
 
-procedure TCppParser.OnEndParsing(total:integer);
+procedure TCppParser.OnEndParsing(total:integer;updateView:integer);
 begin
-  PostMessage(fHandle,WM_PARSER_END_PARSE,total,0);
+  PostMessage(fHandle,WM_PARSER_END_PARSE,total,updateView);
 end;
 
 procedure TCppParser.OnBusy;
@@ -2733,22 +2735,21 @@ begin
   PostMessage(fHandle,WM_PARSER_BUSY,0,0);
 end;
 
-procedure TCppParser.OnUpdate;
-begin
-  PostMessage(fHandle,WM_PARSER_UPDATE,0,0);
-end;
-
-
-procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False; Stream: TMemoryStream =
-  nil);
+procedure TCppParser.InternalParse(const FileName: AnsiString; ManualUpdate: boolean = False);
+var
+  tempStream : TMemoryStream;
 begin
   // Perform some validation before we start
   if not fEnabled then
     Exit;
-  if not Assigned(Stream) and not (IsCfile(Filename) or IsHfile(Filename)) then // support only known C/C++ files
+  if not (IsCfile(Filename) or IsHfile(Filename)) then // support only known C/C++ files
     Exit;
   if (fTokenizer = nil) or (fPreprocessor = nil) then
     Exit;
+
+  tempStream := nil;
+  if assigned(OnGetFileStream) then
+    OnGetFileStream(self,FileName,tempStream);
 
   // Preprocess the file...
   try
@@ -2758,9 +2759,10 @@ begin
     fPreprocessor.SetProjectIncludePaths(fProjectIncludePaths);
     fPreprocessor.SetScannedFileList(fScannedFiles);
     fPreprocessor.SetScanOptions(fParseGlobalHeaders, fParseLocalHeaders);
-    if Assigned(Stream) then
-      fPreprocessor.PreprocessStream(FileName, Stream)
-    else
+    if Assigned(tempStream) then begin
+      fPreprocessor.PreprocessStream(FileName, tempStream);
+      tempStream.Free;
+    end else
       fPreprocessor.PreprocessFile(FileName); // load contents from disk
   except
     fPreprocessor.Reset; // remove buffers from memory
@@ -2901,11 +2903,10 @@ begin
 
   finally
     fParsing:=False;
-    OnUpdate;
   end;
 end;
 
-procedure TCppParser.ParseFileList;
+procedure TCppParser.ParseFileList(UpdateView:boolean = True);
 var
   I: integer;
 begin
@@ -2933,7 +2934,7 @@ begin
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
       if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
-        InternalParse(fFilesToScan[i], True);
+        InternalParse(fFilesToScan[i]);
       end;
     end;
     //we only parse CFile in the second parse
@@ -2943,14 +2944,16 @@ begin
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
       if FastIndexOf(fScannedFiles,fFilesToScan[i]) = -1 then begin
-        InternalParse(fFilesToScan[i], True);
+        InternalParse(fFilesToScan[i]);
       end;
     end;
     fFilesToScan.Clear;
   finally
     fParsing:=False;
-    OnEndParsing(fFilesScannedCount);
-    OnUpdate;
+    if UpdateView then
+      OnEndParsing(fFilesScannedCount,1)
+    else
+      OnEndParsing(fFilesScannedCount,0);
   end;
 end;
 
@@ -3173,12 +3176,11 @@ begin
 end;
 
 procedure TCppParser.ParseFile(const FileName: AnsiString; InProject: boolean; OnlyIfNotParsed: boolean = False; UpdateView:
-  boolean = True; Stream: TMemoryStream = nil);
+  boolean = True);
 var
   FName: AnsiString;
   I: integer;
   files:TStringList;
-  tempStream: TMemoryStream;
 begin
   if not fEnabled then
     Exit;
@@ -3241,18 +3243,7 @@ begin
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
       if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
-        if SameText(files[i],filename) and assigned(Stream) then
-          InternalParse(files[i], True,stream)
-        else begin
-          tempStream := nil;
-          if assigned(OnGetFileStream) then
-            OnGetFileStream(self,files[i],tempStream);
-          if assigned(tempStream) then begin
-            InternalParse(files[i], True, tempStream);
-            tempStream.Free;
-          end else
-            InternalParse(files[i]);
-        end;
+        InternalParse(files[i]);
       end;
     end;
     //we only parse CFile in the second parse
@@ -3262,39 +3253,18 @@ begin
       Inc(fFilesScannedCount); // progress is mentioned before scanning begins
       OnProgress(fCurrentFile,fFilesToScanCount,fFilesScannedCount);
       if FastIndexOf(fScannedFiles,files[i]) = -1 then begin
-        if SameText(files[i],filename) and assigned(Stream) then
-          InternalParse(files[i], True,stream)
-        else begin
-          tempStream := nil;
-          if assigned(OnGetFileStream) then
-            OnGetFileStream(self,files[i],tempStream);
-          if assigned(tempStream) then begin
-            InternalParse(files[i], True, tempStream);
-            tempStream.Free;
-          end else
-            InternalParse(files[i]);
-        end;
+        InternalParse(files[i]);
       end;
     end;
-    {
-    if not Assigned(Stream) then begin
-      InternalParse(FileName);
-    end else
-      InternalParse(FileName, True, Stream); // or from stream
-    }
-    {
-    for i:=0 to fRemovedStatements.Count-1 do begin
-      dispose(PRemovedStatement(fRemovedStatements.Objects[i]));
-    end;
-    fRemovedStatements.Clear;
-    }
     fFilesToScan.Clear;
   finally
     files.Free;
     fParsing:=False;
-    OnEndParsing(fFilesScannedCount );
+
     if UpdateView  then begin
-        OnUpdate;
+      OnEndParsing(fFilesScannedCount,1);
+    end else begin
+      OnEndParsing(fFilesScannedCount,0);
     end;
   end;
 
