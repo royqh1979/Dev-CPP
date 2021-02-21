@@ -3173,8 +3173,8 @@ begin
       fEditorList.BeginUpdate;
       try
         FreeandNil(fProject);
-        ClassBrowser.CurrentFile := '';
         ClassBrowser.Parser:=nil; // set parser to nil will do the clear
+        ClassBrowser.CurrentFile := '';
 
         if not fQuitting and RefreshEditor then begin
           //reset Class browsing
@@ -5396,6 +5396,8 @@ begin
     // Set title bar to current file
     UpdateAppTitle;
 
+    // Set Parser to nil;
+    ClassBrowser.Parser := nil;
     // Set classbrowser to current file
     ClassBrowser.CurrentFile := '';
 
@@ -5729,6 +5731,7 @@ begin
         ParseFile(GetCppParser,e.FileName,e.InProject);
       end;
     end else begin
+      ClassBrowser.Parser:=nil; // set parser to nil will do the clear
       ClassBrowser.CurrentFile := '';
     end;
   finally

@@ -4,6 +4,7 @@ Version 6.4-beta5 FEB 2021
     - fix: finish reparse before rename a symbol
     - change: don't auto save after rename a symbol
     - fix: crash when remembered editor posistions >= 500
+    - fix: devcpp crash when open many editors and close the last one
 
 Version 6.4-beta4.1 FEB 2021
 

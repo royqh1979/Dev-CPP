@@ -913,6 +913,8 @@ begin
   if Value = fCurrentFile then
     Exit;
   fCurrentFile := Value;
+  if fCurrentFile = '' then
+    fParser := nil;
   BeginTreeUpdate;
   EndTreeUpdate;
   finally
