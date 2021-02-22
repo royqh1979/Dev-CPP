@@ -71,7 +71,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Top = 0
     Width = 712
     Height = 481
-    ActivePage = tabVersion
+    ActivePage = tabGeneral
     TabOrder = 3
     object tabGeneral: TTabSheet
       Caption = 'General'
@@ -428,7 +428,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 164
           Height = 28
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 20
           TabOrder = 6
           OnChange = cbEncodingChange
         end
@@ -506,7 +506,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Width = 660
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnChange = cmbCompilerChange
       end
