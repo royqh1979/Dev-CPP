@@ -281,7 +281,8 @@ begin
   Screen.Cursor := crHourglass;
   GetCompletionFor(FileName,fPhrase);
   HeaderComplForm.lbCompletion.Font.Size := FontSize;
-  HeaderComplForm.lbCompletion.ItemHeight := Round(2 * FontSize);
+  HeaderComplForm.lbCompletion.ItemHeight := HeaderComplForm.lbCompletion.Canvas.TextHeight('F')+6;
+  // Round(2 * FontSize);
   HeaderComplForm.Update;
   Screen.Cursor := crDefault;
   fPreparing:=False;

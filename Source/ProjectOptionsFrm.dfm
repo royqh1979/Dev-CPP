@@ -1,6 +1,6 @@
 object ProjectOptionsFrm: TProjectOptionsFrm
-  Left = 316
-  Top = 288
+  Left = 333
+  Top = 387
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Project Options'
@@ -71,7 +71,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Top = 0
     Width = 712
     Height = 481
-    ActivePage = tabGeneral
+    ActivePage = tabVersion
     TabOrder = 3
     object tabGeneral: TTabSheet
       Caption = 'General'
@@ -428,7 +428,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 164
           Height = 28
           Style = csDropDownList
-          ItemHeight = 20
+          ItemHeight = 0
           TabOrder = 6
           OnChange = cbEncodingChange
         end
@@ -506,7 +506,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Width = 660
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnChange = cmbCompilerChange
       end

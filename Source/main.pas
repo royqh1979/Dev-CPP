@@ -3180,11 +3180,11 @@ begin
           //reset Class browsing
           LeftPageControl.ActivePage := LeftClassSheet;
           fLeftPageControlChanged := False;
+          ClassBrowser.TabVisible := True;
           e:=EditorList.GetEditor();
           if Assigned(e) and not e.InProject then begin
             UpdateClassBrowserForEditor(e);
           end;
-          ClassBrowser.TabVisible := True;
         end;
       finally
         fEditorList.EndUpdate;
