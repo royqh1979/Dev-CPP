@@ -168,6 +168,7 @@ type
     procedure getFullNameSpace(const Phrase:AnsiString; var namespace:AnsiString; var member:AnsiString);
     function FindStatementInScope(const Name , NoNameArgs:string;kind:TStatementKind; scope:PStatement):PStatement;
     procedure InternalInvalidateFile(const FileName: AnsiString);
+    procedure InternalInvalidateFiles(const Files: TStringList);
     procedure calculateFilesToBeReparsed(const FileName:AnsiString; files:TStringList);
     {
     function GetClass(const Phrase: AnsiString): AnsiString;
@@ -3205,9 +3206,7 @@ begin
     end;
 
     calculateFilesToBeReparsed(FileName,files);
-    for i:=0 to files.Count-1 do begin
-      InternalInvalidateFile(files[i]);
-    end;
+    InternalInvalidateFiles(files);
 
     if InProject then begin
       fProjectFiles.Add(FileName);
@@ -3284,9 +3283,7 @@ begin
     files:=TStringList.Create;
     try
       calculateFilesToBeReparsed(FileName,files);
-      for i:=0 to files.Count-1 do begin
-        InternalInvalidateFile(files[i]);
-      end;
+      InternalInvalidateFiles(files);
     finally
       files.Free;
       fParsing:=False;
@@ -3328,6 +3325,35 @@ begin
     queue.Free;
     processed.Free;
   end;
+end;
+
+procedure TCppParser.InternalInvalidateFiles(const files:TStringList);
+var
+  i:integer;
+  procedure updateStatements(FileName:String);
+  var
+    P: PFileIncludes;
+    Statement: PStatement;
+    i: integer;
+  begin
+    P := FindFileIncludes(FileName);
+    if not Assigned(P) then
+      Exit;
+    for i:=0 to P^.Statements.Count-1 do begin
+      Statement := P^.Statements[i];
+      if (Statement^._Kind in [skFunction,skConstructor,skDestructor])
+        and not SameText(FileName, Statement^._FileName) then begin
+        Statement^._HasDefinition := False;
+        Statement^._DefinitionFileName := Statement^._FileName;
+        Statement^._DefinitionLine := Statement^._Line;
+      end;
+    end;
+  end;
+begin
+  for i:=0 to files.Count -1 do
+    updateStatements(files[i]);
+  for i:=0 to files.Count -1 do
+    InternalInvalidateFile(files[i]);
 end;
 
 procedure TCppParser.InternalInvalidateFile(const FileName: AnsiString);
@@ -3373,22 +3399,11 @@ begin
     P^.IncludeFiles.Free;
     P^.DirectIncludeFiles.Free;
     P^.Usings.Free;
-    
-    for i:=0 to P^.Statements.Count-1 do begin
-      Statement:= P^.Statements[i];
-      if (Statement^._Kind in [skFunction,skConstructor,skDestructor])
-        and not SameText(FileName, Statement^._FileName) then begin
-        Statement^._HasDefinition := False;
-        Statement^._DefinitionFileName := Statement^._FileName;
-        Statement^._DefinitionLine := Statement^._Line;
-      end;
-    end;
 
     for i:=0 to P^.DeclaredStatements.Count-1 do begin
       Statement:= P^.DeclaredStatements[i];
       fStatementList.DeleteStatement(Statement);
     end;
-
 
     PFileIncludes(P)^.DeclaredStatements.Free;
     PFileIncludes(P)^.DeclaredStatementsIndex.Free;
