@@ -3373,10 +3373,7 @@ begin
     P^.IncludeFiles.Free;
     P^.DirectIncludeFiles.Free;
     P^.Usings.Free;
-    for i:=0 to P^.DeclaredStatements.Count-1 do begin
-      Statement:= P^.DeclaredStatements[i];
-      fStatementList.DeleteStatement(Statement);
-    end;
+    
     for i:=0 to P^.Statements.Count-1 do begin
       Statement:= P^.Statements[i];
       if (Statement^._Kind in [skFunction,skConstructor,skDestructor])
@@ -3386,6 +3383,12 @@ begin
         Statement^._DefinitionLine := Statement^._Line;
       end;
     end;
+
+    for i:=0 to P^.DeclaredStatements.Count-1 do begin
+      Statement:= P^.DeclaredStatements[i];
+      fStatementList.DeleteStatement(Statement);
+    end;
+
 
     PFileIncludes(P)^.DeclaredStatements.Free;
     PFileIncludes(P)^.DeclaredStatementsIndex.Free;
