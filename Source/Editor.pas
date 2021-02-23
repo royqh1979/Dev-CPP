@@ -1321,6 +1321,7 @@ end;
 procedure TEditor.UpdateCaption(const NewCaption: AnsiString);
 var
   caption:String;
+  num : integer;
 begin
   caption:=NewCaption;
   if caption = '' then begin
@@ -1329,6 +1330,11 @@ begin
     else
       caption := ExtractFileName(fFileName);
   end;
+  if assigned(fTabSheet.PageControl) then
+    num := 30 div fTabSheet.PageControl.Canvas.TextWidth(' ')
+  else
+    num := 0;
+  caption := caption + StringOfChar(' ',num+1);
   if Assigned(fTabSheet) then begin
     if caption <> fTabSheet.Caption then begin
       fTabSheet.Caption := caption;
@@ -3831,7 +3837,7 @@ begin
 //  BeginUpdate;
   // Reparse whole file (not function bodies) if it has been modified
   // use stream, don't read from disk (not saved yet)
-  ParseFile(fParser,fFileName, InProject, False, False, fText.Lines);
+  ParseFile(fParser,fFileName, InProject, False, True);
 //  EndUpdate;
 end;
 

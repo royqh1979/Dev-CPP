@@ -80,12 +80,12 @@ begin
     fCurrentCaret.line := line;
     Exit;
   end;
+  inc(FIndex);
   if (FIndex = MAX_CARET_COUNT) then begin
     System.Move(FList[2], FList[1],
       (MAX_CARET_COUNT-1) * SizeOf(TEditorCaret));
-      dec(FIndex);
+    dec(FIndex);
   end;
-  inc(FIndex);
   FList[FIndex].editor := editor;
   FList[FIndex].line := line;
   FList[FIndex].char := char;

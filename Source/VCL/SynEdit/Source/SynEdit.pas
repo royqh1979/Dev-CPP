@@ -6753,7 +6753,7 @@ begin
       ecChar:
         // #127 is Ctrl + Backspace, #32 is space
         if not ReadOnly and (AChar >= #32) and (AChar <> #127) then begin
-          DoOnPaintTransient(ttBefore);
+          //DoOnPaintTransient(ttBefore);
           if (InsertMode = False) and (not SelAvail) then begin
             SelLength := 1;
           end;
@@ -6784,7 +6784,7 @@ begin
 
           SelText := AChar;
 
-          DoOnPaintTransient(ttAfter);
+          //DoOnPaintTransient(ttAfter);
         end;
       ecUpperCase,
         ecLowerCase,

@@ -41,7 +41,7 @@ Ver=1
 2015=to &Tex...
 2016=Open &Folder...
 2017=Only Show Dev-Cpp Files
-2018=Locate the editing file in the folder
+2018=Locate the editing file in the Files panel
 2019=Close
 
 
@@ -979,6 +979,7 @@ Ver=1
 60033=Not found in current context
 60034=Are you sure you want to delete all the custom configurations, including shortcuts, user templates, color schemes, etc?
 60035=The editing file will be saved using %s encoding. <CR>This operation can't be reverted. <CR>Are you sure to continue?
+60036=The File '%s' is not in the Files panel's current folder. Set it to the file's parent folder?
 
 61001=Cannot open file %s
 61002=Cannot save file %s

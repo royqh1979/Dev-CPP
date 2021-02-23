@@ -711,6 +711,8 @@ type
     actOnlyShowDevFiles: TAction;
     actLocateFile: TAction;
     ToolButton30: TToolButton;
+    LocateFileinthefolder1: TMenuItem;
+    LocateFileinthefolder2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1112,6 +1114,7 @@ type
     procedure UpdateDebugInfo;
     procedure OpenShell(Sender: TObject;const shellName:string);
     procedure UpdateStatementsType;
+    procedure setLeftPageControlPage( page: TTabSheet);
     procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
     procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
     procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
@@ -1138,7 +1141,7 @@ type
     procedure SetStatusbarLineCol;
     procedure SetStatusbarMessage(const msg: AnsiString);
     procedure OnBacktraceReady;
-    procedure SetCppParserProject(Project:TProject);
+    procedure SetCppParserProject(Parser:TCppParser; Project:TProject);
     // Hide variables
     property AutoSaveTimer: TTimer read fAutoSaveTimer write fAutoSaveTimer;
     property Project: TProject read fProject write fProject;
@@ -2378,6 +2381,13 @@ begin // TODO: ask on SO
     ExecuteFile(ParseToolParams(Exec), ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
 end;
 
+procedure TMainForm.setLeftPageControlPage( page: TTabSheet);
+begin
+  LeftPageControl.ActivePage := Page;
+  fLeftPageControlChanged := False;
+  ClassBrowser.TabVisible:= (LeftPageControl.ActivePage = LeftClassSheet);
+end;
+
 procedure TMainForm.OpenProject(const s: AnsiString);
 var
   s2: AnsiString;
@@ -2395,10 +2405,12 @@ begin
       exit;
   end;
   LeftProjectSheet.TabVisible := True;
+  setLeftPageControlPage( LeftProjectSheet );
+  {
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
-  ClassBrowser.TabVisible:=False;
-
+  ClassBrowser.TabVisible:= False;
+  }
   // Only update class browser once
   ClassBrowser.BeginTreeUpdate;
   try
@@ -2485,9 +2497,12 @@ begin
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) and (LeftPageControl.ActivePage <> self.FilesSheet ) then begin
+    setLeftPageControlPage(LeftClassSheet);
+    {
     LeftPageControl.ActivePage := LeftClassSheet;
     fLeftPageControlChanged := False;
     ClassBrowser.TabVisible := True;
+    }
   end;
 end;
 
@@ -2901,9 +2916,12 @@ begin
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
   UpdateFileEncodingStatusPanel;
+  setLeftPageControlPage(LeftClassSheet);
+  {
   LeftPageControl.ActivePage := LeftClassSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible := True;
+  }
 end;
 
 procedure TMainForm.actNewProjectExecute(Sender: TObject);
@@ -3174,18 +3192,21 @@ begin
       fEditorList.BeginUpdate;
       try
         FreeandNil(fProject);
-        ClassBrowser.CurrentFile := '';
         ClassBrowser.Parser:=nil; // set parser to nil will do the clear
+        ClassBrowser.CurrentFile := '';
 
         if not fQuitting and RefreshEditor then begin
           //reset Class browsing
+          setLeftPageControlPage(LeftClassSheet);
+          {
           LeftPageControl.ActivePage := LeftClassSheet;
           fLeftPageControlChanged := False;
+          ClassBrowser.TabVisible := True;
+          }
           e:=EditorList.GetEditor();
           if Assigned(e) and not e.InProject then begin
             UpdateClassBrowserForEditor(e);
           end;
-          ClassBrowser.TabVisible := True;
         end;
       finally
         fEditorList.EndUpdate;
@@ -3697,9 +3718,12 @@ begin
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
   LeftProjectSheet.TabVisible := True;
+  setLeftPageControlPage(LeftProjectSheet);
+  {
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
+  }
   if idx <> -1 then
     with fProject.OpenUnit(idx) do begin
       Activate;
@@ -3780,7 +3804,7 @@ procedure TMainForm.actProjectOptionsExecute(Sender: TObject);
 begin
   if Assigned(fProject) then begin
     if fProject.ShowOptions = mrOk then begin
-      SetCppParserProject(fProject);
+      SetCppParserProject(fProject.CppParser,fProject);
       UpdateAppTitle;
       if fOldCompilerToolbarIndex <> cmbCompilers.ItemIndex then
         CompileClean;
@@ -4178,9 +4202,12 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
+  setLeftPageControlPage(WatchSheet);
+  {
   LeftPageControl.ActivePage := WatchSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
+  }
   MessageControl.ActivePage := DebugSheet;
   fMessageControlChanged := False;
   DebugViews.ActivePage := LocalSheet;  // we must have this line or devcpp ui will freeze, if the local sheet is not active in the designer
@@ -5211,19 +5238,19 @@ begin
   actBrowserSortAlphabetically.Checked := ClassBrowser.SortAlphabetically;
 end;
 
-procedure TMainForm.SetCppParserProject(Project:TProject);
+procedure TMainForm.SetCppParserProject(Parser:TCppParser; Project:TProject);
 var
   i:integer;
 begin
   if not Assigned(Project) then begin
     Exit;
   end;
-  Project.CppParser.ClearProjectFiles;
-  Project.CppParser.ClearProjectIncludePaths;
+  Parser.ClearProjectFiles;
+  Parser.ClearProjectIncludePaths;
   for I := 0 to Project.Units.Count - 1 do
-    Project.CppParser.AddFileToScan(Project.Units[I].FileName, True);
+    Parser.AddFileToScan(Project.Units[I].FileName, True);
   for I := 0 to Project.Options.Includes.Count - 1 do
-    Project.CppParser.AddProjectIncludePath(Project.Options.Includes[I]);
+    Parser.AddProjectIncludePath(Project.Options.Includes[I]);
 end;
 
 procedure TMainForm.ScanActiveProject(parse:boolean);
@@ -5231,10 +5258,10 @@ begin
   //UpdateClassBrowsing;
   if Assigned(fProject) and parse then begin
     ResetCppParser(fProject.CppParser);
-    SetCppParserProject(fProject);
+    SetCppParserProject(fProject.CppParser,fProject);
     ParseFileList(Project.CppParser);
   end else begin
-    SetCppParserProject(fProject);
+    SetCppParserProject(fProject.CppParser,fProject);
   end;
 end;
 
@@ -5397,6 +5424,8 @@ begin
     // Set title bar to current file
     UpdateAppTitle;
 
+    // Set Parser to nil;
+    ClassBrowser.Parser := nil;
     // Set classbrowser to current file
     ClassBrowser.CurrentFile := '';
 
@@ -5730,6 +5759,7 @@ begin
         ParseFile(GetCppParser,e.FileName,e.InProject);
       end;
     end else begin
+      ClassBrowser.Parser:=nil; // set parser to nil will do the clear
       ClassBrowser.CurrentFile := '';
     end;
   finally
@@ -6245,10 +6275,12 @@ var
   ParseTimeFloat, ParsingFrequency: Extended;
   total:integer;
   e:TEditor;
+  updateView:integer;
 begin
   Screen.Cursor := crDefault;
 
   total := message.wParam;
+  updateView := message.LParam;
 
   //CppParser will call class browser to redraw, don't do it twice
 
@@ -6262,10 +6294,15 @@ begin
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGINCOUNT], [Total, ParseTimeFloat, ParsingFrequency]))
   end else
     SetStatusbarMessage(Format(Lang[ID_DONEPARSINGIN], [ParseTimeFloat]));
-  ClassBrowser.EndTreeUpdate;
-  e:=EditorList.GetEditor;
-  if assigned(e) then begin
-    e.Text.Invalidate;
+
+  if updateView <> 0 then begin
+    ClassBrowser.EndTreeUpdate;
+    e:=EditorList.GetEditor;
+    if assigned(e) then begin
+      e.Text.Invalidate;
+    end;
+  end else begin
+    ClassBrowser.EndTreeUpdate(False);
   end;
 end;
 
@@ -7286,6 +7323,7 @@ begin
   // Set left page control to previous state
   actProjectManager.Checked := devData.ShowLeftPages;
   LeftPageControl.ActivePageIndex := devData.LeftActivePage;
+  ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
   fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
   LeftPageControl.Width := devData.ProjectWidth;
@@ -8098,6 +8136,7 @@ var
   word,newword: ansiString;
   OldCaretXY: TBufferCoord;
   oldCursor : TCursor;
+  parser:TCppParser;
 begin
   Editor := fEditorList.GetEditor;
   if Assigned(Editor) then begin
@@ -8135,22 +8174,35 @@ begin
         Exit;
         
       OldCaretXY := Editor.Text.CaretXY;
-      with TRefactorer.Create(devRefactorer,GetCppParser) do try
-        if assigned(fProject) then begin
-          self.actSaveAllExecute(self);
-          ScanActiveProject(true);
+      if assigned(fProject) and editor.InProject then begin
+        parser := TCppParser.Create(self.Handle);
+        parser.OnGetFileStream := EditorList.GetStreamFromOpenedEditor;
+        ResetCppParser(parser);
+        parser.Enabled := True;
+      end else begin
+        parser := editor.CppParser;
+      end;
+      with TRefactorer.Create(devRefactorer,parser) do try
+        if assigned(fProject) and editor.InProject then begin
+          //here we must reparse the project in sync, or rename may fail
+          SetCppParserProject(parser, fProject);
+          parser.ParseFileList(false);
         end else begin
-          Editor.Reparse;
+          //here we must reparse the file in sync, or rename may fail
+          parser.ParseFile(editor.FileName, editor.InProject, false, false);
         end;
         RenameSymbol(Editor,OldCaretXY,word,newword,fProject);
       finally
         Free;
+        if parser <> editor.CppParser then
+          parser.Free;
       end;
 
       //Editor.Save;
-      if assigned(fProject) then begin
+      if assigned(fProject) and editor.InProject then begin
         ScanActiveProject(true);
-      end;
+      end else
+        editor.reparse;
     finally
       Free;
     end;
@@ -9415,11 +9467,14 @@ var
   folder : String;
 begin
   folder:=fileBrowser.CurrentFolder;
-  if NewSelectDirectory('',fileBrowser.CurrentFolder,folder) then
+  if NewSelectDirectory('','',folder) then
     fileBrowser.CurrentFolder := folder;
+  setLeftPageControlPage(FilesSheet);
+  {
   LeftPageControl.ActivePage := self.FilesSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
+  }
 end;
 
 procedure TMainForm.fileBrowserDblClick(Sender: TObject);
@@ -9445,12 +9500,17 @@ begin
   editor := EditorList.GetEditor();
   if not assigned(editor) then
     Exit;   
-  if not StartsText(fileBrowser.CurrentFolder, editor.FileName) then
-    Exit;
-  if fileBrowser.CurrentFolder <> '' then
-    fileBrowser.LocateFile(editor.FileName)
-  else
+  if ( fileBrowser.CurrentFolder <> '') then begin
+    if not StartsText(IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder), editor.FileName) then begin
+      if (MessageDlg(Format(Lang[ID_MSG_CHANGE_FOLDER_TO_FILE], [ExtractFileName(editor.FileName)]),
+        mtConfirmation, [mbYes,mbNo], 0) = mrYes) then begin
+        fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
+      end else
+        Exit;
+    end;
+  end else
     fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
+  fileBrowser.LocateFile(editor.FileName);
 end;
 
 end.

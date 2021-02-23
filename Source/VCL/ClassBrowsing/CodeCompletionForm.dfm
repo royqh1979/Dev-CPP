@@ -1,6 +1,6 @@
 object CodeComplForm: TCodeComplForm
-  Left = 638
-  Top = 293
+  Left = 734
+  Top = 190
   BorderIcons = []
   BorderStyle = bsNone
   ClientHeight = 322

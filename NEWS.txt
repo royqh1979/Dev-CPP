@@ -1,3 +1,18 @@
+Version 6.4 FEB 2021
+
+    - fix: classbrowser not work when class browser is opened by default when devcpp starts
+    - fix: finish reparse before rename a symbol
+    - change: don't auto save after rename a symbol
+    - fix: crash when remembered editor posistions >= 500
+    - fix: devcpp crash when open many editors and close the last one
+    - fix: devcpp may crash when reparse project files
+    - fix: row height in the project option dialog's version info tab not correct
+
+Version 6.4-beta4.1 FEB 2021
+
+    - fix: the display of title bar is not correct when file is edited
+    - fix: infinite loop when includes "iostream" and input "v"
+
 Version 6.4-beta4 FEB 2021
 
     - fix: the contents not get parsed when create a new file and paste into it.  

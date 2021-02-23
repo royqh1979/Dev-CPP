@@ -1022,6 +1022,7 @@ begin
     chkVersionInfoClick(nil);
 
     vleVersion.Strings.Clear;
+    vleVersion.DefaultRowHeight := Canvas.TextHeight('F')+6;
     vleVersion.InsertRow('File Description', FileDescription, True);
     vleVersion.InsertRow('File Version', FileVersion, True);
     vleVersion.InsertRow('Product Name', ProductName, True);

@@ -174,7 +174,7 @@ begin
           Free;
         end;
       end else begin
-        mainForm.EditorList.GetEditorFromFileName(FileName).Save;
+        //mainForm.EditorList.GetEditorFromFileName(FileName).Save;
       end;
     end;
     Result := True;

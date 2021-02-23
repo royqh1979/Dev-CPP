@@ -152,7 +152,7 @@ type
     procedure UpdateView;
     procedure ClearTree;
     procedure BeginTreeUpdate;
-    procedure EndTreeUpdate;
+    procedure EndTreeUpdate(refresh:boolean = True);
     property OnUpdated: TNotifyEvent read fOnUpdated write fOnUpdated;
     property TreeColors[Index: Integer]: TColor read GetColor write SetColor;
     property SelectedLine : integer read GetSelectedLine;
@@ -311,10 +311,10 @@ begin
   Inc(fUpdateCount);
 end;
 
-procedure TClassBrowser.EndTreeUpdate;
+procedure TClassBrowser.EndTreeUpdate(refresh:boolean = True);
 begin
   Dec(fUpdateCount);
-  if fUpdateCount = 0 then
+  if (fUpdateCount = 0) and refresh then
     UpdateView;
 end;
 
@@ -913,6 +913,8 @@ begin
   if Value = fCurrentFile then
     Exit;
   fCurrentFile := Value;
+  if fCurrentFile = '' then
+    fParser := nil;
   BeginTreeUpdate;
   EndTreeUpdate;
   finally
