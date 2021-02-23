@@ -1063,6 +1063,7 @@ const
   ID_MSG_NOT_FOUND_IN_CONTEXT           = 60033;
   ID_MSG_CLEARCONFIG                    = 60034;
   ID_MSG_CONVERTTOANSI                  = 60035;
+  ID_MSG_CHANGE_FOLDER_TO_FILE          = 60036;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;

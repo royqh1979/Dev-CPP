@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 1435
-  Top = 391
+  Left = 668
+  Top = 163
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -2035,6 +2035,9 @@ object MainForm: TMainForm
     object N16: TMenuItem
       Caption = '-'
     end
+    object LocateFileinthefolder1: TMenuItem
+      Action = actLocateFile
+    end
     object Swapheadersource1: TMenuItem
       Action = actSwapHeaderSource
     end
@@ -3631,6 +3634,9 @@ object MainForm: TMainForm
     end
     object MenuItem38: TMenuItem
       Caption = '-'
+    end
+    object LocateFileinthefolder2: TMenuItem
+      Action = actLocateFile
     end
     object MenuItem39: TMenuItem
       Action = actSwapHeaderSource

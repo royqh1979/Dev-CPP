@@ -711,6 +711,8 @@ type
     actOnlyShowDevFiles: TAction;
     actLocateFile: TAction;
     ToolButton30: TToolButton;
+    LocateFileinthefolder1: TMenuItem;
+    LocateFileinthefolder2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1112,6 +1114,7 @@ type
     procedure UpdateDebugInfo;
     procedure OpenShell(Sender: TObject;const shellName:string);
     procedure UpdateStatementsType;
+    procedure setLeftPageControlPage( page: TTabSheet);
     procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
     procedure CppParserStartParsing(var message:TMessage); message WM_PARSER_BEGIN_PARSE;
     procedure CppParserEndParsing(var message:TMessage); message WM_PARSER_END_PARSE;
@@ -2378,6 +2381,13 @@ begin // TODO: ask on SO
     ExecuteFile(ParseToolParams(Exec), ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
 end;
 
+procedure TMainForm.setLeftPageControlPage( page: TTabSheet);
+begin
+  LeftPageControl.ActivePage := Page;
+  fLeftPageControlChanged := False;
+  ClassBrowser.TabVisible:= (LeftPageControl.ActivePage = LeftClassSheet);
+end;
+
 procedure TMainForm.OpenProject(const s: AnsiString);
 var
   s2: AnsiString;
@@ -2395,9 +2405,12 @@ begin
       exit;
   end;
   LeftProjectSheet.TabVisible := True;
+  setLeftPageControlPage( LeftProjectSheet );
+  {
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:= False;
+  }
   // Only update class browser once
   ClassBrowser.BeginTreeUpdate;
   try
@@ -2484,9 +2497,12 @@ begin
   UpdateFileEncodingStatusPanel;
 
   if not Assigned(fProject) and (LeftPageControl.ActivePage <> self.FilesSheet ) then begin
+    setLeftPageControlPage(LeftClassSheet);
+    {
     LeftPageControl.ActivePage := LeftClassSheet;
     fLeftPageControlChanged := False;
     ClassBrowser.TabVisible := True;
+    }
   end;
 end;
 
@@ -2900,9 +2916,12 @@ begin
   NewEditor.InsertDefaultText;
   NewEditor.Activate;
   UpdateFileEncodingStatusPanel;
+  setLeftPageControlPage(LeftClassSheet);
+  {
   LeftPageControl.ActivePage := LeftClassSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible := True;
+  }
 end;
 
 procedure TMainForm.actNewProjectExecute(Sender: TObject);
@@ -3178,9 +3197,12 @@ begin
 
         if not fQuitting and RefreshEditor then begin
           //reset Class browsing
+          setLeftPageControlPage(LeftClassSheet);
+          {
           LeftPageControl.ActivePage := LeftClassSheet;
           fLeftPageControlChanged := False;
           ClassBrowser.TabVisible := True;
+          }
           e:=EditorList.GetEditor();
           if Assigned(e) and not e.InProject then begin
             UpdateClassBrowserForEditor(e);
@@ -3696,9 +3718,12 @@ begin
     idx := fProject.NewUnit(FALSE, FolderNode);
   end;
   LeftProjectSheet.TabVisible := True;
+  setLeftPageControlPage(LeftProjectSheet);
+  {
   LeftPageControl.ActivePage := LeftProjectSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
+  }
   if idx <> -1 then
     with fProject.OpenUnit(idx) do begin
       Activate;
@@ -4177,9 +4202,12 @@ begin
   fDebugger.LeftPageIndexBackup := MainForm.LeftPageControl.ActivePageIndex;
 
   // Focus on the debugging buttons
+  setLeftPageControlPage(WatchSheet);
+  {
   LeftPageControl.ActivePage := WatchSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
+  }
   MessageControl.ActivePage := DebugSheet;
   fMessageControlChanged := False;
   DebugViews.ActivePage := LocalSheet;  // we must have this line or devcpp ui will freeze, if the local sheet is not active in the designer
@@ -9441,9 +9469,12 @@ begin
   folder:=fileBrowser.CurrentFolder;
   if NewSelectDirectory('','',folder) then
     fileBrowser.CurrentFolder := folder;
+  setLeftPageControlPage(FilesSheet);
+  {
   LeftPageControl.ActivePage := self.FilesSheet;
   fLeftPageControlChanged := False;
   ClassBrowser.TabVisible:=False;
+  }
 end;
 
 procedure TMainForm.fileBrowserDblClick(Sender: TObject);
@@ -9469,12 +9500,17 @@ begin
   editor := EditorList.GetEditor();
   if not assigned(editor) then
     Exit;   
-  if not StartsText(fileBrowser.CurrentFolder, editor.FileName) then
-    Exit;
-  if fileBrowser.CurrentFolder <> '' then
-    fileBrowser.LocateFile(editor.FileName)
-  else
+  if ( fileBrowser.CurrentFolder <> '') then begin
+    if not StartsText(IncludeTrailingPathDelimiter(fileBrowser.CurrentFolder), editor.FileName) then begin
+      if (MessageDlg(Format(Lang[ID_MSG_CHANGE_FOLDER_TO_FILE], [ExtractFileName(editor.FileName)]),
+        mtConfirmation, [mbYes,mbNo], 0) = mrYes) then begin
+        fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
+      end else
+        Exit;
+    end;
+  end else
     fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
+  fileBrowser.LocateFile(editor.FileName);
 end;
 
 end.

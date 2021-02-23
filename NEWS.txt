@@ -1,4 +1,4 @@
-Version 6.4-beta5 FEB 2021
+Version 6.4 FEB 2021
 
     - fix: classbrowser not work when class browser is opened by default when devcpp starts
     - fix: finish reparse before rename a symbol
