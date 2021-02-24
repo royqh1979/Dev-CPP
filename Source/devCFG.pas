@@ -174,6 +174,7 @@ type
 //    procedure OnCompilerSetChanged(OldSet, NewSet: TdevCompilerSet);
     procedure LoadSet(Index: integer; const SetName: AnsiString = '');
     procedure SaveSet(Index: integer);
+    procedure AddSets(const Folder: AnsiString);
     function AddSet: TdevCompilerSet; overload; // add empty shell
     function AddSet(const Folder: AnsiString): TdevCompilerSet; overload; // add empty shell, let it configure itself
     function AddSet(compilerset: TdevCompilerSet): TdevCompilerSet; overload; // add deep copy
@@ -2113,6 +2114,88 @@ begin
   end;
 end;
 
+procedure TdevCompilerSets.AddSets(const Folder: AnsiString);
+  procedure SetReleaseOptions(targetSet:TdevCompilerSet);
+  var
+    option: PCompilerOption;
+    index: integer;
+  begin
+    with targetSet do begin
+      if FindOption('-O', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
+        SetOption(option, 'a');
+
+      if FindOption('-s', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
+        SetOption(option, '1');
+    end;
+  end;
+
+  procedure SetDebugOptions(targetSet:TdevCompilerSet);
+  var
+    option: PCompilerOption;
+    index: integer;
+  begin
+    with targetSet do begin
+      if FindOption('-g3', option, index) then
+        SetOption(option, '1');
+      if FindOption('-Wall', option, index) then
+        SetOption(option, '1');
+      if FindOption('-Wextra', option, index) then
+        SetOption(option, '1');
+      {
+      if FindOption('-Werror', option, index) then
+        SetOption(option, '1');
+      }
+    end;
+  end;
+
+  procedure SetProfileOptions(targetSet:TdevCompilerSet);
+  var
+    option: PCompilerOption;
+    index: integer;
+  begin
+    with targetSet do begin
+      if FindOption('-pg', option, index) then
+        SetOption(option, '1');
+    end;
+  end;
+
+var
+  BaseSet: TdevCompilerSet;
+  BaseName: AnsiString;
+  PlatformName : AnsiString;
+begin
+  if not DirectoryExists(folder) then
+    Exit;
+  if not FileExists(includeTrailingPathDelimiter(folder) + 'bin' + pd + 'gcc.exe') then
+    Exit;
+  // Default, release profile
+  BaseSet := AddSet(Folder);
+  BaseName := BaseSet.Name;
+  if BaseSet.Target = 'x86_64' then
+    PlatformName := '64-bit'
+  else
+    PlatformName := '32-bit';
+  with BaseSet do begin
+    Name := BaseName + ' '+ PlatformName + ' Release';
+    SetReleaseOptions(BaseSet);
+  end;
+
+  BaseSet := AddSet(Folder);
+  with BaseSet do begin
+    Name := BaseName + ' '+ PlatformName + ' Debug';
+    SetDebugOptions(BaseSet);
+  end;
+
+      // Profiling profile
+  BaseSet := AddSet(Folder);
+  with BaseSet do begin
+    Name := BaseName + ' ' + PlatformName + ' Profiling';
+    SetProfileOptions(BaseSet);
+  end;
+
+  fDefaultIndex := self.fList.Count - 2;
+end;
+
 function TdevCompilerSets.AddSet: TdevCompilerSet;
 begin
   result := TdevCompilerSet.Create;
@@ -2257,149 +2340,15 @@ end;
 
 procedure TdevCompilerSets.FindSets;
 var
-  BaseSet: TdevCompilerSet;
-  BaseName: AnsiString;
+
   option: PCompilerOption;
   index: integer;
 
-  procedure SetReleaseOptions(targetSet:TdevCompilerSet);
-  begin
-    with targetSet do begin
-      if FindOption('-O', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
-        SetOption(option, 'a');
-
-      if FindOption('-s', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
-        SetOption(option, '1');
-    end;
-  end;
-
-  procedure SetDebugOptions(targetSet:TdevCompilerSet);
-  begin
-    with targetSet do begin
-      if FindOption('-g3', option, index) then
-        SetOption(option, '1');
-      if FindOption('-Wall', option, index) then
-        SetOption(option, '1');
-      if FindOption('-Wextra', option, index) then
-        SetOption(option, '1');
-      {
-      if FindOption('-Werror', option, index) then
-        SetOption(option, '1');
-      }
-    end;
-  end;
-
-  procedure SetProfileOptions(targetSet:TdevCompilerSet);
-  begin
-    with targetSet do begin
-      if FindOption('-pg', option, index) then
-        SetOption(option, '1');
-    end;
-  end;
 begin
-  // Assume 64bit compilers are put in the MinGW64 folder
-  if DirectoryExists(devDirs.Exec + 'MinGW64' + pd) then begin
-
-    // we only require GCC.exe to be present
-    if FileExists(devDirs.Exec + 'MinGW64' + pd + 'bin' + pd + GCC_PROGRAM) then begin
-
-      // Default, release profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 64-bit Release';
-        SetReleaseOptions(BaseSet);
-      end;
-
-      // Debug profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 64-bit Debug';
-        SetDebugOptions(BaseSet);
-      end;
-
-      // Profiling profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 64-bit Profiling';
-        SetProfileOptions(BaseSet);
-      end;
-
-      {
-      // Default, 32bit release profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 32-bit Release';
-        if FindOption('-', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
-          SetOption(option, '1');
-
-        SetReleaseOptions(BaseSet);
-
-        // Hack fix, but works...
-        fgdbName := GDB32_PROGRAM;
-        for I := 0 to fLibDir.Count - 1 do
-          fLibDir[i] := fLibDir[i] + '32';
-      end;
-
-      // Debug profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 32-bit Debug';
-        if FindOption('-', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
-          SetOption(option, '1');
-        SetDebugOptions(BaseSet);
-      end;
-
-      // Profiling profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW64');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 32-bit Profiling';
-        if FindOption('-', option, index) then // -m is used my -mINSTRUCTIONSET, so use - instead
-          SetOption(option, '1');
-                  
-        setProfileOptions(BaseSet);
-      end;
-      }
-      // Set Debug profile as the default
-      fDefaultIndex := 1
-    end;
-  end;
-
   // And assume 32bit compilers are put in the MinGW32 folder
-  if DirectoryExists(devDirs.Exec + 'MinGW32' + pd) then begin
-    if FileExists(devDirs.Exec + 'MinGW32' + pd + 'bin' + pd + 'gcc.exe') then begin
-
-      // Default, release profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW32');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 32-bit Release';
-        SetReleaseOptions(BaseSet);
-      end;
-
-      // Debug profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW32');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 32-bit Debug';
-        setDebugOptions(BaseSet);
-      end;
-
-      // Profiling profile
-      BaseSet := AddSet(devDirs.Exec + 'MinGW32');
-      BaseName := BaseSet.Name;
-      with BaseSet do begin
-        Name := BaseName + ' 32-bit Profiling';
-        SetProfileOptions(BaseSet);
-      end;
-
-    end;
-  end;
+  AddSets(devDirs.Exec + 'MinGW32');
+  // Assume 64bit compilers are put in the MinGW64 folder
+  AddSets(devDirs.Exec + 'MinGW64');
 end;
 
 procedure TdevCompilerSets.ClearSets;
