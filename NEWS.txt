@@ -7,6 +7,7 @@ Version 6.4 FEB 2021
     - fix: devcpp crash when open many editors and close the last one
     - fix: devcpp may crash when reparse project files
     - fix: row height in the project option dialog's version info tab not correct
+    - fix: show code completion list after 'unsigned' and 'signed'
 
 Version 6.4-beta4.1 FEB 2021
 
