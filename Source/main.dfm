@@ -1,12 +1,12 @@
 object MainForm: TMainForm
-  Left = 668
-  Top = 163
+  Left = 586
+  Top = 186
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++ 2020'
-  ClientHeight = 831
-  ClientWidth = 1456
+  ClientHeight = 756
+  ClientWidth = 1133
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -29,15 +29,15 @@ object MainForm: TMainForm
     Left = 209
     Top = 64
     Width = 4
-    Height = 513
+    Height = 438
     MinSize = 45
     ResizeStyle = rsUpdate
     OnMoved = SplitterLeftMoved
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 577
-    Width = 1456
+    Top = 502
+    Width = 1133
     Height = 4
     Cursor = crVSplit
     Align = alBottom
@@ -46,8 +46,8 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 581
-    Width = 1456
+    Top = 506
+    Width = 1133
     Height = 225
     ActivePage = DebugSheet
     Align = alBottom
@@ -212,7 +212,7 @@ object MainForm: TMainForm
       object CompResGroupBox: TPanel
         Left = 192
         Top = 0
-        Width = 1256
+        Width = 933
         Height = 196
         Align = alClient
         BevelOuter = bvNone
@@ -250,7 +250,7 @@ object MainForm: TMainForm
       object DebugViews: TPageControl
         Left = 458
         Top = 0
-        Width = 990
+        Width = 667
         Height = 196
         ActivePage = DebugConsoleSheet
         Align = alClient
@@ -263,7 +263,7 @@ object MainForm: TMainForm
           object Panel2: TPanel
             Left = 0
             Top = 0
-            Width = 982
+            Width = 659
             Height = 165
             Align = alClient
             BevelOuter = bvNone
@@ -271,7 +271,7 @@ object MainForm: TMainForm
             object DebugOutput: TDevConsole
               Left = 0
               Top = 0
-              Width = 982
+              Width = 659
               Height = 165
               Align = alClient
               BevelInner = bvNone
@@ -587,7 +587,7 @@ object MainForm: TMainForm
       object FindOutput: TFindOutput
         Left = 0
         Top = 0
-        Width = 1448
+        Width = 1125
         Height = 196
         Align = alClient
         Indent = 22
@@ -608,7 +608,7 @@ object MainForm: TMainForm
   object ToolbarDock: TControlBar
     Left = 0
     Top = 0
-    Width = 1456
+    Width = 1133
     Height = 64
     Align = alTop
     AutoDock = False
@@ -999,8 +999,8 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 806
-    Width = 1456
+    Top = 731
+    Width = 1133
     Height = 25
     Panels = <
       item
@@ -1028,17 +1028,17 @@ object MainForm: TMainForm
   object PageControlPanel: TPanel
     Left = 213
     Top = 64
-    Width = 1243
-    Height = 513
+    Width = 920
+    Height = 438
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
     OnResize = PageControlPanelResize
     object EditorPageControlSplitter: TSplitter
-      Left = 1243
+      Left = 920
       Top = 0
       Width = 0
-      Height = 513
+      Height = 438
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -1046,8 +1046,8 @@ object MainForm: TMainForm
     object EditorPageControlLeft: TPageControl
       Left = 0
       Top = 0
-      Width = 1243
-      Height = 513
+      Width = 920
+      Height = 438
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -1064,10 +1064,10 @@ object MainForm: TMainForm
       OnMouseUp = EditorPageControlMouseUp
     end
     object EditorPageControlRight: TPageControl
-      Left = 1243
+      Left = 920
       Top = 0
       Width = 0
-      Height = 513
+      Height = 438
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -1088,7 +1088,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 64
     Width = 209
-    Height = 513
+    Height = 438
     ActivePage = FilesSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
@@ -1111,7 +1111,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 179
-        Height = 505
+        Height = 430
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelOuter = bvNone
@@ -1146,7 +1146,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 31
         Width = 179
-        Height = 474
+        Height = 399
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel3'
@@ -1246,7 +1246,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 31
         Width = 179
-        Height = 474
+        Height = 399
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel4'
@@ -1255,7 +1255,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 474
+          Height = 399
           Align = alClient
           BevelInner = bvNone
           BevelOuter = bvNone
@@ -1342,7 +1342,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 31
         Width = 179
-        Height = 474
+        Height = 399
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel5'
@@ -1351,7 +1351,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 474
+          Height = 399
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
           TabOrder = 0

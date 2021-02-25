@@ -85,9 +85,9 @@ implementation
 type
   PNodeData = ^TNodeData;
   TNodeData = record
-    Level:integer;
     Name: String;
     ImageIndex:integer;
+    isDir : boolean;
     FullPath : String;
   end;
 
@@ -165,6 +165,7 @@ procedure TDevFileBrowser.AddChildren(Parent:PVirtualNode; Path:String);
     for i:=0 to folders.Count-1 do begin
       Node := AddChild(Parent);
       Data := GetNodeData(Node);
+      Data^.isDir := True;
       Data^.Name := folders[i];
       Data^.FullPath := IncludeTrailingPathDelimiter(Path) + folders[i];
       Data^.ImageIndex := 0;
@@ -181,6 +182,7 @@ procedure TDevFileBrowser.AddChildren(Parent:PVirtualNode; Path:String);
         Continue;
       Node := AddChild(Parent);
       Data := GetNodeData(Node);
+      Data^.isDir := False;
       Data^.Name := files[i];
       Data^.FullPath := IncludeTrailingPathDelimiter(Path) + files[i];
       if SameText(ext,'.dev') then
@@ -315,25 +317,41 @@ begin
   end;
 end;
 
+function StartsText(const subtext, text: AnsiString): boolean;
+begin
+  Result := SameText(subtext, Copy(text, 1, Length(subtext)));
+end;
+
 procedure TDevFileBrowser.LocateFile(const FileName:String);
 var
-  node:PVirtualNode;
+  parentNode,node:PVirtualNode;
   enumerator: TVTVirtualNodeEnumerator;
   data: PNodeData;
+  foundNext:boolean;
 begin
   if fCurrentFolder = '' then
     Exit;
-  node := nil;
-  enumerator := Nodes().GetEnumerator;
-  while enumerator.MoveNext do begin
-    node := enumerator.Current;
-    data := self.GetNodeData(node);
-    if assigned(data) and SameText(FileName,data.FullPath) then begin
-      ScrollIntoView(Node,True);
-      SelectNodes(node,node,False);
-      SetFocus;
-      Exit;
+  parentNode := self.RootNode;
+  while assigned(parentNode) do begin
+    node := GetFirstChild(parentNode);
+    foundNext:=False;
+    while assigned(node) do begin
+      data := self.GetNodeData(node);
+      if SameText(FileName,data^.FullPath) then begin
+        ScrollIntoView(Node,True);
+        SelectNodes(node,node,False);
+        SetFocus;
+        Exit;
+      end;
+      if data^.isDir and StartsText(IncludeTrailingPathDelimiter(data^.FullPath),FileName) then begin
+        foundNext := True;
+        parentNode := Node;
+        break;
+      end;
+      node := GetNextSibling(node);
     end;
+    if not FoundNext then
+      Exit;
   end;
 
 end;

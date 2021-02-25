@@ -855,8 +855,8 @@ begin
   CppTypeKeywords.Add('int',1);
   CppTypeKeywords.Add('long',1);
   CppTypeKeywords.Add('short',1);
-  CppTypeKeywords.Add('signed',1);
-  CppTypeKeywords.Add('unsigned',1);
+  //CppTypeKeywords.Add('signed',1);
+  //CppTypeKeywords.Add('unsigned',1);
   CppTypeKeywords.Add('void',1);
   CppTypeKeywords.Add('wchar_t',1);
 

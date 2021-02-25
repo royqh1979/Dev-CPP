@@ -562,6 +562,7 @@ end;
 procedure TCompOptForm.btnAddFilledCompilerSetClick(Sender: TObject);
 var
   Directory: AnsiString;
+  i:integer;
 begin
   if devDirs.Default <> '' then
     Directory := devDirs.Default
@@ -571,12 +572,21 @@ begin
     Exit;
 
   // Add empty compiler set
-  devCompilerSets.AddSet(Directory);
+  devCompilerSets.AddSets(Directory);
+  {
   if devCompilerSets[devCompilerSets.Count - 1].Target = 'x86_64' then
     devCompilerSets[devCompilerSets.Count - 1].Name := devCompilerSets[devCompilerSets.Count - 1].Name + ' 64-bit';
+  }
+
+  cmbCompilerSetComp.Items.BeginUpdate;
+  cmbCompilerSetComp.Items.Clear;
+  for i:=0 to devCompilerSets.Count - 1 do begin
+    cmbCompilerSetComp.Items.Add(devCompilerSets[i].Name);
+  end;
+  cmbCompilerSetComp.ItemIndex := devCompilerSets.DefaultSetIndex;
+  cmbCompilerSetComp.Items.EndUpdate;
 
   // Add name to list
-  cmbCompilerSetComp.ItemIndex := cmbCompilerSetComp.Items.Add(devCompilerSets[devCompilerSets.Count - 1].Name);
   cmbCompilerSetCompChange(nil);
 
   // Mark modified
@@ -675,17 +685,13 @@ begin
   // Find a bunch of compilers
   devCompilerSets.FindSets;
 
+  cmbCompilerSetComp.Items.BeginUpdate;
   // Add names to selection box
   cmbCompilerSetComp.Clear;
   for I := 0 to devCompilerSets.Count - 1 do
     cmbCompilerSetComp.Items.Add(devCompilerSets[i].Name);
-
-  // Set a default selection  (the Debug profile, index starts from 0)
-  fOldIndex := -1;
-  if cmbCompilerSetComp.Items.Count > 0 then
-    cmbCompilerSetComp.ItemIndex := 1
-  else
-    cmbCompilerSetComp.ItemIndex := -1;
+  cmbCompilerSetComp.ItemIndex := devCompilerSets.DefaultSetIndex;
+  cmbCompilerSetComp.Items.EndUpdate;
 
   // Change event does not happen when changing ItemIndex...
   cmbCompilerSetCompChange(nil);
