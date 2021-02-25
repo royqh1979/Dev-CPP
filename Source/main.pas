@@ -9507,7 +9507,7 @@ begin
         fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
       end else
         Exit;
-    end;
+    end else
   end else
     fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
   fileBrowser.LocateFile(editor.FileName);

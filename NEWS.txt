@@ -9,6 +9,7 @@ Version 6.5 FEB 2021
     - fix: row height in the project option dialog's version info tab not correct
     - fix: show code completion list after 'unsigned' and 'signed'
     - enhancement: add compiler by folder will add release/debug/profile sets
+    - enhancement: optimize "locate the editing file in the files view"
 
 Version 6.4-beta4.1 FEB 2021
 
