@@ -9397,7 +9397,7 @@ begin
     hi.pt.y := Y;
     hi.flags := 0;
     if not fLeftPageControlChanged then begin
-      oldTabIndex := LeftPageControl.ActivePageIndex;
+      oldTabIndex := LeftPageControl.TabIndex;
       tabindex := LeftPageControl.Perform( TCM_HITTEST, 0, longint(@hi));
       if (tabindex>=0) and (tabIndex = oldTabIndex) then begin
         OpenCloseLeftPageControl(not SplitterLeft.Visible);

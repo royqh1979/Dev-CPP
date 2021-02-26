@@ -1089,7 +1089,7 @@ object MainForm: TMainForm
     Top = 64
     Width = 209
     Height = 438
-    ActivePage = FilesSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -1155,7 +1155,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 474
+          Height = 399
           Align = alClient
           Images = dmMain.ClassImages
           Indent = 19
