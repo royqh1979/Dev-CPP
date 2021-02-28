@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 948
-  Top = 252
+  Left = 397
+  Top = 196
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -56,7 +56,7 @@ object MainForm: TMainForm
     Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     MultiLine = True
     ParentFont = False
     TabOrder = 1
@@ -66,12 +66,12 @@ object MainForm: TMainForm
     OnMouseUp = MessageControlMouseUp
     object CompSheet: TTabSheet
       Caption = 'Compiler'
-      ImageIndex = 28
+      ImageIndex = 12
       object CompilerOutput: TListView
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -111,12 +111,12 @@ object MainForm: TMainForm
     end
     object ResSheet: TTabSheet
       Caption = 'Resource'
-      ImageIndex = 2
+      ImageIndex = 68
       object ResourceOutput: TListView
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -156,12 +156,12 @@ object MainForm: TMainForm
     end
     object LogSheet: TTabSheet
       Caption = 'Compile log'
-      ImageIndex = 43
+      ImageIndex = 14
       object InfoGroupBox: TPanel
         Left = 0
         Top = 0
         Width = 192
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
@@ -220,8 +220,8 @@ object MainForm: TMainForm
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 987
-          Height = 196
+          Width = 875
+          Height = 190
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -240,7 +240,7 @@ object MainForm: TMainForm
     end
     object DebugSheet: TTabSheet
       Caption = 'Debug'
-      ImageIndex = 32
+      ImageIndex = 6
       object Splitter1: TSplitter
         Left = 450
         Top = 0
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -503,13 +503,13 @@ object MainForm: TMainForm
           Left = 5
           Top = 0
           Width = 443
-          Height = 193
+          Height = 187
           Anchors = [akLeft, akTop, akRight, akBottom]
           BevelOuter = bvNone
           TabOrder = 7
           DesignSize = (
             443
-            193)
+            187)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -544,7 +544,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 40
             Width = 443
-            Height = 153
+            Height = 147
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -565,7 +565,7 @@ object MainForm: TMainForm
     end
     object FindSheet: TTabSheet
       Caption = 'Find results'
-      ImageIndex = 21
+      ImageIndex = 74
       PopupMenu = FindPopup
       object FindOutput: TFindOutput
         Left = 0
@@ -584,7 +584,7 @@ object MainForm: TMainForm
     end
     object CloseSheet: TTabSheet
       Caption = 'Close'
-      ImageIndex = 9
+      ImageIndex = 7
       TabVisible = False
     end
   end
@@ -1076,14 +1076,14 @@ object MainForm: TMainForm
     Top = 80
     Width = 209
     Height = 422
-    ActivePage = WatchSheet
+    ActivePage = LeftClassSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    Images = dmMain.ProjectImage_NewLook
+    Images = dmMain.MenuImages_NewLook24
     MultiLine = True
     ParentFont = False
     TabOrder = 5
@@ -1093,7 +1093,7 @@ object MainForm: TMainForm
     OnMouseUp = LeftPageControlMouseUp
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
-      ImageIndex = -1
+      ImageIndex = 49
       object ProjectView: TTreeView
         Left = 0
         Top = 0
@@ -1128,7 +1128,7 @@ object MainForm: TMainForm
     end
     object LeftClassSheet: TTabSheet
       Caption = 'Classes'
-      ImageIndex = -1
+      ImageIndex = 87
       object Panel3: TPanel
         Left = 0
         Top = 38
@@ -1228,7 +1228,7 @@ object MainForm: TMainForm
     end
     object WatchSheet: TTabSheet
       Caption = 'Watch'
-      ImageIndex = 2
+      ImageIndex = 88
       object Panel4: TPanel
         Left = 0
         Top = 38
@@ -1287,7 +1287,7 @@ object MainForm: TMainForm
     end
     object FilesSheet: TTabSheet
       Caption = 'Files'
-      ImageIndex = -1
+      ImageIndex = 17
       object ToolBar10: TToolBar
         Left = 0
         Top = 0
@@ -1337,7 +1337,7 @@ object MainForm: TMainForm
         object fileBrowser: TDevFileBrowser
           Left = 0
           Top = 0
-          Width = 179
+          Width = 174
           Height = 376
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook

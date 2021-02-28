@@ -8829,11 +8829,12 @@ begin
         x  := Rect.Left + ((Rect.Right - Rect.Left
           - TTabControl(Control).Images.Width
         ) div 2) + 1;
-        y  := Rect.bottom - ((Rect.Bottom - Rect.Top
+        y  := Rect.bottom - TTabControl(Control).Images.Height-5;
+        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+        y  := y - ((Rect.Bottom - Rect.Top
            - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
            - TTabControl(Control).Images.Height
-           ) div 2) - TTabControl(Control).Images.Height;
-        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+           -5) div 2) ;
       end else begin
         y  := Rect.Bottom - ((Rect.Bottom - Rect.Top
            - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
@@ -8849,14 +8850,14 @@ begin
       if Assigned(TPageControl(Control).Images)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
-        x  := Rect.Left + ((Rect.Right - Rect.Left
-          - Control.Canvas.TextWidth (TPageControl(Control).Pages[TabIndex].Caption)
-          - TTabControl(Control).Images.Width
-          ) div 2) + 1;
+        x  := Rect.Left + 5;
         y  := Rect.Top + ((Rect.Bottom - Rect.Top
           - TTabControl(Control).Images.Height) div 2) + 1;
         TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
-        inc(x,TTabControl(Control).Images.Width);
+        x  := x + TTabControl(Control).Images.Width + ((Rect.Right - Rect.Left
+          - Control.Canvas.TextWidth (TPageControl(Control).Pages[TabIndex].Caption)
+          - TTabControl(Control).Images.Width
+          - 5) div 2);
       end else begin
         x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
       end;
