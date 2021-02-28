@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 1110
-  Top = 278
+  Left = 948
+  Top = 252
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -1432,7 +1432,7 @@ object MainForm: TMainForm
       end
       object ImportItem: TMenuItem
         Caption = '&Import'
-        ImageIndex = 67
+        ImageIndex = 44
         object ImportMSVisualCproject: TMenuItem
           Action = actImportMSVC
         end
@@ -1445,7 +1445,7 @@ object MainForm: TMainForm
       end
       object ExportItem: TMenuItem
         Caption = '&Export'
-        ImageIndex = 12
+        ImageIndex = 36
         object HTMLItem: TMenuItem
           Action = actExportHTML
         end
@@ -1720,7 +1720,7 @@ object MainForm: TMainForm
       end
       object ToolbarsItem: TMenuItem
         Caption = '&Toolbars'
-        ImageIndex = 44
+        ImageIndex = 83
         object ToolMainItem: TMenuItem
           AutoCheck = True
           Caption = '&Main'
@@ -1996,6 +1996,7 @@ object MainForm: TMainForm
     end
   end
   object EditorPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 403
     Top = 216
     object Close1: TMenuItem
@@ -2042,7 +2043,7 @@ object MainForm: TMainForm
     end
   end
   object UnitPopup: TPopupMenu
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     Left = 139
     Top = 191
     object RemoveFilefromprojectPopItem: TMenuItem
@@ -2072,7 +2073,7 @@ object MainForm: TMainForm
     end
   end
   object ProjectPopup: TPopupMenu
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     Left = 139
     Top = 152
     object NewunitinprojectPopItem: TMenuItem
@@ -3302,6 +3303,7 @@ object MainForm: TMainForm
     end
   end
   object MessagePopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 339
     Top = 291
     object actMsgCut1: TMenuItem
@@ -3358,7 +3360,7 @@ object MainForm: TMainForm
     Top = 280
   end
   object BrowserPopup: TPopupMenu
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     Left = 56
     Top = 132
     object mnuBrowserGotoDecl: TMenuItem
@@ -3393,7 +3395,7 @@ object MainForm: TMainForm
     end
   end
   object DebugPopup: TPopupMenu
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     OnPopup = DebugPopupPopup
     Left = 104
     Top = 140
@@ -3429,7 +3431,7 @@ object MainForm: TMainForm
     Top = 240
   end
   object FolderPopup: TPopupMenu
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     Left = 124
     Top = 224
     object Addfolder2: TMenuItem
@@ -3452,6 +3454,7 @@ object MainForm: TMainForm
     end
   end
   object CustomDebugPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 329
     Top = 176
     object miRuntoCursor: TMenuItem
@@ -3477,6 +3480,7 @@ object MainForm: TMainForm
     end
   end
   object DebugOutputPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 443
     Top = 291
     object MenuItem4: TMenuItem
@@ -3514,6 +3518,7 @@ object MainForm: TMainForm
     end
   end
   object CompilerPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 283
     Top = 299
     object MenuItem14: TMenuItem
@@ -3536,6 +3541,7 @@ object MainForm: TMainForm
     end
   end
   object BreakpointsPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 466
     Top = 144
     object BreakpointProperties1: TMenuItem
@@ -3546,7 +3552,7 @@ object MainForm: TMainForm
     end
   end
   object EditorPagePopup: TPopupMenu
-    Images = dmMain.MenuImages_NewLook
+    Images = dmMain.MenuImages_NewLook24
     Left = 507
     Top = 224
     object CompileRun1: TMenuItem
@@ -3659,6 +3665,7 @@ object MainForm: TMainForm
     end
   end
   object FindPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 789
     Top = 248
     object mnuClearAllFindItems: TMenuItem
@@ -3667,6 +3674,7 @@ object MainForm: TMainForm
     end
   end
   object LocalPopup: TPopupMenu
+    Images = dmMain.MenuImages_NewLook24
     Left = 547
     Top = 331
     object MenuItem24: TMenuItem
