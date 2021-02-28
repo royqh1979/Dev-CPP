@@ -546,16 +546,12 @@ type
     ConvertToUTF8Item: TMenuItem;
     DebugButtonsPanel: TPanel;
     ToolBar1: TToolBar;
-    ToolButton4: TToolButton;
     ToolBar2: TToolBar;
-    ToolButton6: TToolButton;
     ToolBar3: TToolBar;
     ToolBar4: TToolBar;
     ToolButton9: TToolButton;
     ToolBar5: TToolBar;
-    ToolButton10: TToolButton;
     ToolBar6: TToolBar;
-    ToolButton11: TToolButton;
     ToolBar7: TToolBar;
     Panel1: TPanel;
     Splitter1: TSplitter;
@@ -1461,6 +1457,7 @@ begin
     devImageThemes.ActivateTheme(devData.Theme);
 
     with devImageThemes do begin
+      {
       // Misc items images
       ActionList.Images := CurrentTheme.MenuImages;
       MainMenu.Images := CurrentTheme.MenuImages;
@@ -1488,6 +1485,7 @@ begin
       BrowserPopup.Images := CurrentTheme.MenuImages;
       DebugPopup.Images := CurrentTheme.MenuImages;
       EditorPopup.Images := CurrentTheme.MenuImages;
+      }
     end;
   end;
 end;
@@ -9397,7 +9395,7 @@ begin
     hi.pt.y := Y;
     hi.flags := 0;
     if not fLeftPageControlChanged then begin
-      oldTabIndex := LeftPageControl.ActivePageIndex;
+      oldTabIndex := LeftPageControl.TabIndex;
       tabindex := LeftPageControl.Perform( TCM_HITTEST, 0, longint(@hi));
       if (tabindex>=0) and (tabIndex = oldTabIndex) then begin
         OpenCloseLeftPageControl(not SplitterLeft.Visible);

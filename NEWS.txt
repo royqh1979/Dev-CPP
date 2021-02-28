@@ -1,3 +1,8 @@
+Version 6.5.1 FEB 2021
+
+    - fix: click on left panel tab can't correctly hide it when project view is not visible
+    - change: use 24x24 icons for menus, 28x28 icons for toolbars
+
 Version 6.5 FEB 2021
 
     - fix: classbrowser not work when class browser is opened by default when devcpp starts
