@@ -61,6 +61,8 @@ type
     CssSyn: TSynCssSyn;
     GenSyn: TSynGeneralSyn;
     FileBrowserImages_NewLook: TImageList;
+    MenuImages_NewLook28: TImageList;
+    MenuImages_NewLook24: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
