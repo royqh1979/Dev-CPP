@@ -44,10 +44,11 @@ const
   // field 3 is the icon number
   // field 4 is "" (empty) if you want DDE services for this extension
   // (if not empty, launches a new instance - nice for .dev files ;)
-  Associations: array[0..8, 0..3] of AnsiString = (
+  Associations: array[0..9, 0..3] of AnsiString = (
     ('c', 'C Source File', '4', ''),
     ('cpp', 'C++ Source File', '5', ''),
     ('cxx', 'C++ Source File', '5', ''),
+    ('cc', 'C++ Source File', '5', ''),
     ('h', 'C Header File', '6', ''),
     ('hpp', 'C++ Header File', '7', ''),
     ('hxx', 'C++ Header File', '7', ''),

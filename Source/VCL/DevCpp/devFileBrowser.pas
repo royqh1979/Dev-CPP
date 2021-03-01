@@ -178,6 +178,7 @@ procedure TDevFileBrowser.AddChildren(Parent:PVirtualNode; Path:String);
       ext := ExtractFileExt(files[i]);
       if fOnlyShowDevFiles and not( SameText(ext,'.c') or SameText(ext,'.h')
         or SameText(ext,'.cpp') or SameText(ext,'.hpp')
+        or SameText(ext,'.cxx') or SameText(ext,'.hxx')
         or SameText(ext,'.cc') or SameText(ext,'.dev') ) then
         Continue;
       Node := AddChild(Parent);

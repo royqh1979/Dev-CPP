@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 397
-  Top = 196
+  Left = 752
+  Top = 163
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -111,12 +111,12 @@ object MainForm: TMainForm
     end
     object ResSheet: TTabSheet
       Caption = 'Resource'
-      ImageIndex = 68
+      ImageIndex = 67
       object ResourceOutput: TListView
         Left = 0
         Top = 0
         Width = 1067
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -161,7 +161,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 190
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 159
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 159
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -503,13 +503,13 @@ object MainForm: TMainForm
           Left = 5
           Top = 0
           Width = 443
-          Height = 187
+          Height = 181
           Anchors = [akLeft, akTop, akRight, akBottom]
           BevelOuter = bvNone
           TabOrder = 7
           DesignSize = (
             443
-            187)
+            181)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -544,7 +544,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 40
             Width = 443
-            Height = 147
+            Height = 141
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -565,7 +565,7 @@ object MainForm: TMainForm
     end
     object FindSheet: TTabSheet
       Caption = 'Find results'
-      ImageIndex = 74
+      ImageIndex = 73
       PopupMenu = FindPopup
       object FindOutput: TFindOutput
         Left = 0
@@ -608,16 +608,13 @@ object MainForm: TMainForm
       Top = 2
       Width = 142
       Height = 36
-      ButtonHeight = 38
+      ButtonHeight = 34
       ButtonWidth = 35
       Caption = 'Main'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 0
       Transparent = True
       Wrapable = False
@@ -650,13 +647,10 @@ object MainForm: TMainForm
       ButtonHeight = 38
       ButtonWidth = 35
       Caption = 'Compile and Run'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 1
       Transparent = True
       Wrapable = False
@@ -682,20 +676,17 @@ object MainForm: TMainForm
       end
     end
     object tbProject: TToolBar
-      Left = 294
+      Left = 449
       Top = 42
       Width = 115
       Height = 36
       ButtonHeight = 38
       ButtonWidth = 35
       Caption = 'Project'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 2
       Transparent = True
       Wrapable = False
@@ -731,13 +722,10 @@ object MainForm: TMainForm
       ButtonHeight = 38
       ButtonWidth = 35
       Caption = 'Edit'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 3
       Transparent = True
       Wrapable = False
@@ -773,13 +761,10 @@ object MainForm: TMainForm
       ButtonHeight = 38
       ButtonWidth = 35
       Caption = 'Search'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 4
       Transparent = True
       Wrapable = False
@@ -787,7 +772,6 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Action = actFind
-        ImageIndex = 74
       end
       object ReplaceBtn: TToolButton
         Left = 35
@@ -814,20 +798,17 @@ object MainForm: TMainForm
       end
     end
     object tbSpecials: TToolBar
-      Left = 174
+      Left = 329
       Top = 42
       Width = 107
       Height = 36
       ButtonHeight = 38
       ButtonWidth = 35
       Caption = 'Specials'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 5
       Transparent = True
       Wrapable = False
@@ -835,7 +816,6 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Action = actInsert
-        ImageIndex = 45
       end
       object ToggleBtn: TToolButton
         Left = 35
@@ -847,7 +827,6 @@ object MainForm: TMainForm
         Left = 70
         Top = 0
         Action = actGoto
-        ImageIndex = 39
       end
     end
     object tbCompilers: TToolBar
@@ -858,7 +837,6 @@ object MainForm: TMainForm
       ButtonHeight = 34
       ButtonWidth = 35
       Caption = 'tbCompilers'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
@@ -910,6 +888,7 @@ object MainForm: TMainForm
       Images = dmMain.MenuImages_NewLook28
       TabOrder = 7
       Transparent = True
+      Wrapable = False
       object ToolButton17: TToolButton
         Left = 0
         Top = 0
@@ -955,20 +934,17 @@ object MainForm: TMainForm
       end
     end
     object tbUndo: TToolBar
-      Left = 422
+      Left = 244
       Top = 42
       Width = 72
       Height = 36
       ButtonHeight = 34
       ButtonWidth = 35
       Caption = 'Edit'
-      EdgeBorders = []
       EdgeInner = esNone
       EdgeOuter = esNone
       Flat = True
       Images = dmMain.MenuImages_NewLook28
-      ParentShowHint = False
-      ShowHint = True
       TabOrder = 8
       Transparent = True
       Wrapable = False
@@ -1076,7 +1052,7 @@ object MainForm: TMainForm
     Top = 80
     Width = 209
     Height = 422
-    ActivePage = LeftClassSheet
+    ActivePage = FilesSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -1093,7 +1069,7 @@ object MainForm: TMainForm
     OnMouseUp = LeftPageControlMouseUp
     object LeftProjectSheet: TTabSheet
       Caption = 'Project'
-      ImageIndex = 49
+      ImageIndex = 48
       object ProjectView: TTreeView
         Left = 0
         Top = 0
@@ -1128,7 +1104,7 @@ object MainForm: TMainForm
     end
     object LeftClassSheet: TTabSheet
       Caption = 'Classes'
-      ImageIndex = 87
+      ImageIndex = 86
       object Panel3: TPanel
         Left = 0
         Top = 38
@@ -1141,7 +1117,7 @@ object MainForm: TMainForm
         object ClassBrowser: TClassBrowser
           Left = 0
           Top = 0
-          Width = 179
+          Width = 174
           Height = 376
           Align = alClient
           Images = dmMain.ClassImages
@@ -1185,14 +1161,14 @@ object MainForm: TMainForm
           Columns = <>
         end
       end
-      object ToolBar8: TToolBar
+      object tbClasses: TToolBar
         Left = 0
         Top = 0
         Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
-        Caption = 'ToolBar8'
+        Caption = 'tbClasses'
         EdgeInner = esNone
         EdgeOuter = esNone
         Flat = True
@@ -1228,7 +1204,7 @@ object MainForm: TMainForm
     end
     object WatchSheet: TTabSheet
       Caption = 'Watch'
-      ImageIndex = 88
+      ImageIndex = 87
       object Panel4: TPanel
         Left = 0
         Top = 38
@@ -1260,14 +1236,14 @@ object MainForm: TMainForm
           OnKeyDown = WatchViewKeyDown
         end
       end
-      object ToolBar9: TToolBar
+      object tbWatch: TToolBar
         Left = 0
         Top = 0
         Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
-        Caption = 'ToolBar9'
+        Caption = 'tbWatch'
         EdgeInner = esNone
         EdgeOuter = esNone
         Flat = True
@@ -1288,7 +1264,7 @@ object MainForm: TMainForm
     object FilesSheet: TTabSheet
       Caption = 'Files'
       ImageIndex = 17
-      object ToolBar10: TToolBar
+      object tbFiles: TToolBar
         Left = 0
         Top = 0
         Width = 179
@@ -1337,7 +1313,7 @@ object MainForm: TMainForm
         object fileBrowser: TDevFileBrowser
           Left = 0
           Top = 0
-          Width = 174
+          Width = 179
           Height = 376
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
@@ -1432,7 +1408,7 @@ object MainForm: TMainForm
       end
       object ImportItem: TMenuItem
         Caption = '&Import'
-        ImageIndex = 44
+        ImageIndex = 43
         object ImportMSVisualCproject: TMenuItem
           Action = actImportMSVC
         end
@@ -1445,7 +1421,7 @@ object MainForm: TMainForm
       end
       object ExportItem: TMenuItem
         Caption = '&Export'
-        ImageIndex = 36
+        ImageIndex = 35
         object HTMLItem: TMenuItem
           Action = actExportHTML
         end
@@ -1720,7 +1696,7 @@ object MainForm: TMainForm
       end
       object ToolbarsItem: TMenuItem
         Caption = '&Toolbars'
-        ImageIndex = 83
+        ImageIndex = 82
         object ToolMainItem: TMenuItem
           AutoCheck = True
           Caption = '&Main'
@@ -2142,7 +2118,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'File'
       Caption = '&Source File'
-      ImageIndex = 50
+      ImageIndex = 49
       ShortCut = 16462
       OnExecute = actNewSourceExecute
     end
@@ -2150,14 +2126,14 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'File'
       Caption = '&Project...'
-      ImageIndex = 49
+      ImageIndex = 48
       OnExecute = actNewProjectExecute
     end
     object actNewTemplate: TAction
       Tag = 4
       Category = 'File'
       Caption = '&Template...'
-      ImageIndex = 51
+      ImageIndex = 50
       OnExecute = actNewTemplateExecute
       OnUpdate = actNewTemplateUpdate
     end
@@ -2171,7 +2147,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'File'
       Caption = '&Open project or file...'
-      ImageIndex = 53
+      ImageIndex = 52
       ShortCut = 16463
       OnExecute = actOpenExecute
     end
@@ -2186,7 +2162,7 @@ object MainForm: TMainForm
       Tag = 3
       Category = 'File'
       Caption = '&Save'
-      ImageIndex = 70
+      ImageIndex = 69
       ShortCut = 16467
       OnExecute = actSaveExecute
       OnUpdate = actSaveUpdate
@@ -2195,14 +2171,14 @@ object MainForm: TMainForm
       Tag = 4
       Category = 'File'
       Caption = 'Save &As'
-      ImageIndex = 72
+      ImageIndex = 71
       OnExecute = actSaveAsExecute
       OnUpdate = actSaveAsUpdate
     end
     object actSaveProjectAs: TAction
       Category = 'File'
       Caption = 'Save project as...'
-      ImageIndex = 72
+      ImageIndex = 71
       OnExecute = actSaveProjectAsExecute
       OnUpdate = actUpdateProject
     end
@@ -2210,7 +2186,7 @@ object MainForm: TMainForm
       Tag = 5
       Category = 'File'
       Caption = 'Save A&ll'
-      ImageIndex = 71
+      ImageIndex = 70
       ShortCut = 24659
       OnExecute = actSaveAllExecute
       OnUpdate = actSaveAllUpdate
@@ -2273,7 +2249,7 @@ object MainForm: TMainForm
       Tag = 8
       Category = 'File'
       Caption = '&Print'
-      ImageIndex = 59
+      ImageIndex = 58
       ShortCut = 16464
       OnExecute = actPrintExecute
       OnUpdate = actUpdateEmptyEditor
@@ -2296,7 +2272,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'Edit'
       Caption = '&Undo'
-      ImageIndex = 86
+      ImageIndex = 85
       ShortCut = 16474
       OnExecute = actUndoExecute
       OnUpdate = actUndoUpdate
@@ -2305,7 +2281,7 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'Edit'
       Caption = '&Redo'
-      ImageIndex = 62
+      ImageIndex = 61
       ShortCut = 16473
       OnExecute = actRedoExecute
       OnUpdate = actRedoUpdate
@@ -2332,7 +2308,7 @@ object MainForm: TMainForm
       Tag = 5
       Category = 'Edit'
       Caption = '&Paste'
-      ImageIndex = 57
+      ImageIndex = 56
       ShortCut = 16470
       OnExecute = actPasteExecute
       OnUpdate = actPasteUpdate
@@ -2349,7 +2325,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'Search'
       Caption = '&Find'
-      ImageIndex = 79
+      ImageIndex = 73
       ShortCut = 16454
       OnExecute = actFindExecute
       OnUpdate = actUpdateEmptyEditorFindForm
@@ -2366,7 +2342,7 @@ object MainForm: TMainForm
       Tag = 3
       Category = 'Search'
       Caption = '&Replace'
-      ImageIndex = 66
+      ImageIndex = 65
       ShortCut = 16466
       OnExecute = actReplaceExecute
       OnUpdate = actUpdateEmptyEditorFindForm
@@ -2389,7 +2365,7 @@ object MainForm: TMainForm
       Tag = 5
       Category = 'Search'
       Caption = '&Go to line...'
-      ImageIndex = 40
+      ImageIndex = 39
       ShortCut = 16455
       OnExecute = actGotoLineExecute
       OnUpdate = actUpdateEmptyEditor
@@ -2410,7 +2386,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'Project'
       Caption = '&New Unit'
-      ImageIndex = 50
+      ImageIndex = 49
       OnExecute = actProjectNewExecute
       OnUpdate = actUpdateProject
     end
@@ -2426,7 +2402,7 @@ object MainForm: TMainForm
       Tag = 3
       Category = 'Project'
       Caption = '&Remove file...'
-      ImageIndex = 64
+      ImageIndex = 63
       OnExecute = actProjectRemoveExecute
       OnUpdate = actUpdateProject
     end
@@ -2434,7 +2410,7 @@ object MainForm: TMainForm
       Tag = 5
       Category = 'Project'
       Caption = '&Options...'
-      ImageIndex = 60
+      ImageIndex = 59
       ShortCut = 16456
       OnExecute = actProjectOptionsExecute
       OnUpdate = actUpdateProject
@@ -2464,7 +2440,7 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'Execute'
       Caption = '&Run'
-      ImageIndex = 69
+      ImageIndex = 68
       ShortCut = 121
       OnExecute = actRunExecute
       OnUpdate = actDebugExecuteUpdate
@@ -2482,7 +2458,7 @@ object MainForm: TMainForm
       Tag = 4
       Category = 'Execute'
       Caption = 'Rebuild &All'
-      ImageIndex = 61
+      ImageIndex = 60
       ShortCut = 123
       OnExecute = actRebuildExecute
       OnUpdate = actCompileUpdate
@@ -2499,7 +2475,7 @@ object MainForm: TMainForm
       Tag = 6
       Category = 'Debug'
       Caption = '&Debug'
-      ImageIndex = 22
+      ImageIndex = 21
       ShortCut = 116
       OnExecute = actDebugExecute
       OnUpdate = actDebugExecuteUpdate
@@ -2515,28 +2491,28 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'Tools'
       Caption = '&Compiler Options...'
-      ImageIndex = 13
+      ImageIndex = 12
       OnExecute = actCompOptionsExecute
     end
     object actEnviroOptions: TAction
       Tag = 2
       Category = 'Tools'
       Caption = '&Environment Options...'
-      ImageIndex = 34
+      ImageIndex = 33
       OnExecute = actEnviroOptionsExecute
     end
     object actEditorOptions: TAction
       Tag = 3
       Category = 'Tools'
       Caption = 'E&ditor Options...'
-      ImageIndex = 47
+      ImageIndex = 46
       OnExecute = actEditorOptionsExecute
     end
     object actConfigTools: TAction
       Tag = 4
       Category = 'Tools'
       Caption = 'Configure &Tools...'
-      ImageIndex = 84
+      ImageIndex = 83
       OnExecute = actConfigToolsExecute
     end
     object actFullScreen: TAction
@@ -2544,7 +2520,7 @@ object MainForm: TMainForm
       Category = 'Window'
       AutoCheck = True
       Caption = '&Full screen mode'
-      ImageIndex = 30
+      ImageIndex = 29
       ShortCut = 16506
       OnExecute = actFullScreenExecute
     end
@@ -2552,7 +2528,7 @@ object MainForm: TMainForm
       Tag = 2
       Category = 'Window'
       Caption = '&Next'
-      ImageIndex = 38
+      ImageIndex = 37
       ShortCut = 16393
       OnExecute = actNextExecute
       OnUpdate = actUpdatePageCount
@@ -2597,7 +2573,7 @@ object MainForm: TMainForm
       Tag = 4
       Category = 'Project'
       Caption = '&Open'
-      ImageIndex = 54
+      ImageIndex = 53
       OnExecute = actUnitOpenExecute
       OnUpdate = actUpdateProject
     end
@@ -2617,14 +2593,14 @@ object MainForm: TMainForm
     object actAddWatch: TAction
       Category = 'Debug'
       Caption = 'Add &Watch...'
-      ImageIndex = 88
+      ImageIndex = 87
       OnExecute = actAddWatchExecute
       OnUpdate = actAddWatchUpdate
     end
     object actEditWatch: TAction
       Category = 'Debug'
       Caption = '&Edit watch'
-      ImageIndex = 84
+      ImageIndex = 83
     end
     object actContinue: TAction
       Category = 'Debug'
@@ -2664,14 +2640,14 @@ object MainForm: TMainForm
     object actSyntaxCheck: TAction
       Category = 'Code'
       Caption = '&Syntax Check'
-      ImageIndex = 80
+      ImageIndex = 79
       OnExecute = actSyntaxCheckExecute
       OnUpdate = actCompileUpdate
     end
     object actConfigdevShortcuts: TAction
       Category = 'Tools'
       Caption = 'Configure &Shortcuts'
-      ImageIndex = 61
+      ImageIndex = 60
       OnExecute = actConfigdevShortcutsExecute
     end
     object actComment: TAction
@@ -2705,7 +2681,7 @@ object MainForm: TMainForm
     object actIndent: TAction
       Category = 'Edit'
       Caption = 'Indent'
-      ImageIndex = 31
+      ImageIndex = 30
       ShortCut = 9
       OnExecute = actIndentExecute
       OnUpdate = actIndentUpdate
@@ -2713,7 +2689,7 @@ object MainForm: TMainForm
     object actUnindent: TAction
       Category = 'Edit'
       Caption = 'Unindent'
-      ImageIndex = 32
+      ImageIndex = 31
       ShortCut = 8201
       OnExecute = actUnindentExecute
       OnUpdate = actIndentUpdate
@@ -2721,7 +2697,7 @@ object MainForm: TMainForm
     object actGotoFunction: TAction
       Category = 'Search'
       Caption = 'Goto function'
-      ImageIndex = 83
+      ImageIndex = 82
       ShortCut = 24647
       OnExecute = actGotoFunctionExecute
       OnUpdate = actUpdateEmptyEditor
@@ -2766,7 +2742,7 @@ object MainForm: TMainForm
     object actSyntaxCheckFile: TAction
       Category = 'Code'
       Caption = '&Syntax Check Current File'
-      ImageIndex = 80
+      ImageIndex = 79
       ShortCut = 16504
       OnExecute = actSyntaxCheckFileExecute
       OnUpdate = actSyntaxCheckFileUpdate
@@ -2856,7 +2832,7 @@ object MainForm: TMainForm
     object actBrowserShowInherited: TAction
       Category = 'ClassBrowser'
       Caption = 'Show inherited members'
-      ImageIndex = 75
+      ImageIndex = 74
       OnExecute = actBrowserShowInheritedExecute
     end
     object actAttachProcess: TAction
@@ -2868,14 +2844,14 @@ object MainForm: TMainForm
     object actModifyWatch: TAction
       Category = 'Debug'
       Caption = '&Modify watch'
-      ImageIndex = 84
+      ImageIndex = 83
       OnExecute = actModifyWatchExecute
       OnUpdate = actModifyWatchUpdate
     end
     object actStepOver: TAction
       Category = 'Debug'
       Caption = '&Step Over'
-      ImageIndex = 28
+      ImageIndex = 27
       ShortCut = 118
       OnExecute = actStepOverExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2883,7 +2859,7 @@ object MainForm: TMainForm
     object actStepInto: TAction
       Category = 'Debug'
       Caption = 'Step &Into'
-      ImageIndex = 24
+      ImageIndex = 23
       ShortCut = 119
       OnExecute = actStepIntoExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -2920,21 +2896,21 @@ object MainForm: TMainForm
     object actInsert: TAction
       Category = 'Code'
       Caption = 'Insert'
-      ImageIndex = 2
+      ImageIndex = 44
       OnExecute = actInsertExecute
       OnUpdate = actUpdatePageCount
     end
     object actToggle: TAction
       Category = 'Code'
       Caption = 'Toggle Bookmarks'
-      ImageIndex = 39
+      ImageIndex = 38
       OnExecute = actToggleExecute
       OnUpdate = actUpdatePageCount
     end
     object actGoto: TAction
       Category = 'Code'
       Caption = 'Goto Bookmark'
-      ImageIndex = 40
+      ImageIndex = 38
       OnExecute = actGotoExecute
       OnUpdate = actUpdatePageCount
     end
@@ -2947,7 +2923,7 @@ object MainForm: TMainForm
     object actStepOut: TAction
       Category = 'Debug'
       Caption = 'Step &Out'
-      ImageIndex = 26
+      ImageIndex = 27
       ShortCut = 16503
       OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
@@ -3050,13 +3026,13 @@ object MainForm: TMainForm
     object actPackageManager: TAction
       Category = 'Tools'
       Caption = 'actPackageManager'
-      ImageIndex = 56
+      ImageIndex = 55
       OnExecute = actPackageManagerExecute
     end
     object actHelp: TAction
       Category = 'Help'
       Caption = 'Help'
-      ImageIndex = 41
+      ImageIndex = 40
       ShortCut = 112
       OnExecute = actHelpExecute
     end
@@ -3075,7 +3051,7 @@ object MainForm: TMainForm
     object actOpenFolder: TAction
       Category = 'File'
       Caption = 'Open Containing Folder'
-      ImageIndex = 53
+      ImageIndex = 52
       ShortCut = 16450
       OnExecute = actOpenFolderExecute
       OnUpdate = actUpdatePageCount
@@ -3089,7 +3065,7 @@ object MainForm: TMainForm
     object actFormatCurrentFile: TAction
       Category = 'Code'
       Caption = 'Format Current File'
-      ImageIndex = 63
+      ImageIndex = 62
       ShortCut = 24641
       OnExecute = actFormatCurrentFileExecute
       OnUpdate = actUpdateEmptyEditor
@@ -3108,7 +3084,7 @@ object MainForm: TMainForm
     end
     object actDonate: TAction
       Caption = 'Donate :)'
-      ImageIndex = 87
+      ImageIndex = 86
       OnExecute = actDonateExecute
     end
     object actRenameSymbol: TAction
@@ -3161,13 +3137,13 @@ object MainForm: TMainForm
     object actBrowserSortAlphabetically: TAction
       Category = 'ClassBrowser'
       Caption = 'actBrowserSortAlphabetically'
-      ImageIndex = 76
+      ImageIndex = 75
       OnExecute = actBrowserSortAlphabeticallyExecute
     end
     object actBrowserSortByType: TAction
       Category = 'ClassBrowser'
       Caption = 'actBrowserSortByType'
-      ImageIndex = 77
+      ImageIndex = 76
       OnExecute = actBrowserSortByTypeExecute
     end
     object actOpenWindowsTerminal: TAction
@@ -3180,35 +3156,35 @@ object MainForm: TMainForm
     object actOpenConsole: TAction
       Category = 'File'
       Caption = 'Open Shell Here'
-      ImageIndex = 30
+      ImageIndex = 29
       OnExecute = actOpenConsoleExecute
       OnUpdate = actUpdatePageCount
     end
     object actSaveWatchList: TAction
       Category = 'Debug'
       Caption = 'actSaveWatchList'
-      ImageIndex = 70
+      ImageIndex = 69
       OnExecute = actSaveWatchListExecute
       OnUpdate = actSaveWatchListUpdate
     end
     object actLoadWatchList: TAction
       Category = 'Debug'
       Caption = 'actLoadWatchList'
-      ImageIndex = 53
+      ImageIndex = 52
       OnExecute = actLoadWatchListExecute
       OnUpdate = actAddWatchUpdate
     end
     object actOpenProjectFoloder: TAction
       Category = 'Project'
       Caption = 'Open Project Folder'
-      ImageIndex = 53
+      ImageIndex = 52
       OnExecute = actOpenProjectFoloderExecute
       OnUpdate = actUpdateProject
     end
     object actOpenProjectConsole: TAction
       Category = 'Project'
       Caption = 'Open Console Here'
-      ImageIndex = 30
+      ImageIndex = 29
       OnExecute = actOpenProjectConsoleExecute
       OnUpdate = actUpdateProject
     end
@@ -3234,7 +3210,7 @@ object MainForm: TMainForm
     object actForward: TAction
       Category = 'Code'
       Caption = '&Forward'
-      ImageIndex = 38
+      ImageIndex = 37
       OnExecute = actForwardExecute
       OnUpdate = actForwardUpdate
     end
@@ -3285,20 +3261,20 @@ object MainForm: TMainForm
     object actSetCurrentFolder: TAction
       Category = 'File'
       Caption = 'Open Folder...'
-      ImageIndex = 53
+      ImageIndex = 52
       OnExecute = actSetCurrentFolderExecute
     end
     object actOnlyShowDevFiles: TAction
       Category = 'File'
       AutoCheck = True
       Caption = 'Only Show devcpp files'
-      ImageIndex = 37
+      ImageIndex = 36
       OnExecute = actOnlyShowDevFilesExecute
     end
     object actLocateFile: TAction
       Category = 'File'
       Caption = 'Locate File in the folder'
-      ImageIndex = 46
+      ImageIndex = 45
       OnExecute = actLocateFileExecute
     end
   end

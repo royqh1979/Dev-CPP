@@ -699,6 +699,10 @@ type
 
     fFileBrowserFolder : String;
     fFileBrowserOnlyShowDevFiles : boolean;
+
+    fMenuIconSize: String;
+    fToolbarIconSize: String;
+    fTabIconSize: String;
   public
     constructor Create;
     destructor Destroy; override;
@@ -819,6 +823,10 @@ type
 
     property FileBrowserFolder: String read fFileBrowserFolder write fFileBrowserFolder;
     property FileBrowserOnlyShowDevFiles: boolean read fFileBrowserOnlyShowDevFiles write fFileBrowserOnlyShowDevFiles;
+    property MenuIconSize: String read fMenuIconSize write fMenuIconSize;
+    property ToolbarIconSize: String read fToolbarIconSize write fToolbarIconSize;
+    property TabIconSize: String read fTabIconSize write fTabIconSize;
+
   end;
 
 function devData: TdevData;
@@ -1131,6 +1139,10 @@ begin
   fSearchWhere := 1;
   fDirBackward := false;
   fRegExp := false;
+
+  fMenuIconSize := '24x24';
+  fToolbarIconSize := '28x28';
+  fTabIconSize := '24x24';
 end;
 
 { TWindowState }

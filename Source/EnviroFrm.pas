@@ -93,6 +93,13 @@ type
     edProjectsDir: TEdit;
     btnProjectsDir: TSpeedButton;
     btnOpenOptionsDir: TSpeedButton;
+    tabIcon: TTabSheet;
+    lblMenuIconSize: TLabel;
+    cbMenuIconSize: TComboBox;
+    lblToolbarIconSize: TLabel;
+    cbToolbarIconSize: TComboBox;
+    lblTabIconSize: TLabel;
+    cbTabIconSize: TComboBox;
     procedure BrowseClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -189,7 +196,12 @@ begin
     s := Lang.FileFromDescription(cboLang.Text);
     LangChange := s <> Language;
     Language := s;
-    ThemeChange := cboTheme.Text <> devData.Theme;
+    ThemeChange := (cbMenuIconSize.Text <> MenuIconSize)
+      or (cbToolbarIconSize.Text <> ToolbarIconSize)
+      or (cbTabIconSize.Text <> TabIconSize);
+    MenuIconSize := cbMenuIconSize.Text;
+    ToolbarIconSize := cbToolbarIconSize.Text;
+    TabIconSize := cbTabIconSize.Text;
     Theme := cboTheme.Text;
     ShowProgress := cbShowProgress.Checked;
     AutoCloseProgress := cbAutoCloseProgress.Checked;
@@ -198,9 +210,10 @@ begin
     InterfaceFontSize := StrToIntDef(cbUIfontsize.Text, 9);
   end;
 
+
   devDebugger.ShowCommandLog := cbShowDbgCmd.Checked;
   devDebugger.ShowAnnotations := cbShowDbgFullAnnotation.Checked;
-  
+
   MainForm.Font.Name := devData.InterfaceFont;
   MainForm.Font.Size := devData.InterfaceFontSize;
   MainForm.DebugOutput.Font.Size :=  devData.InterfaceFontSize;
@@ -356,6 +369,10 @@ begin
     cboTheme.Items.Clear;
     devImageThemes.GetThemeTitles(cboTheme.Items);
     cboTheme.ItemIndex := devImageThemes.IndexOf(devImageThemes.CurrentTheme.Title);
+
+    cbMenuIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.MenuIconSize);
+    cbToolbarIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.ToolbarIconSize);
+    cbTabIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.TabIconSize);
 
     // Add all font families and select the current one
     cbUIfont.Items.Assign(Screen.Fonts);

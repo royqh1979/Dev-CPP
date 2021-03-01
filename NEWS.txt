@@ -3,6 +3,8 @@ Version 6.5.1 FEB 2021
     - fix: click on left panel tab can't correctly hide it when project view is not visible
     - change: use 24x24 icons for menus, 28x28 icons for toolbars
     - fix: wrong position of left panel tabs' icons
+    - add: icons tab in the environment dialog
+    - add: file assoc settings '.cc' files
 
 Version 6.5 FEB 2021
 
