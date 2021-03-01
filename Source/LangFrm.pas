@@ -33,12 +33,12 @@ type
     grpLanguages: TGroupBox;
     lblLangInfo: TLabel;
     grpThemes: TGroupBox;
-    cmbIcons: TComboBox;
+    cmbMenuIconSize: TComboBox;
     FinishPanel: TPanel;
     Finish2: TLabel;
     Finish3: TLabel;
     cmbColors: TComboBox;
-    lblIcons: TLabel;
+    lblMenuIconSize: TLabel;
     lblColor: TLabel;
     Finish1: TLabel;
     synExample: TSynEdit;
@@ -46,27 +46,10 @@ type
     lblEditInfo: TLabel;
     lblFont: TLabel;
     cmbFont: TComboBox;
-    tbExample: TToolBar;
-    NewFileBtn: TToolButton;
-    OpenBtn: TToolButton;
-    SaveUnitBtn: TToolButton;
-    SaveAllBtn: TToolButton;
-    CloseBtn: TToolButton;
-    PrintBtn: TToolButton;
-    UndoBtn: TToolButton;
-    RedoBtn: TToolButton;
-    FindBtn: TToolButton;
-    ReplaceBtn: TToolButton;
-    FindNextBtn: TToolButton;
-    GotoLineBtn: TToolButton;
-    CompileBtn: TToolButton;
-    RunBtn: TToolButton;
-    CompileAndRunBtn: TToolButton;
-    RebuildAllBtn: TToolButton;
-    DebugBtn: TToolButton;
-    ProfileBtn: TToolButton;
-    ProfilingInforBtn: TToolButton;
-    Panel1: TPanel;
+    lblToolbarIconSize: TLabel;
+    lblTabIconSize: TLabel;
+    cmbToolbarIconSize: TComboBox;
+    cmbTabIconSize: TComboBox;
     procedure OkBtnClick(Sender: TObject);
     procedure ColorChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -93,7 +76,7 @@ begin
   grpThemes.Caption := Lang[ID_LANGFORM_SELECTTHEME];
   lblFont.Caption := Lang[ID_LANGFORM_FONT];
   lblColor.Caption := Lang[ID_LANGFORM_COLOR];
-  lblIcons.Caption := Lang[ID_LANGFORM_ICONS];
+  //lblIcons.Caption := Lang[ID_LANGFORM_ICONS];
   lblEditInfo.Caption := Lang[ID_LANGFORM_THEMCHANGEHINT];
   Finish1.Caption := Lang[ID_LANGFORM_FINISH1];
   Finish2.Caption := Lang[ID_LANGFORM_FINISH2];
@@ -148,7 +131,11 @@ begin
   EditPanel.Visible := false;
   FinishPanel.Visible := true;
   devData.ThemeChange := true;
-  devData.Theme := cmbIcons.Items[cmbIcons.ItemIndex];
+  devData.MenuIconSize := cmbMenuIconSize.Text;
+  devData.ToolbarIconSize := cmbToolbarIconSize.Text;
+  devData.TabIconSize := cmbTabIconSize.Text;
+
+  // devData.Theme := cmbIcons.Items[cmbIcons.ItemIndex];
 
 end;
 
@@ -192,8 +179,13 @@ begin
   synExample.CaretXY := BufferCoord(11, 5);
 
   // Interface themes
+  {
   devImageThemes.GetThemeTitles(cmbIcons.Items);
   cmbIcons.ItemIndex := 0; // new look
+  }
+  cmbMenuIconSize.ItemIndex := cmbMenuIconSize.Items.IndexOf(devData.MenuIconSize);
+  cmbToolbarIconSize.ItemIndex := cmbToolbarIconSize.Items.IndexOf(devData.ToolbarIconSize);
+  cmbTabIconSize.ItemIndex := cmbTabIconSize.Items.IndexOf(devData.TabIconSize);
 
   // Editor colors
   cmbColors.Items.Clear;
@@ -260,12 +252,14 @@ end;
 
 procedure TLangForm.cmbIconsChange(Sender: TObject);
 begin
+  {
   if cmbIcons.ItemIndex = 1 then
     tbExample.Images := dmMain.MenuImages_Gnome
   else if cmbIcons.ItemIndex = 2 then
     tbExample.Images := dmMain.MenuImages_Blue
   else
     tbExample.Images := dmMain.MenuImages_NewLook;
+  }
 end;
 
 procedure TLangForm.cmbFontDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);

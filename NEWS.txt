@@ -5,6 +5,7 @@ Version 6.5.1 FEB 2021
     - fix: wrong position of left panel tabs' icons
     - add: icons tab in the environment dialog
     - add: file assoc settings '.cc' files
+    - change: remove the theme option in the environment dialog 
 
 Version 6.5 FEB 2021
 

@@ -258,6 +258,7 @@ begin
   tabPaths.Caption := Lang[ID_ENV_PATHTAB];
   tabAssocs.Caption := Lang[ID_ENV_FASSTAB];
   tabExternal.Caption := Lang[ID_ENV_EXTERNALS];
+  tabIcon.Caption := Lang[ID_ENV_ICONS];
 
   //Buttons
   btnOk.Caption := Lang[ID_BTN_OK];
@@ -272,6 +273,7 @@ begin
   cbMinOnRun.Caption := Lang[ID_ENV_MINONRUN];
   cbPauseConsole.Caption := Lang[ID_ENV_PAUSECONSOLE];
   cbCheckAssocs.Caption := Lang[ID_ENV_CHECKASSOCS];
+
 
   gbProgress.Caption := Lang[ID_ENV_COMPPROGRESSWINDOW];
   cbShowProgress.Caption := Lang[ID_ENV_SHOWPROGRESS];
@@ -297,6 +299,11 @@ begin
   lblTheme.Caption := Lang[ID_ENV_THEME];
   lblmsgTabs.Caption := Lang[ID_ENV_MSGTABS];
   lblMRU.Caption := Lang[ID_ENV_MRU];
+
+  lblMenuIconSize.Caption := Lang[ID_LANGFORM_MENU_ICON_SIZE];
+  lblToolbarIconSize.Caption := Lang[ID_LANGFORM_TOOLBAR_ICON_SIZE];
+  lblTabIconSize.Caption := Lang[ID_LANGFORM_TAB_ICON_SIZE];
+
 
   lblOptionsDir.Caption := Lang[ID_ENV_OPTIONSDIRHINT];
   btnResetDev.Caption := Lang[ID_ENV_RESETDEV];

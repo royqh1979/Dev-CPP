@@ -7366,13 +7366,14 @@ begin
   // Create icon themes
   devImageThemes := TDevImageThemeFactory.Create;
   devImageThemes.LoadFromDirectory(devDirs.Themes);
-  LoadTheme;
 
   // Set languages and other first time stuff
   if devData.First or (devData.Language = '') then
     Lang.SelectLanguage
   else
     Lang.Open(devData.Language);
+
+  LoadTheme;
 
   // Load bookmarks, captions and hints
   LoadText;

@@ -1208,6 +1208,7 @@ const
   ID_ENV_CACHEFAIL                      = 66023;
   ID_ENV_PRINTERFAIL                    = 66024;
   ID_ENV_MULTILINETABERROR              = 66025;
+  ID_ENV_ICONS                          = 66027;
   
 
   // Execute menu
@@ -1384,7 +1385,11 @@ const
   ID_LANGFORM_WAIT                      = 76019;
   ID_LANGFORM_SAVING                    = 76020;
   ID_LANGFORM_DONEPARSINGSAVING         = 76021;
-  
+  ID_LANGFORM_MENU_ICON_SIZE            = 76022;
+  ID_LANGFORM_TOOLBAR_ICON_SIZE         = 76023;
+  ID_LANGFORM_TAB_ICON_SIZE             = 76024;
+
+
   ID_LOAD_COMPILERSET                   = 77001;
   ID_LOAD_FILEASSOC                     = 77002;
   ID_LOAD_INITCLASSBROWSER              = 77003;
