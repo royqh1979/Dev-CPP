@@ -82,6 +82,10 @@ begin
   Finish2.Caption := Lang[ID_LANGFORM_FINISH2];
   Finish3.Caption := Lang[ID_LANGFORM_FINISH3];
   OkBtn.Caption := Lang[ID_LANGFORM_NEXT];
+
+  lblMenuIconSize.Caption := Lang[ID_LANGFORM_MENU_ICON_SIZE];
+  lblToolbarIconSize.Caption := Lang[ID_LANGFORM_TOOLBAR_ICON_SIZE];
+  lblTabIconSize.Caption := Lang[ID_LANGFORM_TAB_ICON_SIZE];
 end;
 
 procedure TLangForm.UpdateLangList(List: TStrings);

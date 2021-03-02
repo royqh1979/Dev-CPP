@@ -75,7 +75,7 @@ object EnviroForm: TEnviroForm
     Top = 0
     Width = 645
     Height = 567
-    ActivePage = tabPaths
+    ActivePage = tabGeneral
     HotTrack = True
     TabOrder = 0
     object tabGeneral: TTabSheet
