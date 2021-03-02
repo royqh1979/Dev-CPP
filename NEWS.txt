@@ -6,6 +6,7 @@ Version 6.5.1 FEB 2021
     - add: icons tab in the environment dialog
     - add: file assoc settings '.cc' files
     - change: remove the theme option in the environment dialog 
+    - enhancement: correctly handle extern variable declarations.
 
 Version 6.5 FEB 2021
 

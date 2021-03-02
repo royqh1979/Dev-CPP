@@ -1508,8 +1508,11 @@ begin
       for t:=0 to FileIncludes^.IncludeFiles.Count-1 do begin
         Add(#9+'--'+FileIncludes^.IncludeFiles[t]);
       end;
+      for t:=0 to FileIncludes^.DependingFiles.Count-1 do begin
+        Add(#9+'^^'+FileIncludes^.DependingFiles[t]);
+      end;
       for t:=0 to FileIncludes^.DependedFiles.Count-1 do begin
-        Add(#9+'^^'+FileIncludes^.DependedFiles[t]);
+        Add(#9+'&&'+FileIncludes^.DependedFiles[t]);
       end;
       for t:=0 to FileIncludes^.Usings.Count-1 do begin
         Add(#9+'++'+FileIncludes^.Usings[t]);

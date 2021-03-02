@@ -836,7 +836,7 @@ begin
 
 
   NoNameArgs:='';
-  if kind in [skConstructor, skFunction,skDestructor] then begin
+  if kind in [skConstructor, skFunction,skDestructor, skVariable] then begin
     NoNameArgs := RemoveArgNames(Args);
     //find
     oldStatement := FindStatementInScope(command,NoNameArgs,kind,parent);
@@ -2410,13 +2410,15 @@ var
   LastType, Args, Cmd, S: AnsiString;
   IsFunctionPointer: boolean;
   IsStatic : boolean;
+  IsExtern : boolean;
   varAdded:boolean;
   i:integer;
 begin
-  IsStatic := False;
   // Keep going and stop on top of the variable name
   LastType := '';
   IsFunctionPointer := False;
+  IsExtern := False;
+  IsStatic := False;
   varAdded:=False;
   repeat
     if (fIndex + 2 < fTokenizer.Tokens.Count) and (fTokenizer[fIndex + 1]^.Text[1] = '(') and (fTokenizer[fIndex +
@@ -2443,10 +2445,14 @@ begin
           LastType := LastType + ':';
       end else begin
         s:=expandMacroType(fTokenizer[fIndex]^.Text);
-        if s<>'' then
-          LastType := LastType + ' '+s;
-        if SameStr(s,'static') then
-          isStatic := True;
+        if SameStr(s,'extern') then begin
+          isExtern := True;
+        end else begin
+          if s<>'' then
+            LastType := LastType + ' '+s;
+          if SameStr(s,'static') then
+            isStatic := True;
+        end;
       end;
     end;
     Inc(fIndex);
@@ -2514,7 +2520,8 @@ begin
           skVariable,
           GetScope,
           fClassScope,
-          True,
+          //True,
+          not isExtern,
           IsStatic); // TODO: not supported to pass list
 
         varAdded:=True;
@@ -3341,7 +3348,7 @@ var
       Exit;
     for i:=0 to P^.Statements.Count-1 do begin
       Statement := P^.Statements[i];
-      if (Statement^._Kind in [skFunction,skConstructor,skDestructor])
+      if (Statement^._Kind in [skFunction,skConstructor,skDestructor,skVariable])
         and not SameText(FileName, Statement^._FileName) then begin
         Statement^._HasDefinition := False;
         Statement^._DefinitionFileName := Statement^._FileName;

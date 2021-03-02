@@ -754,7 +754,6 @@ begin
   CppKeywords.Add('else',Ord(skItself));
   CppKeywords.Add('explicit',Ord(skItself));
   CppKeywords.Add('export',Ord(skItself));
-  CppKeywords.Add('extern',Ord(skItself));
   CppKeywords.Add('false',Ord(skItself));
   //CppKeywords.Add('for',Ord(skItself));
   CppKeywords.Add('mutable',Ord(skItself));
@@ -862,6 +861,7 @@ begin
 
   // it's part of type info
   CppKeywords.Add('const',Ord(skNone));
+  CppKeywords.Add('extern',Ord(skNone));
   CppKeywords.Add('inline',Ord(skNone));
 
   // handled elsewhere
