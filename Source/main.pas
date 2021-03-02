@@ -1617,6 +1617,9 @@ begin
   if devExecutor.Running then
     devExecutor.Reset;
 
+  //we must clear watch view, or it will crash
+  WatchView.Items.Clear;
+
   // Try to close all editors. If some are left open, stop quitting
   actCloseAllExecute(Self);
   if fEditorList.PageCount > 0 then begin

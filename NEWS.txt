@@ -7,6 +7,9 @@ Version 6.5.1 FEB 2021
     - add: file assoc settings '.cc' files
     - change: remove the theme option in the environment dialog 
     - enhancement: correctly handle extern variable declarations.
+    - fix: errors in the included XEGE library
+    - fix: highlighted selected words not correctly cleared
+    - fix: devcpp crash when watch view has contents and exit devcpp. 
 
 Version 6.5 FEB 2021
 

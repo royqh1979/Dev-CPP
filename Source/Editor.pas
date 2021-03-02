@@ -901,6 +901,10 @@ begin
         fSelChanged:=True;
         BeginUpdate;
         EndUpdate;
+      end else if fSelChanged then begin
+        fSelChanged:=False; //invalidate to unhighlight others
+        BeginUpdate;
+        EndUpdate;
       end;
     end else if fSelChanged then begin
       fSelChanged:=False; //invalidate to unhighlight others

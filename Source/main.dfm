@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 752
-  Top = 163
+  Left = 707
+  Top = 140
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -116,7 +116,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -161,13 +161,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 190
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           192
-          190)
+          196)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,7 +213,7 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 875
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 190
+        Height = 196
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 609
-        Height = 190
+        Height = 196
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 159
+            Height = 165
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 601
-              Height = 159
+              Height = 165
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 159
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 159
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -388,14 +388,14 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 190
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
         TabOrder = 1
         DesignSize = (
           450
-          190)
+          196)
         object ToolBar1: TToolBar
           Left = 0
           Top = 0
@@ -571,7 +571,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 190
+        Height = 196
         Align = alClient
         Indent = 22
         TabOrder = 0
@@ -2923,7 +2923,7 @@ object MainForm: TMainForm
     object actStepOut: TAction
       Category = 'Debug'
       Caption = 'Step &Out'
-      ImageIndex = 27
+      ImageIndex = 25
       ShortCut = 16503
       OnExecute = actStepOutExecute
       OnUpdate = actUpdateDebuggerRunning
