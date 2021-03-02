@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Red Panda Dev-C++';
-  DEVCPP_VERSION = '6.5.1';
+  DEVCPP_VERSION = '6.6';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
