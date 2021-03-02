@@ -1141,7 +1141,7 @@ begin
   fRegExp := false;
 
   fMenuIconSize := '24x24';
-  fToolbarIconSize := '28x28';
+  fToolbarIconSize := '24x24';
   fTabIconSize := '24x24';
 end;
 
