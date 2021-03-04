@@ -1,4 +1,4 @@
-Version 6.5.1 FEB 2021
+Version 6.6 FEB 2021
 
     - fix: click on left panel tab can't correctly hide it when project view is not visible
     - change: use 24x24 icons for menus, 28x28 icons for toolbars
@@ -10,6 +10,7 @@ Version 6.5.1 FEB 2021
     - fix: errors in the included XEGE library
     - fix: highlighted selected words not correctly cleared
     - fix: devcpp crash when watch view has contents and exit devcpp. 
+    - change: the "ignore case when complete" option in the editor options dialog's completion tab was turned on by default.
 
 Version 6.5 FEB 2021
 

@@ -32,6 +32,8 @@ const
   ID_MNU_REFACTOR                       = 11;
   ID_MNU_CODE                          = 12;
 
+  ID_DEVCPP                             = 100;
+
   // file menu
   ID_SUB_NEW                            = 1001;
   ID_ITEM_NEWPROJECT                    = 1002;

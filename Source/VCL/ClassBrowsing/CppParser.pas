@@ -1368,7 +1368,7 @@ begin
         IsStatic := True;
       if SameStr(s, 'friend') then
         IsFriend := True;
-      if s<>'' then
+      if (s<>'') and (not SameStr(s,'extern')) then
         sType := sType + ' '+ s;
       bTypeOK := sType <> '';
     end;

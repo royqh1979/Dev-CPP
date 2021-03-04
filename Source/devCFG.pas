@@ -2764,7 +2764,7 @@ begin
   fShowCompletionWhileInput := True;
   fShowKeywords := True;
   fRecordUsage := False;
-  fIgnoreCase := False;
+  fIgnoreCase := True;
   fAppendFunc := True;
   fShowCodeIns := True;
   fSortByScope := True;
