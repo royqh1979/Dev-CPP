@@ -15,6 +15,9 @@ Ver=1
 12=C&ode
 
 
+100=Red Panda Dev-C++
+
+
 1001=&New
 1002=&Project...
 1003=&Source File
@@ -1129,6 +1132,7 @@ Ver=1
 66024=An error occurred while trying to load the printer setup dialog.<CR><CR>You probably have no printer installed yet.
 66025=Multiline tabs must be enabled when using vertical tabs.<CR><CR>Reverting to Top Tabs.
 66026=Default projects directory
+66027=Icons
 
 67001=Parameters...
 67002=Compile Current File
@@ -1303,7 +1307,9 @@ Ver=1
 76019=Please wait...
 76020=Saving...
 76021=Done parsing in %g seconds. Saving...
-
+76022=Menu Icon Size:
+76023=Toolbar Icon Size:
+76024=Tab Icon Size:
 
 77001=Loading compiler set...
 77002=Checking file associations...

@@ -93,6 +93,13 @@ type
     edProjectsDir: TEdit;
     btnProjectsDir: TSpeedButton;
     btnOpenOptionsDir: TSpeedButton;
+    tabIcon: TTabSheet;
+    lblMenuIconSize: TLabel;
+    cbMenuIconSize: TComboBox;
+    lblToolbarIconSize: TLabel;
+    cbToolbarIconSize: TComboBox;
+    lblTabIconSize: TLabel;
+    cbTabIconSize: TComboBox;
     procedure BrowseClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -189,7 +196,12 @@ begin
     s := Lang.FileFromDescription(cboLang.Text);
     LangChange := s <> Language;
     Language := s;
-    ThemeChange := cboTheme.Text <> devData.Theme;
+    ThemeChange := (cbMenuIconSize.Text <> MenuIconSize)
+      or (cbToolbarIconSize.Text <> ToolbarIconSize)
+      or (cbTabIconSize.Text <> TabIconSize);
+    MenuIconSize := cbMenuIconSize.Text;
+    ToolbarIconSize := cbToolbarIconSize.Text;
+    TabIconSize := cbTabIconSize.Text;
     Theme := cboTheme.Text;
     ShowProgress := cbShowProgress.Checked;
     AutoCloseProgress := cbAutoCloseProgress.Checked;
@@ -198,9 +210,10 @@ begin
     InterfaceFontSize := StrToIntDef(cbUIfontsize.Text, 9);
   end;
 
+
   devDebugger.ShowCommandLog := cbShowDbgCmd.Checked;
   devDebugger.ShowAnnotations := cbShowDbgFullAnnotation.Checked;
-  
+
   MainForm.Font.Name := devData.InterfaceFont;
   MainForm.Font.Size := devData.InterfaceFontSize;
   MainForm.DebugOutput.Font.Size :=  devData.InterfaceFontSize;
@@ -245,6 +258,7 @@ begin
   tabPaths.Caption := Lang[ID_ENV_PATHTAB];
   tabAssocs.Caption := Lang[ID_ENV_FASSTAB];
   tabExternal.Caption := Lang[ID_ENV_EXTERNALS];
+  tabIcon.Caption := Lang[ID_ENV_ICONS];
 
   //Buttons
   btnOk.Caption := Lang[ID_BTN_OK];
@@ -259,6 +273,7 @@ begin
   cbMinOnRun.Caption := Lang[ID_ENV_MINONRUN];
   cbPauseConsole.Caption := Lang[ID_ENV_PAUSECONSOLE];
   cbCheckAssocs.Caption := Lang[ID_ENV_CHECKASSOCS];
+
 
   gbProgress.Caption := Lang[ID_ENV_COMPPROGRESSWINDOW];
   cbShowProgress.Caption := Lang[ID_ENV_SHOWPROGRESS];
@@ -284,6 +299,11 @@ begin
   lblTheme.Caption := Lang[ID_ENV_THEME];
   lblmsgTabs.Caption := Lang[ID_ENV_MSGTABS];
   lblMRU.Caption := Lang[ID_ENV_MRU];
+
+  lblMenuIconSize.Caption := Lang[ID_LANGFORM_MENU_ICON_SIZE];
+  lblToolbarIconSize.Caption := Lang[ID_LANGFORM_TOOLBAR_ICON_SIZE];
+  lblTabIconSize.Caption := Lang[ID_LANGFORM_TAB_ICON_SIZE];
+
 
   lblOptionsDir.Caption := Lang[ID_ENV_OPTIONSDIRHINT];
   btnResetDev.Caption := Lang[ID_ENV_RESETDEV];
@@ -356,6 +376,10 @@ begin
     cboTheme.Items.Clear;
     devImageThemes.GetThemeTitles(cboTheme.Items);
     cboTheme.ItemIndex := devImageThemes.IndexOf(devImageThemes.CurrentTheme.Title);
+
+    cbMenuIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.MenuIconSize);
+    cbToolbarIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.ToolbarIconSize);
+    cbTabIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.TabIconSize);
 
     // Add all font families and select the current one
     cbUIfont.Items.Assign(Screen.Fonts);

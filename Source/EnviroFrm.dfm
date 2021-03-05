@@ -1,6 +1,6 @@
 object EnviroForm: TEnviroForm
-  Left = 535
-  Top = 111
+  Left = 971
+  Top = 159
   BorderStyle = bsDialog
   Caption = 'Environment Options'
   ClientHeight = 616
@@ -112,6 +112,7 @@ object EnviroForm: TEnviroForm
         Width = 45
         Height = 20
         Caption = 'Theme'
+        Visible = False
       end
       object UIfontlabel: TLabel
         Left = 331
@@ -286,6 +287,7 @@ object EnviroForm: TEnviroForm
         Style = csDropDownList
         ItemHeight = 20
         TabOrder = 12
+        Visible = False
       end
       object cbUIfont: TComboBox
         Left = 331
@@ -348,6 +350,85 @@ object EnviroForm: TEnviroForm
         Caption = 'Fix HighDPI and Exit'
         TabOrder = 16
         OnClick = btnHighDPIFixExitClick
+      end
+    end
+    object tabIcon: TTabSheet
+      Caption = 'Icons'
+      ImageIndex = 4
+      object lblMenuIconSize: TLabel
+        Left = 16
+        Top = 24
+        Width = 103
+        Height = 20
+        Caption = 'Menu Icon Size:'
+      end
+      object lblToolbarIconSize: TLabel
+        Left = 16
+        Top = 76
+        Width = 117
+        Height = 20
+        Caption = 'Toolbar Icon Size:'
+      end
+      object lblTabIconSize: TLabel
+        Left = 16
+        Top = 128
+        Width = 95
+        Height = 20
+        Caption = 'Tabs Icon Size:'
+      end
+      object cbMenuIconSize: TComboBox
+        Left = 155
+        Top = 21
+        Width = 150
+        Height = 28
+        AutoComplete = False
+        Style = csDropDownList
+        DropDownCount = 10
+        ItemHeight = 20
+        Sorted = True
+        TabOrder = 0
+        Items.Strings = (
+          '16x16'
+          '24x24'
+          '28x28'
+          '32x32'
+          '48x48')
+      end
+      object cbToolbarIconSize: TComboBox
+        Left = 155
+        Top = 73
+        Width = 150
+        Height = 28
+        AutoComplete = False
+        Style = csDropDownList
+        DropDownCount = 10
+        ItemHeight = 20
+        Sorted = True
+        TabOrder = 1
+        Items.Strings = (
+          '16x16'
+          '24x24'
+          '28x28'
+          '32x32'
+          '48x48')
+      end
+      object cbTabIconSize: TComboBox
+        Left = 155
+        Top = 125
+        Width = 150
+        Height = 28
+        AutoComplete = False
+        Style = csDropDownList
+        DropDownCount = 10
+        ItemHeight = 20
+        Sorted = True
+        TabOrder = 2
+        Items.Strings = (
+          '16x16'
+          '24x24'
+          '28x28'
+          '32x32'
+          '48x48')
       end
     end
     object tabPaths: TTabSheet

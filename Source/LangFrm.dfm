@@ -188,16 +188,16 @@ object LangForm: TLangForm
       Height = 273
       Caption = 'Select your theme:'
       TabOrder = 0
-      object lblIcons: TLabel
+      object lblMenuIconSize: TLabel
         Left = 11
-        Top = 139
-        Width = 37
+        Top = 131
+        Width = 101
         Height = 20
-        Caption = 'Icons:'
+        Caption = 'Menu icon size:'
       end
       object lblColor: TLabel
         Left = 11
-        Top = 96
+        Top = 80
         Width = 39
         Height = 20
         Caption = 'Color:'
@@ -209,19 +209,38 @@ object LangForm: TLangForm
         Height = 20
         Caption = 'Font:'
       end
-      object cmbIcons: TComboBox
-        Left = 75
-        Top = 136
-        Width = 268
+      object lblToolbarIconSize: TLabel
+        Left = 11
+        Top = 179
+        Width = 115
+        Height = 20
+        Caption = 'Toolbar icon size:'
+      end
+      object lblTabIconSize: TLabel
+        Left = 11
+        Top = 227
+        Width = 89
+        Height = 20
+        Caption = 'Tab icon Size:'
+      end
+      object cmbMenuIconSize: TComboBox
+        Left = 200
+        Top = 128
+        Width = 143
         Height = 28
         Style = csDropDownList
         ItemHeight = 20
         TabOrder = 0
-        OnChange = cmbIconsChange
+        Items.Strings = (
+          '16x16'
+          '24x24'
+          '28x28'
+          '32x32'
+          '48x48')
       end
       object cmbColors: TComboBox
         Left = 75
-        Top = 93
+        Top = 77
         Width = 268
         Height = 28
         Style = csDropDownList
@@ -255,133 +274,35 @@ object LangForm: TLangForm
         OnChange = FontChange
         OnDrawItem = cmbFontDrawItem
       end
-      object Panel1: TPanel
-        Left = 8
+      object cmbToolbarIconSize: TComboBox
+        Left = 200
         Top = 176
-        Width = 345
-        Height = 89
-        BevelOuter = bvNone
+        Width = 143
+        Height = 28
+        Style = csDropDownList
+        ItemHeight = 20
         TabOrder = 3
-        object tbExample: TToolBar
-          Left = 0
-          Top = 0
-          Width = 345
-          Height = 89
-          Align = alClient
-          AutoSize = True
-          Caption = 'Main'
-          DragKind = dkDock
-          EdgeBorders = []
-          EdgeInner = esLowered
-          EdgeOuter = esRaised
-          Flat = True
-          Images = dmMain.MenuImages_NewLook
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 0
-          object NewFileBtn: TToolButton
-            Left = 0
-            Top = 0
-            Caption = '&Source File'
-            ImageIndex = 1
-          end
-          object OpenBtn: TToolButton
-            Left = 23
-            Top = 0
-            ImageIndex = 4
-          end
-          object SaveUnitBtn: TToolButton
-            Left = 46
-            Top = 0
-            ImageIndex = 6
-          end
-          object SaveAllBtn: TToolButton
-            Left = 69
-            Top = 0
-            ImageIndex = 8
-          end
-          object CloseBtn: TToolButton
-            Left = 92
-            Top = 0
-            ImageIndex = 9
-          end
-          object PrintBtn: TToolButton
-            Left = 115
-            Top = 0
-            ImageIndex = 10
-          end
-          object UndoBtn: TToolButton
-            Left = 138
-            Top = 0
-            ImageIndex = 13
-          end
-          object RedoBtn: TToolButton
-            Left = 161
-            Top = 0
-            ImageIndex = 14
-          end
-          object FindBtn: TToolButton
-            Left = 184
-            Top = 0
-            ImageIndex = 21
-          end
-          object ReplaceBtn: TToolButton
-            Left = 207
-            Top = 0
-            ImageIndex = 22
-            Wrap = True
-          end
-          object FindNextBtn: TToolButton
-            Left = 0
-            Top = 22
-            ImageIndex = 44
-          end
-          object GotoLineBtn: TToolButton
-            Left = 23
-            Top = 22
-            ImageIndex = 24
-          end
-          object CompileBtn: TToolButton
-            Left = 46
-            Top = 22
-            ImageIndex = 28
-          end
-          object RunBtn: TToolButton
-            Left = 69
-            Top = 22
-            ImageIndex = 31
-          end
-          object CompileAndRunBtn: TToolButton
-            Left = 92
-            Top = 22
-            ImageIndex = 33
-          end
-          object RebuildAllBtn: TToolButton
-            Left = 115
-            Top = 22
-            ImageIndex = 30
-          end
-          object DebugBtn: TToolButton
-            Left = 138
-            Top = 22
-            ImageIndex = 32
-          end
-          object ProfileBtn: TToolButton
-            Left = 161
-            Top = 22
-            ImageIndex = 43
-          end
-          object ProfilingInforBtn: TToolButton
-            Left = 184
-            Top = 22
-            ImageIndex = 47
-          end
-          object InsertBtn: TToolButton
-            Left = 207
-            Top = 22
-            ImageIndex = 18
-          end
-        end
+        Items.Strings = (
+          '16x16'
+          '24x24'
+          '28x28'
+          '32x32'
+          '48x48')
+      end
+      object cmbTabIconSize: TComboBox
+        Left = 200
+        Top = 224
+        Width = 143
+        Height = 28
+        Style = csDropDownList
+        ItemHeight = 20
+        TabOrder = 4
+        Items.Strings = (
+          '16x16'
+          '24x24'
+          '28x28'
+          '32x32'
+          '48x48')
       end
     end
   end

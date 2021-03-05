@@ -573,7 +573,7 @@ type
     actBreakPointPropInPane: TAction;
     Openprojectorfile1: TMenuItem;
     Panel3: TPanel;
-    ToolBar8: TToolBar;
+    tbClasses: TToolBar;
     ToolButton13: TToolButton;
     ToolButton14: TToolButton;
     ToolButton15: TToolButton;
@@ -592,7 +592,7 @@ type
     actOpenConsole: TAction;
     OpenShellHere1: TMenuItem;
     Panel4: TPanel;
-    ToolBar9: TToolBar;
+    tbWatch: TToolBar;
     actSaveWatchList: TAction;
     actLoadWatchList: TAction;
     ToolButton23: TToolButton;
@@ -699,7 +699,7 @@ type
     fileBrowser: TDevFileBrowser;
     actSetCurrentFolder: TAction;
     OpenFolder1: TMenuItem;
-    ToolBar10: TToolBar;
+    tbFiles: TToolBar;
     ToolButton27: TToolButton;
     Panel5: TPanel;
     ToolButton28: TToolButton;
@@ -1448,19 +1448,122 @@ end;
 {TMainForm}
 
 procedure TMainForm.LoadTheme;
+  function GetImageList(size:string):TImageList;
+  var
+    images:TImageList;
+  begin
+    images := dmMain.MenuImages_NewLook;
+    if sameText(size,'16x16') then begin
+      images := dmMain.MenuImages_NewLook;
+    end;
+    if sameText(size,'24x24') then begin
+      images := dmMain.MenuImages_NewLook24;
+    end;
+    if sameText(size,'28x28') then begin
+      images := dmMain.MenuImages_NewLook28;
+    end;
+    if sameText(size,'32x32') then begin
+      images := dmMain.MenuImages_NewLook32;
+    end;
+    if sameText(size,'48x48') then begin
+      images := dmMain.MenuImages_NewLook48;
+    end;
+    Result:=images;
+  end;
+  procedure LoadMenuIcons;
+  var
+    images :TImageList;
+  begin
+    images := GetImageList(devData.MenuIconSize);
+    ActionList.Images := images;
+    MainMenu.Images := images;
+    BrowserPopup.Images := images;
+    DebugPopup.Images := images;
+    ProjectPopup.Images := images;
+    UnitPopup.Images := images;
+    FolderPopup.Images := images;
+    CustomDebugPopup.Images := images;
+    BreakpointsPopup.Images := images;
+    EditorPopup.Images := images;
+    EditorPagePopup.Images := images;
+    CompilerPopup.Images := images;
+    MessagePopup.Images := images;
+    DebugOutputPopup.Images := images;
+    LocalPopup.Images := images;
+    FindPopup.Images := images;
+  end;
+  procedure LoadTabIcons;
+  var
+    images :TImageList;
+  begin
+    images := GetImageList(devData.TabIconSize);
+    LeftPageControl.Images := images;
+    MessageControl.Images := images;
+  end;
+  procedure SetToolbarImages(toolbar:TToolbar; images:TImageList; visible:boolean);
+  var
+    size,i:integer;
+    height: integer;
+  begin
+    toolbar.Visible := False;
+    toolbar.Images := images;
+    if images.Width < 28 then begin
+      toolbar.ButtonWidth := 28;
+      toolbar.ButtonHeight := 28;
+    end else begin
+      toolbar.ButtonWidth := images.Width;
+      toolbar.ButtonHeight := images.Height;
+    end;
+    height := toolbar.ButtonHeight + 2;
+    size := 0;
+    for i:=0 to toolbar.ButtonCount-1 do begin
+      size := size + toolbar.Buttons[i].Width;
+    end;
+    toolbar.Width := size + 2;
+    toolbar.Height := height;
+    toolbar.Visible:= visible;
+  end;
+  procedure LoadToolbarIcons;
+  var
+    images :TImageList;
+  begin
+    toolbarDock.AutoSize := False;
+    toolbarDock.RowSize := 10;
+    images := GetImageList(devData.ToolbarIconSize);
+    SetToolbarImages(tbMain,images, devData.ToolbarMain);
+    toolbarDock.RowSize := tbMain.Height+4;
+    SetToolbarImages(tbCompile,images, devData.ToolbarCompile);
+    SetToolbarImages(tbProject,images, devData.ToolbarProject);
+    SetToolbarImages(tbEdit,images, devData.ToolbarEdit);
+    SetToolbarImages(tbSearch,images, devData.ToolbarSearch);
+    SetToolbarImages(tbSpecials,images, devData.ToolbarSpecials);
+    SetToolbarImages(tbUndo,images, devData.ToolbarUndo);
+    SetToolbarImages(tbDebug,images, devData.ToolbarDebug);
+
+    SetToolbarImages(tbClasses,images, true);
+    SetToolbarImages(tbWatch,images, true);
+    SetToolbarImages(tbFiles,images, true);
+
+    tbCompilers.Height := tbMain.ButtonHeight + 2;
+    toolbarDock.AutoSize := True;
+    // let the dock realign toolbars (it's realign() procedure only aligns itself)
+    SendMessage(toolbarDock.Handle, WM_LBUTTONDOWN, MK_LBUTTON, MakeLParam(0,0));
+    SendMessage(toolbarDock.Handle, WM_LBUTTONUP, MK_LBUTTON, MakeLParam(0,0));
+  end;
 begin
+  LoadMenuIcons;
+  LoadTabIcons;
+  LoadToolbarIcons;
   if devImageThemes.IndexOf(devData.Theme) = -1 then
     devData.Theme := devImageThemes.Themes[0].Title; // 0 = New look (see ImageTheme.pas)
-
+  {
   // make sure the theme in question is in the list
   if devImageThemes.IndexOf(devData.Theme) <> -1 then begin
     devImageThemes.ActivateTheme(devData.Theme);
 
     with devImageThemes do begin
-      {
       // Misc items images
-      ActionList.Images := CurrentTheme.MenuImages;
-      MainMenu.Images := CurrentTheme.MenuImages;
+
       MessageControl.Images := CurrentTheme.MenuImages;
 
       // Set toolbar images
@@ -1485,9 +1588,9 @@ begin
       BrowserPopup.Images := CurrentTheme.MenuImages;
       DebugPopup.Images := CurrentTheme.MenuImages;
       EditorPopup.Images := CurrentTheme.MenuImages;
-      }
     end;
   end;
+  }
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1496,7 +1599,7 @@ begin
     Exit;
   fQuitting:=True;
 
-  SaveLastOpens;  
+  SaveLastOpens;
   //CppParser.Enabled := False; // disable parser, because we are exiting;
   // Try to close the current project. If it stays open (user says cancel), stop quitting
   if Assigned(fProject) then
@@ -1513,6 +1616,9 @@ begin
   // stop Exectuting file
   if devExecutor.Running then
     devExecutor.Reset;
+
+  //we must clear watch view, or it will crash
+  WatchView.Items.Clear;
 
   // Try to close all editors. If some are left open, stop quitting
   actCloseAllExecute(Self);
@@ -6308,7 +6414,9 @@ procedure TMainForm.UpdateAppTitle;
 var
   e: TEditor;
   str: String;
+  appName : String;
 begin
+  appName := Lang[ID_DEVCPP];
   e := fEditorList.GetEditor;
   if Assigned(e) and not e.InProject then begin
     if e.Text.Modified then
@@ -6316,38 +6424,38 @@ begin
     else
       str := e.FileName;
     if fDebugger.Executing then begin
-      Caption := Format('%s - [Debugging] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - [Debugging] - %s', [ExtractFileName(e.FileName), DEVCPP]);
+      Caption := Format('%s - [Debugging] - %s %s', [str, appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Debugging] - %s', [ExtractFileName(e.FileName), appName]);
     end else if devExecutor.Running then begin
-      Caption := Format('%s - [Executing] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - [Executing] - %s', [ExtractFileName(e.FileName), DEVCPP]);
+      Caption := Format('%s - [Executing] - %s %s', [str, appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Executing] - %s', [ExtractFileName(e.FileName), appName]);
     end else if fCompiler.Compiling then begin
-      Caption := Format('%s - [Compiling] - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - [Compiling] - %s', [ExtractFileName(e.FileName), DEVCPP]);
+      Caption := Format('%s - [Compiling] - %s %s', [str, appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Compiling] - %s', [ExtractFileName(e.FileName), appName]);
     end else begin
-      Caption := Format('%s - %s %s', [str, DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - %s', [ExtractFileName(e.FileName), DEVCPP]);
+      Caption := Format('%s - %s %s', [str, appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - %s', [ExtractFileName(e.FileName), appName]);
     end;
   end else if Assigned(fProject) then begin
     if fDebugger.Executing then begin
       Caption := Format('%s - [%s] - [Debugging] - %s %s',
-        [fProject.Name, ExtractFilename(fProject.Filename), DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - [Debugging] - %s', [fProject.Name, DEVCPP]);
+        [fProject.Name, ExtractFilename(fProject.Filename), appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Debugging] - %s', [fProject.Name, appName]);
     end else if devExecutor.Running then begin
       Caption := Format('%s - [%s] - [Executing] - %s %s',
-        [fProject.Name, ExtractFilename(fProject.Filename), DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - [Executing] - %s', [fProject.Name, DEVCPP]);
+        [fProject.Name, ExtractFilename(fProject.Filename), appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Executing] - %s', [fProject.Name, appName]);
     end else if fCompiler.Compiling then begin
       Caption := Format('%s - [%s] - [Compiling] - %s %s',
-        [fProject.Name, ExtractFilename(fProject.Filename), DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - [Compiling] - %s', [fProject.Name, DEVCPP]);
+        [fProject.Name, ExtractFilename(fProject.Filename), appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - [Compiling] - %s', [fProject.Name, appName]);
     end else begin
       Caption := Format('%s - [%s] - %s %s',
-        [fProject.Name, ExtractFilename(fProject.Filename), DEVCPP, DEVCPP_VERSION]);
-      Application.Title := Format('%s - %s', [fProject.Name, DEVCPP]);
+        [fProject.Name, ExtractFilename(fProject.Filename), appName, DEVCPP_VERSION]);
+      Application.Title := Format('%s - %s', [fProject.Name, appName]);
     end;
   end else begin
-    Caption := Format('%s %s', [DEVCPP, DEVCPP_VERSION]);
+    Caption := Format('%s %s', [appName, DEVCPP_VERSION]);
     Application.Title := Format('%s', [DEVCPP]);
   end;
 end;
@@ -7263,13 +7371,14 @@ begin
   // Create icon themes
   devImageThemes := TDevImageThemeFactory.Create;
   devImageThemes.LoadFromDirectory(devDirs.Themes);
-  LoadTheme;
 
   // Set languages and other first time stuff
   if devData.First or (devData.Language = '') then
     Lang.SelectLanguage
   else
     Lang.Open(devData.Language);
+
+  LoadTheme;
 
   // Load bookmarks, captions and hints
   LoadText;
@@ -7338,6 +7447,8 @@ begin
   actOnlyShowDevFiles.Checked := devData.FileBrowserOnlyShowDevFiles;
 
   fileBrowser.Monitor := FileMonitor;
+
+
 end;
 
 procedure TMainForm.EditorPageControlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -8829,11 +8940,12 @@ begin
         x  := Rect.Left + ((Rect.Right - Rect.Left
           - TTabControl(Control).Images.Width
         ) div 2) + 1;
-        y  := Rect.bottom - ((Rect.Bottom - Rect.Top
+        y  := Rect.bottom - TTabControl(Control).Images.Height-5;
+        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+        y  := y - ((Rect.Bottom - Rect.Top
            - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
            - TTabControl(Control).Images.Height
-           ) div 2) - TTabControl(Control).Images.Height;
-        TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
+           -5) div 2) ;
       end else begin
         y  := Rect.Bottom - ((Rect.Bottom - Rect.Top
            - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)
@@ -8849,14 +8961,14 @@ begin
       if Assigned(TPageControl(Control).Images)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex<TPageControl(Control).Images.Count)
         and (TPageControl(Control).Pages[TabIndex].ImageIndex>=0) then begin
-        x  := Rect.Left + ((Rect.Right - Rect.Left
-          - Control.Canvas.TextWidth (TPageControl(Control).Pages[TabIndex].Caption)
-          - TTabControl(Control).Images.Width
-          ) div 2) + 1;
+        x  := Rect.Left + 5;
         y  := Rect.Top + ((Rect.Bottom - Rect.Top
           - TTabControl(Control).Images.Height) div 2) + 1;
         TTabControl(Control).Images.Draw(Control.Canvas,x,y,TPageControl(Control).Pages[TabIndex].ImageIndex);
-        inc(x,TTabControl(Control).Images.Width);
+        x  := x + TTabControl(Control).Images.Width + ((Rect.Right - Rect.Left
+          - Control.Canvas.TextWidth (TPageControl(Control).Pages[TabIndex].Caption)
+          - TTabControl(Control).Images.Width
+          - 5) div 2);
       end else begin
         x  := Rect.Left + ((Rect.Right - Rect.Left - Control.Canvas.TextWidth(TPageControl(Control).Pages[TabIndex].Caption)) div 2) + 1;
       end;

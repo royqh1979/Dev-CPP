@@ -63,6 +63,8 @@ type
     FileBrowserImages_NewLook: TImageList;
     MenuImages_NewLook28: TImageList;
     MenuImages_NewLook24: TImageList;
+    MenuImages_NewLook32: TImageList;
+    MenuImages_NewLook48: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private

@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "GCC 10.2"
 !define COMPILERFOLDER "MinGW32"
-!define DEVCPP_VERSION "6.5"
+!define DEVCPP_VERSION "6.6"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -202,6 +202,48 @@ Section "$(SectionAssocExtNameBegin) .cpp $(SectionAssocExtNameEnd)"
   WriteRegStr HKCR "DevCpp.cpp" "" "C++ Source File"
   WriteRegStr HKCR "DevCpp.cpp\DefaultIcon" "" '$0,5'
   WriteRegStr HKCR "DevCpp.cpp\Shell\Open\Command" "" '$0 "%1"'
+  Call RefreshShellIcons
+SectionEnd
+
+Section "$(SectionAssocExtNameBegin) .cxx $(SectionAssocExtNameEnd)"
+  SectionIn 1 3
+
+  StrCpy $0 ".cxx"
+  Call BackupAssoc
+
+  StrCpy $0 $INSTDIR\DevCpp.exe
+  WriteRegStr HKCR ".cxx" "" "DevCpp.cpp"
+  WriteRegStr HKCR "DevCpp.cpp" "" "C++ Source File"
+  WriteRegStr HKCR "DevCpp.cpp\DefaultIcon" "" '$0,5'
+  WriteRegStr HKCR "DevCpp.cpp\Shell\Open\Command" "" '$0 "%1"'
+  Call RefreshShellIcons
+SectionEnd
+
+Section "$(SectionAssocExtNameBegin) .cc $(SectionAssocExtNameEnd)"
+  SectionIn 1 3
+
+  StrCpy $0 ".cc"
+  Call BackupAssoc
+
+  StrCpy $0 $INSTDIR\DevCpp.exe
+  WriteRegStr HKCR ".cc" "" "DevCpp.cpp"
+  WriteRegStr HKCR "DevCpp.cpp" "" "C++ Source File"
+  WriteRegStr HKCR "DevCpp.cpp\DefaultIcon" "" '$0,5'
+  WriteRegStr HKCR "DevCpp.cpp\Shell\Open\Command" "" '$0 "%1"'
+  Call RefreshShellIcons
+SectionEnd
+
+Section "$(SectionAssocExtNameBegin) .hxx $(SectionAssocExtNameEnd)"
+  SectionIn 1 3
+
+  StrCpy $0 ".hxx"
+  Call BackupAssoc
+
+  StrCpy $0 $INSTDIR\DevCpp.exe
+  WriteRegStr HKCR ".hxx" "" "DevCpp.hpp"
+  WriteRegStr HKCR "DevCpp.hpp" "" "C++ Header File"
+  WriteRegStr HKCR "DevCpp.hpp\DefaultIcon" "" '$0,7'
+  WriteRegStr HKCR "DevCpp.hpp\Shell\Open\Command" "" '$0 "%1"'
   Call RefreshShellIcons
 SectionEnd
 
