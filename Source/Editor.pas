@@ -754,6 +754,8 @@ begin
         sl.LoadFromFile(aFiles[I]);
         if GetFileEncodingType(sl.Text) = etUTF8 then
           fText.SelText := UTF8ToAnsi(sl.Text)
+        else if GetFileEncodingType(sl.Text) = etUTF8Bom then
+          fText.SelText := UTF8ToAnsi(Copy(sl.Text,4,MaxInt))
         else
           fText.SelText := sl.Text;
       end;
@@ -3607,7 +3609,10 @@ end;
       end;
       if FileEncoding = etUTF8 then
         Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
-      else
+      else if FileEncoding = etUTF8Bom then begin
+        fFileEncoding := etUTF8;
+        Text.Lines.Text := UTF8ToAnsi(Copy(tmpList.Text,4,MaxInt));
+      end else
         Text.Lines.Text := tmpList.Text;
     finally
       tmpList.Free;
@@ -3625,7 +3630,7 @@ end;
         fFileEncoding:=fEncodingOption;
       end;
       if (fEncodingOption = etAuto) and (fFileEncoding = etAscii) then begin
-        fFileEncoding:=GetFileEncodingType(fText.Lines.Text);
+        fFileEncoding:= GetFileEncodingType(fText.Lines.Text);
         if (fFileEncoding <> etAscii) then begin
           if  not InProject and devEditor.UseUTF8ByDefault then
             fFileEncoding := etUTF8

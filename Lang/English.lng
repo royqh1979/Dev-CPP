@@ -701,6 +701,7 @@ Ver=1
 44012=Do not recognize asm, inline or typeof as a keyword (-fno-asm)
 44013=Check if pointer is null before accessing storage allocated (-fcheck-new)
 44014=Put uninitialized globals into the common segment (-fconserve-space)
+44015=Statically Link stdlib
 
 
 45001=Code Generation

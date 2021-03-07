@@ -86,6 +86,7 @@ type
     btnRemoveAutoLink: TButton;
     AutoLinks: TMemo;
     chkEnableAutoLinks: TCheckBox;
+    cbStaticLinkStdlib: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -179,6 +180,7 @@ begin
     Commands.Lines.Text := '';
     Linker.Lines.Text := '';
     cbCompAdd.Checked := false;
+    cbStaticLinkStdlib.Checked:=false;
     cbLinkerAdd.Checked := false;
     GccEdit.Text := '';
     GppEdit.Text := '';
@@ -200,6 +202,7 @@ begin
       Linker.Enabled := AddtoLink;
       cbCompAdd.Checked := AddtoComp;
       cbLinkerAdd.Checked := AddtoLink;
+      cbStaticLinkStdlib.Checked:= StaticLinkStdlib;
       GccEdit.Text := gccName;
       GppEdit.Text := gppName;
       GdbEdit.Text := gdbName;
@@ -231,6 +234,7 @@ begin
     LinkOpts := Linker.Lines.Text;
     AddtoLink := cbLinkerAdd.Checked;
     AddtoComp := cbCompAdd.Checked;
+    StaticLinkStdlib := cbStaticLinkStdlib.Checked;
 
     // Settings (flags) are saved by the components
 
@@ -449,6 +453,7 @@ begin
   cbCompAdd.Caption := Lang[ID_COPT_ADDCOMP];
   cbLinkerAdd.Caption := Lang[ID_COPT_LINKADD];
   OptionsTip.Caption := Lang[ID_COPT_COMPILERTIP];
+  cbStaticLinkStdlib.Caption := Lang[ID_COPT_STATIC_LINK_STDLIB];
 
   // Programs (you may want to...)
   lblProgramsText.Caption := Lang[ID_COPT_PROGRAMS];

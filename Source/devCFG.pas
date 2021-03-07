@@ -76,6 +76,7 @@ type
     fLinkAdd: boolean;
     fCompOpt: AnsiString;
     flinkOpt: AnsiString;
+    fStaticLinkStdlib: boolean;
 
     // Options
     fOptions: TList;
@@ -144,6 +145,7 @@ type
     property AddtoLink: boolean read fLinkAdd write fLinkAdd;
     property CompOpts: AnsiString read fCompOpt write fCompOpt;
     property LinkOpts: AnsiString read fLinkOpt write fLinkOpt;
+    property StaticLinkStdlib: boolean read fStaticLinkStdlib write fStaticLinkStdlib;
   end;
 
   //Compiler Settings
@@ -1299,6 +1301,7 @@ begin
   fCompOpt := input.fCompOpt;
   fLinkAdd := input.fLinkAdd;
   flinkOpt := input.fLinkOpt;
+  fStaticLinkStdlib := input.fStaticLinkStdlib;
 
   // Option list
   INIOptions := input.INIOptions;
@@ -1466,6 +1469,7 @@ begin
   fCompAdd := FALSE;
   fLinkAdd := TRUE;
   fCompOpt := '';
+  fStaticLinkStdlib := False;
 
   // MinGW32 requires special treatment
   if ContainsStr(fName, 'MinGW') then
@@ -2044,6 +2048,7 @@ begin
     fLinkOpt := devData.ReadS(key, 'LinkOpt');
     fCompAdd := devData.ReadB(key, 'CompAdd');
     fLinkAdd := devData.ReadB(key, 'LinkAdd');
+    fStaticLinkStdlib := devData.ReadB(key, 'StaticLinkStdlib');
 
     // Directories, undo relative stuff
     ReadDirList(fBinDir, 'Bins');
@@ -2117,6 +2122,7 @@ begin
     devData.Write(key, 'LinkOpt', fLinkOpt);
     devData.Write(key, 'CompAdd', fCompAdd);
     devData.Write(key, 'LinkAdd', fLinkAdd);
+    devData.Write(key,'StaticLinkStdlib', fStaticLinkStdlib);
 
     // Paths
     WriteDirList(fBinDir, 'Bins');
@@ -2637,11 +2643,11 @@ begin
       end;
 
       //active line
-      if Assigned(Highlighter) then begin
+      if Assigned(Highlighter) and devEditor.HighCurrLine then begin
         StrToThemeColor(tc, devEditor.Syntax.Values[cAL]);
         ActiveLineColor := tc.Background;
-      end else begin // editor not colored, pick defaults
-        ActiveLineColor := $FFFFCC;
+      end else begin // set to defaults
+        ActiveLineColor := clNone;
       end;
 
 

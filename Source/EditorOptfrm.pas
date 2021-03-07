@@ -268,7 +268,11 @@ procedure TEditorOptForm.UpdateDemoEditColor;
 begin
   CppEdit.Gutter.Color := fGutColor.Background;
   CppEdit.Gutter.Font.Color := fGutColor.Foreground;
-  CppEdit.ActiveLineColor := fALColor.Background;
+  if cbHighCurrLine.Checked then
+    CppEdit.ActiveLineColor := fALColor.Background;
+  else
+    CppEdit.ActiveLineColor := fALColor.clNone;
+
   CppEdit.CaretY := cActiveLine;
   CppEdit.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;
   CppEdit.UseCodeFolding := True;
