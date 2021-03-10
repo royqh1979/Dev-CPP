@@ -269,9 +269,9 @@ begin
   CppEdit.Gutter.Color := fGutColor.Background;
   CppEdit.Gutter.Font.Color := fGutColor.Foreground;
   if cbHighCurrLine.Checked then
-    CppEdit.ActiveLineColor := fALColor.Background;
+    CppEdit.ActiveLineColor := fALColor.Background
   else
-    CppEdit.ActiveLineColor := fALColor.clNone;
+    CppEdit.ActiveLineColor := clNone;
 
   CppEdit.CaretY := cActiveLine;
   CppEdit.CodeFolding.FolderBarLinesColor := fFoldColor.Foreground;

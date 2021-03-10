@@ -2605,9 +2605,11 @@ var
     pszText: PChar;
     Counter, nX, nCharsToPaint: integer;
     sTabbedToken: string;
+    newToken:String;
     DoTabPainting: Boolean;
     i, TabStart, TabLen: Integer;
     rcTab: TRect;
+    isSpace : boolean;
   const
     ETOOptions = ETO_OPAQUE;
   begin
@@ -2615,13 +2617,17 @@ var
     DoTabPainting := False;
 
     Counter := Last - CharsBefore;
+    newToken := '';
+
     while Counter > First - CharsBefore - 1 do begin
       if (Length(Token) >= Counter) then begin
         if (fShowSpecChar) and (Token[Counter] = #32) then
-          Token[Counter] := SynSpaceGlyph
+          newToken := SynSpaceGlyph + newToken
         else if (Token[Counter] = TSynTabChar) then begin
-          Token[Counter] := #32; //Tabs painted differently if necessary
+          newToken := #32 + newToken;
           DoTabPainting := fShowSpecChar;
+        end else begin
+          newToken := Token[Counter] + newToken ;
         end;
       end;
       Dec(Counter);
@@ -2639,10 +2645,11 @@ var
         if (First > 1) and (ByteType(Token, First) = mbTrailByte) then begin
           Dec(First);
           Dec(nX, fCharWidth);
+          newToken := Token[First]+newToken;
         end;
 {$ENDIF}
-        pszText := PChar(@Token[First]);
-        nCharsToPaint := Min(Last - First + 1, TokenLen - First + 1);
+        pszText := PChar(newToken);
+        nCharsToPaint := Length(newToken);
       end;
       fTextDrawer.ExtTextOut(nX, rcToken.Top, ETOOptions, rcToken,
         pszText, nCharsToPaint);
@@ -2672,7 +2679,7 @@ var
           rcTab.Right := nX + fTextDrawer.GetCharWidth;
 
           fTextDrawer.ExtTextOut(nX, rcTab.Top, ETOOptions, rcTab,
-            pszText, 1);
+            pszText, length(SynTabGlyphString));
 
           for i := 0 to TabLen - 1 do //wipe the text out so we don't
             sTabbedToken[TabStart + i] := #32; //count it again
@@ -3271,7 +3278,7 @@ var
           if (eoShowSpecialChars in fOptions) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
-              Length(SynLineBreakGlyph),cRow, nil);
+              Length(SynLineBreakGlyph),cRow, fHighLighter.WhitespaceAttribute);
           end;
         end;
 

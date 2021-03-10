@@ -3904,7 +3904,9 @@ var
       if samestr(Statement^._Command,childStatement^._Command)
         or samestr(Statement^._Command + 'A',childStatement^._Command)
         or samestr(Statement^._Command + 'W',childStatement^._Command) then begin
-          List.Add(PrettyPrintStatement(childStatement));
+        if (Line<childStatement^._Line) and SameText(FileName,childStatement^._FileName) then
+          continue;
+        List.Add(PrettyPrintStatement(childStatement));
       end;
     end;
   end;
@@ -4468,6 +4470,8 @@ var
       childStatement:=PStatement(children[i]);
       if samestr(st^._Command,childStatement^._Command)
         and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
+          if (Line < childStatement^._Line) and SameText(FileName, childStatement^._FileName) then
+            Continue;
           if Result <> '' then
             Result:=Result+#13;
           Result := Result + PrettyPrintStatement(childStatement)

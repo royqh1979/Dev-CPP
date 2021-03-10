@@ -2470,7 +2470,7 @@ begin
   if word='' then
     word:=GetWordAtPosition(fText, fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
   //if not fCompletionBox.Visible then
-  fCompletionBox.PrepareSearch(word, fFileName);
+  fCompletionBox.PrepareSearch(word, fFileName,pBeginPos.Line);
 
   // Filter the whole statement list
   if fCompletionBox.Search(word, fFileName, autoComplete) then //only one suggestion and it's not input while typing

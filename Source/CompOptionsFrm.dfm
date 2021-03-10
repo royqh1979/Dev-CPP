@@ -317,7 +317,7 @@ object CompOptForm: TCompOptForm
             505)
           object cbCompAdd: TCheckBox
             Left = 13
-            Top = 40
+            Top = 8
             Width = 595
             Height = 23
             Anchors = [akLeft, akTop, akRight]
@@ -327,7 +327,7 @@ object CompOptForm: TCompOptForm
           end
           object Commands: TMemo
             Left = 26
-            Top = 72
+            Top = 40
             Width = 591
             Height = 193
             Anchors = []
@@ -338,7 +338,7 @@ object CompOptForm: TCompOptForm
           end
           object cbLinkerAdd: TCheckBox
             Left = 13
-            Top = 272
+            Top = 240
             Width = 595
             Height = 23
             Anchors = [akLeft, akTop, akRight]
@@ -348,7 +348,7 @@ object CompOptForm: TCompOptForm
           end
           object Linker: TMemo
             Left = 26
-            Top = 304
+            Top = 272
             Width = 591
             Height = 193
             Anchors = []
@@ -359,7 +359,7 @@ object CompOptForm: TCompOptForm
           end
           object cbStaticLinkStdlib: TCheckBox
             Left = 13
-            Top = 8
+            Top = 472
             Width = 595
             Height = 23
             Anchors = [akLeft, akTop, akRight]

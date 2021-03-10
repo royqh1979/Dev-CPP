@@ -767,6 +767,7 @@ const
   ID_COPT_NOASM                         = 44012;
   ID_COPT_NULNEW                        = 44013;
   ID_COPT_CSPACE                        = 44014;
+  ID_COPT_STATIC_LINK_STDLIB            = 44015;
 
   // CodeGen Tab
   ID_COPT_GRP_CODEGEN                   = 45001;

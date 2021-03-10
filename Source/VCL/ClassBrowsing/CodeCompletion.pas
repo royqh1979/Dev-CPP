@@ -64,20 +64,21 @@ type
     fCriticalSection: TCriticalSection;
     fParserSerialId: String;
     fSortByScope: boolean;
-    procedure GetCompletionFor(FileName,Phrase: AnsiString);
+    procedure GetCompletionFor(FileName,Phrase: AnsiString; Line:integer);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
     procedure OnFormResize(Sender: TObject);
     function IsIncluded(const FileName: AnsiString): boolean;
     function IsVisible: boolean;
-    procedure AddChildren(ScopeStatement:PStatement);
+    procedure AddStatement(statement:PStatement; FileName: String; Line:integer);
+    procedure AddChildren(ScopeStatement:PStatement; FileName: String; Line:Integer);
     function GetColor(i:integer):TColor;
     procedure SetColor(i:integer; const Color:TColor);
     procedure SetParser(parser:TCppParser);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure PrepareSearch(const Phrase, Filename: AnsiString);
+    procedure PrepareSearch(const Phrase, Filename: AnsiString; Line:integer);
     function Search(const Phrase, Filename: AnsiString; AutoHideOnSingleResult:boolean):boolean;
     procedure Hide;
     procedure Show;
@@ -182,11 +183,20 @@ begin
   inherited Destroy;
 end;
 
-procedure TCodeCompletion.AddChildren(ScopeStatement:PStatement);
+procedure TCodeCompletion.AddStatement(statement:PStatement; FileName: String; Line:integer);
+begin
+  if (Line <> -1) and (Line < statement^._Line) and SameText(FileName,statement^._FileName)  then
+    Exit;
+  fAddedStatements.Add(statement^._Command,1);
+  fFullCompletionStatementList.Add(statement);
+end;
+
+procedure TCodeCompletion.AddChildren(ScopeStatement:PStatement; FileName: String; Line:integer);
 var
   ChildStatement: PStatement;
   Children : TList;
   i:integer;
+
 begin
   if assigned(ScopeStatement) and not IsIncluded(ScopeStatement^._FileName)
     and not IsIncluded(ScopeStatement^._DefinitionFileName) then
@@ -200,16 +210,14 @@ begin
       ChildStatement:=PStatement(Children[i]);
       if (ChildStatement^._FileName = '') then begin
         // hard defines
-        fAddedStatements.Add(ChildStatement^._Command,1);
-        fFullCompletionStatementList.Add(ChildStatement);
+        AddStatement(ChildStatement,FileName,-1);
       end else if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
         and (fAddedStatements.ValueOf(ChildStatement^._Command) <0)
         and (
           IsIncluded(ChildStatement^._FileName)
           or IsIncluded(ChildStatement^._DefinitionFileName)
-        )then begin //we have to check for file include for symbols in the global scope
-        fAddedStatements.Add(ChildStatement^._Command,1);
-        fFullCompletionStatementList.Add(ChildStatement);
+        ) then begin //we have to for file include for symbols in the global scope
+        AddStatement(ChildStatement,FileName,Line);
       end;
     end;
   end else begin
@@ -217,14 +225,13 @@ begin
       ChildStatement:=PStatement(Children[i]);
       if not( ChildStatement^._Kind in [skConstructor, skDestructor, skBlock])
         and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
-        fAddedStatements.Add(ChildStatement^._Command,1);
-        fFullCompletionStatementList.Add(ChildStatement);
+        AddStatement(ChildStatement,FileName,Line);
       end;
     end;
   end;
 end;
 
-procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: AnsiString);
+procedure TCodeCompletion.GetCompletionFor(FileName,Phrase: AnsiString; Line:integer);
 var
   scopeStatement : PStatement;
   ParentTypeStatement,ChildStatement,ClassTypeStatement,namespaceStatement:PStatement;
@@ -312,7 +319,10 @@ begin
     // repeat until reach global
     while Assigned(scopeStatement) do begin
       //add members of current scope that not added before
-      AddChildren(scopeStatement);
+      if scopeStatement^._Kind = skClass then
+        AddChildren(scopeStatement, FileName, -1)
+      else
+        AddChildren(scopeStatement, FileName, Line);
       // add members of all usings (in current scope ) and not added before
       for t:=0 to scopeStatement^._Usings.Count-1 do begin
         namespaceName := scopeStatement^._Usings[t];
@@ -321,14 +331,14 @@ begin
           continue;
         for k:=0 to namespaceStatementsList.Count-1 do begin
           namespaceStatement:=PStatement(namespaceStatementsList[k]);
-          AddChildren(namespaceStatement);
+          AddChildren(namespaceStatement, FileName, Line);
         end;
       end;
       scopeStatement:=scopeStatement^._ParentScope;
     end;
 
     // add all global members and not added before
-    AddChildren(nil);
+    AddChildren(nil, FileName, Line);
 
     fParser.GetFileUsings(FileName,fUsings);
     // add members of all fusings
@@ -339,7 +349,7 @@ begin
         continue;
       for k:=0 to namespaceStatementsList.Count-1 do begin
         namespaceStatement:=PStatement(namespaceStatementsList[k]);
-        AddChildren(namespaceStatement);
+        AddChildren(namespaceStatement, FileName, Line);
       end;
     end;
   end else begin
@@ -349,7 +359,7 @@ begin
     if (OpType = otDColon) and (scopeName = '') then begin
       // start with '::', we only find in global
      // add all global members and not added before
-      AddChildren(nil);
+      AddChildren(nil, FileName, Line);
       Exit;
     end else
       //assume it's a namespace
@@ -357,7 +367,7 @@ begin
     if assigned(namespaceStatementsList) then begin //yes, it's a namespace
       for k:=0 to namespaceStatementsList.Count-1 do begin
         namespaceStatement:=PStatement(namespaceStatementsList[k]);
-        AddChildren(namespaceStatement);
+        AddChildren(namespaceStatement, FileName, Line);
       end;
     end else begin
       Statement := fParser.FindStatementOf(FileName, scopeName,fCurrentStatement,ParentTypeStatement);
@@ -407,7 +417,7 @@ begin
           Exit;
         if (ClassTypeStatement = ScopeTypeStatement) or (statement^._Command = 'this') then begin
           //we can use all members
-          AddChildren(ClassTypeStatement);
+          AddChildren(ClassTypeStatement,FileName,-1);
         end else begin // we can only use public members
           Children := fParser.Statements.GetChildrenStatements(ClassTypeStatement);
           if not Assigned(Children) then
@@ -417,8 +427,7 @@ begin
             if (ChildStatement^._ClassScope=scsPublic)
               and not (ChildStatement^._Kind in [skConstructor,skDestructor])
               and( fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
-              fAddedStatements.Add(ChildStatement^._Command,1);
-              fFullCompletionStatementList.Add(ChildStatement);
+              AddStatement(ChildStatement,FileName,-1);
             end;
           end;
         end;
@@ -441,8 +450,7 @@ begin
               (ChildStatement^._Static)
               or (ChildStatement^._Kind in [skTypedef,skClass])
               ) and (fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
-              fAddedStatements.Add(ChildStatement^._Command,1);
-              fFullCompletionStatementList.Add(ChildStatement);
+              AddStatement(ChildStatement,FileName,-1);
             end
           end;
         end else begin // we can only use public static members
@@ -457,8 +465,7 @@ begin
               )
               and  (ChildStatement^._ClassScope=scsPublic)
               and(fAddedStatements.ValueOf(ChildStatement^._Command) <0) then begin
-              fAddedStatements.Add(ChildStatement^._Command,1);
-              fFullCompletionStatementList.Add(ChildStatement);
+              AddStatement(ChildStatement,FileName,-1);
             end;
           end;
         end;
@@ -702,7 +709,7 @@ begin
   fAddedStatements.Clear;
 end;
 
-procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString);
+procedure TCodeCompletion.PrepareSearch(const Phrase, Filename: AnsiString; Line:integer);
 begin
   fCriticalSection.Acquire;
   try
@@ -710,7 +717,7 @@ begin
       fPhrase := Phrase;
       Screen.Cursor := crHourglass;
       fParser.GetFileIncludes(Filename, fIncludedFiles);
-      GetCompletionFor(FileName,Phrase);
+      GetCompletionFor(FileName,Phrase,Line);
       CodeComplForm.lbCompletion.Font.Size := FontSize;
       CodeComplForm.lbCompletion.ItemHeight := CodeComplForm.lbCompletion.Canvas.TextHeight('F')+6;
       // Round(2 * FontSize);
