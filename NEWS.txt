@@ -8,6 +8,7 @@ Version 6.6.1 MAR 2021
     - enhancement: projects created using dev-cpp 5.11 compatible
     - fix: parse error if a function is declared and defined in the same file
     - fix: function parameters parse error is seperated by ', '
+    - enhancement: auto save all project files after it was created
 
 Version 6.6 MAR 2021
 

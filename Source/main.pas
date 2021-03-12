@@ -3065,6 +3065,7 @@ begin
         end;
       end;
       leftProjectSheet.TabVisible := True;
+      setLeftPageControlPage(self.LeftProjectSheet);
 
       if cbDefault.Checked then
         devData.DefCpp := rbCpp.Checked;
@@ -3097,7 +3098,7 @@ begin
       end;
 
       // Save project preferences to disk. Don't force save all editors yet
-      fProject.SaveOptions;
+      fProject.SaveAll;
 
     end;
   finally
