@@ -2043,6 +2043,12 @@ begin
     // Load the option in string format
     INIOptions := devData.ReadS(key, 'Options');
 
+    //Compatibility for devcpp 5.11
+    if length(INIOptions) = 25 then begin
+      INIOptions := Copy(INIOptions,1,11)
+        + '0' + Copy(INIOptions,12,MaxInt);
+    end;
+
     // Extra parameters
     fCompOpt := devData.ReadS(key, 'CompOpt');
     fLinkOpt := devData.ReadS(key, 'LinkOpt');

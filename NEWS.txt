@@ -5,6 +5,9 @@ Version 6.6.1 MAR 2021
     - fix: option "highlight current line" in the editor options dialog can't be turned off
     - fix: auto completion suggestion shouldn't show symbols defined after the current line
     - enhancement: better support of "show all special chars" option
+    - enhancement: projects created using dev-cpp 5.11 compatible
+    - fix: parse error if a function is declared and defined in the same file
+    - fix: function parameters parse error is seperated by ', '
 
 Version 6.6 MAR 2021
 

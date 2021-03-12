@@ -3460,7 +3460,7 @@ begin
     end;
 
     // Filename already present? Save without dialog
-    if (not fNew) and fText.Modified then begin
+    if ( (not fNew) and fText.Modified) or force then begin
 
       // Save contents directly
       try

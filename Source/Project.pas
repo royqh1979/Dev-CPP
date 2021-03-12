@@ -784,6 +784,11 @@ begin
         Modified := True;
       end;
       fOptions.CompilerOptions := ReadString('Project', 'CompilerSettings', '');
+      //Compatibility for devcpp 5.11
+      if length(fOptions.CompilerOptions) = 25 then begin
+        fOptions.CompilerOptions := Copy(fOptions.CompilerOptions,1,11)
+          + '0' + Copy(fOptions.CompilerOptions,12,MaxInt);
+      end;
       fOptions.UseUTF8 := ReadBool('Project','UseUTF8',False);
       fOptions.VersionInfo.Major := ReadInteger('VersionInfo', 'Major', 0);
       fOptions.VersionInfo.Minor := ReadInteger('VersionInfo', 'Minor', 1);
@@ -1695,14 +1700,16 @@ begin
 
         // Create an editor
         with fUnits[fUnits.Count - 1] do begin
-          Editor := MainForm.EditorList.NewEditor(FileName,fUnits[fUnits.Count - 1].Encoding,True, True);
+          Editor := MainForm.EditorList.NewEditor(
+            FileName,
+            fUnits[fUnits.Count - 1].Encoding,True, True);
           try
             // Set filename depending on C/C++ choice
             if (Length(aTemplate.Units[I].CppName) > 0) and (aTemplate.Options.useGPP) then begin
-              Editor.FileName := aTemplate.Units[I].CppName;
+              //Editor.FileName := aTemplate.Units[I].CppName;
               fUnits[fUnits.Count - 1].FileName := aTemplate.Units[I].CppName;
             end else if Length(aTemplate.Units[I].CName) > 0 then begin
-              Editor.FileName := aTemplate.Units[I].CName;
+              //Editor.FileName := aTemplate.Units[I].CName;
               fUnits[fUnits.Count - 1].FileName := aTemplate.Units[I].CName;
             end;
             // if file isn't found blindly inserts text of unit
@@ -1714,8 +1721,8 @@ begin
               Editor.InsertString(s, FALSE);
             end;
 
-            // Always mark modified. We haven't saved yet
-            Editor.Text.Modified := TRUE;
+            //Editor.Text.Modified := TRUE;
+            Editor.Save(true,false);
             Editor.Activate;
           except
             Editor.Free;

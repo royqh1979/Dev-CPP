@@ -796,7 +796,7 @@ var
         ' ',#9: begin
           if (brackLevel >0) and not (args[i-1] in [' ',#9]) then begin
             word:=word+args[i];
-          end else begin
+          end else if trim(word) <> '' then begin
             if not typeGetted then begin
               currentArg:= currentArg + ' ' + word;
               if (CppTypeKeywords.ValueOf(word)>0) or (not IsKeyword(word)) then
@@ -856,10 +856,10 @@ begin
             fileIncludes2^.DependedFiles.Add(FileName);
           end;
         end;
-        oldStatement^._DefinitionLine := Line;
-        oldStatement^._DefinitionFileName := FileName;
-        Exit;
       end;
+      oldStatement^._DefinitionLine := Line;
+      oldStatement^._DefinitionFileName := FileName;
+      Exit;
     end;
   end;
   Result := AddToList;
