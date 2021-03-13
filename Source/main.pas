@@ -49,6 +49,7 @@ type
     Procedure WMEraseBkGnd( var msg: TWMEraseBkGnd );
       message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
+    procedure WMLDblClick(var msg:TWMRButtonDblClk); message WM_LBUTTONDBLCLK;
   protected
     procedure CreateParams(var Params: TCreateParams);override;  
   public
@@ -1300,6 +1301,15 @@ begin
     Windows.FillRect( msg.dc,self.ClientRect, Brush.handle );
     msg.result := 1;
   End;
+end;
+
+procedure TPageControl.WMLDblClick(var msg:TWMRButtonDblClk);
+begin
+  if (self = MainForm.EditorPageControlLeft)
+    or (self = MainForm.EditorPageControlRight) then begin
+    MainForm.FullscreenmodeItem.Checked := not MainForm.FullscreenmodeItem.Checked;
+    MainForm.actFullScreenExecute(MainForm);
+  end;
 end;
 
 procedure TPageControl.WMPaint(var Message: TWMPaint);
