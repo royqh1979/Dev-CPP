@@ -796,7 +796,7 @@ var
         ' ',#9: begin
           if (brackLevel >0) and not (args[i-1] in [' ',#9]) then begin
             word:=word+args[i];
-          end else begin
+          end else if trim(word) <> '' then begin
             if not typeGetted then begin
               currentArg:= currentArg + ' ' + word;
               if (CppTypeKeywords.ValueOf(word)>0) or (not IsKeyword(word)) then
@@ -856,10 +856,10 @@ begin
             fileIncludes2^.DependedFiles.Add(FileName);
           end;
         end;
-        oldStatement^._DefinitionLine := Line;
-        oldStatement^._DefinitionFileName := FileName;
-        Exit;
       end;
+      oldStatement^._DefinitionLine := Line;
+      oldStatement^._DefinitionFileName := FileName;
+      Exit;
     end;
   end;
   Result := AddToList;
@@ -3904,7 +3904,9 @@ var
       if samestr(Statement^._Command,childStatement^._Command)
         or samestr(Statement^._Command + 'A',childStatement^._Command)
         or samestr(Statement^._Command + 'W',childStatement^._Command) then begin
-          List.Add(PrettyPrintStatement(childStatement));
+        if (Line<childStatement^._Line) and SameText(FileName,childStatement^._FileName) then
+          continue;
+        List.Add(PrettyPrintStatement(childStatement));
       end;
     end;
   end;
@@ -4468,6 +4470,8 @@ var
       childStatement:=PStatement(children[i]);
       if samestr(st^._Command,childStatement^._Command)
         and (childStatement^._Kind in [skFunction,skConstructor,skDestructor]) then begin
+          if (Line < childStatement^._Line) and SameText(FileName, childStatement^._FileName) then
+            Continue;
           if Result <> '' then
             Result:=Result+#13;
           Result := Result + PrettyPrintStatement(childStatement)

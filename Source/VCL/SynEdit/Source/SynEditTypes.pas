@@ -54,15 +54,16 @@ const
                         '|'];
 
   TSynTabChar = #9;
+  SLineBreak = #13#10;
 
+var
 //These might need to be localized depending on the characterset because they might be
 //interpreted as valid ident characters.
-  SynTabGlyph = Chr($BB);       //'»'
-  SynSoftBreakGlyph = Chr($AC); //'¬'
-  SynLineBreakGlyph = Chr($B6); //'¶'
-  SynSpaceGlyph = Chr($B7);     //'·'
+  SynTabGlyph:String;        //'»'
+  SynSoftBreakGlyph:String;//'¬'
+  SynLineBreakGlyph:String; //'¶'
+  SynSpaceGlyph:String;    //'·'
 
-  SLineBreak = #13#10;
 
 type
   TSynSearchOption = (ssoMatchCase, ssoWholeWord, ssoBackwards,
@@ -94,6 +95,9 @@ function BufferCoord(AChar, ALine: Integer): TBufferCoord;
 
 implementation
 
+uses
+  Windows, sysutils;
+
 function DisplayCoord(AColumn, ARow: Integer): TDisplayCoord;
 begin
   Result.Column := AColumn;
@@ -104,6 +108,49 @@ function BufferCoord(AChar, ALine: Integer): TBufferCoord;
 begin
   Result.Char := AChar;
   Result.Line := ALine;
+end;
+
+function UTF8ToUnicode(s:AnsiString):WideString;
+var
+  lpWC : PWideChar;
+  len:integer;
+begin
+  len := (Length(s)+1)*4;
+  lpWC := AllocMem(len);
+  MultibyteToWideChar(CP_UTF8,0,PChar(s),Length(s),
+    lpWC,len);
+  Result :=lpWC;
+  FreeMem(lpWC);
+end;
+
+function UnicodeToAnsi(s:WideString):AnsiString;
+var
+  lpC : PChar;
+  len:integer;
+begin
+  len := (Length(s)+1)*4;
+  lpC := AllocMem(len);
+  WideCharToMultibyte(CP_ACP,0,PWideChar(s),Length(s),
+    lpC,len,nil,nil);
+  Result :=lpC;
+  FreeMem(lpC);
+end;
+
+function UTF8ToAnsi(s:String):String;
+var
+  ws: WideString;
+begin
+  ws := UTF8ToUnicode(s);
+  Result:= UnicodeToAnsi(ws);
+end;
+
+initialization
+begin
+  SynTabGlyph := UnicodeToAnsi(#$2192);       //'»'
+  SynSoftBreakGlyph := UnicodeToAnsi(#$2193); //'¬'
+  SynLineBreakGlyph := UnicodeToAnsi(#$2193); //'¶'
+  SynSpaceGlyph := '.';     //'·'
+
 end;
 
 end.

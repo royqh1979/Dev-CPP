@@ -783,7 +783,6 @@ begin
               end else begin
                 cmdline := Format(cSourceCmdLine, [compilerName, fSourceFile, ChangeFileExt(fSourceFile, EXE_EXT),
                   fCppCompileParams, fCppIncludesParams, fLibrariesParams]);
-
                 DeleteFile(ChangeFileExt(fSourceFile, EXE_EXT));
               end;
               
@@ -1368,7 +1367,7 @@ begin
   // Add global compiler linker extras
   if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
     fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
-
+      
   //Add auto links
   if (fTarget = cttFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
@@ -1432,6 +1431,10 @@ begin
           Assigned(fProject)) then
           fLibrariesParams := fLibrariesParams + ' ' + option.Setting;
     end;
+  end;
+
+  if fCompilerSet.StaticLinkStdlib then begin
+    fLibrariesParams := fLibrariesParams + ' -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic';
   end;
 
   fLibrariesParams := Trim(fLibrariesParams);

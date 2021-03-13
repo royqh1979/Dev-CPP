@@ -327,9 +327,9 @@ object CompOptForm: TCompOptForm
           end
           object Commands: TMemo
             Left = 26
-            Top = 43
+            Top = 40
             Width = 591
-            Height = 200
+            Height = 193
             Anchors = []
             ScrollBars = ssVertical
             TabOrder = 1
@@ -338,7 +338,7 @@ object CompOptForm: TCompOptForm
           end
           object cbLinkerAdd: TCheckBox
             Left = 13
-            Top = 248
+            Top = 240
             Width = 595
             Height = 23
             Anchors = [akLeft, akTop, akRight]
@@ -348,14 +348,23 @@ object CompOptForm: TCompOptForm
           end
           object Linker: TMemo
             Left = 26
-            Top = 283
+            Top = 272
             Width = 591
-            Height = 200
+            Height = 193
             Anchors = []
             ScrollBars = ssVertical
             TabOrder = 3
             WantReturns = False
             OnChange = InterfaceChange
+          end
+          object cbStaticLinkStdlib: TCheckBox
+            Left = 13
+            Top = 472
+            Width = 595
+            Height = 23
+            Anchors = [akLeft, akTop, akRight]
+            Caption = 'Static Link stdlib'
+            TabOrder = 4
           end
         end
         object tabCodeGen: TTabSheet

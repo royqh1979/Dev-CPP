@@ -1,16 +1,29 @@
-Version 6.6 FEB 2021
+Version 6.6.1 MAR 2021
+
+    - enhancement: Support open utf-8 BOM encoded files (but not support save with utf-8 BOM encoding)
+    - enhancement: option statically link stdlibs in the compiler options dialog
+    - fix: option "highlight current line" in the editor options dialog can't be turned off
+    - fix: auto completion suggestion shouldn't show symbols defined after the current line
+    - enhancement: better support of "show all special chars" option
+    - enhancement: projects created using dev-cpp 5.11 compatible
+    - fix: parse error if a function is declared and defined in the same file
+    - fix: function parameters parse error is seperated by ', '
+    - enhancement: auto save all project files after it was created
+
+Version 6.6 MAR 2021
 
     - fix: click on left panel tab can't correctly hide it when project view is not visible
-    - change: use 24x24 icons for menus, 28x28 icons for toolbars
+    - change: use 24x24 icons for menus and toolbars by default
     - fix: wrong position of left panel tabs' icons
-    - add: icons tab in the environment dialog
-    - add: file assoc settings '.cc' files
+    - enhancement: add icons tab in the environment dialog
+    - enhancement: add file assoc setting for '.cc' files
     - change: remove the theme option in the environment dialog 
     - enhancement: correctly handle extern variable declarations.
     - fix: errors in the included XEGE library
     - fix: highlighted selected words not correctly cleared
     - fix: devcpp crash when watch view has contents and exit devcpp. 
     - change: the "ignore case when complete" option in the editor options dialog's completion tab was turned on by default.
+    - change: Localized the dev-cpp's applicaton name
 
 Version 6.5 FEB 2021
 

@@ -44,7 +44,8 @@ type
     etAuto, // auto detect
     etUTF8,   // utf8 encoding
     etAscii,  // all chars are ascii encoding (0-127)
-    etAnsi  // other encoding such as GB2312
+    etAnsi,  // other encoding such as GB2312
+    etUTF8Bom
   );
 
   TFilterSet = (ftOpen, ftPrj, ftSrc, ftAll);
@@ -1444,7 +1445,7 @@ begin
 end;
 
 {
-utf-8编码的文本文档，有的带有BOM (Byte Order Mark, 字节序标志)，即0xEF, 0xBB,0xBF，有的没有。用Windows的notepad编辑的文本保存是会自动添加BOM，我们常用UE编辑器在保存utf-8编码的时候也会自动添加BOM，Notepad++默认设置中保存utf-8编码时是无BOM的。其它文本编辑器就没有尝试过，有兴趣的可以自己试试。 
+utf-8编码的文本文档，有的带有BOM (Byte Order Mark, 字节序标志)，即0xEF, 0xBB,0xBF，有的没有。用Windows的notepad编辑的文本保存是会自动添加BOM，我们常用UE编辑器在保存utf-8编码的时候也会自动添加BOM，Notepad++默认设置中保存utf-8编码时是无BOM的。其它文本编辑器就没有尝试过，有兴趣的可以自己试试。
 　　utf-8是一种多字节编码的字符集，表示一个Unicode字符时，它可以是1个至多个字节。即在文本全部是ASCII字符时utf-8是和ASCII一致的(utf-8向下兼容ASCII)。utf-8字节流如下所示：
 
 1字节：0xxxxxxx 
@@ -1466,6 +1467,10 @@ begin
   allAscii := True;
   buffer := PChar(s);
   size := Length(s);
+  if (size > 3) and (s[1]= #$EF) and (s[2]=#$BB) and (s[3]=#$BF) then begin
+    Result:=etUTF8Bom;
+    Exit;
+  end;
   ii := 0;
   while ii < size do
   begin
