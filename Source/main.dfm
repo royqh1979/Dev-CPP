@@ -849,7 +849,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 5
+        Top = 0
         Width = 337
         Height = 24
         AutoComplete = False
@@ -1073,7 +1073,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 414
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1108,7 +1108,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 38
-        Width = 174
+        Width = 179
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1164,7 +1164,7 @@ object MainForm: TMainForm
       object tbClasses: TToolBar
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1208,7 +1208,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 174
+        Width = 179
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1217,7 +1217,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 174
+          Width = 179
           Height = 376
           Align = alClient
           BevelInner = bvNone
@@ -1239,7 +1239,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1267,7 +1267,7 @@ object MainForm: TMainForm
       object tbFiles: TToolBar
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1304,7 +1304,7 @@ object MainForm: TMainForm
       object Panel5: TPanel
         Left = 0
         Top = 38
-        Width = 174
+        Width = 179
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1538,14 +1538,20 @@ object MainForm: TMainForm
         object UTF81: TMenuItem
           Action = actUTF8
         end
+        object UTF8withBOM1: TMenuItem
+          Action = actUTF8Bom
+        end
         object N41: TMenuItem
           Caption = '-'
+        end
+        object ConvertToAnsi1: TMenuItem
+          Action = actConvertToAnsi
         end
         object ConvertToUTF8Item: TMenuItem
           Action = actConvertToUTF8
         end
-        object ConvertToAnsi1: TMenuItem
-          Action = actConvertToAnsi
+        object ConvertToUTF8withBom1: TMenuItem
+          Action = actConvertToUTF8Bom
         end
       end
       object N47: TMenuItem
@@ -3276,6 +3282,18 @@ object MainForm: TMainForm
       Caption = 'Locate File in the folder'
       ImageIndex = 45
       OnExecute = actLocateFileExecute
+    end
+    object actUTF8Bom: TAction
+      Category = 'Edit'
+      Caption = 'UTF-8 with BOM'
+      OnExecute = actEncodingTypeExecute
+      OnUpdate = actEncodingTypeUpdate
+    end
+    object actConvertToUTF8Bom: TAction
+      Category = 'Edit'
+      Caption = 'Convert To UTF8 with Bom'
+      OnExecute = actConvertToUTF8BomExecute
+      OnUpdate = actConvertToUTF8BomUpdate
     end
   end
   object MessagePopup: TPopupMenu

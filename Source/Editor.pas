@@ -3610,7 +3610,6 @@ end;
       if FileEncoding = etUTF8 then
         Text.Lines.Text := UTF8ToAnsi(tmpList.Text)
       else if FileEncoding = etUTF8Bom then begin
-        fFileEncoding := etUTF8;
         Text.Lines.Text := UTF8ToAnsi(Copy(tmpList.Text,4,MaxInt));
       end else
         Text.Lines.Text := tmpList.Text;
@@ -3641,6 +3640,8 @@ end;
       end;
       if fFileEncoding = etUTF8 then
         tmpList.Text := AnsiToUTF8(Text.Lines.Text)
+      else if fFileEncoding = etUTF8Bom then
+        tmpList.Text := #$EF#$BB#$BF + AnsiToUTF8(Text.Lines.Text)
       else
         tmpList.Text := Text.Lines.Text;
       tmpList.SaveToFile(FileName);

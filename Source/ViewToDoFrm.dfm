@@ -75,7 +75,7 @@ object ViewToDoForm: TViewToDoForm
     object lblFilter: TLabel
       Left = 27
       Top = 8
-      Width = 102
+      Width = 36
       Height = 20
       Anchors = [akLeft, akBottom]
       Caption = 'Filter:'
