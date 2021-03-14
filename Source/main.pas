@@ -6036,6 +6036,8 @@ begin
   if Assigned(e) then begin
     if (e.FileEncoding = etUTF8) then
       s := s+'UTF-8'
+    else if (e.FileEncoding = etUTF8Bom) then
+      s := s+'UTF-8 BOM'
     else if (e.FileEncoding = etAscii) then
       s := s+'ASCII'
     else
