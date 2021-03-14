@@ -172,7 +172,9 @@ begin
       sl.LoadFromFile(Filename);
       FileEncoding := GetFileEncodingType(sl.Text);
       if FileEncoding = etUTF8 then
-        sl.Text := UTF8ToAnsi(sl.Text);
+        sl.Text := UTF8ToAnsi(sl.Text)
+      else if FileEncoding = etUTF8Bom then
+        sl.Text := UTF8ToAnsi(Copy(sl.Text,4,MaxInt))
     end;
     I := 0;
     while I < sl.Count do begin

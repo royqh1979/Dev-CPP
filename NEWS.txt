@@ -1,6 +1,6 @@
 Version 6.6.1 MAR 2021
 
-    - enhancement: Support open utf-8 BOM encoded files (but not support save with utf-8 BOM encoding)
+    - enhancement: Support editing utf-8 BOM encoded files
     - enhancement: option statically link stdlibs in the compiler options dialog
     - fix: option "highlight current line" in the editor options dialog can't be turned off
     - fix: auto completion suggestion shouldn't show symbols defined after the current line

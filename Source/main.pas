@@ -710,6 +710,10 @@ type
     ToolButton30: TToolButton;
     LocateFileinthefolder1: TMenuItem;
     LocateFileinthefolder2: TMenuItem;
+    actUTF8Bom: TAction;
+    actConvertToUTF8Bom: TAction;
+    UTF8withBOM1: TMenuItem;
+    ConvertToUTF8withBom1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -975,6 +979,8 @@ type
     procedure OnBreakPointsChanged;
     procedure actConvertToUTF8Update(Sender: TObject);
     procedure actConvertToUTF8Execute(Sender: TObject);
+    procedure actConvertToUTF8BomUpdate(Sender: TObject);
+    procedure actConvertToUTF8BomExecute(Sender: TObject);
     procedure BreakpointsViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure actMsgCompilerCopyExecute(Sender: TObject);
@@ -2108,9 +2114,11 @@ begin
 
   EncodingItem.Caption := Lang[ID_ITEM_ENCODING];
   actUseUTF8.Caption := Lang[ID_ITEM_UTF8];
+  actUseUTF8.Caption := Lang[ID_ITEM_UTF8_BOM];
   actConvertToUTF8.Caption := Lang[ID_ITEM_CONV_UTF8];
+  actConvertToUTF8Bom.Caption := Lang[ID_ITEM_CONV_UTF8_BOM];
   actConvertToANSI.Caption := Format(Lang[ID_ITEM_CONV_ANSI],[UpperCase(GetSystemCharsetName)]);
-  actANSI.Caption := UpperCase(GetSystemCharsetName);
+  actANSI.Caption := 'ANSI('+UpperCase(GetSystemCharsetName)+')';
   actAutoDetectEncoding.Caption := Lang[ID_ITEM_AUTO_DETECT_ENCODING];
 
   // Insert submenu
@@ -4141,7 +4149,7 @@ begin
         if e.Text.Modified then
           if not e.Save(False,False) then
             Exit;
-        fCompiler.UseUTF8 := (e.FileEncoding = etUTF8);
+        fCompiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
         fCompiler.SourceFile := e.FileName;
       end;
     cttStdin: begin
@@ -4150,7 +4158,7 @@ begin
           Exit;
         if e.Text.Lines.Text = '' then
           Exit;
-        fCompiler.UseUTF8 := (e.FileEncoding = etUTF8);
+        fCompiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
         fCompiler.SourceFile := e.FileName;
         fCompiler.sourceText := e.Text.Lines.Text;
       end;
@@ -4505,7 +4513,7 @@ begin
 
           PrepareDebugger;
 
-          fDebugger.UseUTF8 := (e.FileEncoding = etUTF8);
+          fDebugger.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
 
           filepath := ChangeFileExt(e.FileName, EXE_EXT);
 
@@ -6031,7 +6039,7 @@ begin
     else if (e.FileEncoding = etAscii) then
       s := s+'ASCII'
     else
-      s := UpperCase(GetSystemCharsetName);
+      s := 'ANSI('+UpperCase(GetSystemCharsetName)+')';
   end;
   Statusbar.Panels[1].Text := s;
 end;
@@ -8501,6 +8509,41 @@ begin
 
 end;
 
+procedure TMainForm.actConvertToUTF8BomUpdate(Sender: TObject);
+var
+  e:TEditor;
+begin
+  e:=fEditorList.GetEditor;
+  if not assigned(e) then begin
+    actConvertToUTF8Bom.Enabled := False;
+  end else begin
+    actConvertToUTF8Bom.Enabled := (e.FileEncoding <> etUTF8Bom);
+  end;
+end;
+
+procedure TMainForm.actConvertToUTF8BomExecute(Sender: TObject);
+var
+  e:TEditor;
+  i:integer;
+begin
+  e:=fEditorList.GetEditor;
+  if MessageDlg(Lang[ID_MSG_CONVERTTOUTF8BOM], mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    e.EncodingOption := etUTF8Bom;
+    e.Text.Modified := True; // set modified flag to make sure save.
+    e.Save;
+    UpdateFileEncodingStatusPanel;
+    // set project unit's utf-8 flag 
+    if e.InProject and Assigned(fProject) then begin
+      for i:=0 to fProject.Units.Count-1 do begin
+        if e = fProject.Units[i].Editor then begin
+          fProject.Units[i].Encoding := e.EncodingOption;
+          fProject.Modified:=True;
+          break;
+        end;
+      end;
+    end;
+  end;
+end;
 
 procedure TMainForm.actConvertToUTF8Update(Sender: TObject);
 var
@@ -8510,7 +8553,7 @@ begin
   if not assigned(e) then begin
     actConvertToUTF8.Enabled := False;
   end else begin
-    actConvertToUTF8.Enabled := (e.FileEncoding = etAnsi);
+    actConvertToUTF8.Enabled := (e.FileEncoding <> etUTF8);
   end;
 end;
 
@@ -9418,6 +9461,8 @@ begin
     ChangeEncoding(etAuto);
   end else if Sender = actUTF8 then begin
     ChangeEncoding(etUTF8);
+  end else if Sender = actUTF8Bom then begin
+    ChangeEncoding(etUTF8Bom);
   end else begin
     ChangeEncoding(etANSI);
   end;
@@ -9434,6 +9479,8 @@ begin
       TCustomAction(Sender).Checked := (e.EncodingOption = etAuto);
     end else if Sender = actUTF8 then begin
       TCustomAction(Sender).Checked := (e.EncodingOption = etUTF8);
+    end else if Sender = actUTF8Bom then begin
+      TCustomAction(Sender).Checked := (e.EncodingOption = etUTF8Bom);
     end else if Sender = actANSI then begin
       TCustomAction(Sender).Checked := (e.EncodingOption = etANSI);
     end;
@@ -9474,7 +9521,7 @@ begin
   if not assigned(e) then begin
     actConvertToAnsi.Enabled := False;
   end else begin
-    actConvertToAnsi.Enabled := (e.FileEncoding = etUTF8);
+    actConvertToAnsi.Enabled := (e.FileEncoding <> etAnsi);
   end;
 end;
 

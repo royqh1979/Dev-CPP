@@ -446,15 +446,15 @@ begin
         // Or roll our own
       end else begin
         encodingStr := '';
-        if fProject.Units[i].Encoding = etUTF8 then begin
+        if fProject.Units[i].Encoding in [etUTF8,etUTF8Bom] then begin
           encodingStr := ' $(ENCODINGS) ';
         end else if fProject.Units[i].Encoding = etAuto then begin
-          if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding = etUTF8) then begin
+          if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding in [etUTF8,etUTF8Bom]) then begin
             encodingStr := ' $(ENCODINGS) ';
           end else begin
             with TStringList.Create do try
               LoadFromFile(fProject.Units[i].FileName);
-              if GetFileEncodingType(Text) = etUTF8 then
+              if GetFileEncodingType(Text) in [etUTF8,etUTF8Bom] then
                 encodingStr := ' $(ENCODINGS) '
             finally
               Free;

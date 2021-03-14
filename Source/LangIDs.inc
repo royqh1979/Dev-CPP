@@ -379,6 +379,8 @@ const
   ID_ITEM_CONV_UTF8                     = 22017;
   ID_ITEM_AUTO_DETECT_ENCODING          = 22018;
   ID_ITEM_CONV_ANSI                     = 22019;
+  ID_ITEM_UTF8_BOM                      = 22020;
+  ID_ITEM_CONV_UTF8_BOM                 = 22021;
 
   // Editor options form
   ID_EOPT                               = 23001;
@@ -1067,6 +1069,7 @@ const
   ID_MSG_CLEARCONFIG                    = 60034;
   ID_MSG_CONVERTTOANSI                  = 60035;
   ID_MSG_CHANGE_FOLDER_TO_FILE          = 60036;
+  ID_MSG_CONVERTTOUTF8BOM               = 60037;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;
