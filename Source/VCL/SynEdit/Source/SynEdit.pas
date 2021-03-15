@@ -2603,7 +2603,7 @@ var
     TokenLen, CharsBefore, First, Last: integer);
   var
     pszText: PChar;
-    Counter, nX, nCharsToPaint: integer;
+    Counter, nX, nCharsToPaint, nX1: integer;
     sTabbedToken: string;
     newToken:String;
     DoTabPainting: Boolean;
@@ -2669,16 +2669,16 @@ var
             inc(TabLen);
           pszText := PChar(@SynTabGlyphString[1]);
 
-          nX := ColumnToXValue(CharsBefore + TabStart + (TabLen div 2) - 1);
+          nX1 := ColumnToXValue(CharsBefore + TabStart + (TabLen div 2) - 1);
           if TabLen mod 2 = 0 then
-            nX := nX + (fCharWidth div 2)
+            nX1 := nX1 + (fCharWidth div 2)
           else
-            nX := nX + fCharWidth;
+            nX1 := nX1 + fCharWidth;
 
-          rcTab.Left := nX;
-          rcTab.Right := nX + fTextDrawer.GetCharWidth;
+          rcTab.Left := nX1;
+          rcTab.Right := nX1 + fTextDrawer.GetCharWidth;
 
-          fTextDrawer.ExtTextOut(nX, rcTab.Top, ETOOptions, rcTab,
+          fTextDrawer.ExtTextOut(nX1, rcTab.Top, ETOOptions, rcTab,
             pszText, length(SynTabGlyphString));
 
           for i := 0 to TabLen - 1 do //wipe the text out so we don't
@@ -2687,6 +2687,7 @@ var
           TabStart := pos(TSynTabChar, sTabbedToken);
         end;
       end;
+
       rcToken.Left := rcToken.Right;
     end;
   end;
