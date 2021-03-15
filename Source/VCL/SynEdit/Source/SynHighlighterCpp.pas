@@ -103,6 +103,7 @@ type
   private
     fAsmStart: Boolean;
     fRange: TRangeState;
+    fSpaceRange: TRangeState;
     fParenthesisLevel: integer;
     fBracketLevel: integer;
     fBraceLevel:integer;
@@ -411,6 +412,7 @@ begin
   SetAttributesOnChange(DefHighlightChange);
   MakeMethodTables;
   fRange := rsUnknown;
+  fSpaceRange := rsUnknown;
   fParenthesisLevel := 0;
   fBracketLevel := 0;
   fBraceLevel := 0;
@@ -467,6 +469,11 @@ begin
           inc(Run);
       #10: break;
       #13: break;
+      #32,#9: begin
+        fSpaceRange := fRange;
+        fRange := rsUnknown;
+        break;
+      end;
     else inc(Run);
   end;
 end;
@@ -478,9 +485,15 @@ begin
     NullProc;
     Exit;
   end;
-  fRange := rsUnknown;
-  while not (fLine[Run] in [#13,#10,#0]) do
+  while not (fLine[Run] in [#13,#10,#0]) do begin
+    if (fLine[Run] in [#32,#9]) then begin
+      fSpaceRange := fRange;
+      fRange := rsUnknown;
+      break;
+    end;
     Inc(Run);
+  end;
+  fRange := rsUnknown;
   if (fLine[Run-1] = '\') and (fLine[Run] = #0) then
     fRange := rsCppComment; // continues on next line
 end;
@@ -590,6 +603,11 @@ begin
   end;
   fTokenID := tkDirective;
   repeat
+    if fLine[Run] in [#9,#32] then begin
+      fSpaceRange := rsMultiLineDirective;
+      fRange := rsUnknown;
+      Exit;
+    end;
     if fLine[Run] = '/' then // comment?
     begin
       if fLine[Run + 1] = '/' then // is end of directive as well
@@ -638,6 +656,11 @@ begin
   repeat
     case FLine[Run] of
       #0, #10, #13: Break;
+      #9,#32: begin
+        fSpaceRange := rsMultiLineDirective;
+        fRange := rsUnknown;
+        Exit;
+      end;
       '/': // comment?
         begin
           case fLine[Run + 1] of
@@ -1057,10 +1080,16 @@ begin
     '/':                               {c++ style comments}
       begin
         fTokenID := tkComment;
-        while fLine[Run] <> #0 do
+        inc(Run,2);
+        fRange := rsCppComment;
+        Exit;
+        {
+        while fLine[Run] <> #0 do begin
           Inc(Run);
+        end;
         if fLine[Run-1] = '\' then
           fRange := rsCppComment; // multiline C++ comment
+        }
       end;
     '*':                               {c style comments}
       begin
@@ -1097,6 +1126,12 @@ begin
   inc(Run);
   fTokenID := tkSpace;
   while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  fRange := fSpaceRange;
+  fSpaceRange := rsUnknown;
+
+  if (fRange = rsCppComment) and (FLine[Run]=#0) then begin
+    fRange := rsUnknown;
+  end;
 end;
 
 procedure TSynCppSyn.SquareCloseProc;
@@ -1201,12 +1236,24 @@ begin
 end;
 
 procedure TSynCppSyn.StringProc;
+var
+  backed: boolean;
 begin
-  if (fRange=rsRestoreString) then
+  backed := False;
+  if (fRange=rsRestoreString) then begin
     dec(Run);
+    backed := True;
+  end;
   fTokenID := tkString;
   fRange := rsString;
   repeat
+    if Backed then begin
+      backed := False; // skip last processed space;
+    end else if (fLine[Run] in [#9,#32]) then begin
+      fSpaceRange := rsRestoreString;
+      fRange := rsUnknown;
+      Exit;
+    end;
     if fLine[Run] = '\' then begin
       case fLine[Run + 1] of
         #34, '\':
@@ -1230,15 +1277,21 @@ begin
   if FLine[Run] = #34 then begin
     inc(Run);
   end;
-  fRange := rsUnknown;
+  //fRange := rsUnknown;
+  fRange := fSpaceRange;
   {end;}
 end;
 
 procedure TSynCppSyn.StringEndProc;
+var
+  backed : boolean;
 begin
   fTokenID := tkString;
-  if (fRange=rsRestoreMultilineString) then
+  backed := False;
+  if (fRange=rsRestoreMultilineString) then begin
     dec(Run);
+    backed := True;
+  end;
 
   case FLine[Run] of
     #0:
@@ -1261,6 +1314,13 @@ begin
   fRange := rsUnknown;
 
   repeat
+    if Backed then begin
+      backed := False; // skip last processed space;
+    end else if (fLine[Run] in [#9,#32]) then begin
+      fSpaceRange := rsRestoreMultilineString;
+      fRange := rsUnknown;
+      Exit;
+    end;
     case FLine[Run] of
       #0, #10, #13: Break;
       '\':
@@ -1333,6 +1393,7 @@ begin
   case fRange of
     rsAnsiC, rsAnsiCAsm,
     rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
+    rsString: StringProc;
     rsCppComment: AnsiCppProc;
     rsMultiLineDirective: DirectiveEndProc;
     rsMultilineString, rsRestoreMultilineString: StringEndProc;

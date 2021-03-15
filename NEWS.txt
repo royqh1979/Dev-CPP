@@ -11,6 +11,8 @@ Version 6.6.1 MAR 2021
     - enhancement: auto save all project files after it was created
     - enhancement: double click on the file editor's title bar will trigger full screen
     - fix: can't correctly compile Tools/CheckLang project
+    - enhancement: hide special chars in selected contents
+    - enhancement: correctly color special characters in comments/preprocessors/strings
 
 Version 6.6 MAR 2021
 
