@@ -2600,7 +2600,7 @@ var
   // like empty token rect or invalid indices into TokenLen.
   // CharsBefore tells if Token starts at column one or not
   procedure PaintToken(Token: string;
-    TokenLen, CharsBefore, First, Last: integer);
+    TokenLen, CharsBefore, First, Last: integer; isSelection: boolean);
   var
     pszText: PChar;
     Counter, nX, nCharsToPaint, nX1: integer;
@@ -2621,11 +2621,11 @@ var
 
     while Counter > First - CharsBefore - 1 do begin
       if (Length(Token) >= Counter) then begin
-        if (fShowSpecChar) and (Token[Counter] = #32) then
+        if (fShowSpecChar) and (not isSelection) and (Token[Counter] = #32) then
           newToken := SynSpaceGlyph + newToken
         else if (Token[Counter] = TSynTabChar) then begin
           newToken := #32 + newToken;
-          DoTabPainting := fShowSpecChar;
+          DoTabPainting := fShowSpecChar and (not isSelection) ;
         end else begin
           newToken := Token[Counter] + newToken ;
         end;
@@ -2678,7 +2678,7 @@ var
           rcTab.Left := nX1;
           rcTab.Right := nX1 + fTextDrawer.GetCharWidth;
 
-          fTextDrawer.ExtTextOut(nX1, rcTab.Top, ETOOptions, rcTab,
+          fTextDrawer.ExtTextOut(nX1, rcTab.Top, ETOOptions or ETO_CLIPPED, rcTab,
             pszText, length(SynTabGlyphString));
 
           for i := 0 to TabLen - 1 do //wipe the text out so we don't
@@ -2805,7 +2805,7 @@ var
           SetDrawingColors(FALSE);
           rcToken.Right := ColumnToXValue(nLineSelStart);
           with TokenAccu do
-            PaintToken(s, Len, CharsBefore, nC1, nLineSelStart);
+            PaintToken(s, Len, CharsBefore, nC1, nLineSelStart,False);
         end;
         // selected part of the token
         SetDrawingColors(TRUE);
@@ -2813,19 +2813,19 @@ var
         nC2Sel := Min(nLineSelEnd, nC2);
         rcToken.Right := ColumnToXValue(nC2Sel);
         with TokenAccu do
-          PaintToken(s, Len, CharsBefore, nC1Sel, nC2Sel);
+          PaintToken(s, Len, CharsBefore, nC1Sel, nC2Sel,True);
         // second unselected part of the token
         if bU2 then begin
           SetDrawingColors(FALSE);
           rcToken.Right := ColumnToXValue(nC2);
           with TokenAccu do
-            PaintToken(s, Len, CharsBefore, nLineSelEnd, nC2);
+            PaintToken(s, Len, CharsBefore, nLineSelEnd, nC2,False);
         end;
       end else begin
         SetDrawingColors(bSel);
         rcToken.Right := ColumnToXValue(nC2);
         with TokenAccu do
-          PaintToken(s, Len, CharsBefore, nC1, nC2);
+          PaintToken(s, Len, CharsBefore, nC1, nC2,bSel);
       end;
     end;
 
@@ -3172,24 +3172,24 @@ var
           sToken := Copy(sLine, vFirstChar, vLastChar - vFirstChar)
         else
           sToken := sLine;
-        if fShowSpecChar and (Length(sLine) < vLastChar) then
+        if fShowSpecChar and (not bLineSelected) and (Length(sLine) < vLastChar) then
           sToken := sToken + SynLineBreakGlyph;
         nTokenLen := Length(sToken);
         if bComplexLine then begin
           SetDrawingColors(FALSE);
           rcToken.Left := Max(rcLine.Left, ColumnToXValue(FirstCol));
           rcToken.Right := Min(rcLine.Right, ColumnToXValue(nLineSelStart));
-          PaintToken(sToken, nTokenLen, 0, FirstCol, nLineSelStart);
+          PaintToken(sToken, nTokenLen, 0, FirstCol, nLineSelStart,False);
           rcToken.Left := Max(rcLine.Left, ColumnToXValue(nLineSelEnd));
           rcToken.Right := Min(rcLine.Right, ColumnToXValue(LastCol));
-          PaintToken(sToken, nTokenLen, 0, nLineSelEnd, LastCol);
+          PaintToken(sToken, nTokenLen, 0, nLineSelEnd, LastCol,True);
           SetDrawingColors(TRUE);
           rcToken.Left := Max(rcLine.Left, ColumnToXValue(nLineSelStart));
           rcToken.Right := Min(rcLine.Right, ColumnToXValue(nLineSelEnd));
-          PaintToken(sToken, nTokenLen, 0, nLineSelStart, nLineSelEnd - 1);
+          PaintToken(sToken, nTokenLen, 0, nLineSelStart, nLineSelEnd - 1,False);
         end else begin
           SetDrawingColors(bLineSelected);
-          PaintToken(sToken, nTokenLen, 0, FirstCol, LastCol);
+          PaintToken(sToken, nTokenLen, 0, FirstCol, LastCol,bLineSelected);
         end;
       end else begin
         // Initialize highlighter with line text and range info. It is
@@ -3276,7 +3276,7 @@ var
             end;
           end;
           // Draw LineBreak glyph.
-          if (eoShowSpecialChars in fOptions) and (Length(sLine) < vLastChar) then begin
+          if (eoShowSpecialChars in fOptions) and (not bLineSelected) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
               Length(SynLineBreakGlyph),cRow, fHighLighter.WhitespaceAttribute);
