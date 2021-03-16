@@ -90,8 +90,7 @@ type
   TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
     rsMultiLineString, rsMultiLineDirective, rsCppComment,
-    rsStringEscapeSeq, rsMultiLineStringEscapeSeq, rsRestoreString,
-    rsRestoreMultiLineString,
+    rsStringEscapeSeq, rsMultiLineStringEscapeSeq,
     rsRawString, rsSpace);
 
   TProcTableProc = procedure of object;
@@ -852,8 +851,8 @@ end;
 procedure TSynCppSyn.NullProc;
 begin
   if ((Run-1>=1) and (fLine[Run-1] in [#9,#32])) and
-  (fRange in [rsCppComment, rsRestoreMultilineString, rsDirective, 
-    rsString, rsRestoreString, rsMultilineString, rsMultilineDirective]) then begin
+  (fRange in [rsCppComment, rsDirective, 
+    rsString, rsMultilineString, rsMultilineDirective]) then begin
     fRange := rsUnknown;
   end;
   fTokenID := tkNull;
@@ -1136,7 +1135,7 @@ begin
   fSpaceRange := rsUnknown;
 
   {
-  if (fRange in [rsCppComment, rsMultiLineDirective,rsRestoreMultilineString,
+  if (fRange in [rsCppComment, rsMultiLineDirective,
     rsString]) and (FLine[Run]=#0) then begin
     fRange := rsUnknown;
   end;
@@ -1239,50 +1238,38 @@ begin
       end;
   end;
   if fRange = rsMultilineStringEscapeSeq then
-    fRange:=rsRestoreMultilineString
+    fRange:=rsMultilineString
   else
-    fRange:=rsRestoreString;
+    fRange:=rsString;
 end;
 
 procedure TSynCppSyn.StringProc;
-var
-  backed: boolean;
 begin
-  backed := False;
-  if (fRange=rsRestoreString) then begin
-    if fLine[Run]=#0 then begin
-      fRange:=rsUnknown;
-      Exit;
-    end;
-    dec(Run);
-    backed := True;
+  if fLine[Run]=#0 then begin
+    fRange:=rsUnknown;
+    Exit;
   end;
   fTokenID := tkString;
   fRange := rsString;
   repeat
-    if Backed then begin
-      backed := False; // skip last processed space;
-    end else if (fLine[Run] in [#9,#32]) then begin
-      fSpaceRange := rsRestoreString;
+    if (fLine[Run] in [#9,#32]) then begin
+      fSpaceRange := rsString;
       fRange := rsSpace;
       Exit;
     end;
     if fLine[Run] = '\' then begin
       case fLine[Run + 1] of
-        #34, '\':
-          Inc(Run);
+        '''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U':
+          begin
+            fRange := rsStringEscapeSeq;
+            Exit;
+          end;
         #00:
           begin
             Inc(Run);
             fRange := rsMultilineString;
             Exit;
           end;
-      end;
-    end else if fLine[Run+1]= '\' then begin
-      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
-        fRange := rsStringEscapeSeq;
-        inc(Run);
-        Exit;
       end;
     end;
     inc(Run);
@@ -1291,25 +1278,12 @@ begin
     inc(Run);
   end;
   //fRange := rsUnknown;
-  fRange := fSpaceRange;
   {end;}
 end;
 
 procedure TSynCppSyn.StringEndProc;
-var
-  backed : boolean;
 begin
   fTokenID := tkString;
-  backed := False;
-  if (fRange=rsRestoreMultilineString) then begin
-    if fLine[Run]=#0 then begin
-      fRange:=rsUnknown;
-      Exit;
-    end;  
-    dec(Run);
-    backed := True;
-  end;
-
   case FLine[Run] of
     #0:
       begin
@@ -1331,10 +1305,8 @@ begin
   fRange := rsUnknown;
 
   repeat
-    if Backed then begin
-      backed := False; // skip last processed space;
-    end else if (fLine[Run] in [#9,#32]) then begin
-      fSpaceRange := rsRestoreMultilineString;
+    if (fLine[Run] in [#9,#32]) then begin
+      fSpaceRange := rsMultilineString;
       fRange := rsSpace;
       Exit;
     end;
@@ -1343,8 +1315,11 @@ begin
       '\':
         begin
           case fLine[Run + 1] of
-            #34, '\':
-              Inc(Run);
+            '''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U':
+              begin
+                fRange := rsMultilineStringEscapeSeq;
+                Exit;
+              end;
             #00:
               begin
                 Inc(Run);
@@ -1354,13 +1329,6 @@ begin
           end;
         end;
       #34: Break;
-    end;
-    if (FLine[Run]<>'\') and (fLine[Run+1]='\') then begin
-      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
-        fRange := rsMultilineStringEscapeSeq;
-        inc(Run);
-        Exit;
-      end;
     end;
     inc(Run);
   until fLine[Run] in [#0, #10, #13, #34];
@@ -1414,9 +1382,8 @@ begin
     rsString: StringProc;
     rsCppComment: AnsiCppProc;
     rsMultiLineDirective: DirectiveEndProc;
-    rsMultilineString, rsRestoreMultilineString: StringEndProc;
+    rsMultilineString: StringEndProc;
     rsSpace: SpaceProc;
-    rsRestoreString : StringProc;
     rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
   else
     begin
@@ -1531,8 +1498,7 @@ begin
         rsDirective, rsMultiLineDirective:
           Result := httPreprocessDirective;
         rsString, rsMultiLineString, rsStringEscapeSeq,
-          rsMultiLineStringEscapeSeq, rsRestoreString,
-          rsRestoreMultiLineString,
+          rsMultiLineStringEscapeSeq,
           rsRawString:
           Result := httString;
       else
