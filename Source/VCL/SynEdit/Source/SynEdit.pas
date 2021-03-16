@@ -645,10 +645,10 @@ type
     function GetHighlighterAttriAtRowCol(const XY: TBufferCoord; var Token: string;
       var Attri: TSynHighlighterAttributes): boolean; overload;
     function GetHighlighterAttriAtRowCol(const XY: TBufferCoord; var Token: string;
-      var tokenFinished: boolean; var Attri: TSynHighlighterAttributes): boolean; overload;
-
+      var tokenFinished: boolean;  var TokenType: TSynHighlighterTokenType;
+      var Attri: TSynHighlighterAttributes): boolean; overload;
     function GetHighlighterAttriAtRowColEx(const XY: TBufferCoord; var Token: string;
-      var TokenType, Start: Integer;
+      var TokenType: TSynhighlighterTokenType ; var Start: Integer;
       var Attri: TSynHighlighterAttributes): boolean;
     function GetPositionOfMouse(out aPos: TBufferCoord): Boolean;
     function GetLineOfMouse(out line: integer): boolean;
@@ -9023,13 +9023,14 @@ end;
 function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
   var Token: string; var Attri: TSynHighlighterAttributes): boolean;
 var
-  TmpType, TmpStart: Integer;
+  TmpType: TSynhighlighterTokenType;
+  TmpStart: Integer;
 begin
   Result := GetHighlighterAttriAtRowColEx(XY, Token, TmpType, TmpStart, Attri);
 end;
 
 function TCustomSynEdit.GetHighlighterAttriAtRowColEx(const XY: TBufferCoord;
-  var Token: string; var TokenType, Start: Integer;
+  var Token: string; var TokenType: TSynHighlighterTokenType ; var Start: Integer;
   var Attri: TSynHighlighterAttributes): boolean;
 var
   PosX, PosY: integer;
@@ -9057,7 +9058,8 @@ begin
         Token := Highlighter.GetToken;
         if ((PosX >= Start) and (PosX < Start + Length(Token))) then begin
           Attri := Highlighter.GetTokenAttribute;
-          TokenType := Highlighter.GetTokenKind;
+          //TokenType := Highlighter.GetTokenKind;
+          TokenType := Highlighter.GetTokenType;
           Result := TRUE;
           exit;
         end;
@@ -9072,6 +9074,7 @@ end;
 
 function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
   var Token: string; var TokenFinished: boolean;
+  var TokenType: TSynHighlighterTokenType;
   var Attri: TSynHighlighterAttributes): boolean;
 var
   PosX, PosY, endPos, Start: integer;
@@ -9104,6 +9107,7 @@ begin
             TokenFinished := Highlighter.GetTokenFinished
           else
             TokenFinished := False;
+          TokenType := Highlighter.GetTokenType;
           Result := TRUE;
           exit;
         end;

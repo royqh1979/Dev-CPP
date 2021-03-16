@@ -1580,6 +1580,7 @@ var
   status : TQuoteStates;
   tokenFinished: boolean;
   HighlightPos : TBufferCoord;
+  tokenType : TSynHighlighterTokenType;
 
   function GetCurrentChar:AnsiChar;
   begin
@@ -1860,15 +1861,14 @@ begin
     HighlightPos := BufferCoord(fText.CaretX-1, fText.CaretY);
 
     // Check if that line is highlighted as  comment
-    if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished,Attr) then begin
-      if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
+    if fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished, tokenType,Attr) then begin
+      if (tokenType = httComment) and not tokenFinished then
         Exit;                                                                  
-      if ((Attr = fText.Highlighter.StringAttribute)
-        or SameStr(Attr.Name,'Character') or (Attr = dmMain.Cpp.StringEscapeSeqAttri) )
+      if (tokenType = httString)
          and not tokenFinished
         and not (key in ['''','"','(',')']) then
         Exit;
-      if (key in ['<','>']) and (Attr<> dmMain.Cpp.DirecAttri) then begin
+      if (key in ['<','>']) and (tokenType <> httPreprocessDirective) then begin
           Exit;
       end;
       if (key = '''') and (Attr = dmMain.Cpp.NumberAttri) then begin
@@ -2082,21 +2082,22 @@ var
     Attr: TSynHighlighterAttributes;
     Token: AnsiString;
     tokenFinished: boolean;
+    tokenType: TSynHighlighterTokenType;
     HighlightPos : TBufferCoord;
   begin
     if devEditor.DeleteSymbolPairs then begin
       HighlightPos := BufferCoord(fText.CaretX, fText.CaretY);
 
       // Check if that line is highlighted as  comment
-      if not fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished,Attr) then
+      if not fText.GetHighlighterAttriAtRowCol(HighlightPos, Token, tokenFinished, tokenType, Attr) then
         Exit;
-      if (Attr = fText.Highlighter.CommentAttribute) and not tokenFinished then
+      if (tokenType = httComment) and not tokenFinished then
         Exit;
-      if SameStr(Attr.Name,'Character') and not (DeletedChar = '''') then
+      if (tokenType = httCharacter) and not (DeletedChar = '''') then
         Exit;
-      if (Attr = dmMain.Cpp.StringEscapeSeqAttri) then
+      if (tokenType = httStringEscapeSequence) then
         Exit;
-      if (Attr = fText.Highlighter.StringAttribute) then begin
+      if (tokenType = httString) then begin
         if not (DeletedChar in ['"','(']) then
           Exit; 
         if (DeletedChar = '"') and not SameStr(Token,'""') then
@@ -2104,11 +2105,11 @@ var
         if (DeletedChar = '(') and not StartsStr('R"',Token) then
           Exit;
       end;
-      if (DeletedChar = '''') and (Attr = dmMain.Cpp.NumberAttri) then begin
+      if (DeletedChar = '''') and (tokenType = httNumber) then begin
         Exit;
       end;
       if (DeletedChar = '<') and
-          ((Attr<> dmMain.Cpp.DirecAttri) or not StartsStr('#include',fText.LineText)) then begin
+          ((tokenType <> httPreprocessDirective) or not StartsStr('#include',fText.LineText)) then begin
           Exit;
       end;
       if (devEditor.ArrayComplete and (DeletedChar = '[') and (NextChar = ']')) or
@@ -3724,7 +3725,8 @@ var
   p:TBufferCoord;
   p1:TDisplayCoord;
   token:String;
-  tokenType,start:integer;
+  tokenType : TSynHighlighterTokenType;
+  start:integer;
   Attri: TSynHighlighterAttributes;
   idx:integer;
   lst:TList;
