@@ -221,17 +221,18 @@ const
   ID_POP_EDITRES                        = 10020;
   ID_ITEM_NEXTINS                       = 10021;
   ID_ITEM_STEPINS                       = 10022;
-  ID_ITEM_STEPOUT                  = 10023;
+  ID_ITEM_STEPOUT                       = 10023;
   ID_ITEM_GOTOBREAKPOINT                = 10024;
-  ID_ITEM_CALLSTACK          = 10025;
-  ID_ITEM_LOCALS         = 10026;
-  ID_ITEM_GLOBALS          = 10027;
-  ID_ITEM_ARGS          = 10028;
-  ID_ITEM_CALLSTACKFULL          = 10029;
-  ID_ITEM_BREAKPOINT_PROP       = 10030;
-  ID_ITEM_REMOVE_BREAKPOINT       = 10031;
-  ID_ITEM_CLOSEMESSAGE_SHEET      =10032;
-
+  ID_ITEM_CALLSTACK                     = 10025;
+  ID_ITEM_LOCALS                        = 10026;
+  ID_ITEM_GLOBALS                       = 10027;
+  ID_ITEM_ARGS                          = 10028;
+  ID_ITEM_CALLSTACKFULL                 = 10029;
+  ID_ITEM_BREAKPOINT_PROP               = 10030;
+  ID_ITEM_REMOVE_BREAKPOINT             = 10031;
+  ID_ITEM_CLOSEMESSAGE_SHEET            = 10032;
+  ID_ITEM_CLEAR_ALL_BREAKPOINTS         = 10033;
+  ID_ITEM_CLEAR_ALL_BREAKPOINTS_IN_FILE = 10034;
 
   // unit popup
   ID_POP_REMOVE                         = 11001;

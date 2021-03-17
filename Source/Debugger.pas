@@ -312,9 +312,14 @@ procedure TDebugger.RemoveBreakPoint(i: integer);
 var
   filename: AnsiString;
 begin
-  // "filename":linenum
-  filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
-  SendCommand('clear', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line));
+  // Debugger already running? Remove it from GDB
+  if Executing then begin
+    // "filename":linenum
+    filename := StringReplace(PBreakPoint(BreakPointList.Items[i])^.editor.FileName, '\', '/', [rfReplaceAll]);
+    SendCommand('clear', '"' + filename + '":' + inttostr(PBreakPoint(BreakPointList.Items[i])^.line));
+  end;
+  Dispose(PBreakPoint(BreakPointList.Items[i]));
+  BreakPointList.Delete(i);
 end;
 
 procedure TDebugger.AddBreakPoint(linein: integer; e: TEditor);
@@ -340,20 +345,13 @@ var
   i: integer;
 begin
   for i := 0 to BreakPointList.Count - 1 do begin
-    if (PBreakPoint(BreakPointList.Items[i])^.line = Linein) and (PBreakPoint(BreakPointList.Items[i])^.editor = e) then
-      begin
-
-      // Debugger already running? Remove it from GDB
-      if Executing then
-        RemoveBreakPoint(i);
-
-      // Remove from list
-      Dispose(PBreakPoint(BreakPointList.Items[i]));
-      BreakPointList.Delete(i);
+    if (PBreakPoint(BreakPointList.Items[i])^.line = Linein)
+      and (PBreakPoint(BreakPointList.Items[i])^.editor = e) then begin
+      RemoveBreakPoint(i);
+      MainForm.OnBreakPointsChanged;
       break;
     end;
   end;
-  MainForm.OnBreakPointsChanged;
 end;
 
 function TDebugger.GetBreakPointIndexOnLine(lineNo:integer; e: TEditor):Integer;

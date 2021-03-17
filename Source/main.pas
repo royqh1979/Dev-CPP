@@ -714,6 +714,10 @@ type
     actConvertToUTF8Bom: TAction;
     UTF8withBOM1: TMenuItem;
     ConvertToUTF8withBom1: TMenuItem;
+    actClearAllBreakpoints: TAction;
+    actClearAllBreakpoints1: TMenuItem;
+    actClearAllBreakpointsInEditor: TAction;
+    Clearbreakpointsintheeditor1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1043,6 +1047,9 @@ type
     procedure fileBrowserDblClick(Sender: TObject);
     procedure actOnlyShowDevFilesExecute(Sender: TObject);
     procedure actLocateFileExecute(Sender: TObject);
+    procedure actClearAllBreakpointsUpdate(Sender: TObject);
+    procedure actClearAllBreakpointsExecute(Sender: TObject);
+    procedure actClearAllBreakpointsInEditorExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -2213,6 +2220,8 @@ begin
   actRemoveBreakPointInPane.Caption := Lang[ID_ITEM_REMOVE_BREAKPOINT];
   actDeleteProfile.Caption := Lang[ID_ITEM_DELPROFINFORMATION];
   actAbortCompilation.Caption := Lang[ID_ITEM_ABORTCOMP];
+  actClearAllBreakpoints.Caption := Lang[ID_ITEM_CLEAR_ALL_BREAKPOINTS];
+  actClearAllBreakpointsInEditor.Caption := Lang[ID_ITEM_CLEAR_ALL_BREAKPOINTS_IN_FILE];
 
   // Tools menu
   actCompOptions.Caption := Lang[ID_ITEM_COMPOPTIONS];
@@ -9681,6 +9690,42 @@ begin
   end else
     fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
   fileBrowser.LocateFile(editor.FileName);
+end;
+
+procedure TMainForm.actClearAllBreakpointsUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled:=self.BreakpointsView.Items.Count>0
+end;
+
+procedure TMainForm.actClearAllBreakpointsExecute(Sender: TObject);
+var
+  i:integer;
+  breakpoint:PBreakPoint;
+  editor : TEditor;
+begin
+  for i:=fDebugger.BreakPointList.Count-1 downto 0 do begin
+    breakpoint := PBreakpoint(fDebugger.BreakPointList[i]);
+    editor := breakpoint^.editor;
+    editor.ToggleBreakPoint(breakpoint^.line);
+  end;
+  OnBreakPointsChanged;
+end;
+
+procedure TMainForm.actClearAllBreakpointsInEditorExecute(Sender: TObject);
+var
+  i:integer;
+  breakpoint:PBreakPoint;
+  editor : TEditor;
+begin
+  editor:=editorlist.GetEditor();
+  if not assigned(editor) then
+    Exit;
+  for i:=fDebugger.BreakPointList.Count-1 downto 0 do begin
+    breakpoint := PBreakpoint(fDebugger.BreakPointList[i]);
+    if (breakpoint^.editor = editor) then
+      editor.ToggleBreakPoint(breakpoint^.line);
+  end;
+  OnBreakPointsChanged;
 end;
 
 end.

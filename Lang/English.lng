@@ -192,6 +192,8 @@ Ver=1
 10030=Breakpoint condition...
 10031=Remove Breakpoint
 10032=&Close Report Panel
+10033=Clear All breakpoints
+10034=Clear All breakpoints in the editor
 
 
 11001=Remove File
