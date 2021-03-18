@@ -6924,8 +6924,8 @@ begin
           end else begin
             Temp := LineText;
             Len := Length(Temp);
-            if Len < CaretX then
-              Temp := Temp + StringOfChar(#32, CaretX - Len);
+            if Len < (CaretX-1) then
+              Temp := Temp + StringOfChar(#32, (CaretX-1) - Len);
             bChangeScroll := not (eoScrollPastEol in fOptions);
             try
               if bChangeScroll then
