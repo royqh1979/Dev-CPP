@@ -17,6 +17,7 @@ Version 6.6.1 MAR 2021
     - enhancement: add clear all breakpoints menuitem in breakpoints view's context menu
     - enhancement: use standalone checker instead of compiler to check syntax 
     - fix: when using IME to append contents to the end of a line, a space char will be wrongly added
+    - fix: border around current placeholder not correctly cleared when switch to the next placeholder which is not in the same line
 
 Version 6.6 MAR 2021
 

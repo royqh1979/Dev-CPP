@@ -2448,7 +2448,6 @@ end;
 
 procedure TMainForm.OpenCloseLeftPageControl(Open: boolean);
 begin
-
   // Switch between open and close
   if Open then begin
     LeftPageControl.Width := fPreviousWidth
@@ -7476,7 +7475,8 @@ begin
   ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
   fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
-  LeftPageControl.Width := devData.ProjectWidth;
+//  LeftPageControl.Width := devData.ProjectWidth;
+//  MessageControl.Height := devData.OutputHeight;
   LeftProjectSheet.TabVisible := False;
   
 

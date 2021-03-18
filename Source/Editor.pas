@@ -2076,6 +2076,7 @@ var
   funcName:AnsiString;
   isVoid : boolean;
   i:integer;
+  oldLine:integer;
 
   procedure UndoSymbolCompletion;
   var
@@ -2212,7 +2213,10 @@ var
     VK_TAB: begin
         if fUserCodeInTabStops.Count > 0 then begin
           Key:=0;
+          oldLine := fText.CaretY;
           PopUserCodeInTabStops;
+          if oldLine <> fText.CaretY then
+            fText.InvalidateLine(oldLine);
           fText.InvalidateLine(fText.CaretY);
         end else begin
           if fTabStopBegin >= 0 then begin
