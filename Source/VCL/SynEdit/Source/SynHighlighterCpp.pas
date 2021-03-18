@@ -90,9 +90,8 @@ type
   TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
     rsMultiLineString, rsMultiLineDirective, rsCppComment,
-    rsStringEscapeSeq, rsMultiLineStringEscapeSeq, rsRestoreString,
-    rsRestoreMultiLineString,
-    rsRawString);
+    rsStringEscapeSeq, rsMultiLineStringEscapeSeq,
+    rsRawString, rsSpace,rsRawStringEscaping,rsRawStringNotEscaping,rsChar);
 
   TProcTableProc = procedure of object;
 
@@ -103,6 +102,7 @@ type
   private
     fAsmStart: Boolean;
     fRange: TRangeState;
+    fSpaceRange: TRangeState;
     fParenthesisLevel: integer;
     fBracketLevel: integer;
     fBraceLevel:integer;
@@ -114,7 +114,6 @@ type
     fTokenPos: Integer;
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
-    fRawStringNoEscaping: boolean;
     fLineNumber: Integer;
     fAsmAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
@@ -177,6 +176,7 @@ type
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
     procedure StringEndProc;
+    procedure StringStartProc;
     procedure RawStringProc;
     procedure StringEscapeSeqProc;
   protected
@@ -205,6 +205,7 @@ type
     function GetTokenFinished: boolean; override;
     function GetIsLastLineCommentNotFinish(value:Pointer):boolean; override;
     function GetIsLastLineStringNotFinish(value:Pointer):boolean; override;
+    function GetTokenType: TSynHighlighterTokenType; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure SetParenthesisLevel(Value: integer); override;
@@ -354,7 +355,7 @@ begin
       ']': fProcTable[I] := SquareCloseProc;
       '[': fProcTable[I] := SquareOpenProc;
       '*': fProcTable[I] := StarProc;
-      #34: fProcTable[I] := StringProc;
+      #34: fProcTable[I] := StringStartProc;
       '~': fProcTable[I] := TildeProc;
       '^': fProcTable[I] := XOrSymbolProc;
       else fProcTable[I] := UnknownProc;
@@ -411,6 +412,7 @@ begin
   SetAttributesOnChange(DefHighlightChange);
   MakeMethodTables;
   fRange := rsUnknown;
+  fSpaceRange := rsUnknown;
   fParenthesisLevel := 0;
   fBracketLevel := 0;
   fBraceLevel := 0;
@@ -422,6 +424,7 @@ procedure TSynCppSyn.SetLine(NewValue: String; LineNumber:Integer);
 begin
   fLine := PChar(NewValue);
   Run := 0;
+  fSpaceRange := rsUnknown;
   fLineNumber := LineNumber;
   Next;
 end; { SetLine }
@@ -467,6 +470,11 @@ begin
           inc(Run);
       #10: break;
       #13: break;
+      #32,#9: begin
+        fSpaceRange := fRange;
+        fRange := rsSpace;
+        break;
+      end;
     else inc(Run);
   end;
 end;
@@ -474,13 +482,21 @@ end;
 procedure TSynCppSyn.AnsiCppProc;
 begin
   fTokenID := tkComment;
-  if fLine[Run] = #0 then begin
+  if fLine[Run]=#0 then begin
     NullProc;
+    if (Run<1) or (fLine[Run-1] <> '\') then
+      fRange := rsUnknown;
     Exit;
   end;
-  fRange := rsUnknown;
-  while not (fLine[Run] in [#13,#10,#0]) do
+  while not (fLine[Run] in [#13,#10,#0]) do begin
+    if (fLine[Run] in [#32,#9]) then begin
+      fSpaceRange := fRange;
+      fRange := rsSpace;
+      break;
+    end;
     Inc(Run);
+  end;
+  fRange := rsUnknown;
   if (fLine[Run-1] = '\') and (fLine[Run] = #0) then
     fRange := rsCppComment; // continues on next line
 end;
@@ -511,6 +527,11 @@ procedure TSynCppSyn.AsciiCharProc;
 begin
   fTokenID := tkChar;
   repeat
+    if fLine[Run] in [#32,#9] then begin
+      fSpaceRange := rsChar;
+      fRange := rsSpace;
+      Exit;
+    end;
     if fLine[Run] = '\' then begin
       if fLine[Run + 1] in [#39, '\'] then
         inc(Run);
@@ -519,6 +540,7 @@ begin
   until fLine[Run] in [#0, #10, #13, #39];
   if fLine[Run] = #39 then
     inc(Run);
+  fRange:= rsUnknown;
 end;
 
 procedure TSynCppSyn.AtSymbolProc;
@@ -590,6 +612,11 @@ begin
   end;
   fTokenID := tkDirective;
   repeat
+    if fLine[Run] in [#9,#32] then begin
+      fSpaceRange := rsMultiLineDirective;
+      fRange := rsSpace;
+      Exit;
+    end;
     if fLine[Run] = '/' then // comment?
     begin
       if fLine[Run + 1] = '/' then // is end of directive as well
@@ -638,6 +665,11 @@ begin
   repeat
     case FLine[Run] of
       #0, #10, #13: Break;
+      #9,#32: begin
+        fSpaceRange := rsMultiLineDirective;
+        fRange := rsSpace;
+        Exit;
+      end;
       '/': // comment?
         begin
           case fLine[Run + 1] of
@@ -827,6 +859,11 @@ end;
 
 procedure TSynCppSyn.NullProc;
 begin
+  if ((Run-1>=1) and (fLine[Run-1] in [#9,#32])) and
+  (fRange in [rsCppComment, rsDirective, 
+    rsString, rsMultilineString, rsMultilineDirective]) then begin
+    fRange := rsUnknown;
+  end;
   fTokenID := tkNull;
 end;
 
@@ -1057,10 +1094,16 @@ begin
     '/':                               {c++ style comments}
       begin
         fTokenID := tkComment;
-        while fLine[Run] <> #0 do
+        inc(Run,2);
+        fRange := rsCppComment;
+        Exit;
+        {
+        while fLine[Run] <> #0 do begin
           Inc(Run);
+        end;
         if fLine[Run-1] = '\' then
           fRange := rsCppComment; // multiline C++ comment
+        }
       end;
     '*':                               {c style comments}
       begin
@@ -1097,6 +1140,15 @@ begin
   inc(Run);
   fTokenID := tkSpace;
   while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  fRange := fSpaceRange;
+  fSpaceRange := rsUnknown;
+
+  {
+  if (fRange in [rsCppComment, rsMultiLineDirective,
+    rsString]) and (FLine[Run]=#0) then begin
+    fRange := rsUnknown;
+  end;
+  }
 end;
 
 procedure TSynCppSyn.SquareCloseProc;
@@ -1133,18 +1185,32 @@ begin
 end;
 
 procedure TSynCppSyn.RawStringProc;
+var
+  NoEscaping : boolean;
 begin
+  NoEscaping := False;
+  if fRange = rsRawStringNotEscaping then
+    NoEscaping := True;
   fTokenID := tkRawString;
   fRange := rsRawString;
-  fRawStringNoEscaping := False;
-  repeat
+
+  while not (
+    (fLine[Run] in [#0, #10, #13]) or ((not NoEscaping) and (fLine[Run] = '"'))
+    ) do begin
     if fLine[Run] = '(' then begin
-      fRawStringNoEscaping:=True;
+      NoEscaping:=True;
     end else if fLine[Run] = ')' then begin
-      fRawStringNoEscaping:=False;
+      NoEscaping:=False;
+    end else if fLine[Run] in [#32,#9] then begin
+      fRange := rsSpace;
+      if NoEscaping then
+        fSpaceRange:= rsRawStringNotEscaping
+      else
+        fSpaceRange:= rsRawStringEscaping;
+      Exit;
     end;
     inc(Run);
-  until (fLine[Run] in [#0, #10, #13]) or ((not fRawStringNoEscaping) and (fLine[Run] = '"'));
+  end;
   if (FLine[Run] = #34) then begin
     inc(Run);
   end;
@@ -1195,22 +1261,43 @@ begin
       end;
   end;
   if fRange = rsMultilineStringEscapeSeq then
-    fRange:=rsRestoreMultilineString
+    fRange:=rsMultilineString
   else
-    fRange:=rsRestoreString;
+    fRange:=rsString;
+end;
+
+procedure TSynCppSyn.StringStartProc;
+begin
+  fTokenID := tkString;
+  inc(Run);
+  if fLine[Run]=#0 then begin
+    fRange := rsUnknown;
+    Exit;
+  end;
+  StringProc;
 end;
 
 procedure TSynCppSyn.StringProc;
 begin
-  if (fRange=rsRestoreString) then
-    dec(Run);
+  if fLine[Run]=#0 then begin
+    fRange:=rsUnknown;
+    Exit;
+  end;
   fTokenID := tkString;
   fRange := rsString;
-  repeat
+  while not (fLine[Run] in [#0, #10, #13, #34]) do begin
+    if (fLine[Run] in [#9,#32]) then begin
+      fSpaceRange := rsString;
+      fRange := rsSpace;
+      Exit;
+    end;
     if fLine[Run] = '\' then begin
       case fLine[Run + 1] of
-        #34, '\':
-          Inc(Run);
+        '''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U':
+          begin
+            fRange := rsStringEscapeSeq;
+            Exit;
+          end;
         #00:
           begin
             Inc(Run);
@@ -1218,15 +1305,9 @@ begin
             Exit;
           end;
       end;
-    end else if fLine[Run+1]= '\' then begin
-      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
-        fRange := rsStringEscapeSeq;
-        inc(Run);
-        Exit;
-      end;
     end;
     inc(Run);
-  until (fLine[Run] in [#0, #10, #13, #34]);
+  end;
   if FLine[Run] = #34 then begin
     inc(Run);
   end;
@@ -1237,9 +1318,6 @@ end;
 procedure TSynCppSyn.StringEndProc;
 begin
   fTokenID := tkString;
-  if (fRange=rsRestoreMultilineString) then
-    dec(Run);
-
   case FLine[Run] of
     #0:
       begin
@@ -1260,14 +1338,22 @@ begin
 
   fRange := rsUnknown;
 
-  repeat
+  while not (fLine[Run] in [#0, #10, #13, #34]) do begin
+    if (fLine[Run] in [#9,#32]) then begin
+      fSpaceRange := rsMultilineString;
+      fRange := rsSpace;
+      Exit;
+    end;
     case FLine[Run] of
       #0, #10, #13: Break;
       '\':
         begin
           case fLine[Run + 1] of
-            #34, '\':
-              Inc(Run);
+            '''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U':
+              begin
+                fRange := rsMultilineStringEscapeSeq;
+                Exit;
+              end;
             #00:
               begin
                 Inc(Run);
@@ -1278,15 +1364,8 @@ begin
         end;
       #34: Break;
     end;
-    if (FLine[Run]<>'\') and (fLine[Run+1]='\') then begin
-      if fLine[Run+2] in ['''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U'] then begin
-        fRange := rsMultilineStringEscapeSeq;
-        inc(Run);
-        Exit;
-      end;
-    end;
     inc(Run);
-  until fLine[Run] in [#0, #10, #13, #34];
+  end;
   if FLine[Run] = #34 then
     inc(Run);
 end;
@@ -1330,30 +1409,41 @@ procedure TSynCppSyn.Next;
 begin
   fAsmStart := False;
   fTokenPos := Run;
-  case fRange of
-    rsAnsiC, rsAnsiCAsm,
-    rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
-    rsCppComment: AnsiCppProc;
-    rsMultiLineDirective: DirectiveEndProc;
-    rsMultilineString, rsRestoreMultilineString: StringEndProc;
-    rsRestoreString : StringProc;
-    rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
-  else
-    begin
-      fRange := rsUnknown;
-      if (fLine[Run]='R') and (fLine[Run+1]='"') then begin
-        inc(Run,1);
-        RawStringProc;
-      end else if (fLine[Run] in ['L','u','U'])  and (fLine[Run+1]='"') then begin
-        inc(Run,1);
-        StringProc;
-      end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+2]='"') then begin
-        inc(Run,2);
-        StringProc;
-      end else
-        fProcTable[fLine[Run]];
+  repeat
+    case fRange of
+      rsAnsiC, rsAnsiCAsm,
+      rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
+      rsString: StringProc;
+      rsCppComment: AnsiCppProc;
+      rsMultiLineDirective: DirectiveEndProc;
+      rsMultilineString: StringEndProc;
+      rsSpace: SpaceProc;
+      rsRawStringEscaping, rsRawStringNotEscaping: RawStringProc;
+      rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
+      rsChar: begin
+        if fLine[Run]='''' then begin
+          fRange := rsUnknown;
+          fTokenID := tkChar;
+          inc(Run);
+        end else
+          AsciiCharProc;
+        end;
+      else begin
+        fRange := rsUnknown;
+        if (fLine[Run]='R') and (fLine[Run+1]='"') then begin
+          inc(Run,2);
+          RawStringProc;
+        end else if (fLine[Run] in ['L','u','U'])  and (fLine[Run+1]='"') then begin
+          inc(Run,1);
+          StringStartProc;
+        end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+2]='"') then begin
+          inc(Run,2);
+          StringStartProc;
+        end else
+          fProcTable[fLine[Run]];
+      end;
     end;
-  end;
+  until (fTokenID = tkNull) or (Run > fTokenPos);
 end;
 
 function TSynCppSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -1372,7 +1462,7 @@ end;
 
 function TSynCppSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := (fTokenID = tkNull);
 end;
 
 function TSynCppSyn.GetRange: Pointer;
@@ -1435,6 +1525,39 @@ begin
   Result := FExtTokenID;
 end;
 
+function TSynCppSyn.GetTokenType: TSynHighlighterTokenType;
+begin
+  case fTokenID of
+    tkComment: Result := httComment;
+    tkDirective: Result := httPreprocessDirective;
+    tkIdentifier: Result := httIdentifier;
+    tkKey: Result := httKeyword;
+    tkSpace: begin
+      case fRange of
+        rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock,
+          rsAsm, rsAsmBlock, rsDirectiveComment,rsCppComment :
+          Result := httComment;
+        rsDirective, rsMultiLineDirective:
+          Result := httPreprocessDirective;
+        rsString, rsMultiLineString, rsStringEscapeSeq,
+          rsMultiLineStringEscapeSeq,
+          rsRawString:
+          Result := httString;
+        rsChar :
+          Result := httCharacter;
+      else
+        Result := httSpace;
+      end;
+    end;
+    tkString: Result := httString;
+    tkStringEscapeSeq: Result := httStringEscapeSequence;
+    tkRawString: Result := httString;
+    tkChar: Result := httCharacter;
+    tkSymbol: Result := httSymbol;
+    else Result := httDefault;
+  end;
+end;
+
 function TSynCppSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case fTokenID of
@@ -1450,7 +1573,7 @@ begin
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
     tkStringEscapeSeq: Result := fStringEscapeSeqAttri;
-    tkRawString: Result := fStringAttri;    
+    tkRawString: Result := fStringAttri;
     tkChar: Result := fCharAttri;
     tkSymbol: Result := fSymbolAttri;
     tkUnknown: Result := fInvalidAttri;
@@ -1471,6 +1594,7 @@ end;
 procedure TSynCppSyn.ResetRange;
 begin
   fRange:= rsUnknown;
+  fSpaceRange := rsUnknown;
 end;
 
 procedure TSynCppSyn.ResetParenthesisLevel;

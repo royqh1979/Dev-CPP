@@ -341,7 +341,7 @@ begin
   Writeln(F);
   if fProject.Options.UsePrecompiledHeader then begin
     Writeln(F, '$(PCH) : $(PCH_H)');
-    Writeln(F, '	$(CPP) -x c++-header $(PCH_H) -o $(PCH) $(CXXFLAGS)');
+    Writeln(F, '	$(CPP) -x c++-header "$(PCH_H)" -o "$(PCH)" $(CXXFLAGS)');
     Writeln(F);
   end;
 end;
@@ -470,9 +470,9 @@ begin
             Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' $(CFLAGS) '+encodingStr);
         end else begin
           if fProject.Units[i].CompileCpp then
-            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CXXFLAGS) ' + encodingStr)
+            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' -o "' + ObjFileName + '" $(CXXFLAGS) ' + encodingStr)
           else
-            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CFLAGS) ' + encodingStr);
+            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' -o "' + ObjFileName + '" $(CFLAGS) ' + encodingStr);
         end;
       end;
     end;
@@ -550,9 +550,9 @@ begin
     Writeln(F, '$(BIN): $(OBJ)');
     if not fCheckSyntax then
       if fProject.Options.useGPP then
-        Writeln(F, #9 + '$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)')
+        Writeln(F, #9 + '$(CPP) $(LINKOBJ) -o "$(BIN)" $(LIBS)')
       else
-        Writeln(F, #9 + '$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)');
+        Writeln(F, #9 + '$(CC) $(LINKOBJ) -o "$(BIN)" $(LIBS)');
     WriteMakeObjFilesRules(F);
   finally
     CloseFile(F);
@@ -586,10 +586,10 @@ begin
     if not fCheckSyntax then begin
       if fProject.Options.useGPP then
         Writeln(F, #9 +
-          '$(CPP) -shared $(LINKOBJ) -o $(BIN) $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
+          '$(CPP) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
       else
         Writeln(F, #9 +
-          '$(CC) -shared $(LINKOBJ) -o $(BIN) $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
+          '$(CC) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
     end;
     WriteMakeObjFilesRules(F);
   finally
@@ -874,7 +874,8 @@ procedure TCompiler.RunTerminate(Sender: TObject);
 begin
   Application.Restore;
 
-  OnRunEnd;
+  if Assigned(fOnRunEnd) then
+    fOnRunEnd;
 
   MainForm.UpdateAppTitle;
 end;
@@ -1146,7 +1147,8 @@ end;
 
 procedure TCompiler.OnCompilationTerminated(Sender: TObject);
 begin
-  OnCompEnd;
+  if Assigned(fOnCompEnd) then
+    fOnCompEnd;
 
   fDevRun := nil;
 
@@ -1154,8 +1156,8 @@ begin
 
   EndProgressForm;
 
-  if (fErrCount = 0) and not fAbortThread then
-    OnCompSuccess;
+  if (fErrCount = 0) and not fAbortThread and Assigned(fOnCompSuccess) then
+    fOnCompSuccess;
 end;
 
 procedure TCompiler.OnLineOutput(Sender: TObject; const Line: AnsiString);

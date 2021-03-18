@@ -645,10 +645,10 @@ type
     function GetHighlighterAttriAtRowCol(const XY: TBufferCoord; var Token: string;
       var Attri: TSynHighlighterAttributes): boolean; overload;
     function GetHighlighterAttriAtRowCol(const XY: TBufferCoord; var Token: string;
-      var tokenFinished: boolean; var Attri: TSynHighlighterAttributes): boolean; overload;
-
+      var tokenFinished: boolean;  var TokenType: TSynHighlighterTokenType;
+      var Attri: TSynHighlighterAttributes): boolean; overload;
     function GetHighlighterAttriAtRowColEx(const XY: TBufferCoord; var Token: string;
-      var TokenType, Start: Integer;
+      var TokenType: TSynhighlighterTokenType ; var Start: Integer;
       var Attri: TSynHighlighterAttributes): boolean;
     function GetPositionOfMouse(out aPos: TBufferCoord): Boolean;
     function GetLineOfMouse(out line: integer): boolean;
@@ -2600,10 +2600,10 @@ var
   // like empty token rect or invalid indices into TokenLen.
   // CharsBefore tells if Token starts at column one or not
   procedure PaintToken(Token: string;
-    TokenLen, CharsBefore, First, Last: integer);
+    TokenLen, CharsBefore, First, Last: integer; isSelection: boolean);
   var
     pszText: PChar;
-    Counter, nX, nCharsToPaint: integer;
+    Counter, nX, nCharsToPaint, nX1: integer;
     sTabbedToken: string;
     newToken:String;
     DoTabPainting: Boolean;
@@ -2621,11 +2621,11 @@ var
 
     while Counter > First - CharsBefore - 1 do begin
       if (Length(Token) >= Counter) then begin
-        if (fShowSpecChar) and (Token[Counter] = #32) then
+        if (fShowSpecChar) and (not bSpecialLine) and (not isSelection) and (Token[Counter] = #32) then
           newToken := SynSpaceGlyph + newToken
         else if (Token[Counter] = TSynTabChar) then begin
           newToken := #32 + newToken;
-          DoTabPainting := fShowSpecChar;
+          DoTabPainting := fShowSpecChar and (not isSelection) and (not bSpecialLine);
         end else begin
           newToken := Token[Counter] + newToken ;
         end;
@@ -2669,16 +2669,16 @@ var
             inc(TabLen);
           pszText := PChar(@SynTabGlyphString[1]);
 
-          nX := ColumnToXValue(CharsBefore + TabStart + (TabLen div 2) - 1);
+          nX1 := ColumnToXValue(CharsBefore + TabStart + (TabLen div 2) - 1);
           if TabLen mod 2 = 0 then
-            nX := nX + (fCharWidth div 2)
+            nX1 := nX1 + (fCharWidth div 2)
           else
-            nX := nX + fCharWidth;
+            nX1 := nX1 + fCharWidth;
 
-          rcTab.Left := nX;
-          rcTab.Right := nX + fTextDrawer.GetCharWidth;
+          rcTab.Left := nX1;
+          rcTab.Right := nX1 + fTextDrawer.GetCharWidth;
 
-          fTextDrawer.ExtTextOut(nX, rcTab.Top, ETOOptions, rcTab,
+          fTextDrawer.ExtTextOut(nX1, rcTab.Top, ETOOptions or ETO_CLIPPED, rcTab,
             pszText, length(SynTabGlyphString));
 
           for i := 0 to TabLen - 1 do //wipe the text out so we don't
@@ -2687,6 +2687,7 @@ var
           TabStart := pos(TSynTabChar, sTabbedToken);
         end;
       end;
+
       rcToken.Left := rcToken.Right;
     end;
   end;
@@ -2804,7 +2805,7 @@ var
           SetDrawingColors(FALSE);
           rcToken.Right := ColumnToXValue(nLineSelStart);
           with TokenAccu do
-            PaintToken(s, Len, CharsBefore, nC1, nLineSelStart);
+            PaintToken(s, Len, CharsBefore, nC1, nLineSelStart,False);
         end;
         // selected part of the token
         SetDrawingColors(TRUE);
@@ -2812,19 +2813,19 @@ var
         nC2Sel := Min(nLineSelEnd, nC2);
         rcToken.Right := ColumnToXValue(nC2Sel);
         with TokenAccu do
-          PaintToken(s, Len, CharsBefore, nC1Sel, nC2Sel);
+          PaintToken(s, Len, CharsBefore, nC1Sel, nC2Sel,True);
         // second unselected part of the token
         if bU2 then begin
           SetDrawingColors(FALSE);
           rcToken.Right := ColumnToXValue(nC2);
           with TokenAccu do
-            PaintToken(s, Len, CharsBefore, nLineSelEnd, nC2);
+            PaintToken(s, Len, CharsBefore, nLineSelEnd, nC2,False);
         end;
       end else begin
         SetDrawingColors(bSel);
         rcToken.Right := ColumnToXValue(nC2);
         with TokenAccu do
-          PaintToken(s, Len, CharsBefore, nC1, nC2);
+          PaintToken(s, Len, CharsBefore, nC1, nC2,bSel);
       end;
     end;
 
@@ -3171,24 +3172,24 @@ var
           sToken := Copy(sLine, vFirstChar, vLastChar - vFirstChar)
         else
           sToken := sLine;
-        if fShowSpecChar and (Length(sLine) < vLastChar) then
+        if fShowSpecChar and (not bLineSelected) and (not bSpecialLine) and (Length(sLine) < vLastChar) then
           sToken := sToken + SynLineBreakGlyph;
         nTokenLen := Length(sToken);
         if bComplexLine then begin
           SetDrawingColors(FALSE);
           rcToken.Left := Max(rcLine.Left, ColumnToXValue(FirstCol));
           rcToken.Right := Min(rcLine.Right, ColumnToXValue(nLineSelStart));
-          PaintToken(sToken, nTokenLen, 0, FirstCol, nLineSelStart);
+          PaintToken(sToken, nTokenLen, 0, FirstCol, nLineSelStart,False);
           rcToken.Left := Max(rcLine.Left, ColumnToXValue(nLineSelEnd));
           rcToken.Right := Min(rcLine.Right, ColumnToXValue(LastCol));
-          PaintToken(sToken, nTokenLen, 0, nLineSelEnd, LastCol);
+          PaintToken(sToken, nTokenLen, 0, nLineSelEnd, LastCol,True);
           SetDrawingColors(TRUE);
           rcToken.Left := Max(rcLine.Left, ColumnToXValue(nLineSelStart));
           rcToken.Right := Min(rcLine.Right, ColumnToXValue(nLineSelEnd));
-          PaintToken(sToken, nTokenLen, 0, nLineSelStart, nLineSelEnd - 1);
+          PaintToken(sToken, nTokenLen, 0, nLineSelStart, nLineSelEnd - 1,False);
         end else begin
           SetDrawingColors(bLineSelected);
-          PaintToken(sToken, nTokenLen, 0, FirstCol, LastCol);
+          PaintToken(sToken, nTokenLen, 0, FirstCol, LastCol,bLineSelected);
         end;
       end else begin
         // Initialize highlighter with line text and range info. It is
@@ -3275,7 +3276,8 @@ var
             end;
           end;
           // Draw LineBreak glyph.
-          if (eoShowSpecialChars in fOptions) and (Length(sLine) < vLastChar) then begin
+          if (eoShowSpecialChars in fOptions) and (not bLineSelected)
+            and (not bSpecialLine) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
               Length(SynLineBreakGlyph),cRow, fHighLighter.WhitespaceAttribute);
@@ -6923,8 +6925,8 @@ begin
           end else begin
             Temp := LineText;
             Len := Length(Temp);
-            if Len < CaretX then
-              Temp := Temp + StringOfChar(#32, CaretX - Len);
+            if Len < (CaretX-1) then
+              Temp := Temp + StringOfChar(#32, (CaretX-1) - Len);
             bChangeScroll := not (eoScrollPastEol in fOptions);
             try
               if bChangeScroll then
@@ -9022,13 +9024,14 @@ end;
 function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
   var Token: string; var Attri: TSynHighlighterAttributes): boolean;
 var
-  TmpType, TmpStart: Integer;
+  TmpType: TSynhighlighterTokenType;
+  TmpStart: Integer;
 begin
   Result := GetHighlighterAttriAtRowColEx(XY, Token, TmpType, TmpStart, Attri);
 end;
 
 function TCustomSynEdit.GetHighlighterAttriAtRowColEx(const XY: TBufferCoord;
-  var Token: string; var TokenType, Start: Integer;
+  var Token: string; var TokenType: TSynHighlighterTokenType ; var Start: Integer;
   var Attri: TSynHighlighterAttributes): boolean;
 var
   PosX, PosY: integer;
@@ -9056,7 +9059,8 @@ begin
         Token := Highlighter.GetToken;
         if ((PosX >= Start) and (PosX < Start + Length(Token))) then begin
           Attri := Highlighter.GetTokenAttribute;
-          TokenType := Highlighter.GetTokenKind;
+          //TokenType := Highlighter.GetTokenKind;
+          TokenType := Highlighter.GetTokenType;
           Result := TRUE;
           exit;
         end;
@@ -9071,6 +9075,7 @@ end;
 
 function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
   var Token: string; var TokenFinished: boolean;
+  var TokenType: TSynHighlighterTokenType;
   var Attri: TSynHighlighterAttributes): boolean;
 var
   PosX, PosY, endPos, Start: integer;
@@ -9103,6 +9108,7 @@ begin
             TokenFinished := Highlighter.GetTokenFinished
           else
             TokenFinished := False;
+          TokenType := Highlighter.GetTokenType;
           Result := TRUE;
           exit;
         end;

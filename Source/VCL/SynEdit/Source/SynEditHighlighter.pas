@@ -47,6 +47,11 @@ type
   TBetterRegistry = SynEditMiscClasses.TBetterRegistry;
 
 type
+  TSynHighlighterTokenType = (httDefault, httSpace, httComment,
+    httPreprocessDirective, httString, httStringEscapeSequence,
+    httIdentifier, httSymbol,
+    httCharacter, httKeyword, httNumber);
+
   TSynHighlighterAttributes = class(TPersistent)
   private
     fBackground: TColor;
@@ -155,6 +160,7 @@ type
     function GetParenthesisLevel: integer; virtual;
     function GetToken: String; virtual; abstract;
     function GetTokenAttribute: TSynHighlighterAttributes; virtual; abstract;
+    function GetTokenType: TSynHighlighterTokenType; virtual;
     function GetTokenKind: integer; virtual; abstract;
     function GetTokenPos: Integer; virtual; abstract;
     function IsKeyword(const AKeyword: string): boolean; virtual;
@@ -713,6 +719,12 @@ begin
   end else
     inherited Assign(Source);
 end;
+
+function TSynCustomHighlighter.GetTokenType: TSynHighlighterTokenType ;
+begin
+  Result := httDefault;
+end;
+
 
 procedure TSynCustomHighlighter.EnumUserSettings(Settings: TStrings);
 begin

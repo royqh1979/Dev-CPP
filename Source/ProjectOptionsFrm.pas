@@ -1144,9 +1144,9 @@ begin
   end else
     ofile := GenMakePath1(ChangeFileExt(tfile, OBJ_EXT));
   if fProjectCopy.Units[idx].CompileCpp then
-    Result := '$(CPP) -c ' + GenMakePath1(tfile) + ' -o ' + ofile + ' $(CXXFLAGS)'
+    Result := '$(CPP) -c ' + GenMakePath1(tfile) + ' -o "' + ofile + '" $(CXXFLAGS)'
   else
-    Result := '$(CC) -c ' + GenMakePath1(tfile) + ' -o ' + ofile + ' $(CFLAGS)';
+    Result := '$(CC) -c ' + GenMakePath1(tfile) + ' -o "' + ofile + '" $(CFLAGS)';
 end;
 
 procedure TProjectOptionsFrm.txtOverrideBuildCmdChange(Sender: TObject);

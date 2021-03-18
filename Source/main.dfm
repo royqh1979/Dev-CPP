@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -116,7 +116,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -161,13 +161,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           192
-          196)
+          190)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,7 +213,7 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 875
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 196
+        Height = 190
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 609
-        Height = 196
+        Height = 190
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 601
-              Height = 165
+              Height = 159
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -388,128 +388,22 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
         TabOrder = 1
-        DesignSize = (
-          450
-          196)
-        object ToolBar1: TToolBar
-          Left = 0
-          Top = 0
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 0
-        end
-        object ToolBar2: TToolBar
-          Left = 0
-          Top = 37
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 1
-        end
-        object ToolBar3: TToolBar
-          Left = 0
-          Top = 73
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 2
-        end
-        object ToolBar4: TToolBar
-          Left = 0
-          Top = 109
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 3
-          object ToolButton9: TToolButton
-            Left = 0
-            Top = 0
-            Action = actStepOut
-          end
-        end
-        object ToolBar5: TToolBar
-          Left = 0
-          Top = 100
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 4
-        end
-        object ToolBar6: TToolBar
-          Left = 0
-          Top = 125
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 5
-        end
-        object ToolBar7: TToolBar
-          Left = 0
-          Top = 150
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 6
-        end
         object Panel1: TPanel
-          Left = 5
+          Left = 0
           Top = 0
-          Width = 443
-          Height = 169
-          Anchors = [akLeft, akTop, akRight, akBottom]
+          Width = 450
+          Height = 190
+          Align = alClient
           BevelOuter = bvNone
-          TabOrder = 7
+          TabOrder = 0
           DesignSize = (
-            443
-            169)
+            450
+            190)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -520,7 +414,7 @@ object MainForm: TMainForm
           object EvaluateInput: TComboBox
             Left = 82
             Top = 1
-            Width = 361
+            Width = 368
             Height = 24
             BevelEdges = []
             BevelInner = bvNone
@@ -542,9 +436,9 @@ object MainForm: TMainForm
           end
           object EvalOutput: TMemo
             Left = 0
-            Top = 40
-            Width = 443
-            Height = 129
+            Top = 38
+            Width = 450
+            Height = 152
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -571,7 +465,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         Indent = 22
         TabOrder = 0
@@ -849,7 +743,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 0
+        Top = 5
         Width = 337
         Height = 24
         AutoComplete = False
@@ -1073,7 +967,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 414
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1208,7 +1102,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 179
+        Width = 174
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1217,7 +1111,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 179
+          Width = 174
           Height = 376
           Align = alClient
           BevelInner = bvNone
@@ -1239,7 +1133,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -3134,11 +3028,13 @@ object MainForm: TMainForm
       Category = 'Debug'
       Caption = 'Remove Breakpoint In panel'
       OnExecute = actRemoveBreakpointInPaneExecute
+      OnUpdate = actClearAllBreakpointsUpdate
     end
     object actBreakPointPropInPane: TAction
       Category = 'Debug'
       Caption = 'Set Break Point Property In Panel'
       OnExecute = actBreakPointPropInPaneExecute
+      OnUpdate = actClearAllBreakpointsUpdate
     end
     object actBrowserSortAlphabetically: TAction
       Category = 'ClassBrowser'
@@ -3294,6 +3190,17 @@ object MainForm: TMainForm
       Caption = 'Convert To UTF8 with Bom'
       OnExecute = actConvertToUTF8BomExecute
       OnUpdate = actConvertToUTF8BomUpdate
+    end
+    object actClearAllBreakpoints: TAction
+      Category = 'Debug'
+      Caption = 'Clear all breakpoints'
+      OnExecute = actClearAllBreakpointsExecute
+      OnUpdate = actClearAllBreakpointsUpdate
+    end
+    object actClearAllBreakpointsInEditor: TAction
+      Category = 'Debug'
+      Caption = 'Clear breakpoints in the editor'
+      OnExecute = actClearAllBreakpointsInEditorExecute
     end
   end
   object MessagePopup: TPopupMenu
@@ -3539,10 +3446,13 @@ object MainForm: TMainForm
     Left = 466
     Top = 144
     object BreakpointProperties1: TMenuItem
-      Action = actBreakPointProperties
+      Action = actBreakPointPropInPane
     end
     object RemoveBreakpoint1: TMenuItem
       Action = actRemoveBreakpointInPane
+    end
+    object actClearAllBreakpoints1: TMenuItem
+      Action = actClearAllBreakpoints
     end
   end
   object EditorPagePopup: TPopupMenu
@@ -3639,11 +3549,14 @@ object MainForm: TMainForm
     object MenuItem46: TMenuItem
       Caption = '-'
     end
+    object MenuItem48: TMenuItem
+      Action = actAddWatch
+    end
     object MenuItem47: TMenuItem
       Action = actBreakPoint
     end
-    object MenuItem48: TMenuItem
-      Action = actAddWatch
+    object Clearbreakpointsintheeditor1: TMenuItem
+      Action = actClearAllBreakpointsInEditor
     end
     object MenuItem49: TMenuItem
       Caption = '-'

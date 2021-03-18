@@ -10,6 +10,14 @@ Version 6.6.1 MAR 2021
     - fix: function parameters parse error is seperated by ', '
     - enhancement: auto save all project files after it was created
     - enhancement: double click on the file editor's title bar will trigger full screen
+    - fix: can't correctly compile Tools/CheckLang project
+    - enhancement: hide special chars in selected contents
+    - enhancement: correctly color special characters in comments/preprocessors/strings
+    - enhancement: add clear breakpoints menuitem in editor's context menu
+    - enhancement: add clear all breakpoints menuitem in breakpoints view's context menu
+    - enhancement: use standalone checker instead of compiler to check syntax 
+    - fix: when using IME to append contents to the end of a line, a space char will be wrongly added
+    - fix: border around current placeholder not correctly cleared when switch to the next placeholder which is not in the same line
 
 Version 6.6 MAR 2021
 

@@ -546,14 +546,6 @@ type
     actConvertToUTF8: TAction;
     ConvertToUTF8Item: TMenuItem;
     DebugButtonsPanel: TPanel;
-    ToolBar1: TToolBar;
-    ToolBar2: TToolBar;
-    ToolBar3: TToolBar;
-    ToolBar4: TToolBar;
-    ToolButton9: TToolButton;
-    ToolBar5: TToolBar;
-    ToolBar6: TToolBar;
-    ToolBar7: TToolBar;
     Panel1: TPanel;
     Splitter1: TSplitter;
     WatchSheet: TTabSheet;
@@ -714,6 +706,10 @@ type
     actConvertToUTF8Bom: TAction;
     UTF8withBOM1: TMenuItem;
     ConvertToUTF8withBom1: TMenuItem;
+    actClearAllBreakpoints: TAction;
+    actClearAllBreakpoints1: TMenuItem;
+    actClearAllBreakpointsInEditor: TAction;
+    Clearbreakpointsintheeditor1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1043,6 +1039,9 @@ type
     procedure fileBrowserDblClick(Sender: TObject);
     procedure actOnlyShowDevFilesExecute(Sender: TObject);
     procedure actLocateFileExecute(Sender: TObject);
+    procedure actClearAllBreakpointsUpdate(Sender: TObject);
+    procedure actClearAllBreakpointsExecute(Sender: TObject);
+    procedure actClearAllBreakpointsInEditorExecute(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1063,6 +1062,7 @@ type
     fProject: TProject;
     fDebugger: TDebugger;
     fCompiler: TCompiler;
+    fSyntaxChecker: TCompiler;
     fEditorList: TEditorList;
     fCurrentPageHint: AnsiString;
     fLogOutputRawData: TStringList;
@@ -1099,7 +1099,7 @@ type
     procedure LoadLastOpens;
     procedure OpenUnit;
     function PrepareForRun(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
-    function PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+    function PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid; checkSyntax:boolean = False): Boolean;
     function PrepareForClean(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
     procedure LoadTheme;
     procedure CheckForDLLProfiling;
@@ -1704,6 +1704,7 @@ begin
   FreeAndNil(devImageThemes);
   FreeAndNil(fEditorList);
   FreeAndNil(fCompiler);
+  FreeAndNil(fSyntaxChecker);
   FreeAndNil(fDebugger);
   FreeAndNil(dmMain);
   devExecutor.Free; // sets itself to nil
@@ -2213,6 +2214,8 @@ begin
   actRemoveBreakPointInPane.Caption := Lang[ID_ITEM_REMOVE_BREAKPOINT];
   actDeleteProfile.Caption := Lang[ID_ITEM_DELPROFINFORMATION];
   actAbortCompilation.Caption := Lang[ID_ITEM_ABORTCOMP];
+  actClearAllBreakpoints.Caption := Lang[ID_ITEM_CLEAR_ALL_BREAKPOINTS];
+  actClearAllBreakpointsInEditor.Caption := Lang[ID_ITEM_CLEAR_ALL_BREAKPOINTS_IN_FILE];
 
   // Tools menu
   actCompOptions.Caption := Lang[ID_ITEM_COMPOPTIONS];
@@ -2445,7 +2448,6 @@ end;
 
 procedure TMainForm.OpenCloseLeftPageControl(Open: boolean);
 begin
-
   // Switch between open and close
   if Open then begin
     LeftPageControl.Width := fPreviousWidth
@@ -3166,20 +3168,22 @@ begin
     Exit;
   if fCompiler.Compiling then
     Exit;
+  if fSyntaxChecker.Compiling then
+    Exit;
   if fCheckSyntaxInBack then
     Exit;
 
   fCheckSyntaxInBack:=True;
-  if not PrepareForCompile(cttStdin) then begin
+  if not PrepareForCompile(cttStdin,True) then begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;
   if e.InProject then begin
     if not assigned(MainForm.fProject) then
       Exit;
-    fCompiler.Project := MainForm.fProject;
+    fSyntaxChecker.Project := MainForm.fProject;
   end;
-  fCompiler.CheckSyntax(True);
+  fSyntaxChecker.CheckSyntax(True);
 end;
 
 procedure TMainForm.actSaveExecute(Sender: TObject);
@@ -4096,10 +4100,11 @@ begin
   Result := True;
 end;
 
-function TMainForm.PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+function TMainForm.PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid;checkSyntax:boolean = False): Boolean;
 var
   i: Integer;
   e: TEditor;
+  compiler : TCompiler;
 begin
   Result := False;
   ClearCompileMessages;
@@ -4125,16 +4130,20 @@ begin
     Exit;  
   end;
 
+  if CheckSyntax then begin
+    compiler := fSyntaxChecker;
+  end else
+    compiler := fCompiler;
   // Determine what to compile
-  fCompiler.Project := nil;
-  fCompiler.SourceFile := '';
-  fCompiler.SourceText := '';  
-  fCompiler.CompilerSet := devCompilerSets.CompilationSet;
+  compiler.Project := nil;
+  compiler.SourceFile := '';
+  compiler.SourceText := '';
+  compiler.CompilerSet := devCompilerSets.CompilationSet;
   if ForcedCompileTarget <> cttInvalid then
-    fCompiler.Target := ForcedCompileTarget
+    compiler.Target := ForcedCompileTarget
   else
-    fCompiler.Target := GetCompileTarget;
-  case fCompiler.Target of
+    compiler.Target := GetCompileTarget;
+  case compiler.Target of
     cttInvalid: begin
         Exit;
       end;
@@ -4149,8 +4158,8 @@ begin
         if e.Text.Modified then
           if not e.Save(False,False) then
             Exit;
-        fCompiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
-        fCompiler.SourceFile := e.FileName;
+        compiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
+        compiler.SourceFile := e.FileName;
       end;
     cttStdin: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
@@ -4158,12 +4167,12 @@ begin
           Exit;
         if e.Text.Lines.Text = '' then
           Exit;
-        fCompiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
-        fCompiler.SourceFile := e.FileName;
-        fCompiler.sourceText := e.Text.Lines.Text;
+        compiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
+        compiler.SourceFile := e.FileName;
+        compiler.sourceText := e.Text.Lines.Text;
       end;
     cttProject: begin
-        fCompiler.Project := fProject;
+        compiler.Project := fProject;
 
         // Save all files that are in a project
         if not fProject.SaveUnits then
@@ -7249,6 +7258,18 @@ begin
     OnRunEnd := RunEndProc;
   end;
 
+  //Create a syntaxchecker
+  fSyntaxChecker := TCompiler.Create;
+  with fSyntaxChecker do begin
+    OnLogEntry := LogEntryProc;
+    OnOutput := CompOutputProc;
+    OnResOutput := CompResOutputProc;
+    OnCompEnd := CompEndProc;
+    //OnCompSuccess := CompSuccessProc;
+    //OnRunEnd := RunEndProc;
+  end;
+
+
   // Remember long version of paths
   fLogOutputRawData := TStringList.Create;
 
@@ -7454,7 +7475,8 @@ begin
   ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
   fLeftPageControlChanged := False;  
   actProjectManagerExecute(nil);
-  LeftPageControl.Width := devData.ProjectWidth;
+//  LeftPageControl.Width := devData.ProjectWidth;
+//  MessageControl.Height := devData.OutputHeight;
   LeftProjectSheet.TabVisible := False;
   
 
@@ -9681,6 +9703,42 @@ begin
   end else
     fileBrowser.CurrentFolder := ExtractFileDir(editor.FileName);
   fileBrowser.LocateFile(editor.FileName);
+end;
+
+procedure TMainForm.actClearAllBreakpointsUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled:=self.BreakpointsView.Items.Count>0
+end;
+
+procedure TMainForm.actClearAllBreakpointsExecute(Sender: TObject);
+var
+  i:integer;
+  breakpoint:PBreakPoint;
+  editor : TEditor;
+begin
+  for i:=fDebugger.BreakPointList.Count-1 downto 0 do begin
+    breakpoint := PBreakpoint(fDebugger.BreakPointList[i]);
+    editor := breakpoint^.editor;
+    editor.ToggleBreakPoint(breakpoint^.line);
+  end;
+  OnBreakPointsChanged;
+end;
+
+procedure TMainForm.actClearAllBreakpointsInEditorExecute(Sender: TObject);
+var
+  i:integer;
+  breakpoint:PBreakPoint;
+  editor : TEditor;
+begin
+  editor:=editorlist.GetEditor();
+  if not assigned(editor) then
+    Exit;
+  for i:=fDebugger.BreakPointList.Count-1 downto 0 do begin
+    breakpoint := PBreakpoint(fDebugger.BreakPointList[i]);
+    if (breakpoint^.editor = editor) then
+      editor.ToggleBreakPoint(breakpoint^.line);
+  end;
+  OnBreakPointsChanged;
 end;
 
 end.
