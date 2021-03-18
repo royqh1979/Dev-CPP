@@ -91,7 +91,7 @@ type
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString,
     rsMultiLineString, rsMultiLineDirective, rsCppComment,
     rsStringEscapeSeq, rsMultiLineStringEscapeSeq,
-    rsRawString, rsSpace,rsRawStringEscaping,rsRawStringNotEscaping );
+    rsRawString, rsSpace,rsRawStringEscaping,rsRawStringNotEscaping,rsChar);
 
   TProcTableProc = procedure of object;
 
@@ -527,6 +527,11 @@ procedure TSynCppSyn.AsciiCharProc;
 begin
   fTokenID := tkChar;
   repeat
+    if fLine[Run] in [#32,#9] then begin
+      fSpaceRange := rsChar;
+      fRange := rsSpace;
+      Exit;
+    end;
     if fLine[Run] = '\' then begin
       if fLine[Run + 1] in [#39, '\'] then
         inc(Run);
@@ -535,6 +540,7 @@ begin
   until fLine[Run] in [#0, #10, #13, #39];
   if fLine[Run] = #39 then
     inc(Run);
+  fRange:= rsUnknown;
 end;
 
 procedure TSynCppSyn.AtSymbolProc;
@@ -1414,6 +1420,14 @@ begin
       rsSpace: SpaceProc;
       rsRawStringEscaping, rsRawStringNotEscaping: RawStringProc;
       rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
+      rsChar: begin
+        if fLine[Run]='''' then begin
+          fRange := rsUnknown;
+          fTokenID := tkChar;
+          inc(Run);
+        end else
+          AsciiCharProc;
+        end;
       else begin
         fRange := rsUnknown;
         if (fLine[Run]='R') and (fLine[Run+1]='"') then begin
@@ -1529,6 +1543,8 @@ begin
           rsMultiLineStringEscapeSeq,
           rsRawString:
           Result := httString;
+        rsChar :
+          Result := httCharacter;
       else
         Result := httSpace;
       end;
