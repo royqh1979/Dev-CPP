@@ -393,123 +393,17 @@ object MainForm: TMainForm
         BevelOuter = bvNone
         Constraints.MinWidth = 28
         TabOrder = 1
-        DesignSize = (
-          450
-          190)
-        object ToolBar1: TToolBar
-          Left = 0
-          Top = 0
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 0
-        end
-        object ToolBar2: TToolBar
-          Left = 0
-          Top = 37
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 1
-        end
-        object ToolBar3: TToolBar
-          Left = 0
-          Top = 73
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 2
-        end
-        object ToolBar4: TToolBar
-          Left = 0
-          Top = 109
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 3
-          object ToolButton9: TToolButton
-            Left = 0
-            Top = 0
-            Action = actStepOut
-          end
-        end
-        object ToolBar5: TToolBar
-          Left = 0
-          Top = 100
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 4
-        end
-        object ToolBar6: TToolBar
-          Left = 0
-          Top = 125
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 5
-        end
-        object ToolBar7: TToolBar
-          Left = 0
-          Top = 150
-          Width = 35
-          Height = 36
-          Align = alNone
-          ButtonHeight = 34
-          ButtonWidth = 35
-          Caption = 'ToolBar1'
-          EdgeBorders = []
-          Flat = True
-          Images = dmMain.MenuImages_NewLook28
-          TabOrder = 6
-        end
         object Panel1: TPanel
-          Left = 5
+          Left = 0
           Top = 0
-          Width = 443
-          Height = 157
-          Anchors = [akLeft, akTop, akRight, akBottom]
+          Width = 450
+          Height = 190
+          Align = alClient
           BevelOuter = bvNone
-          TabOrder = 7
+          TabOrder = 0
           DesignSize = (
-            443
-            157)
+            450
+            190)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -520,7 +414,7 @@ object MainForm: TMainForm
           object EvaluateInput: TComboBox
             Left = 82
             Top = 1
-            Width = 361
+            Width = 368
             Height = 24
             BevelEdges = []
             BevelInner = bvNone
@@ -542,9 +436,9 @@ object MainForm: TMainForm
           end
           object EvalOutput: TMemo
             Left = 0
-            Top = 40
-            Width = 443
-            Height = 117
+            Top = 38
+            Width = 450
+            Height = 152
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -849,7 +743,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 0
+        Top = 5
         Width = 337
         Height = 24
         AutoComplete = False
@@ -1073,7 +967,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 414
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1208,7 +1102,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 179
+        Width = 174
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1217,7 +1111,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 179
+          Width = 174
           Height = 376
           Align = alClient
           BevelInner = bvNone
@@ -1239,7 +1133,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35

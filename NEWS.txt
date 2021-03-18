@@ -13,6 +13,11 @@ Version 6.6.1 MAR 2021
     - fix: can't correctly compile Tools/CheckLang project
     - enhancement: hide special chars in selected contents
     - enhancement: correctly color special characters in comments/preprocessors/strings
+    - enhancement: add clear breakpoints menuitem in editor's context menu
+    - enhancement: add clear all breakpoints menuitem in breakpoints view's context menu
+    - enhancement: use standalone checker instead of compiler to check syntax 
+
+
 
 Version 6.6 MAR 2021
 

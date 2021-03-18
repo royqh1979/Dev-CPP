@@ -546,14 +546,6 @@ type
     actConvertToUTF8: TAction;
     ConvertToUTF8Item: TMenuItem;
     DebugButtonsPanel: TPanel;
-    ToolBar1: TToolBar;
-    ToolBar2: TToolBar;
-    ToolBar3: TToolBar;
-    ToolBar4: TToolBar;
-    ToolButton9: TToolButton;
-    ToolBar5: TToolBar;
-    ToolBar6: TToolBar;
-    ToolBar7: TToolBar;
     Panel1: TPanel;
     Splitter1: TSplitter;
     WatchSheet: TTabSheet;
@@ -1070,6 +1062,7 @@ type
     fProject: TProject;
     fDebugger: TDebugger;
     fCompiler: TCompiler;
+    fSyntaxChecker: TCompiler;
     fEditorList: TEditorList;
     fCurrentPageHint: AnsiString;
     fLogOutputRawData: TStringList;
@@ -1106,7 +1099,7 @@ type
     procedure LoadLastOpens;
     procedure OpenUnit;
     function PrepareForRun(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
-    function PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+    function PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid; checkSyntax:boolean = False): Boolean;
     function PrepareForClean(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
     procedure LoadTheme;
     procedure CheckForDLLProfiling;
@@ -1711,6 +1704,7 @@ begin
   FreeAndNil(devImageThemes);
   FreeAndNil(fEditorList);
   FreeAndNil(fCompiler);
+  FreeAndNil(fSyntaxChecker);
   FreeAndNil(fDebugger);
   FreeAndNil(dmMain);
   devExecutor.Free; // sets itself to nil
@@ -3175,20 +3169,22 @@ begin
     Exit;
   if fCompiler.Compiling then
     Exit;
+  if fSyntaxChecker.Compiling then
+    Exit;
   if fCheckSyntaxInBack then
     Exit;
 
   fCheckSyntaxInBack:=True;
-  if not PrepareForCompile(cttStdin) then begin
+  if not PrepareForCompile(cttStdin,True) then begin
     fCheckSyntaxInBack:=False;
     Exit;
   end;
   if e.InProject then begin
     if not assigned(MainForm.fProject) then
       Exit;
-    fCompiler.Project := MainForm.fProject;
+    fSyntaxChecker.Project := MainForm.fProject;
   end;
-  fCompiler.CheckSyntax(True);
+  fSyntaxChecker.CheckSyntax(True);
 end;
 
 procedure TMainForm.actSaveExecute(Sender: TObject);
@@ -4105,10 +4101,11 @@ begin
   Result := True;
 end;
 
-function TMainForm.PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid): Boolean;
+function TMainForm.PrepareForCompile(ForcedCompileTarget: TTarget = cttInvalid;checkSyntax:boolean = False): Boolean;
 var
   i: Integer;
   e: TEditor;
+  compiler : TCompiler;
 begin
   Result := False;
   ClearCompileMessages;
@@ -4134,16 +4131,20 @@ begin
     Exit;  
   end;
 
+  if CheckSyntax then begin
+    compiler := fSyntaxChecker;
+  end else
+    compiler := fCompiler;
   // Determine what to compile
-  fCompiler.Project := nil;
-  fCompiler.SourceFile := '';
-  fCompiler.SourceText := '';  
-  fCompiler.CompilerSet := devCompilerSets.CompilationSet;
+  compiler.Project := nil;
+  compiler.SourceFile := '';
+  compiler.SourceText := '';
+  compiler.CompilerSet := devCompilerSets.CompilationSet;
   if ForcedCompileTarget <> cttInvalid then
-    fCompiler.Target := ForcedCompileTarget
+    compiler.Target := ForcedCompileTarget
   else
-    fCompiler.Target := GetCompileTarget;
-  case fCompiler.Target of
+    compiler.Target := GetCompileTarget;
+  case compiler.Target of
     cttInvalid: begin
         Exit;
       end;
@@ -4158,8 +4159,8 @@ begin
         if e.Text.Modified then
           if not e.Save(False,False) then
             Exit;
-        fCompiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
-        fCompiler.SourceFile := e.FileName;
+        compiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
+        compiler.SourceFile := e.FileName;
       end;
     cttStdin: begin
         e := fEditorList.GetEditor; // always succeeds if ctFile is returned
@@ -4167,12 +4168,12 @@ begin
           Exit;
         if e.Text.Lines.Text = '' then
           Exit;
-        fCompiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
-        fCompiler.SourceFile := e.FileName;
-        fCompiler.sourceText := e.Text.Lines.Text;
+        compiler.UseUTF8 := (e.FileEncoding in [etUTF8,etUTF8Bom]);
+        compiler.SourceFile := e.FileName;
+        compiler.sourceText := e.Text.Lines.Text;
       end;
     cttProject: begin
-        fCompiler.Project := fProject;
+        compiler.Project := fProject;
 
         // Save all files that are in a project
         if not fProject.SaveUnits then
@@ -7257,6 +7258,18 @@ begin
     OnCompSuccess := CompSuccessProc;
     OnRunEnd := RunEndProc;
   end;
+
+  //Create a syntaxchecker
+  fSyntaxChecker := TCompiler.Create;
+  with fSyntaxChecker do begin
+    OnLogEntry := LogEntryProc;
+    OnOutput := CompOutputProc;
+    OnResOutput := CompResOutputProc;
+    OnCompEnd := CompEndProc;
+    //OnCompSuccess := CompSuccessProc;
+    //OnRunEnd := RunEndProc;
+  end;
+
 
   // Remember long version of paths
   fLogOutputRawData := TStringList.Create;

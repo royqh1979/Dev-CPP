@@ -482,8 +482,10 @@ end;
 procedure TSynCppSyn.AnsiCppProc;
 begin
   fTokenID := tkComment;
-  if fLine[Run] = #0 then begin
+  if fLine[Run]=#0 then begin
     NullProc;
+    if (Run<1) or (fLine[Run-1] <> '\') then
+      fRange := rsUnknown;
     Exit;
   end;
   while not (fLine[Run] in [#13,#10,#0]) do begin
@@ -1402,32 +1404,31 @@ begin
   fAsmStart := False;
   fTokenPos := Run;
   repeat
-  case fRange of
-    rsAnsiC, rsAnsiCAsm,
-    rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
-    rsString: StringProc;
-    rsCppComment: AnsiCppProc;
-    rsMultiLineDirective: DirectiveEndProc;
-    rsMultilineString: StringEndProc;
-    rsSpace: SpaceProc;
-    rsRawStringEscaping, rsRawStringNotEscaping: RawStringProc;
-    rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
-  else
-    begin
-      fRange := rsUnknown;
-      if (fLine[Run]='R') and (fLine[Run+1]='"') then begin
-        inc(Run,2);
-        RawStringProc;
-      end else if (fLine[Run] in ['L','u','U'])  and (fLine[Run+1]='"') then begin
-        inc(Run,1);
-        StringStartProc;
-      end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+2]='"') then begin
-        inc(Run,2);
-        StringStartProc;
-      end else
-        fProcTable[fLine[Run]];
+    case fRange of
+      rsAnsiC, rsAnsiCAsm,
+      rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
+      rsString: StringProc;
+      rsCppComment: AnsiCppProc;
+      rsMultiLineDirective: DirectiveEndProc;
+      rsMultilineString: StringEndProc;
+      rsSpace: SpaceProc;
+      rsRawStringEscaping, rsRawStringNotEscaping: RawStringProc;
+      rsStringEscapeSeq, rsMultilineStringEscapeSeq : StringEscapeSeqProc;
+      else begin
+        fRange := rsUnknown;
+        if (fLine[Run]='R') and (fLine[Run+1]='"') then begin
+          inc(Run,2);
+          RawStringProc;
+        end else if (fLine[Run] in ['L','u','U'])  and (fLine[Run+1]='"') then begin
+          inc(Run,1);
+          StringStartProc;
+        end else if (fLine[Run] = 'u') and (fLine[Run+1]='8') and (fLine[Run+2]='"') then begin
+          inc(Run,2);
+          StringStartProc;
+        end else
+          fProcTable[fLine[Run]];
+      end;
     end;
-  end;
   until (fTokenID = tkNull) or (Run > fTokenPos);
 end;
 

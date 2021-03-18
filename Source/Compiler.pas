@@ -874,7 +874,8 @@ procedure TCompiler.RunTerminate(Sender: TObject);
 begin
   Application.Restore;
 
-  OnRunEnd;
+  if Assigned(fOnRunEnd) then
+    fOnRunEnd;
 
   MainForm.UpdateAppTitle;
 end;
@@ -1146,7 +1147,8 @@ end;
 
 procedure TCompiler.OnCompilationTerminated(Sender: TObject);
 begin
-  OnCompEnd;
+  if Assigned(fOnCompEnd) then
+    fOnCompEnd;
 
   fDevRun := nil;
 
@@ -1154,8 +1156,8 @@ begin
 
   EndProgressForm;
 
-  if (fErrCount = 0) and not fAbortThread then
-    OnCompSuccess;
+  if (fErrCount = 0) and not fAbortThread and Assigned(fOnCompSuccess) then
+    fOnCompSuccess;
 end;
 
 procedure TCompiler.OnLineOutput(Sender: TObject; const Line: AnsiString);
