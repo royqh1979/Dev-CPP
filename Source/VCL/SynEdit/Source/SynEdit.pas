@@ -2621,11 +2621,11 @@ var
 
     while Counter > First - CharsBefore - 1 do begin
       if (Length(Token) >= Counter) then begin
-        if (fShowSpecChar) and (not isSelection) and (Token[Counter] = #32) then
+        if (fShowSpecChar) and (not bSpecialLine) and (not isSelection) and (Token[Counter] = #32) then
           newToken := SynSpaceGlyph + newToken
         else if (Token[Counter] = TSynTabChar) then begin
           newToken := #32 + newToken;
-          DoTabPainting := fShowSpecChar and (not isSelection) ;
+          DoTabPainting := fShowSpecChar and (not isSelection) and (not bSpecialLine);
         end else begin
           newToken := Token[Counter] + newToken ;
         end;
@@ -3172,7 +3172,7 @@ var
           sToken := Copy(sLine, vFirstChar, vLastChar - vFirstChar)
         else
           sToken := sLine;
-        if fShowSpecChar and (not bLineSelected) and (Length(sLine) < vLastChar) then
+        if fShowSpecChar and (not bLineSelected) and (not bSpecialLine) and (Length(sLine) < vLastChar) then
           sToken := sToken + SynLineBreakGlyph;
         nTokenLen := Length(sToken);
         if bComplexLine then begin
@@ -3276,7 +3276,8 @@ var
             end;
           end;
           // Draw LineBreak glyph.
-          if (eoShowSpecialChars in fOptions) and (not bLineSelected) and (Length(sLine) < vLastChar) then begin
+          if (eoShowSpecialChars in fOptions) and (not bLineSelected)
+            and (not bSpecialLine) and (Length(sLine) < vLastChar) then begin
             AddHighlightToken(SynLineBreakGlyph,
               Length(sLine) - (vFirstChar - FirstCol),
               Length(SynLineBreakGlyph),cRow, fHighLighter.WhitespaceAttribute);

@@ -16,7 +16,7 @@ Version 6.6.1 MAR 2021
     - enhancement: add clear breakpoints menuitem in editor's context menu
     - enhancement: add clear all breakpoints menuitem in breakpoints view's context menu
     - enhancement: use standalone checker instead of compiler to check syntax 
-    - fix: when using IME input to append contents to line end, a space char will be wrongly added
+    - fix: when using IME to append contents to the end of a line, a space char will be wrongly added
 
 Version 6.6 MAR 2021
 
