@@ -784,11 +784,6 @@ begin
         Modified := True;
       end;
       fOptions.CompilerOptions := ReadString('Project', 'CompilerSettings', '');
-      //Compatibility for devcpp 5.11
-      if length(fOptions.CompilerOptions) = 25 then begin
-        fOptions.CompilerOptions := Copy(fOptions.CompilerOptions,1,11)
-          + '0' + Copy(fOptions.CompilerOptions,12,MaxInt);
-      end;
       fOptions.UseUTF8 := ReadBool('Project','UseUTF8',False);
       fOptions.VersionInfo.Major := ReadInteger('VersionInfo', 'Major', 0);
       fOptions.VersionInfo.Minor := ReadInteger('VersionInfo', 'Minor', 1);

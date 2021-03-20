@@ -470,9 +470,9 @@ begin
             Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' $(CFLAGS) '+encodingStr);
         end else begin
           if fProject.Units[i].CompileCpp then
-            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' -o "' + ObjFileName + '" $(CXXFLAGS) ' + encodingStr)
+            Writeln(F, #9 + '$(CPP) -c "' + GenMakePath1(ShortFileName) + '" -o "' + ObjFileName + '" $(CXXFLAGS) ' + encodingStr)
           else
-            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' -o "' + ObjFileName + '" $(CFLAGS) ' + encodingStr);
+            Writeln(F, #9 + '$(CC) -c "' + GenMakePath1(ShortFileName) + '" -o "' + ObjFileName + '" $(CFLAGS) ' + encodingStr);
         end;
       end;
     end;
