@@ -1,4 +1,8 @@
-Version 6.6.1 MAR 2021
+Version 6.7-beta1.1 MAR 2021
+
+    - fix: files not compiled because of compiler setting error
+
+Version 6.7-beta1 MAR 2021
 
     - enhancement: Support editing utf-8 BOM encoded files
     - enhancement: option statically link stdlibs in the compiler options dialog
