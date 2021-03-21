@@ -75,7 +75,7 @@ object EnviroForm: TEnviroForm
     Top = 0
     Width = 645
     Height = 567
-    ActivePage = tabExternal
+    ActivePage = tabGeneral
     HotTrack = True
     TabOrder = 0
     object tabGeneral: TTabSheet
@@ -93,15 +93,15 @@ object EnviroForm: TEnviroForm
         Caption = 'Max Files in History List:'
       end
       object lblMsgTabs: TLabel
-        Left = 403
-        Top = 83
+        Left = 400
+        Top = 91
         Width = 131
         Height = 20
         Caption = 'Editor Tab Location:'
       end
       object lblLang: TLabel
-        Left = 403
-        Top = 147
+        Left = 400
+        Top = 163
         Width = 65
         Height = 20
         Caption = 'Language'
@@ -239,7 +239,7 @@ object EnviroForm: TEnviroForm
       end
       object seMRUMax: TSpinEdit
         Left = 400
-        Top = 43
+        Top = 51
         Width = 68
         Height = 31
         MaxLength = 2
@@ -249,8 +249,8 @@ object EnviroForm: TEnviroForm
         Value = 0
       end
       object cboTabsTop: TComboBox
-        Left = 403
-        Top = 107
+        Left = 400
+        Top = 123
         Width = 213
         Height = 28
         Style = csDropDownList
@@ -263,8 +263,8 @@ object EnviroForm: TEnviroForm
           'Right')
       end
       object cboLang: TComboBox
-        Left = 403
-        Top = 171
+        Left = 400
+        Top = 195
         Width = 213
         Height = 28
         Style = csDropDownList
