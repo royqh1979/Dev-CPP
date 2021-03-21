@@ -153,7 +153,8 @@ end;
 procedure TSynURIOpener.NewMouseCursor(Sender: TObject;
   const aLineCharPos: TBufferCoord; var aCursor: TCursor);
 var
-  TokenType, Start: Integer;
+  TokenType:TSynHighlighterTokenType;
+  TokenKind,Start: Integer;
   Token: string;
   Attri: TSynHighlighterAttributes;
 begin
@@ -163,7 +164,7 @@ begin
   then
     with FEditor do
     begin
-      GetHighlighterAttriAtRowColEx(aLineCharPos, Token, TokenType, Start, Attri);
+      GetHighlighterAttriAtRowColEx(aLineCharPos, Token, TokenType, TokenKind,Start, Attri);
       if Assigned(URIHighlighter) and ((Attri = URIHighlighter.URIAttri) or
         (Attri = URIHighlighter.VisitedURIAttri)) and
         not((eoDragDropEditing in Options) and IsPointInSelection(aLineCharPos))
@@ -186,7 +187,8 @@ procedure TSynURIOpener.NewMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   ptLineCol: TBufferCoord;
-  TokenType, Start: Integer;
+  TokenType: TSynHighlighterTokenType;
+  TokenKind, Start: Integer;
   Token: string;
   Attri: TSynHighlighterAttributes;
 begin
@@ -202,12 +204,12 @@ begin
     begin
       ptLineCol := DisplayToBufferPos(PixelsToRowColumn(X,Y));
 
-      GetHighlighterAttriAtRowColEx(ptLineCol, Token, TokenType, Start, Attri);
+      GetHighlighterAttriAtRowColEx(ptLineCol, Token, TokenType, TokenKind, Start, Attri);
       if Assigned(URIHighlighter) and ((Attri = URIHighlighter.URIAttri) or
         (Attri = URIHighlighter.VisitedURIAttri)) and
         not((eoDragDropEditing in Options) and IsPointInSelection(ptLineCol)) then
       begin
-        OpenLink(Token, TokenType);
+        OpenLink(Token, TokenKind);
         InvalidateLine(ptLineCol.Line);
       end;
     end

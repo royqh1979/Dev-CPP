@@ -1,7 +1,6 @@
 package SynEdit_D7;
 
 {$R *.res}
-{$R '..\Source\SynEditReg.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}

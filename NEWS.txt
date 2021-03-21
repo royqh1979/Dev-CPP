@@ -1,3 +1,10 @@
+Version 6.7-beta2 MAR 2021
+
+    - enhancement: syntax highlighter for Lua files
+    - enhancement: add " pause console after the program ends" option in the tool config dialog
+    - fix: close environment option dialog needs administration privileges (it shouldn't be)
+    - fix: wrong item height of UI Font & UI Font size lists in the environment options dialog
+
 Version 6.7-beta1.1 MAR 2021
 
     - fix: files not compiled because of compiler setting error

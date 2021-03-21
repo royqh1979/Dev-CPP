@@ -521,6 +521,7 @@ Ver=1
 32005=Parameters
 32006=Insert Macro
 32007=Available Macros
+32008=Pause console after the program ends.
 
 
 33001=Icon Library

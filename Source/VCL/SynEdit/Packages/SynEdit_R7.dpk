@@ -127,6 +127,7 @@ contains
   SynHighlighterEiffel in '..\Source\SynHighlighterEiffel.pas',
   SynEditCodeFolding in '..\Source\SynEditCodeFolding.pas',
   regexpr in '..\Source\regexpr.pas',
-  regexpr_unicodedata in '..\Source\regexpr_unicodedata.pas';
+  regexpr_unicodedata in '..\Source\regexpr_unicodedata.pas',
+  SynHighlighterLua in '..\Source\SynHighlighterLua.pas';
 
 end.

@@ -648,7 +648,7 @@ type
       var tokenFinished: boolean;  var TokenType: TSynHighlighterTokenType;
       var Attri: TSynHighlighterAttributes): boolean; overload;
     function GetHighlighterAttriAtRowColEx(const XY: TBufferCoord; var Token: string;
-      var TokenType: TSynhighlighterTokenType ; var Start: Integer;
+      var TokenType: TSynhighlighterTokenType ; var TokenKind,Start: Integer;
       var Attri: TSynHighlighterAttributes): boolean;
     function GetPositionOfMouse(out aPos: TBufferCoord): Boolean;
     function GetLineOfMouse(out line: integer): boolean;
@@ -9025,13 +9025,13 @@ function TCustomSynEdit.GetHighlighterAttriAtRowCol(const XY: TBufferCoord;
   var Token: string; var Attri: TSynHighlighterAttributes): boolean;
 var
   TmpType: TSynhighlighterTokenType;
-  TmpStart: Integer;
+  TmpKind, TmpStart: Integer;
 begin
-  Result := GetHighlighterAttriAtRowColEx(XY, Token, TmpType, TmpStart, Attri);
+  Result := GetHighlighterAttriAtRowColEx(XY, Token, TmpType, TmpKind,TmpStart, Attri);
 end;
 
 function TCustomSynEdit.GetHighlighterAttriAtRowColEx(const XY: TBufferCoord;
-  var Token: string; var TokenType: TSynHighlighterTokenType ; var Start: Integer;
+  var Token: string; var TokenType: TSynHighlighterTokenType ; var TokenKind,Start: Integer;
   var Attri: TSynHighlighterAttributes): boolean;
 var
   PosX, PosY: integer;
@@ -9059,7 +9059,7 @@ begin
         Token := Highlighter.GetToken;
         if ((PosX >= Start) and (PosX < Start + Length(Token))) then begin
           Attri := Highlighter.GetTokenAttribute;
-          //TokenType := Highlighter.GetTokenKind;
+          TokenKind := Highlighter.GetTokenKind;
           TokenType := Highlighter.GetTokenType;
           Result := TRUE;
           exit;

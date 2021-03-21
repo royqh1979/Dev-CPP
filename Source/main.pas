@@ -2501,8 +2501,13 @@ var
 begin // TODO: ask on SO
   idx := (Sender as TMenuItem).Tag;
 
-  with fTools.ToolList[idx]^ do
-    ExecuteFile(ParseToolParams(Exec), ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
+  with fTools.ToolList[idx]^ do begin
+    if (PauseAfterExit) and ProgramHasConsole(ParseToolParams(Exec)) then begin
+      ExecuteFile(devDirs.Exec + 'ConsolePauser.exe',
+       ' 0 "'+ParseToolParams(Exec)+'" '+ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
+    end else
+      ExecuteFile(ParseToolParams(Exec), ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
+  end;
 end;
 
 procedure TMainForm.setLeftPageControlPage( page: TTabSheet);

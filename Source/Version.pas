@@ -32,7 +32,7 @@ const
 
   // exe properties
   DEVCPP = 'Red Panda Dev-C++';
-  DEVCPP_VERSION = '6.7-beta1.1';
+  DEVCPP_VERSION = '6.7-beta2';
 
   // delimiters
   DEV_INTERNAL_OPEN = '$__DEV_INTERNAL_OPEN';
@@ -119,6 +119,7 @@ const
   FLT_MSVCPROJECTS = 'MS Visual C++ projects (*.dsp)|*.dsp';
   FLT_CBPROJECTS = 'Code::Blocks projects (*.cbp)|*.cbp';
   FLT_WATCHLIST = 'Watch List  (*.watch)|*.watch';
+  FLT_LUA = 'Lua files (*.lua)|*.lua';
 
   // Custom synedit style properties
   cBP = 'Breakpoints';

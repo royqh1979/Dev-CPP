@@ -45,6 +45,7 @@ type
     ParamText: TEdit;
     btnProg: TSpeedButton;
     btnWorkDir: TSpeedButton;
+    chkPauseBeforeExit: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure HelpClick(Sender: TObject);
     procedure btnInsertClick(Sender: TObject);
@@ -148,6 +149,7 @@ begin
   lblWorkDir.Caption := Lang[ID_TE_WORK];
   lblParam.Caption := Lang[ID_TE_PARAM];
   lblMacros.Caption := Lang[ID_TE_AVAIL];
+  chkPauseBeforeExit.Caption := Lang[ID_TE_PAUSE_BEFORE_EXIT];
 
   btnInsert.Caption := Lang[ID_TE_INSERT];
 
