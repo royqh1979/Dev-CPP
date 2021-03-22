@@ -1235,11 +1235,14 @@ begin
           inc(Run);
         end;
       end;
+    '8'..'9': begin
+        fTokenID := tkUnknown;
+        inc(Run);
+      end;
     'x': begin
         inc(Run);
         if not (fLine[Run] in ['0'..'9','a'..'f','A'..'F'] ) then begin
           fTokenID := tkUnknown;
-          inc(Run);
         end else begin
           while (fLine[Run] in ['0'..'9','a'..'f','A'..'F']) do
             inc(Run);
@@ -1299,7 +1302,7 @@ begin
     end;
     if fLine[Run] = '\' then begin
       case fLine[Run + 1] of
-        '''','"','\','?','a','b','f','n','r','t','v','0'..'7','x','u','U':
+        '''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U':
           begin
             fRange := rsStringEscapeSeq;
             Exit;
@@ -1355,7 +1358,7 @@ begin
       '\':
         begin
           case fLine[Run + 1] of
-            '''','"','\','?','a','b','f','n','r','t','v','0'..'7','x','u','U':
+            '''','"','\','?','a','b','f','n','r','t','v','0'..'9','x','u','U':
               begin
                 fRange := rsMultilineStringEscapeSeq;
                 Exit;
