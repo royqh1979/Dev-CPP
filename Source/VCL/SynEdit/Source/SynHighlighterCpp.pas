@@ -1249,24 +1249,24 @@ begin
         end;
       end;
     'u': begin
-        if not (fLine[Run+1] in ['0'..'9','a'..'f','A'..'F'] )
-          or not (fLine[Run+2] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+3] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+4] in ['0'..'9','a'..'f','A'..'F']) then
-          fTokenID := tkUnknown;
-        inc(Run,5);
+        inc(Run);
+        for i:=1 to 4 do begin
+          if not (fLine[Run] in ['0'..'7']) then begin
+            fTokenID := tkUnknown;
+            break;
+          end;
+          inc(Run);
+        end;
       end;
     'U': begin
-        if not (fLine[Run+1] in ['0'..'9','a'..'f','A'..'F'] )
-          or not (fLine[Run+2] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+3] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+4] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+5] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+6] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+7] in ['0'..'9','a'..'f','A'..'F'])
-          or not (fLine[Run+8] in ['0'..'9']) then
-          fTokenID := tkUnknown;
-        inc(Run,9);
+        inc(Run);
+        for i:=1 to 8 do begin
+          if not (fLine[Run] in ['0'..'7']) then begin
+            fTokenID := tkUnknown;
+            break;
+          end;
+          inc(Run);
+        end;
       end;
   end;
   if fRange = rsMultilineStringEscapeSeq then
