@@ -1036,7 +1036,7 @@ var
   function getAssociation(I: integer): Boolean;
   begin
     Result := CheckFiletype('.' + Associations[I, 0],
-      Associations[I, 4],
+      'DevCpp.' + Associations[I, 0],
       Associations[I, 1],
       'open',
       Application.Exename + ' "%1"');
