@@ -4,6 +4,8 @@ Version 6.7-beta2 MAR 2021
     - enhancement: add " pause console after the program ends" option in the tool config dialog
     - fix: close environment option dialog needs administration privileges (it shouldn't be)
     - fix: wrong item height of UI Font & UI Font size lists in the environment options dialog
+    - fix: some text in the statusbar are blocked, when UI font size is big
+    - enhancement: beautify the new project dialog with big ui font.
 
 Version 6.7-beta1.1 MAR 2021
 

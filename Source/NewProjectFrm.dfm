@@ -1,10 +1,10 @@
 object NewProjectForm: TNewProjectForm
-  Left = 300
-  Top = 342
+  Left = 633
+  Top = 362
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'New Project'
-  ClientHeight = 471
+  ClientHeight = 484
   ClientWidth = 720
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object NewProjectForm: TNewProjectForm
   OnDestroy = FormDestroy
   DesignSize = (
     720
-    471)
+    484)
   PixelsPerInch = 120
   TextHeight = 20
   object TemplateLabel: TLabel
@@ -37,7 +37,7 @@ object NewProjectForm: TNewProjectForm
   end
   object lblPrjName: TLabel
     Left = 11
-    Top = 306
+    Top = 311
     Width = 47
     Height = 20
     Anchors = [akLeft, akRight, akBottom]
@@ -45,7 +45,7 @@ object NewProjectForm: TNewProjectForm
   end
   object btnProjectLocation: TSpeedButton
     Left = 672
-    Top = 380
+    Top = 404
     Width = 29
     Height = 29
     Glyph.Data = {
@@ -79,7 +79,7 @@ object NewProjectForm: TNewProjectForm
   end
   object lblPrjLocation: TLabel
     Left = 11
-    Top = 354
+    Top = 375
     Width = 60
     Height = 20
     Anchors = [akLeft, akRight, akBottom]
@@ -87,7 +87,7 @@ object NewProjectForm: TNewProjectForm
   end
   object btnOk: TBitBtn
     Left = 364
-    Top = 430
+    Top = 443
     Width = 108
     Height = 32
     Anchors = [akRight, akBottom]
@@ -117,7 +117,7 @@ object NewProjectForm: TNewProjectForm
   end
   object btnCancel: TBitBtn
     Left = 481
-    Top = 430
+    Top = 443
     Width = 111
     Height = 32
     Anchors = [akRight, akBottom]
@@ -144,16 +144,10 @@ object NewProjectForm: TNewProjectForm
       Color = clWhite
       Columns = <>
       ColumnClick = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -15
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
       HideSelection = False
       IconOptions.AutoArrange = True
       LargeImages = ImageList
       ReadOnly = True
-      ParentFont = False
       TabOrder = 0
       OnChange = ProjViewChange
       OnDblClick = ProjViewDblClick
@@ -161,7 +155,7 @@ object NewProjectForm: TNewProjectForm
   end
   object btnHelp: TBitBtn
     Left = 611
-    Top = 430
+    Top = 443
     Width = 100
     Height = 32
     Anchors = [akRight, akBottom]
@@ -198,7 +192,7 @@ object NewProjectForm: TNewProjectForm
   end
   object edProjectName: TEdit
     Left = 11
-    Top = 327
+    Top = 340
     Width = 686
     Height = 28
     Anchors = [akLeft, akRight, akBottom]
@@ -207,7 +201,7 @@ object NewProjectForm: TNewProjectForm
   end
   object edProjectLocation: TEdit
     Left = 11
-    Top = 381
+    Top = 405
     Width = 654
     Height = 28
     TabOrder = 8
