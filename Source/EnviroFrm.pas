@@ -37,7 +37,6 @@ type
     lblMRU: TLabel;
     lblMsgTabs: TLabel;
     lblLang: TLabel;
-    lblTheme: TLabel;
     cbBackups: TCheckBox;
     cbMinOnRun: TCheckBox;
     cbDefCpp: TCheckBox;
@@ -52,7 +51,6 @@ type
     seMRUMax: TSpinEdit;
     cboTabsTop: TComboBox;
     cboLang: TComboBox;
-    cboTheme: TComboBox;
     tabPaths: TTabSheet;
     lblUserDir: TLabel;
     lblTemplatesDir: TLabel;
@@ -202,7 +200,6 @@ begin
     MenuIconSize := cbMenuIconSize.Text;
     ToolbarIconSize := cbToolbarIconSize.Text;
     TabIconSize := cbTabIconSize.Text;
-    Theme := cboTheme.Text;
     ShowProgress := cbShowProgress.Checked;
     AutoCloseProgress := cbAutoCloseProgress.Checked;
     WatchHint := cbWatchHint.Checked;
@@ -222,9 +219,15 @@ begin
 
     // Force update
     for I := 0 to AssociationsCount - 1 do
+      {
+      if lstAssocFileTypes.Checked[I] and not IsAssociated(I) then
+        Associate(I)
+      else if not lstAssocFileTypes.Checked[I] and IsAssociated(I) then
+        Unassociate(I);
+      }
       if lstAssocFileTypes.Checked[I] then
         Associate(I)
-      else
+      else if not lstAssocFileTypes.Checked[I] then
         Unassociate(I);
   except
     MessageBox(application.handle, PAnsiChar(Lang[ID_ENV_UACERROR]), PAnsiChar(Lang[ID_ERROR]), MB_OK);
@@ -296,7 +299,6 @@ begin
   cboTabsTop.Items[3] := Lang[ID_ENV_RIGHT];
 
   lblLang.Caption := Lang[ID_ENV_LANGUAGE];
-  lblTheme.Caption := Lang[ID_ENV_THEME];
   lblmsgTabs.Caption := Lang[ID_ENV_MSGTABS];
   lblMRU.Caption := Lang[ID_ENV_MRU];
 
@@ -340,6 +342,8 @@ var
 begin
   LoadText;
 
+  cbUIFont.ItemHeight := MainForm.Canvas.TextHeight('F');
+  cbUIFontSize.ItemHeight := MainForm.Canvas.TextHeight('F');
   cbShowDbgCmd.Checked := devDebugger.ShowCommandLog;
   cbShowDbgFullAnnotation.Checked := devDebugger.ShowAnnotations;
   with devData do begin
@@ -373,9 +377,6 @@ begin
     end;
 
     // List the themes
-    cboTheme.Items.Clear;
-    devImageThemes.GetThemeTitles(cboTheme.Items);
-    cboTheme.ItemIndex := devImageThemes.IndexOf(devImageThemes.CurrentTheme.Title);
 
     cbMenuIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.MenuIconSize);
     cbToolbarIconSize.ItemIndex := cbMenuIconSize.Items.IndexOf(devData.ToolbarIconSize);
@@ -473,7 +474,7 @@ procedure TEnviroForm.cbUIfontDrawItem(Control: TWinControl; Index: Integer; Rec
 begin
   with TComboBox(Control) do begin
     Canvas.Font.Name := Items.Strings[Index];
-    Canvas.Font.Size := strtoint(cbUIfontsize.Text);
+    Canvas.Font.Size := devData.InterfaceFontSize;
     Canvas.FillRect(Rect);
     Canvas.TextOut(Rect.Left, Rect.Top, Canvas.Font.Name);
   end;
@@ -483,7 +484,8 @@ procedure TEnviroForm.cbUIfontsizeDrawItem(Control: TWinControl; Index: Integer;
 begin
   with TComboBox(Control) do begin
     Canvas.Font.Name := cbUIfont.Text;
-    Canvas.Font.Size := strtoint(Items.Strings[Index]);
+    //Canvas.Font.Size := strtoint(Items.Strings[Index]);
+    Canvas.Font.Size := devData.InterfaceFontSize;
     Canvas.FillRect(Rect);
     Canvas.TextOut(Rect.Left, Rect.Top, Items.Strings[Index]);
   end;

@@ -34,6 +34,7 @@ type
     Exec: AnsiString;
     WorkDir: AnsiString;
     Params: AnsiString;
+    PauseAfterExit: boolean;
   end;
 
   TToolList = class
@@ -180,6 +181,7 @@ begin
       value := ParseString(value);
       Item^.WorkDir := Value;
       Item^.Params := ReadString(section, 'Params', '');
+      Item^.PauseAfterExit := ReadBool(section, 'PauseAfterExit',False);
       AddItem(Item);
     end;
   finally
@@ -225,6 +227,8 @@ begin
       Value := Item.WorkDir;
       Value := ParseString(Value);
       WriteString(section, 'WorkDir', Value);
+
+      WriteBool(section,'PauseAfterExit',Item^.PauseAfterExit);
 
       if (Item.Params <> '') and (Item.Params[1] = '"') and (Item.Params[length(Item.Params)] = '"') then
         // fix the case of param surrounded by quotes
@@ -324,12 +328,14 @@ begin
     edProgram.Text := fController.ToolList.ParseString(Item.Exec);
     edWorkDir.Text := fController.ToolList.ParseString(Item.WorkDir);
     edParams.Text := Item.Params;
+    chkPauseBeforeExit.Checked := Item.PauseAfterExit;
 
     if ShowModal = mrOK then begin
       Item.Title := edTitle.Text;
       Item.Exec := fController.ToolList.ParseString(edProgram.Text);
       Item.WorkDir := fController.ToolList.ParseString(edWorkDir.text);
       Item.Params := edParams.Text;
+      Item.PauseAfterExit := chkPauseBeforeExit.Checked;
       fController.ToolList[ListBox.ItemIndex] := Item;
       UpdateList;
     end;
@@ -351,6 +357,7 @@ begin
       NewItem.Exec := edProgram.Text;
       NewItem.WorkDir := edWorkDir.Text;
       NewItem.Params := edParams.Text;
+      NewItem.PauseAfterExit := chkPauseBeforeExit.Checked;
 
       fController.ToolList.AddItem(NewItem);
       UpdateList;

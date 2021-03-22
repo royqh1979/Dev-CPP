@@ -658,6 +658,7 @@ type
     fAssociateC: boolean;
     fAssociateCpp: boolean;
     fAssociateCxx: boolean;
+    fAssociateCC: boolean;
     fAssociateH: boolean;
     fAssociateHpp: boolean;
     fAssociateHxx: boolean;
@@ -782,6 +783,7 @@ type
     property AssociateC: boolean read fAssociateC write fAssociateC;
     property AssociateCpp: boolean read fAssociateCpp write fAssociateCpp;
     property AssociateCxx: boolean read fAssociateCxx write fAssociateCxx;
+    property AssociateCC: boolean read fAssociateCC write fAssociateCC;
     property AssociateH: boolean read fAssociateH write fAssociateH;
     property AssociateHpp: boolean read fAssociateHpp write fAssociateHpp;
     property AssociateHxx: boolean read fAssociateHxx write fAssociateHxx;
@@ -1034,7 +1036,7 @@ var
   function getAssociation(I: integer): Boolean;
   begin
     Result := CheckFiletype('.' + Associations[I, 0],
-      'DevCpp.' + Associations[I, 0],
+      Associations[I, 4],
       Associations[I, 1],
       'open',
       Application.Exename + ' "%1"');
@@ -1106,12 +1108,13 @@ begin
   fAssociateC := getAssociation(0);
   fAssociateCpp := getAssociation(1);
   fAssociateCxx := getAssociation(2);
-  fAssociateH := getAssociation(3);
-  fAssociateHpp := getAssociation(4);
-  fAssociateHxx := getAssociation(5);
-  fAssociateDev := getAssociation(6);
-  fAssociateRc := getAssociation(7);
-  fAssociateTemplate := getAssociation(8);
+  fAssociateCC := getAssociation(3);
+  fAssociateH := getAssociation(4);
+  fAssociateHpp := getAssociation(5);
+  fAssociateHxx := getAssociation(6);
+  fAssociateDev := getAssociation(7);
+  fAssociateRc := getAssociation(8);
+  fAssociateTemplate := getAssociation(9);
   fCheckAssocs := false;
 
   fShowTipsOnStart := FALSE; // due to popular demand

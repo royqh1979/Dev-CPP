@@ -27,7 +27,8 @@ uses
   SynHighlighterJScript, SynHighlighterHtml, SynHighlighterXML,
   SynHighlighterBat, SynHighlighterUNIXShellScript, SynHighlighterSQL,
   SynHighlighterAsm, SynHighlighterIni, SynHighlighterInno,
-  SynHighlighterDOT, SynHighlighterGeneral, autoLinkList,iniFiles;
+  SynHighlighterDOT, SynHighlighterGeneral, autoLinkList,iniFiles,
+  SynHighlighterLua;
 
 type
   PMRUItem = ^TMRUItem;
@@ -65,6 +66,7 @@ type
     MenuImages_NewLook24: TImageList;
     MenuImages_NewLook32: TImageList;
     MenuImages_NewLook48: TImageList;
+    LuaSyn: TSynHighlighterLua;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
@@ -273,6 +275,20 @@ begin
     ValueAttri.Assign(cpp.VariableAttri);
     UndefPropertyAttri.Assign(cpp.FunctionAttri);
   end;
+  with LuaSyn do begin
+    CommentAttri.Assign(cpp.CommentAttri);
+    IdentifierAttri.Assign(cpp.IdentifierAttri);
+    KeyAttri.Assign(cpp.KeyAttri);
+    SpaceAttri.Assign(cpp.SpaceAttri);
+    StringAttri.Assign(cpp.StringAttri);
+    SymbolAttri.Assign(cpp.SymbolAttri);
+    LabelAttri.Assign(cpp.DirecAttri);
+    NumberAttri.Assign(cpp.NumberAttri);
+    OctalAttri.Assign(cpp.OctalAttri);
+    HexAttri.Assign(cpp.HexAttri);
+    FloatAttri.Assign(cpp.FloatAttri);
+    InvalidAttri.Assign(cpp.InvalidAttri);
+  end;
   with DotSyn do begin
     CommentAttri.Assign(cpp.CommentAttri);
     IdentifierAttri.Assign(cpp.IdentifierAttri);
@@ -425,6 +441,10 @@ begin
         result := IniSyn
       else if CompareText(ext, '.nsi') = 0 then
         result := InnoSyn
+      else if CompareText(ext, '.dot') = 0 then
+        result := DotSyn
+      else if CompareText(ext, '.lua') = 0 then
+        result := LuaSyn
       else if CompareText(ext, '.sql') = 0 then
         result := SQLSyn
       else if CompareText(ext, '.xml') = 0 then

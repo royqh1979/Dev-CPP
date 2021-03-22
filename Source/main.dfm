@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 445
-  Top = 153
+  Left = 817
+  Top = 170
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -743,7 +743,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 0
+        Top = 5
         Width = 337
         Height = 24
         AutoComplete = False

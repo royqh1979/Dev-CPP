@@ -2373,15 +2373,18 @@ end;
 procedure TMainForm.SetStatusbarLineCol;
 var
   e: TEditor;
+  msg:string;
 begin
   e := fEditorList.GetEditor;
   if Assigned(e) then begin
-    Statusbar.Panels[0].Text := Format(Lang[ID_STATUSBARPLUS],
+    msg := Format(Lang[ID_STATUSBARPLUS],
       [e.Text.CaretY,
       e.Text.DisplayX,
         e.Text.SelLength,
         e.Text.Lines.Count,
         e.Text.Lines.GetTextLength]);
+    Statusbar.Panels[0].Text := msg;
+    statusBar.Panels[0].Width := Canvas.TextWidth(msg)+20;
   end else begin
     StatusBar.Panels.BeginUpdate;
     try
@@ -2501,8 +2504,13 @@ var
 begin // TODO: ask on SO
   idx := (Sender as TMenuItem).Tag;
 
-  with fTools.ToolList[idx]^ do
-    ExecuteFile(ParseToolParams(Exec), ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
+  with fTools.ToolList[idx]^ do begin
+    if (PauseAfterExit) and ProgramHasConsole(ParseToolParams(Exec)) then begin
+      ExecuteFile(devDirs.Exec + 'ConsolePauser.exe',
+       ' 0 "'+ParseToolParams(Exec)+'" '+ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
+    end else
+      ExecuteFile(ParseToolParams(Exec), ParseToolParams(Params), ParseToolParams(WorkDir), SW_SHOW);
+  end;
 end;
 
 procedure TMainForm.setLeftPageControlPage( page: TTabSheet);
@@ -6053,6 +6061,7 @@ begin
       s := 'ANSI('+UpperCase(GetSystemCharsetName)+')';
   end;
   Statusbar.Panels[1].Text := s;
+  Statusbar.Panels[1].Width := Canvas.TextWidth(s)+20;
 end;
 
 procedure TMainForm.FileMonitorTimer(Sender: TObject);

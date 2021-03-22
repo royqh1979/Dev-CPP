@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "GCC 10.2"
 !define COMPILERFOLDER "MinGW32"
-!define DEVCPP_VERSION "6.7-beta1.1"
+!define DEVCPP_VERSION "6.7-beta2"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -212,10 +212,10 @@ Section "$(SectionAssocExtNameBegin) .cxx $(SectionAssocExtNameEnd)"
   Call BackupAssoc
 
   StrCpy $0 $INSTDIR\DevCpp.exe
-  WriteRegStr HKCR ".cxx" "" "DevCpp.cpp"
-  WriteRegStr HKCR "DevCpp.cpp" "" "C++ Source File"
-  WriteRegStr HKCR "DevCpp.cpp\DefaultIcon" "" '$0,5'
-  WriteRegStr HKCR "DevCpp.cpp\Shell\Open\Command" "" '$0 "%1"'
+  WriteRegStr HKCR ".cxx" "" "DevCpp.cxx"
+  WriteRegStr HKCR "DevCpp.cxx" "" "C++ Source File"
+  WriteRegStr HKCR "DevCpp.cxx\DefaultIcon" "" '$0,5'
+  WriteRegStr HKCR "DevCpp.cxx\Shell\Open\Command" "" '$0 "%1"'
   Call RefreshShellIcons
 SectionEnd
 
@@ -226,10 +226,10 @@ Section "$(SectionAssocExtNameBegin) .cc $(SectionAssocExtNameEnd)"
   Call BackupAssoc
 
   StrCpy $0 $INSTDIR\DevCpp.exe
-  WriteRegStr HKCR ".cc" "" "DevCpp.cpp"
-  WriteRegStr HKCR "DevCpp.cpp" "" "C++ Source File"
-  WriteRegStr HKCR "DevCpp.cpp\DefaultIcon" "" '$0,5'
-  WriteRegStr HKCR "DevCpp.cpp\Shell\Open\Command" "" '$0 "%1"'
+  WriteRegStr HKCR ".cc" "" "DevCpp.cc"
+  WriteRegStr HKCR "DevCpp.cc" "" "C++ Source File"
+  WriteRegStr HKCR "DevCpp.cc\DefaultIcon" "" '$0,5'
+  WriteRegStr HKCR "DevCpp.cc\Shell\Open\Command" "" '$0 "%1"'
   Call RefreshShellIcons
 SectionEnd
 
@@ -240,10 +240,10 @@ Section "$(SectionAssocExtNameBegin) .hxx $(SectionAssocExtNameEnd)"
   Call BackupAssoc
 
   StrCpy $0 $INSTDIR\DevCpp.exe
-  WriteRegStr HKCR ".hxx" "" "DevCpp.hpp"
-  WriteRegStr HKCR "DevCpp.hpp" "" "C++ Header File"
-  WriteRegStr HKCR "DevCpp.hpp\DefaultIcon" "" '$0,7'
-  WriteRegStr HKCR "DevCpp.hpp\Shell\Open\Command" "" '$0 "%1"'
+  WriteRegStr HKCR ".hxx" "" "DevCpp.hxx"
+  WriteRegStr HKCR "DevCpp.hxx" "" "C++ Header File"
+  WriteRegStr HKCR "DevCpp.hxx\DefaultIcon" "" '$0,7'
+  WriteRegStr HKCR "DevCpp.hxx\Shell\Open\Command" "" '$0 "%1"'
   Call RefreshShellIcons
 SectionEnd
 
@@ -576,12 +576,16 @@ Section "Uninstall"
   DeleteRegKey HKCR "DevCpp.dev"
   DeleteRegKey HKCR "DevCpp.c"
   DeleteRegKey HKCR "DevCpp.cpp"
+  DeleteRegKey HKCR "DevCpp.cxx"
+  DeleteRegKey HKCR "DevCpp.cc"
   DeleteRegKey HKCR "DevCpp.h"
   DeleteRegKey HKCR "DevCpp.hpp"
+  DeleteRegKey HKCR "DevCpp.hxx"
   DeleteRegKey HKCR "DevCpp.rc"
   DeleteRegKey HKCR "DevCpp.devpak"
   DeleteRegKey HKCR "DevCpp.devpackage"
   DeleteRegKey HKCR "DevCpp.template"
+
 
   Delete "$INSTDIR\Packman.map"
   Delete "$INSTDIR\Packman.exe"

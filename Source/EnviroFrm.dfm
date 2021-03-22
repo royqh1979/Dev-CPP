@@ -93,30 +93,22 @@ object EnviroForm: TEnviroForm
         Caption = 'Max Files in History List:'
       end
       object lblMsgTabs: TLabel
-        Left = 403
-        Top = 83
+        Left = 400
+        Top = 91
         Width = 131
         Height = 20
         Caption = 'Editor Tab Location:'
       end
       object lblLang: TLabel
-        Left = 403
-        Top = 147
+        Left = 400
+        Top = 163
         Width = 65
         Height = 20
         Caption = 'Language'
       end
-      object lblTheme: TLabel
-        Left = 403
-        Top = 211
-        Width = 45
-        Height = 20
-        Caption = 'Theme'
-        Visible = False
-      end
       object UIfontlabel: TLabel
         Left = 331
-        Top = 277
+        Top = 237
         Width = 48
         Height = 20
         Caption = 'UI font:'
@@ -187,7 +179,7 @@ object EnviroForm: TEnviroForm
           'Only first project file'
           'Opened files at previous closing'
           'None')
-        TabOrder = 15
+        TabOrder = 14
       end
       object gbDebugger: TGroupBox
         Left = 20
@@ -197,7 +189,7 @@ object EnviroForm: TEnviroForm
         Caption = 'Debug Variable Browser'
         TabOrder = 7
         object cbWatchHint: TCheckBox
-          Left = 21
+          Left = 11
           Top = 32
           Width = 260
           Height = 23
@@ -205,15 +197,15 @@ object EnviroForm: TEnviroForm
           TabOrder = 0
         end
         object cbShowDbgCmd: TCheckBox
-          Left = 21
-          Top = 67
+          Left = 11
+          Top = 64
           Width = 260
           Height = 22
           Caption = 'Display Debug Commands'
           TabOrder = 1
         end
         object cbShowDbgFullAnnotation: TCheckBox
-          Left = 21
+          Left = 11
           Top = 96
           Width = 260
           Height = 23
@@ -229,7 +221,7 @@ object EnviroForm: TEnviroForm
         Caption = 'Compilation Progress Window '
         TabOrder = 8
         object cbShowProgress: TCheckBox
-          Left = 19
+          Left = 11
           Top = 29
           Width = 260
           Height = 23
@@ -237,7 +229,7 @@ object EnviroForm: TEnviroForm
           TabOrder = 0
         end
         object cbAutoCloseProgress: TCheckBox
-          Left = 19
+          Left = 11
           Top = 57
           Width = 260
           Height = 23
@@ -247,7 +239,7 @@ object EnviroForm: TEnviroForm
       end
       object seMRUMax: TSpinEdit
         Left = 400
-        Top = 43
+        Top = 51
         Width = 68
         Height = 31
         MaxLength = 2
@@ -257,8 +249,8 @@ object EnviroForm: TEnviroForm
         Value = 0
       end
       object cboTabsTop: TComboBox
-        Left = 403
-        Top = 107
+        Left = 400
+        Top = 123
         Width = 213
         Height = 28
         Style = csDropDownList
@@ -271,47 +263,43 @@ object EnviroForm: TEnviroForm
           'Right')
       end
       object cboLang: TComboBox
-        Left = 403
-        Top = 171
+        Left = 400
+        Top = 195
         Width = 213
         Height = 28
         Style = csDropDownList
         ItemHeight = 20
         TabOrder = 11
       end
-      object cboTheme: TComboBox
-        Left = 403
-        Top = 235
-        Width = 213
-        Height = 28
-        Style = csDropDownList
-        ItemHeight = 20
-        TabOrder = 12
-        Visible = False
-      end
       object cbUIfont: TComboBox
         Left = 331
-        Top = 309
+        Top = 269
         Width = 204
         Height = 26
         AutoComplete = False
         Style = csOwnerDrawVariable
         DropDownCount = 10
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'Segoe UI'
+        Font.Style = []
         ItemHeight = 20
+        ParentFont = False
         Sorted = True
-        TabOrder = 13
+        TabOrder = 12
         OnDrawItem = cbUIfontDrawItem
       end
       object cbUIfontsize: TComboBox
         Left = 547
-        Top = 309
+        Top = 269
         Width = 62
         Height = 26
         AutoComplete = False
         Style = csOwnerDrawVariable
         DropDownCount = 10
         ItemHeight = 20
-        TabOrder = 14
+        TabOrder = 13
         OnChange = cbUIfontsizeChange
         OnDrawItem = cbUIfontsizeDrawItem
         Items.Strings = (
@@ -348,7 +336,7 @@ object EnviroForm: TEnviroForm
         Width = 297
         Height = 33
         Caption = 'Fix HighDPI and Exit'
-        TabOrder = 16
+        TabOrder = 15
         OnClick = btnHighDPIFixExitClick
       end
     end

@@ -3501,13 +3501,19 @@ begin
   Result := True;
   with TSaveDialog.Create(nil) do try
     Title := Lang[ID_NV_SAVEAS];
-    Filter := BuildFilter([FLT_CS, FLT_CPPS, FLT_HEADS, FLT_RES]);
+    Filter := BuildFilter([FLT_CS, FLT_CPPS, FLT_HEADS, FLT_RES, FLT_LUA]);
     Options := Options + [ofOverwritePrompt];
 
     // select appropriate filter
     if GetFileTyp(fFileName) in [utcHead, utcppHead] then begin
       FilterIndex := 4; // .h
       DefaultExt := 'h';
+    end else if EndsStr('.rc',fFileName) then begin
+      FilterIndex := 5; // .h
+      DefaultExt := 'rc';
+    end else if EndsStr('.lua',fFileName) then begin
+      FilterIndex := 6; // .h
+      DefaultExt := 'lua';
     end else begin
       if Assigned(MainForm.Project) and fInProject then begin
         if MainForm.Project.Options.useGPP then begin
@@ -3730,7 +3736,7 @@ var
   p1:TDisplayCoord;
   token:String;
   tokenType : TSynHighlighterTokenType;
-  start:integer;
+  TokenKind,start:integer;
   Attri: TSynHighlighterAttributes;
   idx:integer;
   lst:TList;
@@ -3744,7 +3750,7 @@ begin
     start := 1;
     token:=fText.Lines[line-1];
   end else begin
-    fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,start,Attri);
+    fText.GetHighlighterAttriAtRowColEx(p,token,tokenType,TokenKind,start,Attri);
   end;
   pError^.char := start;
   pError^.endChar := start + length(token)-1;

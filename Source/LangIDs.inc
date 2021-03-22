@@ -590,6 +590,7 @@ const
   ID_TE_PARAM                           = 32005;
   ID_TE_INSERT                          = 32006;
   ID_TE_AVAIL                           = 32007;
+  ID_TE_PAUSE_BEFORE_EXIT               = 32008;
 
   // Icon Lib Form
   ID_IF                                 = 33001;
