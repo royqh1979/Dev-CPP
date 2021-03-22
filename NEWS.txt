@@ -6,6 +6,7 @@ Version 6.7-beta2 MAR 2021
     - fix: wrong item height of UI Font & UI Font size lists in the environment options dialog
     - fix: some text in the statusbar are blocked, when UI font size is big
     - enhancement: beautify the new project dialog with big ui font.
+    - fix: Dev-Cpp can't correctly check if '.cc' '.cxx' and '.hxx' is associated with Dev-Cpp by the installer 
 
 Version 6.7-beta1.1 MAR 2021
 

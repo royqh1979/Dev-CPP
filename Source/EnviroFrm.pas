@@ -219,9 +219,15 @@ begin
 
     // Force update
     for I := 0 to AssociationsCount - 1 do
+      {
       if lstAssocFileTypes.Checked[I] and not IsAssociated(I) then
         Associate(I)
       else if not lstAssocFileTypes.Checked[I] and IsAssociated(I) then
+        Unassociate(I);
+      }
+      if lstAssocFileTypes.Checked[I] then
+        Associate(I)
+      else if not lstAssocFileTypes.Checked[I] then
         Unassociate(I);
   except
     MessageBox(application.handle, PAnsiChar(Lang[ID_ENV_UACERROR]), PAnsiChar(Lang[ID_ERROR]), MB_OK);
