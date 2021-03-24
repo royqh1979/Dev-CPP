@@ -1436,7 +1436,8 @@ begin
   end;
 
   if fCompilerSet.StaticLinkStdlib then begin
-    fLibrariesParams := fLibrariesParams + ' -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic';
+//    fLibrariesParams := fLibrariesParams + ' -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic';
+    fLibrariesParams := fLibrariesParams + ' -static';
   end;
 
   fLibrariesParams := Trim(fLibrariesParams);

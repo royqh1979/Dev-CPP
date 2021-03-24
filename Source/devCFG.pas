@@ -1474,11 +1474,14 @@ begin
   fCompOpt := '';
   fStaticLinkStdlib := False;
 
+  {
   // MinGW32 requires special treatment
   if ContainsStr(fName, 'MinGW') then
     fLinkOpt := '-static-libstdc++ -static-libgcc'
   else
     fLinkOpt := '-static-libgcc';
+  }
+  fLinkOpt := '';
 end;
 
 procedure TdevCompilerSet.SetOptions;
