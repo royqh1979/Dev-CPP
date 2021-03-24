@@ -428,7 +428,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 164
           Height = 28
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 20
           TabOrder = 6
           OnChange = cbEncodingChange
         end
@@ -506,7 +506,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         Width = 660
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnChange = cmbCompilerChange
       end
@@ -583,7 +583,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           end
           object btnAddLib: TBitBtn
             Left = 492
-            Top = 334
+            Top = 332
             Width = 197
             Height = 40
             Anchors = [akRight, akBottom]
@@ -617,6 +617,14 @@ object ProjectOptionsFrm: TProjectOptionsFrm
               5DCCFF5DCCFF000000000000000000000000000000000000BFBFBFBFBFBFBFBF
               BFBFBFBFBFBFBFBFBFBFBFBFBF000000000000000000BFBFBFBFBFBFBFBFBFBF
               BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF}
+          end
+          object cbStaticLink: TCheckBox
+            Left = 8
+            Top = 336
+            Width = 281
+            Height = 33
+            Caption = 'Static Link'
+            TabOrder = 2
           end
         end
       end
@@ -1500,7 +1508,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 279
           Height = 28
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 20
           Sorted = True
           TabOrder = 4
         end

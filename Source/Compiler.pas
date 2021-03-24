@@ -1364,12 +1364,30 @@ var
   end;
 begin
   // Add libraries
-  fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);
+  fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);   
 
-  // Add global compiler linker extras
-  if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
-    fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
-      
+  // Add project settings that need to be passed to the linker
+  for I := 0 to fCompilerSet.Options.Count - 1 do begin
+    option := PCompilerOption(fCompilerSet.Options[I])^;
+    if (Assigned(fProject) and (I < Length(fProject.Options.CompilerOptions))) or (not Assigned(fProject) and
+      (option.Value > 0)) then begin
+      if option.IsLinker then
+        if Assigned(option.Choices) then begin
+          if Assigned(fProject) then
+            val := CharToValue(fProject.Options.CompilerOptions[I + 1])
+          else
+            val := option.Value;
+          if (val > 0) and (val < option.Choices.Count) then
+            fLibrariesParams := fLibrariesParams + ' ' + option.Setting +
+              option.Choices.Values[option.Choices.Names[val]];
+        end else if (Assigned(fProject) and (StrToIntDef(fProject.Options.CompilerOptions[I + 1], 0) = 1)) or (not
+          Assigned(fProject)) then
+          fLibrariesParams := fLibrariesParams + ' ' + option.Setting;
+    end;
+  end;
+
+  fLibrariesParams := Trim(fLibrariesParams);
+
   //Add auto links
   if (fTarget = cttFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
@@ -1399,6 +1417,12 @@ begin
     end;
   end;
 
+  fLibrariesParams := Trim(fLibrariesParams);  
+
+  // Add global compiler linker extras
+  if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
+    fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
+
   // Add libs added via project
   if (fTarget = cttProject) and assigned(fProject) then begin
     for i := 0 to pred(fProject.Options.Libs.Count) do
@@ -1415,27 +1439,9 @@ begin
 
   fLibrariesParams := Trim(fLibrariesParams);
 
-  // Add project settings that need to be passed to the linker
-  for I := 0 to fCompilerSet.Options.Count - 1 do begin
-    option := PCompilerOption(fCompilerSet.Options[I])^;
-    if (Assigned(fProject) and (I < Length(fProject.Options.CompilerOptions))) or (not Assigned(fProject) and
-      (option.Value > 0)) then begin
-      if option.IsLinker then
-        if Assigned(option.Choices) then begin
-          if Assigned(fProject) then
-            val := CharToValue(fProject.Options.CompilerOptions[I + 1])
-          else
-            val := option.Value;
-          if (val > 0) and (val < option.Choices.Count) then
-            fLibrariesParams := fLibrariesParams + ' ' + option.Setting +
-              option.Choices.Values[option.Choices.Names[val]];
-        end else if (Assigned(fProject) and (StrToIntDef(fProject.Options.CompilerOptions[I + 1], 0) = 1)) or (not
-          Assigned(fProject)) then
-          fLibrariesParams := fLibrariesParams + ' ' + option.Setting;
-    end;
-  end;
-
-  if fCompilerSet.StaticLinkStdlib then begin
+  if (fCompilerSet.StaticLinkStdlib and not Assigned(fProject))
+    or
+   (Assigned(fProject)  and fProject.Options.StaticLink) then begin
 //    fLibrariesParams := fLibrariesParams + ' -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic';
     fLibrariesParams := fLibrariesParams + ' -static';
   end;

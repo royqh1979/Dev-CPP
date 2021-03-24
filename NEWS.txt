@@ -8,6 +8,7 @@ Version 6.7-beta2 MAR 2021
     - enhancement: beautify the new project dialog with big ui font.
     - fix: Dev-Cpp can't correctly check if '.cc' '.cxx' and '.hxx' is associated with Dev-Cpp by the installer 
     - fix: octal & hex escape sequences is not correctly highlighted
+    - enhancement: add "static link all libs" option to the project option dialog's options tab
 
 Version 6.7-beta1.1 MAR 2021
 

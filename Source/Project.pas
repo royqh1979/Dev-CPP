@@ -784,6 +784,7 @@ begin
         Modified := True;
       end;
       fOptions.CompilerOptions := ReadString('Project', 'CompilerSettings', '');
+      fOptions.StaticLink := ReadBool('Project','StaticLink',False);
       fOptions.UseUTF8 := ReadBool('Project','UseUTF8',False);
       fOptions.VersionInfo.Major := ReadInteger('VersionInfo', 'Major', 0);
       fOptions.VersionInfo.Minor := ReadInteger('VersionInfo', 'Minor', 1);
@@ -863,6 +864,7 @@ begin
     WriteBool('Project', 'SupportXPThemes', fOptions.SupportXPThemes);
     WriteInteger('Project', 'CompilerSet', fOptions.CompilerSet);
     WriteString('Project', 'CompilerSettings', fOptions.CompilerOptions);
+    WriteBool('Project','StaticLink', fOptions.StaticLink);
     WriteBool('Project', 'UseUTF8', fOptions.UseUTF8);
 
     WriteInteger('VersionInfo', 'Major', fOptions.VersionInfo.Major);
@@ -890,6 +892,8 @@ begin
       DeleteKey('Project', 'ResFiles');
       DeleteKey('Project', 'IncludeDirs');
       DeleteKey('Project', 'CompilerOptions');
+      DeleteKey('Project', 'StaticLink');
+      DeleteKey('Project', 'UseUTF8');
       DeleteKey('Project', 'Use_GPP');
     end;
   end;
