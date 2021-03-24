@@ -3645,7 +3645,9 @@ end;
           if  not InProject and devEditor.UseUTF8ByDefault then
             fFileEncoding := etUTF8
           else if InProject and Assigned(MainForm.Project) and (MainForm.Project.Options.UseUTF8) then
-            fFileEncoding := etUTF8;
+            fFileEncoding := etUTF8
+          else
+            fFileEncoding := etAnsi;
         end;
         MainForm.UpdateFileEncodingStatusPanel;
       end;
