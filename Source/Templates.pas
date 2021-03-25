@@ -167,7 +167,7 @@ begin
         fOptions.ExeOutput:= ReadString(cProject, 'ExeOutput', '');
         fOptions.ObjectOutput:= ReadString(cProject, 'ObjectOutput', '');
         fOptions.LogOutput:= ReadString(cProject, 'LogOutput', '');
-        fOptions.StaticLink := ReadBool(cProject,'StaticLink',False);
+        fOptions.StaticLink := ReadBool(cProject,'StaticLink',True);
         fOptions.AddCharset := ReadBool(cProject,'AddCharset',True);
         fOptions.UseUTF8 := ReadBool(cProject,'UseUTF8',False);
 

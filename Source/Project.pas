@@ -784,7 +784,7 @@ begin
         Modified := True;
       end;
       fOptions.CompilerOptions := ReadString('Project', 'CompilerSettings', '');
-      fOptions.StaticLink := ReadBool('Project','StaticLink',False);
+      fOptions.StaticLink := ReadBool('Project','StaticLink',True);
       fOptions.AddCharset := ReadBool('Project','AddCharset',True);
       fOptions.UseUTF8 := ReadBool('Project','UseUTF8',False);
       fOptions.VersionInfo.Major := ReadInteger('VersionInfo', 'Major', 0);

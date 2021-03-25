@@ -3,7 +3,7 @@
 
 !define COMPILERNAME "GCC 9.2"
 !define COMPILERFOLDER "MinGW32_GCC92"
-!define DEVCPP_VERSION "6.7-beta2"
+!define DEVCPP_VERSION "6.7-beta3"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 

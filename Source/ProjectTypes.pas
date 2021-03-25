@@ -181,7 +181,7 @@ begin
     AddCharset := devCompilerSets[CompilerSet].AddCharset;
   end else begin
     CompilerOptions := '';
-    staticLink := false;
+    staticLink := True;
     AddCharset := true;
   end;
   VersionInfo := TProjVersionInfo.Create;

@@ -1475,7 +1475,7 @@ begin
   fCompAdd := FALSE;
   fLinkAdd := TRUE;
   fCompOpt := '';
-  fStaticLinkStdlib := False;
+  fStaticLinkStdlib := True;
   fAddCharset := True;
 
   {
@@ -2058,7 +2058,7 @@ begin
     fLinkOpt := devData.ReadS(key, 'LinkOpt');
     fCompAdd := devData.ReadB(key, 'CompAdd');
     fLinkAdd := devData.ReadB(key, 'LinkAdd');
-    fStaticLinkStdlib := devData.ReadB(key, 'StaticLink');
+    fStaticLinkStdlib := devData.ReadB(key, 'StaticLink',true);
     fAddCharset := devData.ReadB(key, 'AddCharset',true);
 
     // Directories, undo relative stuff

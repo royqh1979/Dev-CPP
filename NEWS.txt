@@ -1,3 +1,7 @@
+Version 6.7-beta3 MAR 2021
+
+    - change: the option "static link all libs" is turned on by default
+
 Version 6.7-beta2 MAR 2021
 
     - enhancement: syntax highlighter for Lua files
