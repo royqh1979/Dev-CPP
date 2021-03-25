@@ -715,7 +715,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -863,13 +863,7 @@ object EditorOptForm: TEditorOptForm
             DefaultRowHeight = 30
             FixedCols = 0
             RowCount = 2
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -15
-            Font.Name = 'Segoe UI'
-            Font.Style = []
             Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goAlwaysShowEditor]
-            ParentFont = False
             ScrollBars = ssVertical
             TabOrder = 3
             OnSelectCell = lvCodeInsSelectCell

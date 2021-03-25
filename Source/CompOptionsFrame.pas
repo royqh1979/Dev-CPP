@@ -39,7 +39,7 @@ type
 implementation
 
 uses
-  devcfg, multilangsupport;
+  devcfg, multilangsupport, main;
 
 {$R *.dfm}
 
@@ -52,6 +52,8 @@ var
 begin
   if (fCurrentIndex >= devCompilerSets.Count) or (fCurrentIndex < 0) then
     Exit;
+
+  vle.DefaultRowHeight := MainForm.Canvas.TextHeight('F');
 
   CompilerSet := devCompilerSets[fCurrentIndex];
   for I := 0 to CompilerSet.Options.Count - 1 do

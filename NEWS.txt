@@ -10,6 +10,8 @@ Version 6.7-beta2 MAR 2021
     - fix: octal & hex escape sequences is not correctly highlighted
     - enhancement: add "static link all libs" option to the project option dialog's options tab
     - fix: new file is saved with utf8 encoding when "Use Utf-8 option" is not on.
+    - fix: row height of the compiler options in the compiler option dialog
+    - fix: font size of the table in the editor option dialog's snippet tab
 
 Version 6.7-beta1.1 MAR 2021
 
