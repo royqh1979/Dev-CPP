@@ -707,6 +707,7 @@ Ver=1
 44013=Check if pointer is null before accessing storage allocated (-fcheck-new)
 44014=Put uninitialized globals into the common segment (-fconserve-space)
 44015=Statically link all libs
+44016=Add charset options to the compiler
 
 
 45001=Code Generation

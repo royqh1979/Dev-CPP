@@ -319,6 +319,7 @@ begin
     WriteInteger('Project', 'CompilerSet', TempProject.Options.CompilerSet);
     WriteBool('Project', 'UseUTF8', TempProject.Options.UseUTF8);
     WriteBool('Project', 'StaticLink', TempProject.Options.StaticLink);
+    WriteBool('Project', 'AddCharset', TempProject.Options.AddCharset);
     WriteBool('Project', 'IncludeVersionInfo', TempProject.Options.IncludeVersionInfo);
     WriteBool('Project', 'SupportXPThemes', TempProject.Options.SupportXPThemes);
 

@@ -77,6 +77,7 @@ type
     fCompOpt: AnsiString;
     flinkOpt: AnsiString;
     fStaticLinkStdlib: boolean;
+    fAddCharset: boolean;
 
     // Options
     fOptions: TList;
@@ -146,6 +147,7 @@ type
     property CompOpts: AnsiString read fCompOpt write fCompOpt;
     property LinkOpts: AnsiString read fLinkOpt write fLinkOpt;
     property StaticLinkStdlib: boolean read fStaticLinkStdlib write fStaticLinkStdlib;
+    property AddCharset: boolean read fAddCharset write fAddCharset;
   end;
 
   //Compiler Settings
@@ -1305,6 +1307,7 @@ begin
   fLinkAdd := input.fLinkAdd;
   flinkOpt := input.fLinkOpt;
   fStaticLinkStdlib := input.fStaticLinkStdlib;
+  fAddCharset := input.fAddCharset;
 
   // Option list
   INIOptions := input.INIOptions;
@@ -1473,6 +1476,7 @@ begin
   fLinkAdd := TRUE;
   fCompOpt := '';
   fStaticLinkStdlib := False;
+  fAddCharset := True;
 
   {
   // MinGW32 requires special treatment
@@ -2054,7 +2058,8 @@ begin
     fLinkOpt := devData.ReadS(key, 'LinkOpt');
     fCompAdd := devData.ReadB(key, 'CompAdd');
     fLinkAdd := devData.ReadB(key, 'LinkAdd');
-    fStaticLinkStdlib := devData.ReadB(key, 'StaticLinkStdlib');
+    fStaticLinkStdlib := devData.ReadB(key, 'StaticLink');
+    fAddCharset := devData.ReadB(key, 'AddCharset',true);
 
     // Directories, undo relative stuff
     ReadDirList(fBinDir, 'Bins');
@@ -2128,7 +2133,8 @@ begin
     devData.Write(key, 'LinkOpt', fLinkOpt);
     devData.Write(key, 'CompAdd', fCompAdd);
     devData.Write(key, 'LinkAdd', fLinkAdd);
-    devData.Write(key,'StaticLinkStdlib', fStaticLinkStdlib);
+    devData.Write(key,'StaticLink', fStaticLinkStdlib);
+    devData.Write(key,'AddCharset', fAddCharset);
 
     // Paths
     WriteDirList(fBinDir, 'Bins');

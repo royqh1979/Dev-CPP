@@ -116,7 +116,7 @@ begin
 
   with fTemplate do
    begin
-     fVersion:= ReadInteger(cTemplate, 'Ver', 2);
+     fVersion:= ReadInteger(cTemplate, 'Ver', 0);
 
      // read entries for both old and new
 
@@ -145,6 +145,10 @@ begin
 
         fOptions.useGPP:= ReadBool(cProject, 'Cpp', TRUE);
         fOptions.CompilerCmd:= ReadString(cProject, 'CompilerOptions', '');
+
+        fOptions.StaticLink := False;
+        fOptions.AddCharset := True;
+        fOptions.UseUTF8 := False;
       end
      else // read new style
       begin
@@ -163,6 +167,9 @@ begin
         fOptions.ExeOutput:= ReadString(cProject, 'ExeOutput', '');
         fOptions.ObjectOutput:= ReadString(cProject, 'ObjectOutput', '');
         fOptions.LogOutput:= ReadString(cProject, 'LogOutput', '');
+        fOptions.StaticLink := ReadBool(cProject,'StaticLink',False);
+        fOptions.AddCharset := ReadBool(cProject,'AddCharset',True);
+        fOptions.UseUTF8 := ReadBool(cProject,'UseUTF8',False);
 
         // Disabling this option since it is not a portable way of changing compiler settings.
         // Please use Compiler or CppCompiler instead. This entry is overridden by the settings of the current compiler

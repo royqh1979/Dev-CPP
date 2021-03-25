@@ -446,22 +446,23 @@ begin
         // Or roll our own
       end else begin
         encodingStr := '';
-        if fProject.Units[i].Encoding in [etUTF8,etUTF8Bom] then begin
-          encodingStr := ' $(ENCODINGS) ';
-        end else if fProject.Units[i].Encoding = etAuto then begin
-          if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding in [etUTF8,etUTF8Bom]) then begin
+        if fProject.Options.AddCharset then begin
+          if fProject.Units[i].Encoding in [etUTF8,etUTF8Bom] then begin
             encodingStr := ' $(ENCODINGS) ';
-          end else begin
-            with TStringList.Create do try
-              LoadFromFile(fProject.Units[i].FileName);
-              if GetFileEncodingType(Text) in [etUTF8,etUTF8Bom] then
-                encodingStr := ' $(ENCODINGS) '
-            finally
-              Free;
+          end else if fProject.Units[i].Encoding = etAuto then begin
+            if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding in [etUTF8,etUTF8Bom]) then begin
+              encodingStr := ' $(ENCODINGS) ';
+            end else begin
+              with TStringList.Create do try
+                LoadFromFile(fProject.Units[i].FileName);
+                if GetFileEncodingType(Text) in [etUTF8,etUTF8Bom] then
+                  encodingStr := ' $(ENCODINGS) '
+              finally
+                Free;
+              end;
             end;
           end;
         end;
-
 
         if fCheckSyntax then begin
           if fProject.Units[i].CompileCpp then
@@ -721,16 +722,18 @@ begin
         GetLibrariesParams;
         GetIncludesParams;
 
-        if not fCheckSyntax and  UseUTF8 then begin
-          fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
-            +GetSystemCharsetName();
-          fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
-            +GetSystemCharsetName();
-        end else begin
-          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
-            +GetSystemCharsetName();
-          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
-            +GetSystemCharsetName();
+        if fCompilerSet.AddCharset then begin
+          if not fCheckSyntax and  UseUTF8 then begin
+            fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
+              +GetSystemCharsetName();
+            fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
+              +GetSystemCharsetName();
+          end else begin
+            fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+              +GetSystemCharsetName();
+            fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+              +GetSystemCharsetName();
+          end;
         end;
 
         // Determine command line to execute

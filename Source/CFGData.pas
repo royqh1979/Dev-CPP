@@ -41,7 +41,7 @@ type
     procedure EraseSection(const name: AnsiString);
 
     function ReadI(const key: AnsiString; const entry: AnsiString): integer;
-    function ReadB(const key: AnsiString; const entry: AnsiString): boolean;
+    function ReadB(const key: AnsiString; const entry: AnsiString; const defaultValue: boolean = false): boolean;
     function ReadS(const key: AnsiString; const entry: AnsiString): AnsiString;
 
     function ReadDefaultI(const key: AnsiString; const entry: AnsiString; default: integer): integer;
@@ -278,9 +278,9 @@ begin
   result := ReadDefaultI(key, entry, 0);
 end;
 
-function TConfigData.ReadB(const key, entry: AnsiString): boolean;
+function TConfigData.ReadB(const key, entry: AnsiString; const defaultValue: boolean): boolean;
 begin
-  result := ReadDefaultB(key, entry, false);
+  result := ReadDefaultB(key, entry, defaultValue);
 end;
 
 function TConfigData.ReadS(const key: AnsiString; const entry: AnsiString): AnsiString;

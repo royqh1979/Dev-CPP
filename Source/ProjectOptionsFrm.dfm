@@ -71,7 +71,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
     Top = 0
     Width = 712
     Height = 481
-    ActivePage = tabGeneral
+    ActivePage = tabCompOpts
     TabOrder = 3
     object tabGeneral: TTabSheet
       Caption = 'General'
@@ -428,7 +428,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 164
           Height = 28
           Style = csDropDownList
-          ItemHeight = 20
+          ItemHeight = 0
           TabOrder = 6
           OnChange = cbEncodingChange
         end
@@ -517,17 +517,17 @@ object ProjectOptionsFrm: TProjectOptionsFrm
         704
         446)
       object lblAdditions: TLabel
-        Left = 8
-        Top = 8
+        Left = 0
+        Top = 40
         Width = 249
         Height = 20
         Caption = '  Additional Command Line Options:  '
       end
       object PageControl1: TPageControl
         Left = 0
-        Top = 32
+        Top = 72
         Width = 704
-        Height = 414
+        Height = 369
         ActivePage = LinkerSheet
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 0
@@ -537,7 +537,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
             Left = 0
             Top = 0
             Width = 696
-            Height = 379
+            Height = 334
             Align = alClient
             Lines.Strings = (
               'edCompiler')
@@ -554,7 +554,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
             Left = 0
             Top = 0
             Width = 696
-            Height = 379
+            Height = 334
             Align = alClient
             Lines.Strings = (
               'edCppCompiler')
@@ -568,12 +568,12 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           ImageIndex = 2
           DesignSize = (
             696
-            379)
+            334)
           object edLinker: TMemo
             Left = 0
             Top = 2
             Width = 697
-            Height = 319
+            Height = 287
             Anchors = [akLeft, akTop, akRight]
             Lines.Strings = (
               'edLinker')
@@ -583,7 +583,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           end
           object btnAddLib: TBitBtn
             Left = 492
-            Top = 332
+            Top = 295
             Width = 197
             Height = 40
             Anchors = [akRight, akBottom]
@@ -620,13 +620,21 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           end
           object cbStaticLink: TCheckBox
             Left = 8
-            Top = 336
+            Top = 296
             Width = 281
             Height = 33
             Caption = 'Static Link'
             TabOrder = 2
           end
         end
+      end
+      object cbAddCharset: TCheckBox
+        Left = 8
+        Top = 0
+        Width = 281
+        Height = 33
+        Caption = 'Add Charset options'
+        TabOrder = 1
       end
     end
     object tabFilesDir: TTabSheet
@@ -1508,7 +1516,7 @@ object ProjectOptionsFrm: TProjectOptionsFrm
           Width = 279
           Height = 28
           Style = csDropDownList
-          ItemHeight = 20
+          ItemHeight = 0
           Sorted = True
           TabOrder = 4
         end
