@@ -4135,7 +4135,7 @@ begin
     end;
   end else begin
    // MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
-    Exit;  
+    Exit;
   end;
 
   if CheckSyntax then begin
@@ -4279,6 +4279,10 @@ begin
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
     Exit;
+  end;
+  if Assigned(devCompilerSets.CompilationSet) then begin
+    if devCompilerSets.CompilationSet.BinDir.Count > 0 then
+      SetPath(devCompilerSets.CompilationSet.BinDir[0]);
   end;
   if not PrepareForRun then
     Exit;
