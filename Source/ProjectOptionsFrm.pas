@@ -148,6 +148,8 @@ type
     Label2: TLabel;
     cbEncoding: TComboBox;
     lblEncoding: TLabel;
+    cbStaticLink: TCheckBox;
+    cbAddCharset: TCheckBox;
     procedure ListClick(Sender: TObject);
     procedure EditChange(SEnder: TObject);
     procedure ButtonClick(Sender: TObject);
@@ -364,8 +366,11 @@ begin
     // Files tab
 
     // Compiler tab
-    if (cmbCompiler.ItemIndex < devCompilerSets.Count) and (cmbCompiler.ItemIndex >= 0) then
+    if (cmbCompiler.ItemIndex < devCompilerSets.Count) and (cmbCompiler.ItemIndex >= 0) then begin
       CompilerOptions := devCompilerSets[cmbCompiler.ItemIndex].INIOptions;
+    end;
+    StaticLink := cbStaticLink.Checked;
+    AddCharset := cbAddCharset.Checked;
     CompilerSet := cmbCompiler.ItemIndex;
 
     // Options tab
@@ -521,6 +526,8 @@ begin
     edCompiler.Lines.Text := StringReplace(CompilerCmd, '_@@_', #13#10, [rfReplaceAll]);
     edCppCompiler.Lines.Text := StringReplace(CppCompilerCmd, '_@@_', #13#10, [rfReplaceAll]);
     edLinker.Lines.Text := StringReplace(LinkerCmd, '_@@_', #13#10, [rfReplaceAll]);
+    cbStaticLink.Checked := StaticLink;
+    cbAddCharset.Checked := AddCharset;
 
     // Directories tab
     SubTabsChange(Self);
@@ -682,6 +689,8 @@ begin
   lblCompilerSet.Caption := Lang[ID_POPT_COMP];
   lblCompilerHint.Caption := Lang[iD_POPT_COMPCUSTOMHINT];
   OptionsTip.Caption := Lang[ID_COPT_COMPILERTIP];
+  cbStaticLink.Caption := Lang[ID_COPT_STATIC_LINK_STDLIB];
+  cbAddCharset.Caption := Lang[ID_COPT_ADD_CHARSET];
 
   // Options tab
   lblAdditions.Caption := Lang[ID_POPT_ADDITIONAL];

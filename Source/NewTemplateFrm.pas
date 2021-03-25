@@ -290,7 +290,7 @@ begin
   end;
   tmpIni := TIniFile.Create(filename);
   with tmpIni do try
-    WriteInteger('Template', 'ver', 1);
+    WriteInteger('Template', 'ver', 2);
     WriteString('Template', 'Name', cmbName.Text);
     if IconFiles[0] <> '' then begin
       CopyFile(PAnsiChar(IconFiles[0]), PAnsiChar(devDirs.Templates + cmbName.Text + '.ico'), False);
@@ -317,6 +317,9 @@ begin
     WriteString('Project', 'Linker', StringReplace(memLinker.Text, #13#10, '_@@_', [rfReplaceAll]));
     WriteString('Project', 'CompilerSettings', TempProject.Options.CompilerOptions);
     WriteInteger('Project', 'CompilerSet', TempProject.Options.CompilerSet);
+    WriteBool('Project', 'UseUTF8', TempProject.Options.UseUTF8);
+    WriteBool('Project', 'StaticLink', TempProject.Options.StaticLink);
+    WriteBool('Project', 'AddCharset', TempProject.Options.AddCharset);
     WriteBool('Project', 'IncludeVersionInfo', TempProject.Options.IncludeVersionInfo);
     WriteBool('Project', 'SupportXPThemes', TempProject.Options.SupportXPThemes);
 

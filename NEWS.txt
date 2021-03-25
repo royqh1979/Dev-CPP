@@ -8,6 +8,12 @@ Version 6.7-beta2 MAR 2021
     - enhancement: beautify the new project dialog with big ui font.
     - fix: Dev-Cpp can't correctly check if '.cc' '.cxx' and '.hxx' is associated with Dev-Cpp by the installer 
     - fix: octal & hex escape sequences is not correctly highlighted
+    - enhancement: add "static link all libs" option to the project option dialog's options tab
+    - fix: new file is saved with utf8 encoding when "Use Utf-8 option" is not on.
+    - fix: row height of the compiler options in the compiler option dialog
+    - fix: font size of the table in the editor option dialog's snippet tab
+    - enhancement: add "add charset options to the compiler" option in the compiler option's dialog
+    - enhancement: add "add charset options to the compiler" option in the project option's dialog
 
 Version 6.7-beta1.1 MAR 2021
 

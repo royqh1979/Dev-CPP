@@ -100,8 +100,12 @@ begin
   try
     reg.Rootkey := HKEY_CLASSES_ROOT;
     if reg.KeyExists('DevCpp.' + Associations[Index, 0]) then begin
-      reg.DeleteKey('.' + Associations[Index, 0]);
-      reg.DeleteKey('DevCpp.' + Associations[Index, 0]);
+      if not reg.DeleteKey('.' + Associations[Index, 0]) then begin
+        raise Exception.Create('Failed to delete '+Associations[Index, 0]);
+      end;
+      if not reg.DeleteKey('DevCpp.' + Associations[Index, 0]) then begin
+        raise Exception.Create('Failed to delete '+'DevCpp.' + Associations[Index, 0]);
+      end;
     end;
   finally
     reg.free;
@@ -131,6 +135,13 @@ begin
     'open',
     Application.Exename + ' "%1"',
     Associations[Index, 2]);
+  if not CheckFiletype('.' + Associations[Index, 0],
+      'DevCpp.' + Associations[Index, 0],
+      Associations[Index, 1],
+      'open',
+      Application.Exename + ' "%1"') then begin
+      raise Exception.Create('associate '+Associations[Index, 0]+' failed!');
+  end;
   if Associations[Index, 3] = '' then
     RegisterDDEServer(
       'DevCpp.' + Associations[Index, 0],

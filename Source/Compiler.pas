@@ -446,22 +446,23 @@ begin
         // Or roll our own
       end else begin
         encodingStr := '';
-        if fProject.Units[i].Encoding in [etUTF8,etUTF8Bom] then begin
-          encodingStr := ' $(ENCODINGS) ';
-        end else if fProject.Units[i].Encoding = etAuto then begin
-          if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding in [etUTF8,etUTF8Bom]) then begin
+        if fProject.Options.AddCharset then begin
+          if fProject.Units[i].Encoding in [etUTF8,etUTF8Bom] then begin
             encodingStr := ' $(ENCODINGS) ';
-          end else begin
-            with TStringList.Create do try
-              LoadFromFile(fProject.Units[i].FileName);
-              if GetFileEncodingType(Text) in [etUTF8,etUTF8Bom] then
-                encodingStr := ' $(ENCODINGS) '
-            finally
-              Free;
+          end else if fProject.Units[i].Encoding = etAuto then begin
+            if assigned(fProject.Units[i].Editor) and (fProject.Units[i].Editor.FileEncoding in [etUTF8,etUTF8Bom]) then begin
+              encodingStr := ' $(ENCODINGS) ';
+            end else begin
+              with TStringList.Create do try
+                LoadFromFile(fProject.Units[i].FileName);
+                if GetFileEncodingType(Text) in [etUTF8,etUTF8Bom] then
+                  encodingStr := ' $(ENCODINGS) '
+              finally
+                Free;
+              end;
             end;
           end;
         end;
-
 
         if fCheckSyntax then begin
           if fProject.Units[i].CompileCpp then
@@ -721,16 +722,18 @@ begin
         GetLibrariesParams;
         GetIncludesParams;
 
-        if not fCheckSyntax and  UseUTF8 then begin
-          fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
-            +GetSystemCharsetName();
-          fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
-            +GetSystemCharsetName();
-        end else begin
-          fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
-            +GetSystemCharsetName();
-          fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
-            +GetSystemCharsetName();
+        if fCompilerSet.AddCharset then begin
+          if not fCheckSyntax and  UseUTF8 then begin
+            fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
+              +GetSystemCharsetName();
+            fCppCompileParams := fCppCompileParams + ' -finput-charset=utf-8 -fexec-charset='
+              +GetSystemCharsetName();
+          end else begin
+            fCompileParams := fCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+              +GetSystemCharsetName();
+            fCppCompileParams := fCppCompileParams + ' -finput-charset='+GetSystemCharsetName()+' -fexec-charset='
+              +GetSystemCharsetName();
+          end;
         end;
 
         // Determine command line to execute
@@ -1364,12 +1367,30 @@ var
   end;
 begin
   // Add libraries
-  fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);
+  fLibrariesParams := FormatList(fCompilerSet.LibDir, cAppendStr);   
 
-  // Add global compiler linker extras
-  if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
-    fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
-      
+  // Add project settings that need to be passed to the linker
+  for I := 0 to fCompilerSet.Options.Count - 1 do begin
+    option := PCompilerOption(fCompilerSet.Options[I])^;
+    if (Assigned(fProject) and (I < Length(fProject.Options.CompilerOptions))) or (not Assigned(fProject) and
+      (option.Value > 0)) then begin
+      if option.IsLinker then
+        if Assigned(option.Choices) then begin
+          if Assigned(fProject) then
+            val := CharToValue(fProject.Options.CompilerOptions[I + 1])
+          else
+            val := option.Value;
+          if (val > 0) and (val < option.Choices.Count) then
+            fLibrariesParams := fLibrariesParams + ' ' + option.Setting +
+              option.Choices.Values[option.Choices.Names[val]];
+        end else if (Assigned(fProject) and (StrToIntDef(fProject.Options.CompilerOptions[I + 1], 0) = 1)) or (not
+          Assigned(fProject)) then
+          fLibrariesParams := fLibrariesParams + ' ' + option.Setting;
+    end;
+  end;
+
+  fLibrariesParams := Trim(fLibrariesParams);
+
   //Add auto links
   if (fTarget = cttFile) and devCompiler.EnableAutoLinks then begin
     e:=MainForm.EditorList.GetEditor();
@@ -1399,6 +1420,12 @@ begin
     end;
   end;
 
+  fLibrariesParams := Trim(fLibrariesParams);  
+
+  // Add global compiler linker extras
+  if fCompilerSet.AddtoLink and (Length(fCompilerSet.LinkOpts) > 0) then
+    fLibrariesParams := fLibrariesParams + ' ' + fCompilerSet.LinkOpts;
+
   // Add libs added via project
   if (fTarget = cttProject) and assigned(fProject) then begin
     for i := 0 to pred(fProject.Options.Libs.Count) do
@@ -1415,28 +1442,11 @@ begin
 
   fLibrariesParams := Trim(fLibrariesParams);
 
-  // Add project settings that need to be passed to the linker
-  for I := 0 to fCompilerSet.Options.Count - 1 do begin
-    option := PCompilerOption(fCompilerSet.Options[I])^;
-    if (Assigned(fProject) and (I < Length(fProject.Options.CompilerOptions))) or (not Assigned(fProject) and
-      (option.Value > 0)) then begin
-      if option.IsLinker then
-        if Assigned(option.Choices) then begin
-          if Assigned(fProject) then
-            val := CharToValue(fProject.Options.CompilerOptions[I + 1])
-          else
-            val := option.Value;
-          if (val > 0) and (val < option.Choices.Count) then
-            fLibrariesParams := fLibrariesParams + ' ' + option.Setting +
-              option.Choices.Values[option.Choices.Names[val]];
-        end else if (Assigned(fProject) and (StrToIntDef(fProject.Options.CompilerOptions[I + 1], 0) = 1)) or (not
-          Assigned(fProject)) then
-          fLibrariesParams := fLibrariesParams + ' ' + option.Setting;
-    end;
-  end;
-
-  if fCompilerSet.StaticLinkStdlib then begin
-    fLibrariesParams := fLibrariesParams + ' -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic';
+  if (fCompilerSet.StaticLinkStdlib and not Assigned(fProject))
+    or
+   (Assigned(fProject)  and fProject.Options.StaticLink) then begin
+//    fLibrariesParams := fLibrariesParams + ' -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic';
+    fLibrariesParams := fLibrariesParams + ' -static';
   end;
 
   fLibrariesParams := Trim(fLibrariesParams);

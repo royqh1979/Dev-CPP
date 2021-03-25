@@ -95,6 +95,8 @@ type
     CompilerOptions: AnsiString;
     VersionInfo: TProjVersionInfo;
     CmdLineArgs: AnsiString;
+    StaticLink : boolean;
+    AddCharset : boolean;
   end;
 
 implementation
@@ -173,10 +175,15 @@ begin
   SupportXPThemes := False;
   UseUTF8:= devEditor.UseUTF8ByDefault;
   CompilerSet := devCompilerSets.DefaultSetIndex;
-  if (CompilerSet < devCompilerSets.Count) and (CompilerSet >= 0) then
-    CompilerOptions := devCompilerSets[CompilerSet].INIOptions
-  else
+  if (CompilerSet < devCompilerSets.Count) and (CompilerSet >= 0) then begin
+    CompilerOptions := devCompilerSets[CompilerSet].INIOptions;
+    StaticLink := devCompilerSets[CompilerSet].StaticLinkStdlib;
+    AddCharset := devCompilerSets[CompilerSet].AddCharset;
+  end else begin
     CompilerOptions := '';
+    staticLink := false;
+    AddCharset := true;
+  end;
   VersionInfo := TProjVersionInfo.Create;
   IncludeVersionInfo := False;
 end;
@@ -229,6 +236,9 @@ begin
   CompilerOptions := input.CompilerOptions;
   VersionInfo.Assign(input.VersionInfo);
   CmdLineArgs := input.CmdLineArgs;
+  UseUTF8 := input.UseUTF8;
+  AddCharset := input.AddCharset;
+  StaticLink := input.StaticLink;
 end;
 
 end.

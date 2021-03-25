@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -116,7 +116,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -161,13 +161,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           192
-          196)
+          190)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,7 +213,7 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 875
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 196
+        Height = 190
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 609
-        Height = 196
+        Height = 190
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 601
-              Height = 165
+              Height = 159
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 601
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -388,7 +388,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
@@ -397,13 +397,13 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 450
-          Height = 196
+          Height = 190
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
           DesignSize = (
             450
-            196)
+            190)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -438,7 +438,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 44
             Width = 450
-            Height = 152
+            Height = 146
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -465,7 +465,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 1067
-        Height = 196
+        Height = 190
         Align = alClient
         Indent = 22
         TabOrder = 0
@@ -967,7 +967,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 414
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1002,7 +1002,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 38
-        Width = 179
+        Width = 174
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1058,7 +1058,7 @@ object MainForm: TMainForm
       object tbClasses: TToolBar
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1102,7 +1102,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 179
+        Width = 174
         Height = 376
         Align = alClient
         BevelOuter = bvNone
@@ -1111,7 +1111,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 179
+          Width = 174
           Height = 376
           Align = alClient
           BevelInner = bvNone
@@ -1133,7 +1133,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1161,7 +1161,7 @@ object MainForm: TMainForm
       object tbFiles: TToolBar
         Left = 0
         Top = 0
-        Width = 179
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1198,7 +1198,7 @@ object MainForm: TMainForm
       object Panel5: TPanel
         Left = 0
         Top = 38
-        Width = 179
+        Width = 174
         Height = 376
         Align = alClient
         BevelOuter = bvNone
