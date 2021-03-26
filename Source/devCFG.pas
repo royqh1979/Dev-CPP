@@ -1210,6 +1210,8 @@ begin
   fDefInclude := TStringList.Create;
   fDefines := TStringList.Create;
 
+  self.fStaticLinkStdlib := True;
+  self.fAddCharset := True;
   // Do not set properties yet, as we don't know where to look for gcc.exe
 
   // Add default options list though, no info needed
