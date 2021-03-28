@@ -138,7 +138,6 @@ Comments=
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=3
-Item0=..\VirtualTreeView\Source;.\devFileMonitor
-Item1=..\VirtualTreeView\Source
-Item2=..\..\Common
+Count=2
+Item0=..\VirtualTreeView\Source
+Item1=..\..\Common

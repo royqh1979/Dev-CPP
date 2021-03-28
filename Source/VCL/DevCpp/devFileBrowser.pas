@@ -69,6 +69,7 @@ type
     property Header;
     property CurrentFolder: AnsiString read fCurrentFolder write SetCurrentFolder;
     property OnDblClick;
+    property OnContextPopup;
   end;
 
 const
@@ -115,7 +116,8 @@ begin
   TVirtualTreeOptions(TreeOptions).PaintOptions :=
     TVirtualTreeOptions(TreeOptions).PaintOptions - [toShowTreeLines];
   TVirtualTreeOptions(TreeOptions).SelectionOptions :=
-    TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect];
+    TVirtualTreeOptions(TreeOptions).SelectionOptions + [toFullRowSelect, toRightClickSelect];
+
 
   TVirtualTreeOptions(TreeOptions).AutoOptions :=
     TVirtualTreeOptions(TreeOptions).AutoOptions - [toAutoSort];

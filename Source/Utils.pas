@@ -1214,7 +1214,7 @@ begin
     Result := True;
     S := R.ReadString(Base + '\shell\open\ddeexec\application', '', NOVALUE);
     if S = NOVALUE then
-      Description := 'Default application'
+      Description := LANG[ID_MSG_DEFAULT_APPLICATION]
     else
       Description := S;
     if S = 'DEVCPP' then // avoid extensions registered to DevCpp ;)
