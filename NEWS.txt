@@ -5,6 +5,7 @@ Version 6.7-beta3 MAR 2021
     - fix: devcpp may crash when watch complex structured object
     - enhancement: click in non-content area in the file browser will clear the selection
     - enhancement: add popup menu to the file browser
+    - fix: can't load compiler set, if the compiler (gcc)'s folder is not under Dev-Cpp folder, and it's path contains space or non-ascii chars
 
 Version 6.7-beta2 MAR 2021
 

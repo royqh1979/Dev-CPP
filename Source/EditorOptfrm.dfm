@@ -1,10 +1,10 @@
 object EditorOptForm: TEditorOptForm
-  Left = 638
-  Top = 85
+  Left = 1
+  Top = 0
   BorderStyle = bsDialog
   Caption = 'Editor Options'
-  ClientHeight = 645
-  ClientWidth = 654
+  ClientHeight = 383
+  ClientWidth = 620
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,12 +16,12 @@ object EditorOptForm: TEditorOptForm
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    654
-    645)
+    620
+    383)
   PixelsPerInch = 120
   TextHeight = 20
   object PagesMain: TPageControl
-    Left = 0
+    Left = 3
     Top = 0
     Width = 647
     Height = 593
@@ -89,7 +89,7 @@ object EditorOptForm: TEditorOptForm
         TabOrder = 0
         object cbFunctionHint: TCheckBox
           Left = 323
-          Top = 221
+          Top = 225
           Width = 278
           Height = 23
           Caption = 'Show function hints'
@@ -97,7 +97,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbTrimTrailingSpaces: TCheckBox
           Left = 11
-          Top = 221
+          Top = 225
           Width = 278
           Height = 23
           Caption = 'Trim Trailing Spaces'
@@ -113,7 +113,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbAddIndent: TCheckBox
           Left = 11
-          Top = 61
+          Top = 62
           Width = 278
           Height = 23
           Caption = 'Add indent to {} and :'
@@ -121,7 +121,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbDropFiles: TCheckBox
           Left = 11
-          Top = 168
+          Top = 171
           Width = 278
           Height = 23
           Caption = 'Insert Dropped Files'
@@ -137,7 +137,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbInsertMode: TCheckBox
           Left = 11
-          Top = 88
+          Top = 89
           Width = 278
           Height = 23
           Caption = 'Insert Mode'
@@ -145,7 +145,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbParserHints: TCheckBox
           Left = 323
-          Top = 195
+          Top = 198
           Width = 278
           Height = 22
           Caption = 'Show editor hints'
@@ -153,7 +153,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbHalfPage: TCheckBox
           Left = 323
-          Top = 141
+          Top = 144
           Width = 278
           Height = 23
           Caption = 'Half Page Scrolling'
@@ -161,7 +161,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbGroupUndo: TCheckBox
           Left = 11
-          Top = 141
+          Top = 144
           Width = 278
           Height = 23
           Caption = 'Group Undo'
@@ -169,7 +169,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbFindText: TCheckBox
           Left = 11
-          Top = 115
+          Top = 116
           Width = 278
           Height = 22
           Caption = 'Find Text at Cursor'
@@ -177,7 +177,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbPastEOL: TCheckBox
           Left = 323
-          Top = 88
+          Top = 89
           Width = 278
           Height = 23
           Caption = 'Cursor Past EOL'
@@ -185,7 +185,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbPastEOF: TCheckBox
           Left = 323
-          Top = 61
+          Top = 62
           Width = 278
           Height = 23
           Caption = 'Cursor Past EOF'
@@ -193,7 +193,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbScrollHint: TCheckBox
           Left = 323
-          Top = 168
+          Top = 171
           Width = 278
           Height = 23
           Caption = 'Scroll Hint'
@@ -201,7 +201,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbSmartScroll: TCheckBox
           Left = 323
-          Top = 115
+          Top = 116
           Width = 278
           Height = 22
           Caption = 'Scollbars on need'
@@ -209,7 +209,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbSpecialChars: TCheckBox
           Left = 11
-          Top = 195
+          Top = 198
           Width = 278
           Height = 22
           Caption = 'Show Special Line Chars'
@@ -225,7 +225,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbHighCurrLine: TCheckBox
           Left = 323
-          Top = 251
+          Top = 253
           Width = 246
           Height = 22
           Caption = 'Highlight current line'
@@ -715,7 +715,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 20
+        ItemHeight = 0
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1348,8 +1348,8 @@ object EditorOptForm: TEditorOptForm
     end
   end
   object btnOk: TBitBtn
-    Left = 289
-    Top = 602
+    Left = 255
+    Top = 340
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1377,8 +1377,8 @@ object EditorOptForm: TEditorOptForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 409
-    Top = 602
+    Left = 375
+    Top = 340
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1387,8 +1387,8 @@ object EditorOptForm: TEditorOptForm
     Kind = bkCancel
   end
   object btnHelp: TBitBtn
-    Left = 529
-    Top = 602
+    Left = 495
+    Top = 340
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
