@@ -71,6 +71,7 @@ function GetPropCount(Instance: TPersistent): Integer;
 
 implementation
 
+uses utils;
 //Returns the number of properties of a given object
 
 function GetPropCount(Instance: TPersistent): Integer;
@@ -257,11 +258,19 @@ var
   S: AnsiString;
 begin
   S := ReadS(key, entry);
-  S := StringReplace(S,'";"',';',[rfReplaceAll]);
+  //S := StringReplace(S,'";"',';',[rfReplaceAll]);
   // Convert string to string list
   value.Clear;
+  if Pos('";"',S)>0 then begin
+    if not StartsStr('"',S) then
+      S:= '"'+S;
+    if not EndsStr('"',S) then
+      S:= S + '"';
+  end;
+  value.Delimiter :=';';
+  value.DelimitedText:=S;
 
-  ExtractStrings([';'], [], PAnsiChar(S), value);
+  //ExtractStrings([';'], [], PAnsiChar(S), value);
 end;
 
 procedure TConfigData.WriteDelimitedString(const key: AnsiString; const entry: AnsiString; value: TStringList);
