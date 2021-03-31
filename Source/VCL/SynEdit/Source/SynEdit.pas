@@ -2973,9 +2973,6 @@ var
   begin
     // Paint indent guides. Use folds to determine indent value of these
     // Use a separate loop so we can use a custom pen
-    if not UseCodeFolding then
-      Exit;
-
     // Paint indent guides using custom pen
     if fCodeFolding.IndentGuides then begin
       DottedPenDesc.lbStyle := BS_SOLID;
@@ -3023,6 +3020,9 @@ var
         DeleteObject(DottedPen);
       end;
     end;
+
+    if not UseCodeFolding then
+      Exit;
 
     // Paint collapsed lines using changed pen
     if fCodeFolding.ShowCollapsedLine then begin

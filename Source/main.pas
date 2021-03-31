@@ -710,6 +710,14 @@ type
     actClearAllBreakpoints1: TMenuItem;
     actClearAllBreakpointsInEditor: TAction;
     Clearbreakpointsintheeditor1: TMenuItem;
+    actOpenCurrentFolder: TAction;
+    FileBrowserPopup: TPopupMenu;
+    OpenCurrentFolder1: TMenuItem;
+    N55: TMenuItem;
+    OnlyShowdevcppfiles1: TMenuItem;
+    actOpenCurrentFolderInConsole: TAction;
+    OpenCurrentFolderinConsole1: TMenuItem;
+    actOpenCurrentFolderInWindowsTerminal: TAction;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1042,6 +1050,13 @@ type
     procedure actClearAllBreakpointsUpdate(Sender: TObject);
     procedure actClearAllBreakpointsExecute(Sender: TObject);
     procedure actClearAllBreakpointsInEditorExecute(Sender: TObject);
+    procedure actOpenCurrentFolderExecute(Sender: TObject);
+    procedure actOpenCurrentFolderUpdate(Sender: TObject);
+    procedure actOpenCurrentFolderInConsoleExecute(Sender: TObject);
+    procedure actOpenCurrentFolderInWindowsTerminalExecute(
+      Sender: TObject);
+    procedure fileBrowserContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -1115,7 +1130,7 @@ type
     procedure StopTabnine;
     procedure ChangeEncoding(encoding:TFileEncodingType);
     procedure UpdateDebugInfo;
-    procedure OpenShell(Sender: TObject;const shellName:string);
+    procedure OpenShell(Sender: TObject;const folder; const shellName:string);
     procedure UpdateStatementsType;
     procedure setLeftPageControlPage( page: TTabSheet);
     procedure CppParserTotalProgress(var message:TMessage); message WM_PARSER_PROGRESS;
@@ -4135,7 +4150,7 @@ begin
     end;
   end else begin
    // MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
-    Exit;  
+    Exit;
   end;
 
   if CheckSyntax then begin
@@ -4279,6 +4294,10 @@ begin
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
     Exit;
+  end;
+  if Assigned(devCompilerSets.CompilationSet) then begin
+    if devCompilerSets.CompilationSet.BinDir.Count > 0 then
+      SetPath(devCompilerSets.CompilationSet.BinDir[0]);
   end;
   if not PrepareForRun then
     Exit;
@@ -7482,14 +7501,15 @@ begin
   actProjectManager.Checked := devData.ShowLeftPages;
   LeftPageControl.ActivePageIndex := devData.LeftActivePage;
   ClassBrowser.TabVisible := (LeftPageControl.ActivePage = LeftClassSheet);
-  fLeftPageControlChanged := False;  
+  fLeftPageControlChanged := False;
   actProjectManagerExecute(nil);
 //  LeftPageControl.Width := devData.ProjectWidth;
 //  MessageControl.Height := devData.OutputHeight;
   LeftProjectSheet.TabVisible := False;
   
 
-  self.actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
+  actOpenWindowsTerminal.Visible:= devEnvironment.HasWindowsTerminal;
+  actOpenCurrentFolderInWindowsTerminal.Visible := actOpenWindowsTerminal.Visible;
 
   if StartsStr('*',devData.FileBrowserFolder) then begin
     fileBrowser.CurrentFolder := IncludeTrailingPathDelimiter(devDirs.Exec) + Copy(devData.FileBrowserFolder,2,MaxInt);
@@ -8715,58 +8735,59 @@ begin
   fDebugger.CommandChanged := true;
 end;
 
-procedure TMainForm.OpenShell(Sender: TObject;const shellName:string);
+procedure TMainForm.OpenShell(Sender: TObject;const folder; const shellName:string);
 var
-  e: TEditor;
-  Folder: AnsiString;
   buffer: PChar;
   size,ret,i: integer;
   path:AnsiString;
 begin
-  e := fEditorList.GetEditor;
-  if Assigned(e) then begin
-    Folder := ExtractFilePath(e.FileName);
-    if Folder <> '' then begin
-      ret:=GetEnvironmentVariable(PChar('PATH'),nil,0);
-      if ret = 0 then begin
-        LogError('main.pas TMainForm.actOpenConsoleExecute',
-          Format('Get size of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
-        Exit;
-      end;
-      size:=ret;
-      buffer:=AllocMem(size*sizeof(Char));
-      try
-        ret:=GetEnvironmentVariable('PATH',buffer,size);
-        if ret = 0 then begin
-          LogError('main.pas TMainForm.actOpenConsoleExecute',
-            Format('Get content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
-          Exit;
-        end;
-        path:=String(buffer);
-      finally
-        FreeMem(buffer);
-      end;
-      if Assigned(devCompilerSets.CompilationSet) then begin
-        for i:=0 to devCompilerSets.CompilationSet.BinDir.Count-1 do begin
-          path:=path+';'+devCompilerSets.CompilationSet.BinDir[i];
-        end;
-      end;
-      path:=path+';'+devDirs.Exec;
-      ret := integer(SetEnvironmentVariable(PChar('PATH'),pChar(path)));
-      if ret = 0 then begin
+  ret:=GetEnvironmentVariable(PChar('PATH'),nil,0);
+  if ret = 0 then begin
+    LogError('main.pas TMainForm.actOpenConsoleExecute',
+      Format('Get size of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+    Exit;
+  end;
+  size:=ret;
+  buffer:=AllocMem(size*sizeof(Char));
+  try
+    ret:=GetEnvironmentVariable('PATH',buffer,size);
+    if ret = 0 then begin
+      LogError('main.pas TMainForm.actOpenConsoleExecute',
+        Format('Get content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
+      Exit;
+    end;
+    path:=String(buffer);
+  finally
+    FreeMem(buffer);
+  end;
+  if Assigned(devCompilerSets.CompilationSet) then begin
+    for i:=0 to devCompilerSets.CompilationSet.BinDir.Count-1 do begin
+      path:=path+';'+devCompilerSets.CompilationSet.BinDir[i];
+    end;
+  end;
+  path:=path+';'+devDirs.Exec;
+  ret := integer(SetEnvironmentVariable(PChar('PATH'),pChar(path)));
+  if ret = 0 then begin
         LogError('main.pas TMainForm.actOpenConsoleExecute',
           Format('Set content of environment variable ''PATH'' failed: %s',[SysErrorMessage(GetLastError)]));
         Exit;
       end;
       ShellExecute(Application.Handle, 'open', pAnsiChar(shellName),  nil,PAnsiChar(Folder), SW_SHOWNORMAL);
-    end;
-  end;
 end;
 
 
 procedure TMainForm.actOpenConsoleExecute(Sender: TObject);
+var
+  e:TEditor;
+  Folder: String;
 begin
-  OpenShell(Sender,'cmd.exe');
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    Folder := ExtractFilePath(e.FileName);
+    if Folder <> '' then begin
+      OpenShell(Sender,Folder,'cmd.exe');
+    end;
+  end;
 end;
 
 procedure TMainForm.WatchViewDblClick(Sender: TObject);
@@ -9610,8 +9631,17 @@ end;
 
 
 procedure TMainForm.actOpenWindowsTerminalExecute(Sender: TObject);
+var
+  e:TEditor;
+  Folder: String;
 begin
-  OpenShell(sender,'wt.exe');
+  e := fEditorList.GetEditor;
+  if Assigned(e) then begin
+    Folder := ExtractFilePath(e.FileName);
+    if Folder <> '' then begin
+      OpenShell(Sender,Folder,'wt.exe');
+    end;
+  end;
 end;
 
 procedure TMainForm.actOpenWindowsTerminalUpdate(Sender: TObject);
@@ -9748,6 +9778,65 @@ begin
       editor.ToggleBreakPoint(breakpoint^.line);
   end;
   OnBreakPointsChanged;
+end;
+
+procedure TMainForm.actOpenCurrentFolderExecute(Sender: TObject);
+var
+  Folder: String;
+begin
+  if fileBrowser.SelectedFile <> '' then begin
+    if DirectoryExists(fileBrowser.SelectedFile) then
+      Folder := fileBrowser.SelectedFile
+    else
+      Folder := ExtractFileDir(fileBrowser.SelectedFile);
+  end else
+    Folder := fileBrowser.CurrentFolder;
+  if Folder <> '' then
+    ShellExecute(Application.Handle, 'open', 'explorer.exe', PAnsiChar(fileBrowser.CurrentFolder), nil, SW_SHOWNORMAL);
+end;
+
+procedure TMainForm.actOpenCurrentFolderUpdate(Sender: TObject);
+begin
+  TCustomAction(Sender).Enabled := fileBrowser.CurrentFolder <> '';
+end;
+
+procedure TMainForm.actOpenCurrentFolderInConsoleExecute(Sender: TObject);
+var
+  Folder: String;
+begin
+  if fileBrowser.SelectedFile <> '' then begin
+    if DirectoryExists(fileBrowser.SelectedFile) then
+      Folder := fileBrowser.SelectedFile
+    else
+      Folder := ExtractFileDir(fileBrowser.SelectedFile);
+  end else
+    Folder := fileBrowser.CurrentFolder;
+  if Folder <> '' then
+    OpenShell(Sender,Folder,'cmd.exe');
+end;
+
+procedure TMainForm.actOpenCurrentFolderInWindowsTerminalExecute(
+  Sender: TObject);
+var
+  Folder: String;  
+begin
+  if fileBrowser.SelectedFile <> '' then begin
+    if DirectoryExists(fileBrowser.SelectedFile) then
+      Folder := fileBrowser.SelectedFile
+    else
+      Folder := ExtractFileDir(fileBrowser.SelectedFile);
+  end else
+    Folder := fileBrowser.CurrentFolder;
+  if Folder <> '' then
+    OpenShell(Sender,Folder,'wt.exe');
+end;
+
+procedure TMainForm.fileBrowserContextPopup(Sender: TObject;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if FileBrowser.SelectedFile <> '' then begin
+    Handled:=True;
+  end;
 end;
 
 end.

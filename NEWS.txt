@@ -1,3 +1,16 @@
+Version 6.7-beta3 MAR 2021
+
+    - change: the option "static link all libs" is turned on by default
+    - fix: .exe compiled using dynamic link fail to run, when devcpp starts and try to run it.
+    - fix: devcpp may crash when watch complex structured object
+    - enhancement: click in non-content area in the file browser will clear the selection
+    - enhancement: add popup menu to the file browser
+    - fix: can't load a compiler set, if the compiler (gcc)'s folder is not under Dev-Cpp folder, and it's path contains space or non-ascii chars
+    - change: remove "Find Text" option in the editor options dialog
+    - change: add "Show fold outline" option in the editor options dialog
+    - enhancement: add "show indent guides" and "indent guide color" options in the editor options dialog
+    - fix: don't show error msg "gcc/g++ not exists", when the current compiler set is invalid and devcpp tries to run syntax checker.
+    
 Version 6.7-beta2 MAR 2021
 
     - enhancement: syntax highlighter for Lua files

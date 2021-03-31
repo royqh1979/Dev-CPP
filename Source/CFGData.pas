@@ -257,9 +257,10 @@ var
   S: AnsiString;
 begin
   S := ReadS(key, entry);
-
+  S := StringReplace(S,'";"',';',[rfReplaceAll]);
   // Convert string to string list
   value.Clear;
+
   ExtractStrings([';'], [], PAnsiChar(S), value);
 end;
 

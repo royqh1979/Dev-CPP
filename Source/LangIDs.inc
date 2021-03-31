@@ -456,6 +456,8 @@ const
   ID_EOPT_CODECOMPLETE_HEIGHT         = 26042;
   ID_EOPT_SHOW_CODEINS                 = 26043;
   ID_EOPT_CODECOMPLETE_SORT_BY_SCOPE   = 26044;
+  ID_EOPT_FOLD_OUTLINE                 = 26045;
+  ID_EOPT_SHOW_INDENT_GUIDES           = 26046;
 
   ID_EOPT_SPECIALCHARS                  = 27001;
   ID_EOPT_PARSERHINTS                   = 27002;
@@ -1073,6 +1075,7 @@ const
   ID_MSG_CONVERTTOANSI                  = 60035;
   ID_MSG_CHANGE_FOLDER_TO_FILE          = 60036;
   ID_MSG_CONVERTTOUTF8BOM               = 60037;
+  ID_MSG_DEFAULT_APPLICATION            = 60038;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;

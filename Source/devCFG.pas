@@ -436,7 +436,7 @@ type
 
     fPastEOF: boolean; // Cursor moves past end of file
     fPastEOL: boolean; // Cursor moves past end of lines
-    fFindText: boolean; // Text at cursor defaults in find dialog
+    fShowFoldOutline: boolean; // Show Code folding Outline
     fEHomeKey: boolean; // Home key like visual studio
     fGroupUndo: boolean; // treat same undo's as single undo
     fInsDropFiles: boolean; // Insert files when drag/dropped else open
@@ -454,6 +454,9 @@ type
     fMatch: boolean; // Highlight matching parenthesis
     fHighCurrLine: boolean; // Highlight current line
     fTrimTrailingSpaces: boolean;
+
+    fShowIndentGuides: boolean;
+    fIndentGuideColor: TColor; 
 
     // Autosave
     fEnableAutoSave: boolean;
@@ -502,13 +505,15 @@ type
     property EHomeKey: boolean read fEHomeKey write fEHomeKey;
     property PastEOF: boolean read fPastEOF write fPastEOF;
     property PastEOL: boolean read fPastEOL write fPastEOL;
-    property FindText: boolean read fFindText write fFindText;
+    property ShowFoldOutline: boolean read fShowFoldOutline write fShowFoldOutline;
     property Scrollbars: boolean read fShowScrollbars write fShowScrollbars;
     property HalfPageScroll: boolean read fHalfPage write fHalfPage;
     property ScrollHint: boolean read fShowScrollHint write fShowScrollHint;
     property SpecialChars: boolean read fSpecialChar write fSpecialChar;
     property ShowFunctionTip: boolean read fShowFunctionTip write fShowFunctionTip;
     property TrimTrailingSpaces: boolean read fTrimTrailingSpaces write fTrimTrailingSpaces;
+    property ShowIndentGuides: boolean read fShowIndentGuides write fShowIndentGuides;
+    property IndentGuideColor: TColor read fIndentGuideColor write fIndentGuideColor;
 
     property TabSize: integer read fTabSize write fTabSize;
     property MarginVis: boolean read fMarginVis write fMarginVis;
@@ -1210,6 +1215,8 @@ begin
   fDefInclude := TStringList.Create;
   fDefines := TStringList.Create;
 
+  self.fStaticLinkStdlib := True;
+  self.fAddCharset := True;
   // Do not set properties yet, as we don't know where to look for gcc.exe
 
   // Add default options list though, no info needed
@@ -1475,7 +1482,7 @@ begin
   fCompAdd := FALSE;
   fLinkAdd := TRUE;
   fCompOpt := '';
-  fStaticLinkStdlib := False;
+  fStaticLinkStdlib := True;
   fAddCharset := True;
 
   {
@@ -2058,7 +2065,7 @@ begin
     fLinkOpt := devData.ReadS(key, 'LinkOpt');
     fCompAdd := devData.ReadB(key, 'CompAdd');
     fLinkAdd := devData.ReadB(key, 'LinkAdd');
-    fStaticLinkStdlib := devData.ReadB(key, 'StaticLink');
+    fStaticLinkStdlib := devData.ReadB(key, 'StaticLink',true);
     fAddCharset := devData.ReadB(key, 'AddCharset',true);
 
     // Directories, undo relative stuff
@@ -2369,11 +2376,6 @@ begin
 end;
 
 procedure TdevCompilerSets.FindSets;
-var
-
-  option: PCompilerOption;
-  index: integer;
-
 begin
   // And assume 32bit compilers are put in the MinGW32 folder
   AddSets(devDirs.Exec + 'MinGW32');
@@ -2483,7 +2485,7 @@ procedure TdevEditor.LoadSettings;
 var
   offset:integer;
 
-  procedure AddSpecial(AttrName: AnsiString; Offset: integer);
+  procedure AddSpecial(AttrName: AnsiString);
   begin
     if (fSyntax.IndexOf(AttrName)=-1) then
       fSyntax.Append(format('%s=%s', [AttrName, LoadStr(offset)]))
@@ -2515,16 +2517,15 @@ begin
         fSyntax.Values[SYNS_AttrNumber]]));
 
 
-  offset:=1000;
-  AddSpecial(cBP, offset + 20); // breakpoint
-  AddSpecial(cErr, offset + 21); // error line
-  AddSpecial(cABP, offset + 22); // active breakpoint
-  AddSpecial(cGut, offset + 23); // gutter
-  AddSpecial(cSel, offset + 24); // selected text
-  AddSpecial(cFld, offset + 25); // fold bar lines
-  AddSpecial(cAL, offset + 26); // active Line
-  AddSpecial(cWN, offset + 27); // warning Line
-  AddSpecial(cPNL, offset + 28); // Panel
+  AddSpecial(cBP); // breakpoint
+  AddSpecial(cErr); // error line
+  AddSpecial(cABP); // active breakpoint
+  AddSpecial(cGut); // gutter
+  AddSpecial(cSel); // selected text
+  AddSpecial(cFld); // fold bar lines
+  AddSpecial(cAL); // active Line
+  AddSpecial(cWN); // warning Line
+  AddSpecial(cPNL); // Panel
 end;
 
 procedure TdevEditor.SaveSettings;
@@ -2544,11 +2545,14 @@ begin
   fInsDropFiles := FALSE;
   fSpecialChar := FALSE;
 
+  fShowIndentGuides := True;
+  fIndentGuideColor := clGray;
+
   // General #2
   fEHomeKey := TRUE;
   fPastEOF := FALSE;
   fPastEOL := FALSE;
-  fFindText := TRUE;
+  fShowFoldOutline := TRUE;
   fShowScrollbars := TRUE; // Show as needed
   fHalfPage := FALSE;
   fShowScrollHint := TRUE;
@@ -2744,6 +2748,11 @@ begin
         Options := Options + [eoTrimTrailingSpaces];
       if fShowRainbowBacket then
         Options := Options + [eoShowRainbowColor];
+      UseCodeFolding := fShowFoldOutline;
+      if Assigned(CodeFolding) then begin
+        CodeFolding.IndentGuidesColor := fIndentGuideColor;
+        CodeFolding.IndentGuides := fShowIndentGuides;
+      end;
     finally
       EndUpdate;
     end;

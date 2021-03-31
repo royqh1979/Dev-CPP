@@ -657,6 +657,7 @@ begin
   sl := TStringList.Create;
   try
     sl.Text := S;
+    //sl.SaveToFile('f:\\test.txt');
     for I := 0 to sl.Count - 1 do begin
 
       // Format node text. Remove trailing comma
@@ -670,7 +671,8 @@ begin
         else
           ParentNode := WatchView.Items.AddChild(ParentNode, NodeText);
       end else if StartsStr('}', NodeText) then begin // end of struct, change parent
-        ParentNode := ParentNode.Parent;
+        if assigned(ParentNode.Parent) then
+          ParentNode := ParentNode.Parent;
       end else begin // next parent member/child
         if ParentNode.Text = '' then // root node, replace text only
           ParentNode.Text := NodeText

@@ -1,10 +1,10 @@
 object EditorOptForm: TEditorOptForm
-  Left = 638
-  Top = 85
+  Left = 752
+  Top = 42
   BorderStyle = bsDialog
   Caption = 'Editor Options'
-  ClientHeight = 645
-  ClientWidth = 654
+  ClientHeight = 647
+  ClientWidth = 653
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,12 +16,12 @@ object EditorOptForm: TEditorOptForm
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    654
-    645)
+    653
+    647)
   PixelsPerInch = 120
   TextHeight = 20
   object PagesMain: TPageControl
-    Left = 0
+    Left = 3
     Top = 0
     Width = 647
     Height = 593
@@ -33,7 +33,7 @@ object EditorOptForm: TEditorOptForm
       object grpMargin: TGroupBox
         Left = 352
         Top = 293
-        Width = 268
+        Width = 281
         Height = 120
         Caption = '  Right Margin  '
         TabOrder = 2
@@ -58,6 +58,7 @@ object EditorOptForm: TEditorOptForm
           Height = 22
           Caption = 'Visible'
           TabOrder = 0
+          OnClick = cbMarginVisClick
         end
         object edMarginWidth: TSpinEdit
           Left = 21
@@ -83,13 +84,13 @@ object EditorOptForm: TEditorOptForm
       object grpEditorOpts: TGroupBox
         Left = 12
         Top = 4
-        Width = 608
+        Width = 621
         Height = 285
         Caption = '  Editor Options  '
         TabOrder = 0
         object cbFunctionHint: TCheckBox
           Left = 323
-          Top = 221
+          Top = 225
           Width = 278
           Height = 23
           Caption = 'Show function hints'
@@ -97,7 +98,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbTrimTrailingSpaces: TCheckBox
           Left = 11
-          Top = 221
+          Top = 225
           Width = 278
           Height = 23
           Caption = 'Trim Trailing Spaces'
@@ -113,7 +114,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbAddIndent: TCheckBox
           Left = 11
-          Top = 61
+          Top = 62
           Width = 278
           Height = 23
           Caption = 'Add indent to {} and :'
@@ -121,7 +122,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbDropFiles: TCheckBox
           Left = 11
-          Top = 168
+          Top = 171
           Width = 278
           Height = 23
           Caption = 'Insert Dropped Files'
@@ -137,7 +138,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbInsertMode: TCheckBox
           Left = 11
-          Top = 88
+          Top = 89
           Width = 278
           Height = 23
           Caption = 'Insert Mode'
@@ -145,7 +146,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbParserHints: TCheckBox
           Left = 323
-          Top = 195
+          Top = 198
           Width = 278
           Height = 22
           Caption = 'Show editor hints'
@@ -153,7 +154,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbHalfPage: TCheckBox
           Left = 323
-          Top = 141
+          Top = 144
           Width = 278
           Height = 23
           Caption = 'Half Page Scrolling'
@@ -161,23 +162,23 @@ object EditorOptForm: TEditorOptForm
         end
         object cbGroupUndo: TCheckBox
           Left = 11
-          Top = 141
+          Top = 144
           Width = 278
           Height = 23
           Caption = 'Group Undo'
           TabOrder = 4
         end
-        object cbFindText: TCheckBox
+        object cbShowFoldOutline: TCheckBox
           Left = 11
-          Top = 115
+          Top = 116
           Width = 278
           Height = 22
-          Caption = 'Find Text at Cursor'
+          Caption = 'Show Code Fold Outline'
           TabOrder = 3
         end
         object cbPastEOL: TCheckBox
           Left = 323
-          Top = 88
+          Top = 89
           Width = 278
           Height = 23
           Caption = 'Cursor Past EOL'
@@ -185,7 +186,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbPastEOF: TCheckBox
           Left = 323
-          Top = 61
+          Top = 62
           Width = 278
           Height = 23
           Caption = 'Cursor Past EOF'
@@ -193,7 +194,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbScrollHint: TCheckBox
           Left = 323
-          Top = 168
+          Top = 171
           Width = 278
           Height = 23
           Caption = 'Scroll Hint'
@@ -201,7 +202,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbSmartScroll: TCheckBox
           Left = 323
-          Top = 115
+          Top = 116
           Width = 278
           Height = 22
           Caption = 'Scollbars on need'
@@ -209,7 +210,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbSpecialChars: TCheckBox
           Left = 11
-          Top = 195
+          Top = 198
           Width = 278
           Height = 22
           Caption = 'Show Special Line Chars'
@@ -225,7 +226,7 @@ object EditorOptForm: TEditorOptForm
         end
         object cbHighCurrLine: TCheckBox
           Left = 323
-          Top = 251
+          Top = 253
           Width = 246
           Height = 22
           Caption = 'Highlight current line'
@@ -331,27 +332,35 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 1
         end
       end
-      object grpDefaultFileType: TGroupBox
+      object GroupBox1: TGroupBox
         Left = 352
         Top = 432
-        Width = 273
+        Width = 281
         Height = 112
-        Caption = 'Default File Type'
+        Caption = '  Tabs  '
         TabOrder = 4
-        object rbCFile: TRadioButton
-          Left = 16
-          Top = 32
-          Width = 193
-          Height = 25
-          Caption = 'C File'
-          TabOrder = 0
+        object lblIndentGuideColor: TLabel
+          Left = 11
+          Top = 75
+          Width = 36
+          Height = 20
+          Caption = 'Color'
         end
-        object rbCppFile: TRadioButton
-          Left = 16
-          Top = 64
-          Width = 193
-          Height = 25
-          Caption = 'C++ File'
+        object cbShowIndentGuides: TCheckBox
+          Left = 11
+          Top = 27
+          Width = 225
+          Height = 22
+          Caption = 'Show Indent Guides'
+          TabOrder = 0
+          OnClick = cbShowIndentGuidesClick
+        end
+        object cbIndentGuideColor: TColorBox
+          Left = 64
+          Top = 69
+          Width = 169
+          Height = 32
+          ItemHeight = 26
           TabOrder = 1
         end
       end
@@ -1345,11 +1354,35 @@ object EditorOptForm: TEditorOptForm
         Caption = 'Auto load files which are open when devcpp exited last time'
         TabOrder = 0
       end
+      object grpDefaultFileType: TGroupBox
+        Left = 8
+        Top = 48
+        Width = 273
+        Height = 112
+        Caption = 'Default File Type'
+        TabOrder = 1
+        object rbCFile: TRadioButton
+          Left = 16
+          Top = 32
+          Width = 193
+          Height = 25
+          Caption = 'C File'
+          TabOrder = 0
+        end
+        object rbCppFile: TRadioButton
+          Left = 16
+          Top = 64
+          Width = 193
+          Height = 25
+          Caption = 'C++ File'
+          TabOrder = 1
+        end
+      end
     end
   end
   object btnOk: TBitBtn
-    Left = 289
-    Top = 602
+    Left = 288
+    Top = 604
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1377,8 +1410,8 @@ object EditorOptForm: TEditorOptForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 409
-    Top = 602
+    Left = 408
+    Top = 604
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1387,8 +1420,8 @@ object EditorOptForm: TEditorOptForm
     Kind = bkCancel
   end
   object btnHelp: TBitBtn
-    Left = 529
-    Top = 602
+    Left = 528
+    Top = 604
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
