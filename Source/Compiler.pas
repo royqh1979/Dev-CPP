@@ -700,9 +700,10 @@ var
   redirectStdin: boolean;
 begin
   if fCompilerSet.BinDir.Count < 1 then begin
-    LogError('Compiler.pas TCompiler.Compile:', 'Active compiler set''s bin directory is not set!');
-    if not silent then
+    if not silent then begin
+      LogError('Compiler.pas TCompiler.Compile:', 'Active compiler set''s bin directory is not set!');
       MessageDlg(Lang[ID_ERR_BINDIR_NOT_SET], mtError, [mbOK], 0);
+    end;
     Exit;
   end;
 
@@ -840,8 +841,10 @@ begin
           end;
         end;
         if not FileExists(IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName) then begin
-          LogError('Compiler.pas TCompiler.Compile:',Format('The compiler execuatble ''%s'' doesn''t exist',[IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
-          MessageDlg(Format(Lang[ID_ERR_COMPILER_NOT_EXISTS],[compilerName]), mtError, [mbOK], 0);
+          if not silent then begin
+            LogError('Compiler.pas TCompiler.Compile:',Format('The compiler execuatble ''%s'' doesn''t exist',[IncludeTrailingPathDelimiter(fCompilerSet.BinDir[0]) + compilerName]));
+            MessageDlg(Format(Lang[ID_ERR_COMPILER_NOT_EXISTS],[compilerName]), mtError, [mbOK], 0);
+          end;
           Exit;
         end;
 
