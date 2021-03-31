@@ -101,7 +101,7 @@ type
     cbInsertMode: TCheckBox;
     cbHalfPage: TCheckBox;
     cbGroupUndo: TCheckBox;
-    cbFindText: TCheckBox;
+    cbShowFoldOutline: TCheckBox;
     cbEHomeKey: TCheckBox;
     cbDropFiles: TCheckBox;
     cbAddIndent: TCheckBox;
@@ -178,6 +178,10 @@ type
     chkSortByScope: TCheckBox;
     tabMisc: TTabSheet;
     chkLoadLastOpens: TCheckBox;
+    GroupBox1: TGroupBox;
+    lblIndentGuideColor: TLabel;
+    cbShowIndentGuides: TCheckBox;
+    cbIndentGuideColor: TColorBox;
     procedure FormCreate(Sender: TObject);
     procedure SetGutter;
     procedure ElementListClick(Sender: TObject);
@@ -219,6 +223,8 @@ type
     procedure btnClearUsageDataClick(Sender: TObject);
     procedure chkAutoCheckSyntaxInBackClick(Sender: TObject);
     procedure btnDownloadTabnineClick(Sender: TObject);
+    procedure cbMarginVisClick(Sender: TObject);
+    procedure cbShowIndentGuidesClick(Sender: TObject);
   private
     ffgColor: TColor;
     fbgColor: TColor;
@@ -315,7 +321,9 @@ begin
     cbEHomeKey.Checked := EHomeKey;
     cbPastEOF.Checked := PastEOF;
     cbPastEOL.Checked := PastEOL;
-    cbFindText.Checked := FindText;
+    cbShowFoldOutline.Checked := ShowFoldOutline;
+    cbShowIndentGuides.Checked := ShowIndentGuides;
+    cbIndentGuideColor.Selected := IndentGuideColor;
     cbSmartScroll.Checked := Scrollbars;
     cbHalfPage.Checked := HalfPageScroll;
     cbScrollHint.Checked := ScrollHint;
@@ -336,6 +344,10 @@ begin
     cbMatch.Checked := Match;
     cbDefaultCode.Checked := DefaultCode;
     cbHighCurrLine.Checked := HighCurrLine;
+
+    edMarginWidth.Enabled := cbMarginVis.Checked;
+    cpMarginColor.Enabled := cbMarginVis.Checked;
+    cbIndentGuideColor.Enabled := cbShowIndentGuides.Checked;
 
     // Fonts
     LoadFonts; // fill dropdowns
@@ -628,7 +640,9 @@ begin
   cbPastEOF.Caption := Lang[ID_EOPT_PASTEOF];
   cbPastEOL.Caption := Lang[ID_EOPT_PASTEOL];
   cbAddIndent.Caption := Lang[ID_EOPT_ADDINDENT];
-  cbFindText.Caption := Lang[ID_EOPT_FINDTEXT];
+  cbShowFoldOutline.Caption := Lang[ID_EOPT_FOLD_OUTLINE];
+  cbShowIndentGuides.Caption := Lang[ID_EOPT_SHOW_INDENT_GUIDES];
+  lblIndentGuideColor.Caption := Lang[ID_EOPT_COLOR];
   cbSmartScroll.Caption := Lang[ID_EOPT_SMARTSCROLL];
   cbHalfPage.Caption := Lang[ID_EOPT_HALFPAGE];
   cbScrollHint.Caption := Lang[ID_EOPT_SCROLLHINT];
@@ -769,7 +783,10 @@ begin
     EHomeKey := cbEHomeKey.Checked;
     PastEOF := cbPastEOF.Checked;
     PastEOL := cbPastEOL.Checked;
-    FindText := cbFindText.Checked;
+    ShowFoldOutline := cbShowFoldOutline.Checked;
+    ShowIndentGuides := cbShowIndentGuides.Checked;
+    IndentGuideColor := cbIndentGuideColor.Selected;
+
     Scrollbars := cbSmartScroll.Checked;
     HalfPageScroll := cbHalfPage.Checked;
     ScrollHint := cbScrollHint.Checked;
@@ -1825,6 +1842,17 @@ var
 begin
   s:=TABNINE_SITE;
   ShellExecute(GetDesktopWindow(), 'open', PAnsiChar(s), nil, nil, SW_SHOWNORMAL);
+end;
+
+procedure TEditorOptForm.cbMarginVisClick(Sender: TObject);
+begin
+  edMarginWidth.Enabled := cbMarginVis.Checked;
+  cpMarginColor.Enabled := cbMarginVis.Checked;
+end;
+
+procedure TEditorOptForm.cbShowIndentGuidesClick(Sender: TObject);
+begin
+  cbIndentGuideColor.Enabled := self.cbShowIndentGuides.Checked;
 end;
 
 end.

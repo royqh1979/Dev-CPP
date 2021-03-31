@@ -1,10 +1,10 @@
 object EditorOptForm: TEditorOptForm
-  Left = 1
-  Top = 0
+  Left = 752
+  Top = 42
   BorderStyle = bsDialog
   Caption = 'Editor Options'
-  ClientHeight = 383
-  ClientWidth = 620
+  ClientHeight = 647
+  ClientWidth = 653
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,8 +16,8 @@ object EditorOptForm: TEditorOptForm
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    620
-    383)
+    653
+    647)
   PixelsPerInch = 120
   TextHeight = 20
   object PagesMain: TPageControl
@@ -33,7 +33,7 @@ object EditorOptForm: TEditorOptForm
       object grpMargin: TGroupBox
         Left = 352
         Top = 293
-        Width = 268
+        Width = 281
         Height = 120
         Caption = '  Right Margin  '
         TabOrder = 2
@@ -58,6 +58,7 @@ object EditorOptForm: TEditorOptForm
           Height = 22
           Caption = 'Visible'
           TabOrder = 0
+          OnClick = cbMarginVisClick
         end
         object edMarginWidth: TSpinEdit
           Left = 21
@@ -83,7 +84,7 @@ object EditorOptForm: TEditorOptForm
       object grpEditorOpts: TGroupBox
         Left = 12
         Top = 4
-        Width = 608
+        Width = 621
         Height = 285
         Caption = '  Editor Options  '
         TabOrder = 0
@@ -167,12 +168,12 @@ object EditorOptForm: TEditorOptForm
           Caption = 'Group Undo'
           TabOrder = 4
         end
-        object cbFindText: TCheckBox
+        object cbShowFoldOutline: TCheckBox
           Left = 11
           Top = 116
           Width = 278
           Height = 22
-          Caption = 'Find Text at Cursor'
+          Caption = 'Show Code Fold Outline'
           TabOrder = 3
         end
         object cbPastEOL: TCheckBox
@@ -331,27 +332,35 @@ object EditorOptForm: TEditorOptForm
           TabOrder = 1
         end
       end
-      object grpDefaultFileType: TGroupBox
+      object GroupBox1: TGroupBox
         Left = 352
         Top = 432
-        Width = 273
+        Width = 281
         Height = 112
-        Caption = 'Default File Type'
+        Caption = '  Tabs  '
         TabOrder = 4
-        object rbCFile: TRadioButton
-          Left = 16
-          Top = 32
-          Width = 193
-          Height = 25
-          Caption = 'C File'
-          TabOrder = 0
+        object lblIndentGuideColor: TLabel
+          Left = 11
+          Top = 75
+          Width = 36
+          Height = 20
+          Caption = 'Color'
         end
-        object rbCppFile: TRadioButton
-          Left = 16
-          Top = 64
-          Width = 193
-          Height = 25
-          Caption = 'C++ File'
+        object cbShowIndentGuides: TCheckBox
+          Left = 11
+          Top = 27
+          Width = 225
+          Height = 22
+          Caption = 'Show Indent Guides'
+          TabOrder = 0
+          OnClick = cbShowIndentGuidesClick
+        end
+        object cbIndentGuideColor: TColorBox
+          Left = 64
+          Top = 69
+          Width = 169
+          Height = 32
+          ItemHeight = 26
           TabOrder = 1
         end
       end
@@ -715,7 +724,7 @@ object EditorOptForm: TEditorOptForm
         Width = 173
         Height = 28
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 20
         TabOrder = 1
         OnSelect = cboQuickColorSelect
       end
@@ -1345,11 +1354,35 @@ object EditorOptForm: TEditorOptForm
         Caption = 'Auto load files which are open when devcpp exited last time'
         TabOrder = 0
       end
+      object grpDefaultFileType: TGroupBox
+        Left = 8
+        Top = 48
+        Width = 273
+        Height = 112
+        Caption = 'Default File Type'
+        TabOrder = 1
+        object rbCFile: TRadioButton
+          Left = 16
+          Top = 32
+          Width = 193
+          Height = 25
+          Caption = 'C File'
+          TabOrder = 0
+        end
+        object rbCppFile: TRadioButton
+          Left = 16
+          Top = 64
+          Width = 193
+          Height = 25
+          Caption = 'C++ File'
+          TabOrder = 1
+        end
+      end
     end
   end
   object btnOk: TBitBtn
-    Left = 255
-    Top = 340
+    Left = 288
+    Top = 604
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1377,8 +1410,8 @@ object EditorOptForm: TEditorOptForm
     NumGlyphs = 2
   end
   object btnCancel: TBitBtn
-    Left = 375
-    Top = 340
+    Left = 408
+    Top = 604
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]
@@ -1387,8 +1420,8 @@ object EditorOptForm: TEditorOptForm
     Kind = bkCancel
   end
   object btnHelp: TBitBtn
-    Left = 495
-    Top = 340
+    Left = 528
+    Top = 604
     Width = 113
     Height = 34
     Anchors = [akRight, akBottom]

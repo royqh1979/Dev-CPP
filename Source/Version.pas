@@ -131,6 +131,7 @@ const
   cAL = 'Active Line';
   cWN = 'Warnings';
   cPNL = 'Panel';
+  cIG = 'Indent Guide Lines';
 
 
   // GPROF commands and displays

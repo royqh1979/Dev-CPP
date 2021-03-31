@@ -408,6 +408,8 @@ Ver=1
 26042=Code Suggestion Window height:
 26043=Show Snippets in Completion
 26044=Sort By Scope
+26045=Show Code Fold Outline
+26046=Show Indent Guides
 
 
 27001=Show hidden line characters
