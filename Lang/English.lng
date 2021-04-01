@@ -231,6 +231,9 @@ Ver=1
 12026=Open Windows Terminal here
 12027=Show Members in the File
 12028=Show Members in the Project
+12029=Open Current folder in windows explorer
+12030=Open Console
+12031=Open Windows Terminal 
 
 
 13001=Compiler
