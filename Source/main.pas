@@ -718,6 +718,11 @@ type
     actOpenCurrentFolderInConsole: TAction;
     OpenCurrentFolderinConsole1: TMenuItem;
     actOpenCurrentFolderInWindowsTerminal: TAction;
+    actOpenSelectedFile: TAction;
+    OpenCurrentFolderinConsole2: TMenuItem;
+    N56: TMenuItem;
+    actOpenSelectedFile1: TMenuItem;
+    mnuFileBrowserOpenWith: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure ToggleBookmarkClick(Sender: TObject);
@@ -1057,6 +1062,9 @@ type
       Sender: TObject);
     procedure fileBrowserContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure mnuFileBrowserOpenWithClick(Sender: TObject);
+    procedure actOpenSelectedFileExecute(Sender: TObject);
+    procedure actOpenSelectedFileUpdate(Sender: TObject);
   private
     fPreviousHeight: integer; // stores MessageControl height to be able to restore to previous height
     fPreviousWidth: integer; //stores LeftPageControl width;
@@ -2318,6 +2326,12 @@ begin
   //FindOutput Popup
   mnuClearAllFindItems.Caption := Lang[ID_POP_CLEAR_ALL_FINDS];
 
+  //File Browser Popup
+  self.actOpenSelectedFile.Caption := Lang[ID_POP_OPEN];
+  mnuFileBrowserOpenWith.Caption := Lang[ID_POP_OPENWITH];
+  actOpenCurrentFolder.Caption := Lang[ID_POP_OPEN_CURRENT_FOLDER];
+  actOpenCurrentFolderInConsole.Caption := Lang[ID_POP_OPEN_CURRENT_FOLDER_IN_CONSOLE];
+  actOpenCurrentFolderInWindowsTerminal.Caption := Lang[ID_POP_OPEN_CURRENT_FOLDER_IN_WINDOWS_TERMINAL];
   // Message Control tabs
   CompSheet.Caption := Lang[ID_SHEET_COMP];
   ResSheet.Caption := Lang[ID_SHEET_RES];
@@ -6768,54 +6782,63 @@ end;
 
 procedure TMainForm.BuildOpenWith;
 var
-  idx, idx2: integer;
-  item: TMenuItem;
-  ext, s, s1: AnsiString;
+  idx: integer;
+  FileName:String;
+
+  procedure Build(OpenWithItem:TMenuItem;FileName:String; clickHandler: TNotifyEvent);
+  var
+    idx2: integer;
+    item: TMenuItem;
+    ext, s, s1: AnsiString;
+  begin
+    ext := ExtractFileExt(FileName);
+    if SameStr('.rc',ext) then begin
+      item := TMenuItem.Create(nil);
+      item.Caption := ExtractFilename('ResEd.exe');
+      item.Tag := -3;
+      item.OnClick := clickHandler;
+      OpenWithItem.Add(item);
+    end;
+    idx2 := devExternalPrograms.AssignedProgram(ext);
+    if idx2 <> -1 then begin
+      if (OpenWithItem.Count = 1) then begin
+        item := TMenuItem.Create(nil);
+        item.Caption := '-';
+        item.Tag := -2;
+        OpenWithItem.Add(item);
+      end;
+      item := TMenuItem.Create(nil);
+      item.Caption := ExtractFilename(devExternalPrograms.ProgramName[idx2]);
+      item.Tag := idx2;
+      item.OnClick := clickHandler;
+      OpenWithItem.Add(item);
+    end;
+    if GetAssociatedProgram(ext, s, s1) then begin
+      if (OpenWithItem.Count = 1) then begin
+        item := TMenuItem.Create(nil);
+        item.Caption := '-';
+        item.Tag := -2;
+        OpenWithItem.Add(item);
+      end;
+      item := TMenuItem.Create(nil);
+      item.Caption := s1;
+      item.Tag := -1;
+      item.OnClick := clickHandler;
+      OpenWithItem.Add(item);
+    end;
+  end;
 begin
   mnuOpenWith.Clear;
-  if not assigned(fProject) then
-    exit;
-  if not assigned(ProjectView.Selected) or
-    (ProjectView.Selected.Level < 1) then
-    exit;
-  if ProjectView.Selected.Data = Pointer(-1) then
-    Exit;
-  idx := integer(ProjectView.Selected.Data);
-
-  ext := ExtractFileExt(fProject.Units[idx].FileName);
-  if SameStr('.rc',ext) then begin
-    item := TMenuItem.Create(nil);
-    item.Caption := ExtractFilename('ResEd.exe');
-    item.Tag := -3;
-    item.OnClick := mnuOpenWithClick;
-    mnuOpenWith.Add(item);
+  if assigned(fProject) and
+     assigned(ProjectView.Selected) and (ProjectView.Selected.Level > 0) and
+     (ProjectView.Selected.Data <> Pointer(-1)) then begin
+    idx := integer(ProjectView.Selected.Data);
+    FileName := fProject.Units[idx].FileName;
+    Build(mnuOpenWith, FileName, mnuOpenWithClick);
   end;
-  idx2 := devExternalPrograms.AssignedProgram(ext);
-  if idx2 <> -1 then begin
-    if (mnuOpenWith.Count = 1) then begin
-      item := TMenuItem.Create(nil);
-      item.Caption := '-';
-      item.Tag := -2;
-      mnuOpenWith.Add(item);
-    end;
-    item := TMenuItem.Create(nil);
-    item.Caption := ExtractFilename(devExternalPrograms.ProgramName[idx2]);
-    item.Tag := idx2;
-    item.OnClick := mnuOpenWithClick;
-    mnuOpenWith.Add(item);
-  end;
-  if GetAssociatedProgram(ext, s, s1) then begin
-    if (mnuOpenWith.Count = 1) then begin
-      item := TMenuItem.Create(nil);
-      item.Caption := '-';
-      item.Tag := -2;
-      mnuOpenWith.Add(item);
-    end;
-    item := TMenuItem.Create(nil);
-    item.Caption := s1;
-    item.Tag := -1;
-    item.OnClick := mnuOpenWithClick;
-    mnuOpenWith.Add(item);
+  mnuFileBrowserOpenWith.Clear;
+  if FileBrowser.SelectedFile <> '' then begin
+    Build(mnuFileBrowserOpenWith, FileBrowser.SelectedFile,mnuFileBrowserOpenWithClick);
   end;
 end;
 
@@ -9784,13 +9807,7 @@ procedure TMainForm.actOpenCurrentFolderExecute(Sender: TObject);
 var
   Folder: String;
 begin
-  if fileBrowser.SelectedFile <> '' then begin
-    if DirectoryExists(fileBrowser.SelectedFile) then
-      Folder := fileBrowser.SelectedFile
-    else
-      Folder := ExtractFileDir(fileBrowser.SelectedFile);
-  end else
-    Folder := fileBrowser.CurrentFolder;
+  Folder := fileBrowser.CurrentFolder;
   if Folder <> '' then
     ShellExecute(Application.Handle, 'open', 'explorer.exe', PAnsiChar(fileBrowser.CurrentFolder), nil, SW_SHOWNORMAL);
 end;
@@ -9804,13 +9821,7 @@ procedure TMainForm.actOpenCurrentFolderInConsoleExecute(Sender: TObject);
 var
   Folder: String;
 begin
-  if fileBrowser.SelectedFile <> '' then begin
-    if DirectoryExists(fileBrowser.SelectedFile) then
-      Folder := fileBrowser.SelectedFile
-    else
-      Folder := ExtractFileDir(fileBrowser.SelectedFile);
-  end else
-    Folder := fileBrowser.CurrentFolder;
+  Folder := fileBrowser.CurrentFolder;
   if Folder <> '' then
     OpenShell(Sender,Folder,'cmd.exe');
 end;
@@ -9820,13 +9831,7 @@ procedure TMainForm.actOpenCurrentFolderInWindowsTerminalExecute(
 var
   Folder: String;  
 begin
-  if fileBrowser.SelectedFile <> '' then begin
-    if DirectoryExists(fileBrowser.SelectedFile) then
-      Folder := fileBrowser.SelectedFile
-    else
-      Folder := ExtractFileDir(fileBrowser.SelectedFile);
-  end else
-    Folder := fileBrowser.CurrentFolder;
+  Folder := fileBrowser.CurrentFolder;
   if Folder <> '' then
     OpenShell(Sender,Folder,'wt.exe');
 end;
@@ -9834,9 +9839,85 @@ end;
 procedure TMainForm.fileBrowserContextPopup(Sender: TObject;
   MousePos: TPoint; var Handled: Boolean);
 begin
+  BuildOpenWith;
+  {
   if FileBrowser.SelectedFile <> '' then begin
-    Handled:=True;
   end;
+  }
+end;
+
+procedure TMainForm.mnuFileBrowserOpenWithClick(Sender: TObject);
+var
+  idx: integer;
+  item: TMenuItem;
+  e: TEditor;
+begin
+  if (Sender = mnuFileBrowserOpenWith) and (mnuFileBrowserOpenWith.Count > 0) then
+    Exit;
+  if FileBrowser.SelectedFile='' then
+    Exit;
+  item := TMenuItem(Sender);
+  if item = mnuFileBrowserOpenWith then begin
+    idx := -2;
+    with TOpenDialog.Create(Self) do try
+      Filter := FLT_ALLFILES;
+      if Execute then
+        idx := devExternalPrograms.AddProgram(ExtractFileExt(FileBrowser.SelectedFile), Filename);
+    finally
+      Free;
+    end;
+  end else
+    idx := item.Tag;
+
+  e := fEditorList.FileIsOpen(FileBrowser.SelectedFile, TRUE);
+  if Assigned(e) then
+    fEditorList.CloseEditor(e);
+
+  if idx > -1 then begin // devcpp-based
+    ShellExecute(0, 'open',
+      PAnsiChar(devExternalPrograms.ProgramName[idx]),
+      PAnsiChar(FileBrowser.SelectedFile),
+      PAnsiChar(ExtractFilePath(FileBrowser.SelectedFile)),
+      SW_SHOW)
+      // idx=-2 means we prompted the user for a program, but didn't select one
+  end else if idx = -1 then begin// registry-based
+    ShellExecute(0, 'open',
+      PAnsiChar(FileBrowser.SelectedFile),
+      nil,
+      PAnsiChar(ExtractFilePath(FileBrowser.SelectedFile)),
+      SW_SHOW);
+  end else if idx = -3 then begin// ResEd.exe
+    ShellExecute(0, 'open',
+      PAnsiChar(devDirs.Exec + 'ResEd/ResEd.exe'),
+      PAnsiChar(FileBrowser.SelectedFile),
+      PAnsiChar(ExtractFilePath(FileBrowser.SelectedFile)),
+      SW_SHOW);
+  end
+end;
+
+procedure TMainForm.actOpenSelectedFileExecute(Sender: TObject);
+var
+  e:TEditor;
+begin
+  if FileBrowser.SelectedFile = '' then
+    Exit;
+  e := fEditorList.FileIsOpen(FileBrowser.SelectedFile, TRUE);
+  if Assigned(e) then
+    e.Activate
+  else begin
+    if GetFileTyp(FileBrowser.SelectedFile) = utPrj then
+      OpenProject(FileBrowser.SelectedFile)
+    else
+      OpenFile(FileBrowser.SelectedFile,etAuto);
+  end;
+end;
+
+procedure TMainForm.actOpenSelectedFileUpdate(Sender: TObject);
+var
+  item : TAction;
+begin
+  item := TAction(Sender);
+  item.Enabled := (FileBrowser.SelectedFile <> '');
 end;
 
 end.
