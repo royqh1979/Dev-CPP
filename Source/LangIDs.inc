@@ -270,7 +270,9 @@ const
   ID_POP_OPEN_WT                        = 12026;
   ID_POP_SHOW_MEMBERS_IN_FILE           = 12027;
   ID_POP_SHOW_MEMBERS_IN_PROJECT        = 12028;
-
+  ID_POP_OPEN_CURRENT_FOLDER            = 12029;
+  ID_POP_OPEN_CURRENT_FOLDER_IN_CONSOLE = 12030;
+  ID_POP_OPEN_CURRENT_FOLDER_IN_WINDOWS_TERMINAL      = 12031;
 
   // message control
   ID_SHEET_COMP                         = 13001;

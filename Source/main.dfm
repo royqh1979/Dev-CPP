@@ -1,11 +1,11 @@
 object MainForm: TMainForm
-  Left = 694
-  Top = 341
+  Left = 787
+  Top = 127
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Dev-C++ 2020'
-  ClientHeight = 366
+  ClientHeight = 800
   ClientWidth = 984
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,14 +29,14 @@ object MainForm: TMainForm
     Left = 209
     Top = 80
     Width = 4
-    Height = 32
+    Height = 466
     MinSize = 45
     ResizeStyle = rsUpdate
     OnMoved = SplitterLeftMoved
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 112
+    Top = 546
     Width = 984
     Height = 4
     Cursor = crVSplit
@@ -46,7 +46,7 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 116
+    Top = 550
     Width = 984
     Height = 225
     ActivePage = DebugSheet
@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -116,7 +116,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -161,13 +161,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 190
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           192
-          190)
+          196)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,7 +213,7 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 784
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 190
+        Height = 196
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 518
-        Height = 190
+        Height = 196
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 159
+            Height = 165
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 510
-              Height = 159
+              Height = 165
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 159
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 159
+            Height = 165
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -388,7 +388,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 190
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
@@ -397,13 +397,13 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 450
-          Height = 190
+          Height = 196
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
           DesignSize = (
             450
-            190)
+            196)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -436,7 +436,7 @@ object MainForm: TMainForm
           end
           object EvalOutput: TMemo
             Left = 0
-            Top = 56
+            Top = 62
             Width = 450
             Height = 134
             Align = alBottom
@@ -465,7 +465,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 190
+        Height = 196
         Align = alClient
         Indent = 22
         TabOrder = 0
@@ -856,7 +856,7 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 341
+    Top = 775
     Width = 984
     Height = 25
     Panels = <
@@ -886,7 +886,7 @@ object MainForm: TMainForm
     Left = 213
     Top = 80
     Width = 771
-    Height = 32
+    Height = 466
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
@@ -895,7 +895,7 @@ object MainForm: TMainForm
       Left = 771
       Top = 0
       Width = 0
-      Height = 32
+      Height = 466
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -904,7 +904,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 771
-      Height = 32
+      Height = 466
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -924,7 +924,7 @@ object MainForm: TMainForm
       Left = 771
       Top = 0
       Width = 0
-      Height = 32
+      Height = 466
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -945,7 +945,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 80
     Width = 209
-    Height = 32
+    Height = 466
     ActivePage = FilesSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
@@ -967,8 +967,8 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 93
-        Height = 24
+        Width = 174
+        Height = 458
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelOuter = bvNone
@@ -1002,8 +1002,8 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 38
-        Width = 93
-        Height = 596
+        Width = 174
+        Height = 420
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel3'
@@ -1058,7 +1058,7 @@ object MainForm: TMainForm
       object tbClasses: TToolBar
         Left = 0
         Top = 0
-        Width = 93
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1102,8 +1102,8 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 93
-        Height = 596
+        Width = 174
+        Height = 420
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel4'
@@ -1111,8 +1111,8 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 93
-          Height = 596
+          Width = 174
+          Height = 420
           Align = alClient
           BevelInner = bvNone
           BevelOuter = bvNone
@@ -1133,7 +1133,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 93
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1162,7 +1162,7 @@ object MainForm: TMainForm
       object tbFiles: TToolBar
         Left = 0
         Top = 0
-        Width = 93
+        Width = 174
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1183,25 +1183,24 @@ object MainForm: TMainForm
           Action = actLocateFile
         end
         object ToolButton28: TToolButton
-          Left = 0
+          Left = 70
           Top = 0
           Width = 8
           Caption = 'ToolButton28'
           ImageIndex = 69
-          Wrap = True
           Style = tbsSeparator
         end
         object ToolButton29: TToolButton
-          Left = 0
-          Top = 42
+          Left = 78
+          Top = 0
           Action = actOnlyShowDevFiles
         end
       end
       object Panel5: TPanel
         Left = 0
         Top = 38
-        Width = 93
-        Height = 596
+        Width = 174
+        Height = 420
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel5'
@@ -1209,8 +1208,8 @@ object MainForm: TMainForm
         object fileBrowser: TDevFileBrowser
           Left = 0
           Top = 0
-          Width = 93
-          Height = 596
+          Width = 174
+          Height = 420
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
           TabOrder = 0
@@ -2024,13 +2023,6 @@ object MainForm: TMainForm
       ImageIndex = 49
       ShortCut = 16462
       OnExecute = actNewSourceExecute
-    end
-    object actOpenCurrentFolderInWindowsTerminal: TAction
-      Category = 'File Browser'
-      Caption = 'Open Current Folder in Console'
-      ImageIndex = 0
-      OnExecute = actOpenCurrentFolderInWindowsTerminalExecute
-      OnUpdate = actOpenCurrentFolderUpdate
     end
     object actNewProject: TAction
       Tag = 2
@@ -3226,6 +3218,19 @@ object MainForm: TMainForm
       OnExecute = actOpenCurrentFolderInConsoleExecute
       OnUpdate = actOpenCurrentFolderUpdate
     end
+    object actOpenCurrentFolderInWindowsTerminal: TAction
+      Category = 'File Browser'
+      Caption = 'Open Current Folder in Windows Terminal'
+      ImageIndex = 0
+      OnExecute = actOpenCurrentFolderInWindowsTerminalExecute
+      OnUpdate = actOpenCurrentFolderUpdate
+    end
+    object actOpenSelectedFile: TAction
+      Category = 'File Browser'
+      Caption = 'Open'
+      OnExecute = actOpenSelectedFileExecute
+      OnUpdate = actOpenSelectedFileUpdate
+    end
   end
   object MessagePopup: TPopupMenu
     Images = dmMain.MenuImages_NewLook24
@@ -3638,11 +3643,24 @@ object MainForm: TMainForm
   object FileBrowserPopup: TPopupMenu
     Left = 122
     Top = 394
+    object actOpenSelectedFile1: TMenuItem
+      Action = actOpenSelectedFile
+    end
+    object mnuFileBrowserOpenWith: TMenuItem
+      Caption = 'Open With'
+      OnClick = mnuFileBrowserOpenWithClick
+    end
+    object N56: TMenuItem
+      Caption = '-'
+    end
     object OpenCurrentFolder1: TMenuItem
       Action = actOpenCurrentFolder
     end
     object OpenCurrentFolderinConsole1: TMenuItem
       Action = actOpenCurrentFolderInConsole
+    end
+    object OpenCurrentFolderinConsole2: TMenuItem
+      Action = actOpenCurrentFolderInWindowsTerminal
     end
     object N55: TMenuItem
       Caption = '-'
