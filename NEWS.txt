@@ -1,4 +1,4 @@
-Version 6.7-beta3 MAR 2021
+Version 6.7-beta3 APR 2021
 
     - change: the option "static link all libs" is turned on by default
     - fix: .exe compiled using dynamic link fail to run, when devcpp starts and try to run it.
