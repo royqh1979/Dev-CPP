@@ -612,9 +612,13 @@ procedure TProjectOptionsFrm.btnIconBrowseClick(Sender: TObject);
 begin
   if dlgPic.Execute then begin
     if FileExists(dlgPic.FileName) then begin
-      fProjectCopy.Options.Icon := dlgPic.FileName;
-      IconPreview.Picture.LoadFromFile(dlgPic.FileName);
-      btnRemoveIcon.Enabled := Length(dlgPic.FileName) > 0;
+      try
+        IconPreview.Picture.LoadFromFile(dlgPic.FileName);
+        fProjectCopy.Options.Icon := dlgPic.FileName;
+        btnRemoveIcon.Enabled := Length(dlgPic.FileName) > 0;
+      Except
+        MessageDlg(format(Lang[ID_MSG_COULDNOTOPENICON], [dlgPic.FileName]), mtError, [mbOK], 0);
+      end;
     end else
       MessageDlg(format(Lang[ID_MSG_COULDNOTOPENFILE], [dlgPic.FileName]), mtError, [mbOK], 0);
   end;

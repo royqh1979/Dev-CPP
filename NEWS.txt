@@ -1,3 +1,7 @@
+Version 6.7-beta4 APR 2021
+
+    - fix: show friendly error message, instead of crash error when set the icon file for project
+
 Version 6.7-beta3 APR 2021
 
     - change: the option "static link all libs" is turned on by default
