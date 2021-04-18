@@ -610,6 +610,7 @@ end;
 
 procedure TProjectOptionsFrm.btnIconBrowseClick(Sender: TObject);
 begin
+  MessageDlg(Lang[ID_MSG_OPENICON], mtInformation, [mbOK], 0);
   if dlgPic.Execute then begin
     if FileExists(dlgPic.FileName) then begin
       try

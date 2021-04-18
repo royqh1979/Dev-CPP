@@ -1079,6 +1079,7 @@ const
   ID_MSG_CONVERTTOUTF8BOM               = 60037;
   ID_MSG_DEFAULT_APPLICATION            = 60038;
   ID_MSG_COULDNOTOPENICON               = 60039;
+  ID_MSG_OPENICON                       = 60040;
 
   ID_ERR_OPENFILE                       = 61001;
   ID_ERR_SAVEFILE                       = 61002;

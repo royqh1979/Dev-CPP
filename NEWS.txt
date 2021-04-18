@@ -1,6 +1,8 @@
 Version 6.7-beta4 APR 2021
 
     - fix: show friendly error message, instead of crash error when set the icon file for project
+    - fix: can't compile the project, when it contains files that having spaces in their names.
+    - enhancement: When user set the project's icon, show them the information "Dev-C++ can only handle icon no bigger than 48x48";
 
 Version 6.7-beta3 APR 2021
 
