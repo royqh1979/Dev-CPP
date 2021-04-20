@@ -1129,7 +1129,7 @@ begin
     // prevent lots of repaints
     fText.BeginUpdate;
     try
-      sl.Text:=Code;
+      sl.Text:=ParseMacros(Code);
       lastI:=0;
       spaceCount := Length(Text.GetLeftSpacing(
         Text.LeftSpacesEx(fText.LineText,True), True));
