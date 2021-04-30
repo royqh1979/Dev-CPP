@@ -586,11 +586,14 @@ begin
     Writeln(F, '$(BIN): $(LINKOBJ)');
     if not fCheckSyntax then begin
       if fProject.Options.useGPP then
+
+      //  Writeln(F, #9 +
+      //    '$(CPP) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
         Writeln(F, #9 +
-          '$(CPP) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
+          '$(CPP) -mdll - $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
       else
         Writeln(F, #9 +
-          '$(CC) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
+          '$(CC) -mdll $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
     end;
     WriteMakeObjFilesRules(F);
   finally
