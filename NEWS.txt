@@ -5,6 +5,7 @@ Version 6.7-beta4 APR 2021
     - enhancement: When user set the project's icon, show them the information "Dev-C++ can only handle icon no bigger than 48x48";
     - enhancement: code snippets can use snippet macros like "<DATETIME>" or "<DATE>"
     - fix: random crash when tabnine is enabled
+    - change: dont show tabnine suggestion at the #include line
 
 Version 6.7-beta3 APR 2021
 
