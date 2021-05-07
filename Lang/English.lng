@@ -997,6 +997,8 @@ Ver=1
 60036=The File '%s' is not in the Files panel's current folder. Set it to the file's parent folder?
 60037=The editing file will be saved using UTF-8 BOM encoding. <CR>This operation can't be reverted. <CR>Are you sure to continue?
 60038=Default Application
+60039=Can't open the icon file "%s"
+60040=Note: Dev C++ can only open icon no bigger than 48x48
 
 61001=Cannot open file %s
 61002=Cannot save file %s

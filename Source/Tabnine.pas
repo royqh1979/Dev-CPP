@@ -354,6 +354,14 @@ begin
   fBefore:=Before;
   fAfter:=After;
   response := sendCommand(cmd,True);
+  {
+  with TStringList.Create do try
+    text := cmd + '\n\r(cmd)\n\r' + response;
+    saveToFile('E:\response.txt');
+  finally
+    Free;
+  end;
+  }
   ProcessQueryResult(response);
   QueryReady;
   fQuerying:=False;
@@ -412,6 +420,8 @@ var
 
 begin
   ClearSuggestions;
+  if trim(response)='' then
+    Exit;
   js := TlkJSON.ParseText(response);
   defaultOldprefix := '';
   field:=js.Field['old_prefix'];

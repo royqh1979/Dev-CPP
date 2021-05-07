@@ -249,13 +249,13 @@ begin
         // ofile = C:\MyProgram\obj\main.o
         ObjFile := IncludeTrailingPathDelimiter(fProject.Options.ObjectOutput) +
           ExtractFileName(fProject.Units[i].FileName);
-        ObjFile := GenMakePath(ExtractRelativePath(fProject.FileName, ChangeFileExt(ObjFile, OBJ_EXT)), True, True);
+        ObjFile := GenMakePath1(ExtractRelativePath(fProject.FileName, ChangeFileExt(ObjFile, OBJ_EXT)));
         Objects := Objects + ' ' + ObjFile;
 
         if fProject.Units[i].Link then
           LinkObjects := LinkObjects + ' ' + ObjFile;
       end else begin
-        Objects := Objects + ' ' + GenMakePath(ChangeFileExt(RelativeName, OBJ_EXT), True, True);
+        Objects := Objects + ' ' + GenMakePath1(ChangeFileExt(RelativeName, OBJ_EXT));
         if fProject.Units[i].Link then
           LinkObjects := LinkObjects + ' ' + GenMakePath1(ChangeFileExt(RelativeName, OBJ_EXT));
       end;
@@ -392,7 +392,7 @@ begin
     // Only process source files
     if GetFileTyp(ShortFileName) in [utcSrc, utcppSrc] then begin
       Writeln(F);
-      objStr:=ShortFileName;
+      objStr:=GenMakePath2(ShortFileName);
       if parser.ScannedFiles.IndexOf(FileName)<>-1 then begin // if we have scanned it, use scanned info
         fileIncludes := TStringList.Create;
         try
@@ -403,7 +403,7 @@ begin
               continue;
             if (not parser.IsSystemHeaderFile(headerName))
               and (not parser.IsProjectHeaderFile(headerName)) then begin
-              objStr := objStr + ' ' + ExtractRelativePath(Makefile,headerName);
+              objStr := objStr + ' ' + GenMakePath2(ExtractRelativePath(Makefile,headerName));
             end;
           end;
         finally
@@ -412,7 +412,7 @@ begin
       end else begin
         for j := 0 to pred(fProject.Units.Count) do begin
           if GetFileTyp(fProject.Units[j].FileName) in [utcHead, utcppHead] then begin  // or  we simply use unit headers
-              objStr := objStr + ' ' + ExtractRelativePath(Makefile,fProject.Units[j].FileName);
+              objStr := objStr + ' ' + GenMakePath2(ExtractRelativePath(Makefile,fProject.Units[j].FileName));
           end;
         end;
       end;
@@ -422,7 +422,7 @@ begin
           ExtractFileName(fProject.Units[i].FileName);
         ObjFileName := GenMakePath1(ExtractRelativePath(fProject.FileName, ChangeFileExt(ObjFileName, OBJ_EXT)));
         if ExtractFileDir(objFileName)<>'' then begin
-          objStr := GenMakePath1(IncludeTrailingPathDelimiter(ExtractFileDir(objFileName))) + objStr;
+          objStr := GenMakePath2(IncludeTrailingPathDelimiter(ExtractFileDir(objFileName))) + objStr;
         end;
       end else begin
         {
@@ -471,9 +471,9 @@ begin
             Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' $(CFLAGS) '+encodingStr);
         end else begin
           if fProject.Units[i].CompileCpp then
-            Writeln(F, #9 + '$(CPP) -c "' + GenMakePath1(ShortFileName) + '" -o "' + ObjFileName + '" $(CXXFLAGS) ' + encodingStr)
+            Writeln(F, #9 + '$(CPP) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CXXFLAGS) ' + encodingStr)
           else
-            Writeln(F, #9 + '$(CC) -c "' + GenMakePath1(ShortFileName) + '" -o "' + ObjFileName + '" $(CFLAGS) ' + encodingStr);
+            Writeln(F, #9 + '$(CC) -c ' + GenMakePath1(ShortFileName) + ' -o ' + ObjFileName + ' $(CFLAGS) ' + encodingStr);
         end;
       end;
     end;
@@ -586,11 +586,14 @@ begin
     Writeln(F, '$(BIN): $(LINKOBJ)');
     if not fCheckSyntax then begin
       if fProject.Options.useGPP then
+
+      //  Writeln(F, #9 +
+      //    '$(CPP) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
         Writeln(F, #9 +
-          '$(CPP) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
+          '$(CPP) -mdll - $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
       else
         Writeln(F, #9 +
-          '$(CC) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
+          '$(CC) -mdll $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
     end;
     WriteMakeObjFilesRules(F);
   finally

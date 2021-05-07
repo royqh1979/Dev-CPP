@@ -1129,7 +1129,7 @@ begin
     // prevent lots of repaints
     fText.BeginUpdate;
     try
-      sl.Text:=Code;
+      sl.Text:=ParseMacros(Code);
       lastI:=0;
       spaceCount := Length(Text.GetLeftSpacing(
         Text.LeftSpacesEx(fText.LineText,True), True));
@@ -2050,13 +2050,16 @@ begin
     HandleSymbolCompletion(Key);
 
     if (key in [' ','+','-','*','/','<','&','|','!','~']) and devEditor.UseTabnine then begin
-      if (key = '/') and fParser.IsIncludeLine(fText.LineText) and devCodeCompletion.Enabled then begin
-        HandleCodeCompletion(Key);
+      if fParser.IsIncludeLine(fText.LineText) and devCodeCompletion.Enabled then begin
+        if (key = '/') then begin
+          HandleCodeCompletion(Key);
+        end;
+      end else begin
+        //Show Tabnine
+        fText.SelText := Key;
+        Key:=#0;
+        ShowTabnineCompletion;
       end;
-      //Show Tabnine
-      fText.SelText := Key;
-      Key:=#0;
-      ShowTabnineCompletion;
     end else begin
       // Spawn code completion window if we are allowed to
       if devCodeCompletion.Enabled then begin

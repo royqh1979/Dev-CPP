@@ -1,4 +1,13 @@
-Version 6.7-beta3 MAR 2021
+Version 6.7-beta4 APR 2021
+
+    - fix: show friendly error message, instead of crash error when set the icon file for project
+    - fix: can't compile the project, when it contains files that having spaces in their names.
+    - enhancement: When user set the project's icon, show them the information "Dev-C++ can only handle icon no bigger than 48x48";
+    - enhancement: code snippets can use snippet macros like "<DATETIME>" or "<DATE>"
+    - fix: random crash when tabnine is enabled
+    - change: dont show tabnine suggestion at the #include line
+
+Version 6.7-beta3 APR 2021
 
     - change: the option "static link all libs" is turned on by default
     - fix: .exe compiled using dynamic link fail to run, when devcpp starts and try to run it.
