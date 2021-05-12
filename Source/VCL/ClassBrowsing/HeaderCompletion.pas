@@ -371,7 +371,7 @@ end;
 procedure THeaderCompletion.SetPosition(Value: TPoint);
 begin
   fPos := Value;
-  if fPos.X + fWidth > Screen.Width then
+  if (fPos.X + fWidth > Screen.Width) and (fPos.X - fWidth>0) then
     HeaderComplForm.Left := fPos.X - fWidth
   else
     HeaderComplForm.Left := fPos.X;

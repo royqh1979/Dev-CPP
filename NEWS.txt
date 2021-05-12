@@ -1,3 +1,7 @@
+Version 6.7-beta5 MAY 2021
+
+    - fix: if screen width is less than width of the completion box, the position of completion box is not right
+
 Version 6.7-beta4 APR 2021
 
     - fix: show friendly error message, instead of crash error when set the icon file for project

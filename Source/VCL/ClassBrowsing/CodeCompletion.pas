@@ -819,7 +819,7 @@ end;
 procedure TCodeCompletion.SetPosition(Value: TPoint);
 begin
   fPos := Value;
-  if fPos.X + fWidth > Screen.Width then
+  if (fPos.X + fWidth > Screen.Width) and (fPos.X - fWidth>0) then
     CodeComplForm.Left := fPos.X - fWidth
   else
     CodeComplForm.Left := fPos.X;
