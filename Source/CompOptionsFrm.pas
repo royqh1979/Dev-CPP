@@ -582,6 +582,7 @@ begin
 
   // Add empty compiler set
   devCompilerSets.AddSets(Directory);
+  devCompilerSets.saveSets();
   {
   if devCompilerSets[devCompilerSets.Count - 1].Target = 'x86_64' then
     devCompilerSets[devCompilerSets.Count - 1].Name := devCompilerSets[devCompilerSets.Count - 1].Name + ' 64-bit';

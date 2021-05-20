@@ -448,7 +448,7 @@ end;
 procedure TTabnine.SetPosition(Value: TPoint);
 begin
   fPos := Value;
-  if fPos.X + fWidth > Screen.Width then
+  if (fPos.X + fWidth > Screen.Width) and (fPos.X-fWidth>0) then
     fTabnineForm.Left := fPos.X - fWidth
   else
     fTabnineForm.Left := fPos.X;
