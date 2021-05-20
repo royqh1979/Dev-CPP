@@ -1,6 +1,16 @@
+Version 6.7 MAY 2021
+    
+    highlights:
+
+    - statically link execuatables by default
+    - syntax highlighter for Lua files
+    - Support editing utf-8 BOM encoded files
+    - and a dozen of other enhancements and fixes
+
 Version 6.7-beta5 MAY 2021
 
     - fix: if screen width is less than width of the completion box, the position of completion box is not right
+    - fix: compiler sets added by folder are not correctly saved
 
 Version 6.7-beta4 APR 2021
 

@@ -7,7 +7,7 @@ The main executable devcpp.exe can be built using the following steps:
        (it fixes the problem that press alt will cause buttons in dialogs to disapear in windows with themes)
 
 	1) Compile and install the following package(s):
-		Source\VCL\SynEdit\Packages\SynEdit_<Delphi Version>.dpk
+		Source\VCL\SynEdit\Packages\SynEdit_<Delphi Version>.dpk (only delphi 7 works now)
 		Source\VCL\ClassBrowsing\ClassBrowsing.dpk
 		Source\VCL\DevCpp\DevCpp.dpk
         Source\VCL\Containers\Containers.dpk (not used now)
@@ -41,16 +41,8 @@ the setup scripts.
 	   enabled in Environment Options. This file can be compiled using
 	   Source\Tools\ConsolePauser\ConsolePauser.dev
 	   
-	2) devcppPortable.exe. This file should be provided with all builds of
-	   Dev-C++ (also the nonportable ones) and should also be placed in the root
-	   directory. Launching this executable will run devcpp.exe and tell it to
-	   store configuration files in the program directory instead of in
-	   %APPDATA%\Dev-Cpp. This file can be compiled using
-	   Source\Tools\DevCppPortable\DevCppPortable.dev
-	   
-	3) Packman.exe (legacy). This file is launched by the menu item located at
-	   Tools >> Package Manager and provides .pak plugin support. This file has
-	   not been touched since like 2005 so do what you wish with it.
+	2) Packman.exe. This file is launched by the menu item located at
+	   Tools >> Package Manager and provides .pak plugin support. 
 	   
 3. Other tools
 
@@ -59,30 +51,13 @@ Other tools provided for legacy reasons or to easy the developer's life are:
 	1) GitPush. Automated script that adds, commits, and pushes the current code
 	   base to the SourceForge git repo. Please position this executable in the
 	   root folder of Dev-C++.
-	   
-	2) HeywordHighlighter. Used to generate the hash table of function pointers
-	   used by SynEditHighlighterCpp.pas to determine if a word is a keyword.
-	   
-	3) LangCheck. Compares any language file to the english language file and
+   
+	2) LangCheck. Compares any language file to the english language file and
 	   checks for missing entries and formatting options compatibility.
 	   
-	4) PackMaker (legacy). Used to create PAK extension files.
+	3) PackMaker. Used to create PAK extension files.
 	   
-4. UPX
-
-To decrease the main executable size, the old developers from Bloodshed used a
-program called UPX to compress it. Here is a copy of their instructions on how
-to use it (I don't, since the mere megabyte you save in size pales to the 330MB
-of the provided compiler):
-
-	When compressing with upx (Ultimate Packer for Executables) use:
-	
-	upx -9 --compress-icons=0 devcpp.exe
-	
-	Otherwise upx will compress all icons and the file associations will point
-	to nonexisting (moved) icons within devcpp.exe
-	
-5. Shortcut Map
+4. Shortcut Map
 
 This is an up to date map of the default shortcuts of Dev-C++. All Ctrl+(Letter)
 combinations are in use, except for the following letters: UJKL. The Shift 
