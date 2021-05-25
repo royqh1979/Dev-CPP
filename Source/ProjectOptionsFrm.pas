@@ -706,8 +706,8 @@ begin
 
   // Directories tab
   SubTabs.Tabs.Clear;
-  SubTabs.Tabs.Append(Lang[ID_POPT_INCDIRS]);
   SubTabs.Tabs.Append(Lang[ID_POPT_LIBDIRS]);
+  SubTabs.Tabs.Append(Lang[ID_POPT_INCDIRS]);
   SubTabs.Tabs.Append(Lang[ID_POPT_RESDIRS]);
   btnDirReplace.Caption := Lang[ID_BTN_REPLACE];
   btnDirAdd.Caption := Lang[ID_BTN_ADD];
