@@ -1,3 +1,9 @@
+Version 6.7.1 MAY 2021
+    
+    - fix: gdb.exe included in the gcc 10.2 distribution may fail to debug
+    - fix: the title for the include and lib tabs in project option dialog are wrong.
+    - fix: add LANG=en environment variable  when run gcc -v to get compiler infos, to prevent it use locale translations
+
 Version 6.7 MAY 2021
     
     highlights:

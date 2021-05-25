@@ -1333,8 +1333,9 @@ begin
   output := GetCompilerOutput(BinDir + pd, BinFile, '-v');
   //Target
   DelimPos1 := Pos('Target: ', output);
-  if DelimPos1 = 0 then
-    Exit; // unknown binary
+  if DelimPos1 = 0 then begin
+    Exit
+  end;
   Inc(DelimPos1, Length('Target: '));
   DelimPos2 := DelimPos1;
   while (DelimPos2 <= Length(output)) and not (output[DelimPos2] in [#0..#32]) do
@@ -1729,8 +1730,11 @@ begin
 end;
 
 function TdevCompilerSet.GetCompilerOutput(const BinDir, BinFile, Input: AnsiString): AnsiString;
+var
+  env:string;
 begin
-  result := Trim(RunAndGetOutput(BinDir + pd + BinFile + ' ' + Input, BinDir, nil, nil, false))
+  env:='LANG=en'#0#0;
+  result := Trim(RunAndGetOutput(BinDir + pd + BinFile + ' ' + Input, BinDir, nil, nil, false, PChar(env)))
 end;
 
 function TdevCompilerSet.ValidateDirs(var msg:string): boolean;
