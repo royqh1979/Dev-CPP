@@ -670,7 +670,8 @@ begin
   si.hStdError := hErrorWrite;
 
   // Launch the process that we want to redirect.
-  if not CreateProcess(nil, PAnsiChar(Cmd), nil, nil, true, 0, nil, PAnsiChar(RealDir), si, pi) then begin
+  if not CreateProcess(nil, PAnsiChar(Cmd), nil, nil, true, 0,
+    pEnvironment, PAnsiChar(RealDir), si, pi) then begin
     Result := Format('CreateProcess error: %s %s',[SysErrorMessage(GetLastError),Cmd]);
     LogError('Utils.pas RunAndGetOutput',Result);
     Exit;
