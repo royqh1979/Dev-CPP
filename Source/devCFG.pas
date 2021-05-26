@@ -2320,10 +2320,13 @@ begin
 
         // If confirmed, insert working dirs into default path list
         if MessageDlg(msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+        {
           for i:=self.fList.Count-1 downto 0  do begin
             if not self.Sets[i].ValidateDirs(msg) then
               DeleteSet(i);
           end;
+        }
+          ClearSets;
           FindSets;
           SaveSets;
           if fList.Count<=DefaultSetIndex then begin

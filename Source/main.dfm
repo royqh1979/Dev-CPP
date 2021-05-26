@@ -4,7 +4,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
-  Caption = 'Dev-C++ 2020'
+  Caption = 'Red Panda Dev-C++'
   ClientHeight = 800
   ClientWidth = 984
   Color = clBtnFace
@@ -967,7 +967,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 458
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1002,7 +1002,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 38
-        Width = 174
+        Width = 179
         Height = 420
         Align = alClient
         BevelOuter = bvNone
@@ -1058,7 +1058,7 @@ object MainForm: TMainForm
       object tbClasses: TToolBar
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1102,7 +1102,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 174
+        Width = 179
         Height = 420
         Align = alClient
         BevelOuter = bvNone
@@ -1111,7 +1111,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 174
+          Width = 179
           Height = 420
           Align = alClient
           BevelInner = bvNone
@@ -1133,7 +1133,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1162,7 +1162,7 @@ object MainForm: TMainForm
       object tbFiles: TToolBar
         Left = 0
         Top = 0
-        Width = 174
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1199,7 +1199,7 @@ object MainForm: TMainForm
       object Panel5: TPanel
         Left = 0
         Top = 38
-        Width = 174
+        Width = 179
         Height = 420
         Align = alClient
         BevelOuter = bvNone
@@ -1208,7 +1208,7 @@ object MainForm: TMainForm
         object fileBrowser: TDevFileBrowser
           Left = 0
           Top = 0
-          Width = 174
+          Width = 179
           Height = 420
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
