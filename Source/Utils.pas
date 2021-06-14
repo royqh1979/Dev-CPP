@@ -37,6 +37,7 @@ type
     utresSrc, // resource source (.rc)
     utPrj, // project file (.dev)
     utMakefile, // makefile (.win)
+    utasmSrc, // asm source file
     utOther // any others
     );
 
@@ -943,6 +944,8 @@ begin
     result := utresSrc
   else if AnsiMatchText(ext, ['.rh']) then
     result := utresHead
+  else if AnsiMatchText(ext, ['.asm','.s']) then
+    result := utasmSrc
   else
     result := utOther;
 end;
