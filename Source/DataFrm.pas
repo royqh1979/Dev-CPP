@@ -429,6 +429,9 @@ begin
       else if (CompareText(ext, '.html')  = 0)
         or (CompareText(ext, '.htm')  = 0)then
         result := HTMLSyn
+      else if (CompareText(ext, '.s')  = 0)
+        or (CompareText(ext, '.asm')  = 0)then
+        result := AsmSyn
       else if (CompareText(ext, '.js')  = 0) then
         result := JSSyn
       else if CompareText(ext, '.css') = 0 then

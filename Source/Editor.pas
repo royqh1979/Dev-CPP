@@ -100,6 +100,7 @@ type
     fActiveLine: integer;
     fDebugGutter: TDebugGutter;
     fCurrentWord: AnsiString;
+    fCurrentHintReason : THandPointReason;
     fCurrentEvalWord: AnsiString;
     fIgnoreCaretChange: boolean;
     fPreviousEditors: TList;
@@ -373,6 +374,7 @@ begin
   fUpdateLock := 0;
   fSelChanged:=False;
   fLineCount:=-1;
+  fCurrentHintReason := hprNone;
   fLastMatchingBeginLine:=-1;
   fLastMatchingEndLine:=-1;
   fLastIdCharPressed := 0;
@@ -2993,7 +2995,7 @@ var
   begin
     kind := fParser.FindKindOfStatementOf(fFileName, s, p.Line);
 
-    if kind in [skVariable, skParameter] then begin //only show debug info of variables;
+    if kind in [skVariable, skGlobalVariable, skLocalVariable, skParameter] then begin //only show debug info of variables;
       if MainForm.Debugger.Reader.CommandRunning then
         Exit;
 
@@ -3017,6 +3019,7 @@ var
     // disable editor hint
     Application.CancelHint;
     fCurrentWord := '';
+    fCurrentHintReason := Reason;
     fText.Hint := '';
 
     // disable page control hint
@@ -3071,12 +3074,13 @@ begin
   // Don't rescan the same stuff over and over again (that's slow)
 //  if (s = fCurrentWord) and (fText.Hint<>'') then
   s:=trim(s);
-  if (s = fCurrentWord) then
+  if ((s = fCurrentWord) and (fCurrentHintReason = Reason)) then
     Exit; // do NOT remove hint when subject stays the same
 
   // Remove hint
   CancelHint;
   fCurrentWord := s;
+  fCurrentHintReason := Reason;
 
   // We are allowed to change the cursor
   if (ssCtrl in Shift) then
@@ -3422,7 +3426,7 @@ begin
 
   // Only allow in the text area...
   if fText.GetPositionOfMouse(mousepos) then begin
-    if Assigned(GetErrorAtPosition(mousepos)) then begin
+    if not MainForm.Debugger.Executing and Assigned(GetErrorAtPosition(mousepos)) then begin
       Result := hprError;
       Exit;
     end;
