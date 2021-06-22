@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 436
-  Top = 0
+  Left = 597
+  Top = 317
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -743,7 +743,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 0
+        Top = 5
         Width = 337
         Height = 24
         AutoComplete = False
@@ -967,7 +967,7 @@ object MainForm: TMainForm
       object ProjectView: TTreeView
         Left = 0
         Top = 0
-        Width = 147
+        Width = 179
         Height = 312
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
@@ -1002,7 +1002,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 38
-        Width = 147
+        Width = 179
         Height = 274
         Align = alClient
         BevelOuter = bvNone
@@ -1058,7 +1058,7 @@ object MainForm: TMainForm
       object tbClasses: TToolBar
         Left = 0
         Top = 0
-        Width = 147
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1102,7 +1102,7 @@ object MainForm: TMainForm
       object Panel4: TPanel
         Left = 0
         Top = 38
-        Width = 147
+        Width = 179
         Height = 274
         Align = alClient
         BevelOuter = bvNone
@@ -1111,7 +1111,7 @@ object MainForm: TMainForm
         object WatchView: TTreeView
           Left = 0
           Top = 0
-          Width = 147
+          Width = 179
           Height = 274
           Align = alClient
           BevelInner = bvNone
@@ -1133,7 +1133,7 @@ object MainForm: TMainForm
       object tbWatch: TToolBar
         Left = 0
         Top = 0
-        Width = 147
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1162,7 +1162,7 @@ object MainForm: TMainForm
       object tbFiles: TToolBar
         Left = 0
         Top = 0
-        Width = 147
+        Width = 179
         Height = 38
         ButtonHeight = 34
         ButtonWidth = 35
@@ -1199,7 +1199,7 @@ object MainForm: TMainForm
       object Panel5: TPanel
         Left = 0
         Top = 38
-        Width = 147
+        Width = 179
         Height = 274
         Align = alClient
         BevelOuter = bvNone
@@ -1208,7 +1208,7 @@ object MainForm: TMainForm
         object fileBrowser: TDevFileBrowser
           Left = 0
           Top = 0
-          Width = 147
+          Width = 179
           Height = 274
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
