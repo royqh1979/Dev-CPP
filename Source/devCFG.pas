@@ -1444,6 +1444,9 @@ begin
   fgprofName := GPROF_PROGRAM;
 end;
 
+function PathCanonicalize(lpszDst: PChar; lpszSrc: PChar): LongBool; stdcall;
+  external 'shlwapi.dll' name 'PathCanonicalizeA';
+
 procedure TdevCompilerSet.SetDirectories;
 var
   DelimPos1,DelimPos2: integer;
@@ -1451,9 +1454,15 @@ var
   sl: TStringList;
   i:integer;
   procedure AddExistingDirectory(var list: TStringList; const Directory: AnsiString);
+  var
+  Dst: array[0..MAX_PATH-1] of char;
+  newDir : string;
   begin
-    if DirectoryExists(Directory) then
-      list.Add(Directory);
+    newDir := Directory;
+    PathCanonicalize(@Dst[0], PChar(newDir));
+    newDir := Dst;
+    if DirectoryExists(newDir) and (list.IndexOf(newDir)<0) then
+      list.Add(newDir);
   end;
 begin
 
