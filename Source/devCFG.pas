@@ -1458,7 +1458,7 @@ var
   Dst: array[0..MAX_PATH-1] of char;
   newDir : string;
   begin
-    newDir := Directory;
+    newDir := StringReplace(Directory,'/','\',[rfReplaceAll]);
     PathCanonicalize(@Dst[0], PChar(newDir));
     newDir := Dst;
     if DirectoryExists(newDir) and (list.IndexOf(newDir)<0) then
