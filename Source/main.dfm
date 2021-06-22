@@ -1,11 +1,11 @@
 object MainForm: TMainForm
-  Left = 787
-  Top = 127
+  Left = 597
+  Top = 317
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
   Caption = 'Red Panda Dev-C++'
-  ClientHeight = 800
+  ClientHeight = 654
   ClientWidth = 984
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,14 +29,14 @@ object MainForm: TMainForm
     Left = 209
     Top = 80
     Width = 4
-    Height = 466
+    Height = 320
     MinSize = 45
     ResizeStyle = rsUpdate
     OnMoved = SplitterLeftMoved
   end
   object SplitterBottom: TSplitter
     Left = 0
-    Top = 546
+    Top = 400
     Width = 984
     Height = 4
     Cursor = crVSplit
@@ -46,7 +46,7 @@ object MainForm: TMainForm
   end
   object MessageControl: TPageControl
     Left = 0
-    Top = 550
+    Top = 404
     Width = 984
     Height = 225
     ActivePage = DebugSheet
@@ -856,7 +856,7 @@ object MainForm: TMainForm
   end
   object Statusbar: TStatusBar
     Left = 0
-    Top = 775
+    Top = 629
     Width = 984
     Height = 25
     Panels = <
@@ -886,7 +886,7 @@ object MainForm: TMainForm
     Left = 213
     Top = 80
     Width = 771
-    Height = 466
+    Height = 320
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
@@ -895,7 +895,7 @@ object MainForm: TMainForm
       Left = 771
       Top = 0
       Width = 0
-      Height = 466
+      Height = 320
       Align = alRight
       ResizeStyle = rsUpdate
       Visible = False
@@ -904,7 +904,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 771
-      Height = 466
+      Height = 320
       Align = alClient
       HotTrack = True
       MultiLine = True
@@ -924,7 +924,7 @@ object MainForm: TMainForm
       Left = 771
       Top = 0
       Width = 0
-      Height = 466
+      Height = 320
       Align = alRight
       HotTrack = True
       MultiLine = True
@@ -945,7 +945,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 80
     Width = 209
-    Height = 466
+    Height = 320
     ActivePage = FilesSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
@@ -968,7 +968,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 179
-        Height = 458
+        Height = 312
         Align = alClient
         Anchors = [akLeft, akTop, akBottom]
         BevelOuter = bvNone
@@ -1003,7 +1003,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 38
         Width = 179
-        Height = 420
+        Height = 274
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel3'
@@ -1103,7 +1103,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 38
         Width = 179
-        Height = 420
+        Height = 274
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel4'
@@ -1112,7 +1112,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 420
+          Height = 274
           Align = alClient
           BevelInner = bvNone
           BevelOuter = bvNone
@@ -1200,7 +1200,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 38
         Width = 179
-        Height = 420
+        Height = 274
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel5'
@@ -1209,7 +1209,7 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 179
-          Height = 420
+          Height = 274
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
           TabOrder = 0

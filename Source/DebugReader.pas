@@ -268,7 +268,16 @@ begin
   if (devDebugger.ShowCommandLog) or (assigned(fCurrentCmd) and fCurrentCmd^.ShowInConsole) then begin
     if devDebugger.ShowAnnotations then begin
       strOutput := StringReplace(fOutput, #26, '>', [rfReplaceAll]);
-      MainForm.DebugOutput.Lines.Add(strOutput);
+      strList := TStringList.Create;
+      try
+        strList.Text := strOutput;
+        for i:=0 to strList.Count-1 do
+          MainForm.DebugOutput.Lines.Add(strList[i]);
+        MainForm.DebugOutput.Lines.Add('');
+        MainForm.DebugOutput.Lines.Add('');
+      finally
+        strList.Destroy;
+      end;
     end else begin
       strList := TStringList.Create;
       outStrList := TStringList.Create;

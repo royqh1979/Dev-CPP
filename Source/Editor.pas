@@ -1898,7 +1898,7 @@ begin
           HandleArrayCompletion;
       end;
     ']': begin
-        if devEditor.ParentheseComplete then
+        if devEditor.ArrayComplete then
           HandleArraySkip;
       end;
     '*': begin

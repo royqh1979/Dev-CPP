@@ -1,9 +1,9 @@
 ####################################################################
 # Startup
 
-!define COMPILERNAME "GCC 10.2"
+!define COMPILERNAME "GCC 10.3"
 !define COMPILERFOLDER "MinGW32"
-!define DEVCPP_VERSION "6.7.1"
+!define DEVCPP_VERSION "6.7.3"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 

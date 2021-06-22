@@ -726,7 +726,7 @@ begin
         GetLibrariesParams;
         GetIncludesParams;
 
-        if fCompilerSet.AddCharset then begin
+        if fCompilerSet.AddCharset and (fCompilerSet.CompilerType = ctGCC) then begin
           if not fCheckSyntax and  UseUTF8 then begin
             fCompileParams := fCompileParams + ' -finput-charset=utf-8 -fexec-charset='
               +GetSystemCharsetName();

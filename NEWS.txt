@@ -1,3 +1,19 @@
+Version 6.7.3
+
+    - fix: gdb annotation infos are not correctly displayed
+    - fix: the symbol completion option for ']' doesn't work
+    - experiment support for clang (msys2 64bit build) 
+    issues for clang:
+    - gdb used by clang dosen't support path name without non-ascii characters
+    - clang doesn't support encoding arguments
+    - Parser can't correctly parse libc++ header files (support will be done in the QT version of devcpp)
+
+
+Version 6.7.2 JUNE 2021
+
+    - fix: show value of the variable under cursor when debugging
+    - add: open .asm file with assembly language highlighter
+
 Version 6.7.1 MAY 2021
     
     - fix: gdb.exe included in the gcc 10.2 distribution may fail to debug

@@ -32,6 +32,8 @@ const
     's', 't', 'u', 'v', 'w', 'x', 'y', 'z');
 
 type
+  TCompilerType = (ctGCC,ctClang);
+
   // the comments are an example of the record
   PCompilerOption = ^TCompilerOption;
   TCompilerOption = record
@@ -70,6 +72,7 @@ type
     fDefInclude: TStringList; // default include dir
     fDefines: TStringList; // list of predefined constants
     fTarget: AnsiString; // 'X86_64' / 'i686'
+    fCompilerType: TCompilerType; // 'Clang'/ 'GCC'
 
     // User settings
     fCompAdd: boolean;
@@ -136,6 +139,7 @@ type
     property Target: AnsiString read fTarget;
     property DefInclude: TStringList read fDefInclude;
     property Defines: TStringList read fDefines;
+    property CompilerType: TCompilerType read fCompilerType;
 
     // Options
     property Options: TList read fOptions write fOptions;
@@ -1305,6 +1309,7 @@ begin
   fType := input.fType;
   fName := input.fName;
   fFolder := input.fFolder;
+  fCompilerType := input.fCompilerType;
   fDefInclude.Assign(input.fDefInclude);
   fDefines.Assign(input.fDefines);
 
@@ -1346,41 +1351,60 @@ begin
   else
     fTarget := 'i686';
 
-  //version
-  DelimPos1 := Pos('gcc version ', output);
-  if DelimPos1 = 0 then
-    Exit; // unknown binary
+  //Compiler Type
+  DelimPos1 := Pos('clang version ', output);
+  if (DelimPos1 <> 0) then begin
+    fCompilerType := ctClang;
+    Inc(DelimPos1, Length('clang version '));
+    DelimPos2 := DelimPos1;
+    while (DelimPos2 <= Length(output)) and not (output[DelimPos2] in [#0..#32]) do
+      Inc(DelimPos2);
+    fVersion := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
 
-  // Find version number
-  Inc(DelimPos1, Length('gcc version '));
-  DelimPos2 := DelimPos1;
-  while (DelimPos2 <= Length(output)) and not (output[DelimPos2] in [#0..#32]) do
-    Inc(DelimPos2);
-  fVersion := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
+    // Set compiler folder
+    DelimPos1 := RPos(pd, BinDir);
+    if DelimPos1 > 0 then
+      fFolder := Copy(BinDir, 1, DelimPos1 - 1);
+    if fName = '' then
+      fName := 'Clang ' + fVersion;
+  end else begin
+    fCompilerType := ctGCC;
+    //version
+    DelimPos1 := Pos('gcc version ', output);
+    if DelimPos1 = 0 then
+      Exit; // unknown binary
 
-  // Set compiler folder
-  DelimPos1 := RPos(pd, BinDir);
-  if DelimPos1 > 0 then
-    fFolder := Copy(BinDir, 1, DelimPos1 - 1);
+    // Find version number
+    Inc(DelimPos1, Length('gcc version '));
+    DelimPos2 := DelimPos1;
+    while (DelimPos2 <= Length(output)) and not (output[DelimPos2] in [#0..#32]) do
+      Inc(DelimPos2);
+    fVersion := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
 
-  // Find compiler builder
-  DelimPos1 := DelimPos2;
-  while (DelimPos1 <= Length(output)) and not (output[DelimPos1] = '(') do
-    Inc(DelimPos1);
-  while (DelimPos2 <= Length(output)) and not (output[DelimPos2] = ')') do
-    Inc(DelimPos2);
-  fType := Copy(output, DelimPos1 + 1, DelimPos2 - DelimPos1 - 1);
+    // Set compiler folder
+    DelimPos1 := RPos(pd, BinDir);
+    if DelimPos1 > 0 then
+      fFolder := Copy(BinDir, 1, DelimPos1 - 1);
 
-  // Assemble user friendly name if we don't have one yet
-  if fName = '' then begin
-    if ContainsStr(fType, 'tdm64') then
-      fName := 'TDM-GCC ' + fVersion
-    else if ContainsStr(fType, 'tdm') then
-      fName := 'TDM-GCC ' + fVersion
-    else if ContainsStr(fType, 'GCC') then
-      fName := 'MinGW GCC ' + fVersion
-    else
-      fName := 'MinGW GCC' + fVersion;
+    // Find compiler builder
+    DelimPos1 := DelimPos2;
+    while (DelimPos1 <= Length(output)) and not (output[DelimPos1] = '(') do
+      Inc(DelimPos1);
+    while (DelimPos2 <= Length(output)) and not (output[DelimPos2] = ')') do
+      Inc(DelimPos2);
+    fType := Copy(output, DelimPos1 + 1, DelimPos2 - DelimPos1 - 1);
+
+    // Assemble user friendly name if we don't have one yet
+    if fName = '' then begin
+      if ContainsStr(fType, 'tdm64') then
+        fName := 'TDM-GCC ' + fVersion
+      else if ContainsStr(fType, 'tdm') then
+        fName := 'TDM-GCC ' + fVersion
+      else if ContainsStr(fType, 'GCC') then
+        fName := 'MinGW GCC ' + fVersion
+      else
+        fName := 'MinGW GCC' + fVersion;
+    end;
   end;
 
   // Obtain compiler target
@@ -1421,12 +1445,82 @@ begin
 end;
 
 procedure TdevCompilerSet.SetDirectories;
+var
+  DelimPos1,DelimPos2: integer;
+  output,s: string;
+  sl: TStringList;
+  i:integer;
   procedure AddExistingDirectory(var list: TStringList; const Directory: AnsiString);
   begin
     if DirectoryExists(Directory) then
       list.Add(Directory);
   end;
 begin
+
+  // Find default directories
+  // C include dirs
+  output := GetCompilerOutput(IncludeTrailingPathDelimiter(fFolder) + 'bin' +  pd, fgccName, '-xc -v -E NUL');
+  //Target
+  DelimPos1 := Pos('#include <...> search starts here:',output);
+  DelimPos2 := Pos('End of search list.', output);
+  if (delimPos1 >0) and ( delimPos2>0 ) then begin
+    Inc(DelimPos1,Length('#include <...> search starts here:'));
+    output := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
+    sl := TStringList.Create;
+    try
+      ExtractStrings([#10], [], PAnsiChar(output), sl);
+      for i:=0 to sl.Count -1 do begin
+        s := Trim(sl[i]);
+        if (s <> '') then
+          addExistingDirectory(fCDir,s);
+      end;
+    finally
+      sl.Destroy;
+    end;
+  end;
+  // Find default directories
+  // C++ include dirs
+  output := GetCompilerOutput(IncludeTrailingPathDelimiter(fFolder) + 'bin' +  pd, fgccName, '-xc++ -v -E NUL');
+  //Target
+  DelimPos1 := Pos('#include <...> search starts here:',output);
+  DelimPos2 := Pos('End of search list.', output);
+  if (delimPos1 >0) and ( delimPos2>0 ) then begin
+    Inc(DelimPos1,Length('#include <...> search starts here:'));
+    output := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
+    sl := TStringList.Create;
+    try
+      ExtractStrings([#10], [], PAnsiChar(output), sl);
+      for i:=0 to sl.Count -1 do begin
+        s := Trim(sl[i]);
+        if (s <> '') then
+          addExistingDirectory(fCppDir,s);
+      end;
+    finally
+      sl.Destroy;
+    end;
+  end;
+  // Find default directories
+  // lib dirs
+  output := GetCompilerOutput(IncludeTrailingPathDelimiter(fFolder) + 'bin' +  pd, fgccName, '-print-search-dirs');
+  DelimPos1 := Pos('libraries: =',output);
+  if (delimPos1 >0) then begin
+    Inc(DelimPos1,Length('libraries: ='));
+    DelimPos2 := DelimPos1;
+    while (DelimPos2 <= Length(output)) and not (output[DelimPos2] in [#0..#32]) do
+      Inc(DelimPos2);
+    output := Copy(output, DelimPos1, DelimPos2 - DelimPos1);
+    sl := TStringList.Create;
+    try
+      ExtractStrings([';'], [], PAnsiChar(output), sl);
+      for i:=0 to sl.Count -1 do begin
+        s := Trim(sl[i]);
+        if (s <> '') then
+          addExistingDirectory(fLibDir,s);
+      end;
+    finally
+      sl.Destroy;
+    end
+  end;
   // Add both the default and the autoconf directories
   AddExistingDirectory(fBinDir, fFolder + pd + 'bin');
   AddExistingDirectory(fLibDir, fFolder + pd + 'lib');
@@ -1865,9 +1959,11 @@ begin
   if not FindFile(fBinDir, fgdbName) then begin
     msg := msg + Format(Lang[ID_COMPVALID_BINNOTFOUND], [Lang[ID_COMPVALID_DEBUGGER], fgdbName]) + #13#10;
   end;
+  {
   if not FindFile(fBinDir, fgprofName) then begin
     msg := msg + Format(Lang[ID_COMPVALID_BINNOTFOUND], [Lang[ID_COMPVALID_PROFILER], fgprofName]) + #13#10;
   end;
+  }
   if not FindFile(fBinDir, fmakeName) then begin
     msg := msg + Format(Lang[ID_COMPVALID_BINNOTFOUND], [Lang[ID_COMPVALID_MAKE], fmakeName]) + #13#10;
   end;
@@ -2388,6 +2484,10 @@ begin
   AddSets(devDirs.Exec + 'MinGW32');
   // Assume 64bit compilers are put in the MinGW64 folder
   AddSets(devDirs.Exec + 'MinGW64');
+  // Assume 32bit clang compilers are put in the Clang32 folder
+  AddSets(devDirs.Exec + 'Clang32');
+  // Assume 64bit clang compilers are put in the Clang64 folder
+  AddSets(devDirs.Exec + 'Clang64');
 end;
 
 procedure TdevCompilerSets.ClearSets;
