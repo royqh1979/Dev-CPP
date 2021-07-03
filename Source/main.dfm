@@ -1,6 +1,6 @@
 object MainForm: TMainForm
   Left = 597
-  Top = 317
+  Top = 312
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -167,7 +167,7 @@ object MainForm: TMainForm
         TabOrder = 0
         DesignSize = (
           192
-          196)
+          190)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,7 +213,7 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 784
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 196
+        Height = 190
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 518
-        Height = 196
+        Height = 190
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 165
+            Height = 159
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 510
-              Height = 165
+              Height = 159
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -388,7 +388,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
@@ -397,13 +397,13 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 450
-          Height = 196
+          Height = 190
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
           DesignSize = (
             450
-            196)
+            190)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -438,7 +438,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 62
             Width = 450
-            Height = 134
+            Height = 128
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -465,7 +465,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 196
+        Height = 190
         Align = alClient
         Indent = 22
         TabOrder = 0
@@ -743,7 +743,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 5
+        Top = 0
         Width = 337
         Height = 24
         AutoComplete = False
@@ -946,7 +946,7 @@ object MainForm: TMainForm
     Top = 80
     Width = 209
     Height = 320
-    ActivePage = FilesSheet
+    ActivePage = LeftProjectSheet
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -1011,8 +1011,8 @@ object MainForm: TMainForm
         object ClassBrowser: TClassBrowser
           Left = 0
           Top = 0
-          Width = 174
-          Height = 376
+          Width = 147
+          Height = 274
           Align = alClient
           Images = dmMain.ClassImages
           Indent = 19
@@ -1208,7 +1208,7 @@ object MainForm: TMainForm
         object fileBrowser: TDevFileBrowser
           Left = 0
           Top = 0
-          Width = 179
+          Width = 147
           Height = 274
           Align = alClient
           Images = dmMain.FileBrowserImages_NewLook
