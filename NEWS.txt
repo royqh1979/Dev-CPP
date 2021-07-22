@@ -1,5 +1,7 @@
 Version 6.7.3
 
+    - change: use del instead of rm.exe in the project's makefile
+    - fix: Generated makefiles have error for dll projects
     - fix: gdb annotation infos are not correctly displayed
     - fix: the symbol completion option for ']' doesn't work
     - experiment support for clang (msys2 64bit build) 

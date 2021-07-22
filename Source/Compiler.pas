@@ -309,7 +309,8 @@ begin
   Writeln(F, 'CXXFLAGS = $(CXXINCS) ' + fCppCompileParams);
   Writeln(F, 'ENCODINGS = -finput-charset=utf-8 -fexec-charset='+GetSystemCharsetName);
   Writeln(F, 'CFLAGS   = $(INCS) ' + fCompileParams);
-  Writeln(F, 'RM       = ' + CLEAN_PROGRAM + ' -f'); // TODO: use del or rm?
+//  Writeln(F, 'RM       = ' + CLEAN_PROGRAM + ' -f'); // TODO: use del or rm?
+  Writeln(F, 'RM       = ' + CLEAN_PROGRAM + ' /f'); // TODO: use del or rm?
   if fProject.Options.UsePrecompiledHeader then begin
     Writeln(F, 'PCH_H = ' + fProject.Options.PrecompiledHeader );
     Writeln(F, 'PCH = ' + fProject.Options.PrecompiledHeader +'.gch' );
@@ -590,7 +591,7 @@ begin
       //  Writeln(F, #9 +
       //    '$(CPP) -shared $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC),--add-stdcall-alias')
         Writeln(F, #9 +
-          '$(CPP) -mdll - $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
+          '$(CPP) -mdll $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
       else
         Writeln(F, #9 +
           '$(CC) -mdll $(LINKOBJ) -o "$(BIN)" $(LIBS) -Wl,--output-def,$(DEF),--out-implib,$(STATIC)')
