@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -167,7 +167,7 @@ object MainForm: TMainForm
         TabOrder = 0
         DesignSize = (
           192
-          190)
+          196)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,7 +213,7 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 784
-        Height = 190
+        Height = 196
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 190
+        Height = 196
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 518
-        Height = 190
+        Height = 196
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 159
+            Height = 165
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 510
-              Height = 159
+              Height = 165
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -388,7 +388,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 190
+        Height = 196
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
@@ -397,13 +397,13 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 450
-          Height = 190
+          Height = 196
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
           DesignSize = (
             450
-            190)
+            196)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -436,7 +436,7 @@ object MainForm: TMainForm
           end
           object EvalOutput: TMemo
             Left = 0
-            Top = 62
+            Top = 68
             Width = 450
             Height = 128
             Align = alBottom
@@ -465,7 +465,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 190
+        Height = 196
         Align = alClient
         Indent = 22
         TabOrder = 0
@@ -743,7 +743,7 @@ object MainForm: TMainForm
         36)
       object cmbCompilers: TComboBox
         Left = 0
-        Top = 0
+        Top = 5
         Width = 337
         Height = 24
         AutoComplete = False
@@ -1555,9 +1555,11 @@ object MainForm: TMainForm
         Action = actInsert
         object DateTimeMenuItem: TMenuItem
           Caption = '&Date/Time'
+          OnClick = DateTimeMenuItemClick
         end
         object CommentHeaderMenuItem: TMenuItem
           Caption = '&Comment Header'
+          OnClick = CommentHeaderMenuItemClick
         end
         object N26: TMenuItem
           Caption = '-'

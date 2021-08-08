@@ -1,4 +1,9 @@
-Version 6.7.3
+Version 6.7.4 AUGUST 2021
+ 
+    - change: use TDM-GCC gcc compiler in distribution
+    - fix: use relative path for projects folder setting
+
+Version 6.7.3 JULY 2021
 
     - change: use del instead of rm.exe in the project's makefile
     - fix: Generated makefiles have error for dll projects

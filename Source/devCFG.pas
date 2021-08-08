@@ -2556,6 +2556,7 @@ begin
   fLang := ReplaceFirstStr(fLang, '%path%\', fExec);
   fTemp := ReplaceFirstStr(fTemp, '%path%\', fExec);
   fThemes := ReplaceFirstStr(fThemes, '%path%\', fExec);
+  fProjects := ReplaceFirstStr(fProjects, '%path%\', fExec);
 end;
 
 procedure TdevDirs.SaveSettings;
@@ -2566,6 +2567,7 @@ begin
   fLang := ReplaceFirstStr(fLang, fExec, '%path%\');
   fTemp := ReplaceFirstStr(fTemp, fExec, '%path%\');
   fThemes := ReplaceFirstStr(fThemes, fExec, '%path%\');
+  fProjects := ReplaceFirstStr(fProjects, fExec, '%path%\');
 
   devData.WriteObject('Directories', Self);
   fDefault := ReplaceFirstStr(fDefault, '%path%\', fExec);
@@ -2574,6 +2576,7 @@ begin
   fLang := ReplaceFirstStr(fLang, '%path%\', fExec);
   fTemp := ReplaceFirstStr(fTemp, '%path%\', fExec);
   fThemes := ReplaceFirstStr(fThemes, '%path%\', fExec);
+  fProjects := ReplaceFirstStr(fProjects, '%path%\', fExec);
 end;
 
 constructor TdevEditor.Create;
