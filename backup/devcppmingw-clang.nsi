@@ -1,9 +1,9 @@
 ####################################################################
 # Startup
 
-!define COMPILERNAME "No.Compiler"
-!define COMPILERFOLDER ""
-!define DEVCPP_VERSION "6.7.4"
+!define COMPILERNAME "Clang 12.0 64bit"
+!define COMPILERFOLDER "Clang64"
+!define DEVCPP_VERSION "6.7.3"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 
@@ -21,7 +21,6 @@ Caption "${DISPLAY_NAME}"
 
 LicenseData "LICENSE"
 InstallDir $PROGRAMFILES\Dev-Cpp
-
 ####################################################################
 # Interface Settings
 
@@ -94,7 +93,6 @@ InstType "Safe";3
 !insertmacro MUI_LANGUAGE "Turkish"
 !insertmacro MUI_LANGUAGE "Ukrainian"
 
-
 ####################################################################
 # Files, by option section
 
@@ -109,7 +107,7 @@ Section "$(SectionMainName)" SectionMain
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "DisplayVersion" "${DEVCPP_VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "DisplayIcon" "$INSTDIR\devcpp.exe"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "Publisher" "Bloodshed Software"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dev-C++" "Publisher" "Roy Qu(royqh1979@gmail.com)"
 
   ; HDPI Fix
   WriteRegStr HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"  "$INSTDIR\devcpp.exe" "~ HIGHDPIAWARE"
@@ -139,6 +137,13 @@ Section "$(SectionMainName)" SectionMain
   File /nonfatal /r "contributes\*"
 SectionEnd
 
+Section "$(SectionMinGWName)" SectionMinGW
+  SectionIn 1 3
+  SetOutPath $INSTDIR\MinGW32
+
+  File /nonfatal /r "${COMPILERFOLDER}\*"
+SectionEnd
+
 Section "$(SectionIconsName)" SectionIcons
   SectionIn 1 3
   
@@ -152,6 +157,8 @@ Section "$(SectionLangsName)" SectionLangs
   SetOutPath $INSTDIR\Lang
   File /nonfatal /r "Lang\*"
 SectionEnd
+
+
 
 ####################################################################
 # File association
@@ -371,15 +378,14 @@ Section "$(SectionConfigName)" SectionConfig
 SectionEnd
 
 ####################################################################
-# TODO: Create language tables that describe installation components using LangString
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionMain}        "$(MessageSectionMain)"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionMinGW}      "$(MessageSectionMinGW)"
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionIcons}      "$(MessageSectionIcons)"
-#!insertmacro MUI_DESCRIPTION_TEXT ${SectionMinGW}      "$(MessageSectionMinGW}"
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionLangs}      "$(MessageSectionLangs)"
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionAssocs}      "$(MessageSectionAssocs)"
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionShortcuts}   "$(MessageSectionShortcuts)"
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionAssocs}      "$(MessageSectionAssocs)"
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionConfig}      "$(MessageSectionConfig)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
@@ -396,7 +402,6 @@ Function .onInit
     SectionSetFlags ${SectionConfig} ${SF_SELECTED}
 
 FunctionEnd
-
 
 Function myGuiInit
 
@@ -473,7 +478,6 @@ Function un.DeleteDirIfEmpty
   NoDelete:
    FindClose $R0
 FunctionEnd
-
 
 Function GetParent
  
@@ -581,6 +585,7 @@ Section "Uninstall"
   DeleteRegKey HKCR "DevCpp.devpak"
   DeleteRegKey HKCR "DevCpp.devpackage"
   DeleteRegKey HKCR "DevCpp.template"
+
 
   Delete "$INSTDIR\Packman.map"
   Delete "$INSTDIR\Packman.exe"
