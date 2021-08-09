@@ -1,9 +1,9 @@
 ####################################################################
 # Startup
 
-!define COMPILERNAME "TDM 64 GCC 10.3"
+!define COMPILERNAME "MinGW-w64 X86_64 GCC 10.3 "
 !define COMPILERFOLDER "MinGW64"
-!define DEVCPP_VERSION "6.7.4"
+!define DEVCPP_VERSION "6.7.5"
 !define FINALNAME "Dev-Cpp.${DEVCPP_VERSION}.${COMPILERNAME}.Setup.exe"
 !define DISPLAY_NAME "Red Panda Dev-C++ ${DEVCPP_VERSION}"
 

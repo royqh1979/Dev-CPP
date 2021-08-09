@@ -2,6 +2,7 @@ Version 6.7.5 AUGUST 2021
 
     - add: blend mode for debug cpu window
     - change: use msys2 x86_64 gcc compiler instead of TDM-GCC-64, becuause the gdb distributed with TDM can't correctly handle path with non-ascii characters.
+    - fix: clear local panel when debugger stops.
  
 Version 6.7.4 AUGUST 2021
  
