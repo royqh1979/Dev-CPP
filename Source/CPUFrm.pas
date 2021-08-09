@@ -44,6 +44,7 @@ type
     LeftPanel: TPanel;
     edFunc: TEdit;
     VertSplit: TSplitter;
+    chkBlendMode: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure gbSyntaxClick(Sender: TObject);
@@ -118,6 +119,7 @@ begin
   CPUCopyAll.Caption := Lang[ID_ITEM_COPYALL];
   CPUPaste.Caption := Lang[ID_ITEM_PASTE];
   CPUSelectAll.Caption := Lang[ID_ITEM_SELECTALL];
+  chkBlendMode.Caption := Lang[ID_CPU_BLEND_MODE];
 end;
 
 procedure TCPUForm.OnAssemblerReady;
@@ -194,6 +196,7 @@ begin
 
   RadioATT.Checked := devData.UseATTSyntax;
   RadioIntel.Checked := not devData.UseATTSyntax;
+  chkBlendMode.Checked := devDebugger.BlendMode;
 
   fRegisters := TList.Create;
   fAssembler := TStringList.Create;
@@ -205,15 +208,21 @@ begin
   // Set disassembly flavor
   if RadioAtt.Checked then begin
     MainForm.Debugger.SendCommand('set disassembly-flavor', 'att');
-    MainForm.Debugger.SendCommand('disas','');
+    //MainForm.Debugger.SendCommand('disas','');
     RadioIntel.Checked := false;
     devData.UseATTSyntax := true;
   end else if RadioIntel.Checked then begin
     MainForm.Debugger.SendCommand('set disassembly-flavor', 'intel');
-    MainForm.Debugger.SendCommand('disas','');
+    //MainForm.Debugger.SendCommand('disas','');
     RadioAtt.Checked := false;
     devData.UseATTSyntax := false;
   end;
+  if (chkBlendMode.Checked) then begin
+    MainForm.Debugger.SendCommand('disas','/s');
+  end else begin
+    MainForm.Debugger.SendCommand('disas','');
+  end;
+  devDebugger.BlendMode := chkBlendMode.Checked;
 
 end;
 

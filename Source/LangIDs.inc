@@ -1190,6 +1190,7 @@ const
   ID_CPU_FUNC                           = 64003;
   ID_CPU_SYNTAX                         = 64004;
   ID_CPU_REGISTERS                      = 64005;
+  ID_CPU_BLEND_MODE                     = 64006;
 
   ID_TIPS_CAPTION                       = 65001;
   ID_TIPS_DIDYOUKNOW                    = 65002;

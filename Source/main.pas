@@ -6296,7 +6296,10 @@ begin
   end;
   CPUForm.Show;
   Debugger.SendCommand('info', 'registers');
-  Debugger.SendCommand('disas','');
+  if (devDebugger.BlendMode) then
+    Debugger.SendCommand('disas','/s')
+  else
+    Debugger.SendCommand('disas','');
 end;
 
 procedure TMainForm.CheckForDLLProfiling;
@@ -8531,7 +8534,10 @@ begin
       //update register info
       // Load the registers...
       Debugger.SendCommand('info', 'registers');
-      Debugger.SendCommand('disas','');
+      if (devDebugger.BlendMode) then
+        Debugger.SendCommand('disas','/s')
+      else
+        Debugger.SendCommand('disas','');
       fDebugger.InvalidateAllVars;
       //Debugger.SendCommand('display','');
       fDebugger.RefreshWatchVars;

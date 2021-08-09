@@ -273,12 +273,14 @@ type
   private
     fShowCommandLog: boolean;
     fShowAnnotations: boolean;
+    fBlendMode: boolean;
   public
     constructor Create;
     procedure SettoDefaults;
     procedure SaveSettings;
     procedure LoadSettings;
   published
+    property BlendMode: boolean read fBlendMode write fBlendMode;
     property ShowCommandLog: boolean read fShowCommandLog write fShowCommandLog;
     property ShowAnnotations: boolean read fShowAnnotations write fShowAnnotations;
   end;
@@ -2970,6 +2972,7 @@ procedure TdevDebugger.SettoDefaults;
 begin
   fShowCommandLog := False;
   fShowAnnotations := False;
+  fBlendMode := True;
 end;
 
 { TdevRefactorer }
