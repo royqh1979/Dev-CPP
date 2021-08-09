@@ -139,7 +139,7 @@ SectionEnd
 
 Section "$(SectionMinGWName)" SectionMinGW
   SectionIn 1 3
-  SetOutPath $INSTDIR\MinGW32
+  SetOutPath $INSTDIR\MinGW64
 
   File /nonfatal /r "${COMPILERFOLDER}\*"
 SectionEnd
