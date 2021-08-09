@@ -894,8 +894,10 @@ begin
   s := GetNextLine;
 
   // Add lines of disassembly
-  while not SameStr('End of assembler dump.', s) and not SameStr(s, '') do begin
-    fDisassembly.Add(s);
+//  while not SameStr('End of assembler dump.', s) and not SameStr(s, '') do begin
+  while not SameStr('End of assembler dump.', s) do begin
+    if not SameStr(s, '') then 
+      fDisassembly.Add(s);
     s := GetNextLine;
   end;
 

@@ -273,12 +273,14 @@ type
   private
     fShowCommandLog: boolean;
     fShowAnnotations: boolean;
+    fBlendMode: boolean;
   public
     constructor Create;
     procedure SettoDefaults;
     procedure SaveSettings;
     procedure LoadSettings;
   published
+    property BlendMode: boolean read fBlendMode write fBlendMode;
     property ShowCommandLog: boolean read fShowCommandLog write fShowCommandLog;
     property ShowAnnotations: boolean read fShowAnnotations write fShowAnnotations;
   end;
@@ -2309,6 +2311,8 @@ var
   BaseSet: TdevCompilerSet;
   BaseName: AnsiString;
   PlatformName : AnsiString;
+  option: PCompilerOption;
+  index: integer;
 begin
   if not DirectoryExists(folder) then
     Exit;
@@ -2340,6 +2344,39 @@ begin
   end;
 
   fDefaultIndex := self.fList.Count - 2;
+
+  {
+  // add 32-bit too
+  if BaseSet.Target = 'x86_64' then begin
+    PlatformName := '32-bit';
+    //Release profile
+    BaseSet := AddSet(Folder);
+    with BaseSet do begin
+      Name := BaseName + ' '+ PlatformName + ' Release';
+      if FindOption('-', option, index) then
+        SetOption(option, '1');
+      SetReleaseOptions(BaseSet);
+    end;
+
+    //Debug profile
+    BaseSet := AddSet(Folder);
+    with BaseSet do begin
+      Name := BaseName + ' '+ PlatformName + ' Debug';
+      if FindOption('-', option, index) then
+        SetOption(option, '1');
+      SetDebugOptions(BaseSet);
+    end;
+
+    //Profile profile
+    BaseSet := AddSet(Folder);
+    with BaseSet do begin
+      Name := BaseName + ' '+ PlatformName + ' Profile';
+      if FindOption('-', option, index) then
+        SetOption(option, '1');
+      SetProfileOptions(BaseSet);
+    end;
+  end;
+  }
 end;
 
 function TdevCompilerSets.AddSet: TdevCompilerSet;
@@ -2970,6 +3007,7 @@ procedure TdevDebugger.SettoDefaults;
 begin
   fShowCommandLog := False;
   fShowAnnotations := False;
+  fBlendMode := True;
 end;
 
 { TdevRefactorer }

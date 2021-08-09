@@ -249,6 +249,8 @@ begin
 
     MainForm.OnBacktraceReady;
 
+    MainForm.txtLocals.Clear;
+
     Application.HintHidePause := 2500;
 
     WatchView.Items.BeginUpdate;
