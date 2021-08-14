@@ -1,3 +1,8 @@
+Version 6.7.6 
+
+    - fix: parse error when double quotes not correctly closed
+    - fix: parse error when single quotes not correctly closed
+
 Version 6.7.5 AUGUST 2021
 
     - add: blend mode for debug cpu window

@@ -254,7 +254,8 @@ begin
       ')': noEscape:=False;
     end;
   until (pCurrent^ = #0) or ( (pCurrent^ = '"') and (not noEscape));
-  Inc(pCurrent);
+  if (pCurrent^ <> #0) then
+    Inc(pCurrent);
 end;
 
 procedure TCppTokenizer.SkipDoubleQuotes;
@@ -266,7 +267,8 @@ begin
     else
       Inc(pCurrent);
   end;
-  Inc(pCurrent);
+  if (pCurrent^ <> #0) then
+    Inc(pCurrent);
 end;
 
 procedure TCppTokenizer.SkipSingleQuote;
@@ -276,7 +278,8 @@ begin
     if pCurrent^ = '\' then
       Inc(pCurrent, 2); // skip escaped quote
   until pCurrent^ in ['''', #0];
-  Inc(pCurrent);
+  if (pCurrent^ <> #0) then
+    Inc(pCurrent);
 end;
 
 procedure TCppTokenizer.SkipPair(cStart, cEnd: Char; FailChars: TSysCharSet); // e.g.: SkipPair('[', ']');

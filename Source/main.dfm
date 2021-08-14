@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 597
-  Top = 312
+  Left = 337
+  Top = 216
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AutoScroll = False
@@ -71,7 +71,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -116,7 +116,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -161,13 +161,13 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 192
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           192
-          196)
+          190)
         object btnAbortCompilation: TSpeedButton
           Left = 5
           Top = 5
@@ -213,14 +213,14 @@ object MainForm: TMainForm
         Left = 192
         Top = 0
         Width = 784
-        Height = 196
+        Height = 190
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
         object LogOutput: TMemo
           Left = 0
           Top = 0
-          Width = 875
+          Width = 784
           Height = 190
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -245,13 +245,13 @@ object MainForm: TMainForm
         Left = 450
         Top = 0
         Width = 8
-        Height = 196
+        Height = 190
       end
       object DebugViews: TPageControl
         Left = 458
         Top = 0
         Width = 518
-        Height = 196
+        Height = 190
         ActivePage = DebugConsoleSheet
         Align = alClient
         PopupMenu = LocalPopup
@@ -264,7 +264,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 165
+            Height = 159
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 0
@@ -272,7 +272,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 510
-              Height = 165
+              Height = 159
               Align = alClient
               BevelInner = bvNone
               BevelOuter = bvNone
@@ -291,7 +291,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -329,7 +329,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 510
-            Height = 165
+            Height = 159
             Cursor = crHandPoint
             Align = alClient
             BevelInner = bvNone
@@ -388,7 +388,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 450
-        Height = 196
+        Height = 190
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinWidth = 28
@@ -397,13 +397,13 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 450
-          Height = 196
+          Height = 190
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
           DesignSize = (
             450
-            196)
+            190)
           object lblEvaluate: TLabel
             Left = 5
             Top = 6
@@ -438,7 +438,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 68
             Width = 450
-            Height = 128
+            Height = 122
             Align = alBottom
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
@@ -465,7 +465,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 976
-        Height = 196
+        Height = 190
         Align = alClient
         Indent = 22
         TabOrder = 0
