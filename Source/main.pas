@@ -1942,6 +1942,7 @@ begin
   ClassBrowser.TreeColors[KeywordColor] := dmMain.Cpp.KeywordAttribute.Foreground;
   ClassBrowser.TreeColors[LocalVarColor] := dmMain.Cpp.LocalVarAttri.Foreground;
   ClassBrowser.TreeColors[GlobalVarColor] := dmMain.Cpp.GlobalVarAttri.Foreground;
+  ClassBrowser.TreeColors[InheritedColor] := dmMain.Cpp.LocalVarAttri.Foreground;
   fileBrowser.Font := MainForm.Font;
   fileBrowser.Font.Color := ForegroundColor;
   fileBrowser.Color := BackgroundColor;

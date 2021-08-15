@@ -4808,6 +4808,7 @@ begin
     True,
     InheritanceList,
     inherit^._Static);
+  Result^._Inherited:=True;
 end;
 
 function TCppParser.Freeze:boolean;
