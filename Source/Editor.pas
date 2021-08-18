@@ -477,6 +477,10 @@ begin
     InitParser;
   end;
 
+  if (fParser.IsSystemHeaderFile(filename)) then begin
+    text.ReadOnly := true;
+    UpdateCaption('');
+  end;  
 
   // Function parameter tips
   fFunctionTip := TCodeToolTip.Create(Application);
@@ -1333,8 +1337,10 @@ var
 begin
   caption:=NewCaption;
   if caption = '' then begin
-    if fText.Modified then
-      caption := ExtractFileName(fFileName) + ' [*]' 
+    if fText.ReadOnly then
+      caption := ExtractFileName(fFileName) + ' [' + Lang[ID_MSG_READONLY]+ ']'
+    else if fText.Modified then
+      caption := ExtractFileName(fFileName) + ' [*]'
     else
       caption := ExtractFileName(fFileName);
   end;
@@ -1994,7 +2000,10 @@ begin
   if not Assigned(fText.Highlighter) then
     Exit;
 
-  if (Key in fText.IdentChars) then begin
+  if fText.ReadOnly then
+    Exit;
+
+  if (Key in fText.IdentChars)  then begin
     inc(fLastIdCharPressed);
     if devCodeCompletion.Enabled and devCodeCompletion.ShowCompletionWhileInput then begin
       if fLastIdCharPressed=1 then begin
@@ -2134,6 +2143,10 @@ var
   // Don't offer completion functions for plain text files
   if not Assigned(fText.Highlighter) then
     Exit;
+
+  if fText.ReadOnly then
+    Exit;
+
 
   // See if we can undo what has been inserted by HandleSymbolCompletion
   case (Key) of
