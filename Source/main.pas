@@ -4469,7 +4469,9 @@ begin
   if devExecutor.Running then begin
     if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
             mbNo], 0) <> mrYes then
-            Exit;
+      Exit
+    else
+      actStopExecuteExecute(nil);
   end;
   case GetCompileTarget of
     cttProject: begin
