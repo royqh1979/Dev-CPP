@@ -4293,6 +4293,11 @@ end;
 
 procedure TMainForm.actCompileExecute(Sender: TObject);
 begin
+  if devExecutor.Running then begin
+    if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
+            mbNo], 0) <> mrYes then
+            Exit;
+  end;
   actStopExecuteExecute(nil);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
@@ -4305,6 +4310,11 @@ end;
 
 procedure TMainForm.actRunExecute(Sender: TObject);
 begin
+  if devExecutor.Running then begin
+    if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
+            mbNo], 0) <> mrYes then
+            Exit;
+  end;
   actStopExecuteExecute(nil);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
@@ -4321,6 +4331,11 @@ end;
 
 procedure TMainForm.actCompRunExecute(Sender: TObject);
 begin
+  if devExecutor.Running then begin
+    if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
+            mbNo], 0) <> mrYes then
+            Exit;
+  end;
   actStopExecuteExecute(nil);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
@@ -4334,6 +4349,11 @@ end;
 
 procedure TMainForm.actRebuildExecute(Sender: TObject);
 begin
+  if devExecutor.Running then begin
+    if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
+            mbNo], 0) <> mrYes then
+            Exit;
+  end;
   actStopExecuteExecute(nil);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
@@ -4346,6 +4366,11 @@ end;
 
 procedure TMainForm.actCleanExecute(Sender: TObject);
 begin
+  if devExecutor.Running then begin
+    if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
+            mbNo], 0) <> mrYes then
+            Exit;
+  end;
   actStopExecuteExecute(nil);
   if fCompiler.Compiling then begin
     MessageDlg(Lang[ID_MSG_ALREADYCOMP], mtInformation, [mbOK], 0);
@@ -4441,6 +4466,11 @@ var
 begin
   if fCompiler.Compiling then
     Exit;
+  if devExecutor.Running then begin
+    if MessageDlg(Lang[ID_MSG_STOPRUNNING], mtConfirmation, [mbYes,
+            mbNo], 0) <> mrYes then
+            Exit;
+  end;
   case GetCompileTarget of
     cttProject: begin
         // Check if we enabled proper options
@@ -4710,13 +4740,13 @@ begin
           Exit;
         TCustomAction(Sender).Enabled :=
          ( (e.New and e.Text.Modified) or IsCfile(e.FileName)) and (not fCompiler.Compiling)
-          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-          and (not devExecutor.Running);
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
+//          and (not devExecutor.Running);
       end;
     cttProject: begin
         TCustomAction(Sender).Enabled := (fProject.Options.typ <> dptStat) and (not fCompiler.Compiling)
-          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-          and (not devExecutor.Running);
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
+//          and (not devExecutor.Running);
       end;
     else begin
       TCustomAction(Sender).Enabled:=False;
@@ -9455,13 +9485,13 @@ begin
           Exit;
         TCustomAction(Sender).Enabled :=
           ( (e.New and e.Text.Modified) or IsCfile(e.FileName)) and (not fCompiler.Compiling)
-          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-          and (not devExecutor.Running);
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
+//          and (not devExecutor.Running);
       end;
     cttProject: begin
         TCustomAction(Sender).Enabled := (not fCompiler.Compiling)
-          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing)
-          and (not devExecutor.Running);
+          and Assigned(devCompilerSets.CompilationSet) and (not fDebugger.Executing);
+//          and (not devExecutor.Running);
       end;
     else begin
       TCustomAction(Sender).Enabled:=False;        
