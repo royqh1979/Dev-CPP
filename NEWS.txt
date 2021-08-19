@@ -8,6 +8,7 @@ Version 6.7.5 AUGUST 2021
     - fix: show inherited members button of the class browser doesn't work
     - enhancement: open system header files in readonly mode
     - enhancement: Can run/compile/debug while there is program running. 
+    - fix: not correctly handle multiple inheritance in parser
  
 Version 6.7.4 AUGUST 2021
  
