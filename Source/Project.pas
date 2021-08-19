@@ -702,7 +702,7 @@ begin
     Result := NewUnit;
 
     // Set all properties
-    FileName := InFileName;
+    FileName := ExpandFileto(InFileName, Directory);
     New := False;
     Editor := nil;
     Folder := GetFolderPath(ParentNode);
@@ -1709,10 +1709,10 @@ begin
             // Set filename depending on C/C++ choice
             if (Length(aTemplate.Units[I].CppName) > 0) and (aTemplate.Options.useGPP) then begin
               //Editor.FileName := aTemplate.Units[I].CppName;
-              fUnits[fUnits.Count - 1].FileName := aTemplate.Units[I].CppName;
+              fUnits[fUnits.Count - 1].FileName := ExpandFileto(aTemplate.Units[I].CppName,Directory);
             end else if Length(aTemplate.Units[I].CName) > 0 then begin
               //Editor.FileName := aTemplate.Units[I].CName;
-              fUnits[fUnits.Count - 1].FileName := aTemplate.Units[I].CName;
+              fUnits[fUnits.Count - 1].FileName := ExpandFileto(aTemplate.Units[I].CName,Directory);
             end;
             // if file isn't found blindly inserts text of unit
             s2 := ValidateFile(s, devDirs.Templates);

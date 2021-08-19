@@ -1,6 +1,6 @@
 [Template]
 ver=1
-Name=Turtel Graphics
+Name=Turtle Graphics
 Icon=CL_Turtle.ico
 Description=A simple program using Turtle Graphics (https://github.com/royqh1979/libturtle)
 Category=Multimedia

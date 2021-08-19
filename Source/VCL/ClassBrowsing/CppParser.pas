@@ -1035,7 +1035,6 @@ begin
         if assigned(statement) and (Statement^._Kind = skClass) then begin
             ClassStatement._InheritanceList.Add(Statement); // next I please
             InheritClassStatement(ClassStatement,isStruct, Statement,lastInheritScopeType);
-            break;
         end;
       end;
     Inc(Index);
@@ -1976,8 +1975,8 @@ begin
                 Command := Command + fTokenizer[I]^.Text
               else
                 Command := Command + fTokenizer[I]^.Text + ' ';
-              end;
-            end else begin
+            end;
+          end else begin
               Command := TrimRight(Command);
               if (Command <> '') and
                 (
@@ -4596,7 +4595,7 @@ begin
             nil,
             False);
         end;
-        
+
       ParamStart := I + 1; // step over ,
     end;
     Inc(I);

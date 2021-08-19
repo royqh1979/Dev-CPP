@@ -1,14 +1,16 @@
-Version 6.7.6 
-
-    - fix: parse error when double quotes not correctly closed
-    - fix: parse error when single quotes not correctly closed
-    - fix: show inherited members button of the class browser doesn't work
-
 Version 6.7.5 AUGUST 2021
 
     - add: blend mode for debug cpu window
     - change: use msys2 x86_64 gcc compiler instead of TDM-GCC-64, becuause the gdb distributed with TDM can't correctly handle path with non-ascii characters.
     - fix: clear local panel when debugger stops.
+    - fix: parse error when double quotes not correctly closed
+    - fix: parse error when single quotes not correctly closed
+    - fix: show inherited members button of the class browser doesn't work
+    - enhancement: open system header files in readonly mode
+    - enhancement: Can run/compile/debug while there is program running. 
+    - fix: not correctly handle multiple inheritance in parser
+    - fix: newly created projects can't be debugged
+    - fix: typo error of turtle template
  
 Version 6.7.4 AUGUST 2021
  

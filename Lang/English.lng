@@ -999,6 +999,8 @@ Ver=1
 60038=Default Application
 60039=Can't open the icon file "%s"
 60040=Note: Dev C++ can only open icon no bigger than 48x48
+60041=Readonly
+60042=There are program running. Stop it to continue?
 
 61001=Cannot open file %s
 61002=Cannot save file %s
