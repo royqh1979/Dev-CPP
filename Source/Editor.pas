@@ -139,6 +139,7 @@ type
     fErrorList: TIntList; // syntax check errors
     fSelChanged: boolean;
     fParser : TCppParser;
+    fUseCppSyntax: boolean;
 
     procedure EditorKeyPress(Sender: TObject; var Key: Char);
     procedure EditorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -382,6 +383,7 @@ begin
   fErrorLine := -1;
   fActiveLine := -1;
   fInProject := InProject;
+  fUseCppSyntax := devEditor.UseCpp;
   if FileName <> '' then
     fFileName := Filename
   else
@@ -1554,7 +1556,7 @@ begin
       if (phrase = '') then begin
         phrase := GetWordAtPosition(fText,fText.CaretXY,pBeginPos,pEndPos, wpCompletion);
       end;
-      
+
       fCompletionBox.Search(phrase , fFileName,False);
     end else if Key = Char(VK_BACK) then begin
       fText.ExecuteCommand(ecDeleteLastChar, #0, nil); // Simulate backspace in editor
@@ -2332,6 +2334,7 @@ begin
   if fCompletionBox.Enabled then begin
     fCompletionBox.Width := devCodeCompletion.Width;
     fCompletionBox.Height := devCodeCompletion.Height;
+    fCompletionBox.UseCppKeyword := fUseCppSyntax;
 
     if not Assigned(fCompletionTimer) then
       fCompletionTimer := TTimer.Create(nil);
@@ -2485,6 +2488,7 @@ begin
   fCompletionBox.OnKeyPress := CompletionKeyPress;
   fCompletionBox.OnKeyDown := CompletionKeyDown;
   fCompletionBox.Parser := fParser;
+  fCompletionBox.useCppKeyword := fUseCppSyntax;
   fCompletionBox.Show;
 
   // Scan the current function body
@@ -3523,7 +3527,6 @@ begin
     Title := Lang[ID_NV_SAVEAS];
     Filter := BuildFilter([FLT_CS, FLT_CPPS, FLT_HEADS, FLT_RES, FLT_LUA]);
     Options := Options + [ofOverwritePrompt];
-
     // select appropriate filter
     if GetFileTyp(fFileName) in [utcHead, utcppHead] then begin
       FilterIndex := 4; // .h
@@ -3572,6 +3575,7 @@ begin
     Free;
   end;
 
+
   MainForm.FileMonitor.UnMonitor(fFileName);
   // Remove *old* file from statement list
   if assigned(fParser) then
@@ -3586,7 +3590,6 @@ begin
     MessageDlg(Lang[ID_ERR_SAVEFILE] + '"' + SaveFileName + '"', mtError, [mbOk], 0);
     Result := False;
   end;
-
   // Update highlighter
   devEditor.AssignEditor(fText, SaveFileName);
 
@@ -3647,6 +3650,14 @@ end;
     finally
       tmpList.Free;
     end;
+    case GetFileTyp(FileName) of
+      utcppSrc:
+        fUseCppSyntax := True;
+      utCSrc:
+        fUseCppSyntax := False;
+      else
+        fUseCppSyntax := devEditor.UseCpp;
+    end;
     fLastIdCharPressed := 0;
   end;
 
@@ -3681,6 +3692,16 @@ end;
     finally
       tmpList.Free;
     end;
+
+    case GetFileTyp(FileName) of
+      utcppSrc:
+        fUseCppSyntax := True;
+      utCSrc:
+        fUseCppSyntax := False;
+      else
+        fUseCppSyntax := devEditor.UseCpp;      
+    end;
+
     fLastIdCharPressed := 0;
   end;
 

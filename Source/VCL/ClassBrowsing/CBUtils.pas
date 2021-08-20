@@ -228,6 +228,7 @@ var
   CppDirectiveList : TStringList;
   JavadocTags: TStringList;
   CppKeywordsList:TStringList;
+  CKeywordsList: TStringList;
   CppKeywords : TStringHash;
   CppTypeKeywords : TStringHash;
   STLPointers : TStringHash;
@@ -738,6 +739,7 @@ begin
   STLPointers := TStringHash.Create();
   CppDirectiveList := TStringList.Create();
   JavadocTags := TStringList.Create();
+  CkeywordsList := TStringList.Create;
   { we use TSkipType value to tell cpppaser how to handle this keyword }
 
   // skip itself
@@ -1016,6 +1018,42 @@ begin
   // nullptr is value
   CppKeywordsList.Add('nullptr');
 
+  {CKeywordsList}
+  CKeywordsList.Add('auto');
+  CKeywordsList.Add('break');
+  CKeywordsList.Add('case');
+  CKeywordsList.Add('char');
+  CKeywordsList.Add('const');
+  CKeywordsList.Add('continue');
+  CKeywordsList.Add('default');
+  CKeywordsList.Add('do');
+  CKeywordsList.Add('double');
+  CKeywordsList.Add('else');
+  CKeywordsList.Add('enum');
+  CKeywordsList.Add('extern');
+  CKeywordsList.Add('float');
+  CKeywordsList.Add('for');
+  CKeywordsList.Add('goto');
+  CKeywordsList.Add('if');
+  CKeywordsList.Add('inline');
+  CKeywordsList.Add('int');
+  CKeywordsList.Add('long');
+  CKeywordsList.Add('register');
+  CKeywordsList.Add('restrict');
+  CKeywordsList.Add('return');
+  CKeywordsList.Add('short');
+  CKeywordsList.Add('signed');
+  CKeywordsList.Add('sizeof');
+  CKeywordsList.Add('static');
+  CKeywordsList.Add('struct');
+  CKeywordsList.Add('switch');
+  CKeywordsList.Add('typedef');
+  CKeywordsList.Add('union');
+  CKeywordsList.Add('unsigned');
+  CKeywordsList.Add('void');
+  CKeywordsList.Add('volatile');
+  CKeywordsList.Add('while');
+
   {STL Containers}
   STLContainers.Add('std::array',1);
   STLContainers.Add('std::vector',1);
@@ -1098,6 +1136,7 @@ begin
   STLPointers.Free;
   CppDirectiveList.Free;
   JavadocTags.Free;
+  CKeywordsList.Free;
 end;
 
 end.

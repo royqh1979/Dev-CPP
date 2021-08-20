@@ -64,6 +64,7 @@ type
     fCriticalSection: TCriticalSection;
     fParserSerialId: String;
     fSortByScope: boolean;
+    fUseCppKeyword: boolean;
     procedure GetCompletionFor(FileName,Phrase: AnsiString; Line:integer);
     procedure FilterList(const Member: AnsiString);
     procedure SetPosition(Value: TPoint);
@@ -93,6 +94,7 @@ type
     property ShowKeywords: boolean read fShowKeywords write fShowKeywords;
     property IgnoreCase: boolean read fIgnoreCase write fIgnoreCase;
     property SortByScope: boolean read fSortByScope write fSortByScope;
+    property UseCppKeyword: boolean read fUseCppKeyword write fUseCppKeyword;
   published
     property ShowCount: integer read fShowCount write fShowCount;
     property ShowCodeIns: boolean read fShowCodeIns write fShowCodeIns;
@@ -133,6 +135,8 @@ begin
   inherited Create(AOwner);
 
   fShowKeywords:=True;
+
+  fUseCppKeyword:=True;
 
   fCodeInsStatements:=TList.Create;
 
@@ -305,13 +309,24 @@ begin
 
     if fShowKeywords then begin
       //add keywords
-      for i:=0 to CppKeywordsList.Count-1 do begin
-        new(codeInStatement);
-        codeInStatement^._Command := CppKeywordsList[i];
-        codeInStatement^._Kind := skKeyword;
-        codeInStatement^._FullName := CppKeywordsList[i];
-        fCodeInsStatements.Add(pointer(codeInStatement));
-        fFullCompletionStatementList.Add(pointer(codeInStatement));
+      if fUseCppKeyword then begin
+        for i:=0 to CppKeywordsList.Count-1 do begin
+          new(codeInStatement);
+          codeInStatement^._Command := CppKeywordsList[i];
+          codeInStatement^._Kind := skKeyword;
+          codeInStatement^._FullName := CppKeywordsList[i];
+          fCodeInsStatements.Add(pointer(codeInStatement));
+          fFullCompletionStatementList.Add(pointer(codeInStatement));
+        end;
+      end else begin
+        for i:=0 to CKeywordsList.Count-1 do begin
+          new(codeInStatement);
+          codeInStatement^._Command := CKeywordsList[i];
+          codeInStatement^._Kind := skKeyword;
+          codeInStatement^._FullName := CKeywordsList[i];
+          fCodeInsStatements.Add(pointer(codeInStatement));
+          fFullCompletionStatementList.Add(pointer(codeInStatement));
+        end;
       end;
     end;
 
@@ -763,7 +778,7 @@ begin
         try
           CodeComplForm.lbCompletion.Items.Clear;
 
-        // Only slow one hundred statements...
+        // Only show one hundred statements...
           for I := 0 to min(fShowCount, fCompletionStatementList.Count - 1) do begin
             CodeComplForm.lbCompletion.Items.AddObject('', fCompletionStatementList[I]);
           end;
