@@ -1,3 +1,4 @@
+#define FREEGLUT_STATIC
 #include <stdlib.h>
 #include <GL/glut.h>
 

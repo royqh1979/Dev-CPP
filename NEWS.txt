@@ -11,6 +11,10 @@ Version 6.7.5 AUGUST 2021
     - fix: not correctly handle multiple inheritance in parser
     - fix: newly created projects can't be debugged
     - fix: typo error of turtle template
+    - fix: crash when try to start debugger while the debugger executable dosen't exist
+    - fix: non-cpp project file will make generated makefile error
+    - fix: project created by GLUT(freeglut) template won't compile
+    - add: GLFW/GLEW project template 
  
 Version 6.7.4 AUGUST 2021
  
