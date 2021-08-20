@@ -243,7 +243,7 @@ begin
 
     // Only process source files
     RelativeName := ExtractRelativePath(fProject.FileName, fProject.Units[i].FileName);
-    if not (GetFileTyp(RelativeName) in [utcHead, utcppHead, utResSrc]) then begin
+    if not (GetFileTyp(RelativeName) in [utcHead, utcppHead, utResSrc, utOther]) then begin
       if fProject.Options.ObjectOutput <> '' then begin
 
         // ofile = C:\MyProgram\obj\main.o
