@@ -4521,6 +4521,8 @@ begin
         filepath := fProject.Executable;
 
         fDebugger.Start;
+        if not fDebugger.Executing then
+          Exit;
         fDebugger.SendCommand('file', '"' + StringReplace(filepath, '\', '/', [rfReplaceAll]) + '"');
 
         if fProject.Options.typ = dptDyn then
@@ -4601,6 +4603,8 @@ begin
           filepath := ChangeFileExt(e.FileName, EXE_EXT);
 
           fDebugger.Start;
+          if not fDebugger.Executing then
+            Exit;
           fDebugger.SendCommand('file', '"' + StringReplace(filepath, '\', '/', [rfReplaceAll]) + '"');
         end;
       end;
@@ -6983,6 +6987,8 @@ begin
         s := IntToStr(integer(ProcessListForm.ProcessList[ProcessListForm.ProcessCombo.ItemIndex]));
 
         fDebugger.Start;
+        if not fDebugger.Executing then
+          Exit;
         fDebugger.SendCommand('file', '"' + StringReplace(fProject.Executable, '\', '\\', [rfReplaceAll]) + '"');
         fDebugger.SendCommand('attach', s);
       end

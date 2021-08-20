@@ -180,15 +180,16 @@ begin
       GDBFile := CompilerSet.BinDir[0] + pd + CompilerSet.gdbName;
       if not FileExists(GDBFile) then begin
         LogError('Debugger.pas TDebugger.Start',Format('Can''t find GDB in : %s',[GDBFile]));
-        MessageDlg(Lang[ID_ERR_GDBNOTEXIST], mtError, [mbOK], 0);
+        Executing := false;
+        MessageDlg(Format(Lang[ID_ERR_GDBNOTEXIST],[GDBFile]), mtError, [mbOK], 0);
         Exit;
       end;
       GDBCommand := '"' + GDBFile + '"' + ' --annotate=2 --silent';
       if not CreateProcess(nil, PAnsiChar(GDBCommand), nil, nil, true, CREATE_NEW_CONSOLE, nil, nil, si, pi) then begin
         LogError('Debugger.pas TDebugger.Start',Format('Create GDB process failed: %s',[SysErrorMessage(GetLastError)]));
+        Executing := false;
         MessageDlg(Format(Lang[ID_ERR_ERRORLAUNCHINGGDB], [GDBFile, SysErrorMessage(GetLastError)]), mtError,
         [mbOK], 0);
-        Executing := false;
         Exit;
       end;
     end else
