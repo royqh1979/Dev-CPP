@@ -1,3 +1,7 @@
+gcc -fpreprocessed -dD -E ege.h
+remove all comments in ege.h
+
+
 Redesign Debug UI:
 1. display Local variables (info locals)/ global variables (info variables)/ parameters(info args) (wont do )
 2. display call stack (bt full) (done )
