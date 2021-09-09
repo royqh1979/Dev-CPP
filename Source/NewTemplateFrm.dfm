@@ -51,7 +51,7 @@ object NewTemplateForm: TNewTemplateForm
         Left = 138
         Top = 44
         Width = 277
-        Height = 21
+        Height = 24
         TabOrder = 1
         Text = 'txtDescr'
       end
